@@ -1,0 +1,22 @@
+{
+  "name": "@indiafoss/android",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync": "cap sync android",
+    "add:android": "cap add android",
+    "build": "cap sync android",
+    "typecheck": "tsc --noEmit -p .",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.5.1",
+    "@capacitor/core": "^8.5.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.1",
+    "@indiafoss/web": "workspace:*",
+    "typescript": "5.9.3"
+  }
+}

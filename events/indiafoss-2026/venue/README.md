@@ -12,11 +12,11 @@ The real venue floor plan, supplied as an Inkscape SVG.
 
 The SVG contains both floors as separate layers plus shared geometry:
 
-| Layer | Content |
-| --- | --- |
+| Layer          | Content                                                                                                                                          |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `Ground Floor` | Hall 1 (750), Hall 2 (250), Hall 3 (120), Sponsor Booths (16, numbered 1–16), HW Showcase, FOSS U Help Desk, Water Station, lunch area, entrance |
-| `First Floor` | Hall 1 (200), Room 1 (100), Room 2 (30), Room 3 (30), Silent Room, Community Booths, Water Station |
-| shared | venue outline, rooms (lunch area), stairs, podium |
+| `First Floor`  | Hall 1 (200), Room 1 (100), Room 2 (30), Room 3 (30), Silent Room, Community Booths, Water Station                                               |
+| shared         | venue outline, rooms (lunch area), stairs, podium                                                                                                |
 
 Each floor also carries a small legend (Wall / Door / Entrance / Podium / Stairs / …).
 

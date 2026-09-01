@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+.svelte-kit/
+pnpm-lock.yaml
+coverage/
+playwright-report/
+test-results/
+apps/android/capacitor/android/
+*.svg
+*.json

@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+build/
+.svelte-kit/
+.vite/
+
+# Test / coverage
+coverage/
+playwright-report/
+test-results/
+
+# Capacitor / Android generated output
+apps/android/capacitor/android/
+apps/android/capacitor/ios/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

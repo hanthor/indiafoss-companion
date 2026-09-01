@@ -1,0 +1,14 @@
+packages:
+  - "apps/*"
+  - "apps/android/capacitor"
+  - "packages/*"
+  - "tools/*"
+
+# pnpm 11's supply-chain gate: newly published packages are blocked until 1
+# day old by default. We are actively using fresh releases (e.g. svelte 5.x),
+# so disable it. See https://pnpm.io/settings/dependency-resolution
+minimumReleaseAge: 0
+
+# Allow native/tooling packages to run their install scripts.
+allowBuilds:
+  esbuild: true
