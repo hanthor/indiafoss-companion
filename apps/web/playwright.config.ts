@@ -1,12 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:4173';
+
 export default defineConfig({
   testDir: './tests',
   fullyParallel: true,
   retries: 1,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:4173',
+    baseURL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -15,10 +17,14 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'pnpm exec sirv build --single --port 4173',
-    port: 4173,
-    reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
-  },
+  ...(process.env.PLAYWRIGHT_BASE_URL
+    ? {}
+    : {
+        webServer: {
+          command: 'pnpm exec sirv build --single --port 4173',
+          port: 4173,
+          reuseExistingServer: !process.env.CI,
+          timeout: 30_000,
+        },
+      }),
 });

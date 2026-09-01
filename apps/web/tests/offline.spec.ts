@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { appUrl } from './app-url.js';
 
 /**
  * Offline E2E gate (§52) — a release is not eligible if this fails:
@@ -15,7 +16,7 @@ import { expect, test } from '@playwright/test';
  */
 test('offline gate: full attendee flow with network disabled', async ({ page, context }) => {
   // 1. Online: download the event.
-  await page.goto('/');
+  await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
 
   // 2–3. Offline-ready: wait for the service worker to activate and control
@@ -50,7 +51,7 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
 
   // 6. Browse schedule.
-  await page.goto('/schedule');
+  await page.goto(appUrl('/schedule'));
   await expect(page.getByRole('tab', { name: /Day 1/ })).toBeVisible();
   await expect(page.getByText(/Registrations and Breakfast/).first()).toBeVisible();
 
@@ -59,21 +60,21 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await expect(page.getByRole('article').first()).toBeVisible();
 
   // 8. Open a session detail.
-  await page.goto('/activity/act-c8ak0iov2l');
+  await page.goto(appUrl('/activity/act-c8ak0iov2l'));
   await expect(page.getByRole('heading', { name: /First Step into Open Source/ })).toBeVisible();
 
   // 9. Modify Elo ranking.
-  await page.goto('/plan/rank');
+  await page.goto(appUrl('/plan/rank'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await page.getByRole('button', { name: 'Definitely A' }).first().click();
   await page.waitForTimeout(200);
 
   // 10. Regenerate the itinerary.
-  await page.goto('/plan');
+  await page.goto(appUrl('/plan'));
   await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
 
   // 11. Map + route between two rooms.
-  await page.goto('/map');
+  await page.goto(appUrl('/map'));
   await page.getByLabel('You are at').selectOption('audi-1');
   await page.getByLabel('Destination').selectOption('devroom-2');
   await expect(page.getByText(/min walk/)).toBeVisible();

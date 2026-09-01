@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { appUrl } from './app-url.js';
 
 /** A time-travelled instant when a session is happening (developer time, §13). */
 const DURING = '2025-09-20T10:20:00+05:30';
-const NOW_URL = `/now?event=indiafoss-2025&now=${encodeURIComponent(DURING)}`;
+const NOW_URL = appUrl(`/now?event=indiafoss-2025&now=${encodeURIComponent(DURING)}`);
 
 test.beforeEach(async ({ page }) => {
   // The event bundle is fetched from a static asset and cached in IndexedDB.
-  await page.goto('/');
+  await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
 });
 
@@ -16,7 +17,7 @@ test('home shows event facts', async ({ page }) => {
 });
 
 test('schedule lists sessions grouped by time', async ({ page }) => {
-  await page.goto('/schedule');
+  await page.goto(appUrl('/schedule'));
   await expect(page.getByRole('tab', { name: /Day 1/ })).toBeVisible();
   await expect(page.getByRole('tab', { name: /Day 2/ })).toBeVisible();
   // Day 1 has breakfast/registrations sessions.
@@ -24,7 +25,7 @@ test('schedule lists sessions grouped by time', async ({ page }) => {
 });
 
 test('schedule search narrows results', async ({ page }) => {
-  await page.goto('/schedule');
+  await page.goto(appUrl('/schedule'));
   await page.getByPlaceholder('Search talks, speakers, tags…').fill('AOSP');
   await expect(page.getByText(/1 session|sessions/).first()).toBeVisible();
   // Searching for AOSP should surface the AOSP devroom sessions.
@@ -33,7 +34,7 @@ test('schedule search narrows results', async ({ page }) => {
 });
 
 test('activity detail shows speakers and toggles bookmark', async ({ page }) => {
-  await page.goto('/activity/act-c8ak0iov2l');
+  await page.goto(appUrl('/activity/act-c8ak0iov2l'));
 
   await expect(page.getByRole('heading', { name: /First Step into Open Source/ })).toBeVisible();
   const bookmark = page.getByRole('button', { name: /Bookmark/ });
@@ -54,7 +55,7 @@ test('now screen uses developer time to show current session and next', async ({
 });
 
 test('explore search responds and renders results', async ({ page }) => {
-  await page.goto('/explore');
+  await page.goto(appUrl('/explore'));
   await expect(page.getByText('Type at least two characters to search.')).toBeVisible();
   await page.getByLabel('Search').fill('kernel');
   await expect(page.getByRole('status').first()).toContainText('result');
@@ -63,7 +64,7 @@ test('explore search responds and renders results', async ({ page }) => {
 });
 
 test('elo ranking compares two sessions and advances', async ({ page }) => {
-  await page.goto('/plan/rank');
+  await page.goto(appUrl('/plan/rank'));
   // Two candidate cards appear.
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await expect(page.getByTestId('candidate-b')).toBeVisible();
@@ -93,7 +94,7 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
 });
 
 test('plan generates a feasible itinerary with backups', async ({ page }) => {
-  await page.goto('/plan');
+  await page.goto(appUrl('/plan'));
   // The solver runs for Day 1 and renders an ordered itinerary.
   await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
   const count = await page.locator('.itinerary li').count();
@@ -104,7 +105,7 @@ test('plan generates a feasible itinerary with backups', async ({ page }) => {
 });
 
 test('map routes between two rooms offline-style', async ({ page }) => {
-  await page.goto('/map');
+  await page.goto(appUrl('/map'));
   await expect(page.getByRole('status').or(page.getByText('Loading venue')).first())
     .toBeVisible({ timeout: 5000 })
     .catch(() => {});
@@ -120,7 +121,7 @@ test('map routes between two rooms offline-style', async ({ page }) => {
 
 test('now screen shows leave-by with a known location', async ({ page }) => {
   const DURING = '2025-09-20T10:20:00+05:30';
-  await page.goto(`/now?now=${encodeURIComponent(DURING)}&at=audi-1`);
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(DURING)}&at=audi-1`));
   // With a known location the NEXT card computes walking time + leave-by.
   await expect(page.getByText(/Estimated walk:/)).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText(/Leave by/)).toBeVisible();
@@ -130,7 +131,7 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
 });
 
 test('booth directory lists and schedules a visit', async ({ page }) => {
-  await page.goto('/explore/booths');
+  await page.goto(appUrl('/explore/booths'));
   await expect(page.getByRole('status')).toContainText('booths');
   await page.getByRole('link', { name: /KDE Community/ }).click();
   await page.getByRole('button', { name: 'Schedule 30 min' }).click();
