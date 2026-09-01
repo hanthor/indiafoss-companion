@@ -68,3 +68,76 @@ offline.
 explicit selection of email/phone/Matrix/socials, escaping of reserved
 characters, Unicode preservation, empty (nothing-selected) cards, and omission
 of whitespace-only values.
+
+# QR scanning: contacts and venue locations
+
+The Scan screen (`/scan`) lazily loads a QR engine to read two payload kinds and
+always shows a confirmation preview before importing anything.
+
+## Supported payloads
+
+- **Location marker:** `indiafoss://location/<location-id>`. On confirm, the
+  scanned id is written to the local `current-location` setting via
+  `setCurrentLocation`, which drives leave-by / routing on the Now screen.
+- **Contact card:** a vCard 3.0 payload (as produced by the Connect screen).
+  On confirm, the received card is offered as a local `.vcf` download. It is
+  never merged into the attendee's own profile automatically.
+
+## Parsing and safety (`packages/model/src/scan.ts`)
+
+`parseScannedPayload` is a pure classifier that returns a discriminated result
+(`location` | `contact` | `error`) so the UI can preview before mutating state:
+
+- **Empty** input is rejected.
+- **Oversized** input (> `MAX_SCAN_PAYLOAD_BYTES` = 8 KiB UTF-8) is rejected
+  before any parsing, guarding against QR-bomb payloads.
+- **Unsupported** payloads (non-IndiaFOSS schemes, non-vCard text, or an
+  `indiafoss://` link that is not a `location/` link) are rejected.
+- **Malformed** location links or unreadable vCards are rejected.
+- The classifier keys off the opening token (`indiafoss://` vs `BEGIN:VCARD`),
+  so a payload can only ever resolve to one kind; there is no silent guessing.
+- `parseVCard` unfolds RFC 6350 folded lines, unescapes `\,`, `\;`, `\n`,
+  reads `FN`/`N`/`ORG`/`EMAIL`/`TEL`/`URL`/`X-FOSSUNITED-PROFILE`/`X-MATRIX-ID`/
+  `IMPP:matrix:`/`X-SOCIALPROFILE`, preserves Unicode, and returns `null` for a
+  card with no usable identity. It round-trips the Connect screen's output.
+
+Unit coverage lives in `packages/model/src/scan.test.ts`; the manual-entry
+fallback, preview gating, import, and junk rejection have Playwright coverage in
+`apps/web/tests/app.spec.ts`.
+
+## Camera and permissions
+
+- The QR engine (`qr-scanner`) is dynamically imported only when the attendee
+  taps **Start camera**, so no camera permission is requested on page load.
+- `qr-scanner` prefers the native `BarcodeDetector` when available and falls
+  back to a bundled WASM worker (loaded as a Blob, no separate asset), so
+  scanning works offline once the PWA shell is cached.
+- The camera stream is stopped and the scanner destroyed when leaving the page
+  or when a payload is captured.
+- Permission-denied and no-camera cases surface a message pointing at the
+  manual fallback.
+
+## Manual / keyboard fallback
+
+Every scan path has a no-camera equivalent:
+
+- **Location:** a `<select>` populated from the venue metadata; choosing an
+  entry and pressing Preview runs the same `indiafoss://location/<id>` path.
+- **Contact:** a textarea to paste a vCard, which runs the same parser and
+  preview.
+
+## Web/PWA vs Android deep links
+
+- **In-app scanning (both platforms):** identical behaviour. The `/scan` route
+  parses payloads locally and previews before applying.
+- **Web/PWA URL deep links:** the Now screen already accepts
+  `indiafoss://location/<id>` / `?at=<id>` via `locationIdFromDeepLink`
+  (`apps/web/src/lib/location.svelte.ts`), so a scanned or shared link resolves
+  to the same current-location state.
+- **Android custom-scheme deep links:** the Capacitor wrapper can register the
+  `indiafoss` scheme so an OS-level scan of `indiafoss://location/<id>` opens
+  the app on the location. Contact vCards are handled in-app rather than via a
+  custom scheme, because `.vcf` is already a first-class OS import type — an
+  attendee can scan with any camera app and import the card through the system
+  contacts flow, matching the privacy model (the QR encodes the card itself,
+  not a URL).

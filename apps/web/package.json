@@ -23,6 +23,7 @@
     "@indiafoss/solver": "workspace:*",
     "@indiafoss/storage": "workspace:*",
     "@indiafoss/venue": "workspace:*",
+    "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {

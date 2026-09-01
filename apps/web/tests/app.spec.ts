@@ -162,3 +162,40 @@ test('connect generates a local QR card and downloads a vCard', async ({ page })
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.vcf$/);
 });
+
+test('scan: manual location entry previews and sets the current location', async ({ page }) => {
+  await page.goto(appUrl('/scan'));
+  await expect(page.getByRole('heading', { name: 'Scan a code' })).toBeVisible();
+  // Choose a venue location via the keyboard/manual fallback.
+  const select = page.getByLabel('Set current location');
+  await expect(select.locator('option').nth(1)).toBeAttached();
+  const value = await select.locator('option').nth(1).getAttribute('value');
+  await select.selectOption(value!);
+  await page.getByRole('button', { name: 'Preview', exact: true }).click();
+  // Nothing is applied until the preview is confirmed.
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await page.getByRole('button', { name: 'Set location' }).click();
+  await expect(page.getByRole('status')).toContainText(/Location set to/);
+});
+
+test('scan: pasting a vCard previews the shared fields and rejects junk', async ({ page }) => {
+  await page.goto(appUrl('/scan'));
+  const vcard = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:Riya Verma', 'ORG:KDE', 'END:VCARD'].join(
+    '\r\n',
+  );
+  await page.getByLabel('Paste a vCard').fill(vcard);
+  await page.getByRole('button', { name: 'Preview contact' }).click();
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await expect(page.getByText('Riya Verma')).toBeVisible();
+  await expect(page.getByText('KDE')).toBeVisible();
+  // Saving downloads the received card locally.
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save contact' }).click();
+  expect((await download).suggestedFilename()).toMatch(/\.vcf$/);
+
+  // A junk paste is rejected safely, with no preview.
+  await page.getByLabel('Paste a vCard').fill('not a vcard at all');
+  await page.getByRole('button', { name: 'Preview contact' }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toHaveCount(0);
+});

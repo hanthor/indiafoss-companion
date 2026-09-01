@@ -169,4 +169,17 @@ export interface EventReference {
 
 export { attendeeProfileToVCard, DEFAULT_ATTENDEE_SHARE_SELECTION } from './contact.js';
 export type { AttendeeProfile, AttendeeShareSelection, AttendeeSocial } from './contact.js';
+export {
+  MAX_SCAN_PAYLOAD_BYTES,
+  parseLocationPayload,
+  parseScannedPayload,
+  parseVCard,
+} from './scan.js';
+export type {
+  ScannedContact,
+  ScannedLocation,
+  ScannedPayload,
+  ScanError,
+  ScanErrorReason,
+} from './scan.js';
 export { collectBundleIssues, isValidEventBundle } from './validation.js';

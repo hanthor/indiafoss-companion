@@ -242,6 +242,7 @@
     unless you intentionally want to disclose them. Scanning is not identity verification.
   </p>
   <p><a href={resolve('/settings')}>Privacy and app settings →</a></p>
+  <p><a href={resolve('/scan')}>Scan someone else's code →</a></p>
 </EventGate>
 
 <style>
