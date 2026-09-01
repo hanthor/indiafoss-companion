@@ -6,7 +6,7 @@
   "scripts": {
     "sync": "cap sync android",
     "add:android": "cap add android",
-    "build": "cap sync android",
+    "build": "cap add android >/dev/null 2>&1 || true; cap sync android",
     "typecheck": "tsc --noEmit -p .",
     "lint": "eslint ."
   },
