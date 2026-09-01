@@ -144,6 +144,10 @@ export class CompanionStorage {
     await this.db.comparisons.put(record);
   }
 
+  async deleteComparison(id: string): Promise<void> {
+    await this.db.comparisons.delete(id);
+  }
+
   async listComparisons(): Promise<ComparisonRecord[]> {
     return this.db.comparisons.orderBy('createdAt').toArray();
   }

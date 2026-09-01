@@ -93,6 +93,42 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
   expect(stillGoing || done).toBe(true);
 });
 
+test('ranking supports keyboard choices and undo', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank'));
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+  await expect(page.getByText(/0 comparison|% resolved/)).toBeVisible();
+
+  // Keyboard choice via number key advances the comparison count.
+  await page.keyboard.press('1');
+  await page.waitForTimeout(200);
+  await expect(page.getByText(/1 comparison/)).toBeVisible();
+
+  // Undo becomes enabled after a choice and reverses the last comparison.
+  const undo = page.getByRole('button', { name: /Undo last/ });
+  await expect(undo).toBeEnabled();
+  await undo.click();
+  await page.waitForTimeout(100);
+  await expect(undo).toBeDisabled();
+
+  // Arrow keys act as swipe-equivalents without a pointer.
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(200);
+  await expect(page.getByText(/1 comparison/)).toBeVisible();
+});
+
+test('ranking respects reduced motion while still recording choices', async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(appUrl('/'));
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await page.goto(appUrl('/plan/rank'));
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+  await page.getByRole('button', { name: 'Definitely A' }).first().click();
+  await page.waitForTimeout(200);
+  await expect(page.getByText(/1 comparison/)).toBeVisible();
+  await context.close();
+});
+
 test('plan generates a feasible itinerary with backups', async ({ page }) => {
   await page.goto(appUrl('/plan'));
   // The solver runs for Day 1 and renders an ordered itinerary.
