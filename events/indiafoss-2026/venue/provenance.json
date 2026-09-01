@@ -1,0 +1,16 @@
+{
+  "kind": "venue",
+  "eventId": "indiafoss-2026",
+  "source": "user-supplied Inkscape SVG (NIMHANS Convention Centre floor plan)",
+  "sourceFilename": "both--floor-plan-expo.svg",
+  "receivedAt": "2026-09-01",
+  "rawFile": "../raw/venue-both-floor-plan.svg",
+  "rawSha256": "d5f0b5758b01f4f57375f3a37735ba8d2a8b4bbe2a59be815a0f541afda589bb",
+  "cleanedSha256": "5acf8d9cb8bcc2d96c1d70cbf56827c5a5d714197093fb5dc99cb5712b4c8f97",
+  "cleanup": [
+    "removed 16 duplicate '12 ft x 6 ft' dimension text annotations",
+    "fixed 'Lunch Areaa' -> 'Lunch Area'",
+    "straight quotes -> typographic quotes in 'Say FOSS and Enter'"
+  ],
+  "notes": "Duplicate element IDs remain and must be resolved before routing-graph use."
+}
