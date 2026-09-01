@@ -145,3 +145,20 @@ test('activity calendar action downloads a portable ICS file', async ({ page }) 
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.ics$/);
 });
+
+test('connect generates a local QR card and downloads a vCard', async ({ page }) => {
+  await page.goto(appUrl('/connect'));
+  await expect(page.getByRole('heading', { name: 'Share your contact' })).toBeVisible();
+  await page.getByLabel('Full name').fill('Test Attendee');
+  await page.getByLabel('FOSS United profile URL').fill('https://fossunited.org/u/test_attendee');
+  await expect(page.getByText('Profile handle: @test_attendee')).toBeVisible();
+  await page.getByRole('button', { name: /Generate my QR card/ }).click();
+  // The QR image is rendered from the local vCard payload.
+  await expect(page.getByRole('img', { name: /contact details as a QR code/ })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText(/generated locally/);
+  // The .vcf can be downloaded on-device.
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download .vcf' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/\.vcf$/);
+});
