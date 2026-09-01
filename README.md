@@ -138,6 +138,7 @@ just sbom         # generate a CycloneDX SBOM (pnpm-aware)
 - [Calendar export](docs/calendar-export.md)
 - [Privacy](docs/privacy.md)
 - [Release procedures](docs/release.md)
+- [Architecture decisions (ADRs)](docs/adr/README.md)
 - [Implementation phases](docs/phases.md)
 
 ## License
