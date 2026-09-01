@@ -220,6 +220,17 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
   await expect(page.getByLabel('Destination')).toHaveValue(/devroom|audi|room|workshops|bof/);
 });
 
+test('routing profile is configurable and persists across reload', async ({ page }) => {
+  await page.goto(appUrl('/settings'));
+  await expect(page.getByRole('heading', { name: 'Getting around' })).toBeVisible();
+  // Switch to the step-free (accessible) profile.
+  await page.getByRole('radio', { name: /Step-free/ }).check();
+  await expect(page.getByRole('radio', { name: /Step-free/ })).toBeChecked();
+  // The choice survives a reload (persisted locally).
+  await page.reload();
+  await expect(page.getByRole('radio', { name: /Step-free/ })).toBeChecked({ timeout: 10_000 });
+});
+
 test('booth directory lists and schedules a visit', async ({ page }) => {
   await page.goto(appUrl('/explore/booths'));
   await expect(page.getByRole('status')).toContainText('booths');
