@@ -1,14 +1,20 @@
 <script lang="ts">
   import '../app.css';
+  import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
   import { registerSW } from 'virtual:pwa-register';
+  import { hydratePreferences } from '$lib/prefs.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
   const brandHref = resolve('/');
 
   registerSW({ immediate: true });
+
+  onMount(() => {
+    void hydratePreferences();
+  });
 
   function isActive(href: string): boolean {
     const path = page.url.pathname;

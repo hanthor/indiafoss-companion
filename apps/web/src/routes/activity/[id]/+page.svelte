@@ -1,0 +1,215 @@
+<script lang="ts">
+  import { resolve } from '$app/paths';
+  import { page } from '$app/state';
+  import { formatDayLabel, formatTime } from '@indiafoss/schedule';
+  import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
+  import { eventState } from '$lib/event.svelte';
+  import EventGate from '$lib/components/EventGate.svelte';
+  import TypeBadge from '$lib/components/TypeBadge.svelte';
+
+  const activityId = $derived(page.params.id);
+  const bundle = $derived(eventState.bundle!);
+
+  const activity = $derived(bundle?.activities.find((a) => a.id === activityId) ?? null);
+  const location = $derived(bundle?.locations.find((l) => l.id === activity?.locationId));
+  const track = $derived(bundle?.tracks.find((t) => t.id === activity?.trackId));
+  const speakers = $derived(
+    activity?.speakerIds
+      .map((id) => bundle.people.find((p) => p.id === id))
+      .filter((p): p is NonNullable<typeof p> => Boolean(p)) ?? [],
+  );
+
+  const disposition = $derived(activity ? dispositionOf(activity.id) : 'normal');
+  const isBookmarked = $derived(activity ? bookmarked(activity.id) : false);
+
+  function onDisposition(value: 'must-attend' | 'not-interested' | 'watch-later' | 'normal') {
+    if (activity) void setDisposition(activity.id, value);
+  }
+</script>
+
+<EventGate>
+  {#if !activity}
+    <p>Session not found.</p>
+  {:else}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={resolve('/schedule')}>Schedule</a>
+    </nav>
+
+    <header>
+      <h1>{activity.title}</h1>
+      <p class="muted">
+        <TypeBadge type={activity.type} />
+        {#if activity.cancelled}<span class="cancel">cancelled</span>{/if}
+      </p>
+      {#if activity.subtitle}<p class="subtitle">{activity.subtitle}</p>{/if}
+    </header>
+
+    <section class="facts">
+      {#if activity.start && activity.end}
+        <p>
+          <strong>{formatDayLabel(activity.start.slice(0, 10))}</strong> · {formatTime(
+            activity.start,
+          )}–{formatTime(activity.end)}
+        </p>
+      {/if}
+      {#if location}
+        <p>
+          <strong>{location.name}</strong>
+          {#if track && track.name !== location.name}
+            · {track.name}{/if}
+        </p>
+      {/if}
+    </section>
+
+    <section class="actions" aria-label="Personal preferences (§17)">
+      <button
+        class:active={isBookmarked}
+        aria-pressed={isBookmarked}
+        onclick={() => toggleBookmark(activity.id)}
+      >
+        ☆ Bookmark
+      </button>
+      <button
+        class:active={disposition === 'must-attend'}
+        onclick={() => onDisposition(disposition === 'must-attend' ? 'normal' : 'must-attend')}
+      >
+        ★ Must attend
+      </button>
+      <button
+        class:active={disposition === 'not-interested'}
+        onclick={() =>
+          onDisposition(disposition === 'not-interested' ? 'normal' : 'not-interested')}
+      >
+        × Not interested
+      </button>
+      <button
+        class:active={disposition === 'watch-later'}
+        onclick={() => onDisposition(disposition === 'watch-later' ? 'normal' : 'watch-later')}
+      >
+        ▸ Watch later
+      </button>
+    </section>
+
+    {#if speakers.length > 0}
+      <section>
+        <h2>Speakers</h2>
+        <ul class="speakers">
+          {#each speakers as speaker (speaker.id)}
+            <li>
+              <a href={resolve(`/speaker/${speaker.id}`)}>{speaker.name}</a>
+              {#if speaker.bio}<p class="muted small">{speaker.bio.slice(0, 140)}…</p>{/if}
+            </li>
+          {/each}
+        </ul>
+      </section>
+    {/if}
+
+    {#if activity.description}
+      <section>
+        <h2>About</h2>
+        <p>{activity.description}</p>
+      </section>
+    {/if}
+
+    {#if activity.tags.length > 0}
+      <section class="tags">
+        {#each activity.tags as tag (tag)}<span class="tag">{tag}</span>{/each}
+      </section>
+    {/if}
+
+    {#if activity.recordingUrl || activity.slidesUrl}
+      <section class="media">
+        <!-- external URLs, not SvelteKit routes -->
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+        {#if activity.recordingUrl}<a href={activity.recordingUrl} rel="noreferrer"
+            >Watch recording</a
+          >{/if}
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+        {#if activity.slidesUrl}<a href={activity.slidesUrl} rel="noreferrer">Slides</a>{/if}
+      </section>
+    {/if}
+  {/if}
+</EventGate>
+
+<style>
+  .crumbs a {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+  }
+  h1 {
+    margin: 0.4rem 0 0.3rem;
+    line-height: 1.25;
+  }
+  .muted {
+    color: var(--text-muted);
+  }
+  .small {
+    font-size: 0.82rem;
+  }
+  .subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+  .cancel {
+    color: var(--danger);
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    margin-left: 0.4rem;
+  }
+  .facts p {
+    margin: 0.25rem 0;
+    font-size: 0.95rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1rem 0;
+  }
+  .actions button {
+    border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .actions button.active {
+    border-color: var(--event-accent);
+    background: color-mix(in srgb, var(--event-accent) 15%, transparent);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .speakers {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .speakers li {
+    margin-bottom: 0.6rem;
+  }
+  .speakers a {
+    font-weight: 600;
+    color: var(--text);
+  }
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1rem 0;
+  }
+  .tag {
+    font-size: 0.75rem;
+    background: var(--surface-raised);
+    border: 1px solid color-mix(in srgb, var(--text-muted) 25%, transparent);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    color: var(--text-muted);
+  }
+  .media {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+</style>

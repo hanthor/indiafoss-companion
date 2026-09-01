@@ -29,12 +29,13 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.svelte'],
+    files: ['**/*.svelte', '**/*.svelte.ts'],
     rules: {
       // Svelte runes ($props/$state/...) are compiler-provided.
       'no-undef': 'off',
     },
     languageOptions: {
+      parser: eslintPluginSvelte.parser,
       parserOptions: {
         parser: tseslint.parser,
         extraFileExtensions: ['.svelte'],

@@ -1,5 +1,106 @@
 <script lang="ts">
-  import PagePlaceholder from '$lib/components/PagePlaceholder.svelte';
+  import { resolve } from '$app/paths';
+  import { formatDayLabel, formatTime } from '@indiafoss/schedule';
+  import { searchEvent } from '@indiafoss/search';
+  import { eventState } from '$lib/event.svelte';
+  import EventGate from '$lib/components/EventGate.svelte';
+  import TypeBadge from '$lib/components/TypeBadge.svelte';
+
+  const bundle = $derived(eventState.bundle!);
+
+  let query = $state('');
+  const hasQuery = $derived(query.trim().length >= 2);
+  const results = $derived(hasQuery ? searchEvent(bundle, query, { limit: 30 }) : []);
+
+  const activityFor = (id: string) => bundle.activities.find((a) => a.id === id);
 </script>
 
-<PagePlaceholder title="Explore" phase="Phase 7 (booth experience)" />
+<EventGate>
+  <h1>Explore</h1>
+  <p class="muted">Search talks, speakers, devrooms and booths — works offline.</p>
+
+  <div class="search">
+    <input
+      type="search"
+      aria-label="Search"
+      placeholder="Try kernel, devroom, a speaker name…"
+      bind:value={query}
+    />
+  </div>
+
+  {#if hasQuery}
+    <p class="muted small" role="status">
+      {results.length} result{results.length === 1 ? '' : 's'}
+    </p>
+
+    <ul class="results">
+      {#each results as hit (hit.kind + hit.id)}
+        <li>
+          {#if hit.kind === 'activity'}
+            <a class="title" href={resolve(`/activity/${hit.id}`)}>{hit.title}</a>
+            <p class="muted small">
+              {#if hit.subtitle}{hit.subtitle}{/if}
+              {#if activityFor(hit.id)?.start}
+                · {formatDayLabel(activityFor(hit.id)!.start!.slice(0, 10))}
+                {formatTime(activityFor(hit.id)!.start!)}
+              {/if}
+            </p>
+          {:else if hit.kind === 'person'}
+            <a class="title" href={resolve(`/speaker/${hit.id}`)}>{hit.title}</a>
+            <p class="muted small">
+              Speaker · {hit.subtitle ?? ''}
+              {#if hit.relatedIds && hit.relatedIds.length > 0}
+                · {hit.relatedIds.length} session{hit.relatedIds.length === 1 ? '' : 's'}
+              {/if}
+            </p>
+          {:else}
+            <a class="title" href={resolve(`/booth/${hit.id}`)}>{hit.title}</a>
+            <p class="muted small">{hit.subtitle ?? ''}</p>
+          {/if}
+          <TypeBadge type={hit.kind} />
+        </li>
+      {/each}
+    </ul>
+
+    {#if results.length === 0}
+      <p class="muted">No matches for “{query}”.</p>
+    {/if}
+  {:else}
+    <p class="muted small">Type at least two characters to search.</p>
+  {/if}
+</EventGate>
+
+<style>
+  .muted {
+    color: var(--text-muted);
+  }
+  .small {
+    font-size: 0.82rem;
+  }
+  .search input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+    border-radius: 12px;
+    font-size: 1rem;
+    margin: 0.6rem 0;
+  }
+  .results {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+  .results li {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+  }
+  .title {
+    font-weight: 600;
+    color: var(--text);
+    text-decoration: none;
+  }
+  .title:hover {
+    text-decoration: underline;
+    text-decoration-color: var(--event-accent);
+  }
+</style>

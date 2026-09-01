@@ -47,6 +47,40 @@ jobs:
         run: pnpm audit --prod
         continue-on-error: true # report only for now; make blocking once deps settle
 
+  e2e:
+    name: Playwright E2E (with time-travel)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @indiafoss/web exec playwright install --with-deps chromium
+
+      - name: Build web app
+        run: pnpm --filter @indiafoss/web build
+
+      - name: Run E2E tests
+        run: pnpm --filter @indiafoss/web test:e2e
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/test-results
+
   android:
     name: Android build
     runs-on: ubuntu-latest

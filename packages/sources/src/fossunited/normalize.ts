@@ -215,6 +215,7 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           .filter((t): t is string => Boolean(t))
           .map((t) => t.trim())
           .filter((t) => t.length > 0);
+        const uniqueTags = [...new Set(tags)];
 
         const start = toIsoInKolkata(s.scheduled_date, s.start_time);
         const end = toIsoInKolkata(s.scheduled_date, s.end_time);
@@ -231,7 +232,7 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           flexible: false,
           locationId: hall.location.id,
           speakerIds,
-          tags,
+          tags: uniqueTags,
           trackId: hall.track.id,
           ...(hallName.toLowerCase().startsWith('devroom') ? { devroomId: hall.location.id } : {}),
           ...(s.talk_video ? { recordingUrl: s.talk_video } : {}),
