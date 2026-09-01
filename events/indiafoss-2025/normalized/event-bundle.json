@@ -1,0 +1,4236 @@
+{
+  "schemaVersion": 1,
+  "id": "indiafoss-2025",
+  "name": "IndiaFOSS 2025",
+  "timezone": "Asia/Kolkata",
+  "start": "2025-09-20T09:00:00+05:30",
+  "end": "2025-09-21T17:00:00+05:30",
+  "activities": [
+    {
+      "id": "act-0ibhvtdmmh",
+      "sourceId": "0ibhvtdmmh",
+      "type": "meal",
+      "title": "Registrations and Breakfast (in food area)",
+      "start": "2025-09-20T08:00:00+05:30",
+      "end": "2025-09-20T09:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-5tpt1rbi47",
+      "sourceId": "5tpt1rbi47",
+      "type": "meal",
+      "title": "Registrations and Breakfast (in food area)",
+      "start": "2025-09-20T08:00:00+05:30",
+      "end": "2025-09-20T09:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-age50s83qo",
+      "sourceId": "age50s83qo",
+      "type": "keynote",
+      "title": "Opening Note (Audi 1)",
+      "start": "2025-09-20T09:30:00+05:30",
+      "end": "2025-09-20T10:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Opening Note"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-2g9mgd8g9n",
+      "sourceId": "2g9mgd8g9n",
+      "type": "keynote",
+      "title": "Welcome to IndiaFOSS 2025 - Opening Note, FOSS United Annual Report and Plan for 2025-26",
+      "start": "2025-09-20T09:30:00+05:30",
+      "end": "2025-09-20T10:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-sai-rahul-poruri",
+        "person-ansh-arora"
+      ],
+      "tags": [
+        "Opening Note",
+        "Talk",
+        "Community",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-2i81tb75s8",
+      "sourceId": "2i81tb75s8",
+      "type": "talk",
+      "title": "Running a CDN for opensource software | mirror.albony.in",
+      "start": "2025-09-20T10:00:00+05:30",
+      "end": "2025-09-20T10:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-shrirang-kahale",
+        "person-albert-sebastian"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture\nStory of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-1jeskfcum8",
+      "sourceId": "1jeskfcum8",
+      "type": "talk",
+      "title": "Solving Problems for Yourself - And Accidentally Thousands More",
+      "start": "2025-09-20T10:00:00+05:30",
+      "end": "2025-09-20T10:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-prashanth-udupa"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Story of a FOSS project - from inception to growth",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=2O9A4HRlJAY",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8aka3g2g7",
+      "sourceId": "c8aka3g2g7",
+      "type": "lightning-talk",
+      "title": "Strengthening the AOSP Developer Community: Tools, Boards & Collaboration",
+      "start": "2025-09-20T10:00:00+05:30",
+      "end": "2025-09-20T10:15:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-sumit-semwal"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Community",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=WOn_fqGwKyk",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01sogi4649",
+      "sourceId": "01sogi4649",
+      "type": "talk",
+      "title": "Under the Hood: The Craftsmanship of Creating High-Performance CLIs in Golang",
+      "start": "2025-09-20T10:00:00+05:30",
+      "end": "2025-09-20T10:15:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-harini-anand"
+      ],
+      "tags": [
+        "Talk",
+        "Lightning Talk",
+        "Engineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "recordingUrl": "https://www.youtube.com/watch?v=V9EFXEyotGs",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8ak0iov2l",
+      "sourceId": "c8ak0iov2l",
+      "type": "lightning-talk",
+      "title": "First Step into Open Source with AOSP\"",
+      "start": "2025-09-20T10:15:00+05:30",
+      "end": "2025-09-20T10:30:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-kavibhagya-k"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Engineering practice - productivity, debugging\nCommunity\nContributing to FOSS",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=w4hGdZv4GzM",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01sopchmki",
+      "sourceId": "01sopchmki",
+      "type": "talk",
+      "title": "Understanding Query Execution: Lessons from Thanos Internals",
+      "start": "2025-09-20T10:15:00+05:30",
+      "end": "2025-09-20T10:40:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-saumya-shah"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture\nEngineering practice - productivity, debugging\nIntroducing a FOSS project or a new version of a popular project\nTutorial about using a FOSS project",
+        "Beginner"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "cancelled": true,
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8akcfkent",
+      "sourceId": "c8akcfkent",
+      "type": "lightning-talk",
+      "title": "AOSP Testing at scale using CuttleFish in the Cloud",
+      "start": "2025-09-20T10:30:00+05:30",
+      "end": "2025-09-20T10:55:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-vishal-bhoj"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Engineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=PROBzhRivQE",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-6jo2voghos",
+      "sourceId": "6jo2voghos",
+      "type": "talk",
+      "title": "Client Performance Lessons from Scaling the Mattermost App",
+      "start": "2025-09-20T10:30:00+05:30",
+      "end": "2025-09-20T10:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-mohammed-zubair-ahmed"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture\nEngineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01sopm2q55",
+      "sourceId": "01sopm2q55",
+      "type": "talk",
+      "title": "Cache Tactics: Optimizing Performance with Smart Eviction Strategies",
+      "start": "2025-09-20T10:40:00+05:30",
+      "end": "2025-09-20T11:05:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-anamika-roychowdhury"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Engineering practice - productivity, debugging\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "recordingUrl": "https://www.youtube.com/watch?v=SHlbkd8oVek",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-akru0m7eqk",
+      "sourceId": "akru0m7eqk",
+      "type": "talk",
+      "title": "FOSDEM - what it is, why we do it, and how",
+      "subtitle": "Invited Talk",
+      "start": "2025-09-20T10:50:00+05:30",
+      "end": "2025-09-20T11:15:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-richard-richih-hartmann"
+      ],
+      "tags": [
+        "Other",
+        "Invited Talk",
+        "Invited Talk",
+        "Community",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=HrLewg9mvnM",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8akqqerfa",
+      "sourceId": "c8akqqerfa",
+      "type": "talk",
+      "title": " Implementing a Custom HAL in AOSP ",
+      "start": "2025-09-20T10:55:00+05:30",
+      "end": "2025-09-20T11:20:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-rutvij-trivedi"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture\nEngineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=oX_xQKea09w",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-aku6h7lcnk",
+      "sourceId": "aku6h7lcnk",
+      "type": "talk",
+      "title": "Suricata: The new age Network Security Monitoring tool and more",
+      "start": "2025-09-20T11:00:00+05:30",
+      "end": "2025-09-20T11:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-shivani-bhardwaj"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTechnology / FOSS licenses, policy\nStory of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01sov3s59v",
+      "sourceId": "01sov3s59v",
+      "type": "talk",
+      "title": "Becoming a DEBeloper",
+      "start": "2025-09-20T11:05:00+05:30",
+      "end": "2025-09-20T11:20:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-spaarsh-thakkar"
+      ],
+      "tags": [
+        "Talk",
+        "Lightning Talk",
+        "Contributing to FOSS\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "recordingUrl": "https://www.youtube.com/watch?v=0UPScZAUvxU",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8akfr6959",
+      "sourceId": "c8akfr6959",
+      "type": "meal",
+      "title": "Break",
+      "start": "2025-09-20T11:20:00+05:30",
+      "end": "2025-09-20T11:30:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8l0ftcmg6a",
+      "sourceId": "8l0ftcmg6a",
+      "type": "talk",
+      "title": "Mesquite MoCap: Democratizing Real-Time Motion Capture with Affordable, Open-Source, Networked IMU Hardware and WebXR SLAM",
+      "start": "2025-09-20T11:20:00+05:30",
+      "end": "2025-09-20T11:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-tejaswi-gowda-phd"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Tutorial about using a FOSS project\nIntroducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=zhfQoYnw888",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01sons31li",
+      "sourceId": "01sons31li",
+      "type": "talk",
+      "title": "Your Next Server Might Be a Browser",
+      "start": "2025-09-20T11:20:00+05:30",
+      "end": "2025-09-20T11:45:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-kumar-anirudha"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)\nEngineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "recordingUrl": "https://www.youtube.com/watch?v=NXGxSM9Mqes",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8akm03vko",
+      "sourceId": "c8akm03vko",
+      "type": "talk",
+      "title": "AOSP E2E: Internals, Security, Optimization - Building ROM & Automotive",
+      "start": "2025-09-20T11:30:00+05:30",
+      "end": "2025-09-20T11:45:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-immanuel-raj"
+      ],
+      "tags": [
+        "Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project\nEngineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=-tvWtrPsfys",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-6lsm8mb4i7",
+      "sourceId": "6lsm8mb4i7",
+      "type": "talk",
+      "title": "OSDAG (Open Steel Design and Graphics): A Free and Open Source Software for Design of Steel Structures",
+      "start": "2025-09-20T11:30:00+05:30",
+      "end": "2025-09-20T11:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-ajinkya-dahale",
+        "person-parth-karia"
+      ],
+      "tags": [
+        "Talk"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01soac77dt",
+      "sourceId": "01soac77dt",
+      "type": "talk",
+      "title": "Building A Software Language",
+      "start": "2025-09-20T11:45:00+05:30",
+      "end": "2025-09-20T12:10:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-shubham-singh"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "recordingUrl": "https://www.youtube.com/watch?v=h599yHBHjAw",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7li1k1q8j3",
+      "sourceId": "7li1k1q8j3",
+      "type": "talk",
+      "title": "Learnings from Ente's FOSS and fully private ML",
+      "start": "2025-09-20T11:50:00+05:30",
+      "end": "2025-09-20T12:15:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-laurens-priem"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture\nStory of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=vz9nQaXqPDk",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8akcggflq",
+      "sourceId": "c8akcggflq",
+      "type": "talk",
+      "title": "Libcamera: Is it next universal AOSP Camera HAL?",
+      "start": "2025-09-20T11:55:00+05:30",
+      "end": "2025-09-20T12:20:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-jaimin-parmar"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Other\nAOSP\nCamera",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=ojMtuv9YcE8",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-1m9296ced3",
+      "sourceId": "1m9296ced3",
+      "type": "talk",
+      "title": "Edge-First Security at Scale: Lessons from orchestrating security across 35,000+ POS Devices",
+      "start": "2025-09-20T12:00:00+05:30",
+      "end": "2025-09-20T12:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-barun-acharya",
+        "person-swarit-pandey"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01sodr7q9t",
+      "sourceId": "01sodr7q9t",
+      "type": "talk",
+      "title": "`ld` and the art of linking dependencies 🔗",
+      "start": "2025-09-20T12:10:00+05:30",
+      "end": "2025-09-20T12:35:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-ishan-bhanuka"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)\nCommunity\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "recordingUrl": "https://www.youtube.com/watch?v=s3KH0RcRQkA",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-c8akiohb7d",
+      "sourceId": "c8akiohb7d",
+      "type": "lightning-talk",
+      "title": "Android doesn’t impact general purpsose embedded solutions any more ! - Does it ?",
+      "start": "2025-09-20T12:20:00+05:30",
+      "end": "2025-09-20T12:35:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-khasim-syed-mohammed"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=aaFw1HnKy5g",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-fndvk42t9r",
+      "sourceId": "fndvk42t9r",
+      "type": "talk",
+      "title": "Frappe Studio: The Visual App Builder for the Frappe Framework",
+      "subtitle": "Devroom Recommendation",
+      "start": "2025-09-20T12:20:00+05:30",
+      "end": "2025-09-20T12:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-rucha-mahabal"
+      ],
+      "tags": [
+        "Talk",
+        "Devroom Recommendation",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=TbzKz2PBOuU",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-aku6mhrg2i",
+      "sourceId": "aku6mhrg2i",
+      "type": "talk",
+      "title": "DCOs, CLAs, and other TLAs: Things You Need To Know As An OSS Contributor",
+      "start": "2025-09-20T12:30:00+05:30",
+      "end": "2025-09-20T12:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-ram-iyengar"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Contributing to FOSS",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "recordingUrl": "https://www.youtube.com/watch?v=e-w8WjeiVts",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0a76k509ur",
+      "sourceId": "0a76k509ur",
+      "type": "lightning-talk",
+      "title": "AOSP without the Baggage: Booting with vanilla Linux Kernel",
+      "start": "2025-09-20T12:35:00+05:30",
+      "end": "2025-09-20T12:50:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [
+        "person-amit-pundir"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Tutorial about using a FOSS project",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "recordingUrl": "https://www.youtube.com/watch?v=ozLTcOtgz3s",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-01so8d85nf",
+      "sourceId": "01so8d85nf",
+      "type": "talk",
+      "title": "From JNI to the Future: The Evolution of Native Interoperability in Java",
+      "start": "2025-09-20T12:35:00+05:30",
+      "end": "2025-09-20T13:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-compilers",
+      "speakerIds": [
+        "person-anamika-roychowdhury"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Engineering practice - productivity, debugging\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-compilers",
+      "devroomId": "devroom-2-compilers",
+      "recordingUrl": "https://www.youtube.com/watch?v=-huuGu8g4UY",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-co74bu75ek",
+      "sourceId": "co74bu75ek",
+      "type": "talk",
+      "title": "Adoption of FOSS by Indian Courts",
+      "subtitle": "Invited Talk",
+      "start": "2025-09-20T12:50:00+05:30",
+      "end": "2025-09-20T13:30:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-yatindra-singh"
+      ],
+      "tags": [
+        "Other",
+        "Invited Talk",
+        "Invited Talk",
+        "Community\nTechnology / FOSS licenses, policy",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=dD6Aoyb_p_c",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0a76kc6f6k",
+      "sourceId": "0a76kc6f6k",
+      "type": "meal",
+      "title": "Thank you and closing remarks",
+      "start": "2025-09-20T12:50:00+05:30",
+      "end": "2025-09-20T13:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-aosp",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "devroom-1-aosp",
+      "devroomId": "devroom-1-aosp",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-dmv10i5bgm",
+      "sourceId": "dmv10i5bgm",
+      "type": "meal",
+      "title": "Lunch",
+      "start": "2025-09-20T13:00:00+05:30",
+      "end": "2025-09-20T14:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-cpcf0li82l",
+      "sourceId": "cpcf0li82l",
+      "type": "meal",
+      "title": "Lunch",
+      "start": "2025-09-20T13:30:00+05:30",
+      "end": "2025-09-20T14:30:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-an6hmkf3du",
+      "sourceId": "an6hmkf3du",
+      "type": "talk",
+      "title": "FOSS Strategy @Mercedes-Benz Research and Development India",
+      "start": "2025-09-20T14:00:00+05:30",
+      "end": "2025-09-20T14:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-raghavendra-kamatagi",
+        "person-amit-yadav"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nEngineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3eco4dj36b",
+      "sourceId": "3eco4dj36b",
+      "type": "meal",
+      "title": "Opening remarks & intro",
+      "start": "2025-09-20T14:00:00+05:30",
+      "end": "2025-09-20T14:05:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3ecofm0lie",
+      "sourceId": "3ecofm0lie",
+      "type": "talk",
+      "title": "JIgIta - jump to soldering joy from pain ",
+      "start": "2025-09-20T14:05:00+05:30",
+      "end": "2025-09-20T14:35:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [
+        "person-shree-kumar"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "recordingUrl": "https://www.youtube.com/watch?v=UV_xVR0WD8U",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0neigdh8j5",
+      "sourceId": "0neigdh8j5",
+      "type": "talk",
+      "title": "Don't underestimate the dumbphone: an introduction to the KaiOS ecosystem",
+      "start": "2025-09-20T14:30:00+05:30",
+      "end": "2025-09-20T14:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-badri-sunderarajan"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Contributing to FOSS\nTechnology architecture",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-6mavdbialu",
+      "sourceId": "6mavdbialu",
+      "type": "panel",
+      "title": "OSS Health and Sustainability in 2025",
+      "subtitle": "Panel Discussion",
+      "start": "2025-09-20T14:30:00+05:30",
+      "end": "2025-09-20T15:20:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-neha-sankhe",
+        "person-kailash-nadh",
+        "person-chad-whitacre",
+        "person-ansh-arora"
+      ],
+      "tags": [
+        "Other",
+        "Panel Discussion",
+        "Panel Discussion",
+        "Community\nContributing to FOSS",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-2ssnt6kekn",
+      "sourceId": "2ssnt6kekn",
+      "type": "talk",
+      "title": "Workshop: Mesquite Mocap",
+      "subtitle": "Workshop",
+      "start": "2025-09-20T14:30:00+05:30",
+      "end": "2025-09-20T17:30:00+05:30",
+      "flexible": false,
+      "locationId": "workshops-room",
+      "speakerIds": [],
+      "tags": [
+        "Other",
+        "Workshop"
+      ],
+      "trackId": "workshops-room",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3ecof8vim9",
+      "sourceId": "3ecof8vim9",
+      "type": "talk",
+      "title": "VoltQuest: Open Source Hardware Gaming",
+      "start": "2025-09-20T14:40:00+05:30",
+      "end": "2025-09-20T15:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [
+        "person-giriprashad"
+      ],
+      "tags": [
+        "Talk",
+        "Lightning Talk",
+        "Other",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "recordingUrl": "https://www.youtube.com/watch?v=XYfKMBedYNg",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-1nt2283hps",
+      "sourceId": "1nt2283hps",
+      "type": "talk",
+      "title": "Designing UX for Human-Machine interaction",
+      "start": "2025-09-20T15:00:00+05:30",
+      "end": "2025-09-20T15:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-ritika-varma"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Engineering practice - productivity, debugging\nContributing to FOSS",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "recordingUrl": "https://www.youtube.com/watch?v=hWm-eUSfdXI",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-445icaifja",
+      "sourceId": "445icaifja",
+      "type": "bof",
+      "title": "UX for FOSS : Community for Designer-Maintainer Collaboration",
+      "subtitle": "BoF",
+      "start": "2025-09-20T15:00:00+05:30",
+      "end": "2025-09-20T16:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2",
+      "speakerIds": [
+        "person-hiran-venugopalan"
+      ],
+      "tags": [
+        "Other",
+        "BoF",
+        "Birds of Feather(BoF)",
+        "Contributing to FOSS",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2",
+      "devroomId": "devroom-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3ecodbfic3",
+      "sourceId": "3ecodbfic3",
+      "type": "talk",
+      "title": "Homelabbing with bare metal",
+      "start": "2025-09-20T15:05:00+05:30",
+      "end": "2025-09-20T15:30:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [
+        "person-kiran-jonnalagadda"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)\nStory of a FOSS project - from inception to growth",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "recordingUrl": "https://www.youtube.com/watch?v=6xskrfU1z_c",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0ju368irth",
+      "sourceId": "0ju368irth",
+      "type": "bof",
+      "title": "BoF: Learnings from Tech+Policy Scholarship ",
+      "subtitle": "BoF",
+      "start": "2025-09-20T15:30:00+05:30",
+      "end": "2025-09-20T16:30:00+05:30",
+      "flexible": false,
+      "locationId": "food-area",
+      "speakerIds": [
+        "person-shree-kumar"
+      ],
+      "tags": [
+        "Other",
+        "BoF",
+        "Birds of Feather(BoF)",
+        "Beginner"
+      ],
+      "trackId": "food-area",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-9lbif0aet8",
+      "sourceId": "9lbif0aet8",
+      "type": "talk",
+      "title": "Librefin: Building a FOSS UPI App",
+      "start": "2025-09-20T15:30:00+05:30",
+      "end": "2025-09-20T15:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-nemo",
+        "person-nikhil"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTechnology architecture",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-4nm0vqq5g7",
+      "sourceId": "4nm0vqq5g7",
+      "type": "talk",
+      "title": "The Plane Story: Building the Fastest-Growing Open Source Continuum Project",
+      "start": "2025-09-20T15:30:00+05:30",
+      "end": "2025-09-20T15:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-vamsi-kurama"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Story of a FOSS project - from inception to growth\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3ecobcv7mb",
+      "sourceId": "3ecobcv7mb",
+      "type": "talk",
+      "title": "CoryDora: A Macropad, A Supply Chain, and A Case for Local Manufacturing",
+      "start": "2025-09-20T15:40:00+05:30",
+      "end": "2025-09-20T16:10:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [
+        "person-balu-babu"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTechnology architecture\nCommunity\nStory of a FOSS project - from inception to growth\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "recordingUrl": "https://www.youtube.com/watch?v=UiJbgOzwvzU",
+      "cancelled": true,
+      "source": "fossunited"
+    },
+    {
+      "id": "act-26k59g3q3n",
+      "sourceId": "26k59g3q3n",
+      "type": "talk",
+      "title": "BoF Slot",
+      "subtitle": "BoF",
+      "start": "2025-09-20T16:00:00+05:30",
+      "end": "2025-09-20T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2",
+      "speakerIds": [],
+      "tags": [
+        "Other",
+        "BoF"
+      ],
+      "trackId": "devroom-2",
+      "devroomId": "devroom-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-95pk8ejj9o",
+      "sourceId": "95pk8ejj9o",
+      "type": "talk",
+      "title": "Nobody asks \"How is JavaScript?\"",
+      "start": "2025-09-20T16:00:00+05:30",
+      "end": "2025-09-20T16:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-ujjwal-sharma"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3ecoa4t3gk",
+      "sourceId": "3ecoa4t3gk",
+      "type": "talk",
+      "title": "Makerville Badge ",
+      "start": "2025-09-20T16:15:00+05:30",
+      "end": "2025-09-20T16:35:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [
+        "person-anuj-deshpande"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "recordingUrl": "https://www.youtube.com/watch?v=rWlcbUHuHyg",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-76b77kg7ct",
+      "sourceId": "76b77kg7ct",
+      "type": "lightning-talk",
+      "title": "Legal Considerations and Best Practices in Implementing AI Code Generation in Open Source Software",
+      "start": "2025-09-20T16:30:00+05:30",
+      "end": "2025-09-20T16:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-sukarn-singh-maini"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Technology / FOSS licenses, policy",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-1q2gsv4tc1",
+      "sourceId": "1q2gsv4tc1",
+      "type": "talk",
+      "title": "Orchestrating Reality: Automating Multi-User, Multi-App Journeys Across Devices",
+      "start": "2025-09-20T16:30:00+05:30",
+      "end": "2025-09-20T16:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-anand-bagmar"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nContributing to FOSS\nCommunity\nStory of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-6ifj7i9smc",
+      "sourceId": "6ifj7i9smc",
+      "type": "bof",
+      "title": "Pursuing a Policy Career in FOSS",
+      "subtitle": "BoF",
+      "start": "2025-09-20T16:30:00+05:30",
+      "end": "2025-09-20T17:30:00+05:30",
+      "flexible": false,
+      "locationId": "food-area",
+      "speakerIds": [
+        "person-tarunima-prabhakar"
+      ],
+      "tags": [
+        "Other",
+        "BoF",
+        "Birds of Feather(BoF)",
+        "Technology / FOSS licenses, policy",
+        "Intermediate"
+      ],
+      "trackId": "food-area",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3ecooa4lkc",
+      "sourceId": "3ecooa4lkc",
+      "type": "talk",
+      "title": "Because Glancing at Your Phone While Riding 2 Wheelers Is Dumb !!!",
+      "start": "2025-09-20T16:40:00+05:30",
+      "end": "2025-09-20T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [
+        "person-rishi-krishna-s"
+      ],
+      "tags": [
+        "Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "recordingUrl": "https://www.youtube.com/watch?v=zmpSvz8G2x0",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-67d2d9hid3",
+      "sourceId": "67d2d9hid3",
+      "type": "talk",
+      "title": "Imagining alternative social media platforms with ActivityPub Protocol",
+      "start": "2025-09-20T16:45:00+05:30",
+      "end": "2025-09-20T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-denny-george"
+      ],
+      "tags": [
+        "Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTutorial about using a FOSS project\nContributing to FOSS",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-3ecoh3lgvq",
+      "sourceId": "3ecoh3lgvq",
+      "type": "meal",
+      "title": "Closing remarks & thank-yous",
+      "start": "2025-09-20T17:00:00+05:30",
+      "end": "2025-09-20T17:05:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-hardware",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "devroom-1-hardware",
+      "devroomId": "devroom-1-hardware",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-36q9l3p54k",
+      "sourceId": "36q9l3p54k",
+      "type": "lightning-talk",
+      "title": "Lessons, Innovations, and the Road Ahead with Bruno",
+      "start": "2025-09-20T17:00:00+05:30",
+      "end": "2025-09-20T17:15:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-anoop-m-d"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-9qu6podssm",
+      "sourceId": "9qu6podssm",
+      "type": "lightning-talk",
+      "title": "The Browser Can Compute. You Just Never Asked It To.",
+      "start": "2025-09-20T17:00:00+05:30",
+      "end": "2025-09-20T17:15:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-gunj-joshi"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-dvgslq0ivm",
+      "sourceId": "dvgslq0ivm",
+      "type": "lightning-talk",
+      "title": "Building a culture of openness ",
+      "start": "2025-09-20T17:15:00+05:30",
+      "end": "2025-09-20T17:30:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-zainab-bawa"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Community",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0sfgrfioln",
+      "sourceId": "0sfgrfioln",
+      "type": "lightning-talk",
+      "title": "Guarding the Gates: Secure Open Source Library Consumption with vet",
+      "start": "2025-09-20T17:15:00+05:30",
+      "end": "2025-09-20T17:30:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-sudhanshu-dasgupta"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Other\nSecurity",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8vsli7fdcc",
+      "sourceId": "8vsli7fdcc",
+      "type": "lightning-talk",
+      "title": "Fixable : How do we resist the planned obsolescence problem?",
+      "start": "2025-09-20T17:30:00+05:30",
+      "end": "2025-09-20T17:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-nilesh-trivedi"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Other\nCommunity",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-es7uadps5d",
+      "sourceId": "es7uadps5d",
+      "type": "lightning-talk",
+      "title": "We should be more excited for WebCodecs!",
+      "start": "2025-09-20T17:30:00+05:30",
+      "end": "2025-09-20T17:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-siddharth-jha"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Technology architecture\nTutorial about using a FOSS project\nEngineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "recordingUrl": "https://www.youtube.com/watch?v=-KBUI-03F2E",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-807o8kl53q",
+      "sourceId": "807o8kl53q",
+      "type": "keynote",
+      "title": "Closing note",
+      "start": "2025-09-20T17:45:00+05:30",
+      "end": "2025-09-20T18:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [],
+      "tags": [
+        "Opening Note"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-af4mlbslit",
+      "sourceId": "af4mlbslit",
+      "type": "meal",
+      "title": "End of Day 1",
+      "start": "2025-09-20T17:45:00+05:30",
+      "end": "2025-09-20T18:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-eggo4q38al",
+      "sourceId": "eggo4q38al",
+      "type": "meal",
+      "title": "Registrations and Breakfast (food area)",
+      "start": "2025-09-21T08:00:00+05:30",
+      "end": "2025-09-21T09:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-6kb970c48q",
+      "sourceId": "6kb970c48q",
+      "type": "meal",
+      "title": "Registrations and Breakfast (food area)",
+      "start": "2025-09-21T08:00:01+05:30",
+      "end": "2025-09-21T09:00:01+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-cgqe2tmio1",
+      "sourceId": "cgqe2tmio1",
+      "type": "keynote",
+      "title": "Opening Note",
+      "start": "2025-09-21T09:30:00+05:30",
+      "end": "2025-09-21T09:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [],
+      "tags": [
+        "Opening Note"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8l23t0a23m",
+      "sourceId": "8l23t0a23m",
+      "type": "keynote",
+      "title": "Opening Note (Audi 1)",
+      "start": "2025-09-21T09:30:00+05:30",
+      "end": "2025-09-21T09:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Opening Note"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-1hvi1h2rvo",
+      "sourceId": "1hvi1h2rvo",
+      "type": "talk",
+      "title": "Zasper: High Performance IDE for Jupyter Notebooks",
+      "start": "2025-09-21T09:45:00+05:30",
+      "end": "2025-09-21T10:10:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-prasun-anand"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urvdbff86",
+      "sourceId": "7urvdbff86",
+      "type": "talk",
+      "title": "KuttyPy : A no Cost transformation of the ubiquitous Arduino into an affordable data acquisition system for STEM",
+      "start": "2025-09-21T10:00:00+05:30",
+      "end": "2025-09-21T10:25:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-jithin-bp"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Story of a FOSS project - from inception to growth",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=aOO-v0c_sYE",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-9841s9uf12",
+      "sourceId": "9841s9uf12",
+      "type": "talk",
+      "title": "You don't have to be a wizard: A beginner's journey into kernel development",
+      "start": "2025-09-21T10:00:00+05:30",
+      "end": "2025-09-21T10:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-hridesh-mg"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Contributing to FOSS\nCommunity",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-a4lim0pud7",
+      "sourceId": "a4lim0pud7",
+      "type": "talk",
+      "title": "Rethinking Data Contracts for Open Source AI",
+      "start": "2025-09-21T10:10:00+05:30",
+      "end": "2025-09-21T10:55:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-geopolitics",
+      "speakerIds": [
+        "person-tarunima-prabhakar"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology / FOSS licenses, policy",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-geopolitics",
+      "devroomId": "devroom-2-geopolitics",
+      "recordingUrl": "https://www.youtube.com/watch?v=GYX6gQNI8xM",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8k30h517fs",
+      "sourceId": "8k30h517fs",
+      "type": "talk",
+      "title": "Build for Bharat Fellowship: Pull-Requesting Change in Government",
+      "start": "2025-09-21T10:15:00+05:30",
+      "end": "2025-09-21T10:40:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-harsh-nisar"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urvin0osf",
+      "sourceId": "7urvin0osf",
+      "type": "lightning-talk",
+      "title": "Understanding API Dispatching in Scientific Python ecosystem",
+      "start": "2025-09-21T10:25:00+05:30",
+      "end": "2025-09-21T10:35:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-aditi-juneja"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Technology architecture\nIntroducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=XE8EWUnskV0",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-199l4oi8e4",
+      "sourceId": "199l4oi8e4",
+      "type": "talk",
+      "title": "Ente’s approach to building an E2EE video streaming system",
+      "start": "2025-09-21T10:30:00+05:30",
+      "end": "2025-09-21T10:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-prateek-sunal"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology architecture",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urvhhtmsi",
+      "sourceId": "7urvhhtmsi",
+      "type": "lightning-talk",
+      "title": "The Array API Standard: One ring to rule them all.",
+      "start": "2025-09-21T10:35:00+05:30",
+      "end": "2025-09-21T10:45:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-pradyot-ranjan"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Engineering practice - productivity, debugging\nContributing to FOSS\nCommunity",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=QlaLHa-AymQ",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7kemg1299a",
+      "sourceId": "7kemg1299a",
+      "type": "talk",
+      "title": "Building Hardware: Prototype to Production",
+      "start": "2025-09-21T10:45:00+05:30",
+      "end": "2025-09-21T11:10:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-shoaib-merchant"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Engineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urv5m8pgi",
+      "sourceId": "7urv5m8pgi",
+      "type": "lightning-talk",
+      "title": "Zarr: Cloud-optimised, N-dimensional, typed array storage",
+      "start": "2025-09-21T10:45:00+05:30",
+      "end": "2025-09-21T10:55:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-sanket-verma"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=ZtQ7hsYyuSg",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-a4liq4f4is",
+      "sourceId": "a4liq4f4is",
+      "type": "lightning-talk",
+      "title": "Software Supply Chain Security - Benchmarking India",
+      "start": "2025-09-21T10:50:00+05:30",
+      "end": "2025-09-21T11:05:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-geopolitics",
+      "speakerIds": [
+        "person-nemo"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Technology / FOSS licenses, policy",
+        "Intermediate"
+      ],
+      "trackId": "devroom-2-geopolitics",
+      "devroomId": "devroom-2-geopolitics",
+      "recordingUrl": "https://www.youtube.com/watch?v=lYzeT_6974Y",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urva3ogjo",
+      "sourceId": "7urva3ogjo",
+      "type": "lightning-talk",
+      "title": "Assessing the State of India's Birds using FOSS",
+      "start": "2025-09-21T10:55:00+05:30",
+      "end": "2025-09-21T11:05:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-pradeep-koulgi"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Story of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=TxCMaCfR-qI",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-199lph18rs",
+      "sourceId": "199lph18rs",
+      "type": "talk",
+      "title": "Introducing Wraft - A FOSS tool to automate and manage documents.",
+      "start": "2025-09-21T11:00:00+05:30",
+      "end": "2025-09-21T11:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-muneef-hameed"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urv1k03tg",
+      "sourceId": "7urv1k03tg",
+      "type": "talk",
+      "title": "Collaborative CAD & GIS in JupyterLab",
+      "start": "2025-09-21T11:05:00+05:30",
+      "end": "2025-09-21T11:30:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-arjun-verma"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTutorial about using a FOSS project\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=ChNmpB_ZRfI",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-a4li0gnao6",
+      "sourceId": "a4li0gnao6",
+      "type": "lightning-talk",
+      "title": "Why 'Open Technology Maitri' is a solution for supply chain warfare and security concerns",
+      "start": "2025-09-21T11:05:00+05:30",
+      "end": "2025-09-21T11:20:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-geopolitics",
+      "speakerIds": [
+        "person-lokendra-sharma"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Other",
+        "Beginner"
+      ],
+      "trackId": "devroom-2-geopolitics",
+      "devroomId": "devroom-2-geopolitics",
+      "recordingUrl": "https://www.youtube.com/watch?v=eEr1nrOBN7Y",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-ejmbrps6s9",
+      "sourceId": "ejmbrps6s9",
+      "type": "talk",
+      "title": "Open Source is a Gift Economy",
+      "subtitle": "Invited Talk",
+      "start": "2025-09-21T11:15:00+05:30",
+      "end": "2025-09-21T11:40:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-chad-whitacre"
+      ],
+      "tags": [
+        "Other",
+        "Invited Talk",
+        "Invited Talk",
+        "Community",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-a4liqhhup7",
+      "sourceId": "a4liqhhup7",
+      "type": "lightning-talk",
+      "title": "How Switzerland Became a Global Leader in FOSS ",
+      "start": "2025-09-21T11:20:00+05:30",
+      "end": "2025-09-21T11:35:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-geopolitics",
+      "speakerIds": [
+        "person-a-varshha"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Technology / FOSS licenses, policy",
+        "Beginner"
+      ],
+      "trackId": "devroom-2-geopolitics",
+      "devroomId": "devroom-2-geopolitics",
+      "recordingUrl": "https://www.youtube.com/watch?v=ZzR7AnZLmSs",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-199lj6i9tu",
+      "sourceId": "199lj6i9tu",
+      "type": "talk",
+      "title": "Bootable Containers: Future of the Linux Desktop",
+      "start": "2025-09-21T11:30:00+05:30",
+      "end": "2025-09-21T11:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-james-reilly"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nStory of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urvg0f4d3",
+      "sourceId": "7urvg0f4d3",
+      "type": "meal",
+      "title": "Break",
+      "start": "2025-09-21T11:30:00+05:30",
+      "end": "2025-09-21T11:45:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-a4licaed44",
+      "sourceId": "a4licaed44",
+      "type": "lightning-talk",
+      "title": "Open Source Licenses: What Every Developer Should Know",
+      "start": "2025-09-21T11:35:00+05:30",
+      "end": "2025-09-21T11:50:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-geopolitics",
+      "speakerIds": [
+        "person-abinaya-sv"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Technology / FOSS licenses, policy",
+        "Beginner"
+      ],
+      "trackId": "devroom-2-geopolitics",
+      "devroomId": "devroom-2-geopolitics",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-bm7987etk6",
+      "sourceId": "bm7987etk6",
+      "type": "talk",
+      "title": "StoryWeaver: Building a Commons for Children’s Reading",
+      "subtitle": "Invited Talk",
+      "start": "2025-09-21T11:45:00+05:30",
+      "end": "2025-09-21T12:10:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-purvi-shah",
+        "person-suman-vijeta"
+      ],
+      "tags": [
+        "Other",
+        "Invited Talk",
+        "Invited Talk",
+        "Contributing to FOSS",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0sehg0th1r",
+      "sourceId": "0sehg0th1r",
+      "type": "talk",
+      "title": "The CoRE stack open-source initiative",
+      "start": "2025-09-21T11:45:00+05:30",
+      "end": "2025-09-21T12:10:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-dr-aaditeshwar-seth"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=WvgKw_-SNnA",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-a4li9a5sbd",
+      "sourceId": "a4li9a5sbd",
+      "type": "talk",
+      "title": "India's Geospatial Policy and Open data access",
+      "start": "2025-09-21T11:50:00+05:30",
+      "end": "2025-09-21T12:35:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-geopolitics",
+      "speakerIds": [
+        "person-swathi-kalyani"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-2-geopolitics",
+      "devroomId": "devroom-2-geopolitics",
+      "recordingUrl": "https://www.youtube.com/watch?v=Dr-_v3SNetk",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-cavh7ec288",
+      "sourceId": "cavh7ec288",
+      "type": "talk",
+      "title": "Introducing Logchef: A Purpose-Built Log Explorer for ClickHouse",
+      "start": "2025-09-21T12:00:00+05:30",
+      "end": "2025-09-21T12:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-karan-sharma"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urv9akhoq",
+      "sourceId": "7urv9akhoq",
+      "type": "lightning-talk",
+      "title": "Formalizing Mathematics and Scientific Computing with an Open-Source Theorem Prover",
+      "start": "2025-09-21T12:10:00+05:30",
+      "end": "2025-09-21T12:25:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-sagnik-saha"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Story of a FOSS project - from inception to growth\nContributing to FOSS\nIntroducing a FOSS project or a new version of a popular project\nCommunity\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=HEadxpTr4wk",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8o3anhib7k",
+      "sourceId": "8o3anhib7k",
+      "type": "talk",
+      "title": "Libredesk - Open source self hosted customer support desk",
+      "start": "2025-09-21T12:15:00+05:30",
+      "end": "2025-09-21T12:40:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-abhinav-raut"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nStory of a FOSS project - from inception to growth",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urvl4pg2f",
+      "sourceId": "7urvl4pg2f",
+      "type": "talk",
+      "title": "Empowering Open Science with Scalable Interactive Computing Environments in India",
+      "start": "2025-09-21T12:20:00+05:30",
+      "end": "2025-09-21T12:40:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-kriyanshi-shah"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Engineering practice - productivity, debugging\nTechnology architecture\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=6o_XY5jBchY",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-cald8pr3l3",
+      "sourceId": "cald8pr3l3",
+      "type": "talk",
+      "title": "The Geopolitics of Open-Source Generative AI: Freedom, Control and Power",
+      "start": "2025-09-21T12:30:00+05:30",
+      "end": "2025-09-21T12:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-bharath-reddy"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Technology / FOSS licenses, policy",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-a4lii4nc8r",
+      "sourceId": "a4lii4nc8r",
+      "type": "lightning-talk",
+      "title": "The Logic of Space Policy in India",
+      "start": "2025-09-21T12:35:00+05:30",
+      "end": "2025-09-21T12:50:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2-geopolitics",
+      "speakerIds": [
+        "person-ashwin-prasad"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Talk",
+        "Other",
+        "Beginner"
+      ],
+      "trackId": "devroom-2-geopolitics",
+      "devroomId": "devroom-2-geopolitics",
+      "recordingUrl": "https://www.youtube.com/watch?v=A05IZHDTcrU",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urv7v783k",
+      "sourceId": "7urv7v783k",
+      "type": "lightning-talk",
+      "title": "Beyond the smokescreen: interactive in-browser FOSS tools for science communication and evidence-based environmental policy",
+      "start": "2025-09-21T12:40:00+05:30",
+      "end": "2025-09-21T12:50:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-agriya-khetarpal"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTutorial about using a FOSS project\nTechnology / FOSS licenses, policy\nTechnology architecture\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=a8onHS72f7w",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7ombupic40",
+      "sourceId": "7ombupic40",
+      "type": "talk",
+      "title": "How I Accidentally Built an OpenSource — Algo Trading Platform",
+      "start": "2025-09-21T12:40:00+05:30",
+      "end": "2025-09-21T13:05:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-rajandran-r"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Story of a FOSS project - from inception to growth",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8165i0kkvg",
+      "sourceId": "8165i0kkvg",
+      "type": "lightning-talk",
+      "title": "The Observability of Everything: Instrumenting Science with DevOps Tools",
+      "start": "2025-09-21T12:50:00+05:30",
+      "end": "2025-09-21T13:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-aftab-s"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)\nTechnology architecture\nEngineering practice - productivity, debugging",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=QDQDA3i2wPY",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8165nkea34",
+      "sourceId": "8165nkea34",
+      "type": "lightning-talk",
+      "title": "Breaking into the Black Box: Making LLMs Transparent for Science",
+      "start": "2025-09-21T13:00:00+05:30",
+      "end": "2025-09-21T13:10:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-alosh-denny"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Technology architecture",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=WSyNC51pcDs",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0b47ge7o93",
+      "sourceId": "0b47ge7o93",
+      "type": "meal",
+      "title": "Lunch",
+      "start": "2025-09-21T13:00:00+05:30",
+      "end": "2025-09-21T14:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Break"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7jkk8r2kem",
+      "sourceId": "7jkk8r2kem",
+      "type": "talk",
+      "title": "HUML (Human-oriented Markup Language)",
+      "subtitle": "Invited Talk",
+      "start": "2025-09-21T13:10:00+05:30",
+      "end": "2025-09-21T13:35:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-kailash-nadh"
+      ],
+      "tags": [
+        "Other",
+        "Invited Talk",
+        "Invited Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTechnology architecture",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=4M_tD1N14Ao",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7urv0ov28k",
+      "sourceId": "7urv0ov28k",
+      "type": "lightning-talk",
+      "title": "Signal Over Noise: Benchmarking Time Series Models with sktime",
+      "start": "2025-09-21T13:10:00+05:30",
+      "end": "2025-09-21T13:20:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-foss-in-science",
+      "speakerIds": [
+        "person-jigyasu"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Tutorial about using a FOSS project",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-foss-in-science",
+      "devroomId": "devroom-1-foss-in-science",
+      "recordingUrl": "https://www.youtube.com/watch?v=7TzzOGZ3zas",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-5kfobsavtr",
+      "sourceId": "5kfobsavtr",
+      "type": "meal",
+      "title": "Lunch",
+      "subtitle": "Panel Discussion",
+      "start": "2025-09-21T13:35:00+05:30",
+      "end": "2025-09-21T14:30:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [],
+      "tags": [
+        "Break",
+        "Panel Discussion"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-74slceket5",
+      "sourceId": "74slceket5",
+      "type": "lightning-talk",
+      "title": "From Raw To Relevant: Harnessing Open Data to advance India’s understanding",
+      "start": "2025-09-21T14:00:00+05:30",
+      "end": "2025-09-21T14:25:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-arpit-arora",
+        "person-pragnya"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=Y6si9BeTLvM",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-ebki20f62f",
+      "sourceId": "ebki20f62f",
+      "type": "talk",
+      "title": "Sanchari-Kathegaara: Community Mesh Networks with Tribal Settlements in Karnataka",
+      "start": "2025-09-21T14:00:00+05:30",
+      "end": "2025-09-21T14:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-abhiram-jois"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Contributing to FOSS\nCommunity",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-74slvlptlc",
+      "sourceId": "74slvlptlc",
+      "type": "lightning-talk",
+      "title": "Empowering Pune with Open Tree Data: A Data-Driven Dashboard for a Cooler, Greener City using FOSS",
+      "start": "2025-09-21T14:30:00+05:30",
+      "end": "2025-09-21T14:45:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-kaushik-ravi"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=hYl3yrLU9-k",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-fl4ghe0l2p",
+      "sourceId": "fl4ghe0l2p",
+      "type": "panel",
+      "title": "Free/Libre AI",
+      "subtitle": "Panel Discussion",
+      "start": "2025-09-21T14:30:00+05:30",
+      "end": "2025-09-21T15:20:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-tarunima-prabhakar",
+        "person-rakesh-dubbudu",
+        "person-poruri-sai-rahul",
+        "person-ashita-prasad"
+      ],
+      "tags": [
+        "Other",
+        "Panel Discussion",
+        "Panel Discussion",
+        "Technology / FOSS licenses, policy",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-4c3670f02r",
+      "sourceId": "4c3670f02r",
+      "type": "talk",
+      "title": "Proxmox: powered by Qemu, not quarterly revenue targets",
+      "start": "2025-09-21T14:30:00+05:30",
+      "end": "2025-09-21T14:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-rohit-phatak"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)\nTutorial about using a FOSS project",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-e5bh1vfepl",
+      "sourceId": "e5bh1vfepl",
+      "type": "lightning-talk",
+      "title": "Maps, Masala & Missed Buses: Bengaluru’s Story Through Open Data",
+      "start": "2025-09-21T14:45:00+05:30",
+      "end": "2025-09-21T15:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-varuni-h-k"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Community\nStory of a FOSS project - from inception to growth",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=WGgwSZdCPH0",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-2l8s9nsd66",
+      "sourceId": "2l8s9nsd66",
+      "type": "lightning-talk",
+      "title": "BBMP Tree Census Data Analysis",
+      "subtitle": "Devroom",
+      "start": "2025-09-21T15:00:00+05:30",
+      "end": "2025-09-21T15:15:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-karthik-devan"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Devroom",
+        "Lightning Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=zi6Jw6YJXhU",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-dj1g7oe9r1",
+      "sourceId": "dj1g7oe9r1",
+      "type": "bof",
+      "title": "FOSS at organisations",
+      "subtitle": "BoF",
+      "start": "2025-09-21T15:00:00+05:30",
+      "end": "2025-09-21T16:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2",
+      "speakerIds": [
+        "person-ansh-arora"
+      ],
+      "tags": [
+        "Other",
+        "BoF",
+        "Birds of Feather(BoF)",
+        "Contributing to FOSS\nTutorial about using a FOSS project\nCommunity",
+        "Advanced"
+      ],
+      "trackId": "devroom-2",
+      "devroomId": "devroom-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-6c9a5h51aq",
+      "sourceId": "6c9a5h51aq",
+      "type": "talk",
+      "title": "Mission Possible: How Visually Impaired Developers re-shape the deep tech world",
+      "start": "2025-09-21T15:00:00+05:30",
+      "end": "2025-09-21T15:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-palaniappan-nallalagappan",
+        "person-arunkumar-k"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTechnology / FOSS licenses, policy\nCommunity",
+        "Beginner"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-24ag6ksucf",
+      "sourceId": "24ag6ksucf",
+      "type": "bof",
+      "title": "Revitalising the Bengaluru FOSS United Community",
+      "subtitle": "BoF",
+      "start": "2025-09-21T15:00:00+05:30",
+      "end": "2025-09-21T16:30:00+05:30",
+      "flexible": false,
+      "locationId": "food-area",
+      "speakerIds": [
+        "person-harish-babu",
+        "person-balu-babu"
+      ],
+      "tags": [
+        "Other",
+        "BoF",
+        "Birds of Feather(BoF)",
+        "Community",
+        "Beginner"
+      ],
+      "trackId": "food-area",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-167srade9h",
+      "sourceId": "167srade9h",
+      "type": "lightning-talk",
+      "title": "Let us make accessible Political Archives on the internet: The Constitution, Parliament and News Reporting on Hate",
+      "start": "2025-09-21T15:15:00+05:30",
+      "end": "2025-09-21T15:40:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-adhavan-mohana-sivaraj"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=gCISeFktG6E",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-75o27eo5u3",
+      "sourceId": "75o27eo5u3",
+      "type": "talk",
+      "title": "Evolving the OCaml programming language",
+      "start": "2025-09-21T15:30:00+05:30",
+      "end": "2025-09-21T15:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-kc-sivaramakrishnan"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Story of a FOSS project - from inception to growth\nIntroducing a FOSS project or a new version of a popular project\nCommunity",
+        "Advanced"
+      ],
+      "trackId": "audi-1",
+      "recordingUrl": "https://www.youtube.com/watch?v=9VxwfNVF4c4",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7clb3jbp22",
+      "sourceId": "7clb3jbp22",
+      "type": "talk",
+      "title": "Flavours of Zig language",
+      "start": "2025-09-21T15:30:00+05:30",
+      "end": "2025-09-21T15:55:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [
+        "person-akhil-teja-g-r"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Story of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-5qboaq4qdc",
+      "sourceId": "5qboaq4qdc",
+      "type": "lightning-talk",
+      "title": "IDS-DRR: An Open Data and AI Platform for Disaster Management",
+      "start": "2025-09-21T15:40:00+05:30",
+      "end": "2025-09-21T15:55:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-saurabh-levin"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)\nIntroducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=BkulGPeE2E4",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-42ten5mm2u",
+      "sourceId": "42ten5mm2u",
+      "type": "bof",
+      "title": "Challenges and strategies in building a diverse, equal, inclusive and accessible FOSS ecosystem",
+      "subtitle": "BoF",
+      "start": "2025-09-21T16:00:00+05:30",
+      "end": "2025-09-21T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-2",
+      "speakerIds": [
+        "person-sreelakshmi-jayarajan",
+        "person-keerthana-rajesh-kumar"
+      ],
+      "tags": [
+        "Other",
+        "BoF",
+        "Birds of Feather(BoF)",
+        "Community\nContributing to FOSS",
+        "Beginner"
+      ],
+      "trackId": "devroom-2",
+      "devroomId": "devroom-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-465n5kcm4m",
+      "sourceId": "465n5kcm4m",
+      "type": "talk",
+      "title": "DiscoveryBench: Data-Driven Scientific Discovery with LLM Agents",
+      "start": "2025-09-21T16:00:00+05:30",
+      "end": "2025-09-21T16:25:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-harshit-surana"
+      ],
+      "tags": [
+        "Talk",
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)\nStory of a FOSS project - from inception to growth\nEngineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-0d1ta37p11",
+      "sourceId": "0d1ta37p11",
+      "type": "talk",
+      "title": "FLASH TALKS (5*10 mins)",
+      "subtitle": "Flash talks",
+      "start": "2025-09-21T16:00:00+05:30",
+      "end": "2025-09-21T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-2",
+      "speakerIds": [],
+      "tags": [
+        "Other",
+        "Flash talks"
+      ],
+      "trackId": "audi-2",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-167s1e4195",
+      "sourceId": "167s1e4195",
+      "type": "lightning-talk",
+      "title": "Introducing India's Air Quality Index bulletins open data 2015-24",
+      "start": "2025-09-21T16:00:00+05:30",
+      "end": "2025-09-21T16:15:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-sai-krishna-dammalapati"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)\nCommunity",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=WR6DFP0zJFU",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-167sophevn",
+      "sourceId": "167sophevn",
+      "type": "lightning-talk",
+      "title": "Making Open Data Useful: Lessons from Diagram Chasing",
+      "start": "2025-09-21T16:15:00+05:30",
+      "end": "2025-09-21T16:40:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-vivek-matthew",
+        "person-aman-bhargava"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=7NCUE02l1DE",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-7637126kho",
+      "sourceId": "7637126kho",
+      "type": "lightning-talk",
+      "title": "Diffs Don’t Scale: Why We Need Better Code Review Interfaces",
+      "start": "2025-09-21T16:30:00+05:30",
+      "end": "2025-09-21T16:45:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-avikalp-kumar-gupta"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Engineering practice - productivity, debugging\nIntroducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-077kt1q3tm",
+      "sourceId": "077kt1q3tm",
+      "type": "lightning-talk",
+      "title": "FederatedCode: Using ActivityPub for Open Data Federation",
+      "start": "2025-09-21T16:45:00+05:30",
+      "end": "2025-09-21T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "devroom-1-open-data",
+      "speakerIds": [
+        "person-keshav-priyadarshi"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project\nTechnology architecture\nTechnology / FOSS licenses, policy\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
+      "trackId": "devroom-1-open-data",
+      "devroomId": "devroom-1-open-data",
+      "recordingUrl": "https://www.youtube.com/watch?v=6ne1geM_0Yw",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-d6pe09qkpo",
+      "sourceId": "d6pe09qkpo",
+      "type": "lightning-talk",
+      "title": "FOSS for good: a non-tech talk on how we used FOSS (and FOSS philosophy) to build an open legal test prep platform",
+      "start": "2025-09-21T16:45:00+05:30",
+      "end": "2025-09-21T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [
+        "person-anusha-reddy"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Lightning Talk",
+        "Community\nKnowledge Commons (Open Hardware, Open Science, Open Data etc.)\nStory of a FOSS project - from inception to growth",
+        "Beginner"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-cds7ticicu",
+      "sourceId": "cds7ticicu",
+      "type": "talk",
+      "title": "Closing Note and Open Discussion",
+      "subtitle": "Open House",
+      "start": "2025-09-21T17:00:00+05:30",
+      "end": "2025-09-21T18:00:00+05:30",
+      "flexible": false,
+      "locationId": "audi-1",
+      "speakerIds": [],
+      "tags": [
+        "Other",
+        "Open House"
+      ],
+      "trackId": "audi-1",
+      "source": "fossunited"
+    }
+  ],
+  "people": [
+    {
+      "id": "person-a-varshha",
+      "name": "A Varshha",
+      "bio": "Varshha is a 19 year old human from Chennai, India. She is the co-lead of the FOSSFEM club at her college.",
+      "avatarUrl": "https://fossunited.org/files/1000069422.jpg",
+      "links": []
+    },
+    {
+      "id": "person-abhinav-raut",
+      "name": "Abhinav Raut",
+      "bio": "Hi, I'm Abhinav. I work as a Software Engineer, love programming, video games, and in my free time I do bug bounties.",
+      "avatarUrl": "https://fossunited.org/files/pp_2.jpg",
+      "links": []
+    },
+    {
+      "id": "person-abhiram-jois",
+      "name": "Abhiram Jois",
+      "bio": "I am Abhiram Jois, currently working at Aruvu Collaboratory as a creative technologist. I work on long term engagements with communities exploring the role and possibilities of technology to foster support, community led research, local enterprises and education. I have worked on the ideas of community owned hyper local internet and feminist servers. I graduated in Human Centered Design from Srishti Manipal Institute. I did an exchange semester with the Glasgow School of Art in Interaction Design. Previously I have worked withh Design Beku and Janastu on Community owned wireless infrastructures and Papad, an open source archiving and annotation tool. I have been part of the School for Poetic Computation in their Code Societies - Cybernetics Sculptures cohort 2025.",
+      "avatarUrl": "https://fossunited.org/files/abhiram.png",
+      "links": []
+    },
+    {
+      "id": "person-abinaya-sv",
+      "name": "Abinaya SV",
+      "bio": "Hey, it's Abi here! I work as an Associate at PWC AC. I'm passionate about writing blogs on tech and hosting podcasts on tech. I love engaging with communities and sharing insights.",
+      "avatarUrl": "https://fossunited.org/files/download (2).png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/abinayasv/"
+        }
+      ]
+    },
+    {
+      "id": "person-adhavan-mohana-sivaraj",
+      "name": "Adhavan Mohana Sivaraj",
+      "bio": "My work engages with textual and geospatial ‘data’ for public-spirited needs. This may take the form of archiving, designing digital interactions with the archives and developing data-methods to make these archives. My engagements with the urban through SafeYelli have largely driven my geospatial and civic research interests. My work with Aruvu is with communities and places in Kundapura, Bidar and Channapatna.",
+      "avatarUrl": "https://fossunited.org/files/Screenshot_20250602_090754.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://adhavansivaraj.xyz"
+        }
+      ]
+    },
+    {
+      "id": "person-aditi-juneja",
+      "name": "Aditi Juneja",
+      "bio": "Hi, I am Aditi. I mostly work around API dispatching things in the Scientific Python ecosystem, mostly in NetworkX, nx-parallel backend and scikit-image. Previous work/talks: https://github.com/Schefflera-Arboricola/blogs/tree/main/archive",
+      "avatarUrl": "https://fossunited.org/files/compressed_Screenshot 2024-07-10 at 1.18.05 AM (1).png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/Schefflera-Arboricola"
+        }
+      ]
+    },
+    {
+      "id": "person-aftab-s",
+      "name": "Aftab S",
+      "bio": "Aftab is a DevOps Engineer specializing in cloud-native technologies, Observability, and platform reliability. He's also a Grafana Champion and an active contributor to the Grafana ecosystem. With expertise in Cloud, Containerization, and Observability, he builds reliable platforms and contributes to open-source projects. He is also a frequent speaker at tech conferences, and actively shares his insights through talks, workshops, and community meetups.",
+      "avatarUrl": "https://fossunited.org/files/Aftab S.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/aftab-s/"
+        }
+      ]
+    },
+    {
+      "id": "person-agriya-khetarpal",
+      "name": "Agriya Khetarpal",
+      "bio": "I am a software engineer at Quansight, where I work on open-source scientific software in the Scientific Python and PyData ecosystems. My interests include Python packaging, compilers and toolchains, documentation and technical writing, as well as numerical software, among other areas. I spend my time working on Pyodide , JupyterLite , and various other open-source scientific software projects, and I enjoy the capacities in which they all interoperate.",
+      "avatarUrl": "https://fossunited.org/files/20240524_083940-01-square-075x.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/agriyakhetarpal"
+        }
+      ]
+    },
+    {
+      "id": "person-ajinkya-dahale",
+      "name": "Ajinkya Dahale",
+      "bio": "A mechanical engineer by training, I am now a software developer based in India, currently working as a project staff at IIT Bombay, Mumbai. I have been a contributor to FreeCAD since 2016. In FreeCAD, my focus has been mostly in the 2D constrained drawing workbench “Sketcher”, as well as the underlying solver “planegcs”. In further detail, my interest has been in adding support for general curved geometry.",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2025-03-31 at 3.59.07 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ajinkya-dahale/"
+        }
+      ]
+    },
+    {
+      "id": "person-akhil-teja-g-r",
+      "name": "Akhil Teja G R",
+      "bio": "I'm Sr Machine Learning Engineer @DBS, Singapore headquartered international bank. My work revolves around Machine learning and GenAI. I'm associated with Swecha (tech community based out of Hyderabad) as a regular speaker for talks related to Rustlang and Python. I contribute to several opensource projects and have few popular projects under my name: https://github.com/akhildevelops/cudaz https://github.com/akhildevelops/summarizer Speaker Links: Pycon 2024 India: https://www.youtube.com/watch?v=10O34A7lAKs&amp;list=PL6GW05BfqWIe8GJyxf11fldN32IoHSFjv Talk on Internals of Rust: https://slides.com/akhilg/palette-34e054 Talk on Podcast Summarizer built in Rust: https://slides.com/akhilg/palette Cuda library in Zig: https://github.com/akhildevelops/cudaz",
+      "avatarUrl": "https://fossunited.org/files/abf7a2bc-bbf6-4aa2-aecf-c44b0401e94d.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/akhildevelops"
+        }
+      ]
+    },
+    {
+      "id": "person-albert-sebastian",
+      "name": "Albert Sebastian",
+      "bio": "Albert Sebastian hosts MAA and HYD node for mirror.albony.in and is working on a monitoring solution to aggregate logs and statistics from all nodes.",
+      "avatarUrl": "https://fossunited.org/files/image_2025-05-22_21-36-28.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/alou-S"
+        }
+      ]
+    },
+    {
+      "id": "person-alosh-denny",
+      "name": "Alosh Denny",
+      "bio": "I am an AGI developer, hobbyist and an NVIDIA Certified Associate in AI Infra &amp; Ops. My expertise ranges from Embedded IoT to Robotics to Specializing in Generative AI. I have secured World Rank 11th in the 2023 and 2024 European Rover Challenge at Kielce, Poland. With a track record of participating in over 30 hackathons and nailing the finals in over 10 national levels, I love putting myself to work on new and innovative technology. Being the CEO and CTO of two startups and mentoring over more than 10 hackathons, I have made it my mission to lead and follow. Recently, I have expanded over to the medical and healthcare field, bridging its domain experts such as doctors, clinicians and nurse practitioners with the advent of AI to revolutionize RPM and EHRs altogether. I am also a public speaker who follows deeply into open-source AI development, covering LLMs, application building and deployment. If you ever feel like you've got a bright idea up your sleeve, let's sit and discuss over a cup of coffee :)",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2025-06-04 at 21.23.40.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/aloshdenny"
+        }
+      ]
+    },
+    {
+      "id": "person-aman-bhargava",
+      "name": "Aman Bhargava",
+      "bio": "Data visualization developer at Revisual Labs . Bylines in Reuters Graphics, Unearthed (Greenpeace), and Rest of World. Interested in urban development, history, open-source software, and cartography.",
+      "avatarUrl": "https://fossunited.org/files/headshota1d360.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://aman.bh"
+        }
+      ]
+    },
+    {
+      "id": "person-amit-pundir",
+      "name": "Amit Pundir",
+      "bio": "15+ years of experience in AOSP bring-up and maintenance.",
+      "avatarUrl": "https://fossunited.org/files/IMG_3582-EDIT~2.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://fosstodon.org/@pundir"
+        }
+      ]
+    },
+    {
+      "id": "person-amit-yadav",
+      "name": "Amit Yadav",
+      "bio": "Started carrier as java developer, having 13+ years of experience in open source compliance area and worked in different organizations like Bosch, Siemens before MB and leading the FOSS Team and supporting R&amp;D departments on the FOSS Compliance Process. He is also playing role of Product Owner (PO) for License Info App (LIA)",
+      "avatarUrl": "https://fossunited.org/files/unnamed (1)a6afb8.jpg",
+      "links": []
+    },
+    {
+      "id": "person-anamika-roychowdhury",
+      "name": "Anamika Roychowdhury",
+      "bio": "namika Roychowdhury is a Lead Engineer at IBM India Software Lab, where she spearheads the development and support of IBM's Distributed Cache Solution, WebSphere eXtreme Scale. She provides expert guidance to numerous enterprise customers to effectively configure and manage distributed cache and resolves production anomalies in mission critical workloads. Anamika's 11 years of career journey spans prestigious organizations including American Express, Siemens R&amp;D, and Wipro Technologies, encompassing diverse technology sectors. Her expertise includes distributed caching algorithms, memory efficiency enhancements and enterprise workload optimization. Her passion for emerging technologies and their transformative impact on our world has been a constant driving force. She has completed her master's in computer science from IIIT, Bangalore.",
+      "avatarUrl": "https://fossunited.org/files/picture.jpg",
+      "links": []
+    },
+    {
+      "id": "person-anand-bagmar",
+      "name": "Anand Bagmar",
+      "bio": "Anand is a Software Quality Evangelist with 25+ years in the software testing field. He is passionate about shipping a quality product and specializes in Product Quality strategy &amp; execution, and also builds automated testing tools, infrastructure, and frameworks. Anand is a contributor to the Selenium project, writes testing-related blogs, and has built open-source tools related to software testing, including WAAT (Web Analytics Automation Testing Framework), TaaS (for automating integration testing across disparate systems), TTA (Test Trend Analyzer), and teswiz.",
+      "avatarUrl": "https://fossunited.org/files/Anand profile - Aug2024_.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://twitter.com/BagmarAnand"
+        }
+      ]
+    },
+    {
+      "id": "person-anoop-m-d",
+      "name": "Anoop M D",
+      "bio": "Anoop is the Founder and CEO of Bruno, an open-source API client. When he's not working on developer tools, you'll find him tinkering with side projects just for fun.",
+      "avatarUrl": "https://fossunited.org/files/anoop.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/anoop-m-d-868099100/"
+        }
+      ]
+    },
+    {
+      "id": "person-ansh-arora",
+      "name": "Ansh Arora",
+      "bio": "Programs and Partnerships @ FOSS United",
+      "avatarUrl": "https://fossunited.org/files/1723901142243.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://ansharora.in"
+        }
+      ]
+    },
+    {
+      "id": "person-anuj-deshpande",
+      "name": "Anuj Deshpande",
+      "bio": "Curating Makerville",
+      "avatarUrl": "https://fossunited.org/files/unnamed0799c1.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/anujdeshpandey"
+        }
+      ]
+    },
+    {
+      "id": "person-anusha-reddy",
+      "name": "Anusha Reddy",
+      "bio": "Anusha is a corporate lawyer working with an investment fund with 10+ years of experience.",
+      "avatarUrl": "https://fossunited.org/files/Anusha Pic.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://in.linkedin.com/in/anusha-reddy"
+        }
+      ]
+    },
+    {
+      "id": "person-arjun-verma",
+      "name": "Arjun Verma",
+      "bio": "Loves open source, 3D &amp; GIS. Past GSoC student &amp; mentor at PyBaMM project under NumFOCUS. Currently majorly contributing to jupyter ecosystem on projects such as JupyterCAD, JupyterGIS, ipyleaflet and more.",
+      "avatarUrl": "https://fossunited.org/files/Arjun.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/arjxn-py"
+        }
+      ]
+    },
+    {
+      "id": "person-arpit-arora",
+      "name": "Arpit Arora",
+      "bio": "Arpit leads audience engagement and product innovation efforts at Data For India. With a background in statistics, he has used data across numerous product, research, and monitoring and evaluation projects to inform his learning.",
+      "avatarUrl": "https://fossunited.org/files/Screenshot 2025-08-20 at 14.42.01.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/thedataareclean"
+        }
+      ]
+    },
+    {
+      "id": "person-arunkumar-k",
+      "name": "Arunkumar K",
+      "bio": "Arunkumar is a Data Scientist with 5 years of experience in the software industry. He loves learning new technologies and enjoys exploring how things work. He is passionate about helping visually impaired people learn programming and grow in tech. In his free time, he enjoys running marathons and staying active.",
+      "avatarUrl": "https://fossunited.org/files/Arun.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/arunkumar-k-14233b15b/"
+        }
+      ]
+    },
+    {
+      "id": "person-ashita-prasad",
+      "name": "Ashita Prasad",
+      "avatarUrl": "https://fossunited.org/files/ashita_aws.jpeg",
+      "links": []
+    },
+    {
+      "id": "person-ashwin-prasad",
+      "name": "Ashwin Prasad",
+      "bio": "Ashwin is a Research Analyst working with the High-Tech Geopolitics Programme at the Takshashila Institution. He monitors the evolution of India as a space power by undertaking policy research on the commercial, legal, and strategic aspects of outer space affairs.",
+      "avatarUrl": "https://fossunited.org/files/Ashwin Prasad.JPEG",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://ashwinpras.substack.com"
+        }
+      ]
+    },
+    {
+      "id": "person-avikalp-kumar-gupta",
+      "name": "Avikalp Kumar Gupta",
+      "bio": "Avikalp Gupta is the founder and maintainer of Vibinex , an open-source project aimed at enhancing the developer experience around code reviews. He has developed a range of tools, from real-time multiplayer game engines to productivity tools like WhatsApp-AI-Filter and Skyline3D . Currently, he's focused on leveraging contextual code diffs to improve both human and AI-assisted development workflows. His insights on AI and code review interfaces have gained attention on platforms like HackerNews . Avikalp is an active contributor to the FOSS ecosystem and a regular speaker at local developer meetups.",
+      "avatarUrl": "https://fossunited.org/files/Avikalp - profile -square.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/avikalpg"
+        }
+      ]
+    },
+    {
+      "id": "person-badri-sunderarajan",
+      "name": "Badri Sunderarajan",
+      "bio": "Writer, illustrator, and freelance software developer. Been managing DNS records since age 12, and now runs the family YunoHost instance. Founding editor of Snipette magazine and currently Bursary Team Lead at Prav . Member of the XMPP Standards Foundation (XSF) and creator of Convo , an XMPP messaging app for KaiOS. Carries a flip phone . Website: badrihippo.thekambattu.rocks",
+      "avatarUrl": "https://fossunited.org/files/badrihippo.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://fosstodon.org/@badrihippo"
+        }
+      ]
+    },
+    {
+      "id": "person-balu-babu",
+      "name": "Balu Babu",
+      "bio": "I like to make stuff.",
+      "avatarUrl": "https://fossunited.org/files/FB_IMG_1567181255999~2.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/AskBaluBabu"
+        }
+      ]
+    },
+    {
+      "id": "person-barun-acharya",
+      "name": "Barun Acharya",
+      "bio": "Barun likes hacking on low level stuff and fiddling around developer toolings. He currently is maintainer and leading the development efforts for KubeArmor, CNCF Sandbox project and works as a Software Engineer at Odigos. He loves to speak at conferences talking about Open Source, Cloud Native and Security. He is a proud CNCF Ambassador. He has been associated and am actively mentoring with programs like Google Summer of Code and LFX Mentorship.",
+      "avatarUrl": "https://fossunited.org/files/T02SCAYFC6T-U08U4374YQ6-977dbade4f96-512.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://barun.cc"
+        }
+      ]
+    },
+    {
+      "id": "person-bharath-reddy",
+      "name": "Bharath Reddy",
+      "bio": "Bharath Reddy is an Associate Fellow with the High-Tech Geopolitics Programme at the Takshashila Institution. His research interests lie at the intersection of technology, geopolitics, and India's national interests, with a focus on AI governance, open-source technologies, and telecommunications. He also manages the Graduate Certificate in Public Policy (Technology and Policy). In a previous life, he worked in telecommunications, developing software for 4G base stations.",
+      "avatarUrl": "https://fossunited.org/files/Bharath DPc7d359.jpg",
+      "links": []
+    },
+    {
+      "id": "person-chad-whitacre",
+      "name": "Chad Whitacre",
+      "bio": "Chad Whitacre got his start in Open Source in 2001. He participated in the Python web development boom of the 2000s that gave rise to Django and Flask (his own contribution was Aspen ). Along the way, he experienced first-hand the tension between volunteer Open Source work and paid closed source work, so he spent the 2010s as founder of a crowdfunding startup called Gittip ( later Gratipay ). Now here in the 2020s his role is Head of Open Source at Sentry , where he leads the Open Source Pledge and Fair Source initiatives. He is on the board of the Open Source Endowment , and has a YouTube show called Open Path .`",
+      "avatarUrl": "https://fossunited.org/files/headshot.1024662f9d.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://chadwhitacre.com/"
+        }
+      ]
+    },
+    {
+      "id": "person-denny-george",
+      "name": "Denny George",
+      "bio": "Denny George is Co Founder and Tech Lead at Tattle. He uses his training in Computer Science and UX Design to build community-driven civic tech software. At Tattle he has led the development of Feluda and Uli - two software solutions to improve information integrity that were recognised as Digital Public Good by the DPG Alliance. As former Director of Mobile Platforms at Quadrant 2, he co-created MigraCam with ACLU, aiding immigrant communities in the US. MigraCam was shortlisted for a Webby For Good award in the Public Service and Activism Category.",
+      "avatarUrl": "https://fossunited.org/files/20200501_090252.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/dennyabrain"
+        }
+      ]
+    },
+    {
+      "id": "person-dr-aaditeshwar-seth",
+      "name": "Dr. Aaditeshwar Seth",
+      "bio": "I am a professor in the Department of Computer Science and Engineering at IIT Delhi and run the ACT4D (Appropriate Computing Technologies for Development) research group. My areas of interest: - Environment and natural resource management for community based development - Analysis of factors impeding socio-economic development in rural areas - Participatory information sharing systems in low-literacy environments - Ethics of information systems",
+      "avatarUrl": "https://fossunited.org/files/aadi-crop.jpg",
+      "links": []
+    },
+    {
+      "id": "person-giriprashad",
+      "name": "Giriprashad",
+      "bio": "I'm a 3D artist, game developer, and FOSS enthusiast exploring how open-source games can make hardware and electronics education more accessible. Currently building VoltQuest — a playable learning journey from blinking LEDs to real-world circuits.",
+      "avatarUrl": "https://fossunited.org/files/IMG_20250606_185731.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/Shadow_foss?s=09"
+        }
+      ]
+    },
+    {
+      "id": "person-gunj-joshi",
+      "name": "Gunj Joshi",
+      "bio": "Core Contributor at stdlib - a standard library for numeric and scientific computing with JavaScript and NodeJS. Also been a past GSoC Contributor and current mentor. Previously given talks in conferences such as Fossasia, JSNation, etc.",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2025-03-24 at 15.53.148ca29b.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/gunjjoshi"
+        }
+      ]
+    },
+    {
+      "id": "person-harini-anand",
+      "name": "Harini Anand",
+      "bio": "I am Harini Anand, a Software Engineering Researcher at UIUC, and I currently work as a Software Developer at IBM in the Data &amp; AI Division, on IBM watsonx™. I previously worked at Niramai Health Analytix, a deep tech startup focusing on Breast Cancer, and used ML frameworks as a Research Intern at the Indian Institute of Technology Hyderabad to predict gene regulatory networks. I have also built cognitive tools for reducing the onset of Dementia as a student entrepreneur. I led the largest technical community on campus and also held workshops and gave talks on Machine Learning, NLP, and Data Science. I’ve been admitted to top summer schools at Oxford University, London, and the Massachusetts Institute of Technology, which specialize in the applications of AI in Healthcare. I am a Google KaggleX Mentee, an AWS Scholar, and have been awarded merit scholarships. I am a strong advocate for representation in STEM, and recognized as a High Impact APAC Ambassador for the Women In Data Science Community, an initiative by Stanford University. I am also a Harvard WE Tech Fellow.",
+      "avatarUrl": "https://fossunited.org/files/Harini Headshot.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/harini-anand-2002/"
+        }
+      ]
+    },
+    {
+      "id": "person-harish-babu",
+      "name": "Harish Babu",
+      "bio": "emulator necromancer",
+      "avatarUrl": "https://fossunited.org/files/harish.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/Harish1596"
+        }
+      ]
+    },
+    {
+      "id": "person-harsh-nisar",
+      "name": "Harsh Nisar",
+      "bio": "Harsh has over a decade of experience in building technology for some of Government of India's key programs: MGNREGA, National Highways, PM Gram Sadak Yojana and Rural Housing. He has led many complex systems projects, but his most cherished projects remain simple interventions such as opening data and creating pathways for young public-spirited talent to join the government. In that vein, he has recently co-founded a non-profit initiative called Bharat Digital, which aims to modernize and humanize how governments use technology is service of the public. In pursuit of that mission and creating a cadre of public technologists , the organization has launched the inaugural cohort of Build For Bharat Fellowship where final/pre-final year students in design, data and engineering are identified, equipped and deputed to government departments over the summer to work on impactful and mission-aligned technology projects.",
+      "avatarUrl": "https://fossunited.org/files/ppef195b.jpg",
+      "links": []
+    },
+    {
+      "id": "person-harshit-surana",
+      "name": "Harshit Surana",
+      "bio": "Harshit Surana is the founder of OpenLocus and a Visiting Research Scientist at Ai2, Seattle where he is building reliable LLMs at petabyte scale &amp; accelerating scientific discovery.&nbsp; He co-founded data companies DeepFlux (acquired by Vivendi EPA:VIV) &amp; Chaos Genius (Y-Combinator) that are used by Fortune 500 globally. He is the author of Practical NLP used by leading universities &amp; endorsed by AI leaders from Google &amp; Microsoft. Harshit did his graduate studies in NLP at CMU and did ML research with MIT Media Lab &amp; IIITH.&nbsp;",
+      "avatarUrl": "https://fossunited.org/files/personal-hs.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/surana"
+        }
+      ]
+    },
+    {
+      "id": "person-hiran-venugopalan",
+      "name": "Hiran Venugopalan",
+      "bio": "Product and Type Designer, curious about the intersections of community, technology, the internet, and FOSS.",
+      "avatarUrl": "https://fossunited.org/files/2817_2.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://hiran.in/"
+        }
+      ]
+    },
+    {
+      "id": "person-hridesh-mg",
+      "name": "Hridesh MG",
+      "bio": "Hey there, I'm Hridesh, a sophomore student pursuing a BTech in CSE at Amrita University Kollam. I'm currently a member of a student run open-source club at our college called amFOSS . I would consider myself as a hacker at heart as I love experimenting with and exploring new stuff. I don't really have a domain that I focus on as I like to call myself as somewhat of a generalist. However, in the past I have enjoyed working on the Linux Kernel, managing cloud servers, creating CI/CD pipelines and developing backends for a few personal projects. I also frequently participate in Hackathons and have won a few as well.",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2025-04-04 at 1.42.44 PM(1).png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/hridesh-mg/"
+        }
+      ]
+    },
+    {
+      "id": "person-immanuel-raj",
+      "name": "Immanuel Raj",
+      "bio": "Immanuel Raj is a passionate open-source contributor, developer, and DevOps engineer from Chennai, India. With a deep-rooted love for Android and the AOSP ecosystem, he has been actively building, optimizing, and extending Android for years — from breathing new life into legacy devices to creating modular frameworks for automotive-grade AOSP",
+      "avatarUrl": "https://fossunited.org/files/cropped-WhatsApp Image 2024-09-24 at 14.02.12.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://immanuelraj.dev/links/"
+        }
+      ]
+    },
+    {
+      "id": "person-ishan-bhanuka",
+      "name": "Ishan Bhanuka",
+      "bio": "I was born in the systems, molded by open source standards. I didn't see a proprietary UI until I was already a programmer, by then it was nothing but blinding 🤭. At FOSS United 2024, as an attendee, I was met fellow programmers and hackers who would share a hearty laugh at the above. So now I'm back as a speaker. 😇",
+      "avatarUrl": "https://fossunited.org/files/fun-profile-cropped.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/twitu"
+        }
+      ]
+    },
+    {
+      "id": "person-jaimin-parmar",
+      "name": "Jaimin Parmar",
+      "bio": "Namaste! I’m Jaimin Parmar, an embedded systems developer with 5 years of experience in AOSP and Linux BSP development. I’ve contributed to custom SoC and SOM bring-up projects, and currently in my free time, I try to learn and contribute to the RISC-V community through the BeagleV-Ahead platform.",
+      "avatarUrl": "https://fossunited.org/files/jaimin.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/jaimin-parmar"
+        }
+      ]
+    },
+    {
+      "id": "person-james-reilly",
+      "name": "James Reilly",
+      "bio": "I'm an American living with my wife living in Lucknow studying Hindi and thinking about how to promote FOSS and FOSS education. I used to work at Element, Beeper, The Ohio State University, and a pet store. I've been using Linux in the Desktop since 1998, probably before most of you were born 🫠. I love learning new things, eating new foods, and seeing new places.",
+      "avatarUrl": "https://fossunited.org/files/1000010437.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/jreilly112"
+        }
+      ]
+    },
+    {
+      "id": "person-jigyasu",
+      "name": "Jigyasu",
+      "bio": "contributor in scientific computing and data science ecosystem, member and active developer of sktime",
+      "avatarUrl": "https://fossunited.org/files/1735582392160.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/jgyasu/"
+        }
+      ]
+    },
+    {
+      "id": "person-jithin-bp",
+      "name": "Jithin BP",
+      "bio": "I'm a researcher who runs a company that manufactures scientific equipment ranging from multi purpose test and measurement equipment, to radiation detection instruments. This work is documented at my company website. I have previously spoken at various conferences such as Scipy, RMLL , Educode, and Pycon 2021, mostly on topics related to science education, and developing python powered scientific instruments. Much of my work deals with circuit design, firmware, and software development, and contributions can be found as open source projects on my github page, the ExpEYES project, and on CSpark Research . My academic background pertains to Physics, and I am currently engaged in Post Doctoral research on agricultural automation and biosensing, and the University has been an excellent facilitator to conduct outreach programs to train school students on modern scientific equipment. Speaker Links: website I maintain(Content and work is mine) https://csparkresearch.in Github Profile http://github.com/jithinbp Company Github Profile (also me) http://github.com/ csparkresearch Other accounts i contribute to : https://github.com/expeyes/expeyes-programs",
+      "avatarUrl": "https://fossunited.org/files/jithin.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/jithinbp_"
+        }
+      ]
+    },
+    {
+      "id": "person-kailash-nadh",
+      "name": "Kailash Nadh",
+      "bio": "Hobbyist developer / tinkerer",
+      "avatarUrl": "https://fossunited.org/files/4e34bd28c0e3597b38283ece574f87ee.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://nadh.in"
+        }
+      ]
+    },
+    {
+      "id": "person-karan-sharma",
+      "name": "Karan Sharma",
+      "bio": "Interested in Observability, Containers and Distributed Systems.",
+      "avatarUrl": "https://fossunited.org/files/5689132.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/mrkaran_"
+        }
+      ]
+    },
+    {
+      "id": "person-karthik-devan",
+      "name": "Karthik Devan",
+      "bio": "I am full stack engineer who removes drawers from work tables. When I work from home, my work table is a 50-year-old antique. The only modification I made upon inheriting it is taking out the paper drawers to make more legroom. I build digital products to remove papers (and drawers) from offices and homes.",
+      "avatarUrl": "https://fossunited.org/files/1722820167532.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/kdqed"
+        }
+      ]
+    },
+    {
+      "id": "person-kaushik-ravi",
+      "name": "Kaushik Ravi",
+      "bio": "Kaushik Ravi is a recent graduate from NIT Trichy (May 2025) and a dedicated problem-solver with over eight years of hands-on experience with Reap Benefit, starting from his 8th standard. His passion lies at the intersection of technology, environment, and people, focusing on building tangible solutions to real-world challenges. Kaushik's journey includes impactful roles such as being part of Reap Benefit's Youth Board and serving as a Youth Advisor for the Solutions for Youth Employment (S4YE) initiative at The World Bank. His innovative approach to tackling climate change earned him the Avery Dennison Foundation InvEnt Scholarship in 2022 for the \"Best Idea for Combating Climate Change.\" Furthering his commitment to environmental data science, Kaushik was awarded a DAAD WISE Scholarship, enabling him to conduct a three-month research project at the Technical University of Berlin. There, he analyzed Berlin's tree dataset, correlating it with oxygen production and ambient temperature to create visualizations for public transport users, demonstrating the environmental impact of urban greenery along their commutes. Identifying as a \"no-coder\" or \"vibe-coder,\" Kaushik possesses a strong ability to visualize and articulate complex project visions. He then skillfully leverages AI tools and Large Language Models to bring these concepts to fruition. He candidly shares that his projects, including the dashboard he will present, are built by effectively guiding these advanced technologies. This approach showcases how clear vision and modern FOSS-aligned strategies can drive impactful development, democratizing the creation of sophisticated tools. His current work on the Pune Urban Tree Dashboard is a testament to this, combining open data and accessible technology to empower communities.",
+      "avatarUrl": "https://fossunited.org/files/1_2.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/kaushik2002/"
+        }
+      ]
+    },
+    {
+      "id": "person-kavibhagya-k",
+      "name": "Kavibhagya K",
+      "bio": "I'm a computer science student who enjoys learning by building and sharing. I'm passionate about open source, especially around Android and AOSP. I believe FOSS is a great way to grow as an engineer and connect with a supportive community.",
+      "avatarUrl": "https://fossunited.org/files/kavibhagyae31ef9.jpg",
+      "links": []
+    },
+    {
+      "id": "person-kc-sivaramakrishnan",
+      "name": "KC Sivaramakrishnan",
+      "bio": "I am an Assistant Professor in the Computer Science and Engineering department at Indian Institute of Technology, Madras and the Chief Technology Officer of Tarides . I am interested in building robust, secure and scalable systems using programming language technology. I led the development of Multicore OCaml , a concurrent and parallel extension of the OCaml programming language. Multicore OCaml is now merged into OCaml, and is available for general use in OCaml 5.0. Effect handlers introduced as part of the concurrency story of Multicore OCaml has had influence on the design of React Hooks and WebAssembly stack switching .",
+      "avatarUrl": "https://fossunited.org/files/profile.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/kc_srk"
+        }
+      ]
+    },
+    {
+      "id": "person-keerthana-rajesh-kumar",
+      "name": "Keerthana Rajesh Kumar",
+      "bio": "Keerthana is an ardent free software and DEIA enthusiast and works to build inclusive communities and assistive technologies alike. She is the founder and director of FOSSIA, an inclusive community for encouraging underrepresented people to contributing to the Indian FOSS ecosystem.",
+      "avatarUrl": "https://fossunited.org/files/profile_11vvs573l1eeca0deeca0d.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://in.linkedin.com/in/keerthana304"
+        }
+      ]
+    },
+    {
+      "id": "person-keshav-priyadarshi",
+      "name": "Keshav Priyadarshi",
+      "bio": "Maintainer @ AboutCode (VulnerableCode, FederatedCode, ScanCode.io &amp; more). Developer @ nexB Inc. GSoC Mentor. Ex-Research Engineer @ Keysight. Building tools for supply chain security. Curious about the nature of reality.",
+      "avatarUrl": "https://fossunited.org/files/IMG_9740 copy.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/keshav-space/"
+        }
+      ]
+    },
+    {
+      "id": "person-khasim-syed-mohammed",
+      "name": "Khasim Syed Mohammed",
+      "bio": "Khasim Syed Mohammed is an open source software evangelist with more than 20 years of industry experience. Khasim has extensively worked on Android since it’s intial stages, lead the teams on early prototyping and profiling of Android for 64 bit architectures, experimenting Android for non-mobile, Android for servers with docker containers, Android for plug n play hardware architectures. At present, Khasim is employed by Texas Instruments where he and his teams are developing scalable software for TI’s applications processors. The team is heavily involved in defining the upstream first strategy for TI and collaborating with industry in delivering long term stable open source software for auto, industrial and general purpose applications.",
+      "avatarUrl": "https://fossunited.org/files/Khasim-profile2.jpg",
+      "links": []
+    },
+    {
+      "id": "person-kiran-jonnalagadda",
+      "name": "Kiran Jonnalagadda",
+      "bio": "Kiran Jonnalagadda spends most of his day wondering who has already solved any particular problem, and how to find it. Sometimes there's an open opportunity to be the first. Kiran is a co-founder of Hasgeek.",
+      "avatarUrl": "https://fossunited.org/files/1000706247.jpg",
+      "links": []
+    },
+    {
+      "id": "person-kriyanshi-shah",
+      "name": "Kriyanshi Shah",
+      "bio": "software tinkerer",
+      "avatarUrl": "https://fossunited.org/files/kriyanshiPhoto.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "http://twitter.com/kriyanshii"
+        }
+      ]
+    },
+    {
+      "id": "person-kumar-anirudha",
+      "name": "Kumar Anirudha",
+      "bio": "Open source builder, product architect and independent researcher. Currently excited about the potential of WASM.",
+      "avatarUrl": "https://fossunited.org/files/photo1670044439.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/kranirudha"
+        }
+      ]
+    },
+    {
+      "id": "person-laurens-priem",
+      "name": "Laurens Priem",
+      "bio": "A previous Ente customer who liked the product so much, that he joined the cause! In charge of the ML systems at Ente Photos for the last two years. Interested in all things Data Science and ML!",
+      "avatarUrl": "https://fossunited.org/files/HR_Data_Science_Talent_Fair_12.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/laurenspriem"
+        }
+      ]
+    },
+    {
+      "id": "person-lokendra-sharma",
+      "name": "Lokendra Sharma",
+      "bio": "Lokendra Sharma is a Research Analyst working with the High-Tech Geopolitics Programme at the Takshashila Institution. His primary research interests are tech-policy, cyberspace governance, internet governance, cyberpolitics, cybersecurity, and generally issues at the intersection of technology and politics (including nuclear developments).",
+      "avatarUrl": "https://fossunited.org/files/Photo .jpg",
+      "links": []
+    },
+    {
+      "id": "person-mohammed-zubair-ahmed",
+      "name": "Mohammed Zubair Ahmed",
+      "bio": "SDE II at Mattermost",
+      "avatarUrl": "https://fossunited.org/files/avataraee201.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://mzubairahmed.com/"
+        }
+      ]
+    },
+    {
+      "id": "person-muneef-hameed",
+      "name": "Muneef Hameed",
+      "bio": "Muneef Hameed is the founder of Functionary Labs , a product studio focused on building thoughtful, open-source software. He is currently working on Wraft , an open-source collaborative document platform designed for modern workflows.",
+      "avatarUrl": "https://fossunited.org/files/muneef.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/muneef"
+        }
+      ]
+    },
+    {
+      "id": "person-neha-sankhe",
+      "name": "Neha Sankhe",
+      "bio": "COO @ Frappe",
+      "avatarUrl": "https://fossunited.org/files/neha.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/nehasankhe"
+        }
+      ]
+    },
+    {
+      "id": "person-nemo",
+      "name": "Nemo",
+      "bio": "Nemo built endoflife.date . and was a founding engineer at Razorpay, where he helped scale and secure their payments stack. He's currently a full-time open-source developer focusing on securing the world’s supply chain, with a focus on SBOM/EOL and CI infrastructure/tooling. He is on the FOSS United Governing Board. Know more about him at https://captnemo.in .",
+      "avatarUrl": "https://fossunited.org/files/cuber-hi-res.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://tatooine.club/@nemo"
+        }
+      ]
+    },
+    {
+      "id": "person-nikhil",
+      "name": "Nikhil",
+      "bio": "Nikhil has spent nearly a decade breaking hardware and software. He is best known for discovering a vulnerability in the Delhi Metro smart card system, which was featured in TechCrunch . Know more about him here .",
+      "avatarUrl": "https://fossunited.org/files/nmason.jpeg",
+      "links": []
+    },
+    {
+      "id": "person-nilesh-trivedi",
+      "name": "Nilesh Trivedi",
+      "bio": "Nilesh Trivedi is co-founder and CTO for Snowmountain AI. He's an active contributor to open-source projects and has worked on implementing decentralized social media protocols like ActivityPub. Recently he helped start Fixable - a community and a crowdsourced wiki for repairability of consumer hardware products in India. His personal website is at https://nilesh.trivedi.link/",
+      "avatarUrl": "https://fossunited.org/files/nilesh.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/nileshtrivedi"
+        }
+      ]
+    },
+    {
+      "id": "person-palaniappan-nallalagappan",
+      "name": "Palaniappan Nallalagappan",
+      "bio": "Palaniappan is a senior IT practitioner with 24 years of IT experience and an entrepreneurial mindset. He is passionate about Parallel programming using OpenMP, MPI &amp; HPC frameworks. He enjoys exploring new technologies and often works with C, Unix and AWK. Over the years, he has built strong expertise in the Data Warehousing and Business Intelligence space, and has successfully taken up roles like Product Owner, Solution Architect, Consultant, and Delivery Lead. He also has experience in pre-sales and setting up Centers of Excellence.",
+      "avatarUrl": "https://fossunited.org/files/Palaniappan.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/palaniappan-nallalagappan/"
+        }
+      ]
+    },
+    {
+      "id": "person-parth-karia",
+      "name": "Parth Karia",
+      "bio": "I am a structural engineer specialising in steel structure design &amp; computation and automation in structural engineering. Currently, in my role as a Project Research Associate at IIT Bombay, my focus of work is on providing technical input on the design of steel structures for the preparation of an open-source steel structure design software OSDAG, which is funded by the Ministry of Education, Government of India, through FOSSEE under National Mission on Education (NME) through ICT.",
+      "avatarUrl": "https://fossunited.org/files/Parth.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/parth-karia-aa917a39/"
+        }
+      ]
+    },
+    {
+      "id": "person-poruri-sai-rahul",
+      "name": "Poruri Sai Rahul",
+      "avatarUrl": "https://fossunited.org/files/Rahul_Poruri-HiRes.png",
+      "links": []
+    },
+    {
+      "id": "person-pradeep-koulgi",
+      "name": "Pradeep Koulgi",
+      "bio": "I am a wildlife biologist, and used to be an engineer in a previous life. I work on applied ecological and conservation science issues in the Indian context. I like introducing data from diverse, non-traditional sources with scientific rigour to pressing conservation issues. In my freelance work, I am fortunate to have worked with a diverse set of conservation professionals, ranging from NGOs, scientists, data journalists and litigating lawyers. I am well versed with data analysis and visualization using R, and with large geospatial &amp; satellite data analysis using Google Earth Engine. I believe in, and like practicing and sharing, open data and science practices. I have enjoyed leading workshops on Google Earth Engine for college students and early career professionals in ecology and conservation studies.",
+      "avatarUrl": "https://fossunited.org/files/PradeepK.jpeg",
+      "links": []
+    },
+    {
+      "id": "person-pradyot-ranjan",
+      "name": "Pradyot Ranjan",
+      "bio": "Hi, I'm currently a contributor for Pydata/Sparse library, which is basically a library for sparse matrix calculations. I really like contributing to Scientific Python ecosystem. I was also a Google Summer of Code mentee under NumFOCUS.",
+      "avatarUrl": "https://fossunited.org/files/1691739319793.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/pradyot-ranjan-6a67a9220/"
+        }
+      ]
+    },
+    {
+      "id": "person-pragnya",
+      "name": "Pragnya",
+      "bio": "Pragnya is an Engineer at Data For India, and has been working with Indian data for seven years. She has a strong interest in transforming complex data into visualisations that are easy to understand, helping more people engage with the numbers that shape our country.",
+      "avatarUrl": "https://fossunited.org/files/pragnya-headshot.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/pragnya-reddy-61930878/"
+        }
+      ]
+    },
+    {
+      "id": "person-prashanth-udupa",
+      "name": "Prashanth Udupa",
+      "bio": "Prashanth Udupa is a software developer, trainer, and open-source creator with over two decades of experience crafting tools at the intersection of code, creativity, and visual storytelling. He began writing software as a teenager, developing a GUI framework on DOS to support his early creative experiments. Since discovering Qt in 2004, he has built various projects using Qt and KDE technologies, some of which he has released as open source. Beyond code, he enjoys watching films, reading and writing stories, and, more recently, TWIM meditation.",
+      "avatarUrl": "https://fossunited.org/files/Profile-Pic.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/UdupaPrashanth"
+        }
+      ]
+    },
+    {
+      "id": "person-prasun-anand",
+      "name": "Prasun Anand",
+      "bio": "Prasun loves building open-source software for scientific computing. He is the creator of Zasper, a high-performance IDE for Jupyter Notebooks.",
+      "avatarUrl": "https://fossunited.org/files/1739349198206.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/prasunanand/"
+        }
+      ]
+    },
+    {
+      "id": "person-prateek-sunal",
+      "name": "Prateek Sunal",
+      "bio": "Engineer @ ente.io , mentor @ GSoC, Loves to solve real life problems",
+      "avatarUrl": "https://fossunited.org/files/mypic.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/prateek_su"
+        }
+      ]
+    },
+    {
+      "id": "person-purvi-shah",
+      "name": "Purvi Shah",
+      "bio": "Purvi Shah is the Chief Operating Officer at Pratham Books, where she leads digital initiatives, marketing, and strategy. Over the past nineteen years, she has played a pivotal role in shaping the organization’s evolution — from launching StoryWeaver and Donate-a-Book to pioneering open, collaborative models that empower others to build upon and beyond Pratham Books’ work. An MIT Solve Fellow, she brings a systems lens to her work and is deeply passionate about building communities and shared narratives to advance the mission of putting a book in every child’s hand.",
+      "avatarUrl": "https://fossunited.org/files/Purvi Shah F.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/purvi-shah-31873a5"
+        }
+      ]
+    },
+    {
+      "id": "person-raghavendra-kamatagi",
+      "name": "Raghavendra Kamatagi",
+      "bio": "Started carrier as C developer, having 9+ years of experience in open source compliance area and worked in different organizations like Bosch, Elektrobit before MB and in the current role, supporting R&amp;D departments on the FOSS Compliance Process and driving the FOSS process as per OpenChain&nbsp;ISO/IEC 5230&nbsp;standard.",
+      "avatarUrl": "https://fossunited.org/files/unnamed (2).jpg",
+      "links": []
+    },
+    {
+      "id": "person-rajandran-r",
+      "name": "Rajandran R",
+      "bio": "Creator of OpenAlgo - OpenSource Algo Trading framework for Indian Traders. Building GenAI Applications. Telecom Engineer turned Full-time Derivative Trader. Mostly Trading Nifty, Banknifty, High Liquid Stock Derivatives. Trading the Markets Since 2006 onwards. Using Market Profile and Orderflow for more than a decade. Designed and published 100+ open source trading systems on various trading tools. Strongly believe that market understanding and robust trading frameworks are the key to the trading success. Building Algo Platforms, Writing about Markets, Trading System Design, Market Sentiment, Trading Softwares &amp; Trading Nuances since 2007 onwards. Author of Financial Blog Marketcalls",
+      "avatarUrl": "https://fossunited.org/files/rajandran4b0657.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/rajandranr/"
+        }
+      ]
+    },
+    {
+      "id": "person-rakesh-dubbudu",
+      "name": "Rakesh Dubbudu",
+      "avatarUrl": "https://fossunited.org/files/rakesh_factly.jpeg",
+      "links": []
+    },
+    {
+      "id": "person-ram-iyengar",
+      "name": "Ram Iyengar",
+      "bio": "Ram Iyengar has been breaking, and occasionally fixing, software for 15 years. As an engineer and educator obsessed with open source and security, he's a perpetual tinkerer, constantly pushing the boundaries of what's possible ― and sometimes what's advisable. He also occasionally emerges from his lab to build communities and share his hard-won wisdom. Approach with caution (and maybe a bug report).",
+      "avatarUrl": "https://fossunited.org/files/Ram-square.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/ram-iyengar"
+        }
+      ]
+    },
+    {
+      "id": "person-richard-richih-hartmann",
+      "name": "Richard \"RichiH\" Hartmann",
+      "bio": "Richard \"RichiH\" Hartmann is the Senior Developer Programs Director, a member of the Office of the CTO and a member of the OSPO of Grafana Labs. He is also Prometheus maintainer, OpenMetrics founder, OpenTelemetry member, and more. Among others, he was a CNCF Technical Oversight Committee member, a CNCF Governing Board member, the chair of the CNCF Technical Advisory Group on Observability, and other roles. He's the only one to receive the CNCF's \"Chop wood, carry water\" award for essential background twice. He also leads, organizes, or helps run various conferences from hundreds to 18,000 attendess, including but not limited to KubeCon, PromCon, FOSDEM, DENOG, DebConf, and Chaos Communication Congress. In the past, he made mainframe databases work, ISP backbones run, kept the largest IRC network on Earth running, and designed and built a datacenter from scratch. Go through his talks, podcasts, interviews, and articles at https://github.com/RichiH/talks or follow him on Mastodon at https://chaos.social/@RichiH for musings on the intersection of technology and society.",
+      "avatarUrl": "https://fossunited.org/files/richih.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://chaos.social/@RichiH"
+        }
+      ]
+    },
+    {
+      "id": "person-rishi-krishna-s",
+      "name": "Rishi Krishna S",
+      "bio": "Curious maker who loves blending tech, design, and creativity to build cool things that matter. Whether it’s a fun project or solving real-world problems, also into building \"swathanthra\" hardware/software, coz FOSS is COOL ! Also active in FOSS Kochi, where i did present another project showcasing how you can make a macro Keyboard (similar to CoryDora) But with a BSNL Keyboard its pretty cool ! check it out here This is me !!",
+      "avatarUrl": "https://fossunited.org/files/20250116_201027.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.instagram.com/beyond_rishi"
+        }
+      ]
+    },
+    {
+      "id": "person-ritika-varma",
+      "name": "Ritika Varma",
+      "bio": "Learning everyday to lead design towards functional and pleasing products!",
+      "avatarUrl": "https://fossunited.org/files/IMG_0844 1.jpg",
+      "links": []
+    },
+    {
+      "id": "person-rohit-phatak",
+      "name": "Rohit Phatak",
+      "bio": "Sysadmin by profession, Photographer by hobby, and Caffeine enthusiast by necessity Avidly selfhosting everything from a media server to a proxmox based OPNsense instance. RedHat certified Systems-Administrator (RHCSA) AWS certified cloud practitioner (AWS CCP)",
+      "avatarUrl": "https://fossunited.org/files/DSC_0668_edited-min.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/rohit-phatak"
+        }
+      ]
+    },
+    {
+      "id": "person-rucha-mahabal",
+      "name": "Rucha Mahabal",
+      "bio": "I'm a full-stack engineer working at Frappe, building and maintaining several high-utility open-source projects like Frappe HR and ERPNext . I’m passionate about crafting better web experiences and thrive on bringing ideas to life through code. GitHub Profile: https://github.com/ruchamahabal",
+      "avatarUrl": "https://fossunited.org/files/rucha-blogger-profile.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/rucha-mahabal/"
+        }
+      ]
+    },
+    {
+      "id": "person-rutvij-trivedi",
+      "name": "Rutvij Trivedi",
+      "bio": "With over a decade of diverse experience in Embedded Product Engineering, Software Development, and Embedded System Development, I bring extensive expertise. I've played a pivotal role in the complete product development lifecycle for Fortune 500 companies, driving projects to success across diverse industries like Consumer, Automotive, Healthcare, and IoT. My hands-on proficiency spans Processors ( i.MX 6/8, Snapdragon, STM32MP157), Firmware (ARM MCUs), Build Systems (Yocto), Multimedia (Qualcomm mm-camera, Gstreamer), Board Bringup, Android BSP (Automotive), and Linux Kernel/Drivers.",
+      "avatarUrl": "https://fossunited.org/files/U.S. Photo.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://in.linkedin.com/in/rutvij-h-trivedi"
+        }
+      ]
+    },
+    {
+      "id": "person-sagnik-saha",
+      "name": "Sagnik Saha",
+      "bio": "Sagnik is a mathematician and holds an MS in Mathematics and Biology. His academic work is centered around computational number theory, arithmetic geometry, and algorithmic bioimaging. As a consultant, he works on projects using multidisciplinary tools at the intersection of tech, research, art, and scicomm. Sagnik is a passionate advocate for math education, open-source tools, and communities around science and tech research. Beyond this, he also works in film and design production, partnering with organizations to amplify stories for science, tech, and community initiatives.",
+      "avatarUrl": "https://fossunited.org/files/photo-sagnik-01-resize.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://thesagniksaha.com"
+        }
+      ]
+    },
+    {
+      "id": "person-sai-krishna-dammalapati",
+      "name": "SAI KRISHNA DAMMALAPATI",
+      "bio": "Sai Krishna Dammalapati is a data engineer who worked on open data applications spanning domains like Urbanisation, Agriculture, Disaster Management, Air Pollution and Judiciary. He is currently exploring telling stories in various mediums: with code and data ; with words ; with stage and screen ;",
+      "avatarUrl": "https://fossunited.org/files/1698814909039.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/saikrishnadammalapati/"
+        }
+      ]
+    },
+    {
+      "id": "person-sai-rahul-poruri",
+      "name": "Sai Rahul Poruri",
+      "bio": "CEO @ FOSS United",
+      "avatarUrl": "https://fossunited.org/files/Rahul_Poruri-HiRes.png",
+      "links": []
+    },
+    {
+      "id": "person-sanket-verma",
+      "name": "Sanket Verma",
+      "bio": "I’m a software engineer deeply invested in the open-source scientific ecosystem. I love working with OS communities and contributing to various projects. I wear multiple hats in the open-source software world—writing code, creating processes and workflows, steering various committees, organising technical meet-ups and global conferences, and many more. When I’m not working, you can find me trekking in the Himalayas. Mountains are my second favourite thing, right after computers. I also enjoy playing video games, watching movies, playing football, and running marathons.",
+      "avatarUrl": "https://fossunited.org/files/Sanket 2a99a67.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://sanketverma.com/"
+        }
+      ]
+    },
+    {
+      "id": "person-saumya-shah",
+      "name": "Saumya Shah",
+      "bio": "LFX mentee at CNCF Thanos project. I share great interest in learning about distributed systems. I've been loving working and understanding different technologies since almost 3 years now.",
+      "avatarUrl": "https://fossunited.org/files/meffd86e.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/Saumya_Codes"
+        }
+      ]
+    },
+    {
+      "id": "person-saurabh-levin",
+      "name": "Saurabh Levin",
+      "bio": "Saurabh has had 13 years of experience working on open source projects at the intersection of design, data science and the commons. He currently works with CivicDataLab, aiming to develop better public infrastructure for decentralized resource management, through projects such as the IDS-DRR flood risk assessment platform.",
+      "avatarUrl": "https://fossunited.org/files/1713457182338.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/saurabh-levin-82a1a625/"
+        }
+      ]
+    },
+    {
+      "id": "person-shivani-bhardwaj",
+      "name": "Shivani Bhardwaj",
+      "bio": "Shivani is a couch programmer found some place in India most of the time. She enjoys problem solving using mathematics, some logic and some common sense. She also is intrigued by computer networking and how things work. She currently works at the Open Information Security Foundation with C, Python and occasional Rustlang.",
+      "avatarUrl": "https://fossunited.org/files/shivani.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://shivanibhardwaj.com"
+        }
+      ]
+    },
+    {
+      "id": "person-shoaib-merchant",
+      "name": "Shoaib Merchant",
+      "bio": "Shoaib Merchant is the founder of Mecha Systems and is working on building the Mecha Comet, a handheld Linux computer from India. Shoaib has multi-disciplinary experience in building software and hardware products altogether. The Mecha Comet has been a sleeper hit at CES 2025, and has garnered interest from world over.",
+      "avatarUrl": "https://fossunited.org/files/4598631.jpeg",
+      "links": []
+    },
+    {
+      "id": "person-shree-kumar",
+      "name": "Shree Kumar",
+      "bio": "Shree Kumar is an embedded software engineer, and an independent consultant, with over two decades of experience across many layers of the system stack. He headed the software team that designed India's first 3G tablet. Some of his early significant work was in High Performance Computing (HPC) visualization, winning awards at SuperComputing 2007 (SC '07) conference. He also created KitePhone, the world's first DIY 3D printable Android smartphone concept. Shree enjoys long walks and longer bicycle tours.",
+      "avatarUrl": "https://fossunited.org/files/shree-profile-pic.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/shreekumar3d/"
+        }
+      ]
+    },
+    {
+      "id": "person-shrirang-kahale",
+      "name": "Shrirang Kahale",
+      "bio": "Shrirang Kahale is a 18 year old student who started running mirror.albony.in 4 years ago. He's deeply interested in Networking, DevOps and RF. He believes curiosity is the boon of life and always keeps learning one-thing or another.",
+      "avatarUrl": "https://fossunited.org/files/1747053910375.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/albonycal"
+        }
+      ]
+    },
+    {
+      "id": "person-shubham-singh",
+      "name": "Shubham Singh",
+      "bio": "Shubham Singh is an open-source developer with a background in building systems that range from cloud testing platforms to trading engines and large-scale databases. He’s previously worked at BrowserStack , Punch.trade , and Google , and currently building a compiler to handle modern software development requirements. Over the years, Shubham has worked on Linux drivers, compilers, and AI models. He’s currently building a compiler designed to handle the evolving needs of modern software development part of his larger effort behind ASLang , a programming language built from the ground up to rethink how we write and reason about code. When he’s not breaking abstractions, he’s probably trying to build new ones.",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2025-03-31 at 9.01.27 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/0ms/"
+        }
+      ]
+    },
+    {
+      "id": "person-siddharth-jha",
+      "name": "Siddharth Jha",
+      "bio": "Siddharth, who prefers to go by Sid, is a designer-engineer hybrid specializing in multimedia. He's an avid open-source contributor to media and UI-led projects and spends his spare time making things look nicer and clicking photographs. He previously worked at Headout, where he built prototypes, tools and helped set up teams. Now, he's building Helmer, an infinite-canvas based video tool for creatives and businesses.",
+      "avatarUrl": "https://fossunited.org/files/e1 copy.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/clearlysid"
+        }
+      ]
+    },
+    {
+      "id": "person-spaarsh-thakkar",
+      "name": "Spaarsh Thakkar",
+      "bio": "I am Spaarsh Thakkar, a debian package developer under the ROCm Team. I am a contributor to the Debian Org under GSoC 2025. My work is aimed at enhancing AMD ROCm support in debian packages. I have one published package, hipblas-common, in debian NEW, which is awaiting for release to the experimental branch. I have also been working on enabling ROCm support to blasp and DBCSR (among others).",
+      "avatarUrl": "https://fossunited.org/files/Spaarsh_Thakkar.jpg",
+      "links": []
+    },
+    {
+      "id": "person-sreelakshmi-jayarajan",
+      "name": "Sreelakshmi Jayarajan",
+      "bio": "Sreelakshmi is a contributer to open-source applications for nearly five years. She has worked on projects like Open-MSS and Samay, and serves as a Contributor and Mentor with the Python Software Foundation in GSoC program. She is currently an Associate Product Manager at Bruno.",
+      "avatarUrl": "https://fossunited.org/files/sreelakshmi.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://in.linkedin.com/in/swsrkty"
+        }
+      ]
+    },
+    {
+      "id": "person-sudhanshu-dasgupta",
+      "name": "Sudhanshu Dasgupta",
+      "bio": "I’m a Software Engineer and Open-Source Maintainer. You will find me talking on open-source, web development, supply chain security, UI design systems, cloud-native technologies, and community building. I’m a core maintainer of Meshery (a CNCF open-source cloud-native management plane) along with contributing to and maintaining several other open-source projects. Beyond coding, I actively mentor and guide new contributors, helping them navigate and grow in the open-source ecosystem. I also write technical blogs and enjoy advocating for open-source projects and cloud-native technologies, making them more accessible to developers.",
+      "avatarUrl": "https://fossunited.org/files/profile-pic5ebe47.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/sudhanshu-dasgupta/"
+        }
+      ]
+    },
+    {
+      "id": "person-sukarn-singh-maini",
+      "name": "Sukarn Singh Maini",
+      "bio": "Sukarn has been working on technology laws since 2013. He is a Certified Information Privacy Manager and a Certified Information Privacy Professional / Europe. His primary areas of work include open source software, privacy and data protection, intermediary liability, ML / AI / LLM, drafting and negotiating agreements and licenses, and serving other legal requirements of technology companies.",
+      "avatarUrl": "https://fossunited.org/files/6fb1-200o200o2-Bri4qJMQqoXpL79yosPjTb.jpg",
+      "links": []
+    },
+    {
+      "id": "person-suman-vijeta",
+      "name": "Suman Vijeta",
+      "bio": "Suman Vijeta is an accomplished IT professional with over 28 years of experience. As an Associate Director at Pratham Books, she leads both the engineering and IT teams. Over the last seven years, she's been instrumental in developing and maintaining the StoryWeaver and Donate-a-Book platforms. Her work also focuses on driving internal efficiency and productivity through strategic IT initiatives.",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2025-04-23 at 3.23.51 PM7a691a.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/sumanvijeta/"
+        }
+      ]
+    },
+    {
+      "id": "person-sumit-semwal",
+      "name": "Sumit Semwal",
+      "bio": "22+ years in the Embedded world, including Linux kernel and AOSP among others. Maintainer of the dma-buf subsystem in the Linux kernel.",
+      "avatarUrl": "https://fossunited.org/files/Screenshot_20171130-204129.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/sumitsemwal"
+        }
+      ]
+    },
+    {
+      "id": "person-swarit-pandey",
+      "name": "Swarit Pandey",
+      "bio": "Software Engineer at StepSecurity, leading development of a static analysis platform to detect and prevent supply chain attacks. Previously served as Software Engineer at AccuKnox, where I handled the core distributed messaging infrastructure and event-driven systems backed by RabbitMQ and Apache Pulsar.At AccuKnox, I was part of the core team behind a major security partnership with IDT Telecom and led the CI/CD runtime security product powered by KubeArmor (eBPF+LSM). I designed event-driven systems for VM and multi-cloud workload protection, and owned the hardening policy generation module within AccuKnox's Discovery Engine.Experienced in distributed systems, cybersecurity, and infrastructure engineering with a focus on runtime security and supply chain protection.",
+      "avatarUrl": "https://fossunited.org/files/1704868119847.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/swarit-pandey/"
+        }
+      ]
+    },
+    {
+      "id": "person-swathi-kalyani",
+      "name": "Swathi Kalyani",
+      "bio": "Swathi is a Policy enthusiast and research Analyst for the Geospatial program at the Takshashila Institution. She has a background in agricultural engineering and geospatial technology. She is interested in learning and using remote sensing and GIS technology to understand, map, visualize and analyze real world problems.",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2024-11-22 at 15.14.41.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/swathi-kalyani-006a4920b/"
+        }
+      ]
+    },
+    {
+      "id": "person-tarunima-prabhakar",
+      "name": "Tarunima Prabhakar",
+      "bio": "Tarunima is a technologist and a policy wonk by training, and have worked with non-profits and tech giants. She leads research and product strategy at Tattle, an organization she co-founded. Tattle is an open-source civic tech organization that builds technology and data sets to amplify citizen action against misinformation and online harms, including gender-based violence, in low-resource settings.",
+      "avatarUrl": "https://fossunited.org/files/mugshot.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/tarunima/"
+        }
+      ]
+    },
+    {
+      "id": "person-tejaswi-gowda-phd",
+      "name": "Tejaswi Gowda, PhD",
+      "bio": "Tejaswi Gowda is an assistant professor in the School of Arts, Media and Engineering with the Herberger School of Design and Arts. His interests include Internet of Things and full-stack cloud computing. He has worked on real-time systems solutions for a range of applications including wearable technologies, web technologies, MLOps and more. He has applied these technologies in service of many community-embedded projects. Gowda is passionate about teaching and dedicated to empowering students with the knowledge, skills and experiences they need to thrive in the XR industry and beyond.&nbsp;",
+      "avatarUrl": "https://fossunited.org/files/1267401.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/tejaswigowda/"
+        }
+      ]
+    },
+    {
+      "id": "person-ujjwal-sharma",
+      "name": "Ujjwal Sharma",
+      "bio": "Ujjwal is a Compilers Hacker at Igalia serving as a co-chairperson of TC39 (the JavaScript standards committee) and co-editor of ECMA-402 (the JavaScript Internationalization spec). He loves to talk about open source software, decentralization, cryptography, JavaScript and web standards.",
+      "avatarUrl": "https://fossunited.org/files/cropped.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://bsky.app/profile/ryzokuken.bsky.social"
+        }
+      ]
+    },
+    {
+      "id": "person-vamsi-kurama",
+      "name": "Vamsi Kurama",
+      "bio": "Vamsi Kurama founded Plane out of a conviction that project management should be progress-driven, not just productivity-focused. Drawing on his deep background in software development and agile methodologies, he envisioned a tool that helps teams move work forward—tracking issues, epics, and roadmaps in a way that feels natural and impactful. As CEO of Plane, Vamsi brings a strong foundation in computer science and a proven ability to design scalable, reliable applications. His leadership is rooted in a simple philosophy: progress is the true measure of success. Guided by this belief, he is reshaping the landscape of modern work through open-source software, creating environments where teams don’t just stay busy—they thrive on meaningful progress.",
+      "avatarUrl": "https://fossunited.org/files/profile_6cms1ttksncd4a23cd4a23.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/vamsi-kurama/"
+        }
+      ]
+    },
+    {
+      "id": "person-varuni-h-k",
+      "name": "Varuni H.K",
+      "bio": "Varuni H.K works at Couchbase, she loves building and experimenting wih dist systems and ML. A lifelong stats enthusiast and firm believer in the power of data visualization, she’s passionate about making complex information accessible, beautiful, and actionable. Having lived all her life in Bengaluru, the city isn’t just home—it’s a dataset close to her heart. A daily BMTC bus commuter she is well-versed with the city's public transport network. In her free time you’ll find her running, reading, or discovering new lakes around the city .",
+      "avatarUrl": "https://fossunited.org/files/varuni .jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/varunihk/"
+        }
+      ]
+    },
+    {
+      "id": "person-vishal-bhoj",
+      "name": "Vishal Bhoj",
+      "bio": "With over 15 years of expertise in Android, Linux, and DevOps, Vishal is part of the team that is building the next-generation DevOps platform for Android. A seasoned AOSP contributor—particularly on the Hikey and Hikey960 boards—he has also architected and implemented large-scale CI/CD pipelines for building and testing both Linux and Android systems.",
+      "avatarUrl": "https://fossunited.org/files/Screenshot from 2025-06-13 23-16-22.png",
+      "links": []
+    },
+    {
+      "id": "person-vivek-matthew",
+      "name": "Vivek Matthew",
+      "bio": "Open data hobbyist. Government website collector. Occasional mapmaker.",
+      "avatarUrl": "https://fossunited.org/files/vivek.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/Vonter"
+        }
+      ]
+    },
+    {
+      "id": "person-yatindra-singh",
+      "name": "Yatindra Singh",
+      "bio": "Justice Singh was born on 9th October 1952 and passed High School &amp; Intermediate in 1st Division. He graduated in Science with distinction, securing 6th position in merit from the University of Allahabad in 1970. He was awarded Merit as well as National scholarships. After taking law degree, he joined the bar in 1973. Justice Singh served as Additional Advocate General for the State of UP from 1997 to 1999. Among other important cases, he was the main counsel at the Allahabad High Court in the case, where Kalyan Singh was reinstated as the Chief Minister of Uttar Pradesh, after his removal by the then Governor Romesh Bhandari (see https://kvtrust.blogspot.com/2015/08/kalyan-singh-reinstated.html). Justice Singh was appointed as a permanent judge of the Allahabad High Court on February 05, 1999. He joined the Chhattisgarh High Court as the Chief Justice on 22nd October, 2012 and retired on 8th October, 2014. During this time, he revamped and modernised the computerisation at the Allahabad and the Chhattisgarh High Courts. After retirement, he was designated senior Advocate and is practising in the Supreme Court.",
+      "avatarUrl": "https://fossunited.org/files/Yatindra Singh.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://kvtrust.blogspot.com/ "
+        }
+      ]
+    },
+    {
+      "id": "person-zainab-bawa",
+      "name": "Zainab Bawa",
+      "bio": "Co-founder at Hasgeek; mastering the art of community building - one experiment, one failure, and one success at a time!",
+      "avatarUrl": "https://fossunited.org/files/_CHA3724.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/zainabbawa"
+        }
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "id": "audi-1",
+      "name": "Audi 1",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "audi-2",
+      "name": "Audi 2",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "bof-room",
+      "name": "BoF Room",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "devroom-1-aosp",
+      "name": "Devroom 1 (AOSP)",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "devroom-1-foss-in-science",
+      "name": "Devroom 1 (FOSS in Science)",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "devroom-1-hardware",
+      "name": "Devroom 1 (Hardware)",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "devroom-1-open-data",
+      "name": "Devroom 1 (Open Data)",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "devroom-2",
+      "name": "Devroom 2",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "devroom-2-compilers",
+      "name": "Devroom 2 (Compilers)",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "devroom-2-geopolitics",
+      "name": "Devroom 2 (Geopolitics)",
+      "kind": "room",
+      "routingNodeIds": []
+    },
+    {
+      "id": "food-area",
+      "name": "Food Area",
+      "kind": "food",
+      "routingNodeIds": []
+    },
+    {
+      "id": "workshops-room",
+      "name": "Workshops Room",
+      "kind": "room",
+      "routingNodeIds": []
+    }
+  ],
+  "booths": [],
+  "tracks": [
+    {
+      "id": "audi-1",
+      "name": "Audi 1"
+    },
+    {
+      "id": "audi-2",
+      "name": "Audi 2"
+    },
+    {
+      "id": "bof-room",
+      "name": "BoF Room"
+    },
+    {
+      "id": "devroom-1-aosp",
+      "name": "Devroom 1 (AOSP)"
+    },
+    {
+      "id": "devroom-1-foss-in-science",
+      "name": "Devroom 1 (FOSS in Science)"
+    },
+    {
+      "id": "devroom-1-hardware",
+      "name": "Devroom 1 (Hardware)"
+    },
+    {
+      "id": "devroom-1-open-data",
+      "name": "Devroom 1 (Open Data)"
+    },
+    {
+      "id": "devroom-2",
+      "name": "Devroom 2"
+    },
+    {
+      "id": "devroom-2-compilers",
+      "name": "Devroom 2 (Compilers)"
+    },
+    {
+      "id": "devroom-2-geopolitics",
+      "name": "Devroom 2 (Geopolitics)"
+    },
+    {
+      "id": "food-area",
+      "name": "Food Area"
+    },
+    {
+      "id": "workshops-room",
+      "name": "Workshops Room"
+    }
+  ],
+  "sourceMetadata": {
+    "source": "fossunited",
+    "sourceUpdatedAt": "2026-06-02 16:08:47.991809",
+    "normalizerVersion": "0.1.0"
+  }
+}

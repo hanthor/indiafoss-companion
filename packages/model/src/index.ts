@@ -157,3 +157,5 @@ export interface EventReference {
   /** Adapter-specific locator (URL, slug, fixture path, ...). */
   locator: string;
 }
+
+export { collectBundleIssues, isValidEventBundle } from './validation.js';

@@ -51,6 +51,9 @@ importers:
       '@indiafoss/web':
         specifier: workspace:*
         version: link:../../web
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.3
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -159,7 +162,14 @@ importers:
         version: 4.1.11(@types/node@24.13.3)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.13))
 
   packages/sources:
+    dependencies:
+      '@indiafoss/model':
+        specifier: workspace:*
+        version: link:../model
     devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.3
       eslint:
         specifier: ^10.9.1
         version: 10.9.1
@@ -227,9 +237,12 @@ importers:
 
   tools/fixture-recorder:
     dependencies:
-      tsx:
-        specifier: ^4.20.0
-        version: 4.23.13
+      '@indiafoss/model':
+        specifier: workspace:*
+        version: link:../../packages/model
+      '@indiafoss/sources':
+        specifier: workspace:*
+        version: link:../../packages/sources
     devDependencies:
       '@types/node':
         specifier: ^24.0.0

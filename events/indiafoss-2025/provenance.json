@@ -1,0 +1,45 @@
+{
+  "eventId": "indiafoss-2025",
+  "kind": "historical integration fixture",
+  "capturedAt": "2026-09-01T10:00:00Z",
+  "sourceBaseUrl": "https://fossunited.org",
+  "endpoints": {
+    "event": {
+      "method": "POST",
+      "url": "/api/method/fossunited.api.dashboard.get_event",
+      "params": {
+        "name": "indiafoss/2025",
+        "by_route": true
+      },
+      "file": "raw/event.json"
+    },
+    "schedule": {
+      "method": "POST",
+      "url": "/api/method/fossunited.api.schedule.get_event_schedule",
+      "params": {
+        "event_id": "qvn4nr1b28"
+      },
+      "file": "raw/schedule.json"
+    },
+    "proposals": {
+      "method": "POST",
+      "url": "/api/method/fossunited.api.proposal.get_event_proposals",
+      "params": {
+        "event": "qvn4nr1b28"
+      },
+      "file": "raw/proposals.json"
+    }
+  },
+  "eventDoctypeName": "qvn4nr1b28",
+  "parserVersion": "0.1.0",
+  "contentHashes": {
+    "event.json": "3d3215eb67aa8fff3a77116e77949af5a0e2c0b8c864594382f0539e619fb6a2",
+    "schedule.json": "3f6a65983fd4c9edacb5989f4b68ddb4b0aa36b34eee20fed37e6bfbfe25934f",
+    "proposals.json": "80a6eb5afecf20b8d753f33b32edf082fd0965dbceedaa9d7f82c777531c393c"
+  },
+  "notes": [
+    "All three endpoints are guest-accessible (@frappe.whitelist(allow_guest=True)) on the public fossunited.org platform.",
+    "The event doctype name (qvn4nr1b28) is the runtime 'name' of the FOSS Chapter Event doc for route c/indiafoss/2025.",
+    "Booths are not exposed by any public API on the platform as of capture; the booth fixture is authored separately (Phase 7)."
+  ]
+}
