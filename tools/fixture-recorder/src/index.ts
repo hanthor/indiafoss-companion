@@ -1,6 +1,6 @@
 import { isValidEventBundle } from '@indiafoss/model';
-import { FixtureSource, repoRoot } from '@indiafoss/sources';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { FixtureSource, mergeBooths, repoRoot } from '@indiafoss/sources';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const usage = `fixture-recorder
 
@@ -13,6 +13,18 @@ Commands:
 async function normalize(eventId: string): Promise<void> {
   const source = new FixtureSource();
   const bundle = await source.loadRef({ id: eventId, locator: '' });
+
+  // Merge the authored booth fixture (booths are not in the public API).
+  const boothsPath = `${repoRoot('events', eventId, 'booths.json')}`;
+  try {
+    const { booths } = JSON.parse(await readFile(boothsPath, 'utf8')) as {
+      booths: { id: string }[];
+    };
+    mergeBooths(bundle, booths);
+  } catch (error) {
+    const code = (error as { code?: string }).code;
+    if (code !== 'ENOENT') throw error;
+  }
 
   const issues = isValidEventBundle(bundle) ? [] : ['bundle failed structural validation'];
   if (issues.length > 0) {

@@ -1,13 +1,36 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
+  import { CompanionStorage } from '@indiafoss/storage';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
 
-  const boothId = $derived(page.params.id);
+  const boothId = $derived(page.params.id ?? '');
   const bundle = $derived(eventState.bundle!);
   const booth = $derived(bundle?.booths.find((b) => b.id === boothId) ?? null);
   const location = $derived(bundle?.locations.find((l) => l.id === booth?.locationId));
+
+  const storage = new CompanionStorage();
+  let scheduled = $state<string | null>(null);
+
+  $effect(() => {
+    if (!booth) return;
+    void storage.getSetting(`booth-visit-${booth.id}`).then((v) => {
+      scheduled = v ?? null;
+    });
+  });
+
+  async function scheduleVisit(minutes: number): Promise<void> {
+    if (!booth) return;
+    await storage.setSetting(`booth-visit-${booth.id}`, String(minutes));
+    scheduled = String(minutes);
+  }
+
+  async function cancelVisit(): Promise<void> {
+    if (!booth) return;
+    await storage.setSetting(`booth-visit-${booth.id}`, '');
+    scheduled = null;
+  }
 </script>
 
 <EventGate>
@@ -17,13 +40,30 @@
     <h1>{booth.name}</h1>
     <p class="muted">{booth.category}</p>
     {#if booth.description}<p>{booth.description}</p>{/if}
-    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-    {#if booth.website}<p><a href={booth.website} rel="noreferrer">Website</a></p>{/if}
+    {#if booth.website}
+      <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+      <p><a href={booth.website} rel="noreferrer">Website</a></p>
+    {/if}
     {#if location}
       <p class="muted small">
         <a href={resolve('/map')}>Find on map</a> · {location.name}
       </p>
     {/if}
+
+    <section class="visit" aria-label="Schedule a booth visit">
+      <h2>Plan a visit</h2>
+      {#if scheduled}
+        <p class="muted">
+          Scheduled: {scheduled} min — the solver will place it in a gap (§7).
+        </p>
+        <button class="ghost" onclick={cancelVisit}>Cancel</button>
+      {:else}
+        <div class="row">
+          <button onclick={() => scheduleVisit(15)}>Schedule 15 min</button>
+          <button onclick={() => scheduleVisit(30)}>Schedule 30 min</button>
+        </div>
+      {/if}
+    </section>
   {/if}
 </EventGate>
 
@@ -33,5 +73,33 @@
   }
   .small {
     font-size: 0.82rem;
+  }
+  .visit {
+    margin-top: 1.2rem;
+    background: var(--surface-raised);
+    border-radius: var(--radius);
+    padding: 0.9rem 1rem;
+  }
+  .visit h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+  }
+  .row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .row button,
+  .ghost {
+    border: 1px solid var(--event-primary);
+    background: var(--surface);
+    color: var(--event-primary);
+    border-radius: 999px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .row button:hover {
+    background: color-mix(in srgb, var(--event-primary) 10%, transparent);
   }
 </style>

@@ -18,6 +18,7 @@
 <EventGate>
   <h1>Explore</h1>
   <p class="muted">Search talks, speakers, devrooms and booths — works offline.</p>
+  <p class="muted small"><a href={resolve('/explore/booths')}>Booth directory →</a></p>
 
   <div class="search">
     <input

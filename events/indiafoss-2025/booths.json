@@ -1,0 +1,178 @@
+{
+  "_draft": true,
+  "_notes": "Authored fixture: booth identities for IndiaFOSS 2025 are not exposed by the public FOSS United API, so this list is derived from the supplied venue floor plan (sponsor booth zones 1-16, community booth areas, HW showcase, FOSS U help desk) and serves as deterministic fixture data. Replace with official booth data when published.",
+  "booths": [
+    {
+      "id": "booth-sponsor-1",
+      "name": "Sponsor Booth 1",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-2",
+      "name": "Sponsor Booth 2",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-3",
+      "name": "Sponsor Booth 3",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-4",
+      "name": "Sponsor Booth 4",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-5",
+      "name": "Sponsor Booth 5",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-6",
+      "name": "Sponsor Booth 6",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-7",
+      "name": "Sponsor Booth 7",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-8",
+      "name": "Sponsor Booth 8",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-9",
+      "name": "Sponsor Booth 9",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-10",
+      "name": "Sponsor Booth 10",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-11",
+      "name": "Sponsor Booth 11",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-12",
+      "name": "Sponsor Booth 12",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-13",
+      "name": "Sponsor Booth 13",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-14",
+      "name": "Sponsor Booth 14",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-15",
+      "name": "Sponsor Booth 15",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-sponsor-16",
+      "name": "Sponsor Booth 16",
+      "category": "sponsor",
+      "tags": [
+        "sponsor"
+      ],
+      "locationId": "sponsor-booths"
+    },
+    {
+      "id": "booth-community-1",
+      "name": "Community Booths",
+      "category": "community",
+      "tags": [
+        "community"
+      ],
+      "locationId": "community-booths"
+    },
+    {
+      "id": "booth-hw-showcase",
+      "name": "HW Showcase",
+      "category": "hardware",
+      "tags": [
+        "hardware"
+      ],
+      "locationId": "hw-showcase"
+    },
+    {
+      "id": "booth-fossu-help-desk",
+      "name": "FOSS United Help Desk",
+      "category": "community",
+      "tags": [
+        "help",
+        "foss-united"
+      ],
+      "locationId": "registration"
+    }
+  ]
+}
