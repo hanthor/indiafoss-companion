@@ -1,8 +1,9 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { formatDayLabel, formatTime } from '@indiafoss/schedule';
+  import { activityToIcs, formatDayLabel, formatTime } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
+  import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -21,6 +22,22 @@
 
   const disposition = $derived(activity ? dispositionOf(activity.id) : 'normal');
   const isBookmarked = $derived(activity ? bookmarked(activity.id) : false);
+  let calendarMessage = $state('');
+
+  async function addToCalendar(): Promise<void> {
+    if (!activity || !bundle) return;
+    const ics = activityToIcs(bundle, activity, { includeAlarm: true });
+    const filename = `${activity.id}.ics`;
+    try {
+      const shared = await shareCalendarFile(filename, ics);
+      if (!shared) downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
+      calendarMessage = shared ? 'Calendar share opened.' : 'Calendar file downloaded.';
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
+      calendarMessage = 'Calendar file downloaded.';
+    }
+  }
 
   function onDisposition(value: 'must-attend' | 'not-interested' | 'watch-later' | 'normal') {
     if (activity) void setDisposition(activity.id, value);
@@ -66,6 +83,7 @@
     </section>
 
     <section class="actions" aria-label="Personal preferences (§17)">
+      <button class="calendar" onclick={addToCalendar}>Add to calendar</button>
       <button
         class:active={isBookmarked}
         aria-pressed={isBookmarked}
@@ -93,6 +111,7 @@
         ▸ Watch later
       </button>
     </section>
+    {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
 
     {#if speakers.length > 0}
       <section>
@@ -232,6 +251,12 @@
     padding: 0.45rem 0.85rem;
     font-size: 0.85rem;
     cursor: pointer;
+  }
+  .actions button.calendar {
+    border-color: var(--event-primary-dark);
+    background: var(--event-primary);
+    color: var(--event-secondary);
+    font-weight: 700;
   }
   .actions button.active {
     border-color: var(--event-accent);

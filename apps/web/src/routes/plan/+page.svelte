@@ -1,9 +1,10 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import type { SolverResult } from '@indiafoss/solver';
-  import { formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
+  import { formatDayLabel, formatTime, getEventDays, itineraryToIcs } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
   import { solveForDay } from '$lib/solver.svelte';
+  import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import EventGate from '$lib/components/EventGate.svelte';
 
   const bundle = $derived(eventState.bundle!);
@@ -12,6 +13,22 @@
   let selectedDay = $state<string | null>(null);
   let solving = $state(false);
   let result: SolverResult | null = $state(null);
+  let calendarMessage = $state('');
+
+  async function exportItinerary(): Promise<void> {
+    if (!bundle || !result) return;
+    const ics = itineraryToIcs(bundle, result.itinerary.items, { includeAlarm: true });
+    const filename = `${bundle.id}-${result.itinerary.day}-itinerary.ics`;
+    try {
+      const shared = await shareCalendarFile(filename, ics);
+      if (!shared) downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
+      calendarMessage = shared ? 'Calendar share opened.' : 'Itinerary calendar downloaded.';
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
+      calendarMessage = 'Itinerary calendar downloaded.';
+    }
+  }
 
   $effect(() => {
     if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
@@ -53,7 +70,11 @@
 
   <div class="actions">
     <a href={resolve('/plan/rank')}>Rank this day first →</a>
+    {#if result && result.itinerary.items.length > 0}
+      <button class="calendar" onclick={exportItinerary}>Add selected talks to calendar</button>
+    {/if}
   </div>
+  {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
 
   {#if solving}
     <p role="status">Computing your best day…</p>
@@ -136,10 +157,26 @@
     color: var(--text-muted);
     font-weight: 400;
   }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    align-items: center;
+  }
   .actions a {
-    color: var(--event-primary);
+    color: var(--event-primary-dark);
     font-weight: 600;
     font-size: 0.9rem;
+  }
+  .calendar {
+    border: 1px solid var(--event-primary-dark);
+    background: var(--event-primary);
+    color: var(--event-secondary);
+    border-radius: 999px;
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 700;
   }
   .conflict {
     background: color-mix(in srgb, var(--danger) 10%, var(--surface));

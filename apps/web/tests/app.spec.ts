@@ -137,3 +137,11 @@ test('booth directory lists and schedules a visit', async ({ page }) => {
   await page.getByRole('button', { name: 'Schedule 30 min' }).click();
   await expect(page.getByText(/Scheduled: 30 min/)).toBeVisible();
 });
+
+test('activity calendar action downloads a portable ICS file', async ({ page }) => {
+  await page.goto(appUrl('/activity/act-c8ak0iov2l'));
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Add to calendar' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/\.ics$/);
+});

@@ -243,3 +243,12 @@ export function summarizeChanges(changes: ScheduleChange[]): Record<string, numb
   }
   return summary;
 }
+
+export {
+  activityToIcs,
+  calendarEntriesToIcs,
+  calendarEntryToIcs,
+  eventToIcs,
+  itineraryToIcs,
+} from './calendar.js';
+export type { CalendarEntry, CalendarOptions, ItineraryCalendarItem } from './calendar.js';

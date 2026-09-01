@@ -5,11 +5,13 @@
   import { searchActivities } from '@indiafoss/search';
   import {
     activitiesForDay,
+    eventToIcs,
     formatDayLabel,
     getEventDays,
     groupByStart,
   } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf } from '$lib/prefs.svelte';
+  import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import SessionCard from '$lib/components/SessionCard.svelte';
@@ -23,6 +25,21 @@
   let query = $state('');
   let devroomsOnly = $state(false);
   let bookmarkedOnly = $state(false);
+  let calendarMessage = $state('');
+
+  async function exportEventCalendar(): Promise<void> {
+    const ics = eventToIcs(bundle, { includeAlarm: false });
+    const filename = `${bundle.id}.ics`;
+    try {
+      const shared = await shareCalendarFile(filename, ics);
+      if (!shared) downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
+      calendarMessage = shared ? 'Calendar share opened.' : 'Event calendar downloaded.';
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      downloadTextFile(filename, ics, 'text/calendar;charset=utf-8');
+      calendarMessage = 'Event calendar downloaded.';
+    }
+  }
 
   const TYPE_TOGGLES: ActivityType[] = [
     'talk',
@@ -79,8 +96,12 @@
       <h1>Schedule</h1>
       <p class="muted">{bundle.name} · {bundle.timezone}</p>
     </div>
-    <a class="rank-link" href={resolve('/plan/rank')}>Rank your choices →</a>
+    <div class="header-actions">
+      <a class="rank-link" href={resolve('/plan/rank')}>Rank your choices →</a>
+      <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
+    </div>
   </header>
+  {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
 
   <div class="controls">
     <div class="days" role="tablist" aria-label="Conference day">
@@ -169,6 +190,13 @@
   .pagehead h1 {
     margin: 0;
   }
+  .header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: end;
+    align-items: center;
+    gap: 0.6rem;
+  }
   .rank-link {
     color: var(--event-primary-dark);
     font-family: 'Space Mono', ui-monospace, monospace;
@@ -182,6 +210,16 @@
   }
   .small {
     font-size: 0.82rem;
+  }
+  .calendar-link {
+    border: 1px solid var(--event-primary-dark);
+    background: var(--event-primary);
+    color: var(--event-secondary);
+    border-radius: 999px;
+    padding: 0.4rem 0.7rem;
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 700;
   }
   .controls {
     display: flex;
