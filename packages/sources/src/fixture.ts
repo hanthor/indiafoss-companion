@@ -1,10 +1,15 @@
-import type { EventBundle, EventReference } from '@indiafoss/model';
+import type { Booth, EventBundle, EventReference } from '@indiafoss/model';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalizeFossUnited } from './fossunited/normalize.js';
-import type { FosuEventDoc, FosuProposalList, FosuSchedule } from './fossunited/types.js';
+import type {
+  FosuEventDoc,
+  FosuProposalDetail,
+  FosuProposalList,
+  FosuSchedule,
+} from './fossunited/types.js';
 import type { EventSource, SourceEvent } from './types.js';
 
 /**
@@ -38,12 +43,23 @@ export class FixtureSource implements EventSource {
     return raw as T;
   }
 
+  private async loadOptionalJson<T>(file: string, fallback: T): Promise<T> {
+    try {
+      return await this.loadJson<T>(file);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'ENOENT') return fallback;
+      throw error;
+    }
+  }
+
   async fetchEvent(ref: EventReference): Promise<SourceEvent> {
     const dir = `${this.eventsDir}/${ref.id}/raw`;
-    const [event, schedule, proposalsList] = await Promise.all([
+    const [event, schedule, proposalsList, proposalDetails, boothFile] = await Promise.all([
       this.loadJson<FosuEventDoc>(`${dir}/event.json`),
       this.loadJson<FosuSchedule>(`${dir}/schedule.json`),
       this.loadJson<FosuProposalList>(`${dir}/proposals.json`),
+      this.loadOptionalJson<Record<string, FosuProposalDetail>>(`${dir}/proposal-details.json`, {}),
+      this.loadOptionalJson<{ booths?: Booth[] }>(`${this.eventsDir}/${ref.id}/booths.json`, {}),
     ]);
     return {
       kind: 'fossunited',
@@ -51,6 +67,8 @@ export class FixtureSource implements EventSource {
       event,
       schedule,
       proposals: proposalsList.proposals ?? [],
+      proposalDetails,
+      booths: boothFile.booths ?? [],
     };
   }
 
@@ -63,6 +81,8 @@ export class FixtureSource implements EventSource {
       event: source.event,
       schedule: source.schedule,
       proposals: source.proposals,
+      proposalDetails: source.proposalDetails,
+      booths: source.booths,
     });
   }
 

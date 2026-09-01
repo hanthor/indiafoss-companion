@@ -42,6 +42,10 @@
         {#if activity.cancelled}<span class="cancel">cancelled</span>{/if}
       </p>
       {#if activity.subtitle}<p class="subtitle">{activity.subtitle}</p>{/if}
+      <div class="badges">
+        {#if activity.audience}<span class="meta-badge">Audience: {activity.audience}</span>{/if}
+        {#if activity.proposalStatus}<span class="meta-badge">{activity.proposalStatus}</span>{/if}
+      </div>
     </header>
 
     <section class="facts">
@@ -95,9 +99,23 @@
         <h2>Speakers</h2>
         <ul class="speakers">
           {#each speakers as speaker (speaker.id)}
-            <li>
-              <a href={resolve(`/speaker/${speaker.id}`)}>{speaker.name}</a>
-              {#if speaker.bio}<p class="muted small">{speaker.bio.slice(0, 140)}…</p>{/if}
+            <li class="speaker">
+              {#if speaker.avatarUrl}
+                <!-- public speaker image from the captured FOSS United page -->
+                <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+                <img src={speaker.avatarUrl} alt="" loading="lazy" />
+              {/if}
+              <div>
+                <a href={resolve(`/speaker/${speaker.id}`)}>{speaker.name}</a>
+                {#if speaker.designation || speaker.organization}
+                  <p class="muted small">
+                    {speaker.designation}{#if speaker.designation && speaker.organization}
+                      ·
+                    {/if}{speaker.organization}
+                  </p>
+                {/if}
+                {#if speaker.bio}<p class="muted small">{speaker.bio.slice(0, 180)}…</p>{/if}
+              </div>
             </li>
           {/each}
         </ul>
@@ -107,7 +125,18 @@
     {#if activity.description}
       <section>
         <h2>About</h2>
-        <p>{activity.description}</p>
+        <p class="description">{activity.description}</p>
+      </section>
+    {/if}
+
+    {#if activity.keyTakeaways && activity.keyTakeaways.length > 0}
+      <section>
+        <h2>Key takeaways</h2>
+        <ul class="takeaways">
+          {#each activity.keyTakeaways as takeaway (takeaway)}
+            <li>{takeaway}</li>
+          {/each}
+        </ul>
       </section>
     {/if}
 
@@ -117,15 +146,31 @@
       </section>
     {/if}
 
-    {#if activity.recordingUrl || activity.slidesUrl}
+    {#if activity.recordingUrl || activity.slidesUrl || activity.links?.length || activity.references?.length || activity.sourceUrl}
       <section class="media">
-        <!-- external URLs, not SvelteKit routes -->
-        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-        {#if activity.recordingUrl}<a href={activity.recordingUrl} rel="noreferrer"
-            >Watch recording</a
-          >{/if}
-        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-        {#if activity.slidesUrl}<a href={activity.slidesUrl} rel="noreferrer">Slides</a>{/if}
+        <h2>Resources</h2>
+        <div class="resource-list">
+          {#if activity.recordingUrl}
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a href={activity.recordingUrl} rel="noreferrer">Watch recording</a>
+          {/if}
+          {#if activity.slidesUrl}
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a href={activity.slidesUrl} rel="noreferrer">Slides</a>
+          {/if}
+          {#each activity.links ?? [] as link (link.url)}
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a href={link.url} rel="noreferrer">{link.label}</a>
+          {/each}
+          {#each activity.references ?? [] as link (link.url)}
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a href={link.url} rel="noreferrer">Reference: {link.label}</a>
+          {/each}
+          {#if activity.sourceUrl}
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a href={activity.sourceUrl} rel="noreferrer">View original proposal</a>
+          {/if}
+        </div>
       </section>
     {/if}
   {/if}
@@ -150,6 +195,19 @@
   .subtitle {
     color: var(--text-muted);
     font-size: 0.95rem;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.6rem;
+  }
+  .meta-badge {
+    border: 1px solid color-mix(in srgb, var(--event-primary-dark) 35%, transparent);
+    border-radius: 999px;
+    color: var(--event-primary-dark);
+    font-size: 0.72rem;
+    padding: 0.2rem 0.55rem;
   }
   .cancel {
     color: var(--danger);
@@ -189,9 +247,31 @@
   .speakers li {
     margin-bottom: 0.6rem;
   }
+  .speaker {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+  }
+  .speaker img {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-raised);
+  }
   .speakers a {
     font-weight: 600;
     color: var(--text);
+  }
+  .description {
+    line-height: 1.55;
+  }
+  .takeaways {
+    padding-left: 1.2rem;
+    line-height: 1.5;
+  }
+  .takeaways li {
+    margin-bottom: 0.45rem;
   }
   .tags {
     display: flex;
@@ -208,8 +288,15 @@
     color: var(--text-muted);
   }
   .media {
-    display: flex;
-    gap: 1rem;
     margin-top: 1rem;
+  }
+  .resource-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .resource-list a {
+    color: var(--event-primary-dark);
+    font-size: 0.85rem;
   }
 </style>

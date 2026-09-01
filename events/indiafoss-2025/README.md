@@ -8,8 +8,11 @@ NIMHANS Convention Centre, Bengaluru, on 2025-09-20/21.
 - `raw/event.json` — `fossunited.api.dashboard.get_event` (by route `c/indiafoss/2025`)
 - `raw/schedule.json` — `fossunited.api.schedule.get_event_schedule` (131 sessions, 12 halls)
 - `raw/proposals.json` — `fossunited.api.proposal.get_event_proposals` (359 proposals)
+- `raw/booths.html` — public official booth directory page (60 booths)
+- `raw/proposal-details.json` — parsed captures of 108 public proposal detail pages
+- `booths.json` — normalized official booth records derived from the public directory
 - `normalized/event-bundle.json` — canonical `EventBundle` produced by
-  `@indiafoss/sources` (131 activities, 117 people, 12 locations, 12 tracks)
+  `@indiafoss/sources` (131 activities, 117 people, 12 locations, 12 tracks, 60 booths)
 - `provenance.json` — endpoints, event doctype name, content hashes
 
 ## Programme shape
@@ -30,6 +33,7 @@ pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts normalize indiaf
 
 ## Notes
 
-- Booths are not exposed by any public FOSS United API; the booth fixture is
-  authored separately (Phase 7).
+- Booths are published as a public directory page rather than the schedule API;
+  the captured 60 records are imported from that official page, with zone-level
+  map locations because individual booth coordinates are not published.
 - `normalized/event-bundle.json` is committed so tests never need the live site.

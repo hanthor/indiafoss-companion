@@ -84,6 +84,17 @@ export interface FosuProposal {
   custom_question_1?: string;
 }
 
+/** Parsed public proposal-detail page (HTML stays inside the adapter boundary). */
+export interface FosuProposalDetail {
+  proposalId: string;
+  sourceUrl: string;
+  description?: string;
+  keyTakeaways: string[];
+  references: { label: string; url: string }[];
+  links: { label: string; url: string }[];
+  slidesUrl?: string;
+}
+
 /** Response of `fossunited.api.proposal.get_event_proposals`. */
 export interface FosuProposalList {
   proposals: FosuProposal[];

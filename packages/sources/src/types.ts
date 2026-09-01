@@ -1,5 +1,10 @@
-import type { EventBundle, EventReference } from '@indiafoss/model';
-import type { FosuEventDoc, FosuProposal, FosuSchedule } from './fossunited/types.js';
+import type { Booth, EventBundle, EventReference } from '@indiafoss/model';
+import type {
+  FosuEventDoc,
+  FosuProposal,
+  FosuProposalDetail,
+  FosuSchedule,
+} from './fossunited/types.js';
 
 /**
  * Adapter-normalized payload, ready for conversion into the canonical
@@ -14,6 +19,9 @@ export interface FossUnitedSourceEvent {
   event: FosuEventDoc;
   schedule: FosuSchedule;
   proposals: FosuProposal[];
+  proposalDetails: Record<string, FosuProposalDetail>;
+  /** Canonical booth records from a public booth directory, when available. */
+  booths?: Booth[];
 }
 
 /** Core source abstraction (§6). */

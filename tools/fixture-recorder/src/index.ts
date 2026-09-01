@@ -1,5 +1,5 @@
 import { isValidEventBundle } from '@indiafoss/model';
-import { FixtureSource, mergeBooths, repoRoot } from '@indiafoss/sources';
+import { FixtureSource, FossUnitedSource, mergeBooths, repoRoot } from '@indiafoss/sources';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 const usage = `fixture-recorder
@@ -8,6 +8,7 @@ Commands:
   normalize <event-id>   Normalize captured raw fixtures into the committed
                          normalized bundle (events/<id>/normalized/event-bundle.json)
   verify <event-id>      Load + validate the normalized bundle, print a summary
+  capture-details <id>   Capture public proposal detail pages into raw/
 `;
 
 async function normalize(eventId: string): Promise<void> {
@@ -59,12 +60,27 @@ async function verify(eventId: string): Promise<void> {
   }
 }
 
+async function captureDetails(eventId: string): Promise<void> {
+  const match = eventId.match(/^(.*?)-(\d{4})$/);
+  const locator = match ? `c/${match[1]}/${match[2]}` : `c/${eventId}`;
+  const source = new FossUnitedSource();
+  const fetched = await source.fetchEvent({ id: eventId, locator });
+  if (fetched.kind !== 'fossunited') throw new Error('unexpected source kind');
+  const out = repoRoot('events', eventId, 'raw', 'proposal-details.json');
+  await writeFile(out, JSON.stringify(fetched.proposalDetails, null, 2) + '\n');
+  console.log(
+    `captured ${Object.keys(fetched.proposalDetails).length} proposal detail pages -> ${out}`,
+  );
+}
+
 export async function main(): Promise<void> {
   const [cmd, eventId] = process.argv.slice(2);
   if (cmd === 'normalize' && eventId) {
     await normalize(eventId);
   } else if (cmd === 'verify' && eventId) {
     await verify(eventId);
+  } else if (cmd === 'capture-details' && eventId) {
+    await captureDetails(eventId);
   } else {
     console.error(usage);
     process.exitCode = 1;

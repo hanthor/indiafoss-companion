@@ -40,6 +40,12 @@ export interface Activity {
   title: string;
   subtitle?: string;
   description?: string;
+  keyTakeaways?: string[];
+  references?: ExternalLink[];
+  links?: ExternalLink[];
+  audience?: string;
+  proposalStatus?: string;
+  sourceUrl?: string;
 
   /** ISO 8601 timestamps. `undefined` for flexible/unplaced activities. */
   start?: string;
@@ -69,8 +75,11 @@ export interface Activity {
 
 export interface Person {
   id: string;
+  sourceId?: string;
   name: string;
   bio?: string;
+  designation?: string;
+  organization?: string;
   avatarUrl?: string;
   links: ExternalLink[];
 }
@@ -158,4 +167,6 @@ export interface EventReference {
   locator: string;
 }
 
+export { attendeeProfileToVCard, DEFAULT_ATTENDEE_SHARE_SELECTION } from './contact.js';
+export type { AttendeeProfile, AttendeeShareSelection, AttendeeSocial } from './contact.js';
 export { collectBundleIssues, isValidEventBundle } from './validation.js';

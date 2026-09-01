@@ -20,6 +20,12 @@
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
+  let dragX = $state(0);
+  let pointerId = $state<number | null>(null);
+  let swipeDirection = $state<'left' | 'right' | null>(null);
+  let isAnimating = $state(false);
+  let pointerStartX = 0;
+
   $effect(() => {
     if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
   });
@@ -47,10 +53,18 @@
   );
 
   async function choose(choice: ComparisonChoice): Promise<void> {
-    if (!candidate) return;
+    if (!candidate || isAnimating) return;
     const { activityA, activityB } = candidate;
     const result = applyComparison(activityA.rating, activityB.rating, choice);
+    swipeDirection =
+      choice.endsWith('a') || choice === 'definitely-a' || choice === 'slightly-a'
+        ? 'right'
+        : choice.endsWith('b') || choice === 'definitely-b' || choice === 'slightly-b'
+          ? 'left'
+          : null;
+    isAnimating = true;
 
+    await new Promise((resolve) => setTimeout(resolve, swipeDirection ? 220 : 120));
     await Promise.all([
       setRating(activityA.activity.id, result.ratingA, activityA.comparisons + 1),
       setRating(activityB.activity.id, result.ratingB, activityB.comparisons + 1),
@@ -63,6 +77,37 @@
       createdAt: new Date().toISOString(),
     });
     comparedPairs.add(pairKey(activityA.activity.id, activityB.activity.id));
+    dragX = 0;
+    swipeDirection = null;
+    isAnimating = false;
+  }
+
+  function startSwipe(event: PointerEvent): void {
+    if (isAnimating || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    pointerId = event.pointerId;
+    pointerStartX = event.clientX;
+    dragX = 0;
+    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+  }
+
+  function moveSwipe(event: PointerEvent): void {
+    if (pointerId !== event.pointerId || isAnimating) return;
+    dragX = event.clientX - pointerStartX;
+  }
+
+  function endSwipe(event: PointerEvent): void {
+    if (pointerId !== event.pointerId || isAnimating) return;
+    pointerId = null;
+    const threshold = 96;
+    if (dragX >= threshold) void choose('definitely-a');
+    else if (dragX <= -threshold) void choose('definitely-b');
+    else dragX = 0;
+  }
+
+  function cardStyle(): string {
+    if (isAnimating) return '';
+    const rotation = Math.max(-8, Math.min(8, dragX / 24));
+    return `transform: translateX(${dragX}px) rotate(${rotation}deg);`;
   }
 
   const locationName = (a: Activity): string | undefined =>
@@ -87,9 +132,10 @@
 </script>
 
 <EventGate>
+  <div class="eyebrow">PERSONALIZE YOUR CONFERENCE</div>
   <h1>Rank your day</h1>
-  <p class="muted">
-    Head-to-head comparisons build your personal Elo ranking (§15). Which would you rather attend?
+  <p class="muted lead">
+    Swipe or tap through a few quick choices. Your Elo ranking turns them into a personal plan.
   </p>
 
   <div class="days">
@@ -119,7 +165,19 @@
   {:else}
     <p class="reason">{pickReason(candidate.reason)}</p>
 
-    <div class="arena">
+    <div
+      class="arena"
+      class:swipe-left={swipeDirection === 'left'}
+      class:swipe-right={swipeDirection === 'right'}
+      class:dragging={pointerId !== null}
+      style={cardStyle()}
+      role="group"
+      aria-label="Swipe right for the left session, swipe left for the right session"
+      onpointerdown={startSwipe}
+      onpointermove={moveSwipe}
+      onpointerup={endSwipe}
+      onpointercancel={endSwipe}
+    >
       <div class="card" data-testid="candidate-a">
         <div class="head">
           <TypeBadge type={candidate.activityA.activity.type} />
@@ -151,6 +209,7 @@
       </div>
     </div>
 
+    <p class="swipe-hint" aria-hidden="true">← swipe for B <span>·</span> swipe for A →</p>
     <div class="choices" role="group" aria-label="Your preference">
       <button class="def" onclick={() => choose('definitely-a')}>Definitely A</button>
       <button onclick={() => choose('slightly-a')}>Slightly A</button>
@@ -163,8 +222,20 @@
 </EventGate>
 
 <style>
+  .eyebrow {
+    color: var(--event-primary-dark);
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+  }
   .muted {
     color: var(--text-muted);
+  }
+  .lead {
+    font-size: 1.05rem;
+    max-width: 38rem;
   }
   .days {
     display: flex;
@@ -204,6 +275,34 @@
     grid-template-columns: 1fr auto 1fr;
     gap: 0.6rem;
     align-items: stretch;
+    touch-action: pan-y;
+    cursor: grab;
+    transition:
+      transform 220ms ease,
+      opacity 220ms ease;
+    user-select: none;
+  }
+  .arena.dragging {
+    cursor: grabbing;
+    transition: none;
+  }
+  .arena.swipe-right {
+    animation: swipe-right 220ms ease both;
+  }
+  .arena.swipe-left {
+    animation: swipe-left 220ms ease both;
+  }
+  @keyframes swipe-right {
+    to {
+      transform: translateX(120%) rotate(8deg);
+      opacity: 0;
+    }
+  }
+  @keyframes swipe-left {
+    to {
+      transform: translateX(-120%) rotate(-8deg);
+      opacity: 0;
+    }
   }
   .card {
     background: var(--surface-raised);
@@ -237,6 +336,17 @@
     color: var(--text-muted);
     font-weight: 700;
   }
+  .swipe-hint {
+    color: var(--text-muted);
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    text-align: center;
+    margin: 0.65rem 0 0;
+  }
+  .swipe-hint span {
+    color: var(--event-accent);
+    margin: 0 0.35rem;
+  }
   .choices {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -260,6 +370,15 @@
   .choices button.neither {
     grid-column: span 3;
     color: var(--text-muted);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .arena {
+      transition: none;
+    }
+    .arena.swipe-left,
+    .arena.swipe-right {
+      animation: none;
+    }
   }
   .done {
     text-align: center;

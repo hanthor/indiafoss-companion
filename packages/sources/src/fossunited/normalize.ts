@@ -7,7 +7,13 @@ import type {
   Track,
 } from '@indiafoss/model';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from '@indiafoss/model';
-import type { FosuEventDoc, FosuProposal, FosuSchedule, FosuSpeaker } from './types.js';
+import type {
+  FosuEventDoc,
+  FosuProposal,
+  FosuProposalDetail,
+  FosuSchedule,
+  FosuSpeaker,
+} from './types.js';
 
 /** Timezone is explicit; never infer from the browser/runtime. */
 export const FOSSU_TIMEZONE = 'Asia/Kolkata';
@@ -147,8 +153,11 @@ function buildPeople(schedule: FosuSchedule): Map<string, Person> {
     const links = sp.social_link ? [{ label: 'social', url: sp.social_link }] : [];
     byName.set(id, {
       id,
+      ...(sp.parent ? { sourceId: sp.parent } : {}),
       name,
       ...(sp.bio ? { bio: stripHtml(sp.bio) } : {}),
+      ...(sp.designation ? { designation: sp.designation.trim() } : {}),
+      ...(sp.organization ? { organization: sp.organization.trim() } : {}),
       ...(absoluteUrl(sp.photo) ? { avatarUrl: absoluteUrl(sp.photo) } : {}),
       links,
     });
@@ -169,6 +178,8 @@ export interface FossUnitedNormalizationInput {
   event: FosuEventDoc;
   schedule: FosuSchedule;
   proposals: FosuProposal[];
+  proposalDetails?: Record<string, FosuProposalDetail>;
+  booths?: import('@indiafoss/model').Booth[];
 }
 
 /**
@@ -176,7 +187,7 @@ export interface FossUnitedNormalizationInput {
  * {@link EventBundle}. Pure and deterministic — no network, no clock.
  */
 export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventBundle {
-  const { eventId, event, schedule, proposals } = input;
+  const { eventId, event, schedule, proposals, proposalDetails = {}, booths = [] } = input;
 
   const proposalByCfp = new Map<string, FosuProposal>();
   for (const p of proposals) proposalByCfp.set(p.name, p);
@@ -191,6 +202,7 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
       if (!hall) continue;
       for (const s of sessions) {
         const cfp = s.linked_cfp ? proposalByCfp.get(s.linked_cfp) : undefined;
+        const detail = s.linked_cfp ? proposalDetails[s.linked_cfp] : undefined;
         const cancelled = cfp != null && (cfp.status === 'Rejected' || cfp.status === 'Withdrawn');
 
         const speakerIds: string[] = [];
@@ -225,8 +237,18 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           sourceId: s.name,
           type: resolveType(s, proposalByCfp),
           title: s.title || s.talk_title || s.proposal_title || cfp?.talk_title || 'Untitled',
-          ...(s.other_category ? { subtitle: s.other_category } : {}),
-          ...(s.schedule_description ? { description: s.schedule_description } : {}),
+          ...(s.other_category || cfp?.session_type
+            ? { subtitle: s.other_category ?? cfp?.session_type }
+            : {}),
+          ...(detail?.description || s.schedule_description
+            ? { description: detail?.description ?? s.schedule_description }
+            : {}),
+          ...(detail?.keyTakeaways.length ? { keyTakeaways: detail.keyTakeaways } : {}),
+          ...(detail?.references.length ? { references: detail.references } : {}),
+          ...(detail?.links.length ? { links: detail.links } : {}),
+          ...(cfp?.intended_audience ? { audience: cfp.intended_audience } : {}),
+          ...(cfp?.status ? { proposalStatus: cfp.status } : {}),
+          ...(detail?.sourceUrl ? { sourceUrl: detail.sourceUrl } : {}),
           start,
           end,
           flexible: false,
@@ -236,6 +258,7 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           trackId: hall.track.id,
           ...(hallName.toLowerCase().startsWith('devroom') ? { devroomId: hall.location.id } : {}),
           ...(s.talk_video ? { recordingUrl: s.talk_video } : {}),
+          ...(detail?.slidesUrl ? { slidesUrl: detail.slidesUrl } : {}),
           ...(cancelled ? { cancelled: true } : {}),
           source: 'fossunited',
         });
@@ -264,7 +287,7 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
     activities,
     people: peopleList,
     locations,
-    booths: [],
+    booths,
     tracks,
     sourceMetadata: {
       source: 'fossunited',

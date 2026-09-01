@@ -9,3 +9,4 @@ test-results/
 apps/android/capacitor/android/
 *.svg
 *.json
+**/raw/*.html

@@ -10,10 +10,12 @@ export {
 export type {
   FosuEventDoc,
   FosuProposal,
+  FosuProposalDetail,
   FosuSchedule,
   FosuScheduleSession,
   FosuSpeaker,
 } from './fossunited/types.js';
+export { parseProposalDetail } from './fossunited/parse-proposal.js';
 export { FixtureSource, repoRoot } from './fixture.js';
 export { StaticBundleSource } from './static-bundle.js';
 export type { EventSource, SourceEvent, FossUnitedSourceEvent } from './types.js';

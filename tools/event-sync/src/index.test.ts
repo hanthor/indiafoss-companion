@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { syncEvent } from './index.js';
+import { publicEventRoute, syncEvent } from './index.js';
 
 let dir: string;
 
@@ -11,6 +11,11 @@ afterEach(() => {
 });
 
 describe('event-sync', () => {
+  it('maps event ids to public FOSS United routes', () => {
+    expect(publicEventRoute('indiafoss-2026')).toBe('c/indiafoss/2026');
+    expect(publicEventRoute('indiafoss-2025')).toBe('c/indiafoss/2025');
+  });
+
   it('publishes a revision from the fixture and no-ops on unchanged content', async () => {
     dir = mkdtempSync(join(tmpdir(), 'eventsync-'));
     const m1 = await syncEvent('indiafoss-2025', 'fixture', dir);

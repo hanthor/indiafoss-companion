@@ -29,6 +29,7 @@ describe('IndiaFOSS 2025 fixture integration', () => {
     expect(bundle.locations.length).toBeGreaterThanOrEqual(11);
     expect(bundle.people.length).toBeGreaterThan(100);
     expect(bundle.tracks.length).toBe(bundle.locations.length);
+    expect(bundle.booths.length).toBe(60);
   });
 
   it('contains the known NIMHANS rooms and devrooms', async () => {
@@ -78,6 +79,16 @@ describe('IndiaFOSS 2025 fixture integration', () => {
         expect(peopleIds.has(sid), `activity ${a.id} references missing speaker ${sid}`).toBe(true);
       }
     }
+  });
+
+  it('surfaces public proposal details and speaker metadata', async () => {
+    const bundle = await source.loadRef(REF);
+    const detailed = bundle.activities.filter((a) => a.description && a.sourceUrl);
+    expect(detailed.length).toBeGreaterThanOrEqual(100);
+    expect(detailed.some((a) => (a.keyTakeaways?.length ?? 0) > 0)).toBe(true);
+    expect(detailed.some((a) => (a.references?.length ?? 0) > 0)).toBe(true);
+    expect(bundle.people.some((p) => p.avatarUrl && p.organization)).toBe(true);
+    expect(bundle.booths.some((b) => b.website && b.name === 'KDE Community')).toBe(true);
   });
 });
 

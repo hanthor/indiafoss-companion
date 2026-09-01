@@ -24,8 +24,22 @@
   {#if !speaker}
     <p>Speaker not found.</p>
   {:else}
-    <header>
-      <h1>{speaker.name}</h1>
+    <header class="speaker-header">
+      {#if speaker.avatarUrl}
+        <!-- public speaker image from the captured FOSS United data -->
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+        <img class="avatar" src={speaker.avatarUrl} alt="" />
+      {/if}
+      <div>
+        <h1>{speaker.name}</h1>
+        {#if speaker.designation || speaker.organization}
+          <p class="muted role">
+            {speaker.designation}{#if speaker.designation && speaker.organization}
+              ·
+            {/if}{speaker.organization}
+          </p>
+        {/if}
+      </div>
       {#if speaker.bio}<p class="bio">{speaker.bio}</p>{/if}
       {#if speaker.links.length > 0}
         <p class="links">
@@ -63,10 +77,28 @@
 </EventGate>
 
 <style>
+  .speaker-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    align-items: center;
+  }
   h1 {
-    margin-bottom: 0.5rem;
+    margin: 0;
+  }
+  .avatar {
+    width: 4rem;
+    height: 4rem;
+    object-fit: cover;
+    border-radius: 50%;
+    background: var(--surface-raised);
+  }
+  .role {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
   }
   .bio {
+    grid-column: 1 / -1;
     color: var(--text-muted);
     line-height: 1.55;
   }

@@ -28,18 +28,32 @@
         "event": "qvn4nr1b28"
       },
       "file": "raw/proposals.json"
+    },
+    "booths": {
+      "method": "GET",
+      "url": "/indiafoss/2025/booths",
+      "file": "raw/booths.html"
+    },
+    "proposalDetails": {
+      "method": "GET",
+      "url": "/c/indiafoss/2025/cfp/<submission>",
+      "file": "raw/proposal-details.json",
+      "count": 108
     }
   },
   "eventDoctypeName": "qvn4nr1b28",
-  "parserVersion": "0.1.0",
+  "parserVersion": "0.2.0",
   "contentHashes": {
     "event.json": "3d3215eb67aa8fff3a77116e77949af5a0e2c0b8c864594382f0539e619fb6a2",
     "schedule.json": "3f6a65983fd4c9edacb5989f4b68ddb4b0aa36b34eee20fed37e6bfbfe25934f",
-    "proposals.json": "80a6eb5afecf20b8d753f33b32edf082fd0965dbceedaa9d7f82c777531c393c"
+    "proposals.json": "80a6eb5afecf20b8d753f33b32edf082fd0965dbceedaa9d7f82c777531c393c",
+    "booths.html": "aeb1f64b39dee16977d61c50f4a8fc1ebcc67dd1730a76cfee4ccd966da71f53",
+    "proposal-details.json": "f1ab56cb1cf0f73221d4e4139b324f0ac451dfa6c9bc4edcb4830c4522e8e1d7"
   },
   "notes": [
-    "All three endpoints are guest-accessible (@frappe.whitelist(allow_guest=True)) on the public fossunited.org platform.",
-    "The event doctype name (qvn4nr1b28) is the runtime 'name' of the FOSS Chapter Event doc for route c/indiafoss/2025.",
-    "Booths are not exposed by any public API on the platform as of capture; the booth fixture is authored separately (Phase 7)."
+    "All three JSON endpoints are guest-accessible (@frappe.whitelist(allow_guest=True)) on the public fossunited.org platform.",
+    "Proposal detail pages are public HTML pages; the adapter parses only structured public fields into canonical data.",
+    "The booth directory is a public page, not a guest API. Its 2025 table is captured verbatim and normalized into 60 Booth records.",
+    "The ticket and attendee identity systems are intentionally not imported into the offline event bundle."
   ]
 }

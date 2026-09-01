@@ -15,6 +15,13 @@
     </p>
   </section>
 
+  <a class="rank-hero" href={resolve('/plan/rank')}>
+    <span class="rank-kicker">MAKE THE MOST OF YOUR DAY</span>
+    <strong>Rank your sessions</strong>
+    <span>Tap or swipe through a few choices. We’ll build your personal plan.</span>
+    <span class="rank-action">Start ranking →</span>
+  </a>
+
   <nav class="quick" aria-label="Quick actions">
     <a href={resolve('/now')}>
       <strong>Now</strong>
@@ -50,6 +57,39 @@
   .tagline {
     color: var(--text-muted);
     line-height: 1.5;
+  }
+  .rank-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 1rem 0 1.3rem;
+    padding: 1.1rem 1.2rem;
+    border-radius: var(--radius);
+    background: var(--event-primary);
+    color: var(--event-secondary);
+    text-decoration: none;
+    box-shadow: 0 5px 0 var(--event-secondary);
+  }
+  .rank-hero:hover {
+    transform: translateY(-2px);
+  }
+  .rank-kicker {
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .rank-hero strong {
+    font-family: 'FFF Forward', 'Space Mono', ui-monospace, monospace;
+    font-size: 1.35rem;
+  }
+  .rank-hero > span:not(.rank-kicker):not(.rank-action) {
+    font-size: 0.85rem;
+    max-width: 32rem;
+  }
+  .rank-action {
+    margin-top: 0.35rem;
+    font-weight: 800;
   }
   .quick {
     display: grid;

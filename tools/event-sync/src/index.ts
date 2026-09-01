@@ -45,15 +45,17 @@ function hash(data: string): string {
   return createHash('sha256').update(data).digest('hex').slice(0, 8);
 }
 
+export function publicEventRoute(eventId: string): string {
+  const match = eventId.match(/^(.*?)-(\d{4})$/);
+  return match ? `c/${match[1]}/${match[2]}` : `c/${eventId}`;
+}
+
 export async function syncEvent(
   eventId: string,
   source: 'fixture' | 'live' = 'fixture',
   publishedDirOverride?: string,
 ): Promise<EventManifest> {
-  const ref: EventReference = {
-    id: eventId,
-    locator: eventId === 'indiafoss-2025' ? 'c/indiafoss/2025' : `c/${eventId}`,
-  };
+  const ref: EventReference = { id: eventId, locator: publicEventRoute(eventId) };
   const sourceImpl = source === 'live' ? new FossUnitedSource() : new FixtureSource();
   const bundle = await sourceImpl.normalize(await sourceImpl.fetchEvent(ref));
 

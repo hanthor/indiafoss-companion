@@ -132,7 +132,7 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
 test('booth directory lists and schedules a visit', async ({ page }) => {
   await page.goto('/explore/booths');
   await expect(page.getByRole('status')).toContainText('booths');
-  await page.getByRole('link', { name: 'Sponsor Booth 1 sponsor' }).click();
+  await page.getByRole('link', { name: /KDE Community/ }).click();
   await page.getByRole('button', { name: 'Schedule 30 min' }).click();
   await expect(page.getByText(/Scheduled: 30 min/)).toBeVisible();
 });

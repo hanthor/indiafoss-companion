@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ActivityType } from '@indiafoss/model';
+  import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
   import { searchActivities } from '@indiafoss/search';
   import {
@@ -74,8 +75,11 @@
 
 <EventGate>
   <header class="pagehead">
-    <h1>Schedule</h1>
-    <p class="muted">{bundle.name} · {bundle.timezone}</p>
+    <div>
+      <h1>Schedule</h1>
+      <p class="muted">{bundle.name} · {bundle.timezone}</p>
+    </div>
+    <a class="rank-link" href={resolve('/plan/rank')}>Rank your choices →</a>
   </header>
 
   <div class="controls">
@@ -156,8 +160,22 @@
 </EventGate>
 
 <style>
+  .pagehead {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
   .pagehead h1 {
     margin: 0;
+  }
+  .rank-link {
+    color: var(--event-primary-dark);
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
   }
   .muted {
     color: var(--text-muted);
