@@ -117,3 +117,14 @@ test('map routes between two rooms offline-style', async ({ page }) => {
   // The highlighted route polyline is rendered.
   await expect(page.locator('.route')).toBeVisible();
 });
+
+test('now screen shows leave-by with a known location', async ({ page }) => {
+  const DURING = '2025-09-20T10:20:00+05:30';
+  await page.goto(`/now?now=${encodeURIComponent(DURING)}&at=audi-1`);
+  // With a known location the NEXT card computes walking time + leave-by.
+  await expect(page.getByText(/Estimated walk:/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/Leave by/)).toBeVisible();
+  // Show route links into the map with the destination preset.
+  await page.getByRole('link', { name: 'Show route' }).click();
+  await expect(page.getByLabel('Destination')).toHaveValue(/devroom|audi|room|workshops|bof/);
+});

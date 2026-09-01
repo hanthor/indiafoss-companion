@@ -7,6 +7,7 @@ import {
   FixedClock,
   formatDayLabel,
   formatTime,
+  leaveByInstant,
   getEventDays,
   groupByStart,
   isBefore,
@@ -131,6 +132,13 @@ describe('computeNowState', () => {
     const s = computeNowState(b, '2026-09-20T18:01:00+05:30');
     expect(s.phase).toBe('after');
     expect(s.current).toEqual([]);
+  });
+});
+
+describe('leaveByInstant', () => {
+  it('subtracts travel + buffer from the session start', () => {
+    const leave = leaveByInstant('2026-09-19T11:00:00+05:30', 360, 300);
+    expect(Date.parse(leave)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 660 * 1000);
   });
 });
 

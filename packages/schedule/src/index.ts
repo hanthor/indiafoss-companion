@@ -155,3 +155,17 @@ export function formatDayLabel(day: string): string {
   const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
   return `${weekday} ${d} ${month}`;
 }
+
+/**
+ * Leave-by calculation (§29):
+ *   leaveAt = start(next) − travel(current, next) − userBuffer
+ * Returns the instant the attendee must start walking.
+ */
+export function leaveByInstant(
+  nextStartIso: string,
+  travelSeconds: number,
+  bufferSeconds: number,
+): string {
+  const leaveMs = parseInstant(nextStartIso) - (travelSeconds + bufferSeconds) * 1000;
+  return new Date(leaveMs).toISOString();
+}

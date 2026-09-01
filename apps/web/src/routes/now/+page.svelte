@@ -7,15 +7,25 @@
     computeNowState,
     formatDayLabel,
     formatTime,
+    leaveByInstant,
   } from '@indiafoss/schedule';
+  import { findRoute } from '@indiafoss/venue';
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { eventState } from '$lib/event.svelte';
+  import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
+  import {
+    currentLocation,
+    hydrateLocation,
+    locationIdFromDeepLink,
+    setCurrentLocation,
+  } from '$lib/location.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
 
+  const BUFFER_SECONDS = 300; // §29 default 5 minutes
+
   const clock = clockFromParams(page.url.searchParams.get('now'));
-  const initialNow = clock.now();
-  let now = $state<string>(initialNow);
+  let now: string = $state(clock.now());
 
   $effect(() => {
     if (isFixedClock(clock)) return;
@@ -28,8 +38,44 @@
   const bundle = $derived(eventState.bundle);
   const nowState = $derived(bundle ? computeNowState(bundle, now) : null);
 
+  const venueKey = $derived(bundle ? venueKeyForEvent(bundle.id) : 'synthetic');
+  let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
+
+  // Deep-link / QR entry: ?at=<location-id> sets the current location.
+  // Hydrate first so the stored value never clobbers the deep link.
+  $effect(() => {
+    const at = page.url.searchParams.get('at');
+    void (async () => {
+      await hydrateLocation();
+      if (at) await setCurrentLocation(locationIdFromDeepLink(at) ?? at);
+    })();
+    void loadVenue(venueKey).then((v) => {
+      venue = v;
+    });
+  });
+
   const locationName = (a: Activity): string | undefined =>
     bundle?.locations.find((l) => l.id === a.locationId)?.name;
+
+  // Travel + leave-by for the next session (§29).
+  const nextLeg = $derived.by<{ travelSeconds: number; leaveBy: string } | null>(() => {
+    if (!nowState?.next || !currentLocation.value) return null;
+    const nextLoc = nowState.next.locationId;
+    if (!nextLoc || !venue) return null;
+    const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
+    const to = venue.metadata.locations[nextLoc]?.entrances[0];
+    if (!from || !to || from === to) return null;
+    const route = findRoute(venue.graph, from, to, 'fastest');
+    if (!route) return null;
+    return {
+      travelSeconds: route.durationSeconds,
+      leaveBy: leaveByInstant(nowState!.next!.start!, route.durationSeconds, BUFFER_SECONDS),
+    };
+  });
+
+  const venueLocations = $derived(
+    (venue ? Object.entries(venue.metadata.locations) : []) as [string, { floor?: string }][],
+  );
 
   function minutesUntil(endIso: string, nowIso: string): string {
     const mins = Math.max(0, Math.ceil((Date.parse(endIso) - Date.parse(nowIso)) / 60000));
@@ -47,19 +93,20 @@
 
   {#if !nowState}
     <p>Loading…</p>
-  {:else if nowState.phase === 'before'}
+  {:else if nowState!.phase === 'before'}
     <section class="card">
       <h2>Not started yet</h2>
       <p>
-        IndiaFOSS starts {formatDayLabel(bundle!.start.slice(0, 10))} at
-        {formatTime(bundle!.start)}.
+        IndiaFOSS starts {formatDayLabel(bundle!.start.slice(0, 10))} at {formatTime(
+          bundle!.start,
+        )}.
       </p>
-      {#if nowState.next}
+      {#if nowState!.next}
         <h3>First up</h3>
-        <a href={resolve(`/activity/${nowState.next.id}`)}>{nowState.next.title}</a>
+        <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
       {/if}
     </section>
-  {:else if nowState.phase === 'after'}
+  {:else if nowState!.phase === 'after'}
     <section class="card">
       <h2>That's a wrap</h2>
       <p>The conference has ended. See you at the next one!</p>
@@ -67,10 +114,10 @@
   {:else}
     <section class="card" aria-labelledby="now-heading">
       <h2 id="now-heading">Happening now</h2>
-      {#if nowState.current.length === 0}
+      {#if nowState!.current.length === 0}
         <p class="muted">Between sessions — take a break or explore the map.</p>
       {:else}
-        {#each nowState.current as activity (activity.id)}
+        {#each nowState!.current as activity (activity.id)}
           <div class="session">
             <div class="row">
               <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
@@ -98,16 +145,49 @@
       {/if}
     </section>
 
-    {#if nowState.next}
+    {#if nowState!.next}
       <section class="card" aria-labelledby="next-heading">
         <h2 id="next-heading">Next</h2>
         <div class="row big">
-          <a href={resolve(`/activity/${nowState.next.id}`)}>{nowState.next.title}</a>
-          <TypeBadge type={nowState.next.type} />
+          <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
+          <TypeBadge type={nowState!.next.type} />
         </div>
-        <p class="muted">{locationName(nowState.next)} · {formatTime(nowState.next.start!)}</p>
-        <p class="muted small">Starts in {minutesUntil(nowState.next.start!, now)}.</p>
-        <p class="muted small">Walking time unavailable until your location is known.</p>
+        <p class="muted">
+          {locationName(nowState!.next)} · {formatTime(nowState!.next.start!)} · starts in
+          {minutesUntil(nowState!.next.start!, now)}
+        </p>
+
+        {#if nextLeg}
+          <p class="leave">
+            Estimated walk: {Math.round(nextLeg.travelSeconds / 60)} min · Preferred buffer: 5 min
+          </p>
+          <p class="leave strong">Leave by {formatTime(nextLeg.leaveBy)}.</p>
+          <div class="actions">
+            <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show route</a>
+            <button class="ghost" onclick={() => setCurrentLocation(null)}>Clear my location</button
+            >
+          </div>
+        {:else}
+          <p class="muted small">Walking time unavailable until your location is known (§29).</p>
+          <label>
+            <span class="sr-only">Set your current location</span>
+            <select
+              aria-label="Set your current location"
+              value={currentLocation.value ?? ''}
+              onchange={(e) => setCurrentLocation(e.currentTarget.value || null)}
+            >
+              <option value="">Where are you?</option>
+              {#each venueLocations as [id, ref] (id)}
+                <option value={id}
+                  >{ref.floor === 'first' ? '↑ ' : ''}{id.replace(/-/g, ' ')}</option
+                >
+              {/each}
+            </select>
+          </label>
+          {#if currentLocation.value && venueLocations.length === 0}
+            <p class="muted small">Venue map still loading…</p>
+          {/if}
+        {/if}
       </section>
     {/if}
   {/if}
@@ -171,9 +251,56 @@
     border-radius: 999px;
     transition: width 1s linear;
   }
+  .leave {
+    margin: 0.35rem 0;
+    font-size: 0.95rem;
+  }
+  .leave.strong {
+    font-weight: 700;
+    color: var(--event-primary);
+  }
+  .actions {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .cta {
+    display: inline-block;
+    background: var(--event-primary);
+    color: #fff;
+    padding: 0.55rem 1.2rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .ghost {
+    border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+    background: var(--surface);
+    border-radius: 999px;
+    padding: 0.5rem 0.9rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  select {
+    width: 100%;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    margin-top: 0.3rem;
+  }
   @media (prefers-reduced-motion: reduce) {
     .fill {
       transition: none;
     }
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
   }
 </style>
