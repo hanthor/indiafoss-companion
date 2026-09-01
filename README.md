@@ -118,8 +118,27 @@ just pages-build indiafoss-companion
 
 ## Testing
 
-Vitest is used everywhere. Property tests use `fast-check`.
-Playwright E2E and the offline gate arrive with Phase 2+.
+Vitest is used everywhere; property tests use `fast-check`. Playwright drives
+browser E2E (`apps/web/tests/app.spec.ts`), the release-blocking offline gate
+(`tests/offline.spec.ts`), and automated accessibility checks
+(`tests/a11y.spec.ts`, axe-core WCAG A/AA).
+
+```bash
+just check        # format, lint, typecheck, tests, asset verification, build
+just ci           # check + browser E2E + a11y + offline gate
+just a11y         # accessibility suite only
+just sbom         # generate a CycloneDX SBOM (pnpm-aware)
+```
+
+## Documentation
+
+- [Event onboarding](docs/event-onboarding.md) — bring a new event into the app
+- [Venue route review checklist](docs/venue-route-review-checklist.md) — finalise the venue graph
+- [Contact sharing & QR scanning](docs/contact-sharing.md)
+- [Calendar export](docs/calendar-export.md)
+- [Privacy](docs/privacy.md)
+- [Release procedures](docs/release.md)
+- [Implementation phases](docs/phases.md)
 
 ## License
 
