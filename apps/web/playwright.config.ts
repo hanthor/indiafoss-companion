@@ -16,7 +16,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm exec vite preview --port 4173 --strictPort',
+    command: 'pnpm exec sirv build --single --port 4173',
     port: 4173,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

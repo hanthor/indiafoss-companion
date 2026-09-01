@@ -1,20 +1,22 @@
-/* Theme tokens (§58). Conference branding lives only here. */
+/* FOSS United / IndiaFOSS visual tokens. Keep branding centralized (§58). */
 :root {
-  --event-primary: #0f766e;
-  --event-secondary: #1e293b;
-  --event-accent: #f59e0b;
+  --event-primary: #08b74f;
+  --event-primary-dark: #07863e;
+  --event-secondary: #18222a;
+  --event-accent: #ecac4b;
 
   --surface: #ffffff;
-  --surface-raised: #f8fafc;
+  --surface-raised: #f3f3f3;
+  --surface-dark: #18222a;
 
-  --text: #0f172a;
-  --text-muted: #475569;
+  --text: #141414;
+  --text-muted: #475467;
 
-  --danger: #dc2626;
-  --warning: #d97706;
-  --success: #16a34a;
+  --danger: #e03636;
+  --warning: #d6932e;
+  --success: #278f5e;
 
-  --radius: 12px;
+  --radius: 8px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -30,6 +32,7 @@ body {
 
 body {
   font-family:
+    Inter,
     system-ui,
     -apple-system,
     'Segoe UI',
@@ -38,6 +41,23 @@ body {
   background: var(--surface);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'FFF Forward', 'Space Mono', ui-monospace, monospace;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: var(--event-primary-dark);
+}
+
+button,
+input,
+select {
+  font: inherit;
 }
 
 :focus-visible {

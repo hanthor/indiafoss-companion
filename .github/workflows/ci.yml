@@ -71,8 +71,11 @@ jobs:
       - name: Build web app
         run: pnpm --filter @indiafoss/web build
 
-      - name: Run E2E tests
+      - name: Run browser E2E tests
         run: pnpm --filter @indiafoss/web test:e2e
+
+      - name: Run offline E2E gate
+        run: pnpm --filter @indiafoss/web exec playwright test tests/offline.spec.ts
 
       - name: Upload test results
         if: failure()

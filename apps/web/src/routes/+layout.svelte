@@ -2,20 +2,28 @@
   import '../app.css';
   import { onMount } from 'svelte';
   import { page } from '$app/state';
-  import { resolve } from '$app/paths';
+  import { base, resolve } from '$app/paths';
   import { registerSW } from 'virtual:pwa-register';
   import { hydratePreferences } from '$lib/prefs.svelte';
   import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
+  import { armNotifications, hydrateNotifications } from '$lib/notifications.svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
   const brandHref = resolve('/');
+  const logoSrc = `${base}/branding/indiafoss-2026-white.svg`;
 
   registerSW({ immediate: true });
 
   onMount(() => {
     void hydratePreferences();
+    void hydrateNotifications();
+    const timer = setInterval(() => {
+      void armNotifications();
+    }, 60_000);
+    void armNotifications();
+    return () => clearInterval(timer);
   });
 
   $effect(() => {
@@ -32,7 +40,10 @@
 
 <div class="shell">
   <header class="app-bar">
-    <a class="brand" href={brandHref}>IndiaFOSS Companion</a>
+    <a class="brand" href={brandHref} aria-label="IndiaFOSS Companion home">
+      <img src={logoSrc} alt="IndiaFOSS 2026" />
+      <span>Companion</span>
+    </a>
   </header>
 
   <main class="content">
@@ -78,18 +89,30 @@
   }
 
   .app-bar {
-    padding: 0.75rem 1rem;
-    background: var(--event-primary);
+    padding: 0.65rem 1rem;
+    background: var(--event-secondary);
+    border-bottom: 4px solid var(--event-primary);
     color: #ffffff;
     position: sticky;
     top: 0;
+    z-index: 2;
   }
 
   .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
     color: inherit;
     text-decoration: none;
+    font-family: 'FFF Forward', 'Space Mono', ui-monospace, monospace;
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 0.9rem;
+  }
+
+  .brand img {
+    display: block;
+    width: min(8.5rem, 42vw);
+    height: auto;
   }
 
   .content {

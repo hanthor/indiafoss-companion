@@ -1,28 +1,36 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import { SvelteKitPWA } from '@vite-pwa/sveltekit';
 import { defineConfig } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
+
+/** Base path for subdirectory hosting; must match svelte.config.js. */
+const base = process.env.SVELTE_BASE ?? '';
 
 export default defineConfig({
   plugins: [
     sveltekit(),
-    VitePWA({
+    SvelteKitPWA({
       registerType: 'autoUpdate',
-      // Register the service worker at an absolute path so deep routes don't
-      // try to load ./sw.js relative to the current page.
-      base: '/',
-      // SvelteKit controls its own HTML; register the service worker from the
-      // layout via `virtual:pwa-register` instead of HTML injection.
+      base: base || '/',
       injectRegister: false,
-      includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/icon-512.png'],
+      kit: {
+        // SPA mode: adapter-static fallback is build/index.html.
+        adapterFallback: 'index.html',
+      },
+      includeAssets: [
+        'favicon.svg',
+        'apple-touch-icon.png',
+        'icons/icon-192.png',
+        'icons/icon-512.png',
+      ],
       manifest: {
         name: 'IndiaFOSS Companion',
         short_name: 'IndiaFOSS',
         description: 'Offline-first companion for the IndiaFOSS conference',
-        theme_color: '#0f766e',
-        background_color: '#0f766e',
+        theme_color: '#18222a',
+        background_color: '#18222a',
         display: 'standalone',
-        start_url: '/',
-        scope: '/',
+        start_url: base || '/',
+        scope: base || '/',
         icons: [
           {
             src: 'icons/icon-192.png',
@@ -44,7 +52,6 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff2}'],
-        navigateFallback: 'index.html',
       },
     }),
   ],

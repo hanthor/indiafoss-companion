@@ -1,3 +1,4 @@
+import { base } from '$app/paths';
 import type { VenueGraph, VenueMetadata } from '@indiafoss/venue';
 
 export interface LoadedVenue {
@@ -19,11 +20,11 @@ const cache: Record<string, LoadedVenue> = {};
 export async function loadVenue(key: string): Promise<LoadedVenue> {
   const cached = cache[key];
   if (cached) return cached;
-  const base = `/venues/${key}`;
+  const venueBase = `${base}/venues/${key}`;
   const [svg, graph, metadata] = await Promise.all([
-    fetch(`${base}/venue.svg`).then((r) => r.text()),
-    fetch(`${base}/venue.graph.json`).then((r) => r.json()),
-    fetch(`${base}/venue.metadata.json`).then((r) => r.json()),
+    fetch(`${venueBase}/venue.svg`).then((r) => r.text()),
+    fetch(`${venueBase}/venue.graph.json`).then((r) => r.json()),
+    fetch(`${venueBase}/venue.metadata.json`).then((r) => r.json()),
   ]);
   const venue: LoadedVenue = {
     key,

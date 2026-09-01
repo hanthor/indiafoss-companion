@@ -68,7 +68,7 @@ export async function syncEvent(
     throw new Error('normalized bundle failed structural validation');
   }
 
-  const publishedDir = repoRoot('events', eventId, 'published');
+  const publishedDir = publishedDirOverride ?? repoRoot('events', eventId, 'published');
   mkdirSync(publishedDir, { recursive: true });
 
   // Previous revision for diffing.

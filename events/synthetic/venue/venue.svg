@@ -2,9 +2,9 @@
   <title>Synthetic venue (IndiaFOSS Companion fixture)</title>
   <style>
     .floor { fill: #f4f6f8; stroke: #cbd5e1; stroke-width: 2; }
-    .room { fill: #ffffff; stroke: #0f766e; stroke-width: 2; }
+    .room { fill: #ffffff; stroke: #08b74f; stroke-width: 2; }
     .room-label { font: 600 12px sans-serif; fill: #0f172a; text-anchor: middle; }
-    .amenity { fill: #fef3c7; stroke: #d97706; stroke-width: 1.5; }
+    .amenity { fill: #fef3c7; stroke: #ecac4b; stroke-width: 1.5; }
     .corridor { stroke: #cbd5e1; stroke-width: 6; fill: none; }
     .stairs { fill: #e2e8f0; stroke: #64748b; stroke-width: 1.5; }
     .lift { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.5; }

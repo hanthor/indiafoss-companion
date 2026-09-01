@@ -1,10 +1,11 @@
+import { base } from '$app/paths';
 import { CompanionStorage } from '@indiafoss/storage';
 import type { EventBundle } from '@indiafoss/model';
 
 export const DEFAULT_EVENT_ID = 'indiafoss-2025';
 /** Static, hash-less asset; precached by the service worker (§34). */
-export const EVENT_BUNDLE_URL = `/events/${DEFAULT_EVENT_ID}/event-bundle.json`;
-export const EVENT_MANIFEST_URL = `/events/${DEFAULT_EVENT_ID}/manifest.json`;
+export const EVENT_BUNDLE_URL = `${base}/events/${DEFAULT_EVENT_ID}/event-bundle.json`;
+export const EVENT_MANIFEST_URL = `${base}/events/${DEFAULT_EVENT_ID}/manifest.json`;
 
 let storage: CompanionStorage | null = null;
 

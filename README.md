@@ -1,5 +1,7 @@
 # IndiaFOSS Companion
 
+> **AI-generated disclaimer:** This project and its current implementation were generated with AI assistance. It is an unofficial community project, is not produced or endorsed by FOSS United, and requires human review before production use.
+
 Offline-first conference companion for [IndiaFOSS](https://indiafoss.fossunited.org/).
 
 **Conference schedule + adaptive Elo ranking + personal itinerary optimization + indoor SVG navigation.**
@@ -93,6 +95,27 @@ pnpm --filter @indiafoss/android build                  # sync web assets
 cd apps/android/capacitor/android && ./gradlew assembleDebug
 ```
 
+### iOS
+
+The web app is already an iOS-compatible PWA. On iOS Safari, use **Share →
+Add to Home Screen**. The build includes the Apple touch icon and standalone
+web-app metadata; no App Store account or separate iOS UI is required for the
+initial distribution. A Capacitor iOS wrapper can be added later if App Store
+or native notification distribution becomes necessary.
+
+### GitHub Pages
+
+The static PWA can be hosted on GitHub Pages project sites. The `pages.yml`
+workflow builds with the repository name as the base path, copies `index.html`
+to `404.html` for SPA deep links, and deploys using the official Pages actions.
+Enable **Settings → Pages → Source: GitHub Actions** once in the repository.
+
+For local verification:
+
+```bash
+just pages-build indiafoss-companion
+```
+
 ## Testing
 
 Vitest is used everywhere. Property tests use `fast-check`.
@@ -101,3 +124,8 @@ Playwright E2E and the offline gate arrive with Phase 2+.
 ## License
 
 AGPL-3.0-or-later — see [LICENSE](LICENSE).
+
+The IndiaFOSS logo assets are from the official
+[`fossunited/Branding`](https://github.com/fossunited/Branding) repository and
+are distributed under its CC BY-SA 4.0 license. Their use here does not imply
+official FOSS United endorsement.

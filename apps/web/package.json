@@ -7,20 +7,21 @@
     "dev": "vite dev",
     "prebuild": "node scripts/sync-assets.mjs",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "sirv build --single",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run --passWithNoTests",
     "lint": "eslint .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test tests/app.spec.ts",
+    "postbuild": "node scripts/patch-sw.mjs"
   },
   "dependencies": {
+    "@indiafoss/elo": "workspace:*",
     "@indiafoss/model": "workspace:*",
     "@indiafoss/schedule": "workspace:*",
     "@indiafoss/search": "workspace:*",
-    "@indiafoss/storage": "workspace:*",
-    "@indiafoss/elo": "workspace:*",
     "@indiafoss/solver": "workspace:*",
+    "@indiafoss/storage": "workspace:*",
     "@indiafoss/venue": "workspace:*"
   },
   "devDependencies": {
@@ -29,6 +30,8 @@
     "@sveltejs/kit": "^2.70.3",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
     "@types/node": "^24.0.0",
+    "@vite-pwa/sveltekit": "^1.1.0",
+    "sirv-cli": "^3.0.1",
     "svelte": "^5.57.0",
     "svelte-check": "^4.7.6",
     "typescript": "5.9.3",
