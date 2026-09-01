@@ -7,6 +7,9 @@ export default defineConfig({
     sveltekit(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Register the service worker at an absolute path so deep routes don't
+      // try to load ./sw.js relative to the current page.
+      base: '/',
       // SvelteKit controls its own HTML; register the service worker from the
       // layout via `virtual:pwa-register` instead of HTML injection.
       injectRegister: false,

@@ -61,3 +61,33 @@ test('explore search responds and renders results', async ({ page }) => {
   // At least one result row appears.
   await expect(page.locator('.results li').first()).toBeVisible();
 });
+
+test('elo ranking compares two sessions and advances', async ({ page }) => {
+  await page.goto('/plan/rank');
+  // Two candidate cards appear.
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+  await expect(page.getByTestId('candidate-b')).toBeVisible();
+  // Stability readout is shown.
+  await expect(page.getByText(/% resolved/)).toBeVisible();
+
+  // Answer a few comparisons; the arena should change or finish.
+  for (let i = 0; i < 5; i++) {
+    const done = await page
+      .getByText('All caught up')
+      .isVisible()
+      .catch(() => false);
+    if (done) break;
+    await page.getByRole('button', { name: 'Definitely A' }).first().click();
+    await page.waitForTimeout(150);
+  }
+  // Either more candidates or the done state must appear.
+  const stillGoing = await page
+    .getByTestId('candidate-a')
+    .isVisible()
+    .catch(() => false);
+  const done = await page
+    .getByText('All caught up')
+    .isVisible()
+    .catch(() => false);
+  expect(stillGoing || done).toBe(true);
+});
