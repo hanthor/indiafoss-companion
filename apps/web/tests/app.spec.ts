@@ -135,9 +135,63 @@ test('plan generates a feasible itinerary with backups', async ({ page }) => {
   await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
   const count = await page.locator('.itinerary li').count();
   expect(count).toBeGreaterThan(3);
-  // Some slots may show a backup suggestion.
-  const hasBackups = await page.locator('.backups').count();
+  // Some slots offer a backup replacement.
+  const hasBackups = await page.locator('.replace select').count();
   expect(hasBackups).toBeGreaterThan(0);
+});
+
+test('plan supports editing: lock, remove/restore, and a persistent custom block', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan'));
+  const firstRow = page.locator('.itinerary li').first();
+  await expect(firstRow).toBeVisible({ timeout: 10_000 });
+
+  // Lock the first item.
+  await firstRow.getByRole('button', { name: 'Lock' }).click();
+  await expect(firstRow.getByRole('button', { name: 'Unlock' })).toBeVisible();
+
+  // Remove the second item and restore it from the Removed list.
+  const before = await page.locator('.itinerary li').count();
+  await page.locator('.itinerary li').nth(1).getByRole('button', { name: 'Remove' }).click();
+  await expect(page.locator('.itinerary li')).toHaveCount(before - 1);
+  await expect(page.getByRole('heading', { name: 'Removed' })).toBeVisible();
+  await page.getByRole('button', { name: 'Restore' }).first().click();
+  await expect(page.locator('.itinerary li')).toHaveCount(before);
+
+  // Add a custom block; it persists across a reload.
+  const addBlock = page.locator('.add-block');
+  await addBlock.getByLabel('What').fill('Lunch with friends');
+  await addBlock.getByLabel('Start', { exact: true }).fill('13:00');
+  await addBlock.getByLabel('End', { exact: true }).fill('13:45');
+  await addBlock.getByRole('button', { name: 'Add block' }).click();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible();
+
+  await page.reload();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible({
+    timeout: 10_000,
+  });
+  // The lock survived the reload too.
+  await expect(page.locator('.itinerary li.locked').first()).toBeVisible();
+});
+
+test('plan explains an infeasible custom block instead of dropping it', async ({ page }) => {
+  await page.goto(appUrl('/plan'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
+  const addBlock = page.locator('.add-block');
+  // Two overlapping custom blocks force an overlap conflict.
+  await addBlock.getByLabel('What').fill('Overlap A');
+  await addBlock.getByLabel('Start', { exact: true }).fill('14:00');
+  await addBlock.getByLabel('End', { exact: true }).fill('15:00');
+  await addBlock.getByRole('button', { name: 'Add block' }).click();
+  await addBlock.getByLabel('What').fill('Overlap B');
+  await addBlock.getByLabel('Start', { exact: true }).fill('14:30');
+  await addBlock.getByLabel('End', { exact: true }).fill('15:30');
+  await addBlock.getByRole('button', { name: 'Add block' }).click();
+  // The conflict is explained; both blocks remain in the plan.
+  await expect(page.getByTestId('edit-conflicts')).toBeVisible();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap A' })).toBeVisible();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap B' })).toBeVisible();
 });
 
 test('map routes between two rooms offline-style', async ({ page }) => {

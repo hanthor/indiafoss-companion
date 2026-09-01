@@ -361,3 +361,14 @@ export function solveDay(input: SolveDayInput): SolverResult {
     backups,
   };
 }
+
+export { applyItineraryEdits, EMPTY_PLAN_EDITS, toggleInList } from './edit.js';
+export type {
+  ApplyEditsInput,
+  ConflictKind,
+  CustomBlock,
+  EditedItem,
+  EditedPlan,
+  PlanConflict,
+  PlanEdits,
+} from './edit.js';
