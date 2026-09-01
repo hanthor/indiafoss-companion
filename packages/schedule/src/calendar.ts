@@ -17,6 +17,8 @@ export interface CalendarEntry {
 export interface CalendarOptions {
   includeAlarm?: boolean;
   alarmMinutesBefore?: number;
+  /** When set, adds a second VALARM this many minutes before start (leave-by). */
+  leaveByMinutesBefore?: number;
   productId?: string;
 }
 
@@ -62,6 +64,28 @@ function utcStamp(iso: string): string {
     .replace(/\.\d{3}Z$/, 'Z');
 }
 
+function speakerNames(bundle: EventBundle, activity: Activity): string[] {
+  return activity.speakerIds
+    .map((id) => bundle.people.find((p) => p.id === id)?.name)
+    .filter((name): name is string => Boolean(name));
+}
+
+/**
+ * Build a rich, importer-friendly description: the activity summary followed
+ * by speakers and any recording/slides links (RFC 5545 keeps everything in
+ * DESCRIPTION for the widest client support).
+ */
+function richDescription(bundle: EventBundle, activity: Activity): string | undefined {
+  const parts: string[] = [];
+  if (activity.description) parts.push(activity.description);
+  const speakers = speakerNames(bundle, activity);
+  if (speakers.length) parts.push(`Speakers: ${speakers.join(', ')}`);
+  if (activity.recordingUrl) parts.push(`Recording: ${activity.recordingUrl}`);
+  if (activity.slidesUrl) parts.push(`Slides: ${activity.slidesUrl}`);
+  if (activity.livestreamUrl) parts.push(`Livestream: ${activity.livestreamUrl}`);
+  return parts.length ? parts.join('\n') : undefined;
+}
+
 function entryFromActivity(bundle: EventBundle, activity: Activity): CalendarEntry {
   return {
     id: activity.id,
@@ -71,7 +95,7 @@ function entryFromActivity(bundle: EventBundle, activity: Activity): CalendarEnt
     location: activity.locationId
       ? bundle.locations.find((location) => location.id === activity.locationId)?.name
       : undefined,
-    description: activity.description,
+    description: richDescription(bundle, activity),
     url: activity.sourceUrl ?? activity.recordingUrl ?? activity.slidesUrl,
     categories: [activity.type, ...activity.tags],
     cancelled: activity.cancelled,
@@ -80,6 +104,22 @@ function entryFromActivity(bundle: EventBundle, activity: Activity): CalendarEnt
 
 function contentLine(lines: string[], line: string): void {
   for (const folded of foldLine(line)) lines.push(folded);
+}
+
+/** Emit the optional VALARM blocks (starting-soon and optional leave-by). */
+function pushAlarms(lines: string[], entry: CalendarEntry, options: CalendarOptions): void {
+  if (!options.includeAlarm) return;
+  const alarmMinutes = options.alarmMinutesBefore ?? 15;
+  lines.push('BEGIN:VALARM', 'ACTION:DISPLAY');
+  contentLine(lines, `DESCRIPTION:${escapeText(`Starting soon: ${entry.title}`)}`);
+  contentLine(lines, `TRIGGER:-PT${alarmMinutes}M`);
+  lines.push('END:VALARM');
+  if (options.leaveByMinutesBefore && options.leaveByMinutesBefore !== alarmMinutes) {
+    lines.push('BEGIN:VALARM', 'ACTION:DISPLAY');
+    contentLine(lines, `DESCRIPTION:${escapeText(`Leave now for: ${entry.title}`)}`);
+    contentLine(lines, `TRIGGER:-PT${options.leaveByMinutesBefore}M`);
+    lines.push('END:VALARM');
+  }
 }
 
 const VTIMEZONE = [
@@ -101,7 +141,6 @@ export function calendarEntryToIcs(
   entry: CalendarEntry,
   options: CalendarOptions = {},
 ): string {
-  const alarmMinutes = options.alarmMinutesBefore ?? 15;
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -123,12 +162,7 @@ export function calendarEntryToIcs(
     contentLine(lines, `CATEGORIES:${entry.categories.map(escapeText).join(',')}`);
   }
   if (entry.cancelled) contentLine(lines, 'STATUS:CANCELLED');
-  if (options.includeAlarm) {
-    lines.push('BEGIN:VALARM', 'ACTION:DISPLAY');
-    contentLine(lines, `DESCRIPTION:${escapeText(`Starting soon: ${entry.title}`)}`);
-    contentLine(lines, `TRIGGER:-PT${alarmMinutes}M`);
-    lines.push('END:VALARM');
-  }
+  pushAlarms(lines, entry, options);
   lines.push('END:VEVENT', 'END:VCALENDAR');
   return `${lines.join('\r\n')}\r\n`;
 }
@@ -139,7 +173,6 @@ export function calendarEntriesToIcs(
   entries: CalendarEntry[],
   options: CalendarOptions = {},
 ): string {
-  const alarmMinutes = options.alarmMinutesBefore ?? 15;
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -161,12 +194,7 @@ export function calendarEntriesToIcs(
     if (entry.categories?.length)
       contentLine(lines, `CATEGORIES:${entry.categories.map(escapeText).join(',')}`);
     if (entry.cancelled) contentLine(lines, 'STATUS:CANCELLED');
-    if (options.includeAlarm) {
-      lines.push('BEGIN:VALARM', 'ACTION:DISPLAY');
-      contentLine(lines, `DESCRIPTION:${escapeText(`Starting soon: ${entry.title}`)}`);
-      contentLine(lines, `TRIGGER:-PT${alarmMinutes}M`);
-      lines.push('END:VALARM');
-    }
+    pushAlarms(lines, entry, options);
     lines.push('END:VEVENT');
   }
   lines.push('END:VCALENDAR');
@@ -206,22 +234,17 @@ export function itineraryToIcs(
 ): string {
   const entries = items.map((item, index) => {
     const activity = bundle.activities.find((candidate) => candidate.id === item.activityId);
+    if (!item.flexible && activity) {
+      // Reuse the rich per-activity mapping (speakers, links) but honour the
+      // itinerary's own start/end (which may be a manual override).
+      return { ...entryFromActivity(bundle, activity), start: item.start, end: item.end };
+    }
     return {
-      id: item.flexible ? item.activityId : (activity?.id ?? item.activityId),
-      title: item.flexible ? (item.label ?? 'Flexible time') : (activity?.title ?? item.activityId),
+      id: `${item.activityId}-${index}`,
+      title: item.label ?? item.activityId,
       start: item.start,
       end: item.end,
-      location: activity?.locationId
-        ? bundle.locations.find((location) => location.id === activity.locationId)?.name
-        : undefined,
-      description: activity?.description,
-      url: activity?.sourceUrl ?? activity?.recordingUrl ?? activity?.slidesUrl,
-      categories: item.flexible
-        ? ['flexible']
-        : [activity?.type ?? 'custom', ...(activity?.tags ?? [])],
-      // Guard against malformed duplicate custom ids while retaining stable
-      // activity UIDs for ordinary entries.
-      ...(item.flexible ? { id: `${item.activityId}-${index}` } : {}),
+      categories: ['flexible'],
     };
   });
   return calendarEntriesToIcs(bundle, entries, options);

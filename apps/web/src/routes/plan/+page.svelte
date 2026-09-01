@@ -105,7 +105,11 @@
       flexible: i.flexible || !activityMap.has(i.id),
       label: i.label,
     }));
-    const ics = itineraryToIcs(bundle, items, { includeAlarm: true });
+    const ics = itineraryToIcs(bundle, items, {
+      includeAlarm: true,
+      alarmMinutesBefore: 10,
+      leaveByMinutesBefore: 25,
+    });
     const filename = `${bundle.id}-${selectedDay}-itinerary.ics`;
     try {
       const shared = await shareCalendarFile(filename, ics);
