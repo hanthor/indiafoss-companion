@@ -91,3 +91,14 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
     .catch(() => false);
   expect(stillGoing || done).toBe(true);
 });
+
+test('plan generates a feasible itinerary with backups', async ({ page }) => {
+  await page.goto('/plan');
+  // The solver runs for Day 1 and renders an ordered itinerary.
+  await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
+  const count = await page.locator('.itinerary li').count();
+  expect(count).toBeGreaterThan(3);
+  // Some slots may show a backup suggestion.
+  const hasBackups = await page.locator('.backups').count();
+  expect(hasBackups).toBeGreaterThan(0);
+});

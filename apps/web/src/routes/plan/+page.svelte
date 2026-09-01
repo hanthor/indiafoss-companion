@@ -1,38 +1,47 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import { getEventDays, activitiesForDay, formatDayLabel } from '@indiafoss/schedule';
-  import { bookmarked, dispositionOf, ratingOf } from '$lib/prefs.svelte';
+  import type { SolverResult } from '@indiafoss/solver';
+  import { formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
+  import { solveForDay } from '$lib/solver.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
+  let solving = $state(false);
+  let result: SolverResult | null = $state(null);
+
   $effect(() => {
     if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
   });
 
-  const dayActivities = $derived(selectedDay ? activitiesForDay(bundle, selectedDay) : []);
+  $effect(() => {
+    if (!bundle || !selectedDay) return;
+    solving = true;
+    void solveForDay(bundle, selectedDay)
+      .then((r) => {
+        result = r;
+        solving = false;
+      })
+      .catch(() => {
+        solving = false;
+      });
+  });
 
-  const ranked = $derived(
-    dayActivities
-      .filter((a) => !a.cancelled && a.type !== 'meal')
-      .map((a) => ({ activity: a, rating: ratingOf(a.id), disposition: dispositionOf(a.id) })),
-  );
+  const locationName = (id: string | undefined): string | undefined =>
+    bundle?.locations.find((l) => l.id === id)?.name;
 
-  const mustAttend = $derived(ranked.filter((r) => r.disposition === 'must-attend'));
-  const bookmarkedList = $derived(
-    ranked.filter((r) => bookmarked(r.activity.id) && r.disposition !== 'not-interested'),
-  );
-  const highest = $derived([...ranked].sort((a, b) => b.rating - a.rating).slice(0, 3));
+  const activityTitle = (id: string): string | undefined => {
+    const found = bundle?.activities.find((a) => a.id === id);
+    return found?.title;
+  };
 </script>
 
 <EventGate>
   <h1>Plan</h1>
-  <p class="muted">
-    Your personal schedule starts with preferences, then the itinerary solver (§4).
-  </p>
+  <p class="muted">Your personal itinerary, generated from ratings and preferences (§18).</p>
 
   <div class="days">
     {#each days as day, i (day)}
@@ -42,48 +51,69 @@
     {/each}
   </div>
 
-  <a class="cta" href={resolve('/plan/rank')}>Rank this day's sessions →</a>
+  <div class="actions">
+    <a href={resolve('/plan/rank')}>Rank this day first →</a>
+  </div>
 
-  {#if mustAttend.length > 0}
-    <section>
-      <h2>Must attend</h2>
-      <ul>
-        {#each mustAttend as r (r.activity.id)}
-          <li><a href={resolve(`/activity/${r.activity.id}`)}>{r.activity.title}</a></li>
+  {#if solving}
+    <p role="status">Computing your best day…</p>
+  {:else if result}
+    {#if result.mustAttendConflicts.length > 0}
+      <section class="conflict" role="alert">
+        <h2>Your must-attend items conflict</h2>
+        {#each result.mustAttendConflicts as c (c.a + c.b)}
+          <p>
+            <strong>{activityTitle(c.a)}</strong> and <strong>{activityTitle(c.b)}</strong> cannot both
+            fit.
+          </p>
         {/each}
-      </ul>
-    </section>
-  {/if}
+        <a href={resolve('/plan/rank')}>[Compare]</a>
+      </section>
+    {/if}
 
-  {#if bookmarkedList.length > 0}
-    <section>
-      <h2>Bookmarked</h2>
-      <ul>
-        {#each bookmarkedList as r (r.activity.id)}
-          <li><a href={resolve(`/activity/${r.activity.id}`)}>{r.activity.title}</a></li>
-        {/each}
-      </ul>
-    </section>
-  {/if}
-
-  {#if highest.length > 0}
-    <section>
-      <h2>Currently rated top picks</h2>
-      <ol class="top">
-        {#each highest as r (r.activity.id)}
-          <li>
-            <span class="rating">{Math.round(r.rating)}</span>
-            <a href={resolve(`/activity/${r.activity.id}`)}>{r.activity.title}</a>
+    {#if result.itinerary.items.length > 0}
+      <ol class="itinerary">
+        {#each result.itinerary.items as item, i (item.activityId + i)}
+          <li class:flex={item.flexible}>
+            <time>{formatTime(item.start)}–{formatTime(item.end)}</time>
+            <div>
+              {#if item.flexible}
+                <span class="flabel">{item.label ?? 'Flexible time'}</span>
+              {:else}
+                <a href={resolve(`/activity/${item.activityId}`)}
+                  >{activityTitle(item.activityId)}</a
+                >
+              {/if}
+              <span class="loc">
+                {locationName(bundle.activities.find((a) => a.id === item.activityId)?.locationId)}
+              </span>
+              {#if !item.flexible && result.backups[item.activityId]}
+                <span class="backups">
+                  Backup: {result.backups[item.activityId]!.map((id) => activityTitle(id)).join(
+                    ' · ',
+                  )}
+                </span>
+              {/if}
+            </div>
           </li>
         {/each}
       </ol>
-    </section>
+      <p class="muted small">
+        Utility {Math.round(result.itinerary.totalUtility)} · {result.itinerary.items.length} slots ·
+        {result.excluded.length} sessions left out
+      </p>
+    {:else if result.mustAttendConflicts.length === 0}
+      <p class="muted">No sessions scheduled for this day yet.</p>
+    {/if}
   {/if}
 </EventGate>
 
 <style>
   .muted {
     color: var(--text-muted);
+  }
+  .small {
+    font-size: 0.82rem;
   }
   .days {
     display: flex;
@@ -106,31 +136,62 @@
     color: var(--text-muted);
     font-weight: 400;
   }
-  .cta {
-    display: inline-block;
-    margin: 0.4rem 0 1rem;
-    background: var(--event-primary);
-    color: #fff;
-    padding: 0.6rem 1.2rem;
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 600;
-  }
-  ul,
-  ol {
-    padding-left: 1.2rem;
-  }
-  li {
-    margin-bottom: 0.3rem;
-  }
-  a {
-    color: var(--text);
-  }
-  .top .rating {
-    display: inline-block;
-    min-width: 3rem;
-    font-variant-numeric: tabular-nums;
+  .actions a {
     color: var(--event-primary);
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .conflict {
+    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+    border-radius: var(--radius);
+    padding: 0.8rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .conflict h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+  }
+  .itinerary {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    border-left: 3px solid var(--event-primary);
+  }
+  .itinerary li {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr;
+    gap: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+  }
+  .itinerary li.flex {
+    border-left: 4px solid var(--event-accent);
+    background: color-mix(in srgb, var(--event-accent) 6%, transparent);
+  }
+  .itinerary time {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .itinerary a {
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .flabel {
+    font-weight: 600;
+    color: var(--event-accent);
+  }
+  .loc {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .backups {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
   }
 </style>

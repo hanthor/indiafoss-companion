@@ -19,7 +19,8 @@
     "@indiafoss/schedule": "workspace:*",
     "@indiafoss/search": "workspace:*",
     "@indiafoss/storage": "workspace:*",
-    "@indiafoss/elo": "workspace:*"
+    "@indiafoss/elo": "workspace:*",
+    "@indiafoss/solver": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
