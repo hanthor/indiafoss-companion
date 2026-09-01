@@ -40,12 +40,31 @@ jobs:
       - name: Unit + property tests
         run: pnpm -r test
 
+      - name: Verify captured fixtures
+        run: pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+
+      - name: Validate venue assets
+        run: |
+          pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" synthetic
+          pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" indiafoss-2026
+
       - name: Build (packages + web PWA)
         run: pnpm -r build
 
       - name: Dependency/security audit
         run: pnpm audit --prod
         continue-on-error: true # report only for now; make blocking once deps settle
+
+      - name: Generate CycloneDX SBOM
+        run: npx --yes @cyclonedx/cdxgen@12 -t pnpm -o sbom.cdx.json --no-recurse
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.cdx.json
+          if-no-files-found: warn
 
   e2e:
     name: Playwright E2E (with time-travel)
@@ -73,6 +92,9 @@ jobs:
 
       - name: Run browser E2E tests
         run: pnpm --filter @indiafoss/web test:e2e
+
+      - name: Run accessibility checks
+        run: pnpm --filter @indiafoss/web exec playwright test tests/a11y.spec.ts
 
       - name: Run offline E2E gate
         run: pnpm --filter @indiafoss/web exec playwright test tests/offline.spec.ts
@@ -122,8 +144,16 @@ jobs:
       - name: Assemble debug APK
         run: cd apps/android/capacitor/android && ./gradlew assembleDebug
 
+      - name: Checksum the APK
+        run: |
+          cd apps/android/capacitor/android/app/build/outputs/apk/debug
+          sha256sum app-debug.apk > app-debug.apk.sha256
+          cat app-debug.apk.sha256
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
-          path: apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk
+            apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk.sha256
