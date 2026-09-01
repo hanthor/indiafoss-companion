@@ -1,0 +1,13 @@
+{
+  "locations": {
+    "audi-1": { "locationId": "audi-1", "svgTarget": "room-audi-1", "entrances": ["gf-audi1"], "floor": "ground" },
+    "audi-2": { "locationId": "audi-2", "svgTarget": "room-audi-2", "entrances": ["gf-audi2"], "floor": "ground" },
+    "devroom-1": { "locationId": "devroom-1", "svgTarget": "room-devroom-1", "entrances": ["gf-devroom1"], "floor": "ground" },
+    "workshops-room": { "locationId": "workshops-room", "svgTarget": "room-workshops", "entrances": ["gf-workshops"], "floor": "ground" },
+    "bof-room": { "locationId": "bof-room", "svgTarget": "room-bof", "entrances": ["gf-bof"], "floor": "ground" },
+    "devroom-2": { "locationId": "devroom-2", "svgTarget": "room-devroom-2", "entrances": ["ff-devroom2"], "floor": "first" },
+    "food-area": { "locationId": "food-area", "svgTarget": "amenity-food-ground", "entrances": ["gf-food"], "floor": "ground" },
+    "quiet-room": { "locationId": "quiet-room", "svgTarget": "room-quiet", "entrances": ["ff-quiet"], "floor": "first" },
+    "registration": { "locationId": "registration", "svgTarget": "amenity-registration", "entrances": ["gf-registration"], "floor": "ground" }
+  }
+}

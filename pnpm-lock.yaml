@@ -78,6 +78,9 @@ importers:
       '@indiafoss/storage':
         specifier: workspace:*
         version: link:../../packages/storage
+      '@indiafoss/venue':
+        specifier: workspace:*
+        version: link:../../packages/venue
     devDependencies:
       '@playwright/test':
         specifier: ^1.62.1
@@ -255,10 +258,17 @@ importers:
         version: 4.1.11(@types/node@24.13.3)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.13))
 
   packages/venue:
+    dependencies:
+      '@indiafoss/model':
+        specifier: workspace:*
+        version: link:../model
     devDependencies:
       eslint:
         specifier: ^10.9.1
         version: 10.9.1
+      fast-check:
+        specifier: ^4.9.0
+        version: 4.9.0
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -309,9 +319,9 @@ importers:
 
   tools/venue-validator:
     dependencies:
-      tsx:
-        specifier: ^4.20.0
-        version: 4.23.13
+      '@indiafoss/venue':
+        specifier: workspace:*
+        version: link:../../packages/venue
     devDependencies:
       '@types/node':
         specifier: ^24.0.0

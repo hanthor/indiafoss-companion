@@ -102,3 +102,18 @@ test('plan generates a feasible itinerary with backups', async ({ page }) => {
   const hasBackups = await page.locator('.backups').count();
   expect(hasBackups).toBeGreaterThan(0);
 });
+
+test('map routes between two rooms offline-style', async ({ page }) => {
+  await page.goto('/map');
+  await expect(page.getByRole('status').or(page.getByText('Loading venue')).first())
+    .toBeVisible({ timeout: 5000 })
+    .catch(() => {});
+  // Pick a source and destination.
+  await page.getByLabel('You are at').selectOption('audi-1');
+  await page.getByLabel('Destination').selectOption('devroom-2');
+  // The route info appears with a walk duration and steps.
+  await expect(page.getByText(/min walk/)).toBeVisible();
+  await expect(page.locator('.steps li').first()).toBeVisible();
+  // The highlighted route polyline is rendered.
+  await expect(page.locator('.route')).toBeVisible();
+});

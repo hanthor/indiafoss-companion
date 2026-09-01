@@ -17,7 +17,7 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "tsx": "^4.20.0"
+    "@indiafoss/venue": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

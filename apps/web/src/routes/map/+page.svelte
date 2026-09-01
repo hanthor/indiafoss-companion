@@ -1,5 +1,5 @@
 <script lang="ts">
-  import PagePlaceholder from '$lib/components/PagePlaceholder.svelte';
+  import VenueMap from '$lib/components/VenueMap.svelte';
 </script>
 
-<PagePlaceholder title="Map" phase="Phase 5 (venue engine)" />
+<VenueMap />
