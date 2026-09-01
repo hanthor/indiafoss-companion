@@ -209,7 +209,7 @@
     white-space: nowrap;
   }
   .cell.cancelled {
-    opacity: 0.45;
+    opacity: 0.8;
     text-decoration: line-through;
   }
   .cell:hover {

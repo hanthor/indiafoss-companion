@@ -116,7 +116,7 @@
   }
   .quick a strong {
     display: block;
-    color: var(--event-primary);
+    color: var(--event-primary-text);
     font-size: 1.05rem;
     margin-bottom: 0.2rem;
   }

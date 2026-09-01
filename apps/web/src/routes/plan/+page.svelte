@@ -340,8 +340,8 @@
     cursor: pointer;
   }
   .days button.active {
-    border-color: var(--event-primary);
-    color: var(--event-primary);
+    border-color: var(--event-primary-text);
+    color: var(--event-primary-text);
     font-weight: 600;
   }
   .days small {
@@ -430,7 +430,7 @@
   }
   .flabel {
     font-weight: 600;
-    color: var(--event-accent);
+    color: var(--event-accent-text);
   }
   .badge {
     font-size: 0.72rem;

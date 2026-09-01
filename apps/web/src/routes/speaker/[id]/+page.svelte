@@ -108,7 +108,7 @@
     flex-wrap: wrap;
   }
   .links a {
-    color: var(--event-primary);
+    color: var(--event-primary-text);
     font-size: 0.9rem;
   }
   .muted {

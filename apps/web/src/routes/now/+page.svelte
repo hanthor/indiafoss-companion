@@ -277,7 +277,7 @@
   }
   .leave.strong {
     font-weight: 700;
-    color: var(--event-primary);
+    color: var(--event-primary-text);
   }
   .leave.floor-change {
     color: var(--event-primary-dark);

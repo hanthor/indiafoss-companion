@@ -245,9 +245,9 @@
     color: var(--text-muted);
   }
   .daytab.active {
-    border-color: var(--event-primary);
+    border-color: var(--event-primary-text);
     background: color-mix(in srgb, var(--event-primary) 10%, transparent);
-    color: var(--event-primary);
+    color: var(--event-primary-text);
     font-weight: 600;
   }
   .row {
@@ -279,7 +279,7 @@
     font-size: 0.85rem;
   }
   .seg button.active {
-    background: var(--event-primary);
+    background: var(--event-primary-dark);
     color: #fff;
   }
   .filters summary {

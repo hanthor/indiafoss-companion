@@ -93,7 +93,7 @@
   .ghost {
     border: 1px solid var(--event-primary);
     background: var(--surface);
-    color: var(--event-primary);
+    color: var(--event-primary-text);
     border-radius: 999px;
     padding: 0.5rem 1rem;
     cursor: pointer;
