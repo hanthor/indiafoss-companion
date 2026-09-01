@@ -5,6 +5,8 @@
   import { resolve } from '$app/paths';
   import { registerSW } from 'virtual:pwa-register';
   import { hydratePreferences } from '$lib/prefs.svelte';
+  import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
+  import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
@@ -14,6 +16,12 @@
 
   onMount(() => {
     void hydratePreferences();
+  });
+
+  $effect(() => {
+    if (eventState.status === 'ready' && eventState.bundle) {
+      void checkForUpdates(DEFAULT_EVENT_ID);
+    }
   });
 
   function isActive(href: string): boolean {
@@ -30,6 +38,24 @@
   <main class="content">
     {@render children()}
   </main>
+
+  {#if updateState.available}
+    <section class="updatebanner" role="status" aria-label="Schedule update available">
+      <div class="updatebody">
+        <strong>Schedule changed</strong>
+        <span>
+          {#each Object.entries(updateState.summary) as [type, count] (type)}
+            {count}
+            {type}{count === 1 ? '' : 's'}
+            {#if type === 'room-changed'}
+              — your route will be recalculated.
+            {/if}
+          {/each}
+        </span>
+      </div>
+      <button class="updatebtn" onclick={() => applyUpdate(DEFAULT_EVENT_ID)}>Update</button>
+    </section>
+  {/if}
 
   <nav class="tabbar" aria-label="Primary">
     <a href={resolve('/now')} aria-current={isActive('/now') ? 'page' : undefined}>Now</a>
@@ -100,5 +126,40 @@
   .tabbar a[aria-current='page'] {
     color: var(--event-primary);
     font-weight: 700;
+  }
+
+  .updatebanner {
+    position: sticky;
+    bottom: calc(52px + var(--safe-bottom));
+    margin: 0 auto 0.5rem;
+    max-width: 40rem;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    justify-content: space-between;
+    background: color-mix(in srgb, var(--warning) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--warning) 45%, transparent);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.9rem;
+    box-shadow: 0 4px 14px rgb(0 0 0 / 0.12);
+  }
+  .updatebody {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .updatebody strong {
+    color: var(--text);
+  }
+  .updatebtn {
+    border: none;
+    background: var(--event-primary);
+    color: #fff;
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 40px;
   }
 </style>

@@ -4,8 +4,33 @@ import type { EventBundle } from '@indiafoss/model';
 export const DEFAULT_EVENT_ID = 'indiafoss-2025';
 /** Static, hash-less asset; precached by the service worker (§34). */
 export const EVENT_BUNDLE_URL = `/events/${DEFAULT_EVENT_ID}/event-bundle.json`;
+export const EVENT_MANIFEST_URL = `/events/${DEFAULT_EVENT_ID}/manifest.json`;
 
 let storage: CompanionStorage | null = null;
+
+/** Remember which published revision the stored bundle corresponds to (§35). */
+export async function recordRevision(eventId: string, revision?: number): Promise<void> {
+  if (revision === undefined) {
+    try {
+      const res = await fetch(EVENT_MANIFEST_URL, { cache: 'no-store' });
+      if (res.ok) {
+        const manifest = (await res.json()) as { revision?: number };
+        revision = manifest.revision;
+      }
+    } catch {
+      revision = undefined;
+    }
+  }
+  if (revision !== undefined) {
+    await getStorage().setSetting(`event-revision-${eventId}`, String(revision));
+  }
+}
+
+/** Revision of the stored bundle, if known. */
+export async function storedRevision(eventId: string): Promise<number | null> {
+  const raw = await getStorage().getSetting(`event-revision-${eventId}`);
+  return raw ? Number(raw) : null;
+}
 function getStorage(): CompanionStorage {
   storage ??= new CompanionStorage();
   return storage;

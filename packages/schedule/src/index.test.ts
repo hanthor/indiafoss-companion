@@ -5,6 +5,7 @@ import {
   activityProgress,
   computeNowState,
   FixedClock,
+  diffBundles,
   formatDayLabel,
   formatTime,
   leaveByInstant,
@@ -139,6 +140,55 @@ describe('leaveByInstant', () => {
   it('subtracts travel + buffer from the session start', () => {
     const leave = leaveByInstant('2026-09-19T11:00:00+05:30', 360, 300);
     expect(Date.parse(leave)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 660 * 1000);
+  });
+});
+
+describe('diffBundles', () => {
+  it('detects added, cancelled, time, room, title and recording changes by stable id', () => {
+    const base = bundle([
+      act({ id: 'a', title: 'Talk A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const changed = bundle([
+      {
+        ...act({
+          id: 'a',
+          title: 'Talk A Renamed',
+          start: `${D1}10:30:00+05:30`,
+          end: `${D1}11:30:00+05:30`,
+        }),
+        locationId: 'other',
+        recordingUrl: 'https://x/y.mp4',
+      },
+      act({ id: 'b', title: 'New Talk', start: `${D1}12:00:00+05:30`, end: `${D1}13:00:00+05:30` }),
+    ]);
+    const changes = diffBundles(base, changed);
+    const byType = Object.fromEntries(changes.map((c) => [c.type, c.activityId]));
+    expect(byType['title-changed']).toBe('a');
+    expect(byType['time-changed']).toBe('a');
+    expect(byType['room-changed']).toBe('a');
+    expect(byType['recording-added']).toBe('a');
+    expect(byType['added']).toBe('b');
+  });
+
+  it('reports removed activities as cancelled', () => {
+    const base = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const changes = diffBundles(base, bundle([]));
+    expect(changes.some((c) => c.type === 'cancelled' && c.activityId === 'a')).toBe(true);
+  });
+
+  it('ignores irrelevant metadata edits', () => {
+    const base = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const withTags = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        tags: ['new-tag'],
+      },
+    ]);
+    expect(diffBundles(base, withTags)).toEqual([]);
   });
 });
 

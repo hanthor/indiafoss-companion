@@ -169,3 +169,77 @@ export function leaveByInstant(
   const leaveMs = parseInstant(nextStartIso) - (travelSeconds + bufferSeconds) * 1000;
   return new Date(leaveMs).toISOString();
 }
+
+export type ScheduleChangeType =
+  | 'added'
+  | 'cancelled'
+  | 'time-changed'
+  | 'room-changed'
+  | 'title-changed'
+  | 'speaker-changed'
+  | 'recording-added';
+
+export interface ScheduleChange {
+  activityId: string;
+  title: string;
+  type: ScheduleChangeType;
+  detail?: string;
+}
+
+/**
+ * Diff two revisions of an event bundle by stable activity id (§35, §36).
+ * Recognizes added / cancelled / time / room / title / speaker / recording
+ * changes and deliberately ignores irrelevant metadata edits.
+ */
+export function diffBundles(prev: EventBundle, next: EventBundle): ScheduleChange[] {
+  const changes: ScheduleChange[] = [];
+  const prevById = new Map(prev.activities.map((a) => [a.id, a]));
+
+  for (const a of next.activities) {
+    const old = prevById.get(a.id);
+    if (!old) {
+      changes.push({ activityId: a.id, title: a.title, type: 'added' });
+      continue;
+    }
+    if (a.cancelled && !old.cancelled) {
+      changes.push({ activityId: a.id, title: a.title, type: 'cancelled' });
+    }
+    if (a.start !== old.start || a.end !== old.end) {
+      changes.push({ activityId: a.id, title: a.title, type: 'time-changed' });
+    }
+    if (a.locationId !== old.locationId) {
+      changes.push({
+        activityId: a.id,
+        title: a.title,
+        type: 'room-changed',
+        detail: `${old.locationId ?? 'unknown'} → ${a.locationId ?? 'unknown'}`,
+      });
+    }
+    if (a.title !== old.title) {
+      changes.push({ activityId: a.id, title: a.title, type: 'title-changed' });
+    }
+    if (a.speakerIds.join(',') !== old.speakerIds.join(',')) {
+      changes.push({ activityId: a.id, title: a.title, type: 'speaker-changed' });
+    }
+    if (a.recordingUrl && !old.recordingUrl) {
+      changes.push({ activityId: a.id, title: a.title, type: 'recording-added' });
+    }
+  }
+
+  for (const a of prev.activities) {
+    if (!next.activities.some((n) => n.id === a.id)) {
+      changes.push({ activityId: a.id, title: a.title, type: 'cancelled' });
+    }
+  }
+
+  return changes;
+}
+
+/** Group changes by type for a compact summary (§35). */
+export function summarizeChanges(changes: ScheduleChange[]): Record<string, number> {
+  const summary: Record<string, number> = {};
+  for (const change of changes) {
+    summary[change.type] = (summary[change.type] ?? 0) + 1;
+  }
+  return summary;
+}

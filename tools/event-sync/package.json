@@ -17,7 +17,9 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
-    "tsx": "^4.20.0"
+    "@indiafoss/model": "workspace:*",
+    "@indiafoss/schedule": "workspace:*",
+    "@indiafoss/sources": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
