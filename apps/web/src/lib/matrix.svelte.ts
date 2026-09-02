@@ -81,6 +81,8 @@ export const matrixState = $state<{
   outbox: MatrixOutboxRecord[];
   typing: Record<string, string[]>;
   encryptionReady: boolean;
+  /** False once the server proves it cannot carry key material. */
+  serverCarriesEncryption: boolean;
   error: string | null;
   hydrated: boolean;
 }>({
@@ -93,6 +95,7 @@ export const matrixState = $state<{
   outbox: [],
   typing: {},
   encryptionReady: false,
+  serverCarriesEncryption: true,
   error: null,
   hydrated: false,
 });
@@ -112,6 +115,7 @@ export function getMatrix(): MatrixSessionManager {
       matrixState.outbox = snapshot.outbox;
       matrixState.typing = snapshot.typing;
       matrixState.encryptionReady = snapshot.encryptionReady;
+      matrixState.serverCarriesEncryption = snapshot.serverCarriesEncryption;
       matrixState.error = snapshot.error;
     },
     // E2EE: the Rust crypto WASM is loaded lazily on sign-in and its store lives in IndexedDB.

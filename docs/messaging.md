@@ -289,6 +289,14 @@ capability. Association is a claim, not authentication.
 | F-Droid                            | The bindings are now built from a pinned tag by a workflow anyone can read, which is the precondition for a reproducible build, though F-Droid would still need to run that build itself rather than take our `.aar`. The PWA/Capacitor core remains F-Droid clean.                                                              |
 | Prototype                          | Not built yet: it requires an Android device pair with BLE. The PWA side (QR payload, identity fields, handoff links) is done so the prototype can consume it.                                                                                                                                                                   |
 
+### Reaching mesh rooms from the internet
+
+Decided in [ADR 0003](adr/0003-mesh-interop-by-federation-not-bridging.md):
+**native federation, not a portal bridge**, because a bridge has to decrypt on
+one side to re-encrypt on the other and so becomes a party to every conversation
+it carries. Until that lands, mesh conversations stay on the mesh and people out
+of BLE range use the ordinary rooms on `reilly.asia`.
+
 ### What the mesh can actually do
 
 Neutrino is pre-alpha and supports a fraction of the client-server API. Rather
