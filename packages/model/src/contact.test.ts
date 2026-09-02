@@ -32,7 +32,8 @@ describe('attendeeProfileToVCard', () => {
     // opt-in only fields off by default
     expect(vcard).not.toContain('EMAIL');
     expect(vcard).not.toContain('TEL');
-    expect(vcard).not.toContain('X-MATRIX-ID');
+    // A Matrix id is only ever entered in order to be reached on it: on by default.
+    expect(vcard).toContain('X-INDIAFOSS-MATRIX:@aarav:matrix.org');
     // only public developer profiles (GitHub, LinkedIn) are shared by default
     expect(vcard).not.toContain('TYPE=x:');
     expect(vcard).not.toContain('TYPE=instagram');
@@ -50,7 +51,7 @@ describe('attendeeProfileToVCard', () => {
     const vcard = attendeeProfileToVCard(profile, selection);
     expect(vcard).toContain('EMAIL;TYPE=INTERNET:aarav@example.org');
     expect(vcard).toContain('TEL;TYPE=CELL:+91 90000 00000');
-    expect(vcard).toContain('X-MATRIX-ID:@aarav:matrix.org');
+    expect(vcard).toContain('X-INDIAFOSS-MATRIX:@aarav:matrix.org');
     expect(vcard).toContain('IMPP:matrix:@aarav:matrix.org');
     expect(vcard).toContain('X-SOCIALPROFILE;TYPE=github:https://github.com/aarav');
     expect(vcard).not.toContain('TYPE=mastodon');

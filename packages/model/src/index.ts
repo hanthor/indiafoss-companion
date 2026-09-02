@@ -258,3 +258,12 @@ export type {
   ContactBookImport,
   MetGroup,
 } from './contact-book.js';
+
+export {
+  VCARD_KEY_FIELD,
+  VCARD_SIG_FIELD,
+  canonicalVCardBody,
+  signedAttendeeVCard,
+  verifyVCardSignature,
+} from './signed-vcard.js';
+export type { VCardIdentity, VCardSignatureState } from './signed-vcard.js';

@@ -215,12 +215,17 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
       case 'X-FOSSUNITED-PROFILE':
         if (decoded) profile.fossUnitedProfileUrl = decoded;
         break;
+      // Both spellings: cards written before the single-QR redesign used the
+      // longer names, and they still scan.
+      case 'X-INDIAFOSS-MATRIX':
       case 'X-MATRIX-ID':
         if (decoded) profile.matrixId = decoded;
         break;
+      case 'X-INDIAFOSS-MESH':
       case 'X-NEUTRINO-SERVER-NAME':
         if (/^[0-9a-f]{64}$/i.test(decoded)) profile.neutrinoServerName = decoded.toLowerCase();
         break;
+      case 'X-INDIAFOSS-TICKET':
       case 'X-INDIAFOSS-TICKET-REF':
         if (isTicketRef(decoded)) profile.ticketRef = decoded;
         break;

@@ -1,34 +1,23 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { resolve } from '$app/paths';
   import {
-    attendeeProfileToVCard,
     contactBookToJson,
     contactBookToVCards,
     contactDeepLinks,
-    encodeFriendPayload,
-    encodeSignedFriendPayload,
     groupByDayMet,
     identiconSvg,
-    searchContacts,
-    shortFingerprint,
     isMatrixUserId,
     isNeutrinoServerName,
     isTicketRef,
     neutrinoMatrixId,
+    searchContacts,
+    shortFingerprint,
+    signedAttendeeVCard,
     type AttendeeSocial,
-    type FriendPayload,
   } from '@indiafoss/model';
-  import {
-    MatrixClient,
-    matrixToUrl,
-    readExtendedProfile,
-    supportsExtendedProfiles,
-    writeExtendedProfile,
-  } from '@indiafoss/matrix';
-  import { CompanionStorage } from '@indiafoss/storage';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
-  import { hydrateMatrix, matrixState } from '$lib/matrix.svelte';
   import {
     contactsState,
     deleteContact,
@@ -39,7 +28,6 @@
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
   import { features, hydrateFeatures } from '$lib/features.svelte';
   import { meshStatus } from '$lib/neutrino';
-  import { isLoopbackHomeserver } from '@indiafoss/matrix';
   import {
     applyImportedProfile,
     importFossUnitedProfile,
@@ -53,21 +41,30 @@
     saveSelection,
     setSocial,
     setSocialSelection,
-    MESSENGERS,
-    SOCIAL_PLACEHOLDER,
     SOCIALS,
-    usernameFromProfileUrl,
   } from '$lib/profile.svelte';
+  import {
+    byteLength,
+    CARD_FIELDS,
+    CARD_GROUPS,
+    DEFAULT_LINK_NETWORKS,
+    LINK_LABELS,
+    LINK_PLACEHOLDERS,
+    selectionKeyFor,
+    sharedFieldCount,
+    type CardFieldSpec,
+    type CardGroup,
+  } from '$lib/card-fields';
   import EventGate from '$lib/components/EventGate.svelte';
 
+  /** QR payloads above this are unreliable to scan on a phone screen. */
+  const MAX_QR_BYTES = 1500;
+
+  // ---------- Card (always live) ----------
   let vcard = $state('');
   let qrDataUrl = $state<string | null>(null);
-  let message = $state('');
-  let generating = $state(false);
-  /** Tier 1 = universal vCard; tier 2 = companion friend card with messaging identities. */
-  let cardMode = $state<'vcard' | 'friend'>('vcard');
-  let publishStatus = $state('');
-  let publishSupported = $state<boolean | null>(null);
+  let cardMessage = $state('');
+  let qrTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** This device's own mesh node id, when the P2P add-on is on and the node runs. */
   let meshServerName = $state<string | null>(null);
@@ -78,28 +75,204 @@
     void hydrateIdentity();
     void hydrateFeatures().then(async () => {
       if (!features.chat) return;
-      void hydrateMatrix();
       const status = await meshStatus();
       meshServerName = status.serverName?.toLowerCase() ?? null;
       // First time the node reports an identity, adopt it as this attendee's mesh id
-      // and share it by default: it is what lets a scanned contact message you on the mesh.
+      // and share it: it is what lets a scanned contact message you on the mesh.
       if (meshServerName && !profileState.profile.neutrinoServerName) {
         profileState.profile.neutrinoServerName = meshServerName;
         profileState.selection.neutrinoServerName = true;
-        await saveProfile();
-        await saveSelection();
+        await persist();
       }
     });
   });
 
-  /** The signed-in id is only a public Matrix id when it is not the mesh node's own. */
-  const publicMatrixSession = $derived(
-    !!matrixState.userId &&
-      !!matrixState.homeserver &&
-      !isLoopbackHomeserver(matrixState.homeserver),
+  const matrixIdValid = $derived(
+    !profileState.profile.matrixId?.trim() || isMatrixUserId(profileState.profile.matrixId.trim()),
+  );
+  const neutrinoValid = $derived(
+    !profileState.profile.neutrinoServerName?.trim() ||
+      isNeutrinoServerName(profileState.profile.neutrinoServerName.trim()),
+  );
+  const ticketValid = $derived(
+    !profileState.profile.ticketRef?.trim() || isTicketRef(profileState.profile.ticketRef.trim()),
+  );
+  const invalidKeys = $derived(
+    new Set<string>([
+      ...(matrixIdValid ? [] : ['matrixId']),
+      ...(neutrinoValid ? [] : ['neutrinoServerName']),
+      ...(ticketValid ? [] : ['ticketRef']),
+    ]),
   );
 
-  // Saved contacts: search, export and import.
+  const fieldCount = $derived(sharedFieldCount(profileState.profile, profileState.selection));
+  const bytes = $derived(byteLength(vcard));
+  const signed = $derived(!!identityState.pair);
+
+  /** Re-encode the card a beat after the last edit; saves the profile at the same time. */
+  function scheduleCard(): void {
+    if (qrTimer) clearTimeout(qrTimer);
+    qrTimer = setTimeout(() => void buildCard(), 180);
+  }
+
+  async function persist(): Promise<void> {
+    await saveProfile();
+    await saveSelection();
+  }
+
+  async function buildCard(): Promise<void> {
+    if (!profileState.loaded) return;
+    if (invalidKeys.size > 0) {
+      cardMessage = 'Fix the highlighted field to update the card.';
+      return;
+    }
+    profileState.profile.neutrinoServerName =
+      profileState.profile.neutrinoServerName?.trim().toLowerCase() || undefined;
+    await persist();
+    const value = await signedAttendeeVCard(
+      profileState.profile,
+      profileState.selection,
+      identityState.pair,
+    );
+    vcard = value;
+    if (byteLength(value) > MAX_QR_BYTES) {
+      cardMessage = 'Too much for one QR. Switch off a field or two.';
+      qrDataUrl = null;
+      return;
+    }
+    cardMessage = '';
+    const QRCode = await import('qrcode');
+    qrDataUrl = await QRCode.toDataURL(value, {
+      errorCorrectionLevel: 'M',
+      margin: 1,
+      width: 432,
+      color: { dark: '#141414', light: '#ffffff' },
+    });
+  }
+
+  // First render once the profile and key are in; afterwards every edit reschedules.
+  $effect(() => {
+    if (profileState.loaded && identityState.ready) scheduleCard();
+  });
+
+  onMount(() => () => {
+    if (qrTimer) clearTimeout(qrTimer);
+  });
+
+  // ---------- Rows ----------
+  function valueOf(spec: CardFieldSpec): string {
+    return (profileState.profile[spec.key as keyof typeof profileState.profile] as string) ?? '';
+  }
+  function setValue(spec: CardFieldSpec, value: string): void {
+    (profileState.profile as unknown as Record<string, string | undefined>)[spec.key] = value.trim()
+      ? value
+      : undefined;
+    scheduleCard();
+  }
+  function isOn(spec: CardFieldSpec): boolean {
+    const key = selectionKeyFor(spec.key as never);
+    return key ? Boolean(profileState.selection[key]) : false;
+  }
+  function toggle(spec: CardFieldSpec): void {
+    const key = selectionKeyFor(spec.key as never);
+    if (!key) return;
+    (profileState.selection as unknown as Record<string, boolean>)[key] = !isOn(spec);
+    scheduleCard();
+  }
+  const rowsFor = (group: CardGroup) => CARD_FIELDS.filter((f) => f.group === group);
+
+  // Links: default networks, anything with a value, and anything added this session.
+  let extraNetworks = $state<AttendeeSocial[]>([]);
+  let showAddMenu = $state(false);
+  const shownNetworks = $derived.by(() => {
+    // Scratch set for one computation, not reactive state.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const set = new Set<AttendeeSocial>(DEFAULT_LINK_NETWORKS);
+    for (const [k, v] of Object.entries(profileState.profile.socials)) {
+      if (v) set.add(k as AttendeeSocial);
+    }
+    for (const n of extraNetworks) set.add(n);
+    return SOCIALS.filter((n) => set.has(n));
+  });
+  const addableNetworks = $derived(SOCIALS.filter((n) => !shownNetworks.includes(n)));
+  function addNetwork(n: AttendeeSocial): void {
+    extraNetworks = [...extraNetworks, n];
+    showAddMenu = false;
+  }
+  function setLink(n: AttendeeSocial, value: string): void {
+    setSocial(n, value);
+    // A freshly filled public link is shared unless the attendee switches it off.
+    if (value.trim() && profileState.selection.socials[n] === undefined) {
+      setSocialSelection(n, true);
+    }
+    scheduleCard();
+  }
+  function toggleLink(n: AttendeeSocial): void {
+    setSocialSelection(n, !profileState.selection.socials[n]);
+    scheduleCard();
+  }
+
+  // ---------- FOSS United import ----------
+  let importing = $state(false);
+  let importMessage = $state('');
+  let importChanges = $state<ImportedChange[]>([]);
+
+  async function importProfile(): Promise<void> {
+    const url = profileState.profile.fossUnitedProfileUrl?.trim();
+    if (!url) {
+      importMessage = IMPORT_MESSAGES['invalid-url'];
+      return;
+    }
+    importing = true;
+    importMessage = '';
+    importChanges = [];
+    try {
+      const result = await importFossUnitedProfile(url);
+      if (!result.ok || !result.profile) {
+        importMessage = IMPORT_MESSAGES[result.failure ?? 'network'];
+        return;
+      }
+      const changes = applyImportedProfile(profileState.profile, result.profile);
+      for (const change of changes) {
+        const key = change.field as AttendeeSocial;
+        if (SOCIALS.includes(key)) profileState.selection.socials[key] = true;
+      }
+      importChanges = changes;
+      importMessage =
+        changes.length === 0
+          ? 'Nothing new: your card already has these fields.'
+          : `Filled ${changes.length} field${changes.length === 1 ? '' : 's'} from your public profile.`;
+      scheduleCard();
+    } finally {
+      importing = false;
+    }
+  }
+
+  // ---------- Share / save ----------
+  function downloadCard(): void {
+    if (!vcard) return;
+    downloadTextFile('indiafoss-contact.vcf', vcard, 'text/vcard;charset=utf-8');
+  }
+
+  async function shareCard(): Promise<void> {
+    if (!vcard) return;
+    if (typeof navigator.share !== 'function') {
+      downloadCard();
+      return;
+    }
+    const file = new File([vcard], 'indiafoss-contact.vcf', { type: 'text/vcard' });
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: profileState.profile.fullName || 'Contact' });
+      } else {
+        await navigator.share({ text: vcard, title: profileState.profile.fullName || 'Contact' });
+      }
+    } catch {
+      /* cancelled */
+    }
+  }
+
+  // ---------- People I met ----------
   let contactSearch = $state('');
   let importStatus = $state('');
   let importingBook = $state(false);
@@ -107,7 +280,7 @@
 
   const shownContacts = $derived(searchContacts(contactsState.contacts, contactSearch));
   const metGroups = $derived(
-    groupByDayMet(contactsState.contacts, eventState.bundle?.timezone ?? 'Asia/Kolkata'),
+    groupByDayMet(shownContacts, eventState.bundle?.timezone ?? 'Asia/Kolkata'),
   );
 
   const dayLabel = (day: string): string => {
@@ -119,6 +292,23 @@
       month: 'long',
     });
   };
+  const timeLabel = (iso: string | undefined): string => {
+    const ms = Date.parse(iso ?? '');
+    if (Number.isNaN(ms)) return '';
+    return new Date(ms).toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: eventState.bundle?.timezone ?? 'Asia/Kolkata',
+    });
+  };
+  const metWhere = (c: { metActivityId?: string; metLocationId?: string }): string | null => {
+    const bundle = eventState.bundle;
+    if (c.metActivityId) {
+      return bundle?.activities.find((a) => a.id === c.metActivityId)?.title ?? 'a session';
+    }
+    if (c.metLocationId) return c.metLocationId.replace(/-/g, ' ');
+    return null;
+  };
 
   function exportJson(): void {
     downloadTextFile(
@@ -127,7 +317,6 @@
       'application/json',
     );
   }
-
   function exportVCards(): void {
     downloadTextFile(
       'indiafoss-contacts.vcf',
@@ -135,7 +324,6 @@
       'text/vcard;charset=utf-8',
     );
   }
-
   async function importFile(event: Event): Promise<void> {
     const input = event.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -155,725 +343,585 @@
     }
   }
 
-  function useMeshId(): void {
-    if (!meshServerName) return;
-    profileState.profile.neutrinoServerName = meshServerName;
-    profileState.selection.neutrinoServerName = true;
-  }
-
-  const matrixIdValid = $derived(
-    !profileState.profile.matrixId?.trim() || isMatrixUserId(profileState.profile.matrixId.trim()),
-  );
-  const neutrinoValid = $derived(
-    !profileState.profile.neutrinoServerName?.trim() ||
-      isNeutrinoServerName(profileState.profile.neutrinoServerName.trim()),
-  );
-  const ticketValid = $derived(
-    !profileState.profile.ticketRef?.trim() || isTicketRef(profileState.profile.ticketRef.trim()),
-  );
-  const identitiesValid = $derived(matrixIdValid && neutrinoValid && ticketValid);
-
-  async function friendCard(): Promise<string> {
-    const p = profileState.profile;
-    const sel = profileState.selection;
-    const payload: FriendPayload = {
-      version: 1,
-      eventId: eventState.bundle?.id,
-      ticketRef: sel.ticketRef ? p.ticketRef : undefined,
-      fossUnitedProfileUrl: sel.fossUnitedProfileUrl ? p.fossUnitedProfileUrl : undefined,
-      matrixId: sel.matrixId ? p.matrixId : undefined,
-      neutrinoServerName: sel.neutrinoServerName ? p.neutrinoServerName : undefined,
-      fullName: sel.name ? p.fullName : undefined,
-      organization: sel.organization ? p.organization : undefined,
-      website: sel.website ? p.website : undefined,
-      socials: Object.fromEntries(
-        Object.entries(p.socials).filter(([k, v]) => v && sel.socials[k as AttendeeSocial]),
-      ),
-    };
-    // Signed with this device's handshake key when WebCrypto is available.
-    return identityState.pair
-      ? encodeSignedFriendPayload(payload, identityState.pair)
-      : encodeFriendPayload(payload);
-  }
-
-  function useSignedInMatrixId(): void {
-    if (matrixState.userId) profileState.profile.matrixId = matrixState.userId;
-  }
-
-  async function sessionClient(): Promise<MatrixClient | null> {
-    const raw = await new CompanionStorage().getSetting('matrix-session');
-    if (!raw) return null;
-    const session = JSON.parse(raw) as { homeserver: string; accessToken: string };
-    return new MatrixClient(session.homeserver, session.accessToken);
-  }
-
-  async function checkPublish(): Promise<void> {
-    const client = await sessionClient();
-    if (!client || !matrixState.userId) return;
-    publishSupported = await supportsExtendedProfiles(client);
-    if (!publishSupported) {
-      publishStatus = 'This homeserver does not support extended profile fields (MSC4133).';
-      return;
-    }
-    const current = await readExtendedProfile(client, matrixState.userId);
-    publishStatus = current.profileUrl
-      ? `Currently published: ${current.profileUrl}`
-      : 'Supported. Nothing published yet.';
-  }
-
-  async function publish(clear: boolean): Promise<void> {
-    const client = await sessionClient();
-    if (!client || !matrixState.userId) return;
-    publishStatus = 'Publishing…';
-    try {
-      const url = profileState.profile.fossUnitedProfileUrl;
-      await writeExtendedProfile(client, matrixState.userId, {
-        profileUrl: clear ? undefined : url,
-        username: clear ? undefined : (usernameFromProfileUrl(url ?? '') ?? undefined),
-      });
-      publishStatus = clear
-        ? 'Association removed from your Matrix profile.'
-        : 'Published to your Matrix profile.';
-    } catch (error) {
-      publishStatus = error instanceof Error ? error.message : String(error);
-    }
-  }
-
-  let importing = $state(false);
-  let importMessage = $state('');
-  let importChanges = $state<ImportedChange[]>([]);
-
-  /** Pull the public FOSS United profile into the empty fields of this card. */
-  async function importProfile(): Promise<void> {
-    const url = profileState.profile.fossUnitedProfileUrl?.trim();
-    if (!url) {
-      importMessage = IMPORT_MESSAGES['invalid-url'];
-      return;
-    }
-    importing = true;
-    importMessage = '';
-    importChanges = [];
-    try {
-      const result = await importFossUnitedProfile(url);
-      if (!result.ok || !result.profile) {
-        importMessage = IMPORT_MESSAGES[result.failure ?? 'network'];
-        return;
-      }
-      const changes = applyImportedProfile(profileState.profile, result.profile);
-      // Imported socials are shared by default: they are already public.
-      for (const change of changes) {
-        const key = change.field as AttendeeSocial;
-        if (key in profileState.selection.socials || SOCIALS.includes(key)) {
-          profileState.selection.socials[key] = true;
-        }
-      }
-      importChanges = changes;
-      importMessage =
-        changes.length === 0
-          ? 'Nothing new to import: your card already has these fields.'
-          : `Imported ${changes.length} field${changes.length === 1 ? '' : 's'} from your public profile.`;
-      await saveProfile();
-      await saveSelection();
-    } finally {
-      importing = false;
-    }
-  }
-
-  const profileUsername = $derived(
-    profileState.profile.fossUnitedProfileUrl
-      ? usernameFromProfileUrl(profileState.profile.fossUnitedProfileUrl)
-      : null,
-  );
-
-  async function generateCard(): Promise<void> {
-    generating = true;
-    message = '';
-    if (!identitiesValid) {
-      message = 'Fix the highlighted identity fields first.';
-      generating = false;
-      return;
-    }
-    profileState.profile.neutrinoServerName =
-      profileState.profile.neutrinoServerName?.trim().toLowerCase() || undefined;
-    await saveProfile();
-    await saveSelection();
-    const value =
-      cardMode === 'vcard'
-        ? attendeeProfileToVCard(profileState.profile, profileState.selection)
-        : await friendCard();
-    if (new TextEncoder().encode(value).length > 1500) {
-      message = 'This card is too large for reliable QR scanning. Remove optional fields.';
-      vcard = value;
-      qrDataUrl = null;
-      generating = false;
-      return;
-    }
-    vcard = value;
-    const QRCode = await import('qrcode');
-    qrDataUrl = await QRCode.toDataURL(value, {
-      errorCorrectionLevel: 'M',
-      margin: 2,
-      width: 320,
-      color: { dark: '#18222a', light: '#ffffff' },
-    });
-    message = 'Your card is generated locally. It has not been uploaded.';
-    generating = false;
-  }
-
-  function downloadCard(): void {
-    if (!vcard) return;
-    downloadTextFile('indiafoss-contact.vcf', vcard, 'text/vcard;charset=utf-8');
-    message = 'vCard downloaded.';
-  }
-
-  async function shareCard(): Promise<void> {
-    if (!vcard || typeof navigator.share !== 'function') {
-      downloadCard();
-      return;
-    }
-    try {
-      const file = new File([vcard], 'indiafoss-contact.vcf', { type: 'text/vcard' });
-      if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: 'My IndiaFOSS contact' });
-      } else {
-        await navigator.share({ title: 'My IndiaFOSS contact', text: vcard });
-      }
-      message = 'Share sheet opened.';
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      downloadCard();
-    }
-  }
-
-  function toggleSocial(network: AttendeeSocial, event: Event): void {
-    setSocialSelection(network, (event.currentTarget as HTMLInputElement).checked);
-  }
+  let openContact = $state<string | null>(null);
 </script>
 
 <EventGate>
-  <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
-  <h1>Share your contact</h1>
-  <p class="lead">
-    Use your existing FOSS United profile as your public identity, then choose exactly what this
-    device shares. Nothing is uploaded by this page.
-  </p>
-
-  <section class="profile-link card">
-    <div>
-      <h2>FOSS United profile</h2>
-      <p class="muted">Add or update your socials on FOSS United first.</p>
-    </div>
-    <!-- external profile editor -->
-    <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-    <a class="button secondary" href="https://fossunited.org/me" rel="noreferrer">Edit profile ↗</a>
+  <section class="intro">
+    <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
+    <h1>Your card</h1>
+    <p class="muted">
+      Show this to someone. Only the fields switched on below are encoded — nothing leaves this
+      phone.
+    </p>
   </section>
 
-  <form
-    class="form"
-    onsubmit={(event) => {
-      event.preventDefault();
-      void generateCard();
-    }}
-  >
-    <label>
-      Full name
-      <input required bind:value={profileState.profile.fullName} autocomplete="name" />
-    </label>
-    <label>
-      FOSS United profile URL
-      <input
-        type="url"
-        placeholder="https://fossunited.org/u/your_username"
-        bind:value={profileState.profile.fossUnitedProfileUrl}
-        autocomplete="url"
-      />
-    </label>
-    {#if profileState.profile.fossUnitedProfileUrl && !profileUsername}
-      <p class="warning">Use a public URL in the form https://fossunited.org/u/username.</p>
-    {/if}
-    {#if profileUsername}<p class="muted small">Profile handle: @{profileUsername}</p>{/if}
-    <div class="importrow">
-      <button
-        type="button"
-        class="button secondary small"
-        onclick={importProfile}
-        disabled={importing || !profileUsername}
-      >
-        {importing ? 'Importing…' : 'Import name and socials'}
-      </button>
-      <span class="muted small">Fills empty fields only; nothing you typed is overwritten.</span>
+  <!-- Hero: the QR is always live -->
+  <section class="card hero" aria-label="Your contact QR code">
+    <div class="qrwrap">
+      {#if qrDataUrl}
+        <img
+          src={qrDataUrl}
+          alt="Your selected contact details as a QR code"
+          width="216"
+          height="216"
+        />
+      {:else}
+        <div class="qrempty" role="status">{cardMessage || 'Encoding your card…'}</div>
+      {/if}
     </div>
-    {#if importMessage}
-      <p class="muted small" role="status">{importMessage}</p>
-    {/if}
-    {#if importChanges.length > 0}
-      <ul class="imported">
-        {#each importChanges as change (change.field)}
-          <li><strong>{change.field}</strong> {change.value}</li>
-        {/each}
-      </ul>
-    {/if}
-
-    <div class="two-col">
-      <label
-        >Organization <input
-          bind:value={profileState.profile.organization}
-          autocomplete="organization"
-        /></label
-      >
-      <label
-        >Website <input
-          type="url"
-          bind:value={profileState.profile.website}
-          autocomplete="url"
-        /></label
-      >
-      <label
-        >Email <input
-          type="email"
-          bind:value={profileState.profile.email}
-          autocomplete="email"
-        /></label
-      >
-      <label
-        >Phone <input
-          type="tel"
-          bind:value={profileState.profile.phone}
-          autocomplete="tel"
-        /></label
-      >
-    </div>
-
-    <fieldset>
-      <legend>Messaging identities (optional, off by default in the card)</legend>
-      <label>
-        Matrix ID
-        <input
-          placeholder="@you:example.org"
-          bind:value={profileState.profile.matrixId}
-          aria-invalid={!matrixIdValid}
-        />
-        {#if !matrixIdValid}<span class="warning">Must look like @user:server</span>{/if}
-        {#if publicMatrixSession && matrixState.userId !== profileState.profile.matrixId}
-          <button type="button" class="linkbtn" onclick={useSignedInMatrixId}>
-            Use signed-in account {matrixState.userId}
-          </button>
-        {/if}
-      </label>
-      <label>
-        Mesh id (this device's P2P node)
-        <input
-          placeholder="64 hex characters; filled in when P2P chat is on"
-          bind:value={profileState.profile.neutrinoServerName}
-          aria-invalid={!neutrinoValid}
-          spellcheck="false"
-        />
-        {#if !neutrinoValid}<span class="warning">Must be 64 hexadecimal characters</span>{/if}
-        {#if meshServerName && meshServerName !== profileState.profile.neutrinoServerName}
-          <button type="button" class="linkbtn" onclick={useMeshId}>
-            Use this device's mesh id {meshServerName.slice(0, 12)}…
-          </button>
-        {/if}
-        {#if neutrinoValid && profileState.profile.neutrinoServerName}
-          <span class="muted small">
-            Mesh Matrix id: {neutrinoMatrixId(profileState.profile.neutrinoServerName)} — separate from
-            your public Matrix ID; the two are not interchangeable.
-          </span>
-        {/if}
-      </label>
-      <label>
-        Ticket reference
-        <input
-          placeholder="ticket::<id>"
-          bind:value={profileState.profile.ticketRef}
-          aria-invalid={!ticketValid}
-          spellcheck="false"
-        />
-        {#if !ticketValid}<span class="warning">Format is ticket::&lt;id&gt;</span>{/if}
-        <span class="muted small"
-          >Event-scoped correlation key only — never an identity or a login.</span
+    <div class="who">
+      <div class="names">
+        <strong>{profileState.profile.fullName || 'Your name'}</strong>
+        <span class="muted">{profileState.profile.organization || 'Add an organisation below'}</span
         >
-      </label>
-    </fieldset>
-
-    <fieldset>
-      <legend>Share these fields</legend>
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.name} /> Name</label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.organization} /> Organization</label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.website} /> Website</label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.fossUnitedProfileUrl} /> FOSS United
-        profile</label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.matrixId} /> Matrix ID
-        <span class="muted">(off by default)</span></label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.neutrinoServerName} /> Mesh id
-        <span class="muted">(on when P2P chat is on; lets contacts message you on the mesh)</span
-        ></label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.ticketRef} /> Ticket reference
-        <span class="muted">(off by default; never in a public card)</span></label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.email} /> Email
-        <span class="muted">(off by default)</span></label
-      >
-      <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.phone} /> Phone
-        <span class="muted">(off by default)</span></label
-      >
-    </fieldset>
-
-    <fieldset>
-      <legend>Public social links and messengers</legend>
-      <p class="muted small">
-        Telegram, WhatsApp and Signal become tap-to-message links for whoever scans your card. They
-        are off by default like every other field.
-      </p>
-      <div class="socials">
-        {#each SOCIALS as network (network)}
-          <label class="social-row">
-            <span>{network}</span>
-            <input
-              type={MESSENGERS.includes(network) ? 'text' : 'url'}
-              placeholder={SOCIAL_PLACEHOLDER[network] ?? `https://${network}.com/…`}
-              value={profileState.profile.socials[network] ?? ''}
-              oninput={(event) => setSocial(network, event.currentTarget.value)}
-            />
-            <input
-              type="checkbox"
-              aria-label={`Share ${network}`}
-              checked={profileState.selection.socials[network] ?? false}
-              onchange={(event) => toggleSocial(network, event)}
-            />
-          </label>
-        {/each}
       </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Card format</legend>
-      <label class="check">
-        <input type="radio" name="card-mode" value="vcard" bind:group={cardMode} />
-        Standard vCard <span class="muted">(any camera app can import it)</span>
-      </label>
-      <label class="check">
-        <input type="radio" name="card-mode" value="friend" bind:group={cardMode} />
-        Companion friend card
-        <span class="muted">(Matrix / Neutrino aware, signed; needs this app)</span>
-      </label>
       {#if identityState.identicon && identityState.fingerprint}
-        <div class="badge-row">
+        <div class="badge">
           <!-- Deterministic pixel badge derived from this device's signing key. -->
-          <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
+          <!-- eslint-disable svelte/no-at-html-tags -- SVG generated locally from a hex fingerprint -->
           <span class="identicon">{@html identityState.identicon}</span>
-          <span class="muted small">
-            Your key badge <code>{shortFingerprint(identityState.fingerprint)}</code>. When someone
-            scans your friend card they see this same badge — a quick visual check that the card
-            came from your device. It is a handshake, not proof of identity.
+          <!-- eslint-enable svelte/no-at-html-tags -->
+          <span class="badgetext">
+            KEY BADGE<br /><b>{shortFingerprint(identityState.fingerprint)}</b>
           </span>
         </div>
       {/if}
-    </fieldset>
+    </div>
+    <div class="meta">
+      <span>{fieldCount} FIELDS · {bytes} B</span>
+      <span class="ok">vCARD 3.0{signed ? ' · SIGNED' : ''}</span>
+    </div>
+    {#if cardMessage && qrDataUrl}<p class="warning small">{cardMessage}</p>{/if}
+    <div class="heroactions">
+      <button class="button primary" onclick={shareCard} disabled={!vcard}>Share card</button>
+      <button class="button secondary" onclick={downloadCard} disabled={!vcard}>Save .vcf</button>
+    </div>
+  </section>
 
-    <button class="button primary" type="submit" disabled={generating || !identitiesValid}>
-      {generating ? 'Generating…' : 'Generate my QR card'}
-    </button>
-  </form>
+  <p class="muted small explain">
+    Any phone camera saves you straight to Contacts. Scanned with the Companion, the same code also
+    verifies your key badge and lets them message you. A QR can be photographed — email and phone
+    stay off unless you switch them on.
+  </p>
 
-  {#if qrDataUrl}
-    <section class="card result" aria-live="polite">
-      <h2>Show this QR to someone</h2>
-      <p class="muted">
-        Only the selected fields are encoded.
-        {cardMode === 'vcard'
-          ? 'They can scan it with any camera.'
-          : 'They scan it with the IndiaFOSS Companion scanner; it shows as unverified.'}
-      </p>
-      <img src={qrDataUrl} alt="Your selected contact details as a QR code" />
-      <div class="result-actions">
-        {#if cardMode === 'vcard'}
-          <button class="button secondary" onclick={shareCard}>Share vCard</button>
-          <button class="button secondary" onclick={downloadCard}>Download .vcf</button>
-        {:else}
-          <button class="button secondary" onclick={() => navigator.clipboard?.writeText(vcard)}>
-            Copy friend link
+  <!-- Field groups -->
+  {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}
+    {@const info = CARD_GROUPS[group]}
+    <section class="group" class:amber={info.tone === 'amber'} aria-labelledby={`g-${group}`}>
+      <div class="grouphead">
+        <span class="eyebrow" id={`g-${group}`}>{info.title.toUpperCase()}</span>
+        {#if group === 'identity'}
+          <button class="linkbtn" onclick={importProfile} disabled={importing}>
+            {importing ? 'Filling…' : 'Fill from FOSS United ↗'}
           </button>
+        {:else}
+          <span class="muted small">{info.note}</span>
         {/if}
       </div>
-      <details>
-        <summary>Preview {cardMode === 'vcard' ? 'vCard' : 'friend card'} data</summary>
-        <pre>{vcard}</pre>
-      </details>
-    </section>
-  {/if}
-  {#if message}<p class="muted" role="status">{message}</p>{/if}
-
-  {#if matrixState.userId}
-    <section class="card">
-      <h2>Matrix profile association</h2>
-      <p class="muted small">
-        Optionally publish your FOSS United profile URL on your Matrix profile ({matrixState.userId})
-        using MSC4133 extended profile fields. Association is a claim you make, not authentication;
-        Matrix verification remains the authenticity mechanism.
-      </p>
-      <div class="result-actions left">
-        <button class="button secondary" onclick={checkPublish}>Check support</button>
-        <button
-          class="button primary"
-          onclick={() => publish(false)}
-          disabled={publishSupported === false || !profileState.profile.fossUnitedProfileUrl}
-        >
-          Publish
-        </button>
-        <button
-          class="button secondary"
-          onclick={() => publish(true)}
-          disabled={publishSupported === false}
-        >
-          Remove
-        </button>
-      </div>
-      {#if publishStatus}<p class="muted small" role="status">{publishStatus}</p>{/if}
-    </section>
-  {/if}
-
-  <section class="card">
-    <h2>Saved contacts ({contactsState.contacts.length})</h2>
-    <p class="muted small">
-      People you scanned. All identities stay <em>unverified</em> until you compare key badges in person.
-      Everything here stays on this device.
-    </p>
-    <div class="book-actions">
-      <input
-        type="search"
-        aria-label="Search contacts"
-        placeholder="Search name, org, handle…"
-        bind:value={contactSearch}
-        disabled={contactsState.contacts.length === 0}
-      />
-      <button
-        class="button secondary small"
-        onclick={exportVCards}
-        disabled={contactsState.contacts.length === 0}>Export .vcf</button
-      >
-      <button
-        class="button secondary small"
-        onclick={exportJson}
-        disabled={contactsState.contacts.length === 0}>Export backup</button
-      >
-      <button
-        class="button secondary small"
-        onclick={() => fileInput?.click()}
-        disabled={importingBook}
-      >
-        {importingBook ? 'Importing…' : 'Import'}
-      </button>
-      <input
-        bind:this={fileInput}
-        type="file"
-        accept=".json,.vcf,application/json,text/vcard"
-        onchange={importFile}
-        hidden
-      />
-    </div>
-    {#if importStatus}<p class="muted small" role="status">{importStatus}</p>{/if}
-    {#if contactsState.contacts.length === 0}
-      <p class="muted">No contacts yet — <a href={resolve('/scan')}>scan a code</a>.</p>
-    {:else if shownContacts.length === 0}
-      <p class="muted">No contact matches “{contactSearch}”.</p>
-    {:else}
-      <ul class="contacts">
-        {#each shownContacts as c (c.id)}
-          <li>
-            <div class="who">
-              <strong>{c.fullName}</strong>
-              {#if c.organization}<span class="muted small">{c.organization}</span>{/if}
-              {#if c.fossUnitedProfileUrl}<span class="small">{c.fossUnitedProfileUrl}</span>{/if}
-              {#if c.matrixId}<span class="small">Matrix: {c.matrixId}</span>{/if}
-              {#if c.neutrinoServerName}
-                <span class="small mono"
-                  >Neutrino: {c.neutrinoServerName.slice(0, 16)}… → {neutrinoMatrixId(
-                    c.neutrinoServerName,
-                  ).slice(0, 22)}…</span
-                >
-              {/if}
-              {#if c.metActivityId}
-                <span class="small muted">
-                  Met during
-                  <a href={resolve(`/activity/${c.metActivityId}`)}
-                    >{eventState.bundle?.activities.find((a) => a.id === c.metActivityId)?.title ??
-                      'a session'}</a
-                  >
-                </span>
-              {/if}
-              {#if c.signature}
-                <span
-                  class="small"
-                  class:sig-ok={c.signature === 'valid'}
-                  class:sig-bad={c.signature === 'invalid'}
-                >
-                  {c.signature === 'valid'
-                    ? '✔ signed card'
-                    : c.signature === 'invalid'
-                      ? '✖ bad signature'
-                      : 'unsigned card'}
-                  {#if c.fingerprint}· badge <code>{shortFingerprint(c.fingerprint)}</code>{/if}
-                </span>
-              {/if}
-            </div>
-            {#if c.fingerprint}
-              <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
-              <span class="identicon small-badge">{@html identiconSvg(c.fingerprint, 40)}</span>
-            {/if}
-            {#if c.keyChanged}
-              <span class="warning small">Key changed since an earlier card</span>
-            {/if}
-            {#if (c.metCount ?? 1) > 1}
-              <span class="muted small">Met {c.metCount} times</span>
-            {/if}
-            <SocialLinks links={contactDeepLinks(c)} compact />
-            <div class="row-actions">
-              {#if features.chat && c.neutrinoServerName}
-                <a
-                  class="button secondary"
-                  href={resolve(
-                    `/chat?dm=${encodeURIComponent(neutrinoMatrixId(c.neutrinoServerName))}`,
-                  )}>Message on mesh</a
-                >
-              {/if}
-              {#if c.matrixId}
-                <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-                <a class="button secondary" href={matrixToUrl(c.matrixId)} rel="noreferrer"
-                  >Element</a
-                >
-              {/if}
+      {#if group === 'identity' && importMessage}
+        <p class="muted small" role="status">{importMessage}</p>
+        {#if importChanges.length > 0}
+          <ul class="imported">
+            {#each importChanges as change (change.field)}
+              <li><strong>{change.field}</strong>: {change.value}</li>
+            {/each}
+          </ul>
+        {/if}
+      {/if}
+      <div class="rows">
+        {#if group === 'links'}
+          {#each shownNetworks as n (n)}
+            {@const on = Boolean(profileState.selection.socials[n])}
+            <div class="row">
+              <div class="field">
+                <span class="label">{LINK_LABELS[n]}</span>
+                <input
+                  aria-label={LINK_LABELS[n]}
+                  type="text"
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder={LINK_PLACEHOLDERS[n]}
+                  value={profileState.profile.socials[n] ?? ''}
+                  oninput={(e) => setLink(n, e.currentTarget.value)}
+                />
+              </div>
               <button
-                class="button secondary"
-                onclick={() =>
-                  downloadTextFile(
-                    `${c.fullName.replace(/[^\w-]+/g, '_')}.vcf`,
-                    c.vcard,
-                    'text/vcard;charset=utf-8',
-                  )}
-              >
-                .vcf
-              </button>
-              <button class="button secondary danger" onclick={() => deleteContact(c.id)}
-                >Delete</button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                aria-label={`Share ${LINK_LABELS[n]}`}
+                class="switch"
+                class:on
+                onclick={() => toggleLink(n)}><span class="knob"></span></button
               >
             </div>
-          </li>
-        {/each}
-      </ul>
+          {/each}
+          {#if addableNetworks.length > 0}
+            {#if showAddMenu}
+              <div class="addmenu" role="group" aria-label="Add a network">
+                {#each addableNetworks as n (n)}
+                  <button class="button secondary small" onclick={() => addNetwork(n)}
+                    >{LINK_LABELS[n]}</button
+                  >
+                {/each}
+              </div>
+            {:else}
+              <button class="addlink" onclick={() => (showAddMenu = true)}>
+                + Add {addableNetworks
+                  .slice(0, 4)
+                  .map((n) => LINK_LABELS[n])
+                  .join(', ')}…
+              </button>
+            {/if}
+          {/if}
+        {:else}
+          {#each rowsFor(group) as spec (spec.key)}
+            {@const on = isOn(spec)}
+            {@const bad = invalidKeys.has(spec.key)}
+            <div class="row" class:bad>
+              <div class="field">
+                <span class="label">{spec.label}</span>
+                <input
+                  aria-label={spec.label}
+                  aria-invalid={bad}
+                  type={spec.inputType}
+                  autocomplete="off"
+                  spellcheck="false"
+                  class:mono={spec.mono}
+                  placeholder={spec.placeholder}
+                  value={valueOf(spec)}
+                  oninput={(e) => setValue(spec, e.currentTarget.value)}
+                />
+                {#if spec.key === 'neutrinoServerName' && meshServerName && meshServerName !== profileState.profile.neutrinoServerName}
+                  <button
+                    class="linkbtn small"
+                    onclick={() => {
+                      profileState.profile.neutrinoServerName = meshServerName ?? undefined;
+                      profileState.selection.neutrinoServerName = true;
+                      scheduleCard();
+                    }}>Use this device's mesh id</button
+                  >
+                {:else if spec.key === 'neutrinoServerName' && neutrinoValid && profileState.profile.neutrinoServerName}
+                  <span class="hint"
+                    >{neutrinoMatrixId(profileState.profile.neutrinoServerName)}</span
+                  >
+                {:else if bad}
+                  <span class="hint warning">
+                    {spec.key === 'matrixId'
+                      ? 'Must look like @user:server'
+                      : spec.key === 'ticketRef'
+                        ? 'Must look like ticket::…'
+                        : 'Must be 64 hexadecimal characters'}
+                  </span>
+                {:else if spec.hint}
+                  <span class="hint">{spec.hint}</span>
+                {/if}
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                aria-label={`Share ${spec.label}`}
+                class="switch"
+                class:on
+                onclick={() => toggle(spec)}><span class="knob"></span></button
+              >
+            </div>
+          {/each}
+        {/if}
+      </div>
+    </section>
+  {/each}
+
+  <!-- People I met -->
+  <section class="group people" aria-labelledby="g-people">
+    <div class="grouphead">
+      <span class="eyebrow" id="g-people">PEOPLE I MET · {contactsState.contacts.length}</span>
+      <a href={resolve('/scan')}>Scan a code →</a>
+    </div>
+    {#if contactsState.contacts.length === 0}
+      <div class="empty">
+        <p class="muted">No one yet. Scan a friend's card and it lands here with where you met.</p>
+        <a class="button" href={resolve('/scan')}>Scan a code</a>
+      </div>
+    {:else}
+      <div class="book-actions">
+        <input
+          type="search"
+          aria-label="Search contacts"
+          placeholder="Search name, org, handle…"
+          bind:value={contactSearch}
+        />
+        <button class="button secondary small" onclick={exportVCards}>Export .vcf</button>
+        <button class="button secondary small" onclick={exportJson}>Backup</button>
+        <button
+          class="button secondary small"
+          onclick={() => fileInput?.click()}
+          disabled={importingBook}
+        >
+          {importingBook ? 'Importing…' : 'Import'}
+        </button>
+        <input
+          bind:this={fileInput}
+          type="file"
+          accept=".json,.vcf,application/json,text/vcard"
+          onchange={importFile}
+          hidden
+        />
+      </div>
+      {#if importStatus}<p class="muted small" role="status">{importStatus}</p>{/if}
+      {#if shownContacts.length === 0}
+        <p class="muted">No contact matches “{contactSearch}”.</p>
+      {:else}
+        <div class="rows">
+          {#each metGroups as g (g.day)}
+            <div class="dayhead">{g.day === 'unknown' ? 'Undated' : dayLabel(g.day)}</div>
+            {#each g.contacts as c (c.id)}
+              <div class="person" class:open={openContact === c.id}>
+                <button
+                  class="personrow"
+                  onclick={() => (openContact = openContact === c.id ? null : c.id)}
+                  aria-expanded={openContact === c.id}
+                >
+                  {#if c.fingerprint}
+                    <!-- eslint-disable svelte/no-at-html-tags -- SVG generated locally from a hex fingerprint -->
+                    <span class="identicon small-badge"
+                      >{@html identiconSvg(c.fingerprint, 43)}</span
+                    >
+                    <!-- eslint-enable svelte/no-at-html-tags -->
+                  {:else}
+                    <span class="identicon small-badge blank" aria-hidden="true"></span>
+                  {/if}
+                  <span class="persontext">
+                    <span class="line1">
+                      <strong>{c.fullName}</strong>
+                      {#if c.organization}<span class="muted">{c.organization}</span>{/if}
+                    </span>
+                    <span class="line2 muted">
+                      {#if metWhere(c)}Met during <em>{metWhere(c)}</em>{:else}Met{/if}
+                      {#if timeLabel(c.lastMetAt ?? c.savedAt)}· {timeLabel(
+                          c.lastMetAt ?? c.savedAt,
+                        )}{/if}
+                      {#if (c.metCount ?? 1) > 1}· {c.metCount}×{/if}
+                    </span>
+                    <span
+                      class="line3"
+                      class:sig-ok={c.signature === 'valid'}
+                      class:sig-bad={c.signature === 'invalid' || c.keyChanged}
+                    >
+                      {c.keyChanged
+                        ? 'KEY CHANGED SINCE AN EARLIER CARD'
+                        : c.signature === 'valid'
+                          ? `SIGNED · BADGE ${shortFingerprint(c.fingerprint ?? '')}`
+                          : c.signature === 'invalid'
+                            ? 'BAD SIGNATURE'
+                            : 'UNSIGNED CARD'}
+                    </span>
+                  </span>
+                  <span class="chev" aria-hidden="true">›</span>
+                </button>
+                {#if openContact === c.id}
+                  <div class="persondetail">
+                    <SocialLinks links={contactDeepLinks(c)} compact />
+                    <div class="detailactions">
+                      {#if features.chat && c.neutrinoServerName}
+                        <a
+                          class="button secondary small"
+                          href={resolve(
+                            `/chat?dm=${encodeURIComponent(neutrinoMatrixId(c.neutrinoServerName))}`,
+                          )}>Message on mesh</a
+                        >
+                      {/if}
+                      <button
+                        class="button secondary small"
+                        onclick={() =>
+                          downloadTextFile(
+                            `${c.fullName.replace(/[^\w.-]+/g, '_') || 'contact'}.vcf`,
+                            c.vcard,
+                            'text/vcard;charset=utf-8',
+                          )}>Save .vcf</button
+                      >
+                      <button class="button ghost small danger" onclick={() => deleteContact(c.id)}
+                        >Remove</button
+                      >
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            {/each}
+          {/each}
+        </div>
+      {/if}
     {/if}
   </section>
 
-  <p class="privacy">
-    A QR code can be photographed and shared by anyone who sees it. Keep email and phone disabled
-    unless you intentionally want to disclose them. Scanning is not identity verification.
+  <p class="muted small explain">
+    Everything here lives in this phone's storage. No account, no upload, no tracking.
+    <a href={resolve('/settings')}>Privacy &amp; settings →</a>
   </p>
-  <p><a href={resolve('/settings')}>Privacy and app settings →</a></p>
-  <p><a href={resolve('/scan')}>Scan someone else's code →</a></p>
-  {#if contactsState.contacts.length > 0}
-    <section class="card">
-      <h2>Who I met</h2>
-      <p class="muted small">
-        Your conference, by day. Times are the event's ({eventState.bundle?.timezone ??
-          'Asia/Kolkata'}).
-      </p>
-      {#each metGroups as group (group.day)}
-        <div class="metday">
-          <h3>
-            {group.day === 'unknown' ? 'Undated' : dayLabel(group.day)}
-            <span class="muted small"
-              >{group.contacts.length} {group.contacts.length === 1 ? 'person' : 'people'}</span
-            >
-          </h3>
-          <ul class="metlist">
-            {#each group.contacts as c (c.id)}
-              <li>
-                <strong>{c.fullName}</strong>
-                {#if c.organization}<span class="muted small">{c.organization}</span>{/if}
-                {#if c.metActivityId}
-                  <span class="muted small">
-                    at {eventState.bundle?.activities.find((a) => a.id === c.metActivityId)
-                      ?.title ?? 'a session'}
-                  </span>
-                {/if}
-              </li>
-            {/each}
-          </ul>
-        </div>
-      {/each}
-    </section>
-  {/if}
-
-  {#if features.chat}
-    <p><a href={resolve('/chat')}>Open chat →</a></p>
-  {/if}
 </EventGate>
 
 <style>
-  .book-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-    margin: 0.6rem 0;
+  .intro {
+    margin-bottom: 0.9rem;
   }
-  .book-actions input[type='search'] {
-    flex: 1 1 12rem;
+  .intro h1 {
+    margin: 0.3rem 0 0.4rem;
+  }
+  .explain {
+    margin: 0.6rem 0.15rem 1.2rem;
+    line-height: 1.5;
+  }
+
+  /* Hero */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+  .qrwrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.2rem;
+  }
+  .qrwrap img,
+  .qrempty {
+    width: min(216px, 70vw);
+    aspect-ratio: 1;
+    height: auto;
+    background: #fff;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    image-rendering: pixelated;
+    box-sizing: content-box;
+  }
+  .qrempty {
+    display: grid;
+    place-items: center;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    padding: 1rem;
+  }
+  .who {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .names {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
   }
-  .metday h3 {
+  .names strong {
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
+  .names .muted {
+    font-size: 0.85rem;
+  }
+  .badge {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 0.5rem;
-    margin: 0.9rem 0 0.3rem;
-    font-size: 1rem;
+    flex: none;
   }
-  .metlist {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  .identicon {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 3px;
+    background: #fff;
+    line-height: 0;
+  }
+  .identicon :global(svg) {
+    width: 30px;
+    height: 30px;
+  }
+  .badgetext {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    line-height: 1.3;
+    color: var(--text-muted);
+  }
+  .badgetext b {
+    color: var(--text);
+  }
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    padding-top: 0.65rem;
+  }
+  .meta .ok {
+    color: var(--mint-ink);
+  }
+  .heroactions {
     display: grid;
-    gap: 0.3rem;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 0.5rem;
   }
-  .metlist li {
+
+  /* Field groups */
+  .group {
+    margin: 0 0 1.1rem;
+  }
+  .grouphead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .group.amber .eyebrow,
+  .group.amber .grouphead .muted {
+    color: var(--amber-ink);
+  }
+  .rows {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  .row:last-child {
+    border-bottom: 0;
+  }
+  .row.bad {
+    background: color-mix(in srgb, var(--amber-soft) 40%, var(--surface));
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .field input {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    min-height: 1.8rem;
+    font-size: 0.95rem;
+    width: 100%;
+    min-width: 0;
+    outline: none;
+    color: var(--text);
+    box-shadow: none;
+  }
+  .field input:focus-visible {
+    outline: 2px solid var(--mint);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
+  .field input.mono {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .hint {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+    word-break: break-all;
+  }
+  .hint.warning {
+    color: var(--amber-ink);
+  }
+  .switch {
+    width: 46px;
+    height: 28px;
+    border-radius: 999px;
+    border: 0;
+    padding: 2px;
+    background: #cfcfcf;
+    position: relative;
+    transition: background 0.15s;
+    flex: none;
+    min-height: 0;
+    cursor: pointer;
+  }
+  .switch .knob {
+    display: block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transform: translateX(0);
+    transition: transform 0.15s;
+  }
+  .switch.on {
+    background: var(--mint);
+  }
+  .switch.on .knob {
+    transform: translateX(18px);
+  }
+  .group.amber .switch.on {
+    background: var(--amber);
+  }
+  .switch:focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+  .linkbtn {
+    border: 0;
+    background: transparent;
+    color: var(--mint-ink);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0;
+    min-height: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .linkbtn.small {
+    font-size: 0.74rem;
+  }
+  .addlink {
+    width: 100%;
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    color: var(--mint-ink);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+    padding: 0 0.9rem;
+    cursor: pointer;
+  }
+  .addmenu {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
-    align-items: baseline;
-    padding: 0.35rem 0.6rem;
-    border-left: 3px solid var(--event-primary);
-    background: color-mix(in srgb, var(--event-primary) 6%, transparent);
-    border-radius: 0 8px 8px 0;
-  }
-  .importrow {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem;
-    margin: 0.2rem 0 0.4rem;
+    padding: 0.6rem 0.9rem 0.8rem;
   }
   .imported {
     list-style: none;
     padding: 0;
-    margin: 0 0 0.6rem;
-    font-size: 0.85rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.8rem;
     display: grid;
-    gap: 0.15rem;
+    gap: 0.1rem;
   }
   .imported li {
     overflow: hidden;
@@ -881,183 +929,135 @@
     white-space: nowrap;
   }
 
-  .profile-link {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-  }
-  .form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-  }
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    font-size: 0.86rem;
+  /* People I met */
+  .people .grouphead a {
+    font-size: 0.8rem;
     font-weight: 600;
+    text-decoration: none;
   }
-  .two-col {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-    gap: 0.7rem;
-  }
-  fieldset {
-    border: 1px solid color-mix(in srgb, var(--text-muted) 24%, transparent);
-    border-radius: var(--radius);
-    padding: 0.8rem;
-  }
-  legend {
-    padding: 0 0.35rem;
-    font-weight: 700;
-  }
-  .check {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.45rem;
-    margin: 0.45rem 0;
-    font-weight: 500;
-  }
-  .check input,
-  .social-row input[type='checkbox'] {
-    min-height: auto;
-    accent-color: var(--event-primary-dark);
-  }
-  .socials {
+  .empty {
+    background: var(--surface);
+    border: 1px dashed color-mix(in srgb, var(--text-muted) 45%, transparent);
+    border-radius: 16px;
+    padding: 1.3rem 1rem;
     display: flex;
     flex-direction: column;
-    gap: 0.45rem;
-  }
-  .social-row {
-    display: grid;
-    grid-template-columns: 6rem 1fr auto;
     align-items: center;
-    gap: 0.45rem;
-    font-weight: 500;
-  }
-  .social-row input {
-    min-width: 0;
-  }
-  .result {
+    gap: 0.6rem;
     text-align: center;
   }
-  .result img {
-    display: block;
-    width: min(320px, 100%);
-    margin: 1rem auto;
-    border: 0.6rem solid #fff;
-  }
-  .result-actions {
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-  details {
-    margin-top: 1rem;
-    text-align: left;
-  }
-  pre {
-    overflow: auto;
-    white-space: pre-wrap;
-    font-size: 0.72rem;
-    background: var(--surface);
-    padding: 0.7rem;
-  }
-  .warning {
-    color: var(--warning);
-    font-size: 0.82rem;
-    margin: -0.4rem 0 0;
-  }
-  input[aria-invalid='true'] {
-    border-color: var(--danger);
-  }
-  .linkbtn {
-    border: none;
-    background: none;
-    color: var(--event-primary-dark);
-    padding: 0;
-    cursor: pointer;
-    text-align: left;
-    font-size: 0.82rem;
-  }
-  .mono {
-    font-family: ui-monospace, monospace;
-  }
-  .result-actions.left {
-    justify-content: flex-start;
-  }
-  .contacts {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    gap: 0.5rem;
-  }
-  .contacts li {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.6rem;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid color-mix(in srgb, var(--text-muted) 20%, transparent);
-    border-radius: var(--radius);
-    background: var(--surface);
-  }
-  .who {
-    display: grid;
-    gap: 0.1rem;
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-  .row-actions {
+  .book-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
     align-items: center;
+    margin: 0 0 0.6rem;
   }
-  .row-actions .button {
-    min-height: 36px;
-    padding: 0.3rem 0.8rem;
+  .book-actions input[type='search'] {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
+  .dayhead {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.55rem 0.9rem 0.2rem;
+    background: color-mix(in srgb, var(--text-muted) 6%, var(--surface));
+  }
+  .person {
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  }
+  .person:last-child {
+    border-bottom: 0;
+  }
+  .personrow {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 0;
+    background: transparent;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    min-height: 0;
+  }
+  .person.open .personrow {
+    background: color-mix(in srgb, var(--mint) 7%, transparent);
+  }
+  .small-badge :global(svg) {
+    width: 35px;
+    height: 35px;
+  }
+  .small-badge.blank {
+    width: 35px;
+    height: 35px;
+    background: color-mix(in srgb, var(--text-muted) 12%, transparent);
+  }
+  .persontext {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+  .line1 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+  .line1 strong {
+    font-size: 0.95rem;
+  }
+  .line1 .muted {
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .line2 {
+    font-size: 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .line2 em {
+    font-style: normal;
+    color: var(--mint-ink);
+  }
+  .line3 {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .line3.sig-ok {
+    color: var(--mint-ink);
+  }
+  .line3.sig-bad {
+    color: var(--amber-ink);
+  }
+  .chev {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+  .persondetail {
+    padding: 0 0.9rem 0.8rem 3.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .detailactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
   }
   .danger {
     color: var(--danger);
-  }
-  .badge-row {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-top: 0.4rem;
-  }
-  .identicon :global(svg) {
-    display: block;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-  }
-  .small-badge :global(svg) {
-    width: 40px;
-    height: 40px;
-  }
-  .sig-ok {
-    color: var(--mint-ink);
-  }
-  .sig-bad {
-    color: var(--danger);
-  }
-  .privacy {
-    border-left: 3px solid var(--event-accent);
-    padding-left: 0.7rem;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-    line-height: 1.5;
-  }
-  @media (max-width: 480px) {
-    .profile-link {
-      align-items: flex-start;
-      flex-direction: column;
-    }
   }
 </style>
