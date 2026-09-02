@@ -77,6 +77,10 @@ event-publish event="indiafoss-2025":
 venue-validate event="synthetic":
     pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts events {{event}}
 
+# Write a human-readable venue validation report to the venue folder.
+venue-report event="indiafoss-2026":
+    pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" {{event}} --markdown > events/{{event}}/venue/validation-report.md
+
 # Add the native Android project once after installing the Android SDK.
 android-add:
     pnpm --filter @indiafoss/android exec cap add android

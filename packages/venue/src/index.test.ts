@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
 import type { VenueGraph } from './index.js';
 import {
+  createGraphTravelTime,
   findRoute,
   findRouteDijkstra,
   validateVenueGraph,
   validateVenueMetadata,
+  validateVenueReachability,
 } from './index.js';
 
 /** Two-floor test venue: ground rooms connected by stairs/lift to first floor. */
@@ -263,5 +265,104 @@ describe('validation (§53)', () => {
     const issues = validateVenueMetadata(metadata, makeGraph());
     expect(issues.some((i) => i.includes('bad'))).toBe(true);
     expect(issues.some((i) => i.includes('nope'))).toBe(true);
+  });
+
+  it('flags a location whose declared floor disagrees with its entrance node', () => {
+    const wrongFloor = {
+      locations: {
+        // Declared ground, but its entrance node ff-room is on the first floor.
+        room: { locationId: 'room', entrances: ['ff-room'], floor: 'ground' },
+      },
+    };
+    const issues = validateVenueMetadata(wrongFloor, makeGraph());
+    expect(issues.some((i) => i.includes("floor 'ground'") && i.includes("floor 'first'"))).toBe(
+      true,
+    );
+  });
+});
+
+describe('reachability and multi-floor integrity (§53)', () => {
+  it('passes for a well-formed two-floor venue', () => {
+    const issues = validateVenueReachability(makeGraph(), metadata, ['gf-entrance']);
+    // The 'bad' location has an unknown entrance and is skipped here; audi/room
+    // are both reachable (room via the lift under the accessible profile).
+    expect(issues).toEqual([]);
+  });
+
+  it('flags an upper-floor room wired off a ground node without stairs/lift', () => {
+    const graph = makeGraph();
+    // Simulate the draft-graph bug: a flat ground->first edge with no transition.
+    graph.edges.push({
+      from: 'gf-audi',
+      to: 'ff-room',
+      distanceMeters: 80,
+      timeSeconds: 60,
+      accessible: true,
+      stairs: false,
+      lift: false,
+      oneWay: false,
+    });
+    const issues = validateVenueReachability(graph, metadata, ['gf-entrance']);
+    expect(issues.some((i) => i.includes('crosses floors') && i.includes('without stairs'))).toBe(
+      true,
+    );
+  });
+
+  it('flags a stranded (unreachable) location', () => {
+    const stranded = {
+      locations: {
+        island: { locationId: 'island', entrances: ['ff-room'], floor: 'first' },
+      },
+    };
+    const graph = makeGraph();
+    // Cut every path to the first floor.
+    graph.edges = graph.edges.filter((e) => !(e.stairs || e.lift));
+    const issues = validateVenueReachability(graph, stranded, ['gf-entrance']);
+    expect(issues.some((i) => i.includes('unreachable'))).toBe(true);
+  });
+
+  it('flags a location reachable only via stairs as an accessibility gap', () => {
+    const graph = makeGraph();
+    // Remove the lift, leaving only stairs to the first floor.
+    graph.edges = graph.edges.filter((e) => !e.lift);
+    const onlyStairs = {
+      locations: { room: { locationId: 'room', entrances: ['ff-room'], floor: 'first' } },
+    };
+    const issues = validateVenueReachability(graph, onlyStairs, ['gf-entrance']);
+    expect(issues.some((i) => i.includes('only via stairs'))).toBe(true);
+  });
+});
+
+describe('createGraphTravelTime (§29)', () => {
+  const graph = makeGraph();
+  const meta = {
+    locations: {
+      audi: { locationId: 'audi', entrances: ['gf-audi'], floor: 'ground' },
+      devroom: { locationId: 'devroom', entrances: ['gf-devroom'], floor: 'ground' },
+      room: { locationId: 'room', entrances: ['ff-room'], floor: 'first' },
+    },
+  };
+
+  it('returns 0 for same or missing locations and the default for unmapped ids', () => {
+    const t = createGraphTravelTime(graph, meta, { defaultSeconds: 300 });
+    expect(t.seconds('audi', 'audi')).toBe(0);
+    expect(t.seconds(undefined, 'audi')).toBe(0);
+    expect(t.seconds('audi', 'unknown-location')).toBe(300);
+  });
+
+  it('uses real route durations between mapped locations', () => {
+    const t = createGraphTravelTime(graph, meta);
+    const within = t.seconds('audi', 'devroom');
+    expect(within).toBeGreaterThan(0);
+    expect(within).toBeLessThan(300); // shorter than the flat default
+  });
+
+  it('accessible profile yields a longer cross-floor estimate than fastest', () => {
+    const fastest = createGraphTravelTime(graph, meta, { profile: 'fastest' });
+    const accessible = createGraphTravelTime(graph, meta, { profile: 'accessible' });
+    const f = fastest.seconds('audi', 'room');
+    const a = accessible.seconds('audi', 'room');
+    expect(f).toBeGreaterThan(0);
+    expect(a).toBeGreaterThanOrEqual(f); // lift route is at least as long as stairs
   });
 });

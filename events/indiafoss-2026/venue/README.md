@@ -32,6 +32,12 @@ Multi-word labels are intentionally split across `<tspan>` lines
 
 ## Known issues for the venue engine (Phase 5)
 
+- **Floors reconciled with the SVG.** The draft graph originally placed Room 1/2/3
+  and the Silent Room on the ground floor; the SVG layers put them on the First
+  Floor. `venue.graph.json` and `venue.metadata.json` now model them as
+  first-floor rooms reached via the stairs/lift, and the venue validator enforces
+  floor consistency, reachability, and stairs/lift floor transitions
+  (see `docs/venue-route-review-checklist.md`).
 - **Duplicate element IDs** throughout (e.g. `path9`, `path6`, `rect…` appear
   2–3×). The SVG authoring duplicated shared geometry across floors. These
   must be disambiguated before `venue.svg` can be referenced by a routing

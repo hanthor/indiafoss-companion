@@ -39,6 +39,14 @@
       <strong>Map</strong>
       <span>Venue navigation</span>
     </a>
+    <a href={resolve('/connect')}>
+      <strong>Connect</strong>
+      <span>Share your profile and contact card</span>
+    </a>
+    <a href={resolve('/scan')}>
+      <strong>Scan</strong>
+      <span>Scan a location marker or contact card</span>
+    </a>
   </nav>
 
   {#if bundle}

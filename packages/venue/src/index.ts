@@ -329,6 +329,7 @@ export function validateVenueGraph(graph: VenueGraph): string[] {
 export function validateVenueMetadata(metadata: VenueMetadata, graph: VenueGraph): string[] {
   const issues: string[] = [];
   const nodeIds = new Set(graph.nodes.map((n) => n.id));
+  const nodeFloor = new Map(graph.nodes.map((n) => [n.id, n.floor]));
   for (const [locationId, ref] of Object.entries(metadata.locations)) {
     if (ref.entrances.length === 0) {
       issues.push(`location ${locationId} has no routing entrances`);
@@ -338,9 +339,129 @@ export function validateVenueMetadata(metadata: VenueMetadata, graph: VenueGraph
         issues.push(`location ${locationId} entrance '${entrance}' not in graph`);
       }
     }
+    // Floor consistency (§53): a location's declared floor must match every one
+    // of its entrance nodes. A room drawn on the first floor whose entrance is
+    // wired as a ground node is a routing error, not a UI-only mismatch.
+    if (ref.floor) {
+      for (const entrance of ref.entrances) {
+        const entranceFloor = nodeFloor.get(entrance);
+        if (entranceFloor && entranceFloor !== ref.floor) {
+          issues.push(
+            `location ${locationId} is on floor '${ref.floor}' but entrance '${entrance}' is on floor '${entranceFloor}'`,
+          );
+        }
+      }
+    }
     // svgTarget is optional: some areas (booth zones) may not map to a
     // single SVG element yet. When present it must be validated against the
     // SVG (§53) — see venue-validator's svgTargetIssues.
   }
   return issues;
+}
+
+/**
+ * Reachability and multi-floor integrity (§53). Given the set of location
+ * entrances that must be publicly reachable and the origin entrance(s)
+ * (e.g. the venue entrance / registration), verify:
+ *   - every public entrance is reachable from an origin under the accessible
+ *     profile (so no room is stranded);
+ *   - any route that changes floor traverses a stairs or lift edge, i.e. a
+ *     floor transition is never implied by a flat walk edge.
+ *
+ * This is what catches a draft graph that wires an upper-floor room straight
+ * off a ground-floor hall without a stairs/lift hop.
+ */
+export function validateVenueReachability(
+  graph: VenueGraph,
+  metadata: VenueMetadata,
+  originEntrances: string[],
+): string[] {
+  const issues: string[] = [];
+  const nodeIds = new Set(graph.nodes.map((n) => n.id));
+  const origins = originEntrances.filter((o) => nodeIds.has(o));
+  if (origins.length === 0) {
+    issues.push('no valid origin entrance for reachability check');
+    return issues;
+  }
+
+  // Any edge that legitimately changes floor must be a stairs or lift edge.
+  for (const edge of graph.edges) {
+    const fromFloor = graph.nodes.find((n) => n.id === edge.from)?.floor;
+    const toFloor = graph.nodes.find((n) => n.id === edge.to)?.floor;
+    if (fromFloor && toFloor && fromFloor !== toFloor && !edge.stairs && !edge.lift) {
+      issues.push(
+        `edge ${edge.from}->${edge.to} crosses floors ('${fromFloor}'->'${toFloor}') without stairs or lift`,
+      );
+    }
+  }
+
+  for (const [locationId, ref] of Object.entries(metadata.locations)) {
+    const target = ref.entrances.find((e) => nodeIds.has(e));
+    if (!target) continue; // already reported by validateVenueMetadata
+    // Accessible profile so a stranded upper floor without a lift is caught.
+    const reachable = origins.some((origin) => findRoute(graph, origin, target, 'accessible'));
+    if (!reachable) {
+      // Retry with the permissive profile to distinguish 'unreachable' from
+      // 'reachable only via stairs' (an accessibility gap, still a warning).
+      const viaStairs = origins.some((origin) => findRoute(graph, origin, target, 'fastest'));
+      issues.push(
+        viaStairs
+          ? `location ${locationId} is reachable only via stairs (no accessible route)`
+          : `location ${locationId} is unreachable from the venue entrance`,
+      );
+    }
+  }
+  return issues;
+}
+
+/** Matches @indiafoss/solver's TravelTimeProvider without a package dependency. */
+export interface GraphTravelTime {
+  seconds(fromId: string | undefined, toId: string | undefined): number;
+}
+
+export interface GraphTravelOptions {
+  /** Routing profile; accessible/avoid-stairs raise effective travel time. */
+  profile?: RoutingProfile;
+  /** Fallback used when a location has no venue mapping or no route. */
+  defaultSeconds?: number;
+}
+
+/**
+ * Build a schedule-aware travel-time provider from the venue graph (§29).
+ *
+ * Activity `locationId`s are resolved to their routing entrance via the venue
+ * metadata, then the A* route duration under the chosen profile is used —
+ * so accessible/stairs-avoiding attendees get longer, correct estimates that
+ * feed itinerary feasibility. Unmapped locations fall back to a flat default.
+ * Results are memoised per (from,to) pair.
+ */
+export function createGraphTravelTime(
+  graph: VenueGraph,
+  metadata: VenueMetadata,
+  options: GraphTravelOptions = {},
+): GraphTravelTime {
+  const profile = options.profile ?? 'fastest';
+  const defaultSeconds = options.defaultSeconds ?? 300;
+  const cache = new Map<string, number>();
+
+  const entranceFor = (locationId: string | undefined): string | undefined => {
+    if (!locationId) return undefined;
+    return metadata.locations[locationId]?.entrances[0];
+  };
+
+  return {
+    seconds(fromId, toId) {
+      if (!fromId || !toId || fromId === toId) return 0;
+      const from = entranceFor(fromId);
+      const to = entranceFor(toId);
+      if (!from || !to) return defaultSeconds;
+      const key = `${profile}:${from}->${to}`;
+      const cached = cache.get(key);
+      if (cached !== undefined) return cached;
+      const route = findRoute(graph, from, to, profile);
+      const seconds = route ? Math.round(route.durationSeconds) : defaultSeconds;
+      cache.set(key, seconds);
+      return seconds;
+    },
+  };
 }

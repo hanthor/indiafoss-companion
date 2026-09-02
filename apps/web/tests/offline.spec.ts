@@ -79,4 +79,11 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await page.getByLabel('Destination').selectOption('devroom-2');
   await expect(page.getByText(/min walk/)).toBeVisible();
   await expect(page.locator('.route')).toBeVisible();
+
+  // 12. Schedule-aware routing: the Now leave-by uses the cached venue graph
+  // to compute walk time offline (§29, §52).
+  const during = '2025-09-20T10:20:00+05:30';
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(during)}&at=audi-1`));
+  await expect(page.getByText(/Estimated walk:/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/Leave by/)).toBeVisible();
 });

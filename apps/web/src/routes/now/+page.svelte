@@ -13,6 +13,7 @@
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { eventState } from '$lib/event.svelte';
   import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
+  import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
   import {
     currentLocation,
     hydrateLocation,
@@ -47,6 +48,7 @@
     const at = page.url.searchParams.get('at');
     void (async () => {
       await hydrateLocation();
+      await hydrateRoutingProfile();
       if (at) await setCurrentLocation(locationIdFromDeepLink(at) ?? at);
     })();
     void loadVenue(venueKey).then((v) => {
@@ -58,18 +60,26 @@
     bundle?.locations.find((l) => l.id === a.locationId)?.name;
 
   // Travel + leave-by for the next session (§29).
-  const nextLeg = $derived.by<{ travelSeconds: number; leaveBy: string } | null>(() => {
+  const nextLeg = $derived.by<{
+    travelSeconds: number;
+    leaveBy: string;
+    floorChange: boolean;
+    restricted: boolean;
+  } | null>(() => {
     if (!nowState?.next || !currentLocation.value) return null;
     const nextLoc = nowState.next.locationId;
     if (!nextLoc || !venue) return null;
     const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
     const to = venue.metadata.locations[nextLoc]?.entrances[0];
     if (!from || !to || from === to) return null;
-    const route = findRoute(venue.graph, from, to, 'fastest');
+    const route = findRoute(venue.graph, from, to, routingPrefs.profile);
     if (!route) return null;
+    const floors = new Set(route.segments.map((s) => s.floor));
     return {
       travelSeconds: route.durationSeconds,
       leaveBy: leaveByInstant(nowState!.next!.start!, route.durationSeconds, BUFFER_SECONDS),
+      floorChange: floors.size > 1,
+      restricted: route.restricted,
     };
   });
 
@@ -160,7 +170,17 @@
         {#if nextLeg}
           <p class="leave">
             Estimated walk: {Math.round(nextLeg.travelSeconds / 60)} min · Preferred buffer: 5 min
+            {#if nextLeg.restricted}· {routingPrefs.profile === 'accessible'
+                ? 'accessible'
+                : 'step-free'} route{/if}
           </p>
+          {#if nextLeg.floorChange}
+            <p class="leave floor-change">
+              This route changes floor — take the {routingPrefs.profile === 'fastest'
+                ? 'stairs or lift'
+                : 'lift'}.
+            </p>
+          {/if}
           <p class="leave strong">Leave by {formatTime(nextLeg.leaveBy)}.</p>
           <div class="actions">
             <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show route</a>
@@ -258,6 +278,10 @@
   .leave.strong {
     font-weight: 700;
     color: var(--event-primary);
+  }
+  .leave.floor-change {
+    color: var(--event-primary-dark);
+    font-weight: 600;
   }
   .actions {
     display: flex;

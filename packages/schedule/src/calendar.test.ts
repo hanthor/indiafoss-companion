@@ -20,13 +20,18 @@ const bundle: EventBundle = {
       end: '2025-09-20T11:00:00+05:30',
       flexible: false,
       locationId: 'audi-1',
-      speakerIds: [],
+      speakerIds: ['p-aarav', 'p-riya'],
       tags: ['Talk', 'FOSS'],
       sourceUrl: 'https://fossunited.org/cfp/act-a',
+      recordingUrl: 'https://videos.example/act-a',
+      slidesUrl: 'https://slides.example/act-a',
       source: 'test',
     },
   ],
-  people: [],
+  people: [
+    { id: 'p-aarav', name: 'Aarav Sharma', links: [] },
+    { id: 'p-riya', name: 'Riya Verma', links: [] },
+  ],
   locations: [{ id: 'audi-1', name: 'Audi 1', kind: 'room', routingNodeIds: [] }],
   booths: [],
   tracks: [],
@@ -86,5 +91,41 @@ describe('calendar export', () => {
     expect((itinerary.match(/BEGIN:VEVENT/g) ?? []).length).toBe(2);
     expect(itinerary).toContain('SUMMARY:Hallway conversations');
     expect(itinerary).toContain('CATEGORIES:flexible');
+  });
+
+  it('includes speakers and recording/slides links in the description', () => {
+    const ics = activityToIcs(bundle, bundle.activities[0]!);
+    // Folding can split long DESCRIPTION lines, so match on unfolded text.
+    const unfolded = ics.replace(/\r\n /g, '');
+    expect(unfolded).toContain('Speakers: Aarav Sharma\\, Riya Verma');
+    expect(unfolded).toContain('Recording: https://videos.example/act-a');
+    expect(unfolded).toContain('Slides: https://slides.example/act-a');
+  });
+
+  it('adds a distinct leave-by alarm alongside the starting-soon alarm', () => {
+    const ics = activityToIcs(bundle, bundle.activities[0]!, {
+      includeAlarm: true,
+      alarmMinutesBefore: 10,
+      leaveByMinutesBefore: 25,
+    });
+    expect((ics.match(/BEGIN:VALARM/g) ?? []).length).toBe(2);
+    expect(ics).toContain('TRIGGER:-PT10M');
+    expect(ics).toContain('TRIGGER:-PT25M');
+    const unfolded = ics.replace(/\r\n /g, '');
+    expect(unfolded).toContain('Leave now for:');
+  });
+
+  it('produces a stable UID from eventId + activityId across repeated exports', () => {
+    const first = activityToIcs(bundle, bundle.activities[0]!);
+    const second = activityToIcs(bundle, bundle.activities[0]!);
+    const uidLine = (ics: string) => ics.split('\r\n').find((l) => l.startsWith('UID:'));
+    expect(uidLine(first)).toBe('UID:act-a@indiafoss-2025.indiafoss');
+    // Repeating the export must not change the UID (no ambiguous duplicates).
+    expect(uidLine(first)).toBe(uidLine(second));
+    // The same activity keeps its UID inside an itinerary export too.
+    const itin = itineraryToIcs(bundle, [
+      { activityId: 'act-a', start: bundle.activities[0]!.start!, end: bundle.activities[0]!.end! },
+    ]);
+    expect(itin).toContain('UID:act-a@indiafoss-2025.indiafoss');
   });
 });

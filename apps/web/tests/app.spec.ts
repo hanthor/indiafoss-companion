@@ -93,15 +93,105 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
   expect(stillGoing || done).toBe(true);
 });
 
+test('ranking supports keyboard choices and undo', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank'));
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+  await expect(page.getByText(/0 comparison|% resolved/)).toBeVisible();
+
+  // Keyboard choice via number key advances the comparison count.
+  await page.keyboard.press('1');
+  await page.waitForTimeout(200);
+  await expect(page.getByText(/1 comparison/)).toBeVisible();
+
+  // Undo becomes enabled after a choice and reverses the last comparison.
+  const undo = page.getByRole('button', { name: /Undo last/ });
+  await expect(undo).toBeEnabled();
+  await undo.click();
+  await page.waitForTimeout(100);
+  await expect(undo).toBeDisabled();
+
+  // Arrow keys act as swipe-equivalents without a pointer.
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(200);
+  await expect(page.getByText(/1 comparison/)).toBeVisible();
+});
+
+test('ranking respects reduced motion while still recording choices', async ({ browser }) => {
+  const context = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await context.newPage();
+  await page.goto(appUrl('/'));
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await page.goto(appUrl('/plan/rank'));
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+  await page.getByRole('button', { name: 'Definitely A' }).first().click();
+  await page.waitForTimeout(200);
+  await expect(page.getByText(/1 comparison/)).toBeVisible();
+  await context.close();
+});
+
 test('plan generates a feasible itinerary with backups', async ({ page }) => {
   await page.goto(appUrl('/plan'));
   // The solver runs for Day 1 and renders an ordered itinerary.
   await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
   const count = await page.locator('.itinerary li').count();
   expect(count).toBeGreaterThan(3);
-  // Some slots may show a backup suggestion.
-  const hasBackups = await page.locator('.backups').count();
+  // Some slots offer a backup replacement.
+  const hasBackups = await page.locator('.replace select').count();
   expect(hasBackups).toBeGreaterThan(0);
+});
+
+test('plan supports editing: lock, remove/restore, and a persistent custom block', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan'));
+  const firstRow = page.locator('.itinerary li').first();
+  await expect(firstRow).toBeVisible({ timeout: 10_000 });
+
+  // Lock the first item.
+  await firstRow.getByRole('button', { name: 'Lock' }).click();
+  await expect(firstRow.getByRole('button', { name: 'Unlock' })).toBeVisible();
+
+  // Remove the second item and restore it from the Removed list.
+  const before = await page.locator('.itinerary li').count();
+  await page.locator('.itinerary li').nth(1).getByRole('button', { name: 'Remove' }).click();
+  await expect(page.locator('.itinerary li')).toHaveCount(before - 1);
+  await expect(page.getByRole('heading', { name: 'Removed' })).toBeVisible();
+  await page.getByRole('button', { name: 'Restore' }).first().click();
+  await expect(page.locator('.itinerary li')).toHaveCount(before);
+
+  // Add a custom block; it persists across a reload.
+  const addBlock = page.locator('.add-block');
+  await addBlock.getByLabel('What').fill('Lunch with friends');
+  await addBlock.getByLabel('Start', { exact: true }).fill('13:00');
+  await addBlock.getByLabel('End', { exact: true }).fill('13:45');
+  await addBlock.getByRole('button', { name: 'Add block' }).click();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible();
+
+  await page.reload();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible({
+    timeout: 10_000,
+  });
+  // The lock survived the reload too.
+  await expect(page.locator('.itinerary li.locked').first()).toBeVisible();
+});
+
+test('plan explains an infeasible custom block instead of dropping it', async ({ page }) => {
+  await page.goto(appUrl('/plan'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
+  const addBlock = page.locator('.add-block');
+  // Two overlapping custom blocks force an overlap conflict.
+  await addBlock.getByLabel('What').fill('Overlap A');
+  await addBlock.getByLabel('Start', { exact: true }).fill('14:00');
+  await addBlock.getByLabel('End', { exact: true }).fill('15:00');
+  await addBlock.getByRole('button', { name: 'Add block' }).click();
+  await addBlock.getByLabel('What').fill('Overlap B');
+  await addBlock.getByLabel('Start', { exact: true }).fill('14:30');
+  await addBlock.getByLabel('End', { exact: true }).fill('15:30');
+  await addBlock.getByRole('button', { name: 'Add block' }).click();
+  // The conflict is explained; both blocks remain in the plan.
+  await expect(page.getByTestId('edit-conflicts')).toBeVisible();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap A' })).toBeVisible();
+  await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap B' })).toBeVisible();
 });
 
 test('map routes between two rooms offline-style', async ({ page }) => {
@@ -130,6 +220,17 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
   await expect(page.getByLabel('Destination')).toHaveValue(/devroom|audi|room|workshops|bof/);
 });
 
+test('routing profile is configurable and persists across reload', async ({ page }) => {
+  await page.goto(appUrl('/settings'));
+  await expect(page.getByRole('heading', { name: 'Getting around' })).toBeVisible();
+  // Switch to the step-free (accessible) profile.
+  await page.getByRole('radio', { name: /Step-free/ }).check();
+  await expect(page.getByRole('radio', { name: /Step-free/ })).toBeChecked();
+  // The choice survives a reload (persisted locally).
+  await page.reload();
+  await expect(page.getByRole('radio', { name: /Step-free/ })).toBeChecked({ timeout: 10_000 });
+});
+
 test('booth directory lists and schedules a visit', async ({ page }) => {
   await page.goto(appUrl('/explore/booths'));
   await expect(page.getByRole('status')).toContainText('booths');
@@ -144,4 +245,58 @@ test('activity calendar action downloads a portable ICS file', async ({ page }) 
   await page.getByRole('button', { name: 'Add to calendar' }).click();
   const file = await download;
   expect(file.suggestedFilename()).toMatch(/\.ics$/);
+});
+
+test('connect generates a local QR card and downloads a vCard', async ({ page }) => {
+  await page.goto(appUrl('/connect'));
+  await expect(page.getByRole('heading', { name: 'Share your contact' })).toBeVisible();
+  await page.getByLabel('Full name').fill('Test Attendee');
+  await page.getByLabel('FOSS United profile URL').fill('https://fossunited.org/u/test_attendee');
+  await expect(page.getByText('Profile handle: @test_attendee')).toBeVisible();
+  await page.getByRole('button', { name: /Generate my QR card/ }).click();
+  // The QR image is rendered from the local vCard payload.
+  await expect(page.getByRole('img', { name: /contact details as a QR code/ })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText(/generated locally/);
+  // The .vcf can be downloaded on-device.
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download .vcf' }).click();
+  const file = await download;
+  expect(file.suggestedFilename()).toMatch(/\.vcf$/);
+});
+
+test('scan: manual location entry previews and sets the current location', async ({ page }) => {
+  await page.goto(appUrl('/scan'));
+  await expect(page.getByRole('heading', { name: 'Scan a code' })).toBeVisible();
+  // Choose a venue location via the keyboard/manual fallback.
+  const select = page.getByLabel('Set current location');
+  await expect(select.locator('option').nth(1)).toBeAttached();
+  const value = await select.locator('option').nth(1).getAttribute('value');
+  await select.selectOption(value!);
+  await page.getByRole('button', { name: 'Preview', exact: true }).click();
+  // Nothing is applied until the preview is confirmed.
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await page.getByRole('button', { name: 'Set location' }).click();
+  await expect(page.getByRole('status')).toContainText(/Location set to/);
+});
+
+test('scan: pasting a vCard previews the shared fields and rejects junk', async ({ page }) => {
+  await page.goto(appUrl('/scan'));
+  const vcard = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:Riya Verma', 'ORG:KDE', 'END:VCARD'].join(
+    '\r\n',
+  );
+  await page.getByLabel('Paste a vCard').fill(vcard);
+  await page.getByRole('button', { name: 'Preview contact' }).click();
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await expect(page.getByText('Riya Verma')).toBeVisible();
+  await expect(page.getByText('KDE')).toBeVisible();
+  // Saving downloads the received card locally.
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save contact' }).click();
+  expect((await download).suggestedFilename()).toMatch(/\.vcf$/);
+
+  // A junk paste is rejected safely, with no preview.
+  await page.getByLabel('Paste a vCard').fill('not a vcard at all');
+  await page.getByRole('button', { name: 'Preview contact' }).click();
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toHaveCount(0);
 });

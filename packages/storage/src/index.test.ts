@@ -86,6 +86,9 @@ describe('CompanionStorage', () => {
     });
     expect(await storage.listComparisons()).toHaveLength(1);
 
+    await storage.deleteComparison('c1');
+    expect(await storage.listComparisons()).toHaveLength(0);
+
     await storage.saveItinerary({
       eventId: 'e1',
       generatedAt: '2026-01-01T00:00:00Z',

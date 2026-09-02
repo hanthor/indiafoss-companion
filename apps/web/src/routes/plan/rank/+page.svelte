@@ -11,6 +11,7 @@
     type ComparisonChoice,
   } from '@indiafoss/elo';
   import { CompanionStorage } from '@indiafoss/storage';
+  import { SvelteSet } from 'svelte/reactivity';
   import { comparisonsOf, dispositionOf, ratingOf, setRating } from '$lib/prefs.svelte';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
@@ -24,14 +25,25 @@
   let pointerId = $state<number | null>(null);
   let swipeDirection = $state<'left' | 'right' | null>(null);
   let isAnimating = $state(false);
+  let entering = $state(false);
   let pointerStartX = 0;
+
+  /** One reversible comparison, captured before the Elo update is applied. */
+  interface UndoEntry {
+    comparisonId: string;
+    pairKey: string;
+    a: { id: string; rating: number; comparisons: number };
+    b: { id: string; rating: number; comparisons: number };
+  }
+  const undoStack = $state<UndoEntry[]>([]);
+  const canUndo = $derived(undoStack.length > 0);
 
   $effect(() => {
     if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
   });
 
   const storage = new CompanionStorage();
-  const comparedPairs = $state(new Set<string>());
+  const comparedPairs = new SvelteSet<string>();
 
   const pool = $derived(
     (selectedDay ? activitiesForDay(bundle, selectedDay) : [])
@@ -57,9 +69,9 @@
     const { activityA, activityB } = candidate;
     const result = applyComparison(activityA.rating, activityB.rating, choice);
     swipeDirection =
-      choice.endsWith('a') || choice === 'definitely-a' || choice === 'slightly-a'
+      choice === 'definitely-a' || choice === 'slightly-a'
         ? 'right'
-        : choice.endsWith('b') || choice === 'definitely-b' || choice === 'slightly-b'
+        : choice === 'definitely-b' || choice === 'slightly-b'
           ? 'left'
           : null;
     isAnimating = true;
@@ -69,17 +81,96 @@
       setRating(activityA.activity.id, result.ratingA, activityA.comparisons + 1),
       setRating(activityB.activity.id, result.ratingB, activityB.comparisons + 1),
     ]);
+    const comparisonId = `cmp-${Date.now()}`;
     await storage.saveComparison({
-      id: `cmp-${Date.now()}`,
+      id: comparisonId,
       activityA: activityA.activity.id,
       activityB: activityB.activity.id,
       scoreA: choice === 'neither' ? 0.5 : choice === 'tie' ? 0.5 : choice.startsWith('a') ? 1 : 0,
       createdAt: new Date().toISOString(),
     });
-    comparedPairs.add(pairKey(activityA.activity.id, activityB.activity.id));
+    const key = pairKey(activityA.activity.id, activityB.activity.id);
+    comparedPairs.add(key);
+    // Remember enough to fully reverse this comparison.
+    undoStack.push({
+      comparisonId,
+      pairKey: key,
+      a: {
+        id: activityA.activity.id,
+        rating: activityA.rating,
+        comparisons: activityA.comparisons,
+      },
+      b: {
+        id: activityB.activity.id,
+        rating: activityB.rating,
+        comparisons: activityB.comparisons,
+      },
+    });
     dragX = 0;
     swipeDirection = null;
     isAnimating = false;
+    // Animate the next card into place.
+    entering = true;
+    setTimeout(() => (entering = false), 220);
+  }
+
+  async function undoLast(): Promise<void> {
+    if (isAnimating) return;
+    const last = undoStack.pop();
+    if (!last) return;
+    await Promise.all([
+      setRating(last.a.id, last.a.rating, last.a.comparisons),
+      setRating(last.b.id, last.b.rating, last.b.comparisons),
+    ]);
+    await storage.deleteComparison(last.comparisonId);
+    comparedPairs.delete(last.pairKey);
+    dragX = 0;
+    swipeDirection = null;
+  }
+
+  function onKeydown(event: KeyboardEvent): void {
+    // Ignore typing in form fields.
+    const target = event.target as HTMLElement | null;
+    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    if (isAnimating) return;
+    switch (event.key) {
+      case '1':
+        void choose('definitely-a');
+        break;
+      case '2':
+        void choose('slightly-a');
+        break;
+      case '3':
+        void choose('tie');
+        break;
+      case '4':
+        void choose('slightly-b');
+        break;
+      case '5':
+        void choose('definitely-b');
+        break;
+      case '0':
+      case 'n':
+      case 'N':
+        void choose('neither');
+        break;
+      case 'ArrowRight':
+        event.preventDefault();
+        void choose('definitely-a');
+        break;
+      case 'ArrowLeft':
+        event.preventDefault();
+        void choose('definitely-b');
+        break;
+      case 'u':
+      case 'U':
+      case 'Backspace':
+        event.preventDefault();
+        void undoLast();
+        break;
+      default:
+        break;
+    }
   }
 
   function startSwipe(event: PointerEvent): void {
@@ -131,6 +222,8 @@
   }
 </script>
 
+<svelte:window onkeydown={onKeydown} />
+
 <EventGate>
   <div class="eyebrow">PERSONALIZE YOUR CONFERENCE</div>
   <h1>Rank your day</h1>
@@ -170,6 +263,7 @@
       class:swipe-left={swipeDirection === 'left'}
       class:swipe-right={swipeDirection === 'right'}
       class:dragging={pointerId !== null}
+      class:entering
       style={cardStyle()}
       role="group"
       aria-label="Swipe right for the left session, swipe left for the right session"
@@ -211,12 +305,24 @@
 
     <p class="swipe-hint" aria-hidden="true">← swipe for B <span>·</span> swipe for A →</p>
     <div class="choices" role="group" aria-label="Your preference">
-      <button class="def" onclick={() => choose('definitely-a')}>Definitely A</button>
-      <button onclick={() => choose('slightly-a')}>Slightly A</button>
-      <button onclick={() => choose('tie')}>Either / Tie</button>
-      <button onclick={() => choose('slightly-b')}>Slightly B</button>
-      <button class="def" onclick={() => choose('definitely-b')}>Definitely B</button>
-      <button class="neither" onclick={() => choose('neither')}>Neither</button>
+      <button class="def" onclick={() => choose('definitely-a')}>
+        Definitely A <kbd>1</kbd>
+      </button>
+      <button onclick={() => choose('slightly-a')}>Slightly A <kbd>2</kbd></button>
+      <button onclick={() => choose('tie')}>Either / Tie <kbd>3</kbd></button>
+      <button onclick={() => choose('slightly-b')}>Slightly B <kbd>4</kbd></button>
+      <button class="def" onclick={() => choose('definitely-b')}>
+        Definitely B <kbd>5</kbd>
+      </button>
+      <button class="neither" onclick={() => choose('neither')}>Neither <kbd>N</kbd></button>
+    </div>
+    <div class="controls">
+      <button class="undo" onclick={undoLast} disabled={!canUndo}>
+        ↶ Undo last {#if canUndo}<kbd>U</kbd>{/if}
+      </button>
+      <p class="kbd-hint muted" aria-hidden="true">
+        Keyboard: 1–5 choose · N neither · ←/→ pick a side · U undo
+      </p>
     </div>
   {/if}
 </EventGate>
@@ -291,6 +397,19 @@
   }
   .arena.swipe-left {
     animation: swipe-left 220ms ease both;
+  }
+  .arena.entering {
+    animation: card-enter 220ms ease both;
+  }
+  @keyframes card-enter {
+    from {
+      transform: translateY(14px) scale(0.98);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
   }
   @keyframes swipe-right {
     to {
@@ -371,12 +490,59 @@
     grid-column: span 3;
     color: var(--text-muted);
   }
+  .choices kbd {
+    display: inline-block;
+    margin-left: 0.3rem;
+    padding: 0 0.35rem;
+    border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+    border-radius: 5px;
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    margin-top: 0.8rem;
+  }
+  .undo {
+    border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 0.55rem 0.9rem;
+    cursor: pointer;
+    min-height: 44px;
+    font-size: 0.85rem;
+  }
+  .undo:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  .undo kbd {
+    margin-left: 0.3rem;
+    font-family: 'Space Mono', ui-monospace, monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+  .kbd-hint {
+    font-size: 0.72rem;
+    margin: 0;
+  }
+  @media (max-width: 520px) {
+    .kbd-hint {
+      display: none;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .arena {
       transition: none;
     }
     .arena.swipe-left,
-    .arena.swipe-right {
+    .arena.swipe-right,
+    .arena.entering {
       animation: none;
     }
   }

@@ -3,114 +3,86 @@
     "hall-1": {
       "locationId": "hall-1",
       "svgTarget": "room-hall-1",
-      "entrances": [
-        "gf-hall-1"
-      ],
+      "entrances": ["gf-hall-1"],
       "floor": "ground"
     },
     "hall-2": {
       "locationId": "hall-2",
       "svgTarget": "room-hall-2",
-      "entrances": [
-        "gf-hall-2"
-      ],
+      "entrances": ["gf-hall-2"],
       "floor": "ground"
     },
     "hall-3": {
       "locationId": "hall-3",
       "svgTarget": "room-hall-3",
-      "entrances": [
-        "gf-hall-3"
-      ],
+      "entrances": ["gf-hall-3"],
       "floor": "ground"
     },
     "room-1": {
       "locationId": "room-1",
       "svgTarget": "room-1",
-      "entrances": [
-        "gf-room-1"
-      ],
-      "floor": "ground"
+      "entrances": ["ff-room-1"],
+      "floor": "first"
     },
     "room-2": {
       "locationId": "room-2",
       "svgTarget": "room-2",
-      "entrances": [
-        "gf-room-2"
-      ],
-      "floor": "ground"
+      "entrances": ["ff-room-2"],
+      "floor": "first"
     },
     "room-3": {
       "locationId": "room-3",
       "svgTarget": "room-3",
-      "entrances": [
-        "gf-room-3"
-      ],
-      "floor": "ground"
+      "entrances": ["ff-room-3"],
+      "floor": "first"
     },
     "silent-room": {
       "locationId": "silent-room",
       "svgTarget": "room-silent",
-      "entrances": [
-        "gf-silent"
-      ],
-      "floor": "ground"
+      "entrances": ["ff-silent"],
+      "floor": "first"
     },
     "community-booths": {
       "locationId": "community-booths",
-      "entrances": [
-        "gf-community-booths"
-      ],
+      "entrances": ["gf-community-booths"],
       "floor": "ground"
     },
     "sponsor-booths": {
       "locationId": "sponsor-booths",
       "svgTarget": "area-sponsor-booths",
-      "entrances": [
-        "gf-sponsor-booths"
-      ],
+      "entrances": ["gf-sponsor-booths"],
       "floor": "ground"
     },
     "hw-showcase": {
       "locationId": "hw-showcase",
       "svgTarget": "area-hw-showcase",
-      "entrances": [
-        "gf-hw-showcase"
-      ],
+      "entrances": ["gf-hw-showcase"],
       "floor": "ground"
     },
     "fossu-help-desk": {
       "locationId": "fossu-help-desk",
       "svgTarget": "amenity-fossu-desk",
-      "entrances": [
-        "gf-fossu-desk"
-      ],
+      "entrances": ["gf-fossu-desk"],
       "floor": "ground"
     },
     "hall-1-first": {
       "locationId": "hall-1-first",
       "svgTarget": "room-hall-1-ff",
-      "entrances": [
-        "ff-hall-1"
-      ],
+      "entrances": ["ff-hall-1"],
       "floor": "first"
     },
     "community-booths-first": {
       "locationId": "community-booths-first",
       "svgTarget": "area-community-booths-ff",
-      "entrances": [
-        "ff-community-booths"
-      ],
+      "entrances": ["ff-community-booths"],
       "floor": "first"
     },
     "registration": {
       "locationId": "registration",
-      "entrances": [
-        "entrance"
-      ],
+      "entrances": ["entrance"],
       "floor": "ground"
     }
   },
   "_draft": true,
-  "_notes": "Best-effort routing graph authored from label positions in the supplied floor plan. Distances and walk times are estimates; the drawing's two coordinate regions and duplicated geometry were not fully decoded. svgTarget ids were added to the SVG by matching room paths to their labels. Verify against the venue team before production use."
+  "_notes": "Floors are now consistent with the supplied SVG layers: Room 1/2/3 and the Silent Room are on the First Floor and are reached via the stairs or lift. Distances and walk times remain best-effort estimates derived from label positions; the drawing's two coordinate regions and duplicated geometry were not fully decoded. svgTarget ids were matched to room paths by label. Verify names, floors, entrances, accessible routes, and distances with the venue team before production use (see docs/venue-route-review-checklist.md)."
 }

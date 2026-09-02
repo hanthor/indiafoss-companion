@@ -40,7 +40,7 @@ export const DEFAULT_ATTENDEE_SHARE_SELECTION: AttendeeShareSelection = {
   email: false,
   phone: false,
   website: true,
-  matrixId: true,
+  matrixId: false,
   fossUnitedProfileUrl: true,
   socials: {},
 };
@@ -65,12 +65,19 @@ export function attendeeProfileToVCard(
   selection: AttendeeShareSelection = DEFAULT_ATTENDEE_SHARE_SELECTION,
 ): string {
   const lines = ['BEGIN:VCARD', 'VERSION:3.0'];
-  if (selection.name) pushField(lines, 'FN', profile.fullName);
+  if (selection.name) {
+    pushField(lines, 'FN', profile.fullName);
+    const nameParts = profile.fullName.trim().split(/\s+/);
+    const family = nameParts.pop() ?? '';
+    const given = nameParts.join(' ');
+    lines.push(`N:${escapeVCard(family)};${escapeVCard(given)};;;`);
+  }
   if (selection.organization) pushField(lines, 'ORG', profile.organization);
   if (selection.email) pushField(lines, 'EMAIL;TYPE=INTERNET', profile.email);
   if (selection.phone) pushField(lines, 'TEL;TYPE=CELL', profile.phone);
   if (selection.website) pushField(lines, 'URL;TYPE=website', profile.website);
   if (selection.fossUnitedProfileUrl) {
+    pushField(lines, 'URL;TYPE=profile', profile.fossUnitedProfileUrl);
     pushField(lines, 'X-FOSSUNITED-PROFILE', profile.fossUnitedProfileUrl);
   }
   if (selection.matrixId) {
