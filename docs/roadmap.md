@@ -17,16 +17,21 @@ changes, update the issue first, then this file, so neither drifts.
   Connect as one live signed QR card (#47), Rank as stacked tap-to-pick cards
   (#48), Map as the NIMHANS floor plan with live rooms, a room sheet and the
   leave-by banner on every tab (`docs/venue-map.md`).
+- #50: Must attend tier: extra reminders, pinned list on Plan, first in the
+  leave-by banner; reminders only for bookmarked / must-attend sessions
+  (`reminders.md`).
+- #29 (PR #51): FOSDEM-style rooms on `reilly.asia`, `tools/matrix-rooms`,
+  "Open room in Element" links, `/chat` room list; halls labelled Audi 1/2/3.
 
 ## Open, ordered by conference impact
 
 | Rank | Issue                                                                                                                                            | Why it matters                                                                                       |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app                                                                  | Companion first, P2P chat add-on; remaining: plugin device check, foreground service, Packages token |
-| 1    | [#29](https://github.com/hanthor/indiafoss-companion/issues/29) FOSDEM-style rooms                                                               | Organiser-owned rooms on matrix.reilly.asia, joined from existing accounts                           |
+| 1    | [#29](https://github.com/hanthor/indiafoss-companion/issues/29) FOSDEM-style rooms                                                               | PR #51 in review; then run `tools/matrix-rooms` with an organiser token                              |
 | 2    | [#2](https://github.com/hanthor/indiafoss-companion/issues/2) 2025 data, [#32](https://github.com/hanthor/indiafoss-companion/issues/32) socials | Real speakers, booths and LinkedIn/GitHub links                                                      |
 | 3    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2                                                                     | In-person verification, NFC; signed vCard and "who I met" shipped                                    |
-| 4    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications                                                                    | Local reminders shipped; leave-by push while the app is closed                                       |
+| 4    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications                                                                    | Tiers shipped (#50); leave-by push while the app is closed                                           |
 | 5    | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Revision handling                                                                  | Safe schedule updates during the event                                                               |
 | 6    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                                    | Four handoff screens shipped; dark audit, display font decision                                      |
 | 7    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue                                                            | Mesh behaviour: discovery, outbox flush, offline tests                                               |
@@ -67,3 +72,6 @@ alignment, #3 CI packages token, #4 fork roadmap.
 - 2026-09-02: Map v1 highlights the destination room rather than drawing a
   path; the 2025 programme is shown on the 2026 NIMHANS plan through room
   aliases (`venue-map.md`).
+- 2026-09-02: The halls are Audi 1, 2 and 3 (owner); plan ids stay
+  `hall-1..3` from the drawing. Reminders are tiered: must-attend >
+  bookmarked > silent; the programme as a whole never notifies.
