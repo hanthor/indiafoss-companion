@@ -245,6 +245,11 @@ test('map sets a location from a room and shows the walk to another', async ({ p
   await expect(page.locator('.steps li').first()).toBeVisible();
   // The other-floor hint points back down to where you are.
   await expect(page.getByText("YOU'RE DOWNSTAIRS")).toBeVisible();
+  // The plan zooms; labels grow their detail once zoomed in.
+  await page.getByRole('button', { name: 'Zoom in' }).click();
+  await expect(page.locator('.drawing')).toHaveAttribute('style', /scale\(1\.5/);
+  await page.getByRole('button', { name: 'Reset view' }).click();
+  await expect(page.locator('.drawing')).toHaveAttribute('style', /scale\(1\)/);
 });
 
 test('now screen shows leave-by with a known location', async ({ page }) => {
