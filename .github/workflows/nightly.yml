@@ -50,7 +50,7 @@ jobs:
       - name: Probe GitHub Packages for the Neutrino bindings
         # Diagnostic only: shows whether the token can read the package and
         # which versions exist. The token itself is never printed.
-        if: ${{ env.NEUTRINO_PACKAGES_TOKEN != '' }}
+        if: ${{ secrets.NEUTRINO_PACKAGES_TOKEN != '' }}
         env:
           NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
           NEUTRINO_PACKAGES_USER: ${{ github.actor }}
