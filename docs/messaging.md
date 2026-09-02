@@ -280,14 +280,37 @@ capability. Association is a claim, not authentication.
 
 ## Consuming Neutrino from Android (evaluation for issue #11)
 
-| Question                           | Answer                                                                                                                                                                         |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Feature module, fork base, or app? | **Separate companion app + handoff** (ADR 0001). The fork stays a messenger; we exchange identities and deep links.                                                            |
-| Artifacts                          | `io.element.neutrino:bindings:<version>` on GitHub Packages (published by `element-hq/neutrino-iroh`); GitHub Packages Maven needs a token even for public reads.              |
-| Licensing                          | Element X Android and the Neutrino fork: AGPL-3.0-only **or** Element commercial; vendored BLE deps AGPL-3.0-or-later. Compatible with this AGPL-3.0-or-later project.         |
-| Branding                           | Element trademarks/branding are not ours to reuse; the handoff UI says "Open in Element" / "a Matrix client" and ships no Element assets.                                      |
-| F-Droid                            | Pre-built binary bindings from GitHub Packages are not reproducible from source, so a Neutrino build cannot go to F-Droid as-is; the PWA/Capacitor core remains F-Droid clean. |
-| Prototype                          | Not built yet: it requires an Android device pair with BLE. The PWA side (QR payload, identity fields, handoff links) is done so the prototype can consume it.                 |
+| Question                           | Answer                                                                                                                                                                                                                                                                                                                           |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feature module, fork base, or app? | **Separate companion app + handoff** (ADR 0001). The fork stays a messenger; we exchange identities and deep links.                                                                                                                                                                                                              |
+| Artifacts                          | Built from source by [`neutrino-bindings.yml`](../.github/workflows/neutrino-bindings.yml) from a pinned `element-hq/neutrino-iroh` tag and attached to a release. Upstream publishes the same `.aar` to GitHub Packages, but Maven there is never served anonymously (401), so consuming it would need a token per contributor. |
+| Licensing                          | Element X Android and the Neutrino fork: AGPL-3.0-only **or** Element commercial; vendored BLE deps AGPL-3.0-or-later. Compatible with this AGPL-3.0-or-later project.                                                                                                                                                           |
+| Branding                           | Element trademarks/branding are not ours to reuse; the handoff UI says "Open in Element" / "a Matrix client" and ships no Element assets.                                                                                                                                                                                        |
+| F-Droid                            | The bindings are now built from a pinned tag by a workflow anyone can read, which is the precondition for a reproducible build, though F-Droid would still need to run that build itself rather than take our `.aar`. The PWA/Capacitor core remains F-Droid clean.                                                              |
+| Prototype                          | Not built yet: it requires an Android device pair with BLE. The PWA side (QR payload, identity fields, handoff links) is done so the prototype can consume it.                                                                                                                                                                   |
+
+### Building the P2P variant
+
+No credentials, by design.
+
+1. **Publish the bindings once per pin.** Run the **Neutrino bindings** workflow
+   (`workflow_dispatch`). It checks out `element-hq/neutrino-iroh` at the tag in
+   `apps/android/capacitor/neutrino/version.json`, builds the `.aar` from source
+   with the Rust toolchain, NDK r27c and `cargo-ndk`, and attaches it — with a
+   SHA-256 — to a `neutrino-bindings-<version>` release. GitHub serves release
+   assets anonymously, which is the whole point.
+2. **Fetch it.** `pnpm --filter @indiafoss/android neutrino` downloads that
+   asset into `neutrino/libs/` and verifies the checksum before writing it.
+3. **Build.** `pnpm --filter @indiafoss/android build` sees the `.aar` and
+   compiles the plugin in; with no `.aar` it patches the plain companion exactly
+   as before. Nothing about the fallback changed — only what decides it.
+
+To bump the pinned version, edit `version.json` and re-run the workflow; pushing
+that change to `main` triggers it too.
+
+The `.aar` is AGPL-3.0-only (it bundles the AGPL `blew` and `iroh-ble-transport`
+crates) and this project is AGPL-3.0-or-later, so redistributing our build of it
+is fine; the release names the exact upstream tag and commit it came from.
 
 ## Threat and privacy model
 

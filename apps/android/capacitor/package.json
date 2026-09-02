@@ -9,7 +9,8 @@
     "build": "cap add android >/dev/null 2>&1 || true; node scripts/material3.mjs && cap sync android",
     "typecheck": "tsc --noEmit -p .",
     "lint": "eslint .",
-    "material3": "node scripts/material3.mjs"
+    "material3": "node scripts/material3.mjs",
+    "neutrino": "node scripts/fetch-neutrino.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

@@ -19,6 +19,8 @@ local.properties
 
 # Capacitor / Android generated output
 apps/android/capacitor/android/
+# Fetched or locally built Neutrino bindings (.aar), never committed
+apps/android/capacitor/neutrino/libs/
 apps/android/capacitor/ios/
 
 # Environment

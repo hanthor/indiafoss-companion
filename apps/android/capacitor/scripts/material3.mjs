@@ -85,11 +85,15 @@ patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
   );
 });
 
-// 4. Optional P2P chat: the Neutrino plugin, only when the GitHub Packages token
-//    for io.element.neutrino:bindings is available (NEUTRINO_PACKAGES_TOKEN).
-const NEUTRINO_VERSION = '0.8.2';
+// 4. Optional P2P chat: the Neutrino plugin, compiled in only when the bindings
+//    .aar is present in neutrino/libs (scripts/fetch-neutrino.mjs downloads it
+//    from our own release; neutrino-bindings.yml builds it from source). No
+//    token: GitHub Packages will not serve the upstream artifact anonymously,
+//    so we publish a build of it that anyone can fetch.
 const KOTLIN_VERSION = '2.3.21';
-const token = process.env.NEUTRINO_PACKAGES_TOKEN ?? '';
+const pin = JSON.parse(readFileSync(join(root, 'neutrino', 'version.json'), 'utf8'));
+const bindings = join(root, 'neutrino', 'libs', `neutrino-bindings-${pin.version}.aar`);
+const bindingsAvailable = existsSync(bindings);
 const pluginSrc = join(root, 'neutrino', 'NeutrinoPlugin.kt');
 const pluginDir = join(app, 'src', 'main', 'java', 'org', 'indiafoss', 'companion');
 const pluginDst = join(pluginDir, 'NeutrinoPlugin.kt');
@@ -118,7 +122,7 @@ function writeMainActivity({ neutrino }) {
   }
 }
 
-if (token) {
+if (bindingsAvailable) {
   patch(join(android, 'build.gradle'), (s) =>
     s.includes('kotlin-gradle-plugin')
       ? s
@@ -128,15 +132,10 @@ if (token) {
             `${m}\n        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:${KOTLIN_VERSION}'`,
         ),
   );
-  patch(join(android, 'build.gradle'), (s) =>
-    s.includes('maven.pkg.github.com/element-hq/neutrino-iroh')
-      ? s
-      : s.replace(
-          /allprojects \{\s*repositories \{\s*google\(\)\s*mavenCentral\(\)/,
-          (m) =>
-            `${m}\n        maven {\n            url = uri('https://maven.pkg.github.com/element-hq/neutrino-iroh')\n            credentials {\n                username = System.getenv('NEUTRINO_PACKAGES_USER') ?: 'x-access-token'\n                password = System.getenv('NEUTRINO_PACKAGES_TOKEN')\n            }\n            content { includeGroup('io.element.neutrino') }\n        }`,
-        ),
-  );
+  // The .aar is consumed as a local file dependency, so no remote repository —
+  // and no credentials — are involved in the build at all.
+  mkdirSync(join(app, 'libs'), { recursive: true });
+  cpSync(bindings, join(app, 'libs', 'neutrino-bindings.aar'), { force: true });
   patch(join(app, 'build.gradle'), (s) => {
     let out = s;
     if (!out.includes('org.jetbrains.kotlin.android')) {
@@ -145,10 +144,19 @@ if (token) {
         "apply plugin: 'com.android.application'\napply plugin: 'org.jetbrains.kotlin.android'",
       );
     }
-    if (!out.includes('io.element.neutrino:bindings')) {
+    if (!out.includes('neutrino-bindings.aar')) {
+      // A local .aar carries no POM, so the bindings' own dependencies are
+      // declared here: coroutines and core-ktx back the bundled blew BLE
+      // managers, and JNA is compileOnly upstream ("element x provides JNA")
+      // because uniffi's generated Kotlin loads libneutrino.so through it.
       out = out.replace(
         /implementation "androidx\.appcompat:appcompat:\$androidxAppCompatVersion"/,
-        (m) => `${m}\n    implementation "io.element.neutrino:bindings:${NEUTRINO_VERSION}"`,
+        (m) =>
+          `${m}\n    implementation files('libs/neutrino-bindings.aar')` +
+          `\n    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"` +
+          `\n    implementation "androidx.core:core-ktx:1.9.0"` +
+          `\n    implementation "androidx.annotation:annotation:1.7.1"` +
+          `\n    implementation "net.java.dev.jna:jna:5.14.0@aar"`,
       );
     }
     if (!out.includes('jvmTarget')) {
@@ -183,22 +191,24 @@ if (token) {
   // Plain companion: make sure nothing from an earlier token build lingers so
   // the generated project still compiles without the bindings.
   if (existsSync(pluginDst)) rmSync(pluginDst);
+  if (existsSync(join(app, 'libs', 'neutrino-bindings.aar'))) {
+    rmSync(join(app, 'libs', 'neutrino-bindings.aar'));
+  }
   writeMainActivity({ neutrino: false });
   patch(join(app, 'build.gradle'), (s) =>
     s
       .replace("\napply plugin: 'org.jetbrains.kotlin.android'", '')
-      .replace(/\n\s*implementation "io\.element\.neutrino:bindings:[^"]+"/, '')
+      .replace(/\n\s*implementation files\('libs\/neutrino-bindings\.aar'\)/, '')
+      .replace(/\n\s*implementation "org\.jetbrains\.kotlinx:kotlinx-coroutines-android:[^"]+"/, '')
+      .replace(/\n\s*implementation "androidx\.core:core-ktx:[^"]+"/, '')
+      .replace(/\n\s*implementation "androidx\.annotation:annotation:[^"]+"/, '')
+      .replace(/\n\s*implementation "net\.java\.dev\.jna:jna:[^"]+"/, '')
       .replace(/\nkotlin \{\n\s*compilerOptions \{[\s\S]*?\n\}\n/, ''),
   );
   patch(join(android, 'build.gradle'), (s) =>
-    s
-      .replace(/\n\s*classpath 'org\.jetbrains\.kotlin:kotlin-gradle-plugin:[^']+'/, '')
-      .replace(
-        /\n\s*maven \{\n\s*url = uri\('https:\/\/maven\.pkg\.github\.com\/element-hq\/neutrino-iroh'\)[\s\S]*?\n {8}\}/,
-        '',
-      ),
+    s.replace(/\n\s*classpath 'org\.jetbrains\.kotlin:kotlin-gradle-plugin:[^']+'/, ''),
   );
-  console.log('material3: NEUTRINO_PACKAGES_TOKEN not set — building the plain companion');
+  console.log(`material3: no neutrino bindings in neutrino/libs — building the plain companion`);
 }
 
 // 5. Verify the patches actually landed. Every one of these is invisible in a

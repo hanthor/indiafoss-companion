@@ -131,7 +131,7 @@ Neither is on unless you switch it on.
 ## Try it
 
 - **Web / PWA** — <https://hanthor.github.io/indiafoss-companion/>, deployed from `main`. Installable; works offline after the first load.
-- **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the latest debug APK and its SHA-256. P2P chat is compiled in only when the build had the Neutrino bindings.
+- **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the latest debug APK and its SHA-256. P2P chat is compiled in when the Neutrino bindings are published; they are built from source by a workflow, so no contributor needs a token ([docs](docs/messaging.md#building-the-p2p-variant)).
 - **iOS** — the PWA is iOS-ready: **Share → Add to Home Screen**. Apple touch icon and standalone metadata are in the build; no App Store account needed.
 
 ## Repository layout
