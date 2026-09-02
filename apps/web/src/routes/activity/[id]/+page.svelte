@@ -89,7 +89,7 @@
       {/if}
     </section>
 
-    <section class="actions" aria-label="Personal preferences (§17)">
+    <section class="actions" aria-label="Personal preferences">
       <button class="calendar" onclick={addToCalendar}>Add to calendar</button>
       {#if activity && conferenceChatQuery(bundle, 'session', activity.id, activity.title)}
         <a

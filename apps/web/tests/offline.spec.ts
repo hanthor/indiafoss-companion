@@ -56,7 +56,7 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await expect(page.getByText(/Registrations and Breakfast/).first()).toBeVisible();
 
   // 7. Search.
-  await page.getByPlaceholder('Search talks, speakers…').fill('AOSP');
+  await page.getByPlaceholder('Search sessions…').fill('AOSP');
   await expect(page.getByRole('article').first()).toBeVisible();
 
   // 8. Open a session detail.

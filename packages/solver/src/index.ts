@@ -216,8 +216,12 @@ function checkMustAttendConflicts(
 }
 
 function toIso(day: string, minutesFromMidnight: number): string {
-  const hh = String(Math.floor(minutesFromMidnight / 60)).padStart(2, '0');
-  const mm = String(minutesFromMidnight % 60).padStart(2, '0');
+  // Travel times are seconds, so a gap boundary lands on a fraction of a minute
+  // (540.5). Left unrounded that formatted as "09:0.5:00+05:30", which the
+  // schedule rendered as "09:0.". Minutes in an instant are whole numbers.
+  const total = Math.round(minutesFromMidnight);
+  const hh = String(Math.floor(total / 60)).padStart(2, '0');
+  const mm = String(total % 60).padStart(2, '0');
   return `${day}T${hh}:${mm}:00+05:30`;
 }
 

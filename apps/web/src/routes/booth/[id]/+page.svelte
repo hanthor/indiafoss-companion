@@ -83,7 +83,7 @@
       <h2>Plan a visit</h2>
       {#if scheduled}
         <p class="muted">
-          Scheduled: {scheduled} min — the solver will place it in a gap (§7).
+          Scheduled: {scheduled} min — your plan will place it in a gap.
         </p>
         <button class="ghost" onclick={cancelVisit}>Cancel</button>
       {:else}
