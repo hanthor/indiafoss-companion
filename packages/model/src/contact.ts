@@ -54,8 +54,10 @@ export const DEFAULT_ATTENDEE_SHARE_SELECTION: AttendeeShareSelection = {
   email: false,
   phone: false,
   website: true,
-  matrixId: false,
-  neutrinoServerName: false,
+  // Companion extras: the mesh id is what lets a scanned contact message you at
+  // the venue, and a Matrix id is only ever entered in order to be reached on it.
+  matrixId: true,
+  neutrinoServerName: true,
   ticketRef: false,
   fossUnitedProfileUrl: true,
   // Public developer profiles are what people actually swap at a FOSS conference.
@@ -98,13 +100,13 @@ export function attendeeProfileToVCard(
     pushField(lines, 'X-FOSSUNITED-PROFILE', profile.fossUnitedProfileUrl);
   }
   if (selection.matrixId) {
-    pushField(lines, 'X-MATRIX-ID', profile.matrixId);
+    pushField(lines, 'X-INDIAFOSS-MATRIX', profile.matrixId);
     if (profile.matrixId?.trim()) pushField(lines, 'IMPP', `matrix:${profile.matrixId}`);
   }
   if (selection.neutrinoServerName) {
-    pushField(lines, 'X-NEUTRINO-SERVER-NAME', profile.neutrinoServerName);
+    pushField(lines, 'X-INDIAFOSS-MESH', profile.neutrinoServerName);
   }
-  if (selection.ticketRef) pushField(lines, 'X-INDIAFOSS-TICKET-REF', profile.ticketRef);
+  if (selection.ticketRef) pushField(lines, 'X-INDIAFOSS-TICKET', profile.ticketRef);
 
   for (const [network, enabled] of Object.entries(selection.socials)) {
     if (!enabled) continue;

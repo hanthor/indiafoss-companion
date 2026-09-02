@@ -11,6 +11,8 @@
     parseScannedPayload,
     shortFingerprint,
     verifyFriendPayload,
+    verifyVCardSignature,
+    formatPublicKey,
     type FriendSignatureState,
     type ScannedPayload,
   } from '@indiafoss/model';
@@ -46,7 +48,11 @@
   let status = $state('');
   let pending = $state<Pending | null>(null);
   /** Signature check + key badge for a scanned friend card. */
-  let cardIdentity = $state<{ signature: FriendSignatureState; fingerprint?: string } | null>(null);
+  let cardIdentity = $state<{
+    signature: FriendSignatureState;
+    fingerprint?: string;
+    publicKey?: string;
+  } | null>(null);
   let manualLocation = $state('');
   let manualVCard = $state('');
   let venue = $state<LoadedVenue | null>(null);
@@ -113,6 +119,17 @@
         cardIdentity = {
           signature,
           fingerprint: publicKey ? await keyFingerprint(publicKey) : undefined,
+          publicKey: publicKey ? formatPublicKey(publicKey) : undefined,
+        };
+      });
+    } else if (result.kind === 'contact') {
+      void verifyVCardSignature(result.vcard).then(async ({ signature, publicKey }) => {
+        // A card from any other app is simply unsigned; only a companion card carries a key.
+        if (!publicKey) return;
+        cardIdentity = {
+          signature,
+          fingerprint: await keyFingerprint(publicKey),
+          publicKey: formatPublicKey(publicKey),
         };
       });
     }
@@ -134,7 +151,13 @@
     const eventId = eventState.bundle?.id;
     if (!pending) return null;
     if (pending.kind === 'contact')
-      return contactFromVCard(pending.profile, pending.vcard, eventId);
+      return contactFromVCard(
+        pending.profile,
+        pending.vcard,
+        eventId,
+        cardIdentity ?? undefined,
+        meeting,
+      );
     if (pending.kind === 'friend') {
       return contactFromFriend(pending.friend, eventId, cardIdentity ?? undefined, meeting);
     }

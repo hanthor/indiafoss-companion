@@ -1,8 +1,49 @@
-# Contact sharing: privacy guarantees and vCard compatibility
+# Contact sharing
 
-The Connect screen (`/connect`) lets an attendee build and share a contact card
-from their existing FOSS United identity. It is deliberately local, opt-in, and
-offline.
+## One card, one QR (redesign, 2026-09)
+
+`/connect` shows a single, always-live QR code. It is a plain **vCard 3.0**,
+so any phone camera saves the attendee straight to Contacts. Fields the
+companion understands ride along as `X-` extension properties, which camera
+apps ignore and the companion scanner reads:
+
+| Property             | Meaning                                                                         |
+| -------------------- | ------------------------------------------------------------------------------- |
+| `X-INDIAFOSS-MESH`   | Neutrino node id (64 hex): lets a scanned contact message you on the venue mesh |
+| `X-INDIAFOSS-MATRIX` | Public Matrix id, opened in Element                                             |
+| `X-INDIAFOSS-TICKET` | `ticket::<id>` correlation key for organisers; never an identity                |
+| `X-INDIAFOSS-KEY`    | This device's handshake public key (`alg:base64url`)                            |
+| `X-INDIAFOSS-SIG`    | Signature over every other line of the card, by that key                        |
+
+The signature covers the whole body including the key line, so a card whose
+key was swapped does not verify. A card from any other app simply has no
+key and is shown as **unsigned**, never as an error. The scanner derives the
+same 5×5 pixel key badge from `X-INDIAFOSS-KEY` that the owner sees on their
+own Connect screen, which is the in-person check.
+
+The older spellings (`X-MATRIX-ID`, `X-NEUTRINO-SERVER-NAME`,
+`X-INDIAFOSS-TICKET-REF`) and the `indiafoss://friend?v=1` link are still
+accepted by the scanner for cards already in circulation.
+
+Every field is one row: label, editable value, share switch. Groups and
+defaults:
+
+- **Identity** (on): name, organisation, website, FOSS United profile.
+  "Fill from FOSS United" pulls the public profile.
+- **Links** (on, already public): GitHub, LinkedIn, Mastodon by default;
+  "+ Add" for more networks. A newly filled link is shared unless switched off.
+- **Private** (off, amber): email, phone. A QR can be photographed.
+- **Companion extras** (mesh id on, Matrix id on, ticket off): other camera
+  apps ignore these.
+
+Empty fields are never encoded whatever their switch says. The card is
+re-encoded a beat after each edit and the profile is saved at the same time;
+"N fields · B bytes" and "SIGNED" under the QR reflect the current payload.
+
+"People I met" lists scanned contacts newest first, grouped by day, with the
+key badge, where you met (the session running at scan time) and the
+signature state; search, export (.vcf / JSON backup) and import live in the
+same section.
 
 ## Privacy guarantees
 

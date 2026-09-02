@@ -32,15 +32,31 @@ function newId(): string {
   return `contact-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+export interface MeetingContext {
+  activityId?: string;
+  locationId?: string;
+}
+
 /** Build a contact from a scanned vCard; nothing is saved until the user confirms. */
 export function contactFromVCard(
   card: AttendeeProfile,
   vcard: string,
   eventId?: string,
+  identity?: {
+    fingerprint?: string;
+    signature?: 'valid' | 'invalid' | 'unsigned';
+    publicKey?: string;
+  },
+  met?: MeetingContext,
 ): ContactRecord {
   return {
     id: newId(),
     vcard,
+    ...(identity?.publicKey ? { publicKey: identity.publicKey } : {}),
+    ...(identity?.fingerprint ? { fingerprint: identity.fingerprint } : {}),
+    ...(identity?.signature ? { signature: identity.signature } : {}),
+    ...(met?.activityId ? { metActivityId: met.activityId } : {}),
+    ...(met?.locationId ? { metLocationId: met.locationId } : {}),
     fullName: card.fullName || card.matrixId || 'Unnamed contact',
     organization: card.organization,
     email: card.email,
@@ -55,11 +71,6 @@ export function contactFromVCard(
     savedAt: nowIso(),
     eventId,
   };
-}
-
-export interface MeetingContext {
-  activityId?: string;
-  locationId?: string;
 }
 
 export function contactFromFriend(

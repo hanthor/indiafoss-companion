@@ -137,3 +137,34 @@ describe('parseVCard', () => {
     }
   });
 });
+
+describe('vCard extension fields (single-QR redesign)', () => {
+  const card = (lines: string[]) =>
+    ['BEGIN:VCARD', 'VERSION:3.0', 'FN:Asha Rao', ...lines, 'END:VCARD'].join('\r\n');
+
+  it('reads the current X-INDIAFOSS-* spellings', () => {
+    const profile = parseVCard(
+      card([
+        'X-INDIAFOSS-MATRIX:@asha:example.org',
+        `X-INDIAFOSS-MESH:${'a'.repeat(64)}`,
+        'X-INDIAFOSS-TICKET:ticket::T9',
+      ]),
+    );
+    expect(profile?.matrixId).toBe('@asha:example.org');
+    expect(profile?.neutrinoServerName).toBe('a'.repeat(64));
+    expect(profile?.ticketRef).toBe('ticket::T9');
+  });
+
+  it('still reads cards written before the rename', () => {
+    const profile = parseVCard(
+      card([
+        'X-MATRIX-ID:@asha:example.org',
+        `X-NEUTRINO-SERVER-NAME:${'b'.repeat(64)}`,
+        'X-INDIAFOSS-TICKET-REF:ticket::T9',
+      ]),
+    );
+    expect(profile?.matrixId).toBe('@asha:example.org');
+    expect(profile?.neutrinoServerName).toBe('b'.repeat(64));
+    expect(profile?.ticketRef).toBe('ticket::T9');
+  });
+});
