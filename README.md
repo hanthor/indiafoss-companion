@@ -13,6 +13,14 @@ The app answers four questions on the conference floor:
 3. How do I get there?
 4. When sessions overlap, which one do I prefer?
 
+## Try it
+
+- Web/PWA: <https://hanthor.github.io/indiafoss-companion/> (deployed from
+  `main`; installable, works offline after the first load).
+- Android: the rolling **nightly** pre-release on the Releases page carries
+  the latest debug APK and its SHA-256. P2P chat is compiled in only when the
+  build had the Neutrino bindings (see `apps/android/capacitor/neutrino`).
+
 ## Status
 
 Phases 0–8 of `docs/phases.md` have landed: canonical model and FOSS United
@@ -37,10 +45,10 @@ work is Android polish (#12), the native Material 3 client (#10), the real
   itinerary solver builds a feasible plan around your preferences.
 - **Indoor navigation**: SVG venue map with A\* routing, accessible profiles,
   and leave-by calculations.
-- **Optional Matrix messaging**: end-to-end encrypted DMs, per-session and
-  per-booth chats created on demand, typing, files and photos, an offline
-  outbox, and a P2P mesh mode when the native shell runs a Neutrino node.
-  Off until you sign in.
+- **Optional peer-to-peer chat**: session, booth and direct chats over
+  Bluetooth/Wi-Fi mesh through an embedded Neutrino node in the Android app,
+  with typing, files and photos and an offline outbox. Off until you switch
+  it on in Settings; public Matrix ids on contact cards open in Element.
 - **Handshake contact cards**: signed friend-card QR codes with pixel key
   badges and "met during" context; nothing leaves the device.
 

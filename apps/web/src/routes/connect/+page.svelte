@@ -28,6 +28,7 @@
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
   import { identiconSvg } from '@indiafoss/model';
+  import { features } from '$lib/features.svelte';
   import {
     hydrateProfile,
     profileState,
@@ -531,10 +532,12 @@
             {/if}
             <SocialLinks links={contactDeepLinks(c)} compact />
             <div class="row-actions">
-              {#if c.matrixId}
+              {#if features.chat && c.neutrinoServerName}
                 <a
                   class="button secondary"
-                  href={resolve(`/chat?dm=${encodeURIComponent(c.matrixId)}`)}>Message</a
+                  href={resolve(
+                    `/chat?dm=${encodeURIComponent(neutrinoMatrixId(c.neutrinoServerName))}`,
+                  )}>Message on mesh</a
                 >
               {/if}
               {#if c.matrixId}
@@ -570,7 +573,9 @@
   </p>
   <p><a href={resolve('/settings')}>Privacy and app settings →</a></p>
   <p><a href={resolve('/scan')}>Scan someone else's code →</a></p>
-  <p><a href={resolve('/chat')}>Open chat →</a></p>
+  {#if features.chat}
+    <p><a href={resolve('/chat')}>Open chat →</a></p>
+  {/if}
 </EventGate>
 
 <style>

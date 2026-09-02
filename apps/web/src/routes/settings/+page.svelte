@@ -2,10 +2,25 @@
   import { resolve } from '$app/paths';
   import type { RoutingProfile } from '@indiafoss/venue';
   import { hydrateRoutingProfile, routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
+  import { features, hydrateFeatures, setChatEnabled } from '$lib/features.svelte';
+  import { getMatrix } from '$lib/matrix.svelte';
+  import { stopMeshNode } from '$lib/neutrino';
 
   $effect(() => {
     void hydrateRoutingProfile();
+    void hydrateFeatures();
   });
+
+  async function toggleChat(on: boolean) {
+    await setChatEnabled(on);
+    if (!on) {
+      // Switching off tears everything down: session, sync loop and the mesh node.
+      await getMatrix()
+        .signOut()
+        .catch(() => {});
+      await stopMeshNode();
+    }
+  }
 
   const profiles: { value: RoutingProfile; label: string; hint: string }[] = [
     { value: 'fastest', label: 'Fastest', hint: 'Uses stairs or lift, whichever is quicker.' },
@@ -17,8 +32,8 @@
     'No account is required for the conference app.',
     'Schedule, ranking, itinerary, notes, and contacts stay on this device.',
     'Email and phone are never included in contact sharing by default.',
-    'Matrix messaging is optional and off until you sign in; your access token stays on this device.',
-    'Scanned Matrix or Neutrino identities are shown as unverified until checked in a Matrix client.',
+    'Peer-to-peer chat is optional and off until you switch it on; it never signs in to a public Matrix account.',
+    'Scanned Matrix or mesh identities are shown as unverified until checked in person or in a Matrix client.',
   ];
 </script>
 
@@ -33,12 +48,28 @@
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
   </section>
   <section class="card">
-    <h2>Messaging</h2>
+    <h2>Peer-to-peer chat</h2>
     <p class="muted">
-      Optional Matrix chat for conference rooms and direct messages. Works with any homeserver;
-      hands off to Element or a Neutrino client when you prefer.
+      Optional. Session chats and direct messages with nearby attendees over Bluetooth and Wi-Fi
+      mesh from the Android app, without venue internet. Nothing runs until you switch it on.
     </p>
-    <a class="button" href={resolve('/chat')}>Open chat →</a>
+    <label class="switch">
+      <input
+        type="checkbox"
+        role="switch"
+        checked={features.chat}
+        disabled={!features.loaded}
+        onchange={(e) => void toggleChat(e.currentTarget.checked)}
+      />
+      <span>Enable P2P chat</span>
+    </label>
+    {#if features.chat}
+      <a class="button" href={resolve('/chat')}>Open chat →</a>
+    {/if}
+    <p class="muted small">
+      Public Matrix accounts are not used inside the app. Contact cards carry Matrix ids so you can
+      continue a conversation in Element when you want to.
+    </p>
   </section>
   <section class="card">
     <h2>Getting around</h2>
@@ -101,5 +132,18 @@
   }
   li {
     margin: 0.45rem 0;
+  }
+  .switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 600;
+    margin: 0.4rem 0 0.8rem;
+    cursor: pointer;
+  }
+  .switch input {
+    width: 1.3rem;
+    height: 1.3rem;
+    accent-color: var(--event-primary-dark);
   }
 </style>

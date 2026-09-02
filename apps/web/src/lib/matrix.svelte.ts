@@ -151,6 +151,7 @@ export function roomById(roomId: string): MatrixRoomRecord | undefined {
 import { conferenceChatAlias } from '@indiafoss/model';
 import type { ConferenceChatKind, EventBundle } from '@indiafoss/model';
 import { messagingConfigFor } from '$lib/messaging-config';
+import { features } from '$lib/features.svelte';
 
 /** Query string for /chat that joins or creates a session, booth or venue-room chat. */
 export function conferenceChatQuery(
@@ -161,7 +162,7 @@ export function conferenceChatQuery(
   topic?: string,
 ): string | null {
   const config = messagingConfigFor(bundle);
-  if (config.sessionChats === false || !bundle) return null;
+  if (!features.chat || config.sessionChats === false || !bundle) return null;
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const params = new URLSearchParams();
   params.set('open', conferenceChatAlias(config, bundle.id, kind, id));

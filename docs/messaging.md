@@ -1,10 +1,25 @@
 # Optional Matrix messaging
 
-> **Android packaging (decided 2026-09-02):** the Android app is the
-> conference companion. Chat is an optional feature inside it, switched on in
-> Settings, using the screens described here; the on-device Neutrino node
-> arrives as a Capacitor plugin. The Element X fork is parked as a reference.
-> See [issue #35](https://github.com/hanthor/indiafoss-companion/issues/35).
+## The model (decided 2026-09-02)
+
+- **In-app chat is peer-to-peer only.** The Android app embeds a Neutrino
+  node (`apps/android/capacitor/neutrino`) and the `/chat` screens talk plain
+  Matrix to it on loopback. There is no public-homeserver sign-in inside the
+  app.
+- **Public Matrix lives in a real Matrix client.** Contact cards, speaker
+  profiles and scanned codes carry Matrix ids and open them in Element via
+  `matrix.to`; the companion never joins a public room itself.
+- **Why not both:** a Neutrino node is its own homeserver whose identity is
+  its Ed25519 key (`@n:<64-hex>`); it federates only with other mesh nodes and
+  has no bridge to the public network. A room on the mesh does not exist on
+  matrix.org and a public account cannot reach a mesh peer, so running both in
+  one app would mean two disconnected conversations under one name. The only
+  identity association available is self-asserted: the signed handshake card
+  carries both the public Matrix id and the mesh node id, and MSC4133 profile
+  fields can point at the same FOSS United profile; neither is verified.
+- **Off by default.** `features.chat` (Settings › Peer-to-peer chat) gates
+  the Chat tab, the session/booth chat buttons, the Matrix session and the
+  node process. Web and iOS have no node and show that plainly.
 
 > Status: implemented in the PWA as an **optional, opt-in** layer (issue #11,
 > #5, #8). The schedule, map, ranking, itinerary and contact sharing never
@@ -13,9 +28,14 @@
 
 ## What the companion does
 
-| Capability            | PWA / Capacitor                                                | Native Neutrino client (Element X fork)                   |
+The `packages/matrix` client layer speaks standard Matrix and is exercised
+against a fake public-style homeserver in tests; the app itself only ever
+points it at the embedded node. The right-hand column is the parked Element X
+fork, kept as the reference implementation of the node integration.
+
+| Capability            | Client layer (`packages/matrix`)                               | Native Neutrino client (Element X fork, parked)           |
 | --------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
-| Sign in               | Password or SSO against any Matrix homeserver                  | Its own embedded homeserver; each node is its own account |
+| Sign in               | Password/SSO supported; the app uses only the on-device node   | Its own embedded homeserver; each node is its own account |
 | Conference rooms      | Listed from the event bundle, joined on request                | Joined by alias / `matrix:` link from the QR handoff      |
 | Direct messages       | Standard Matrix DMs (`m.direct`)                               | P2P DMs by Neutrino peer identity                         |
 | Room discovery        | Bundle list, public-room directory search, join by alias       | BLE peer discovery + bundle list                          |
@@ -32,9 +52,9 @@ scanning on `/connect` and `/scan`.
 
 The Neutrino README lists what the embedded homeserver does not do yet:
 end-to-end encryption, file transfer, typing indicators and read receipts.
-The companion implements all four against standard Matrix so that attendees
-on a public homeserver get the full experience today, and the same UI lights
-up on a mesh homeserver as Neutrino grows into them:
+The companion's client layer implements all four against standard Matrix
+(proven in tests against a fake homeserver), so the same UI lights up on the
+mesh node as Neutrino grows into them:
 
 - **E2EE (Megolm).** `packages/matrix/src/crypto.ts` wraps
   `@matrix-org/matrix-sdk-crypto-wasm` (the crypto crate behind Element X).
@@ -77,8 +97,8 @@ or, on `M_NOT_FOUND`, creates a public room with that alias (racing creators
 fall back to join on `M_ROOM_IN_USE`). Buttons live on the activity page,
 the booth page and next to each live session on Now; the `/chat` list groups
 them under "Session, booth and venue chats". Because the alias is derived
-from stable ids, attendees on the public homeserver and on a Neutrino mesh
-converge on the same room name.
+from stable ids, every node on the mesh converges on the same room name
+without any provisioning.
 
 ### Connectivity at the venue (NIMHANS)
 
@@ -116,8 +136,9 @@ Venue Wi-Fi and cellular are unreliable, so the design assumes no network:
   ```
 
   `collectBundleIssues` validates aliases, duplicate rooms and the homeserver
-  URL. Without a `messaging` block the app falls back to `matrix.org` with an
-  empty room list (`apps/web/src/lib/messaging-config.ts`).
+  URL. The `homeserver` value only names the alias server for conference rooms;
+  the app never signs in to it. Without a `messaging` block the default is
+  `matrix.org` with an empty room list (`apps/web/src/lib/messaging-config.ts`).
 
 - Membership is always explicit: rooms are **suggested**, never auto-joined.
   Invitations appear in `/chat` and are accepted with one tap.

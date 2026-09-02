@@ -9,6 +9,7 @@
   import { armNotifications, hydrateNotifications } from '$lib/notifications.svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
   import { hydrateMatrix, matrixState, unreadTotal } from '$lib/matrix.svelte';
+  import { features, hydrateFeatures } from '$lib/features.svelte';
   import { installNativeDeepLinks } from '$lib/native';
   import { goto } from '$app/navigation';
 
@@ -22,7 +23,7 @@
   onMount(() => {
     void hydratePreferences();
     void hydrateNotifications();
-    void hydrateMatrix();
+    void hydrateFeatures();
     // Deep-link targets are validated in routeForDeepLink() before navigation.
     // eslint-disable-next-line svelte/no-navigation-without-resolve
     void installNativeDeepLinks(base, (path) => goto(path)).catch(() => {});
@@ -37,6 +38,11 @@
     if (eventState.status === 'ready' && eventState.bundle) {
       void checkForUpdates(DEFAULT_EVENT_ID);
     }
+  });
+
+  // The chat add-on only comes alive once the attendee has switched it on.
+  $effect(() => {
+    if (features.chat) void hydrateMatrix();
   });
 
   function isActive(href: string): boolean {
@@ -96,15 +102,21 @@
         >
         <span>Scan</span>
       </a>
-      <a href={resolve('/chat')} aria-current={isActive('/chat') ? 'page' : undefined} title="Chat">
-        <svg viewBox="0 0 24 24" aria-hidden="true"
-          ><path d="M4 4h16v11h-9l-4 4v-4H4V4zm2 2v7h3v2l2-2h7V6H6z" /></svg
+      {#if features.chat}
+        <a
+          href={resolve('/chat')}
+          aria-current={isActive('/chat') ? 'page' : undefined}
+          title="Chat"
         >
-        <span>Chat</span>
-        {#if matrixState.status !== 'signed-out' && unreadTotal() > 0}
-          <span class="unread" aria-label="{unreadTotal()} unread messages">{unreadTotal()}</span>
-        {/if}
-      </a>
+          <svg viewBox="0 0 24 24" aria-hidden="true"
+            ><path d="M4 4h16v11h-9l-4 4v-4H4V4zm2 2v7h3v2l2-2h7V6H6z" /></svg
+          >
+          <span>Chat</span>
+          {#if matrixState.status !== 'signed-out' && unreadTotal() > 0}
+            <span class="unread" aria-label="{unreadTotal()} unread messages">{unreadTotal()}</span>
+          {/if}
+        </a>
+      {/if}
       <a
         href={resolve('/connect')}
         aria-current={isActive('/connect') ? 'page' : undefined}

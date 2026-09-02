@@ -302,3 +302,21 @@ test('scan: pasting a vCard previews the shared fields and rejects junk', async 
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toHaveCount(0);
 });
+
+test('P2P chat is off by default and switches on from settings', async ({ page }) => {
+  // Off: no Chat entry anywhere, and /chat explains how to enable it.
+  await expect(page.getByRole('link', { name: 'Chat', exact: true })).toHaveCount(0);
+  await page.goto(appUrl('/chat'));
+  await expect(page.getByRole('heading', { name: 'P2P chat is off' })).toBeVisible();
+
+  await page.goto(appUrl('/settings'));
+  const toggle = page.getByRole('switch', { name: /Enable P2P chat/ });
+  await toggle.click();
+  await expect(toggle).toBeChecked();
+  await expect(page.getByRole('link', { name: /Open chat/ })).toBeVisible();
+
+  // On, in a browser: the tab appears and /chat reports there is no mesh node here.
+  await page.goto(appUrl('/chat'));
+  await expect(page.getByRole('heading', { name: 'No mesh node on this device' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
+});

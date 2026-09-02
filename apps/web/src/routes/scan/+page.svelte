@@ -26,7 +26,7 @@
     contactFromVCard,
     saveContact,
   } from '$lib/contacts.svelte';
-  import { hydrateMatrix, matrixState } from '$lib/matrix.svelte';
+  import { features } from '$lib/features.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
 
@@ -48,7 +48,6 @@
   $effect(() => {
     void loadEvent();
     void hydrateLocation();
-    void hydrateMatrix();
   });
 
   // Deep links (indiafoss://location/…, indiafoss://friend?…) arrive as ?payload=.
@@ -339,27 +338,24 @@
             Set location
           </button>
         {:else if pending.kind === 'matrix-room'}
-          <a
-            class="button primary"
-            href={resolve(`/chat?join=${encodeURIComponent(pending.idOrAlias)}`)}
-          >
-            Join in Chat
-          </a>
+          <!-- Public Matrix rooms live in a real Matrix client, not in the mesh chat. -->
           <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-          <a class="button secondary" href={matrixToUrl(pending.idOrAlias)} rel="noreferrer"
+          <a class="button primary" href={matrixToUrl(pending.idOrAlias)} rel="noreferrer"
             >Open in Element</a
           >
         {:else if pending.kind !== 'ticket'}
           <button class="button primary" onclick={confirmPending}>Save contact</button>
+          {#if contactPreview?.neutrinoServerName && features.chat}
+            <a
+              class="button secondary"
+              href={resolve(
+                `/chat?dm=${encodeURIComponent(neutrinoMatrixId(contactPreview.neutrinoServerName))}`,
+              )}
+            >
+              Message on mesh
+            </a>
+          {/if}
           {#if contactPreview?.matrixId}
-            {#if matrixState.status !== 'signed-out'}
-              <a
-                class="button secondary"
-                href={resolve(`/chat?dm=${encodeURIComponent(contactPreview.matrixId)}`)}
-              >
-                Message
-              </a>
-            {/if}
             <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
             <a class="button secondary" href={matrixToUrl(contactPreview.matrixId)} rel="noreferrer"
               >Open in Element</a
@@ -427,7 +423,9 @@
   </section>
 
   <p><a href={resolve('/connect')}>Share your own contact card →</a></p>
-  <p><a href={resolve('/chat')}>Open chat →</a></p>
+  {#if features.chat}
+    <p><a href={resolve('/chat')}>Open chat →</a></p>
+  {/if}
 </EventGate>
 
 <style>

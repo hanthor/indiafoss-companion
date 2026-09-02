@@ -139,9 +139,15 @@ jobs:
         run: pnpm --filter @indiafoss/android exec cap add android
 
       - name: Sync web assets
+        # With NEUTRINO_PACKAGES_TOKEN set (a token with read:packages for
+        # element-hq), the optional P2P chat plugin is compiled in.
+        env:
+          NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
         run: pnpm --filter @indiafoss/android build
 
       - name: Assemble debug APK
+        env:
+          NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
         run: cd apps/android/capacitor/android && ./gradlew assembleDebug
 
       - name: Checksum the APK
