@@ -27,6 +27,8 @@ lands on `main` with tests green.
 
 ## Beyond the numbered phases
 
+See `roadmap.md` (mirror of tracking issue #34) for everything after Phase 10.
+
 - Optional Matrix messaging (issue #11) — `packages/matrix`, `/chat`,
   Neutrino/QR handoff; see `docs/messaging.md`.
 - Contact sharing, QR scanning, calendar export, editable itinerary (issues
