@@ -25,6 +25,7 @@
     "@indiafoss/schedule": "workspace:*",
     "@indiafoss/search": "workspace:*",
     "@indiafoss/solver": "workspace:*",
+    "@indiafoss/sources": "workspace:*",
     "@indiafoss/storage": "workspace:*",
     "@indiafoss/venue": "workspace:*",
     "qr-scanner": "^1.4.2",

@@ -10,3 +10,6 @@ apps/android/capacitor/android/
 *.svg
 *.json
 **/raw/*.html
+
+# Captured upstream HTML fixtures are byte-for-byte records, not source.
+packages/sources/src/fossunited/fixtures/

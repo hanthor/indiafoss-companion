@@ -206,3 +206,21 @@ GitHub and LinkedIn, so:
   `classifyLink()` recognises the network from the host (LinkedIn including
   regional subdomains, GitHub, X/Twitter, Bluesky, YouTube, fediverse `/@user`
   paths) and treats anything else as the person's website.
+
+## Importing your FOSS United profile
+
+Connect can fill the card from your public profile at
+`https://fossunited.org/u/<username>`: display name, personal site and the
+social links in the profile header (GitHub, GitLab, LinkedIn, Mastodon,
+Bluesky, X, Instagram, YouTube, Medium, dev.to). Only empty fields are filled,
+so nothing you typed is overwritten, and imported socials are marked shared by
+default because they are already public. The parser is
+`packages/sources/src/fossunited/parse-profile.ts`, fixture-tested against a
+captured profile page; nothing about you is sent anywhere, the page is only
+read.
+
+`fossunited.org` sends `Access-Control-Allow-Origin: https://fossunited.org`,
+so a browser cannot read the page from the companion's origin. The Android app
+fetches it through `CapacitorHttp`, which performs the request natively and is
+not subject to that rule. On the web the import is attempted anyway and, when
+the browser blocks it, the UI says so and the fields stay manual.

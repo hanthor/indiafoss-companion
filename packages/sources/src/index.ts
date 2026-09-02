@@ -16,6 +16,13 @@ export type {
   FosuSpeaker,
 } from './fossunited/types.js';
 export { parseProposalDetail } from './fossunited/parse-proposal.js';
+export {
+  parseFossUnitedProfile,
+  profileUrlForUsername,
+  socialNetworkFor,
+  usernameFromProfileUrl,
+} from './fossunited/parse-profile.js';
+export type { FossUnitedProfile, ProfileSocialNetwork } from './fossunited/parse-profile.js';
 export { FixtureSource, repoRoot } from './fixture.js';
 export { StaticBundleSource } from './static-bundle.js';
 export type { EventSource, SourceEvent, FossUnitedSourceEvent } from './types.js';
