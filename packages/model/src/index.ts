@@ -174,7 +174,11 @@ export interface EventReference {
 
 export {
   attendeeProfileToVCard,
+  classifyLink,
   contactDeepLinks,
+  LINK_LABELS,
+  linksFromUrls,
+  sortLinks,
   DEFAULT_ATTENDEE_SHARE_SELECTION,
   messengerHandle,
   normalizePhone,
@@ -184,6 +188,7 @@ export type {
   AttendeeShareSelection,
   AttendeeSocial,
   ContactLink,
+  LinkKind,
 } from './contact.js';
 export {
   MAX_SCAN_PAYLOAD_BYTES,

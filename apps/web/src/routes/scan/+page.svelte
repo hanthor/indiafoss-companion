@@ -28,6 +28,7 @@
   } from '$lib/contacts.svelte';
   import { hydrateMatrix, matrixState } from '$lib/matrix.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
+  import SocialLinks from '$lib/components/SocialLinks.svelte';
 
   type Pending = Exclude<ScannedPayload, { kind: 'error' }>;
 
@@ -325,12 +326,7 @@
           <p class="muted small">
             Tap to reach them (opens the app or site, nothing is sent automatically):
           </p>
-          <div class="preview-actions">
-            {#each contactDeepLinks(contactPreview) as link (link.kind)}
-              <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-              <a class="button secondary" href={link.href} rel="noreferrer">{link.label}</a>
-            {/each}
-          </div>
+          <SocialLinks links={contactDeepLinks(contactPreview)} />
         {/if}
       {/if}
       <div class="preview-actions">

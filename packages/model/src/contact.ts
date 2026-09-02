@@ -58,7 +58,8 @@ export const DEFAULT_ATTENDEE_SHARE_SELECTION: AttendeeShareSelection = {
   neutrinoServerName: false,
   ticketRef: false,
   fossUnitedProfileUrl: true,
-  socials: {},
+  // Public developer profiles are what people actually swap at a FOSS conference.
+  socials: { github: true, linkedin: true },
 };
 
 function escapeVCard(value: string): string {
@@ -207,7 +208,118 @@ export function contactDeepLinks(profile: {
   for (const [network, url] of Object.entries(socials) as [AttendeeSocial, string][]) {
     if (network === 'telegram' || network === 'whatsapp' || network === 'signal') continue;
     if (url && /^https?:\/\//i.test(url))
-      links.push({ kind: network, label: network, href: url.trim() });
+      links.push({ kind: network, label: LINK_LABELS[network], href: url.trim() });
   }
-  return links;
+  return sortLinks(links);
+}
+
+export type LinkKind = ContactLink['kind'];
+
+/** Display order: what people look for first at a FOSS conference. */
+const LINK_ORDER: LinkKind[] = [
+  'website',
+  'github',
+  'gitlab',
+  'linkedin',
+  'mastodon',
+  'bluesky',
+  'x',
+  'matrix',
+  'telegram',
+  'whatsapp',
+  'signal',
+  'email',
+  'phone',
+  'sms',
+  'youtube',
+  'medium',
+  'devto',
+  'instagram',
+];
+
+export const LINK_LABELS: Record<LinkKind, string> = {
+  website: 'Website',
+  github: 'GitHub',
+  gitlab: 'GitLab',
+  linkedin: 'LinkedIn',
+  mastodon: 'Mastodon',
+  bluesky: 'Bluesky',
+  x: 'X',
+  matrix: 'Matrix',
+  telegram: 'Telegram',
+  whatsapp: 'WhatsApp',
+  signal: 'Signal',
+  email: 'Email',
+  phone: 'Call',
+  sms: 'SMS',
+  youtube: 'YouTube',
+  medium: 'Medium',
+  devto: 'dev.to',
+  instagram: 'Instagram',
+};
+
+/**
+ * Classify a public URL by host. Speaker links from FOSS United arrive with
+ * the generic label "social", so the host is the only signal. Anything that is
+ * not a known network is a personal website.
+ */
+export function classifyLink(url: string): LinkKind | null {
+  let host: string;
+  let path: string;
+  try {
+    const parsed = new URL(url.trim());
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
+      if (parsed.protocol === 'mailto:') return 'email';
+      if (parsed.protocol === 'tel:') return 'phone';
+      return null;
+    }
+    host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    path = parsed.pathname;
+  } catch {
+    return null;
+  }
+  const is = (...domains: string[]) => domains.some((d) => host === d || host.endsWith(`.${d}`));
+  if (is('github.com')) return 'github';
+  if (is('gitlab.com')) return 'gitlab';
+  if (is('linkedin.com')) return 'linkedin';
+  if (is('x.com', 'twitter.com')) return 'x';
+  if (is('bsky.app')) return 'bluesky';
+  if (is('youtube.com', 'youtu.be')) return 'youtube';
+  if (is('medium.com')) return 'medium';
+  if (is('dev.to')) return 'devto';
+  if (is('instagram.com')) return 'instagram';
+  if (is('t.me', 'telegram.me')) return 'telegram';
+  if (is('wa.me')) return 'whatsapp';
+  if (is('signal.me')) return 'signal';
+  if (is('matrix.to')) return 'matrix';
+  // Fediverse: profile paths look like /@user on any instance.
+  if (
+    /^\/@[^/]+\/?$/.test(path) ||
+    is('fosstodon.org', 'mastodon.social', 'mastodon.online', 'hachyderm.io', 'infosec.exchange')
+  ) {
+    return 'mastodon';
+  }
+  return 'website';
+}
+
+/** Speaker / booth links from the bundle as labelled, ordered, tappable links. */
+export function linksFromUrls(links: { label?: string; url: string }[]): ContactLink[] {
+  const out: ContactLink[] = [];
+  const seen = new Set<string>();
+  for (const link of links) {
+    const kind = classifyLink(link.url);
+    if (!kind || seen.has(link.url)) continue;
+    seen.add(link.url);
+    const generic = !link.label || /^(social|link|url|website|profile)$/i.test(link.label);
+    out.push({ kind, label: generic ? LINK_LABELS[kind] : link.label!, href: link.url.trim() });
+  }
+  return sortLinks(out);
+}
+
+export function sortLinks(links: ContactLink[]): ContactLink[] {
+  const rank = (k: LinkKind) => {
+    const i = LINK_ORDER.indexOf(k);
+    return i === -1 ? LINK_ORDER.length : i;
+  };
+  return [...links].sort((a, b) => rank(a.kind) - rank(b.kind));
 }

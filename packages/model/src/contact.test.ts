@@ -33,8 +33,9 @@ describe('attendeeProfileToVCard', () => {
     expect(vcard).not.toContain('EMAIL');
     expect(vcard).not.toContain('TEL');
     expect(vcard).not.toContain('X-MATRIX-ID');
-    // socials off by default
-    expect(vcard).not.toContain('X-SOCIALPROFILE');
+    // only public developer profiles (GitHub, LinkedIn) are shared by default
+    expect(vcard).not.toContain('TYPE=x:');
+    expect(vcard).not.toContain('TYPE=instagram');
     expect(vcard.trimEnd().endsWith('END:VCARD')).toBe(true);
   });
 

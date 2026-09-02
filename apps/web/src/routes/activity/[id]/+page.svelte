@@ -5,6 +5,8 @@
   import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import { conferenceChatQuery } from '$lib/matrix.svelte';
+  import SocialLinks from '$lib/components/SocialLinks.svelte';
+  import { linksFromUrls } from '@indiafoss/model';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -149,6 +151,9 @@
                   </p>
                 {/if}
                 {#if speaker.bio}<p class="muted small">{speaker.bio.slice(0, 180)}…</p>{/if}
+                {#if speaker.links.length > 0}
+                  <SocialLinks links={linksFromUrls(speaker.links)} compact />
+                {/if}
               </div>
             </li>
           {/each}

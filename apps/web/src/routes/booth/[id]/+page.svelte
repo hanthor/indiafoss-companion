@@ -1,5 +1,7 @@
 <script lang="ts">
   import { conferenceChatQuery } from '$lib/matrix.svelte';
+  import SocialLinks from '$lib/components/SocialLinks.svelte';
+  import { linksFromUrls } from '@indiafoss/model';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { CompanionStorage } from '@indiafoss/storage';
@@ -42,8 +44,7 @@
     <p class="muted">{booth.category}</p>
     {#if booth.description}<p>{booth.description}</p>{/if}
     {#if booth.website}
-      <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-      <p><a href={booth.website} rel="noreferrer">Website</a></p>
+      <SocialLinks links={linksFromUrls([{ label: 'Website', url: booth.website }])} />
     {/if}
     {#if location}
       <p class="muted small">

@@ -25,6 +25,7 @@
   import { eventState } from '$lib/event.svelte';
   import { hydrateMatrix, matrixState } from '$lib/matrix.svelte';
   import { contactsState, deleteContact, hydrateContacts } from '$lib/contacts.svelte';
+  import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
   import { identiconSvg } from '@indiafoss/model';
   import {
@@ -528,6 +529,7 @@
               <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
               <span class="identicon small-badge">{@html identiconSvg(c.fingerprint, 40)}</span>
             {/if}
+            <SocialLinks links={contactDeepLinks(c)} compact />
             <div class="row-actions">
               {#if c.matrixId}
                 <a
@@ -535,10 +537,6 @@
                   href={resolve(`/chat?dm=${encodeURIComponent(c.matrixId)}`)}>Message</a
                 >
               {/if}
-              {#each contactDeepLinks(c).filter( (l) => ['phone', 'email', 'telegram', 'whatsapp', 'signal'].includes(l.kind) ) as link (link.kind)}
-                <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-                <a class="button secondary" href={link.href} rel="noreferrer">{link.label}</a>
-              {/each}
               {#if c.matrixId}
                 <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                 <a class="button secondary" href={matrixToUrl(c.matrixId)} rel="noreferrer"

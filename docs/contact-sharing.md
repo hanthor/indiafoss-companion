@@ -189,3 +189,20 @@ other contact field; when shared they ride in the vCard as
 `X-SOCIALPROFILE;TYPE=telegram|whatsapp|signal` and in the friend card as
 `social_<network>`. On the Scan preview and in the saved-contacts list they
 appear as buttons; nothing is sent automatically.
+
+## Developer profiles first: LinkedIn, GitHub, personal sites
+
+At a FOSS conference the links people actually swap are a personal site,
+GitHub and LinkedIn, so:
+
+- they are **on by default** in the share card (`DEFAULT_ATTENDEE_SHARE_SELECTION`
+  ticks `github` and `linkedin`; `website` was already on), while email, phone,
+  Matrix, Neutrino, ticket and the chat messengers stay opt-in;
+- every link list — speaker pages, the speakers block on a session, booths,
+  the scan preview and saved contacts — renders through `SocialLinks.svelte`
+  as labelled icon buttons ordered website → GitHub → GitLab → LinkedIn →
+  Mastodon → Bluesky → X → Matrix → messengers → email → phone;
+- speaker links from FOSS United arrive with the generic label "social", so
+  `classifyLink()` recognises the network from the host (LinkedIn including
+  regional subdomains, GitHub, X/Twitter, Bluesky, YouTube, fediverse `/@user`
+  paths) and treats anything else as the person's website.
