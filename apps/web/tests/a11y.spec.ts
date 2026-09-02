@@ -44,6 +44,23 @@ for (const [name, path] of CORE_SCREENS) {
   });
 }
 
+// The same screens under prefers-color-scheme: dark (#33 dark audit).
+for (const [name, path] of CORE_SCREENS) {
+  test.describe('dark mode', () => {
+    test.use({ colorScheme: 'dark' });
+    test(`a11y (dark): ${name} has no serious/critical violations`, async ({ page }) => {
+      await page.goto(appUrl(path));
+      // Give the event-gated screens time to render their content.
+      await page.waitForLoadState('networkidle').catch(() => {});
+      await page.waitForTimeout(400);
+      const violations = await seriousViolations(page);
+      // Surface a readable summary on failure.
+      const summary = violations.map((v) => `${v.id} (${v.impact}): ${v.help}`);
+      expect(summary, summary.join('\n')).toEqual([]);
+    });
+  });
+}
+
 test('a11y: ranking is fully operable with the keyboard only', async ({ browser }) => {
   // Isolated context so ranking always starts with unranked candidates,
   // independent of other tests' local state.

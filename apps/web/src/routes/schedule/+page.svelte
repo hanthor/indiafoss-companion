@@ -283,7 +283,7 @@
   }
   .seg button.active {
     background: var(--event-primary-dark);
-    color: #fff;
+    color: var(--on-strong);
   }
   .filters summary {
     cursor: pointer;

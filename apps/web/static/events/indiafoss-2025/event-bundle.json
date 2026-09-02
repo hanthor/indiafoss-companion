@@ -568,7 +568,7 @@
       "id": "act-c8akqqerfa",
       "sourceId": "c8akqqerfa",
       "type": "talk",
-      "title": " Implementing a Custom HAL in AOSP ",
+      "title": "Implementing a Custom HAL in AOSP",
       "subtitle": "Talk",
       "description": "In this talk, I will walk through the process of implementing a custom Hardware Abstraction Layer (HAL) in the Android Open Source Project (AOSP). The session is designed to provide a clear, practical understanding of how Android communicates from the application layer to low-level hardware through its HAL interface. I’ll use a real-world example involving hardware activation to demonstrate:Creating a HAL module and registering it with the Android system Modifying the AOSP framework to communicate with the HAL Establishing secure access to hardware nodes at the kernel level Managing permissions and SELinux policies for hardware control Developing a simple Android app and service to trigger HAL operations Whether you're working on sensors, indicators, or custom peripherals, this session offers a reusable blueprint for integrating the hardware layer into AOSP.",
       "keyTakeaways": [
@@ -1570,7 +1570,7 @@
       "id": "act-3ecofm0lie",
       "sourceId": "3ecofm0lie",
       "type": "talk",
-      "title": "JIgIta - jump to soldering joy from pain ",
+      "title": "JIgIta - jump to soldering joy from pain",
       "subtitle": "Talk",
       "description": "Most electronic circuits now-a-days include a lot of SMD components. That said, through hole (TH) components are still widely used. Soldering TH components onto PCBs requires holding them in place in the right position and orientation. This is a skill by itself. Done wrong, this can result both in ugly looking products (e.g. angled connectors), even leading to product rejections. This is something that every every hobbyist, electronics enthusiast, and even professional ends up dealing with at one time or the other.One way of dealing with this is to build a jig specific to the PCB to hold the electronics components in place. Using such a jig simplifies the soldering process. The user only needs to make the soldering joint, without worrying about keeping the component in place. Such a jig can be 3D printed, making it widely accessible. However, designing and tuning such jigs requires CAD design expertise. It can take many painstaking trials and prints to get this right. Such skills don't transfer easily across engineers.JigIta is a software tool that generates a 3D printable jig from any PCB design in minutes in one single step. With the jig in hand, soldering becomes as easy as 1-2-3Insert components into the jigSlide in PCB into placeSolder away for perfect results(Here's an example of the workflow for a Raspberry Pi Pico)JigIt is parametric. It allows complete control over fitting tolerances, while offers a range of component fitting structures tailored to real world usage. JigIt cuts hours of work into minutes. JigIt can also create designs that need less material for 3D printing, compared to hand made designs. All these make JigIt suitable for individuals, instructors as well as in industrial applications.This talk will illustrate how you can use JigIt to simplify your own soldering workflows. We'll step through concepts, build a jig to solder headers onto a Rasperry Pi Pico, and then move look advanced examples using various open source boards (many examples are shown on the main project page also).One of hidden gems in JigIt is a novel technique, called \"corner avoidance\", that leads to 3D models which can tightly fit small components. This technique is generically applicable to various designs, and will be covered in this talk.",
       "keyTakeaways": [
@@ -1958,7 +1958,7 @@
       "id": "act-0ju368irth",
       "sourceId": "0ju368irth",
       "type": "bof",
-      "title": "BoF: Learnings from Tech+Policy Scholarship ",
+      "title": "BoF: Learnings from Tech+Policy Scholarship",
       "subtitle": "BoF",
       "description": "It's been almost 3 years that FOSS United has been running the Technology+Policy scholarship. This gives selected scholars 80% of the course fee to do the 4 month duration Technology and Policy specialization of GCPP (Graduate Certification in Public Policy) offered by The Takshashila Institution. More than 40 scholars have been selected under this.While FOSS United famously doesn't expect anything back, it would be good to understand what the outcomes of this have been, seen from the perspective of the various participants.This is structured as a Birds of a Feather session to allow for a free form exchange of views. GCPP scholars can share their public policy journey, their learning, anecdotes, and any thoughts about the future. GCPP faculty may also share their views on the impact of the scholarship.This BOF session is likely to be useful for curious onlookers as well as people seriously considering doing this course at some point in time.Suggested duration of the BOF: recommended at-least 45 minutes.Note: Scanning through the list of scholars, I can see that more than ten of the past GCPP scholars will be attending IndiaFOSS 2025. For better awareness and participation, we could pull out the list of all scholars and let them know this is happening.",
       "keyTakeaways": [
@@ -2220,7 +2220,7 @@
       "id": "act-3ecoa4t3gk",
       "sourceId": "3ecoa4t3gk",
       "type": "talk",
-      "title": "Makerville Badge ",
+      "title": "Makerville Badge",
       "subtitle": "Talk",
       "description": "Makerville is an open source hardware community. We have our Telegram channel for discussions and rants, a wiki for sharing resources, and an annual conference to come together. We have done some fun projects together as a community like the Traveling Hacker Box, and the Vendor Wiki List. But now we are making our own devboards in the form of a badge!badge.makerville.ioIn this talk, I'll show how we built it using only open-source tools - and how we are making fun things out of the same hardware by overloading the basic badge firmware.",
       "keyTakeaways": [
@@ -2698,7 +2698,7 @@
       "id": "act-dvgslq0ivm",
       "sourceId": "dvgslq0ivm",
       "type": "lightning-talk",
-      "title": "Building a culture of openness ",
+      "title": "Building a culture of openness",
       "subtitle": "Lightning Talk",
       "description": "Culture comes about via practice. Recursively said, practice is culture. This talk is about the culture of peer review that we have developed at Hasgeek since 2010. Peer review is the system of where past speakers and practitioners from the industry provide feedback to the work and ideas of their peers. This vision - of creating a culture of peer review in technology - started with building the user interface of the \"funnel\" to enhance discovery of new ideas and practitioners. Over time, the user interface and the practice of \"funnel' became a verb, just like Google and ChatGPT are today i.e., funnel became the way of discovery, review and filtration of ideas. In this talk, I will consolidate the learnings of this journey of peer review to share insights about openness (in interactions and building communities) and the culture of volunteering.",
       "keyTakeaways": [
@@ -3897,7 +3897,7 @@
       "id": "act-a4liqhhup7",
       "sourceId": "a4liqhhup7",
       "type": "lightning-talk",
-      "title": "How Switzerland Became a Global Leader in FOSS ",
+      "title": "How Switzerland Became a Global Leader in FOSS",
       "subtitle": "Lightning Talk",
       "description": "This talk examines how Switzerland, a neutral country known for its banking and chocolate, became a model for digital sovereignty, privacy-first technology and how Switzerland has strategically evolved into one of the most progressive adopters of Free and Open Source Softwares. Unlike other nations where open-source adoption is fragmented or voluntary, Switzerland enforces it at the federal and cantonal levels, aided by organizations such as the Open Source Software Competence Center, which provides guidance, legal models, and maintenance support. The talk will explore the policies adopted by the country to become the global leader that it is in the FOSS sector. It will discuss the architecture of the policies and legislative obligations that Switzerland has implemented in order to boost FOSS adoption. Policies such as \"Public Money, Public Code,\" as well as the \"Digital Switzerland\" policy, demand that software built with public funds be open by default. It will showcase examples such as Open Justitia (judiciary transparency), Open Workbench (public ERP), and the Swiss Post's e-voting system, which were created on open-source foundations in conjunction with institutions such as ETH Zurich.The talk shall also explore Switzerland's initiatives to establish sovereign infrastructure, such as AlpCloud, a FOSS-powered national cloud, ensure compliance with strict privacy rules while reducing reliance on foreign cloud providers. These initiatives are part of a bigger strategy that prioritizes citizen privacy, transparency, and long-term ownership over digital assets.A comparison between Switzerland and the other nations that are actively trying to adopt FOSS will also be given.",
       "keyTakeaways": [

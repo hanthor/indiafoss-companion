@@ -1,0 +1,664 @@
+{
+  "booths": [
+    {
+      "id": "booth-2025-absurd-shop",
+      "name": "Absurd Shop",
+      "category": "hardware",
+      "website": "https://shop.absurd.industries/",
+      "locationId": "hw-showcase",
+      "tags": [
+        "hardware",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-cloud-cubes",
+      "name": "Cloud Cubes",
+      "category": "hardware",
+      "website": "https://hasgeek.com/cloudcube/at-rootconf-2025/",
+      "locationId": "hw-showcase",
+      "tags": [
+        "hardware",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-maker-brains",
+      "name": "Maker Brains",
+      "category": "hardware",
+      "website": "https://www.instructables.com/member/Mukesh_Sankhla/",
+      "locationId": "hw-showcase",
+      "tags": [
+        "hardware",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-pcbcupid",
+      "name": "pcbcupid",
+      "category": "hardware",
+      "website": "https://shop.pcbcupid.com/",
+      "locationId": "hw-showcase",
+      "tags": [
+        "hardware",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-build-for-bharat-fellowship",
+      "name": "Build For Bharat Fellowship",
+      "category": "other",
+      "website": "https://bharatdigital.io/fellowship",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-civicdatalab",
+      "name": "CivicDataLab",
+      "category": "other",
+      "website": "https://drr.open-contracting.in/en",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-digital-futures-lab-human-in-the-loop",
+      "name": "Digital Futures Lab: Human in the Loop",
+      "category": "other",
+      "website": "https://loop.digitalfutureslab.in/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-indic-mediawiki-developers-ug-mediawiki",
+      "name": "Indic MediaWiki Developers UG / MediaWiki",
+      "category": "other",
+      "website": "https://www.mediawiki.org/wiki/MediaWiki",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-isdm-datasights",
+      "name": "ISDM DataSights",
+      "category": "other",
+      "website": "https://datasights.isdm.org.in/home",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-mesquite-mocap",
+      "name": "Mesquite Mocap",
+      "category": "other",
+      "website": "https://github.com/Mesquite-Mocap/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-open-invention-network",
+      "name": "Open Invention Network",
+      "category": "other",
+      "website": "https://www.openinventionnetwork.com/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-openstreetmap-india",
+      "name": "OpenStreetMap India",
+      "category": "other",
+      "website": "https://openstreetmap.org/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-pratham-books-storyweaver",
+      "name": "Pratham Books' StoryWeaver",
+      "category": "other",
+      "website": "https://storyweaver.org.in/en/contributor-guidelines",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-samaaj-data-collective",
+      "name": "Samaaj Data Collective",
+      "category": "other",
+      "website": "https://samaajdata.org/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-sflc-in",
+      "name": "SFLC.in",
+      "category": "other",
+      "website": "https://sflc.in/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-takshashila-institution",
+      "name": "Takshashila Institution",
+      "category": "other",
+      "website": "https://takshashila.org.in/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-tattle",
+      "name": "Tattle",
+      "category": "other",
+      "website": "https://tattle.co.in/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-treemouse",
+      "name": "Treemouse",
+      "category": "other",
+      "website": "https://treemouse.com/index.html",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-tech4good-community",
+      "name": "Tech4Good Community",
+      "category": "other",
+      "website": "https://www.tech4goodcommunity.com/",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-wikimedians-of-kerala-user-group",
+      "name": "Wikimedians of Kerala User Group",
+      "category": "other",
+      "website": "https://w.wiki/t9",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-wikisource-reader",
+      "name": "Wikisource Reader",
+      "category": "other",
+      "website": "https://meta.wikimedia.org/wiki/Wikisource_reader_app",
+      "locationId": "community-booths",
+      "tags": [
+        "other",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-aboutcode",
+      "name": "AboutCode",
+      "category": "community",
+      "website": "https://github.com/aboutcode-org",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-fossee-iit-bombay",
+      "name": "FOSSEE, IIT Bombay",
+      "category": "community",
+      "website": "https://github.com/osdag-admin/Osdag/",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-gardener",
+      "name": "Gardener",
+      "category": "community",
+      "website": "https://github.com/gardener/",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-india-linux-user-group-bangalore-delhi",
+      "name": "India linux user group (Bangalore+Delhi)",
+      "category": "community",
+      "website": "http://linux-bangalore.org/about.html",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-inkscape",
+      "name": "Inkscape",
+      "category": "community",
+      "website": "https://inkscape.org",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-kde-community",
+      "name": "KDE Community",
+      "category": "community",
+      "website": "https://kde.org",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-oasis",
+      "name": "Oasis",
+      "category": "community",
+      "website": "https://www.oasishq.org",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-tinkerspace",
+      "name": "TinkerSpace",
+      "category": "community",
+      "website": "https://tinkerhub.org/tinkerspace",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-ubuntu-india",
+      "name": "Ubuntu India",
+      "category": "community",
+      "website": "https://github.com/ubuntu-in",
+      "locationId": "community-booths",
+      "tags": [
+        "community",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-circuitverse",
+      "name": "CircuitVerse",
+      "category": "project",
+      "website": "https://circuitverse.org/",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-devb-io",
+      "name": "devb.io",
+      "category": "project",
+      "website": "https://github.com/sunithvs/devb.io/",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-dwani-ai-knowledge-through-voice",
+      "name": "dwani.ai - Knowledge through Voice",
+      "category": "project",
+      "website": "https://github.com/dwani-ai",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-eventyay",
+      "name": "Eventyay",
+      "category": "project",
+      "website": "https://github.com/fossasia/eventyay-tickets",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-exosphere",
+      "name": "exosphere",
+      "category": "project",
+      "website": "https://github.com/exospherehost/exospherehost",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-flatcar-container-linux",
+      "name": "Flatcar Container Linux",
+      "category": "project",
+      "website": "https://github.com/flatcar/",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-gofr",
+      "name": "GoFr",
+      "category": "project",
+      "website": "https://github.com/gofr-dev/gofr",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-k0rdent",
+      "name": "k0rdent",
+      "category": "project",
+      "website": "https://github.com/k0rdent/k0rdent",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-kubearmor",
+      "name": "KubeArmor",
+      "category": "project",
+      "website": "https://github.com/kubearmor/KubeArmor",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-prav",
+      "name": "Prav",
+      "category": "project",
+      "website": "https://prav.app",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-regolith-linux",
+      "name": "Regolith Linux",
+      "category": "project",
+      "website": "https://github.com/regolith-linux/",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-rethink-dns-firewall",
+      "name": "Rethink DNS + Firewall",
+      "category": "project",
+      "website": "https://github.com/celzero/rethink-app",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-stratos-linux",
+      "name": "StratOS Linux",
+      "category": "project",
+      "website": "https://stratos-linux.org/",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-zasper",
+      "name": "Zasper",
+      "category": "project",
+      "website": "http://github.com/zasper-io/zasper",
+      "locationId": "community-booths",
+      "tags": [
+        "project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-curium",
+      "name": "Curium",
+      "category": "commercial-project",
+      "website": "https://github.com/musaibasrar/Curium",
+      "locationId": "community-booths",
+      "tags": [
+        "commercial-project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-flexprice-community",
+      "name": "Flexprice Community",
+      "category": "commercial-project",
+      "website": "https://github.com/flexprice/flexprice",
+      "locationId": "community-booths",
+      "tags": [
+        "commercial-project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-keploy",
+      "name": "Keploy",
+      "category": "commercial-project",
+      "website": "https://github.com/keploy/keploy",
+      "locationId": "community-booths",
+      "tags": [
+        "commercial-project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-kubevela",
+      "name": "KubeVela",
+      "category": "commercial-project",
+      "website": "https://kubevela.io/",
+      "locationId": "community-booths",
+      "tags": [
+        "commercial-project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-marimo-io",
+      "name": "marimo.io",
+      "category": "commercial-project",
+      "website": "https://github.com/marimo-team/marimo/",
+      "locationId": "community-booths",
+      "tags": [
+        "commercial-project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-olake",
+      "name": "Olake",
+      "category": "commercial-project",
+      "website": "https://github.com/datazip-inc/olake",
+      "locationId": "community-booths",
+      "tags": [
+        "commercial-project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-testzeus",
+      "name": "TestZeus",
+      "category": "commercial-project",
+      "website": "https://github.com/test-zeus-ai/testzeus-hercules/",
+      "locationId": "community-booths",
+      "tags": [
+        "commercial-project",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-amfoss",
+      "name": "amFOSS",
+      "category": "student",
+      "website": "https://github.com/amfoss",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-cosh-nitk",
+      "name": "COSH, NITK",
+      "category": "student",
+      "website": "https://cosh.nitk.ac.in",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-fossia",
+      "name": "FOSSIA",
+      "category": "student",
+      "website": "https://github.com/fossia-org",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-loopin",
+      "name": "Loopin",
+      "category": "student",
+      "website": "https://loopin.city",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-mukti",
+      "name": "MUKTI",
+      "category": "student",
+      "website": "https://github.com/MuktiCommunity",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-mulearn",
+      "name": "Mulearn",
+      "category": "student",
+      "website": "https://mulearn.org/",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-sahyadri-open-source-community",
+      "name": "Sahyadri open source community",
+      "category": "student",
+      "website": "https://github.com/so-sc/",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-stackd",
+      "name": "STACKD",
+      "category": "student",
+      "website": "https://github.com/shivasankaran18/STACKD",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    },
+    {
+      "id": "booth-2025-xeneva",
+      "name": "XENEVA",
+      "category": "student",
+      "website": "https://github.com/manaskamal/XenevaOS",
+      "locationId": "community-booths",
+      "tags": [
+        "student",
+        "indiafoss-2025"
+      ]
+    }
+  ]
+}

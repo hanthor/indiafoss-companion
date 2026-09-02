@@ -701,7 +701,7 @@
   .roomlabel.live {
     border-color: var(--mint);
     background: var(--mint-ink);
-    color: #fff;
+    color: var(--on-strong);
   }
   .roomlabel.next {
     border-color: var(--amber);

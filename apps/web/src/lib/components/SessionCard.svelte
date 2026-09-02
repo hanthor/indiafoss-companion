@@ -144,7 +144,7 @@
 
   .chip.cancelled {
     background: var(--danger);
-    color: #fff;
+    color: var(--on-strong);
   }
 
   .chip.must {

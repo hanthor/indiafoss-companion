@@ -272,7 +272,7 @@
   .cta {
     display: inline-block;
     background: var(--event-primary);
-    color: #fff;
+    color: var(--ink);
     padding: 0.55rem 1.2rem;
     border-radius: 999px;
     text-decoration: none;

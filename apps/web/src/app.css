@@ -87,6 +87,8 @@
   /* System-bar insets: browsers report env(); Capacitor's SystemBars plugin
      injects --safe-area-inset-* on Android 15+, where the WebView is drawn
      under the status bar (edge-to-edge). */
+  /* Readable text on a filled mint/danger surface in either theme. */
+  --on-strong: #ffffff;
   --safe-top: env(safe-area-inset-top, var(--safe-area-inset-top, 0px));
   --safe-bottom: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
   --tabbar-height: 62px;
@@ -109,6 +111,7 @@
     --line-soft: hsl(0 0% 24%);
     --line-strong: hsl(0 0% 96%);
     --danger: #ff6b6b;
+    --on-strong: var(--ink);
     --warning: #f3c46f;
     --success: hsl(144 80% 60%);
     --shadow-hard: 0 4px 32px rgb(0 0 0 / 0.4);

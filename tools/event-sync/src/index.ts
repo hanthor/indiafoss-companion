@@ -124,13 +124,28 @@ export async function syncEvent(
     2,
   );
 
-  const assets: Record<string, string> = {
-    event: `event.${hash(eventJson)}.json`,
+  // Immutable, hash-addressed assets (§34): the whole bundle plus the slices a
+  // client may fetch on their own. Same content, same name, cache forever.
+  const slices: Record<string, string> = {
+    event: eventJson,
+    schedule: JSON.stringify(
+      { activities: bundle.activities, locations: bundle.locations, tracks: bundle.tracks },
+      null,
+      2,
+    ),
+    people: JSON.stringify({ people: bundle.people }, null, 2),
+    booths: JSON.stringify({ booths: bundle.booths }, null, 2),
   };
-  const assetNames = ['event'] as const;
-  for (const name of assetNames) {
-    const content = name === 'event' ? eventJson : JSON.stringify({}, null, 2);
-    writeFileSync(join(publishedDir, assets[name]!), content);
+  const assets: Record<string, string> = {};
+  for (const [name, content] of Object.entries(slices)) {
+    assets[name] = `${name}.${hash(content)}.json`;
+    writeFileSync(join(publishedDir, assets[name]), content);
+  }
+  // The committed normalized bundle is what the app ships; keep it identical.
+  if (!publishedDirOverride) {
+    const normalizedDir = repoRoot('events', eventId, 'normalized');
+    mkdirSync(normalizedDir, { recursive: true });
+    writeFileSync(join(normalizedDir, 'event-bundle.json'), `${eventJson}\n`);
   }
   writeFileSync(join(publishedDir, `changes.${revision}.json`), changesJson);
   if (prevBundle)
@@ -172,7 +187,12 @@ export function publishEvent(eventId: string): void {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as EventManifest;
   const destDir = repoRoot('apps', 'web', 'static', 'events', eventId);
   mkdirSync(destDir, { recursive: true });
+  // Hash-less copy for the precache, plus the immutable asset the manifest names.
   copyFileSync(join(publishedDir, manifest.assets['event']!), join(destDir, 'event-bundle.json'));
+  copyFileSync(
+    join(publishedDir, manifest.assets['event']!),
+    join(destDir, manifest.assets['event']!),
+  );
   writeFileSync(join(destDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   console.log(
     `published ${eventId} rev ${manifest.revision} -> apps/web/static/events/${eventId}/`,
