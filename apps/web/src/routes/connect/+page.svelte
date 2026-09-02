@@ -2,9 +2,14 @@
   import { resolve } from '$app/paths';
   import {
     attendeeProfileToVCard,
+    contactBookToJson,
+    contactBookToVCards,
     contactDeepLinks,
     encodeFriendPayload,
     encodeSignedFriendPayload,
+    groupByDayMet,
+    identiconSvg,
+    searchContacts,
     shortFingerprint,
     isMatrixUserId,
     isNeutrinoServerName,
@@ -24,10 +29,14 @@
   import { downloadTextFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
   import { hydrateMatrix, matrixState } from '$lib/matrix.svelte';
-  import { contactsState, deleteContact, hydrateContacts } from '$lib/contacts.svelte';
+  import {
+    contactsState,
+    deleteContact,
+    hydrateContacts,
+    importContactBook,
+  } from '$lib/contacts.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
-  import { identiconSvg } from '@indiafoss/model';
   import { features, hydrateFeatures } from '$lib/features.svelte';
   import { meshStatus } from '$lib/neutrino';
   import { isLoopbackHomeserver } from '@indiafoss/matrix';
@@ -89,6 +98,62 @@
       !!matrixState.homeserver &&
       !isLoopbackHomeserver(matrixState.homeserver),
   );
+
+  // Saved contacts: search, export and import.
+  let contactSearch = $state('');
+  let importStatus = $state('');
+  let importingBook = $state(false);
+  let fileInput = $state<HTMLInputElement | null>(null);
+
+  const shownContacts = $derived(searchContacts(contactsState.contacts, contactSearch));
+  const metGroups = $derived(
+    groupByDayMet(contactsState.contacts, eventState.bundle?.timezone ?? 'Asia/Kolkata'),
+  );
+
+  const dayLabel = (day: string): string => {
+    const ms = Date.parse(`${day}T12:00:00Z`);
+    if (Number.isNaN(ms)) return day;
+    return new Date(ms).toLocaleDateString(undefined, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+  };
+
+  function exportJson(): void {
+    downloadTextFile(
+      'indiafoss-contacts.json',
+      contactBookToJson(contactsState.contacts, new Date().toISOString(), eventState.bundle?.id),
+      'application/json',
+    );
+  }
+
+  function exportVCards(): void {
+    downloadTextFile(
+      'indiafoss-contacts.vcf',
+      contactBookToVCards(contactsState.contacts),
+      'text/vcard;charset=utf-8',
+    );
+  }
+
+  async function importFile(event: Event): Promise<void> {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    importingBook = true;
+    importStatus = '';
+    try {
+      const outcome = await importContactBook(await file.text());
+      importStatus = outcome
+        ? `Imported ${outcome.format === 'json' ? 'contact book' : 'vCards'}: ${outcome.added} added, ${outcome.updated} updated${outcome.keyChanged > 0 ? `, ${outcome.keyChanged} saved separately (key changed)` : ''}${outcome.skipped > 0 ? `, ${outcome.skipped} unreadable` : ''}.`
+        : 'That file is not a contact book or a .vcf.';
+    } catch (error) {
+      importStatus = error instanceof Error ? error.message : String(error);
+    } finally {
+      importingBook = false;
+      input.value = '';
+    }
+  }
 
   function useMeshId(): void {
     if (!meshServerName) return;
@@ -586,13 +651,50 @@
   <section class="card">
     <h2>Saved contacts ({contactsState.contacts.length})</h2>
     <p class="muted small">
-      People you scanned. All identities stay <em>unverified</em> until checked in a Matrix client.
+      People you scanned. All identities stay <em>unverified</em> until you compare key badges in person.
+      Everything here stays on this device.
     </p>
+    <div class="book-actions">
+      <input
+        type="search"
+        aria-label="Search contacts"
+        placeholder="Search name, org, handle…"
+        bind:value={contactSearch}
+        disabled={contactsState.contacts.length === 0}
+      />
+      <button
+        class="button secondary small"
+        onclick={exportVCards}
+        disabled={contactsState.contacts.length === 0}>Export .vcf</button
+      >
+      <button
+        class="button secondary small"
+        onclick={exportJson}
+        disabled={contactsState.contacts.length === 0}>Export backup</button
+      >
+      <button
+        class="button secondary small"
+        onclick={() => fileInput?.click()}
+        disabled={importingBook}
+      >
+        {importingBook ? 'Importing…' : 'Import'}
+      </button>
+      <input
+        bind:this={fileInput}
+        type="file"
+        accept=".json,.vcf,application/json,text/vcard"
+        onchange={importFile}
+        hidden
+      />
+    </div>
+    {#if importStatus}<p class="muted small" role="status">{importStatus}</p>{/if}
     {#if contactsState.contacts.length === 0}
       <p class="muted">No contacts yet — <a href={resolve('/scan')}>scan a code</a>.</p>
+    {:else if shownContacts.length === 0}
+      <p class="muted">No contact matches “{contactSearch}”.</p>
     {:else}
       <ul class="contacts">
-        {#each contactsState.contacts as c (c.id)}
+        {#each shownContacts as c (c.id)}
           <li>
             <div class="who">
               <strong>{c.fullName}</strong>
@@ -683,12 +785,81 @@
   </p>
   <p><a href={resolve('/settings')}>Privacy and app settings →</a></p>
   <p><a href={resolve('/scan')}>Scan someone else's code →</a></p>
+  {#if contactsState.contacts.length > 0}
+    <section class="card">
+      <h2>Who I met</h2>
+      <p class="muted small">
+        Your conference, by day. Times are the event's ({eventState.bundle?.timezone ??
+          'Asia/Kolkata'}).
+      </p>
+      {#each metGroups as group (group.day)}
+        <div class="metday">
+          <h3>
+            {group.day === 'unknown' ? 'Undated' : dayLabel(group.day)}
+            <span class="muted small"
+              >{group.contacts.length} {group.contacts.length === 1 ? 'person' : 'people'}</span
+            >
+          </h3>
+          <ul class="metlist">
+            {#each group.contacts as c (c.id)}
+              <li>
+                <strong>{c.fullName}</strong>
+                {#if c.organization}<span class="muted small">{c.organization}</span>{/if}
+                {#if c.metActivityId}
+                  <span class="muted small">
+                    at {eventState.bundle?.activities.find((a) => a.id === c.metActivityId)
+                      ?.title ?? 'a session'}
+                  </span>
+                {/if}
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {/each}
+    </section>
+  {/if}
+
   {#if features.chat}
     <p><a href={resolve('/chat')}>Open chat →</a></p>
   {/if}
 </EventGate>
 
 <style>
+  .book-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0.6rem 0;
+  }
+  .book-actions input[type='search'] {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+  .metday h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0.9rem 0 0.3rem;
+    font-size: 1rem;
+  }
+  .metlist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.3rem;
+  }
+  .metlist li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: baseline;
+    padding: 0.35rem 0.6rem;
+    border-left: 3px solid var(--event-primary);
+    background: color-mix(in srgb, var(--event-primary) 6%, transparent);
+    border-radius: 0 8px 8px 0;
+  }
   .importrow {
     display: flex;
     flex-wrap: wrap;
