@@ -193,19 +193,20 @@ test('plan explains an infeasible custom block instead of dropping it', async ({
   await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap B' })).toBeVisible();
 });
 
-test('map routes between two rooms offline-style', async ({ page }) => {
+test('map sets a location from a room and shows the walk to another', async ({ page }) => {
   await page.goto(appUrl('/map'));
-  await expect(page.getByRole('status').or(page.getByText('Loading venue')).first())
-    .toBeVisible({ timeout: 5000 })
-    .catch(() => {});
-  // Pick a source and destination.
-  await page.getByLabel('You are at').selectOption('audi-1');
-  await page.getByLabel('Destination').selectOption('devroom-2');
-  // The route info appears with a walk duration and steps.
+  // Tap a room on the floor plan, mark it as where you are.
+  await page.getByRole('button', { name: /^Audi 1/ }).click();
+  await page.getByRole('button', { name: "I'm here" }).click();
+  // Devroom 2 is on the first floor; switch floors and open its sheet.
+  await page.getByRole('button', { name: /^First/ }).click();
+  await page.getByRole('button', { name: /^Devroom 2/ }).click();
+  await expect(page.getByRole('heading', { name: 'Devroom 2' })).toBeVisible();
+  // The route from the current location appears with a walk duration and steps.
   await expect(page.getByText(/min walk/)).toBeVisible();
   await expect(page.locator('.steps li').first()).toBeVisible();
-  // The highlighted route polyline is rendered.
-  await expect(page.locator('.route')).toBeVisible();
+  // The other-floor hint points back down to where you are.
+  await expect(page.getByText("YOU'RE DOWNSTAIRS")).toBeVisible();
 });
 
 test('now screen shows leave-by with a known location', async ({ page }) => {
@@ -214,9 +215,10 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
   // With a known location the NEXT card computes walking time + leave-by.
   await expect(page.getByText(/Estimated walk:/)).toBeVisible({ timeout: 10_000 });
   await expect(page.getByText(/Leave by/)).toBeVisible();
-  // Show route links into the map with the destination preset.
+  // Show route links into the map with the destination room opened.
   await page.getByRole('link', { name: 'Show route' }).click();
-  await expect(page.getByLabel('Destination')).toHaveValue(/devroom|audi|room|workshops|bof/);
+  await expect(page.getByText('DESTINATION')).toBeVisible();
+  await expect(page.getByText(/min walk/)).toBeVisible();
 });
 
 test('routing profile is configurable and persists across reload', async ({ page }) => {

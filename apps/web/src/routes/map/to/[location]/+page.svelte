@@ -1,8 +1,11 @@
 <script lang="ts">
   import { page } from '$app/state';
-  import VenueMap from '$lib/components/VenueMap.svelte';
+  import EventGate from '$lib/components/EventGate.svelte';
+  import FloorPlan from '$lib/components/FloorPlan.svelte';
 
   const destination = $derived(page.params.location ?? '');
 </script>
 
-<VenueMap initialTo={destination} />
+<EventGate>
+  <FloorPlan initialTo={destination} />
+</EventGate>

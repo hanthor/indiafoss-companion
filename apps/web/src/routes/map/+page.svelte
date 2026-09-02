@@ -1,5 +1,8 @@
 <script lang="ts">
-  import VenueMap from '$lib/components/VenueMap.svelte';
+  import EventGate from '$lib/components/EventGate.svelte';
+  import FloorPlan from '$lib/components/FloorPlan.svelte';
 </script>
 
-<VenueMap />
+<EventGate>
+  <FloorPlan />
+</EventGate>

@@ -13,6 +13,10 @@ changes, update the issue first, then this file, so neither drifts.
 - PR #24: Matrix messaging with Megolm E2EE, per-session/booth/venue chats,
   handshake contact cards, messenger and social deep links, IndiaFOSS 2026
   design language, Material 3 Android shell, Element X fork alignment.
+- Design handoff (2026-09-02): amber Scan CTA with the camera on load (#46),
+  Connect as one live signed QR card (#47), Rank as stacked tap-to-pick cards
+  (#48), Map as the NIMHANS floor plan with live rooms, a room sheet and the
+  leave-by banner on every tab (`docs/venue-map.md`).
 
 ## Open, ordered by conference impact
 

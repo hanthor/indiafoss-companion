@@ -141,6 +141,12 @@ describe('leaveByInstant', () => {
     const leave = leaveByInstant('2026-09-19T11:00:00+05:30', 360, 300);
     expect(Date.parse(leave)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 660 * 1000);
   });
+
+  it('keeps the session start offset so formatTime shows event-local time', () => {
+    expect(leaveByInstant('2026-09-19T11:00:00+05:30', 360, 300)).toBe('2026-09-19T10:49:00+05:30');
+    expect(formatTime(leaveByInstant('2026-09-19T11:00:00+05:30', 360, 300))).toBe('10:49');
+    expect(leaveByInstant('2026-09-19T05:30:00Z', 0, 1800)).toBe('2026-09-19T05:00:00Z');
+  });
 });
 
 describe('diffBundles', () => {

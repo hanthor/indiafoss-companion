@@ -12,7 +12,7 @@ import { appUrl } from './app-url.js';
  *   7. open speaker/session
  *   8. modify Elo ranking
  *   9. regenerate itinerary
- *   10. open map + route between two rooms
+ *   10. open map, set a location, read the walk to another room
  */
 test('offline gate: full attendee flow with network disabled', async ({ page, context }) => {
   // 1. Online: download the event.
@@ -73,12 +73,14 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await page.goto(appUrl('/plan'));
   await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
 
-  // 11. Map + route between two rooms.
+  // 11. Map: mark a room as here, open another and read the walk.
   await page.goto(appUrl('/map'));
-  await page.getByLabel('You are at').selectOption('audi-1');
-  await page.getByLabel('Destination').selectOption('devroom-2');
+  await page.getByRole('button', { name: /^Audi 1/ }).click();
+  await page.getByRole('button', { name: "I'm here" }).click();
+  await page.getByRole('button', { name: /^First/ }).click();
+  await page.getByRole('button', { name: /^Devroom 2/ }).click();
   await expect(page.getByText(/min walk/)).toBeVisible();
-  await expect(page.locator('.route')).toBeVisible();
+  await expect(page.locator('.steps li').first()).toBeVisible();
 
   // 12. Schedule-aware routing: the Now leave-by uses the cached venue graph
   // to compute walk time offline (§29, §52).

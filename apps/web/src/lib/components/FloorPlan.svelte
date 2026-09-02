@@ -1,0 +1,780 @@
+<script lang="ts">
+  import { page } from '$app/state';
+  import type { Activity } from '@indiafoss/model';
+  import { activityProgress, formatTime, parseInstant } from '@indiafoss/schedule';
+  import { findRoute } from '@indiafoss/venue';
+  import type { Route } from '@indiafoss/venue';
+  import { clockFromParams, isFixedClock } from '$lib/clock';
+  import { eventState } from '$lib/event.svelte';
+  import { bookmarked } from '$lib/prefs.svelte';
+  import {
+    currentLocation,
+    hydrateLocation,
+    locationIdFromDeepLink,
+    setCurrentLocation,
+  } from '$lib/location.svelte';
+  import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
+  import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
+  import { FLOORS, FLOOR_ORDER, anchorPercent } from '$lib/venue-floors';
+  import type { FloorId, FloorRoom } from '$lib/venue-floors';
+  import { floorOfRoom, locationsForRoom, roomForLocation } from '$lib/venue-rooms';
+  import { computeNextUp } from '$lib/nextup';
+
+  /** Destination location id (`/map/to/[location]`): highlighted and opened in the sheet. */
+  let { initialTo = '' }: { initialTo?: string } = $props();
+
+  const BUFFER_SECONDS = 300;
+
+  const clock = clockFromParams(page.url.searchParams.get('now'));
+  let now = $state(clock.now());
+  $effect(() => {
+    if (isFixedClock(clock)) return;
+    const timer = setInterval(() => {
+      now = clock.now();
+    }, 15_000);
+    return () => clearInterval(timer);
+  });
+
+  const bundle = $derived(eventState.bundle);
+  const venueKey = $derived(venueKeyForEvent(bundle?.id ?? 'indiafoss-2025'));
+  let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
+  let venueError: string | null = $state(null);
+
+  $effect(() => {
+    const at = page.url.searchParams.get('at');
+    void (async () => {
+      await hydrateLocation();
+      await hydrateRoutingProfile();
+      if (at) await setCurrentLocation(locationIdFromDeepLink(at) ?? at);
+    })();
+    void loadVenue(venueKey)
+      .then((v) => {
+        venue = v;
+      })
+      .catch((e) => {
+        venueError = e instanceof Error ? e.message : String(e);
+      });
+  });
+
+  // ---- rooms ↔ locations -------------------------------------------------
+
+  const roomOf = $derived.by<Map<string, string>>(() => {
+    // Rebuilt per venue; not reactive state.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const map = new Map<string, string>();
+    if (!venue) return map;
+    for (const id of Object.keys(venue.metadata.locations)) {
+      const room = roomForLocation(venue, id);
+      if (room) map.set(id, room);
+    }
+    return map;
+  });
+
+  const allRooms = $derived(FLOOR_ORDER.flatMap((f) => FLOORS[f].rooms));
+
+  /** The schedule's own name for a room (Audi 1 for Hall 1 on the 2025 programme). */
+  function roomTitle(room: FloorRoom): string {
+    if (!venue || !bundle) return room.name;
+    const primary = locationsForRoom(venue, room.id)[0];
+    return (primary && bundle.locations.find((l) => l.id === primary)?.name) || room.name;
+  }
+
+  function primaryLocation(roomId: string): string | null {
+    return venue ? (locationsForRoom(venue, roomId)[0] ?? null) : null;
+  }
+
+  // ---- what's on ---------------------------------------------------------
+
+  const nowMs = $derived(parseInstant(now));
+
+  const liveByRoom = $derived.by<Map<string, Activity[]>>(() => {
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const map = new Map<string, Activity[]>();
+    if (!bundle) return map;
+    for (const a of bundle.activities) {
+      if (a.cancelled || !a.start || !a.end || !a.locationId) continue;
+      if (parseInstant(a.start) > nowMs || parseInstant(a.end) <= nowMs) continue;
+      const room = roomOf.get(a.locationId);
+      if (!room) continue;
+      map.set(room, [...(map.get(room) ?? []), a]);
+    }
+    return map;
+  });
+
+  const nextByRoom = $derived.by<Map<string, Activity>>(() => {
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const map = new Map<string, Activity>();
+    if (!bundle) return map;
+    const upcoming = bundle.activities
+      .filter((a) => !a.cancelled && a.start && a.locationId && parseInstant(a.start) > nowMs)
+      .sort((a, b) => parseInstant(a.start!) - parseInstant(b.start!));
+    for (const a of upcoming) {
+      const room = roomOf.get(a.locationId!);
+      if (room && !map.has(room)) map.set(room, a);
+    }
+    return map;
+  });
+
+  const liveCount = $derived([...liveByRoom.values()].reduce((n, list) => n + list.length, 0));
+
+  const nextUp = $derived(
+    bundle
+      ? computeNextUp({
+          bundle,
+          now,
+          bookmarked,
+          venue,
+          currentLocation: currentLocation.value,
+          profile: routingPrefs.profile,
+          bufferSeconds: BUFFER_SECONDS,
+        })
+      : null,
+  );
+  const nextRoom = $derived(
+    nextUp?.activity.locationId ? (roomOf.get(nextUp.activity.locationId) ?? null) : null,
+  );
+  const hereRoom = $derived(
+    currentLocation.value ? (roomOf.get(currentLocation.value) ?? null) : null,
+  );
+  const destinationRoom = $derived(initialTo ? (roomOf.get(initialTo) ?? null) : null);
+
+  // ---- floor + selection -------------------------------------------------
+
+  let floorChoice = $state<FloorId | null>(null);
+  const floor = $derived.by<FloorId>(() => {
+    if (floorChoice) return floorChoice;
+    const preferred = destinationRoom ?? hereRoom ?? nextRoom;
+    return (preferred && floorOfRoom(preferred)) || 'ground';
+  });
+  const plan = $derived(FLOORS[floor]);
+
+  let selectedChoice = $state<string | null | undefined>(undefined);
+  const selected = $derived(selectedChoice === undefined ? destinationRoom : selectedChoice);
+  const selectedRoom = $derived(allRooms.find((r) => r.id === selected) ?? null);
+
+  function floorHasLive(id: FloorId): boolean {
+    return FLOORS[id].rooms.some((r) => (liveByRoom.get(r.id)?.length ?? 0) > 0);
+  }
+
+  const otherFloorHint = $derived.by(() => {
+    const other = (room: string | null) => {
+      const f = room ? floorOfRoom(room) : null;
+      return f && f !== floor ? f : null;
+    };
+    const here = other(hereRoom);
+    if (here) return here === 'first' ? "YOU'RE UPSTAIRS ↑" : "YOU'RE DOWNSTAIRS ↓";
+    const next = other(destinationRoom ?? nextRoom);
+    if (next) return next === 'first' ? 'NEXT TALK UPSTAIRS ↑' : 'NEXT TALK DOWNSTAIRS ↓';
+    return '';
+  });
+
+  function roomState(id: string): 'live' | 'next' | '' {
+    if ((liveByRoom.get(id)?.length ?? 0) > 0) return 'live';
+    if (id === nextRoom || id === destinationRoom) return 'next';
+    return '';
+  }
+
+  function select(id: string) {
+    selectedChoice = selected === id ? null : id;
+  }
+
+  // ---- overlay geometry --------------------------------------------------
+
+  let boxW = $state(0);
+  let boxH = $state(0);
+  /** Where the letterboxed drawing sits inside the container, as CSS pixels. */
+  const content = $derived.by(() => {
+    const [, , vw, vh] = plan.viewBox.split(' ').map(Number) as [number, number, number, number];
+    if (!boxW || !boxH) return { x: 0, y: 0, w: boxW, h: boxH };
+    const scale = Math.min(boxW / vw, boxH / vh);
+    const w = vw * scale;
+    const h = vh * scale;
+    return { x: (boxW - w) / 2, y: (boxH - h) / 2, w, h };
+  });
+
+  function labelStyle(room: FloorRoom): string {
+    const p = anchorPercent(plan, room);
+    const x = content.x + (p.x / 100) * content.w;
+    const y = content.y + (p.y / 100) * content.h;
+    return `left:${x.toFixed(1)}px;top:${y.toFixed(1)}px`;
+  }
+
+  function minutesLeft(a: Activity): number {
+    return Math.max(0, Math.ceil((parseInstant(a.end!) - nowMs) / 60_000));
+  }
+  function minutesUntil(a: Activity): number {
+    return Math.max(0, Math.ceil((parseInstant(a.start!) - nowMs) / 60_000));
+  }
+  function speakerName(a: Activity): string | undefined {
+    const id = a.speakerIds[0];
+    return id ? bundle?.people.find((p) => p.id === id)?.name : undefined;
+  }
+  function truncate(text: string, max = 22): string {
+    return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
+  }
+
+  // ---- sheet: route from here -------------------------------------------
+
+  const route = $derived.by<Route | null>(() => {
+    if (!venue || !selectedRoom || !currentLocation.value) return null;
+    const to = primaryLocation(selectedRoom.id);
+    if (!to) return null;
+    const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
+    const toNode = venue.metadata.locations[to]?.entrances[0];
+    if (!from || !toNode || from === toNode) return null;
+    return findRoute(venue.graph, from, toNode, routingPrefs.profile);
+  });
+
+  function nodeLabel(nodeId: string): string {
+    return nodeId.replace(/^(gf|ff)-/, '').replace(/-/g, ' ');
+  }
+
+  const isHere = $derived(selectedRoom !== null && hereRoom === selectedRoom.id);
+
+  async function toggleHere() {
+    if (!selectedRoom) return;
+    await setCurrentLocation(isHere ? null : primaryLocation(selectedRoom.id));
+  }
+</script>
+
+{#if venueError}
+  <section class="empty" role="alert">
+    <p>The venue map could not be loaded.</p>
+    <p class="small">{venueError}</p>
+  </section>
+{:else if !venue || !bundle}
+  <p class="loading" role="status">Loading venue…</p>
+{:else}
+  <div class="plan" bind:clientWidth={boxW} bind:clientHeight={boxH}>
+    <svg
+      viewBox={plan.viewBox}
+      preserveAspectRatio="xMidYMid meet"
+      class="drawing"
+      aria-hidden="true"
+    >
+      <path class="fill" d={plan.fill} />
+      <path class="outline" d={plan.outline} />
+      {#each plan.rooms as room (room.id)}
+        <!-- The labelled buttons over the drawing are the accessible controls;
+             the shapes are a larger tap target under an aria-hidden svg. -->
+        <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+        <path
+          class="room {roomState(room.id)}"
+          class:selected={selected === room.id}
+          d={room.d}
+          onclick={() => select(room.id)}
+        />
+      {/each}
+      {#each plan.podiums as d, i (i)}
+        <path class="podium" {d} />
+      {/each}
+      {#each plan.stairs as s, i (i)}
+        <path class="stairs" d={s.d} />
+      {/each}
+      {#each plan.walls as w, i (i)}
+        <path class="wall" d={w.d} style="stroke:{w.s};stroke-width:{w.w}" />
+      {/each}
+    </svg>
+
+    <div class="labels">
+      {#each plan.rooms as room (room.id)}
+        {@const live = liveByRoom.get(room.id) ?? []}
+        {@const first = live[0]}
+        <button
+          class="roomlabel {roomState(room.id)}"
+          class:selected={selected === room.id}
+          style={labelStyle(room)}
+          aria-label="{roomTitle(room)}{first
+            ? `, live: ${first.title}, ${minutesLeft(first)} min left`
+            : ''}{room.id === hereRoom ? ', you are here' : ''}"
+          aria-pressed={selected === room.id}
+          onclick={() => select(room.id)}
+        >
+          <span class="name">{roomTitle(room)}</span>
+          {#if first}
+            <span class="talk">{truncate(first.title)}</span>
+            <span class="left">{minutesLeft(first)} MIN LEFT</span>
+          {/if}
+          {#if room.id === hereRoom}<span class="you" aria-hidden="true"></span>{/if}
+        </button>
+      {/each}
+    </div>
+
+    <div class="chips" role="group" aria-label="Floor">
+      {#each FLOOR_ORDER as id (id)}
+        <button
+          class="chip"
+          class:active={floor === id}
+          aria-pressed={floor === id}
+          onclick={() => (floorChoice = id)}
+        >
+          {FLOORS[id].label}
+          {#if floorHasLive(id)}<span class="dot" aria-label="live sessions"></span>{/if}
+        </button>
+      {/each}
+    </div>
+
+    <div class="clock" aria-live="off">
+      <span>{formatTime(now)}</span>
+      <span class="livecount">{liveCount} LIVE</span>
+    </div>
+
+    {#if otherFloorHint}
+      <p class="hint">{otherFloorHint}</p>
+    {/if}
+
+    <ul class="legend" aria-label="Legend">
+      <li><span class="sw live"></span>LIVE</li>
+      <li><span class="sw next"></span>NEXT</li>
+      <li><span class="sw you"></span>YOU</li>
+    </ul>
+  </div>
+
+  {#if selectedRoom}
+    {@const live = liveByRoom.get(selectedRoom.id) ?? []}
+    {@const next = nextByRoom.get(selectedRoom.id)}
+    <section class="sheet" aria-label="Room details">
+      <header>
+        <div>
+          <h2>{roomTitle(selectedRoom)}</h2>
+          <p class="meta">
+            {#if roomTitle(selectedRoom) !== selectedRoom.name}{selectedRoom.name} ·
+            {/if}
+            {plan.label} floor{#if selectedRoom.cap}
+              · {selectedRoom.cap} seats{/if}
+            {#if selectedRoom.id === destinationRoom}
+              · <span class="tag">DESTINATION</span>{/if}
+          </p>
+        </div>
+        <button
+          class="close"
+          aria-label="Close room details"
+          onclick={() => select(selectedRoom.id)}>×</button
+        >
+      </header>
+
+      {#each live as a (a.id)}
+        <div class="block">
+          <span class="kicker live">ON NOW</span>
+          <strong>{a.title}</strong>
+          {#if speakerName(a)}<span class="muted">{speakerName(a)}</span>{/if}
+          <div
+            class="progress"
+            role="progressbar"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow={Math.round(activityProgress(a, now) * 100)}
+            aria-label="Session progress"
+          >
+            <span style="width:{Math.round(activityProgress(a, now) * 100)}%"></span>
+          </div>
+          <span class="muted">ends in {minutesLeft(a)} min · {formatTime(a.end!)}</span>
+        </div>
+      {/each}
+      {#if next}
+        <div class="block">
+          <span class="kicker next">NEXT HERE</span>
+          <strong>{next.title}</strong>
+          <span class="muted">starts in {minutesUntil(next)} min · {formatTime(next.start!)}</span>
+        </div>
+      {:else if live.length === 0}
+        <p class="muted">Nothing scheduled here right now.</p>
+      {/if}
+
+      {#if route}
+        <div class="block routeinfo">
+          <span class="kicker">FROM WHERE YOU ARE</span>
+          <strong
+            >{Math.max(1, Math.round(route.durationSeconds / 60))} min walk · {Math.round(
+              route.distanceMeters,
+            )} m{#if route.restricted}
+              · step-free{/if}</strong
+          >
+          <ol class="steps">
+            {#each route.segments as seg, i (i)}
+              <li>
+                {nodeLabel(seg.fromNode)}
+                {seg.instruction ? `→ ${seg.instruction} →` : '→'}
+                {nodeLabel(seg.toNode)}
+              </li>
+            {/each}
+          </ol>
+        </div>
+      {/if}
+
+      <div class="actions">
+        {#if primaryLocation(selectedRoom.id)}
+          <button class="here" class:clear={isHere} onclick={toggleHere}>
+            {isHere ? 'Clear location' : "I'm here"}
+          </button>
+        {/if}
+      </div>
+    </section>
+  {/if}
+{/if}
+
+<style>
+  .loading,
+  .empty {
+    padding: 1rem;
+    color: var(--text-muted);
+  }
+  .small {
+    font-size: 0.82rem;
+  }
+
+  .plan {
+    position: relative;
+    flex: 1;
+    min-height: 60vh;
+    background: var(--paper);
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  .drawing {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .fill {
+    fill: var(--surface-raised);
+    stroke: none;
+  }
+  .outline {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 22;
+    stroke-linejoin: round;
+  }
+  .room {
+    fill: var(--surface);
+    stroke: var(--line);
+    stroke-width: 10;
+    cursor: pointer;
+    transition: fill 0.2s;
+  }
+  .room.live {
+    fill: var(--mint-soft);
+    stroke: var(--mint);
+  }
+  .room.next {
+    fill: var(--amber-soft);
+    stroke: var(--amber);
+  }
+  .room.selected {
+    stroke: var(--ink);
+    stroke-width: 28;
+  }
+  .podium {
+    fill: var(--line);
+  }
+  .stairs {
+    fill: none;
+    stroke: var(--text-faint);
+    stroke-width: 8;
+  }
+  .wall {
+    fill: none;
+    stroke-linecap: round;
+  }
+  @media (prefers-color-scheme: dark) {
+    .wall {
+      stroke: var(--text-faint) !important;
+    }
+  }
+
+  .labels {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .roomlabel {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    color: var(--text);
+    box-shadow: var(--shadow-hard-sm);
+    cursor: pointer;
+    font: inherit;
+  }
+  .roomlabel .name {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .roomlabel.live {
+    border-color: var(--mint);
+    background: var(--mint-ink);
+    color: #fff;
+  }
+  .roomlabel.next {
+    border-color: var(--amber);
+    background: var(--amber);
+    color: var(--ink);
+  }
+  .roomlabel.selected {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+  }
+  .roomlabel .talk {
+    font-size: 0.7rem;
+    max-width: 9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .roomlabel .left {
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+  }
+  .you {
+    position: absolute;
+    top: -0.45rem;
+    right: -0.45rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 999px;
+    background: var(--mint);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 35%, transparent);
+  }
+
+  .chips {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.75rem;
+    display: flex;
+    gap: 0.35rem;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 36px;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+  .chip.active {
+    background: var(--ink);
+    color: #fff;
+    border-color: var(--ink);
+  }
+  .dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 999px;
+    background: var(--mint);
+  }
+
+  .clock {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.75rem;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .livecount {
+    color: var(--mint-ink);
+  }
+
+  .hint {
+    position: absolute;
+    top: 3.2rem;
+    right: 0.75rem;
+    margin: 0;
+    padding: 0.25rem 0.5rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+
+  .legend {
+    position: absolute;
+    bottom: 0.6rem;
+    left: 0.75rem;
+    display: flex;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0.3rem 0.55rem;
+    list-style: none;
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .sw {
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 2px;
+  }
+  .sw.live {
+    background: var(--mint-soft);
+    border: 1px solid var(--mint);
+  }
+  .sw.next {
+    background: var(--amber-soft);
+    border: 1px solid var(--amber);
+  }
+  .sw.you {
+    background: var(--mint);
+    border-radius: 999px;
+  }
+
+  .sheet {
+    position: sticky;
+    bottom: calc(var(--tabbar-height) + var(--safe-bottom));
+    z-index: 2;
+    margin: 0;
+    padding: 0.8rem 1rem 1rem;
+    background: var(--surface-raised);
+    border-top: 2px solid var(--ink);
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .sheet header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .sheet h2 {
+    margin: 0;
+    font-family: var(--font-display, var(--font-mono));
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  .meta {
+    margin: 0.15rem 0 0;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .tag {
+    color: var(--amber-ink);
+    font-weight: 700;
+  }
+  .close {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+  }
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+  .kicker.live {
+    color: var(--mint-ink);
+  }
+  .kicker.next {
+    color: var(--amber-ink);
+  }
+  .muted {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+  .progress {
+    height: 5px;
+    background: var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress span {
+    display: block;
+    height: 100%;
+    background: var(--mint);
+  }
+  .steps {
+    margin: 0.2rem 0 0;
+    padding-left: 1.1rem;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+  .steps li {
+    padding: 0.1rem 0;
+    text-transform: capitalize;
+  }
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .here {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--mint);
+    border-radius: var(--radius);
+    background: var(--mint);
+    color: var(--ink);
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .here.clear {
+    background: var(--surface);
+    border-color: var(--line);
+    color: var(--text);
+  }
+</style>
