@@ -28,7 +28,9 @@
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
   import { identiconSvg } from '@indiafoss/model';
-  import { features } from '$lib/features.svelte';
+  import { features, hydrateFeatures } from '$lib/features.svelte';
+  import { meshStatus } from '$lib/neutrino';
+  import { isLoopbackHomeserver } from '@indiafoss/matrix';
   import {
     hydrateProfile,
     profileState,
@@ -52,12 +54,41 @@
   let publishStatus = $state('');
   let publishSupported = $state<boolean | null>(null);
 
+  /** This device's own mesh node id, when the P2P add-on is on and the node runs. */
+  let meshServerName = $state<string | null>(null);
+
   $effect(() => {
     void hydrateProfile();
     void hydrateContacts();
-    void hydrateMatrix();
     void hydrateIdentity();
+    void hydrateFeatures().then(async () => {
+      if (!features.chat) return;
+      void hydrateMatrix();
+      const status = await meshStatus();
+      meshServerName = status.serverName?.toLowerCase() ?? null;
+      // First time the node reports an identity, adopt it as this attendee's mesh id
+      // and share it by default: it is what lets a scanned contact message you on the mesh.
+      if (meshServerName && !profileState.profile.neutrinoServerName) {
+        profileState.profile.neutrinoServerName = meshServerName;
+        profileState.selection.neutrinoServerName = true;
+        await saveProfile();
+        await saveSelection();
+      }
+    });
   });
+
+  /** The signed-in id is only a public Matrix id when it is not the mesh node's own. */
+  const publicMatrixSession = $derived(
+    !!matrixState.userId &&
+      !!matrixState.homeserver &&
+      !isLoopbackHomeserver(matrixState.homeserver),
+  );
+
+  function useMeshId(): void {
+    if (!meshServerName) return;
+    profileState.profile.neutrinoServerName = meshServerName;
+    profileState.selection.neutrinoServerName = true;
+  }
 
   const matrixIdValid = $derived(
     !profileState.profile.matrixId?.trim() || isMatrixUserId(profileState.profile.matrixId.trim()),
@@ -291,25 +322,30 @@
           aria-invalid={!matrixIdValid}
         />
         {#if !matrixIdValid}<span class="warning">Must look like @user:server</span>{/if}
-        {#if matrixState.userId && matrixState.userId !== profileState.profile.matrixId}
+        {#if publicMatrixSession && matrixState.userId !== profileState.profile.matrixId}
           <button type="button" class="linkbtn" onclick={useSignedInMatrixId}>
             Use signed-in account {matrixState.userId}
           </button>
         {/if}
       </label>
       <label>
-        Neutrino peer identity (server name)
+        Mesh id (this device's P2P node)
         <input
-          placeholder="64 hex characters from the Neutrino app"
+          placeholder="64 hex characters; filled in when P2P chat is on"
           bind:value={profileState.profile.neutrinoServerName}
           aria-invalid={!neutrinoValid}
           spellcheck="false"
         />
         {#if !neutrinoValid}<span class="warning">Must be 64 hexadecimal characters</span>{/if}
+        {#if meshServerName && meshServerName !== profileState.profile.neutrinoServerName}
+          <button type="button" class="linkbtn" onclick={useMeshId}>
+            Use this device's mesh id {meshServerName.slice(0, 12)}…
+          </button>
+        {/if}
         {#if neutrinoValid && profileState.profile.neutrinoServerName}
           <span class="muted small">
-            Derived P2P Matrix id: {neutrinoMatrixId(profileState.profile.neutrinoServerName)} — kept
-            separate from your Matrix ID; the two are not interchangeable.
+            Mesh Matrix id: {neutrinoMatrixId(profileState.profile.neutrinoServerName)} — separate from
+            your public Matrix ID; the two are not interchangeable.
           </span>
         {/if}
       </label>
@@ -348,8 +384,9 @@
         <span class="muted">(off by default)</span></label
       >
       <label class="check"
-        ><input type="checkbox" bind:checked={profileState.selection.neutrinoServerName} /> Neutrino
-        peer identity <span class="muted">(off by default)</span></label
+        ><input type="checkbox" bind:checked={profileState.selection.neutrinoServerName} /> Mesh id
+        <span class="muted">(on when P2P chat is on; lets contacts message you on the mesh)</span
+        ></label
       >
       <label class="check"
         ><input type="checkbox" bind:checked={profileState.selection.ticketRef} /> Ticket reference
