@@ -167,7 +167,28 @@ export function leaveByInstant(
   bufferSeconds: number,
 ): string {
   const leaveMs = parseInstant(nextStartIso) - (travelSeconds + bufferSeconds) * 1000;
-  return new Date(leaveMs).toISOString();
+  return formatInstant(leaveMs, offsetMinutesOf(nextStartIso));
+}
+
+/** UTC offset in minutes carried by an ISO string (`+05:30` → 330; `Z` or none → 0). */
+export function offsetMinutesOf(iso: string): number {
+  const m = iso.match(/([+-])(\d{2}):?(\d{2})$/);
+  if (!m) return 0;
+  const sign = m[1] === '-' ? -1 : 1;
+  return sign * (Number(m[2]) * 60 + Number(m[3]));
+}
+
+/**
+ * ISO string for an instant in a fixed UTC offset, so `formatTime()` shows
+ * event-local wall-clock time rather than UTC.
+ */
+export function formatInstant(ms: number, offsetMinutes: number): string {
+  const local = new Date(ms + offsetMinutes * 60_000).toISOString().slice(0, 19);
+  if (offsetMinutes === 0) return `${local}Z`;
+  const abs = Math.abs(offsetMinutes);
+  const hh = String(Math.floor(abs / 60)).padStart(2, '0');
+  const mm = String(abs % 60).padStart(2, '0');
+  return `${local}${offsetMinutes < 0 ? '-' : '+'}${hh}:${mm}`;
 }
 
 export type ScheduleChangeType =

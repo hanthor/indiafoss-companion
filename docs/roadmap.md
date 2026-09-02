@@ -13,23 +13,27 @@ changes, update the issue first, then this file, so neither drifts.
 - PR #24: Matrix messaging with Megolm E2EE, per-session/booth/venue chats,
   handshake contact cards, messenger and social deep links, IndiaFOSS 2026
   design language, Material 3 Android shell, Element X fork alignment.
+- Design handoff (2026-09-02): amber Scan CTA with the camera on load (#46),
+  Connect as one live signed QR card (#47), Rank as stacked tap-to-pick cards
+  (#48), Map as the NIMHANS floor plan with live rooms, a room sheet and the
+  leave-by banner on every tab (`docs/venue-map.md`).
 
 ## Open, ordered by conference impact
 
-| Rank | Issue                                                                                                                                            | Why it matters                                                   |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app                                                                  | Companion and chat ship as a single APK built from the chat fork |
-| 1    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue                                                            | Bad Wi-Fi/cellular at NIMHANS is the reason for the mesh         |
-| 2    | [#29](https://github.com/hanthor/indiafoss-companion/issues/29) Chat provisioning                                                                | Organisers own the rooms; attendees find them without creating   |
-| 3    | [#2](https://github.com/hanthor/indiafoss-companion/issues/2) 2025 data, [#32](https://github.com/hanthor/indiafoss-companion/issues/32) socials | Real speakers, booths and LinkedIn/GitHub links                  |
-| 4    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2                                                                     | In-person verification, NFC, "who I met" recap                   |
-| 5    | [#30](https://github.com/hanthor/indiafoss-companion/issues/30) Chat UX                                                                          | Receipts, replies, reactions, verification, DM notifications     |
-| 6    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications                                                                    | Local reminders without push services                            |
-| 7    | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Revision handling                                                                  | Safe schedule updates during the event                           |
-| 8    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                                    | Remaining screens, dark audit, display font decision             |
-| 9    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE                                                               | Upstream Rust work; unencrypted mesh ships first                 |
-| 10   | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client                                                                 | Optional; WebView inside the chat fork is the interim answer     |
-| 11   | [#11](https://github.com/hanthor/indiafoss-companion/issues/11) Neutrino/Matrix                                                                  | Parent issue; one item left (tested Android prototype)           |
+| Rank | Issue                                                                                                                                            | Why it matters                                                                                       |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app                                                                  | Companion first, P2P chat add-on; remaining: plugin device check, foreground service, Packages token |
+| 1    | [#29](https://github.com/hanthor/indiafoss-companion/issues/29) FOSDEM-style rooms                                                               | Organiser-owned rooms on matrix.reilly.asia, joined from existing accounts                           |
+| 2    | [#2](https://github.com/hanthor/indiafoss-companion/issues/2) 2025 data, [#32](https://github.com/hanthor/indiafoss-companion/issues/32) socials | Real speakers, booths and LinkedIn/GitHub links                                                      |
+| 3    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2                                                                     | In-person verification, NFC; signed vCard and "who I met" shipped                                    |
+| 4    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications                                                                    | Local reminders shipped; leave-by push while the app is closed                                       |
+| 5    | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Revision handling                                                                  | Safe schedule updates during the event                                                               |
+| 6    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                                    | Four handoff screens shipped; dark audit, display font decision                                      |
+| 7    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue                                                            | Mesh behaviour: discovery, outbox flush, offline tests                                               |
+| 8    | [#30](https://github.com/hanthor/indiafoss-companion/issues/30) Chat UX                                                                          | Receipts, replies, reactions, member list                                                            |
+| 9    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE                                                               | Upstream Rust work; unencrypted mesh ships first                                                     |
+| 10   | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client                                                                 | Optional later optimisation of the companion surfaces                                                |
+| 11   | [#11](https://github.com/hanthor/indiafoss-companion/issues/11) Neutrino/Matrix                                                                  | Parent issue for the chat add-on                                                                     |
 
 ## Sibling repository
 
@@ -56,3 +60,10 @@ alignment, #3 CI packages token, #4 fork roadmap.
   app; Matrix ids on profiles open in Element. Reason: Neutrino nodes do not
   federate with public Matrix and identities cannot be linked, so mixing both
   would split conversations (#35).
+- 2026-09-02: Public rooms live on the organiser's homeserver, FOSDEM-style
+  (owner): rooms on matrix.reilly.asia joined from attendees' existing Matrix
+  accounts via Element links; no accounts handed out (#29). Raw iroh was
+  rejected: no BLE transport, and it would rebuild what Neutrino provides.
+- 2026-09-02: Map v1 highlights the destination room rather than drawing a
+  path; the 2025 programme is shown on the 2026 NIMHANS plan through room
+  aliases (`venue-map.md`).

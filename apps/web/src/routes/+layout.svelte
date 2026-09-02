@@ -11,6 +11,7 @@
   import { hydrateMatrix, matrixState, unreadTotal } from '$lib/matrix.svelte';
   import { features, hydrateFeatures } from '$lib/features.svelte';
   import { installNativeDeepLinks } from '$lib/native';
+  import LeaveByBanner from '$lib/components/LeaveByBanner.svelte';
   import { goto } from '$app/navigation';
 
   let { children }: { children: import('svelte').Snippet } = $props();
@@ -44,6 +45,9 @@
   $effect(() => {
     if (features.chat) void hydrateMatrix();
   });
+
+  // The map fills the screen edge to edge; every other route keeps the gutter.
+  const fullbleed = $derived(isActive(resolve('/map')));
 
   function isActive(href: string): boolean {
     const path = page.url.pathname;
@@ -129,8 +133,9 @@
     </nav>
   </header>
   <div class="pixelstripe" aria-hidden="true"></div>
+  <LeaveByBanner />
 
-  <main class="content">
+  <main class="content" class:fullbleed>
     {@render children()}
   </main>
 
@@ -320,6 +325,13 @@
     max-width: 72rem;
     width: 100%;
     margin: 0 auto;
+  }
+
+  .content.fullbleed {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    max-width: none;
   }
 
   .tabbar {
