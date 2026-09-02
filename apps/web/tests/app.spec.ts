@@ -68,26 +68,25 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
   // Two candidate cards appear.
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await expect(page.getByTestId('candidate-b')).toBeVisible();
-  // Stability readout is shown.
-  await expect(page.getByText(/% resolved/)).toBeVisible();
+  // Progress readout is shown.
+  await expect(page.getByText(/% RESOLVED/)).toBeVisible();
 
-  // Answer a few comparisons; the arena should change or finish.
+  // Tapping a card is the pick; the pair changes or the day settles.
   for (let i = 0; i < 5; i++) {
     const done = await page
-      .getByText('All caught up')
+      .getByText('ALL SETTLED')
       .isVisible()
       .catch(() => false);
     if (done) break;
-    await page.getByRole('button', { name: 'Definitely A' }).first().click();
+    await page.getByTestId('candidate-a').click();
     await page.waitForTimeout(150);
   }
-  // Either more candidates or the done state must appear.
   const stillGoing = await page
     .getByTestId('candidate-a')
     .isVisible()
     .catch(() => false);
   const done = await page
-    .getByText('All caught up')
+    .getByText('ALL SETTLED')
     .isVisible()
     .catch(() => false);
   expect(stillGoing || done).toBe(true);
@@ -96,12 +95,12 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
 test('ranking supports keyboard choices and undo', async ({ page }) => {
   await page.goto(appUrl('/plan/rank'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await expect(page.getByText(/0 comparison|% resolved/)).toBeVisible();
+  await expect(page.getByText(/0 \/ \d+ CHOICES/)).toBeVisible();
 
-  // Keyboard choice via number key advances the comparison count.
+  // Keyboard choice via number key advances the choice count.
   await page.keyboard.press('1');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 comparison/)).toBeVisible();
+  await expect(page.getByText(/1 \/ \d+ CHOICES/)).toBeVisible();
 
   // Undo becomes enabled after a choice and reverses the last comparison.
   const undo = page.getByRole('button', { name: /Undo last/ });
@@ -110,10 +109,10 @@ test('ranking supports keyboard choices and undo', async ({ page }) => {
   await page.waitForTimeout(100);
   await expect(undo).toBeDisabled();
 
-  // Arrow keys act as swipe-equivalents without a pointer.
-  await page.keyboard.press('ArrowRight');
+  // Arrow keys pick the top or bottom card without a pointer.
+  await page.keyboard.press('ArrowUp');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 comparison/)).toBeVisible();
+  await expect(page.getByText(/1 \/ \d+ CHOICES/)).toBeVisible();
 });
 
 test('ranking respects reduced motion while still recording choices', async ({ browser }) => {
@@ -123,9 +122,9 @@ test('ranking respects reduced motion while still recording choices', async ({ b
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
   await page.goto(appUrl('/plan/rank'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await page.getByRole('button', { name: 'Definitely A' }).first().click();
+  await page.getByTestId('candidate-a').click();
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 comparison/)).toBeVisible();
+  await expect(page.getByText(/1 \/ \d+ CHOICES/)).toBeVisible();
   await context.close();
 });
 
