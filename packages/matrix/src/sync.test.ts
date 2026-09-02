@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applySyncResponse, deriveRoomName, describeEvent } from './sync.js';
+import { slidingSyncToSyncResponse } from './http.js';
 import type { MatrixRoomRecord, SyncResponse } from './types.js';
 
 const ME = '@me:x.org';
@@ -221,5 +222,55 @@ describe('replies and reactions', () => {
         content: {},
       }),
     ).toBeNull();
+  });
+});
+
+describe('slidingSyncToSyncResponse (MSC4186)', () => {
+  it('folds a sliding response into the /sync shape the session layer reads', () => {
+    const folded = slidingSyncToSyncResponse({
+      pos: 'p1',
+      rooms: {
+        '!joined:example.org': {
+          name: 'Audi 1',
+          initial: true,
+          limited: true,
+          prev_batch: 'b1',
+          timeline: [{ type: 'm.room.message', content: { body: 'hi' } } as never],
+          required_state: [{ type: 'm.room.name', content: { name: 'Audi 1' } } as never],
+        },
+        '!invited:example.org': {
+          invite_state: [{ type: 'm.room.member', content: { membership: 'invite' } } as never],
+        },
+      },
+      extensions: {
+        to_device: { events: [{ type: 'm.room_key', content: {} } as never] },
+        e2ee: {
+          device_lists: { changed: ['@a:example.org'] },
+          device_one_time_keys_count: { signed_curve25519: 12 },
+        },
+        account_data: { global: [{ type: 'm.direct', content: {} } as never] },
+      },
+    });
+
+    expect(folded.next_batch).toBe('p1');
+    expect(Object.keys(folded.rooms?.join ?? {})).toEqual(['!joined:example.org']);
+    expect(folded.rooms?.join?.['!joined:example.org']?.timeline?.events).toHaveLength(1);
+    expect(folded.rooms?.join?.['!joined:example.org']?.timeline?.limited).toBe(true);
+    expect(folded.rooms?.join?.['!joined:example.org']?.timeline?.prev_batch).toBe('b1');
+    expect(folded.rooms?.join?.['!joined:example.org']?.state?.events).toHaveLength(1);
+    // An invited room must not be folded in as joined, or the app would show
+    // an invitation as a room you are already in.
+    expect(Object.keys(folded.rooms?.invite ?? {})).toEqual(['!invited:example.org']);
+    expect(folded.to_device?.events).toHaveLength(1);
+    expect(folded.device_lists?.changed).toEqual(['@a:example.org']);
+    expect(folded.device_one_time_keys_count).toEqual({ signed_curve25519: 12 });
+    expect(folded.account_data?.events).toHaveLength(1);
+  });
+
+  it('survives a response carrying nothing but a position', () => {
+    const folded = slidingSyncToSyncResponse({ pos: 'p2' });
+    expect(folded.next_batch).toBe('p2');
+    expect(folded.rooms?.join).toEqual({});
+    expect(folded.to_device).toBeUndefined();
   });
 });
