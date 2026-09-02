@@ -194,7 +194,7 @@ export function computeNotifications(
       out.push({
         id: `leave-${activity.id}`,
         title: 'Leave now',
-        body: `Walk to ${activity.title} (${Math.round(travel / 60)} min).`,
+        body: `Time to head to ${activity.title}.`,
         at: new Date(leaveAtMs).toISOString(),
       });
     }

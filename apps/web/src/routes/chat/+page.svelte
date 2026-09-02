@@ -200,11 +200,12 @@
 {#if !features.loaded}
   <p class="muted small" role="status">Loading…</p>
 {:else if !features.chat}
+  <ConferenceRooms bundle={eventState.bundle} />
   <section class="card">
     <h2>P2P chat is off</h2>
     <p class="muted small">
-      Switch it on to run the mesh node on this device and talk to nearby attendees. Nothing is
-      started or sent until you do.
+      Android app only: it runs a mesh node on this phone and talks to nearby attendees over
+      Bluetooth and Wi-Fi. Nothing is started or sent until you switch it on.
     </p>
     <div class="actions">
       <button class="button primary" onclick={enable}>Enable P2P chat</button>
@@ -216,7 +217,6 @@
       <a href="https://element.io/download" rel="noreferrer">Element</a>.
     </p>
   </section>
-  <ConferenceRooms bundle={eventState.bundle} />
 {:else if !matrixState.hydrated || meshSearching}
   <p class="muted small" role="status">
     {meshSearching ? 'Starting the mesh node on this device…' : 'Restoring session…'}

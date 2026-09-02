@@ -26,7 +26,7 @@ test('schedule lists sessions grouped by time', async ({ page }) => {
 
 test('schedule search narrows results', async ({ page }) => {
   await page.goto(appUrl('/schedule'));
-  await page.getByPlaceholder('Search talks, speakers, tags…').fill('AOSP');
+  await page.getByPlaceholder('Search talks, speakers…').fill('AOSP');
   await expect(page.getByText(/1 session|sessions/).first()).toBeVisible();
   // Searching for AOSP should surface the AOSP devroom sessions.
   const results = page.getByRole('article');
@@ -46,7 +46,7 @@ test('activity detail shows speakers and toggles bookmark', async ({ page }) => 
 
 test('now screen uses developer time to show current session and next', async ({ page }) => {
   await page.goto(NOW_URL);
-  await expect(page.getByText('Developer time:')).toBeVisible();
+  await expect(page.getByText('DEV CLOCK')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Happening now' })).toBeVisible();
   // The session running at 10:15–10:30 must appear in the NOW card.
   await expect(page.getByRole('link', { name: /First Step into Open Source/ })).toBeVisible();
@@ -56,7 +56,7 @@ test('now screen uses developer time to show current session and next', async ({
 
 test('explore search responds and renders results', async ({ page }) => {
   await page.goto(appUrl('/explore'));
-  await expect(page.getByText('Type at least two characters to search.')).toBeVisible();
+  await expect(page.getByRole('link', { name: /Booths/ })).toBeVisible();
   await page.getByLabel('Search').fill('kernel');
   await expect(page.getByRole('status').first()).toContainText('result');
   // At least one result row appears.
@@ -147,12 +147,16 @@ test('plan supports editing: lock, remove/restore, and a persistent custom block
   await expect(firstRow).toBeVisible({ timeout: 10_000 });
 
   // Lock the first item.
+  await firstRow.locator('summary', { hasText: 'Adjust' }).click();
   await firstRow.getByRole('button', { name: 'Lock' }).click();
   await expect(firstRow.getByRole('button', { name: 'Unlock' })).toBeVisible();
 
   // Remove the second item and restore it from the Removed list.
   const before = await page.locator('.itinerary li').count();
-  await page.locator('.itinerary li').nth(1).getByRole('button', { name: 'Remove' }).click();
+  // Filler blocks carry no controls, so pick the second real session.
+  const secondRow = page.locator('.itinerary li:not(.flex)').nth(1);
+  await secondRow.locator('summary', { hasText: 'Adjust' }).click();
+  await secondRow.getByRole('button', { name: 'Remove' }).click();
   await expect(page.locator('.itinerary li')).toHaveCount(before - 1);
   await expect(page.getByRole('heading', { name: 'Removed' })).toBeVisible();
   await page.getByRole('button', { name: 'Restore' }).first().click();
@@ -240,9 +244,6 @@ test('map sets a location from a room and shows the walk to another', async ({ p
   await page.getByRole('button', { name: /^First/ }).click();
   await page.getByRole('button', { name: /^Devroom 2/ }).click();
   await expect(page.getByRole('heading', { name: 'Devroom 2' })).toBeVisible();
-  // The route from the current location appears with a walk duration and steps.
-  await expect(page.getByText(/min walk/)).toBeVisible();
-  await expect(page.locator('.steps li').first()).toBeVisible();
   // The other-floor hint points back down to where you are.
   await expect(page.getByText("YOU'RE DOWNSTAIRS")).toBeVisible();
   // The plan zooms; labels grow their detail once zoomed in.
@@ -255,24 +256,10 @@ test('map sets a location from a room and shows the walk to another', async ({ p
 test('now screen shows leave-by with a known location', async ({ page }) => {
   const DURING = '2025-09-20T10:20:00+05:30';
   await page.goto(appUrl(`/now?now=${encodeURIComponent(DURING)}&at=audi-1`));
-  // With a known location the NEXT card computes walking time + leave-by.
-  await expect(page.getByText(/Estimated walk:/)).toBeVisible({ timeout: 10_000 });
-  await expect(page.getByText(/Leave by/)).toBeVisible();
-  // Show route links into the map with the destination room opened.
-  await page.getByRole('link', { name: 'Show route' }).click();
+  // With a known location the NEXT card says where you are and opens the map on the next room.
+  await expect(page.getByText(/You are at/)).toBeVisible({ timeout: 10_000 });
+  await page.getByRole('link', { name: 'Show on map' }).click();
   await expect(page.getByText('DESTINATION')).toBeVisible();
-  await expect(page.getByText(/min walk/)).toBeVisible();
-});
-
-test('routing profile is configurable and persists across reload', async ({ page }) => {
-  await page.goto(appUrl('/settings'));
-  await expect(page.getByRole('heading', { name: 'Getting around' })).toBeVisible();
-  // Switch to the step-free (accessible) profile.
-  await page.getByRole('radio', { name: /Step-free/ }).check();
-  await expect(page.getByRole('radio', { name: /Step-free/ })).toBeChecked();
-  // The choice survives a reload (persisted locally).
-  await page.reload();
-  await expect(page.getByRole('radio', { name: /Step-free/ })).toBeChecked({ timeout: 10_000 });
 });
 
 test('booth directory lists and schedules a visit', async ({ page }) => {

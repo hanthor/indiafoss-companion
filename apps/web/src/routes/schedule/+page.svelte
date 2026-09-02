@@ -121,7 +121,7 @@
     <div class="row">
       <label class="search">
         <span class="sr-only">Search sessions</span>
-        <input type="search" placeholder="Search talks, speakers, tags…" bind:value={query} />
+        <input type="search" placeholder="Search talks, speakers…" bind:value={query} />
       </label>
       <div class="seg" role="group" aria-label="View">
         <button class:active={view === 'list'} onclick={() => (view = 'list')}>List</button>
@@ -169,7 +169,7 @@
           </div>
           <div class="items">
             {#each group.activities as activity (activity.id)}
-              <SessionCard {activity} {bundle} />
+              <SessionCard {activity} {bundle} compactTime />
             {/each}
           </div>
         </div>

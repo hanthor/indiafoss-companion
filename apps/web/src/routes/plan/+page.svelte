@@ -19,6 +19,7 @@
     toggleLock,
   } from '$lib/planEdits.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
+  import { SvelteSet } from 'svelte/reactivity';
   import { dispositionOf, setDisposition } from '$lib/prefs.svelte';
   import { MUST_ATTEND_HEADS_UP_MINUTES } from '$lib/notifications';
 
@@ -131,6 +132,8 @@
   }
 
   const isCustom = (id: string): boolean => id.startsWith('custom-');
+  /** Rows whose Adjust controls are open; kept across re-solves. */
+  const adjustOpen = new SvelteSet<string>();
 
   /** Everything marked must attend, across days, in programme order. */
   const mustAttend = $derived(
@@ -168,9 +171,8 @@
     <h2 id="must-title">★ Must attend</h2>
     {#if mustAttend.length === 0}
       <p class="muted small">
-        Mark the talks you cannot miss as <strong>★ Must attend</strong> on a session (or the
-        <strong>!!</strong> mark on any schedule row). They are pinned into your plan and get extra
-        reminders: {MUST_ATTEND_HEADS_UP_MINUTES} min before, starting soon, leave-by and at the start.
+        Nothing yet. Mark a talk <strong>★ Must attend</strong> on its page or with the
+        <strong>MUST</strong> mark on the schedule to pin it here with extra reminders.
       </p>
     {:else}
       <p class="muted small">
@@ -249,57 +251,73 @@
                 <span class="loc">{locationName(item.locationId)}</span>
               {/if}
 
-              <div class="rowcontrols">
-                {#if !isCustom(item.id)}
-                  <button
-                    class="chip"
-                    aria-pressed={item.locked}
-                    onclick={() => toggleLock(item.id)}
-                  >
-                    {item.locked ? 'Unlock' : 'Lock'}
-                  </button>
-                  <button
-                    class="chip"
-                    onclick={() => removeItem(item.replacedActivityId ?? item.id)}
-                  >
-                    Remove
-                  </button>
-                  {#if item.replacedActivityId}
-                    <button class="chip" onclick={() => clearReplacement(item.replacedActivityId!)}>
-                      Undo replace
-                    </button>
-                  {/if}
-                {:else}
-                  <button
-                    class="chip"
-                    aria-pressed={item.locked}
-                    onclick={() => toggleLock(item.id)}
-                  >
-                    {item.locked ? 'Unlock' : 'Lock'}
-                  </button>
-                  <button class="chip" onclick={() => removeCustomBlock(item.id)}>Delete</button>
-                {/if}
-              </div>
+              {#if !item.flexible || isCustom(item.id)}
+                <details
+                  class="adjust"
+                  open={adjustOpen.has(item.id)}
+                  ontoggle={(e) => {
+                    if (e.currentTarget.open) adjustOpen.add(item.id);
+                    else adjustOpen.delete(item.id);
+                  }}
+                >
+                  <summary>Adjust</summary>
+                  <div class="rowcontrols">
+                    {#if !isCustom(item.id)}
+                      <button
+                        class="chip"
+                        aria-pressed={item.locked}
+                        onclick={() => toggleLock(item.id)}
+                      >
+                        {item.locked ? 'Unlock' : 'Lock'}
+                      </button>
+                      <button
+                        class="chip"
+                        onclick={() => removeItem(item.replacedActivityId ?? item.id)}
+                      >
+                        Remove
+                      </button>
+                      {#if item.replacedActivityId}
+                        <button
+                          class="chip"
+                          onclick={() => clearReplacement(item.replacedActivityId!)}
+                        >
+                          Undo replace
+                        </button>
+                      {/if}
+                    {:else}
+                      <button
+                        class="chip"
+                        aria-pressed={item.locked}
+                        onclick={() => toggleLock(item.id)}
+                      >
+                        {item.locked ? 'Unlock' : 'Lock'}
+                      </button>
+                      <button class="chip" onclick={() => removeCustomBlock(item.id)}>Delete</button
+                      >
+                    {/if}
+                  </div>
 
-              {#if !item.flexible && !isCustom(item.id)}
-                {@const backups = backupsFor(item.replacedActivityId ?? item.id)}
-                {#if backups.length > 0}
-                  <label class="replace">
-                    <span class="sr-only">Replace with a backup</span>
-                    <select
-                      onchange={(e) => {
-                        const v = e.currentTarget.value;
-                        if (v) void replaceItem(item.replacedActivityId ?? item.id, v);
-                        e.currentTarget.value = '';
-                      }}
-                    >
-                      <option value="">Replace with backup…</option>
-                      {#each backups as backupId (backupId)}
-                        <option value={backupId}>{activityTitle(backupId)}</option>
-                      {/each}
-                    </select>
-                  </label>
-                {/if}
+                  {#if !item.flexible && !isCustom(item.id)}
+                    {@const backups = backupsFor(item.replacedActivityId ?? item.id)}
+                    {#if backups.length > 0}
+                      <label class="replace">
+                        <span class="sr-only">Replace with a backup</span>
+                        <select
+                          onchange={(e) => {
+                            const v = e.currentTarget.value;
+                            if (v) void replaceItem(item.replacedActivityId ?? item.id, v);
+                            e.currentTarget.value = '';
+                          }}
+                        >
+                          <option value="">Replace with backup…</option>
+                          {#each backups as backupId (backupId)}
+                            <option value={backupId}>{activityTitle(backupId)}</option>
+                          {/each}
+                        </select>
+                      </label>
+                    {/if}
+                  {/if}
+                </details>
               {/if}
             </div>
           </li>
@@ -445,6 +463,18 @@
     margin: 0.4rem 0 0;
     padding-left: 1.1rem;
   }
+  .adjust {
+    margin-top: 0.3rem;
+  }
+  .adjust summary {
+    cursor: pointer;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+  .adjust[open] summary {
+    margin-bottom: 0.3rem;
+  }
+
   .mustlist {
     margin: 0.5rem 0 1rem;
     padding: 0.7rem 0.9rem;

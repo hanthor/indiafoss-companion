@@ -7,13 +7,10 @@
     computeNowState,
     formatDayLabel,
     formatTime,
-    leaveByInstant,
   } from '@indiafoss/schedule';
-  import { findRoute } from '@indiafoss/venue';
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { eventState } from '$lib/event.svelte';
   import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
-  import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
   import {
     currentLocation,
     hydrateLocation,
@@ -23,9 +20,6 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
   import { conferenceChatQuery } from '$lib/matrix.svelte';
-  import { sessionRoomLink } from '$lib/element-links';
-
-  const BUFFER_SECONDS = 300; // §29 default 5 minutes
 
   const clock = clockFromParams(page.url.searchParams.get('now'));
   let now: string = $state(clock.now());
@@ -50,7 +44,6 @@
     const at = page.url.searchParams.get('at');
     void (async () => {
       await hydrateLocation();
-      await hydrateRoutingProfile();
       if (at) await setCurrentLocation(locationIdFromDeepLink(at) ?? at);
     })();
     void loadVenue(venueKey).then((v) => {
@@ -60,30 +53,6 @@
 
   const locationName = (a: Activity): string | undefined =>
     bundle?.locations.find((l) => l.id === a.locationId)?.name;
-
-  // Travel + leave-by for the next session (§29).
-  const nextLeg = $derived.by<{
-    travelSeconds: number;
-    leaveBy: string;
-    floorChange: boolean;
-    restricted: boolean;
-  } | null>(() => {
-    if (!nowState?.next || !currentLocation.value) return null;
-    const nextLoc = nowState.next.locationId;
-    if (!nextLoc || !venue) return null;
-    const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
-    const to = venue.metadata.locations[nextLoc]?.entrances[0];
-    if (!from || !to || from === to) return null;
-    const route = findRoute(venue.graph, from, to, routingPrefs.profile);
-    if (!route) return null;
-    const floors = new Set(route.segments.map((s) => s.floor));
-    return {
-      travelSeconds: route.durationSeconds,
-      leaveBy: leaveByInstant(nowState!.next!.start!, route.durationSeconds, BUFFER_SECONDS),
-      floorChange: floors.size > 1,
-      restricted: route.restricted,
-    };
-  });
 
   const venueLocations = $derived(
     (venue ? Object.entries(venue.metadata.locations) : []) as [string, { floor?: string }][],
@@ -100,7 +69,7 @@
   <h1>Now</h1>
 
   {#if isFixedClock(clock)}
-    <p class="devtime">Developer time: {now}</p>
+    <p class="devtime"><span class="devtag">DEV CLOCK</span> {now}</p>
   {/if}
 
   {#if !nowState}
@@ -149,16 +118,6 @@
                   )}>💬 chat</a
                 >
               {/if}
-              {#if sessionRoomLink(bundle, activity.id, activity.locationId)}
-                <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
-                ·
-                <a
-                  href={sessionRoomLink(bundle, activity.id, activity.locationId)!.href}
-                  target="_blank"
-                  rel="noreferrer">room in Element ↗</a
-                >
-                <!-- eslint-enable svelte/no-navigation-without-resolve -->
-              {/if}
             </p>
             <div
               class="progress"
@@ -194,28 +153,20 @@
           {minutesUntil(nowState!.next.start!, now)}
         </p>
 
-        {#if nextLeg}
+        {#if currentLocation.value}
           <p class="leave">
-            Estimated walk: {Math.round(nextLeg.travelSeconds / 60)} min · Preferred buffer: 5 min
-            {#if nextLeg.restricted}· {routingPrefs.profile === 'accessible'
-                ? 'accessible'
-                : 'step-free'} route{/if}
+            You are at <strong
+              >{locationName({ locationId: currentLocation.value } as Activity) ??
+                currentLocation.value.replace(/-/g, ' ')}</strong
+            >.
           </p>
-          {#if nextLeg.floorChange}
-            <p class="leave floor-change">
-              This route changes floor — take the {routingPrefs.profile === 'fastest'
-                ? 'stairs or lift'
-                : 'lift'}.
-            </p>
-          {/if}
-          <p class="leave strong">Leave by {formatTime(nextLeg.leaveBy)}.</p>
           <div class="actions">
-            <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show route</a>
+            <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show on map</a>
             <button class="ghost" onclick={() => setCurrentLocation(null)}>Clear my location</button
             >
           </div>
         {:else}
-          <p class="muted small">Walking time unavailable until your location is known (§29).</p>
+          <p class="muted small">Tell the app where you are and the map opens on your room.</p>
           <label>
             <span class="sr-only">Set your current location</span>
             <select
@@ -231,9 +182,6 @@
               {/each}
             </select>
           </label>
-          {#if currentLocation.value && venueLocations.length === 0}
-            <p class="muted small">Venue map still loading…</p>
-          {/if}
         {/if}
       </section>
     {/if}
@@ -242,8 +190,20 @@
 
 <style>
   .devtime {
-    font-size: 0.8rem;
-    color: var(--warning);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px dashed var(--amber);
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .devtag {
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--amber-ink);
   }
   .card {
     background: var(--surface-raised);
@@ -301,14 +261,6 @@
   .leave {
     margin: 0.35rem 0;
     font-size: 0.95rem;
-  }
-  .leave.strong {
-    font-weight: 700;
-    color: var(--event-primary-text);
-  }
-  .leave.floor-change {
-    color: var(--event-primary-dark);
-    font-weight: 600;
   }
   .actions {
     display: flex;

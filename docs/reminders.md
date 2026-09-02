@@ -10,11 +10,11 @@ switches them on in Settings.
 `computeNotifications()` in `apps/web/src/lib/notifications.ts` is pure and
 takes a `tierFor(activityId)` callback:
 
-| Tier          | Who                         | Alerts                                                                                  |
-| ------------- | --------------------------- | --------------------------------------------------------------------------------------- |
-| `must-attend` | disposition "★ Must attend" | heads-up 30 min before, starting soon (15 min), leave now (walk + buffer), at the start |
-| `planned`     | bookmarked sessions         | starting soon, leave now                                                                |
-| `none`        | everything else             | silent                                                                                  |
+| Tier          | Who                         | Alerts                                                                                     |
+| ------------- | --------------------------- | ------------------------------------------------------------------------------------------ |
+| `must-attend` | disposition "★ Must attend" | heads-up 30 min before, starting soon (15 min), "time to head over" (10 min), at the start |
+| `planned`     | bookmarked sessions         | starting soon, leave now                                                                   |
+| `none`        | everything else             | silent                                                                                     |
 
 `armNotifications()` recomputes this every minute for the next 90 minutes and
 hands the result to the transport; ids are stable (`must-`, `soon-`, `leave-`,
