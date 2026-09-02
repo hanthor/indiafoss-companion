@@ -13,6 +13,7 @@
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { getMatrix, hydrateMatrix, matrixState, statusLabel } from '$lib/matrix.svelte';
   import { messagingConfigFor } from '$lib/messaging-config';
+  import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import { features, hydrateFeatures, setChatEnabled } from '$lib/features.svelte';
   import { meshPeers, shortServerName, startMeshNode } from '$lib/neutrino';
@@ -215,6 +216,7 @@
       <a href="https://element.io/download" rel="noreferrer">Element</a>.
     </p>
   </section>
+  <ConferenceRooms bundle={eventState.bundle} />
 {:else if !matrixState.hydrated || meshSearching}
   <p class="muted small" role="status">
     {meshSearching ? 'Starting the mesh node on this device…' : 'Restoring session…'}
@@ -237,6 +239,7 @@
       {#if pendingOpen}
         <p class="pill amber">“{pendingOpen.name}” will open once the mesh is available.</p>
       {/if}
+      <ConferenceRooms bundle={eventState.bundle} />
       <div class="actions">
         <button class="button secondary small" onclick={connectMesh}>Look again</button>
       </div>

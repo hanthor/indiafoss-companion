@@ -1,5 +1,5 @@
 import { isValidEventBundle } from '@indiafoss/model';
-import type { EventBundle, EventReference } from '@indiafoss/model';
+import type { EventBundle, EventReference, MessagingConfig } from '@indiafoss/model';
 import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
 import { FixtureSource, FossUnitedSource, mergeBooths, repoRoot } from '@indiafoss/sources';
 import { createHash } from 'node:crypto';
@@ -64,6 +64,12 @@ export async function syncEvent(
   if (existsSync(boothsPath)) {
     const { booths } = JSON.parse(readFileSync(boothsPath, 'utf8')) as { booths: { id: string }[] };
     mergeBooths(bundle, booths);
+  }
+
+  // Merge the organiser's Matrix rooms (FOSDEM-style, see docs/messaging.md).
+  const messagingPath = join(repoRoot('events', eventId), 'messaging.json');
+  if (existsSync(messagingPath)) {
+    bundle.messaging = JSON.parse(readFileSync(messagingPath, 'utf8')) as MessagingConfig;
   }
 
   if (!isValidEventBundle(bundle)) {

@@ -43,6 +43,10 @@ work is Android polish (#12), the native Material 3 client (#10), the real
   until 2026 data is published.
 - **Adaptive Elo ranking**: rank conflicting sessions head-to-head, and the
   itinerary solver builds a feasible plan around your preferences.
+- **Conference rooms on Matrix**: FOSDEM-style public rooms on the organiser's
+  homeserver (`reilly.asia`), one per hall plus announcements and hallway,
+  joined from any existing Matrix account via Element links; provisioned by
+  `tools/matrix-rooms` (`docs/messaging.md`).
 - **Indoor navigation**: SVG venue map with A\* routing, accessible profiles,
   and leave-by calculations.
 - **Optional peer-to-peer chat**: session, booth and direct chats over

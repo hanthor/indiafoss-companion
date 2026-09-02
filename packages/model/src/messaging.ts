@@ -16,6 +16,7 @@ export interface MessagingRoom {
   trackId?: string;
   activityId?: string;
   locationId?: string;
+  boothId?: string;
   /** Rooms the app should suggest joining right after sign-in. */
   recommended?: boolean;
 }
@@ -86,8 +87,24 @@ export function isMatrixRoomId(value: string): boolean {
   return ROOM_ID_RE.test(value);
 }
 
-/** Structural problems with a messaging config; empty when it is usable. */
-export function collectMessagingIssues(config: MessagingConfig): string[] {
+/** What a messaging room may point at; ids are checked against the bundle. */
+export interface MessagingReferences {
+  activityIds: Set<string>;
+  locationIds: Set<string>;
+  boothIds: Set<string>;
+  trackIds: Set<string>;
+}
+
+/**
+ * Structural problems with a messaging config; empty when it is usable. With
+ * `refs`, rooms that name an activity, location, booth or track the bundle
+ * does not have are reported too, so a provisioning script never creates a
+ * room for a typo.
+ */
+export function collectMessagingIssues(
+  config: MessagingConfig,
+  refs?: MessagingReferences,
+): string[] {
   const issues: string[] = [];
   try {
     const url = new URL(config.homeserver);
@@ -112,6 +129,19 @@ export function collectMessagingIssues(config: MessagingConfig): string[] {
     if (seen.has(room.alias)) issues.push(`duplicate messaging room alias: ${room.alias}`);
     seen.add(room.alias);
     if (!room.name.trim()) issues.push(`messaging room ${room.alias} has an empty name`);
+    if (refs) {
+      const checks: [string | undefined, Set<string>, string][] = [
+        [room.activityId, refs.activityIds, 'activity'],
+        [room.locationId, refs.locationIds, 'location'],
+        [room.boothId, refs.boothIds, 'booth'],
+        [room.trackId, refs.trackIds, 'track'],
+      ];
+      for (const [id, known, kind] of checks) {
+        if (id !== undefined && !known.has(id)) {
+          issues.push(`messaging room ${room.alias} names an unknown ${kind}: ${id}`);
+        }
+      }
+    }
   }
   return issues;
 }

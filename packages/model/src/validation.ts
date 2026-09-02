@@ -41,7 +41,16 @@ export function collectBundleIssues(bundle: EventBundle): string[] {
     }
   }
 
-  if (bundle.messaging) issues.push(...collectMessagingIssues(bundle.messaging));
+  if (bundle.messaging) {
+    issues.push(
+      ...collectMessagingIssues(bundle.messaging, {
+        activityIds,
+        locationIds: new Set(bundle.locations.map((l) => l.id)),
+        boothIds: new Set(bundle.booths.map((b) => b.id)),
+        trackIds: new Set(bundle.tracks.map((t) => t.id)),
+      }),
+    );
+  }
 
   return issues;
 }
