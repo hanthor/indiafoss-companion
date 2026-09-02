@@ -193,6 +193,27 @@ test('plan explains an infeasible custom block instead of dropping it', async ({
   await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap B' })).toBeVisible();
 });
 
+test('must attend pins a talk in the plan and leads the leave-by banner', async ({ page }) => {
+  await page.goto(appUrl('/activity/act-c8ak0iov2l'));
+  const must = page.getByRole('button', { name: 'Must attend' });
+  await must.click();
+  await expect(must).toHaveAttribute('aria-pressed', 'true');
+  // Plan lists it under Must attend.
+  await page.goto(appUrl('/plan'));
+  const list = page.getByRole('region', { name: /Must attend/ });
+  await expect(list.getByRole('link', { name: /First Step into Open Source/ })).toBeVisible();
+  // The banner picks it over the programme order and says so.
+  const before = '2025-09-20T09:50:00+05:30';
+  await page.goto(appUrl(`/schedule?now=${encodeURIComponent(before)}`));
+  const banner = page.getByRole('link', { name: /Must attend.*First Step into Open Source/ });
+  await expect(banner).toBeVisible();
+  await expect(banner).toContainText('MUST ATTEND');
+  // Removing it from the plan clears the mark.
+  await page.goto(appUrl('/plan'));
+  await list.getByRole('button', { name: /Remove First Step/ }).click();
+  await expect(list.getByRole('link', { name: /First Step into Open Source/ })).toHaveCount(0);
+});
+
 test('map sets a location from a room and shows the walk to another', async ({ page }) => {
   await page.goto(appUrl('/map'));
   // Tap a room on the floor plan, mark it as where you are.

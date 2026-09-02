@@ -2,7 +2,7 @@
   import { resolve } from '$app/paths';
   import type { Activity, EventBundle } from '@indiafoss/model';
   import { formatTime } from '@indiafoss/schedule';
-  import { bookmarked, toggleBookmark } from '$lib/prefs.svelte';
+  import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
   import TypeBadge from './TypeBadge.svelte';
 
   let { activity, bundle }: { activity: Activity; bundle: EventBundle } = $props();
@@ -13,6 +13,14 @@
       .map((id) => bundle.people.find((p) => p.id === id))
       .filter((p): p is NonNullable<typeof p> => Boolean(p)),
   );
+
+  const mustAttend = $derived(dispositionOf(activity.id) === 'must-attend');
+
+  async function onMustAttend(event: MouseEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    await setDisposition(activity.id, mustAttend ? 'normal' : 'must-attend');
+  }
 
   async function onBookmark(event: MouseEvent) {
     event.preventDefault();
@@ -41,16 +49,27 @@
     <div class="chips">
       <TypeBadge type={activity.type} />
       {#if activity.cancelled}<span class="chip cancelled">cancelled</span>{/if}
+      {#if mustAttend}<span class="chip must">must attend</span>{/if}
     </div>
   </div>
 
-  <button
-    class="bookmark"
-    class:active={bookmarked(activity.id)}
-    aria-pressed={bookmarked(activity.id)}
-    aria-label={bookmarked(activity.id) ? 'Remove bookmark' : 'Bookmark session'}
-    onclick={onBookmark}>★</button
-  >
+  <div class="marks">
+    <button
+      class="bookmark"
+      class:active={bookmarked(activity.id)}
+      aria-pressed={bookmarked(activity.id)}
+      aria-label={bookmarked(activity.id) ? 'Remove bookmark' : 'Bookmark session'}
+      onclick={onBookmark}>★</button
+    >
+    <button
+      class="must"
+      class:active={mustAttend}
+      aria-pressed={mustAttend}
+      aria-label={mustAttend ? 'Remove from must attend' : 'Mark as must attend'}
+      title="Must attend: pinned in your plan, extra reminders"
+      onclick={onMustAttend}>!!</button
+    >
+  </div>
 </article>
 
 <style>
@@ -116,6 +135,37 @@
   .chip.cancelled {
     background: var(--danger);
     color: #fff;
+  }
+
+  .chip.must {
+    background: var(--amber);
+    color: var(--ink);
+  }
+
+  .marks {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .must {
+    border: none;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    color: color-mix(in srgb, var(--text-muted) 45%, transparent);
+    cursor: pointer;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 8px;
+  }
+  .must:hover {
+    background: color-mix(in srgb, var(--amber) 25%, transparent);
+  }
+  .must.active {
+    color: var(--amber-ink);
   }
 
   .bookmark {

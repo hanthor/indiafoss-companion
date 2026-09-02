@@ -124,6 +124,18 @@ export const DEFAULT_NOTIFICATION_WINDOW: NotificationWindow = {
 };
 
 /**
+ * How much reminding a session gets. `must-attend` is the attendee's own
+ * "do not let me miss this" tier: an early heads-up, the usual starting-soon
+ * and leave-now alerts, and one more at the start. `planned` (bookmarked or
+ * on the itinerary) gets starting-soon and leave-now. Everything else is
+ * silent: the programme has hundreds of sessions and nobody wants them all.
+ */
+export type ReminderTier = 'must-attend' | 'planned' | 'none';
+
+/** Minutes before a must-attend session for the early heads-up. */
+export const MUST_ATTEND_HEADS_UP_MINUTES = 30;
+
+/**
  * Compute the local notifications the app should have armed for `now`.
  * Pure and testable — returns notifications whose fire time is in the
  * future but within the lookahead window.
@@ -132,16 +144,37 @@ export function computeNotifications(
   bundle: EventBundle,
   now: string,
   travelSecondsFor: (locationId: string | undefined) => number,
+  tierFor: (activityId: string) => ReminderTier,
   window: NotificationWindow = DEFAULT_NOTIFICATION_WINDOW,
 ): AppNotification[] {
   const nowMs = Date.parse(now);
-  const lookaheadMs = 60 * 60_000;
+  const lookaheadMs = 90 * 60_000;
   const out: AppNotification[] = [];
 
   for (const activity of bundle.activities) {
     if (activity.cancelled || !activity.start || !activity.end) continue;
+    const tier = tierFor(activity.id);
+    if (tier === 'none') continue;
     const startMs = Date.parse(activity.start);
     if (startMs < nowMs || startMs > nowMs + lookaheadMs) continue;
+
+    if (tier === 'must-attend') {
+      const headsUpAt = startMs - MUST_ATTEND_HEADS_UP_MINUTES * 60_000;
+      if (headsUpAt > nowMs) {
+        out.push({
+          id: `must-${activity.id}`,
+          title: "Don't miss this",
+          body: `${activity.title} starts in ${MUST_ATTEND_HEADS_UP_MINUTES} min — it's on your must-attend list.`,
+          at: new Date(headsUpAt).toISOString(),
+        });
+      }
+      out.push({
+        id: `start-${activity.id}`,
+        title: 'Starting now',
+        body: `${activity.title} is starting. You marked it must attend.`,
+        at: new Date(startMs).toISOString(),
+      });
+    }
 
     const startingSoonAt = startMs - window.startingSoonMinutes * 60_000;
     if (startingSoonAt > nowMs) {
