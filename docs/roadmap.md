@@ -40,10 +40,11 @@ alignment, #3 CI packages token, #4 fork roadmap.
 
 - 2026-09-01: Matrix chat is optional and lives in the companion
   (`packages/matrix`). Superseded on 2026-09-02 for Android, see below.
-- 2026-09-02: **One Android app.** The Android release is a single APK built
-  from `hanthor/indiafoss-chat-android` (Element X + embedded Neutrino) with
-  the companion web UI bundled inside it (#35). The Capacitor wrapper in this
-  repo is a dev build only. Web and iOS keep the PWA.
+- 2026-09-02: **One Android app, companion first.** The Android release is
+  this repo's Capacitor build. P2P/Matrix chat is an optional feature inside
+  it, using the existing `/chat` screens plus a Capacitor plugin that embeds
+  the Neutrino node. The Element X fork (`hanthor/indiafoss-chat-android`) is
+  parked as a reference (#35).
 - 2026-09-01: Handshake cards are signed with a per-device WebCrypto key;
   nothing is verified server-side; GitHub and LinkedIn are shared by default,
   email, phone and messengers are opt-in.
