@@ -66,7 +66,7 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   // 9. Modify Elo ranking.
   await page.goto(appUrl('/plan/rank'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await page.getByRole('button', { name: 'Definitely A' }).first().click();
+  await page.getByTestId('candidate-a').click();
   await page.waitForTimeout(200);
 
   // 10. Regenerate the itinerary.
