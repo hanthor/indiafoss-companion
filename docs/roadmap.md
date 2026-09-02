@@ -39,7 +39,7 @@ changes, update the issue first, then this file, so neither drifts.
 | 4    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish         | Remaining: visual regression snapshots, empty states                                   |
 | 5    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications         | Remaining: a push while the _web_ app is closed, which the no-push policy rules out    |
 | 6    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE    | Upstream Rust work; parked until someone can build Neutrino                            |
-| 7    | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client      | Proposed not planned: one Android app is the decision                                  |
+| 7    | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client      | In progress: `apps/android/native` builds in CI; Now/Schedule/Plan/Map render natively |
 
 Closed as done: #2 (2025 data), #7 (revision handling), #29 (organiser rooms),
 #32 (socials), #52–#55 and #60 (device and UX feedback).
@@ -65,6 +65,11 @@ alignment, #3 CI packages token, #4 fork roadmap.
   implemented; mesh rooms are unencrypted and the UI says so.
 - 2026-09-02: FFF Forward is not redistributable; Press Start 2P is the bundled
   display fallback pending a licence decision (#33).
+- 2026-09-02: **The native client renders natively, neutral M3.** `apps/android/native`
+  is a real Compose app over a pure-Kotlin port of the schedule and Elo engines,
+  themed by dynamic colour with mint only as the fallback seed and no IndiaFOSS
+  wordmark or pixel font. The Capacitor build stays the shipping Android app.
+  See [ADR 0002](adr/0002-native-compose-client-rendered-natively.md).
 - 2026-09-02: **In-app chat is P2P only.** No public-homeserver sign-in in the
   app; Matrix ids on profiles open in Element. Reason: Neutrino nodes do not
   federate with public Matrix and identities cannot be linked, so mixing both

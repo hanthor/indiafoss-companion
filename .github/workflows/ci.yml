@@ -160,3 +160,39 @@ jobs:
           path: |
             apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk
             apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk.sha256
+
+  native:
+    name: Native Compose client
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Core unit tests
+        run: cd apps/android/native && ./gradlew :core:test
+
+      - name: Assemble debug APK
+        run: cd apps/android/native && ./gradlew :app:assembleDebug
+
+      - name: Checksum the APK
+        run: |
+          cd apps/android/native/app/build/outputs/apk/debug
+          sha256sum app-debug.apk > app-debug.apk.sha256
+          cat app-debug.apk.sha256
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-apk
+          path: |
+            apps/android/native/app/build/outputs/apk/debug/app-debug.apk
+            apps/android/native/app/build/outputs/apk/debug/app-debug.apk.sha256
