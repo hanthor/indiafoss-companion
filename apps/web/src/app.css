@@ -2,8 +2,12 @@
 :root {
   --event-primary: #08b74f;
   --event-primary-dark: #07863e;
+  /* Accessible green for text/icons on light surfaces (>= 4.5:1, WCAG AA). */
+  --event-primary-text: #0a6e35;
   --event-secondary: #18222a;
   --event-accent: #ecac4b;
+  /* Accessible amber for text/icons on light surfaces (>= 4.5:1, WCAG AA). */
+  --event-accent-text: #9a6a0a;
 
   --surface: #ffffff;
   --surface-raised: #f3f3f3;
@@ -12,7 +16,7 @@
   --text: #141414;
   --text-muted: #475467;
 
-  --danger: #e03636;
+  --danger: #d32f2f;
   --warning: #d6932e;
   --success: #278f5e;
 

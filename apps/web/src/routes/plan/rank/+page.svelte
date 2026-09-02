@@ -356,8 +356,8 @@
     cursor: pointer;
   }
   .days button.active {
-    border-color: var(--event-primary);
-    color: var(--event-primary);
+    border-color: var(--event-primary-text);
+    color: var(--event-primary-text);
     font-weight: 600;
   }
   .days small {
@@ -447,7 +447,7 @@
   .rating {
     font-variant-numeric: tabular-nums;
     font-weight: 700;
-    color: var(--event-primary);
+    color: var(--event-primary-text);
   }
   .vs {
     display: flex;
@@ -482,8 +482,8 @@
     min-height: 48px;
   }
   .choices button.def {
-    border-color: var(--event-primary);
-    color: var(--event-primary);
+    border-color: var(--event-primary-text);
+    color: var(--event-primary-text);
     font-weight: 600;
   }
   .choices button.neither {
@@ -551,6 +551,6 @@
     padding: 2rem 0;
   }
   .done a {
-    color: var(--event-primary);
+    color: var(--event-primary-text);
   }
 </style>

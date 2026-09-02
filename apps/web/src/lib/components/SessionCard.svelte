@@ -63,8 +63,10 @@
     border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
   }
 
-  .session.cancelled {
-    opacity: 0.55;
+  .session.cancelled h3 a,
+  .session.cancelled .meta {
+    text-decoration: line-through;
+    color: var(--text-muted);
   }
 
   .times {

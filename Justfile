@@ -40,22 +40,36 @@ build:
     pnpm -r build
 
 # Run the complete local quality gate (without Playwright).
-check: format-check lint typecheck test build
+check: format-check lint typecheck test verify-assets build
+
+# Verify captured fixtures and validate venue assets (matches CI).
+verify-assets:
+    pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+    pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" synthetic
+    pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" indiafoss-2026
 
 # Build the web PWA and run browser E2E tests.
 test-e2e: build
     cd apps/web && pnpm exec playwright test tests/app.spec.ts
 
+# Run the accessibility checks (axe-core, WCAG A/AA).
+a11y: build
+    cd apps/web && pnpm exec playwright test tests/a11y.spec.ts
+
 # Run the release-blocking offline E2E gate.
 offline-e2e: build
     cd apps/web && pnpm exec playwright test tests/offline.spec.ts
 
-# Run all local checks, including browser E2E.
-ci: check test-e2e
+# Run all local checks, including browser E2E and accessibility.
+ci: check test-e2e a11y offline-e2e
 
 # Run the production dependency audit (report-only in GitHub Actions for now).
 audit:
     pnpm audit --prod
+
+# Generate a CycloneDX SBOM for the workspace (pnpm-aware).
+sbom:
+    npx --yes @cyclonedx/cdxgen@12 -t pnpm -o sbom.cdx.json --no-recurse
 
 # Normalize captured event fixtures into EventBundle JSON.
 fixture-normalize event="indiafoss-2025":
@@ -75,7 +89,7 @@ event-publish event="indiafoss-2025":
 
 # Validate the synthetic venue graph, metadata, and SVG targets.
 venue-validate event="synthetic":
-    pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts events {{event}}
+    pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" {{event}}
 
 # Write a human-readable venue validation report to the venue folder.
 venue-report event="indiafoss-2026":

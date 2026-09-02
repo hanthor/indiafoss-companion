@@ -71,9 +71,9 @@
     text-transform: capitalize;
   }
   .filters button.active {
-    border-color: var(--event-primary);
+    border-color: var(--event-primary-text);
     background: color-mix(in srgb, var(--event-primary) 10%, transparent);
-    color: var(--event-primary);
+    color: var(--event-primary-text);
     font-weight: 600;
   }
   .grid {

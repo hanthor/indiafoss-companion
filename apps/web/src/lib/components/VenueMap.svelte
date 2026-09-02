@@ -191,7 +191,7 @@
     font-size: 0.82rem;
   }
   .seg button.active {
-    background: var(--event-primary);
+    background: var(--event-primary-dark);
     color: #fff;
   }
   .mapwrap {

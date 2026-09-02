@@ -36,7 +36,38 @@
     const path = page.url.pathname;
     return path === href || path.startsWith(`${href}/`);
   }
+
+  // Accessible, descriptive document title per route (§53 a11y: document-title).
+  const pageTitle = $derived.by(() => {
+    const path = page.url.pathname.replace(base, '') || '/';
+    const names: Record<string, string> = {
+      '/': 'Home',
+      '/now': 'Now',
+      '/plan': 'Plan',
+      '/plan/rank': 'Rank sessions',
+      '/schedule': 'Schedule',
+      '/map': 'Map',
+      '/explore': 'Explore',
+      '/connect': 'Share contact',
+      '/scan': 'Scan',
+      '/settings': 'Settings',
+    };
+    const match =
+      names[path] ??
+      (path.startsWith('/activity/')
+        ? 'Session'
+        : path.startsWith('/speaker/')
+          ? 'Speaker'
+          : path.startsWith('/explore/booths')
+            ? 'Booths'
+            : null);
+    return match ? `${match} · IndiaFOSS Companion` : 'IndiaFOSS Companion';
+  });
 </script>
+
+<svelte:head>
+  <title>{pageTitle}</title>
+</svelte:head>
 
 <div class="shell">
   <header class="app-bar">
@@ -147,7 +178,7 @@
   }
 
   .tabbar a[aria-current='page'] {
-    color: var(--event-primary);
+    color: var(--event-primary-text);
     font-weight: 700;
   }
 
