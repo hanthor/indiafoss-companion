@@ -20,15 +20,15 @@ changes, update the issue first, then this file, so neither drifts.
 - #50: Must attend tier: extra reminders, pinned list on Plan, first in the
   leave-by banner; reminders only for bookmarked / must-attend sessions
   (`reminders.md`).
-- #29 (PR #51): FOSDEM-style rooms on `reilly.asia`, `tools/matrix-rooms`,
+- #51 (closes #29): FOSDEM-style rooms on `reilly.asia`, `tools/matrix-rooms`,
   "Open room in Element" links, `/chat` room list; halls labelled Audi 1/2/3.
+  Server step pending: run the tool once with an organiser token (see #29).
 
 ## Open, ordered by conference impact
 
 | Rank | Issue                                                                                                                                            | Why it matters                                                                                       |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
 | 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app                                                                  | Companion first, P2P chat add-on; remaining: plugin device check, foreground service, Packages token |
-| 1    | [#29](https://github.com/hanthor/indiafoss-companion/issues/29) FOSDEM-style rooms                                                               | PR #51 in review; then run `tools/matrix-rooms` with an organiser token                              |
 | 2    | [#2](https://github.com/hanthor/indiafoss-companion/issues/2) 2025 data, [#32](https://github.com/hanthor/indiafoss-companion/issues/32) socials | Real speakers, booths and LinkedIn/GitHub links                                                      |
 | 3    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2                                                                     | In-person verification, NFC; signed vCard and "who I met" shipped                                    |
 | 4    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications                                                                    | Tiers shipped (#50); leave-by push while the app is closed                                           |
