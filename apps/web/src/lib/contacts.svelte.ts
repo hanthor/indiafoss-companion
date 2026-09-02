@@ -54,7 +54,17 @@ export function contactFromVCard(
   };
 }
 
-export function contactFromFriend(friend: FriendPayload, eventId?: string): ContactRecord {
+export interface MeetingContext {
+  activityId?: string;
+  locationId?: string;
+}
+
+export function contactFromFriend(
+  friend: FriendPayload,
+  eventId?: string,
+  identity?: { fingerprint?: string; signature?: 'valid' | 'invalid' | 'unsigned' },
+  met?: MeetingContext,
+): ContactRecord {
   const vcard = attendeeProfileToVCard(
     {
       fullName: friend.fullName ?? '',
@@ -96,6 +106,11 @@ export function contactFromFriend(friend: FriendPayload, eventId?: string): Cont
     verified: false,
     savedAt: nowIso(),
     eventId: friend.eventId ?? eventId,
+    publicKey: friend.publicKey,
+    fingerprint: identity?.fingerprint,
+    signature: identity?.signature ?? (friend.publicKey ? 'unsigned' : undefined),
+    metActivityId: met?.activityId,
+    metLocationId: met?.locationId,
   };
 }
 

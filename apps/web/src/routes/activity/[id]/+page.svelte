@@ -4,6 +4,7 @@
   import { activityToIcs, formatDayLabel, formatTime } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
+  import { conferenceChatQuery } from '$lib/matrix.svelte';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -84,6 +85,20 @@
 
     <section class="actions" aria-label="Personal preferences (§17)">
       <button class="calendar" onclick={addToCalendar}>Add to calendar</button>
+      {#if activity && conferenceChatQuery(bundle, 'session', activity.id, activity.title)}
+        <a
+          class="chatlink"
+          href={resolve(
+            `/chat?${conferenceChatQuery(
+              bundle,
+              'session',
+              activity.id,
+              `Chat: ${activity.title}`,
+              `IndiaFOSS session chat — ${activity.title}`,
+            )}`,
+          )}>💬 Session chat</a
+        >
+      {/if}
       <button
         class:active={isBookmarked}
         aria-pressed={isBookmarked}
@@ -251,6 +266,19 @@
     padding: 0.45rem 0.85rem;
     font-size: 0.85rem;
     cursor: pointer;
+  }
+  .actions .chatlink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
   }
   .actions button.calendar {
     border-color: var(--event-primary-dark);

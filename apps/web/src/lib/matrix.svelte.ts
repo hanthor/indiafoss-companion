@@ -1,7 +1,12 @@
 import { browser } from '$app/environment';
 import { CompanionStorage } from '@indiafoss/storage';
 import type { MatrixEventRecord, MatrixOutboxRecord, MatrixRoomRecord } from '@indiafoss/storage';
-import { MatrixSessionManager } from '@indiafoss/matrix';
+import {
+  cryptoStoreName,
+  deleteCryptoStore,
+  MatrixSessionManager,
+  WasmCryptoBackend,
+} from '@indiafoss/matrix';
 import type { MatrixConnectionStatus, MatrixSession, MatrixStore } from '@indiafoss/matrix';
 
 let storage: CompanionStorage | null = null;
@@ -74,6 +79,8 @@ export const matrixState = $state<{
   rooms: MatrixRoomRecord[];
   timelines: Record<string, MatrixEventRecord[]>;
   outbox: MatrixOutboxRecord[];
+  typing: Record<string, string[]>;
+  encryptionReady: boolean;
   error: string | null;
   hydrated: boolean;
 }>({
@@ -84,6 +91,8 @@ export const matrixState = $state<{
   rooms: [],
   timelines: {},
   outbox: [],
+  typing: {},
+  encryptionReady: false,
   error: null,
   hydrated: false,
 });
@@ -101,8 +110,14 @@ export function getMatrix(): MatrixSessionManager {
       matrixState.rooms = snapshot.rooms;
       matrixState.timelines = snapshot.timelines;
       matrixState.outbox = snapshot.outbox;
+      matrixState.typing = snapshot.typing;
+      matrixState.encryptionReady = snapshot.encryptionReady;
       matrixState.error = snapshot.error;
     },
+    // E2EE: the Rust crypto WASM is loaded lazily on sign-in and its store lives in IndexedDB.
+    crypto: (userId, deviceId) =>
+      WasmCryptoBackend.create(userId, deviceId, cryptoStoreName(userId, deviceId)),
+    disposeCrypto: (userId, deviceId) => deleteCryptoStore(cryptoStoreName(userId, deviceId)),
   });
   return manager;
 }
@@ -131,6 +146,28 @@ export const unreadTotal = (): number =>
 
 export function roomById(roomId: string): MatrixRoomRecord | undefined {
   return matrixState.rooms.find((r) => r.roomId === roomId);
+}
+
+import { conferenceChatAlias } from '@indiafoss/model';
+import type { ConferenceChatKind, EventBundle } from '@indiafoss/model';
+import { messagingConfigFor } from '$lib/messaging-config';
+
+/** Query string for /chat that joins or creates a session, booth or venue-room chat. */
+export function conferenceChatQuery(
+  bundle: EventBundle | null,
+  kind: ConferenceChatKind,
+  id: string,
+  name: string,
+  topic?: string,
+): string | null {
+  const config = messagingConfigFor(bundle);
+  if (config.sessionChats === false || !bundle) return null;
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const params = new URLSearchParams();
+  params.set('open', conferenceChatAlias(config, bundle.id, kind, id));
+  params.set('name', name);
+  if (topic) params.set('topic', topic);
+  return params.toString();
 }
 
 export function statusLabel(status: MatrixConnectionStatus): string {

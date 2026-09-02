@@ -141,3 +141,28 @@ Every scan path has a no-camera equivalent:
   attendee can scan with any camera app and import the card through the system
   contacts flow, matching the privacy model (the QR encodes the card itself,
   not a URL).
+
+## Handshake cards (signed friend cards and key badges)
+
+The companion friend card (`indiafoss://friend?v=1…`) is **signed** by a
+key pair the device generates once (WebCrypto Ed25519, ECDSA P-256 as a
+fallback; the private key is non-extractable and lives in IndexedDB). The
+card carries `pk` (`alg:base64url`) and `sig` over its other fields.
+
+- **Scanning** verifies the signature and shows ✔ signed / ✖ altered /
+  unsigned, plus a **key badge**: a 5×5 mirrored pixel identicon derived
+  from the SHA-256 fingerprint of the public key. The same badge is shown on
+  the owner's Connect screen, so two people can compare badges in person — a
+  quick, playful check that the card really came from that device.
+- **Meeting context** is saved with the contact: the session running when
+  you scanned and your current location, so the contact list reads "Met
+  during _Kernel devroom_".
+- This is a **handshake, not identity verification**: it proves the card was
+  produced by the holder of a key, not who they are. Matrix cross-signing
+  remains the authenticity mechanism for messaging, and every contact still
+  shows as unverified.
+
+Ideas that build on the same primitives (not implemented): mutual-scan
+"met in person" confirmation, an NFC tap that writes the friend card to a
+badge, and a local "hallway passport" that stamps sessions, booths and people
+you met into a shareable pixel-art card.

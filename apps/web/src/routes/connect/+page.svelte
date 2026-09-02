@@ -3,11 +3,14 @@
   import {
     attendeeProfileToVCard,
     encodeFriendPayload,
+    encodeSignedFriendPayload,
+    shortFingerprint,
     isMatrixUserId,
     isNeutrinoServerName,
     isTicketRef,
     neutrinoMatrixId,
     type AttendeeSocial,
+    type FriendPayload,
   } from '@indiafoss/model';
   import {
     MatrixClient,
@@ -21,6 +24,8 @@
   import { eventState } from '$lib/event.svelte';
   import { hydrateMatrix, matrixState } from '$lib/matrix.svelte';
   import { contactsState, deleteContact, hydrateContacts } from '$lib/contacts.svelte';
+  import { hydrateIdentity, identityState } from '$lib/identity.svelte';
+  import { identiconSvg } from '@indiafoss/model';
   import {
     hydrateProfile,
     profileState,
@@ -46,6 +51,7 @@
     void hydrateProfile();
     void hydrateContacts();
     void hydrateMatrix();
+    void hydrateIdentity();
   });
 
   const matrixIdValid = $derived(
@@ -60,10 +66,10 @@
   );
   const identitiesValid = $derived(matrixIdValid && neutrinoValid && ticketValid);
 
-  function friendCard(): string {
+  async function friendCard(): Promise<string> {
     const p = profileState.profile;
     const sel = profileState.selection;
-    return encodeFriendPayload({
+    const payload: FriendPayload = {
       version: 1,
       eventId: eventState.bundle?.id,
       ticketRef: sel.ticketRef ? p.ticketRef : undefined,
@@ -76,7 +82,11 @@
       socials: Object.fromEntries(
         Object.entries(p.socials).filter(([k, v]) => v && sel.socials[k as AttendeeSocial]),
       ),
-    });
+    };
+    // Signed with this device's handshake key when WebCrypto is available.
+    return identityState.pair
+      ? encodeSignedFriendPayload(payload, identityState.pair)
+      : encodeFriendPayload(payload);
   }
 
   function useSignedInMatrixId(): void {
@@ -143,7 +153,7 @@
     const value =
       cardMode === 'vcard'
         ? attendeeProfileToVCard(profileState.profile, profileState.selection)
-        : friendCard();
+        : await friendCard();
     if (new TextEncoder().encode(value).length > 1500) {
       message = 'This card is too large for reliable QR scanning. Remove optional fields.';
       vcard = value;
@@ -381,8 +391,21 @@
       </label>
       <label class="check">
         <input type="radio" name="card-mode" value="friend" bind:group={cardMode} />
-        Companion friend card <span class="muted">(Matrix / Neutrino aware; needs this app)</span>
+        Companion friend card
+        <span class="muted">(Matrix / Neutrino aware, signed; needs this app)</span>
       </label>
+      {#if identityState.identicon && identityState.fingerprint}
+        <div class="badge-row">
+          <!-- Deterministic pixel badge derived from this device's signing key. -->
+          <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
+          <span class="identicon">{@html identityState.identicon}</span>
+          <span class="muted small">
+            Your key badge <code>{shortFingerprint(identityState.fingerprint)}</code>. When someone
+            scans your friend card they see this same badge — a quick visual check that the card
+            came from your device. It is a handshake, not proof of identity.
+          </span>
+        </div>
+      {/if}
     </fieldset>
 
     <button class="button primary" type="submit" disabled={generating || !identitiesValid}>
@@ -470,7 +493,34 @@
                   ).slice(0, 22)}…</span
                 >
               {/if}
+              {#if c.metActivityId}
+                <span class="small muted">
+                  Met during
+                  <a href={resolve(`/activity/${c.metActivityId}`)}
+                    >{eventState.bundle?.activities.find((a) => a.id === c.metActivityId)?.title ??
+                      'a session'}</a
+                  >
+                </span>
+              {/if}
+              {#if c.signature}
+                <span
+                  class="small"
+                  class:sig-ok={c.signature === 'valid'}
+                  class:sig-bad={c.signature === 'invalid'}
+                >
+                  {c.signature === 'valid'
+                    ? '✔ signed card'
+                    : c.signature === 'invalid'
+                      ? '✖ bad signature'
+                      : 'unsigned card'}
+                  {#if c.fingerprint}· badge <code>{shortFingerprint(c.fingerprint)}</code>{/if}
+                </span>
+              {/if}
             </div>
+            {#if c.fingerprint}
+              <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
+              <span class="identicon small-badge">{@html identiconSvg(c.fingerprint, 40)}</span>
+            {/if}
             <div class="row-actions">
               {#if c.matrixId}
                 <a
@@ -656,6 +706,27 @@
     padding: 0.3rem 0.8rem;
   }
   .danger {
+    color: var(--danger);
+  }
+  .badge-row {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 0.4rem;
+  }
+  .identicon :global(svg) {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .small-badge :global(svg) {
+    width: 40px;
+    height: 40px;
+  }
+  .sig-ok {
+    color: var(--mint-ink);
+  }
+  .sig-bad {
     color: var(--danger);
   }
   .privacy {

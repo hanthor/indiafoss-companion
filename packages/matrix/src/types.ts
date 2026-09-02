@@ -31,6 +31,7 @@ export interface SyncJoinedRoom {
   timeline?: SyncTimeline;
   unread_notifications?: { notification_count?: number; highlight_count?: number };
   account_data?: { events?: RawMatrixEvent[] };
+  ephemeral?: { events?: RawMatrixEvent[] };
 }
 
 export interface SyncInvitedRoom {
@@ -45,6 +46,20 @@ export interface SyncResponse {
     leave?: Record<string, unknown>;
   };
   account_data?: { events?: RawMatrixEvent[] };
+  /** Olm-encrypted room keys and other device messages (E2EE). */
+  to_device?: { events?: RawMatrixEvent[] };
+  device_lists?: { changed?: string[]; left?: string[] };
+  device_one_time_keys_count?: Record<string, number>;
+  device_unused_fallback_key_types?: string[];
+}
+
+/** Encrypted attachment descriptor (spec: EncryptedFile). */
+export interface EncryptedFileInfo {
+  url: string;
+  key: { kty: string; key_ops: string[]; alg: string; k: string; ext: boolean };
+  iv: string;
+  hashes: Record<string, string>;
+  v: string;
 }
 
 export interface PublicRoomSummary {

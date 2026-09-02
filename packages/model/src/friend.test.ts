@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { attendeeProfileToVCard, DEFAULT_ATTENDEE_SHARE_SELECTION } from './contact.js';
-import { decodeFriendPayload, encodeFriendPayload, neutrinoMatrixId } from './friend.js';
+import {
+  decodeFriendPayload,
+  encodeFriendPayload,
+  encodeSignedFriendPayload,
+  neutrinoMatrixId,
+  verifyFriendPayload,
+} from './friend.js';
+import { generateHandshakeKeyPair } from './handshake.js';
 import { parseScannedPayload, parseVCard } from './scan.js';
 const classifyScannedPayload = parseScannedPayload;
 
@@ -40,6 +47,22 @@ describe('friend payload', () => {
       'indiafoss://friend?v=1&matrix_id=alice&neutrino_server_name=zz&ticket_ref=T1&url=javascript:alert(1)&social_github=ftp://x',
     );
     expect(decoded).toEqual({ version: 1, socials: {} });
+  });
+
+  it('signs cards and detects tampering', async () => {
+    const pair = await generateHandshakeKeyPair();
+    const card = await encodeSignedFriendPayload(
+      { version: 1, fullName: 'Ada', matrixId: '@ada:x.org', socials: {} },
+      pair,
+    );
+    const ok = await verifyFriendPayload(card);
+    expect(ok.signature).toBe('valid');
+    expect(ok.payload.fullName).toBe('Ada');
+    expect(ok.publicKey?.alg).toBe(pair.alg);
+    const tampered = card.replace('fn=Ada', 'fn=Eve');
+    expect((await verifyFriendPayload(tampered)).signature).toBe('invalid');
+    const unsigned = encodeFriendPayload({ version: 1, fullName: 'Ada', socials: {} });
+    expect((await verifyFriendPayload(unsigned)).signature).toBe('unsigned');
   });
 
   it('rejects unknown versions', () => {

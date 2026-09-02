@@ -1,5 +1,7 @@
 import { isMatrixUserId } from './messaging.js';
 import type { AttendeeSocial } from './contact.js';
+import { parsePublicKey, signCard, verifyCard } from './handshake.js';
+import type { HandshakeKeyPair, HandshakePublicKey } from './handshake.js';
 
 /**
  * App-aware friend exchange payload (`indiafoss://friend?v=1&…`).
@@ -24,6 +26,10 @@ export interface FriendPayload {
   organization?: string;
   website?: string;
   socials: Partial<Record<AttendeeSocial, string>>;
+  /** Handshake public key (`alg:base64url`) when the card is signed. */
+  publicKey?: string;
+  /** Signature over the other fields (base64url); see handshake.ts. */
+  signature?: string;
 }
 
 /** Maximum accepted scanned payload; larger inputs cannot be a valid QR anyway. */
@@ -83,7 +89,44 @@ export function encodeFriendPayload(payload: FriendPayload): string {
   put(params, 'org', payload.organization);
   put(params, 'url', payload.website);
   for (const network of SOCIALS) put(params, `social_${network}`, payload.socials[network]);
+  put(params, 'pk', payload.publicKey);
+  put(params, 'sig', payload.signature);
   return `indiafoss://friend?${params.toString()}`;
+}
+
+/** Encode and sign a friend card with the device's handshake key. */
+export async function encodeSignedFriendPayload(
+  payload: FriendPayload,
+  pair: HandshakeKeyPair,
+): Promise<string> {
+  const unsigned = encodeFriendPayload({
+    ...payload,
+    publicKey: `${pair.exported.alg}:${pair.exported.key}`,
+    signature: undefined,
+  });
+  const params = new URLSearchParams(unsigned.slice(unsigned.indexOf('?') + 1));
+  params.set('sig', await signCard(params, pair));
+  return `indiafoss://friend?${params.toString()}`;
+}
+
+export type FriendSignatureState = 'valid' | 'invalid' | 'unsigned';
+
+/**
+ * Verify a friend card's signature. `unsigned` cards are still usable — the
+ * result only tells the UI which badge to show.
+ */
+export async function verifyFriendPayload(text: string): Promise<{
+  payload: FriendPayload;
+  signature: FriendSignatureState;
+  publicKey: HandshakePublicKey | null;
+}> {
+  const payload = decodeFriendPayload(text);
+  if (!payload) throw new Error('Not a friend card');
+  const publicKey = parsePublicKey(payload.publicKey);
+  if (!publicKey || !payload.signature) return { payload, signature: 'unsigned', publicKey };
+  const params = new URLSearchParams(text.slice(text.indexOf('?') + 1));
+  const ok = await verifyCard(params, publicKey, payload.signature);
+  return { payload, signature: ok ? 'valid' : 'invalid', publicKey };
 }
 
 /**
@@ -119,5 +162,9 @@ export function decodeFriendPayload(text: string): FriendPayload | null {
     const value = params.get(`social_${network}`);
     if (value && isSafeUrl(value)) payload.socials[network] = value;
   }
+  const pk = params.get('pk');
+  if (pk && parsePublicKey(pk)) payload.publicKey = pk;
+  const sig = params.get('sig');
+  if (sig && /^[A-Za-z0-9_-]{40,200}$/.test(sig)) payload.signature = sig;
   return payload;
 }

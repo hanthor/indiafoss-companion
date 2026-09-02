@@ -194,17 +194,35 @@ export type {
 export {
   decodeFriendPayload,
   encodeFriendPayload,
+  encodeSignedFriendPayload,
+  verifyFriendPayload,
   isNeutrinoServerName,
   isSafeUrl,
   isTicketRef,
   neutrinoMatrixId,
 } from './friend.js';
-export type { FriendPayload } from './friend.js';
+export type { FriendPayload, FriendSignatureState } from './friend.js';
+export {
+  canonicalCardString,
+  formatPublicKey,
+  fromBase64Url,
+  generateHandshakeKeyPair,
+  identiconSvg,
+  keyFingerprint,
+  parsePublicKey,
+  shortFingerprint,
+  signCard,
+  toBase64Url,
+  verifyCard,
+} from './handshake.js';
+export type { HandshakeAlgorithm, HandshakeKeyPair, HandshakePublicKey } from './handshake.js';
 export {
   collectMessagingIssues,
+  conferenceChatAlias,
+  homeserverName,
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
 } from './messaging.js';
-export type { MessagingConfig, MessagingRoom } from './messaging.js';
+export type { ConferenceChatKind, MessagingConfig, MessagingRoom } from './messaging.js';
 export { collectBundleIssues, isValidEventBundle } from './validation.js';

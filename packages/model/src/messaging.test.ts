@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   collectMessagingIssues,
+  conferenceChatAlias,
+  homeserverName,
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
@@ -48,5 +50,31 @@ describe('collectMessagingIssues', () => {
     expect(collectMessagingIssues({ homeserver: 'matrix org', rooms: [] })).toEqual([
       'messaging.homeserver is not a valid URL: matrix org',
     ]);
+  });
+});
+
+describe('conferenceChatAlias', () => {
+  const config = { homeserver: 'https://matrix.org', rooms: [] };
+  it('derives stable, alias-safe room aliases per session, booth and venue room', () => {
+    expect(conferenceChatAlias(config, 'indiafoss-2026', 'session', 'act-C8AK0iov2l')).toBe(
+      '#indiafoss-2026-session-act-c8ak0iov2l:matrix.org',
+    );
+    expect(conferenceChatAlias(config, 'indiafoss-2026', 'booth', 'KDE India!')).toBe(
+      '#indiafoss-2026-booth-kde-india:matrix.org',
+    );
+    expect(
+      conferenceChatAlias(
+        { ...config, aliasPrefix: 'IF26', aliasServer: 'fossunited.org' },
+        'x',
+        'room',
+        'audi-1',
+      ),
+    ).toBe('#if26-room-audi-1:fossunited.org');
+    expect(isMatrixRoomAlias(conferenceChatAlias(config, 'e', 'session', 'a'))).toBe(true);
+  });
+  it('reads the server name from a homeserver url', () => {
+    expect(homeserverName('https://matrix.org/')).toBe('matrix.org');
+    expect(homeserverName('http://127.0.0.1:3000')).toBe('127.0.0.1:3000');
+    expect(homeserverName('matrix.example')).toBe('matrix.example');
   });
 });

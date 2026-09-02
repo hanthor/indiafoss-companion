@@ -74,6 +74,18 @@ export interface MatrixEventRecord {
   msgtype?: string;
   /** Client transaction id when the event was sent from this device. */
   txnId?: string;
+  /** True when the event arrived as m.room.encrypted and was decrypted locally. */
+  encrypted?: boolean;
+  /** True when the event is encrypted and no key is available yet. */
+  undecryptable?: boolean;
+  /** Original encrypted event (JSON) kept so decryption can be retried when keys arrive. */
+  raw?: string;
+  /** mxc:// URL for m.image / m.file / m.audio / m.video content. */
+  mediaUrl?: string;
+  /** JSON-encoded EncryptedFile (key, iv, hashes) for attachments in E2EE rooms. */
+  mediaFile?: string;
+  mediaMime?: string;
+  mediaSize?: number;
 }
 
 export interface MatrixOutboxRecord {
@@ -105,6 +117,26 @@ export interface ContactRecord {
   verified: boolean;
   savedAt: string;
   eventId?: string;
+  /** Handshake public key (`alg:base64url`) from a signed friend card. */
+  publicKey?: string;
+  /** SHA-256 fingerprint of `publicKey` (hex) — drives the identicon. */
+  fingerprint?: string;
+  /** Result of verifying the card signature at scan time. */
+  signature?: 'valid' | 'invalid' | 'unsigned';
+  /** Where and when you met: the session running at scan time. */
+  metActivityId?: string;
+  metLocationId?: string;
+}
+
+/** The device's own handshake key pair (non-extractable CryptoKeys, structured-cloned by IndexedDB). */
+export interface DeviceKeyRecord {
+  id: string;
+  alg: string;
+  publicKey: CryptoKey;
+  privateKey: CryptoKey;
+  /** base64url raw public key, for cards. */
+  exported: string;
+  createdAt: string;
 }
 
 export interface SyncStateRecord {
@@ -131,6 +163,7 @@ export class CompanionDatabase extends Dexie {
   'matrix-rooms'!: Table<MatrixRoomRecord, string>;
   'matrix-events'!: Table<MatrixEventRecord, string>;
   'matrix-outbox'!: Table<MatrixOutboxRecord, string>;
+  'device-keys'!: Table<DeviceKeyRecord, string>;
 
   constructor(name = 'indiafoss-companion') {
     super(name);
@@ -152,6 +185,8 @@ export class CompanionDatabase extends Dexie {
       'matrix-events': 'eventId, roomId, [roomId+ts], txnId',
       'matrix-outbox': 'txnId, roomId, createdAt',
     });
+    // v3: handshake signing keys for signed contact cards.
+    this.version(3).stores({ 'device-keys': 'id' });
   }
 }
 
@@ -262,6 +297,14 @@ export class CompanionStorage {
 
   async deleteContact(id: string): Promise<void> {
     await this.db.contacts.delete(id);
+  }
+
+  async getDeviceKey(id = 'handshake'): Promise<DeviceKeyRecord | undefined> {
+    return this.db['device-keys'].get(id);
+  }
+
+  async putDeviceKey(record: DeviceKeyRecord): Promise<void> {
+    await this.db['device-keys'].put(record);
   }
 
   // ---- Matrix messaging cache -------------------------------------------

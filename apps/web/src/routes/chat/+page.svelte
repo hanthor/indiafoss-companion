@@ -33,6 +33,49 @@
   let searchResults = $state<PublicRoomSummary[]>([]);
   let searching = $state(false);
   let actionError = $state<string | null>(null);
+  /** Session/booth/venue chat requested via ?open= (joined or created on demand). */
+  let pendingOpen = $state<{ alias: string; name: string; topic?: string } | null>(null);
+  let opening = $state(false);
+  /** An embedded P2P (Neutrino) homeserver detected on this device. */
+  let meshHomeserver = $state<string | null>(null);
+
+  const sessionRooms = $derived.by(() => {
+    const prefix = `#${(config.aliasPrefix ?? eventState.bundle?.id ?? '').toLowerCase()}-`;
+    return joinedRooms.filter((r) => r.alias?.startsWith(prefix));
+  });
+  const otherRooms = $derived(joinedRooms.filter((r) => !sessionRooms.includes(r)));
+
+  async function probeMeshHomeserver() {
+    // Neutrino's embedded homeserver listens on loopback when the native shell runs it.
+    for (const base of ['http://127.0.0.1:3000', 'http://localhost:3000']) {
+      try {
+        const res = await fetch(`${base}/_matrix/client/versions`, {
+          signal: AbortSignal.timeout(1200),
+        });
+        if (res.ok) {
+          meshHomeserver = base;
+          return;
+        }
+      } catch {
+        /* not running */
+      }
+    }
+  }
+
+  async function openConference() {
+    if (!pendingOpen) return;
+    opening = true;
+    actionError = null;
+    try {
+      const roomId = await getMatrix().joinOrCreateRoom(pendingOpen);
+      pendingOpen = null;
+      await goto(resolve(`/chat/${encodeURIComponent(roomId)}`));
+    } catch (error) {
+      actionError = error instanceof Error ? error.message : String(error);
+    } finally {
+      opening = false;
+    }
+  }
 
   onMount(async () => {
     void loadEvent();
@@ -59,7 +102,27 @@
     if (dm && parseMatrixTarget(dm)?.kind === 'user') pendingDm = parseMatrixTarget(dm)!.id;
     const join = params.get('join');
     if (join) joinInput = join;
+    const open = params.get('open');
+    if (open && parseMatrixTarget(open)?.kind === 'alias') {
+      pendingOpen = {
+        alias: open,
+        name: params.get('name') ?? open,
+        topic: params.get('topic') ?? undefined,
+      };
+    }
+    void probeMeshHomeserver();
   });
+
+  const sessionChatLabel = (alias: string | undefined): string => {
+    const kind = alias?.match(/-(session|booth|room)-/)?.[1];
+    return kind === 'session'
+      ? 'Session chat'
+      : kind === 'booth'
+        ? 'Booth chat'
+        : kind === 'room'
+          ? 'Venue room'
+          : 'Room';
+  };
 
   async function signIn(event: SubmitEvent) {
     event.preventDefault();
@@ -177,6 +240,26 @@
       token stays in this browser; nothing is sent anywhere except your homeserver.
     </p>
     {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
+    {#if pendingOpen}
+      <p class="pill amber">Sign in to open “{pendingOpen.name}”</p>
+    {/if}
+    {#if meshHomeserver}
+      <section class="mesh">
+        <strong>P2P mesh homeserver found on this device</strong>
+        <p class="muted small">
+          A Neutrino node is running locally, so chat can work over Bluetooth/Wi-Fi mesh without
+          venue internet. It is experimental: messages are not signed and do not reach public
+          Matrix.
+        </p>
+        <button
+          type="button"
+          class="button secondary small"
+          onclick={() => (homeserver = meshHomeserver!)}
+        >
+          Use {meshHomeserver}
+        </button>
+      </section>
+    {/if}
     <form onsubmit={signIn} class="form">
       <label>
         Homeserver
@@ -231,6 +314,23 @@
   </section>
   {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
   {#if actionError}<p class="error" role="alert">{actionError}</p>{/if}
+
+  {#if pendingOpen}
+    <section class="card accent confirm" aria-labelledby="open-title">
+      <h2 id="open-title">Open “{pendingOpen.name}”?</h2>
+      <p class="muted small">
+        {pendingOpen.topic ?? ''} Room <code>{pendingOpen.alias}</code> is public and created on demand
+        — the first person to open it creates it, everyone else joins. Joining reveals your Matrix id
+        to its members.
+      </p>
+      <div class="actions">
+        <button class="button primary" onclick={openConference} disabled={opening}>
+          {opening ? 'Opening…' : 'Open chat'}
+        </button>
+        <button class="button secondary small" onclick={() => (pendingOpen = null)}>Cancel</button>
+      </div>
+    </section>
+  {/if}
 
   {#if pendingDm}
     <section class="card accent confirm" aria-labelledby="dm-title">
@@ -300,15 +400,36 @@
     </section>
   {/if}
 
+  {#if sessionRooms.length > 0}
+    <section>
+      <h2>Session, booth and venue chats</h2>
+      <ul class="rooms">
+        {#each sessionRooms as room (room.roomId)}
+          <li>
+            <a class="roomlink" href={resolve(`/chat/${encodeURIComponent(room.roomId)}`)}>
+              <strong>{room.name}</strong>
+              <span class="muted small"
+                >{sessionChatLabel(room.alias)}{room.encrypted ? ' · 🔒' : ''}</span
+              >
+            </a>
+            {#if room.unread > 0}<span class="badge" aria-label="{room.unread} unread"
+                >{room.unread}</span
+              >{/if}
+          </li>
+        {/each}
+      </ul>
+    </section>
+  {/if}
+
   <section>
     <h2>Your rooms</h2>
-    {#if joinedRooms.length === 0}
+    {#if otherRooms.length === 0}
       <p class="muted">
         No rooms yet. Join a conference room, search the directory, or start a direct message.
       </p>
     {:else}
       <ul class="rooms">
-        {#each joinedRooms as room (room.roomId)}
+        {#each otherRooms as room (room.roomId)}
           <li>
             <a class="roomlink" href={resolve(`/chat/${encodeURIComponent(room.roomId)}`)}>
               <strong>{room.name}</strong>
@@ -355,7 +476,10 @@
         {/each}
       </ul>
     {/if}
-    <p class="muted small"><a href={resolve('/scan')}>Scan a contact QR code</a> to add people.</p>
+    <p class="muted small">
+      <a href={resolve('/scan')}>Scan a contact QR code</a> to add people.
+      {#if matrixState.encryptionReady}New direct messages are end-to-end encrypted.{/if}
+    </p>
   </section>
 
   <section class="card">
@@ -427,6 +551,15 @@
     flex-wrap: wrap;
     gap: 0.6rem;
     align-items: center;
+  }
+  .mesh {
+    border: 2px dashed var(--mint);
+    border-radius: var(--radius);
+    padding: 0.7rem 0.9rem;
+    margin: 0.6rem 0;
+  }
+  .mesh p {
+    margin: 0.2rem 0 0.5rem;
   }
   .status {
     display: flex;

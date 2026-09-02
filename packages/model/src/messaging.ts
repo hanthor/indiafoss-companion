@@ -26,6 +26,48 @@ export interface MessagingConfig {
   /** Optional Matrix space that groups every conference room. */
   space?: string;
   rooms: MessagingRoom[];
+  /**
+   * Localpart prefix for per-session / per-booth / per-venue-room chats
+   * (`#<prefix>-session-<activityId>:<server>`). Defaults to the event id.
+   */
+  aliasPrefix?: string;
+  /** Server name for generated aliases; defaults to the homeserver host. */
+  aliasServer?: string;
+  /** Offer auto-created chats for sessions, booths and venue rooms (default true). */
+  sessionChats?: boolean;
+}
+
+export type ConferenceChatKind = 'session' | 'booth' | 'room';
+
+/** Server name part of `homeserver` (`https://matrix.org` → `matrix.org`). */
+export function homeserverName(homeserver: string): string {
+  try {
+    return new URL(homeserver).host;
+  } catch {
+    return homeserver.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+  }
+}
+
+/**
+ * Deterministic alias for a conference chat, so every attendee — on the
+ * public homeserver or on a Neutrino mesh — lands in the same room without
+ * organizers pre-creating anything. Localparts are lower-cased and limited to
+ * alias-safe characters.
+ */
+export function conferenceChatAlias(
+  config: MessagingConfig,
+  eventId: string,
+  kind: ConferenceChatKind,
+  id: string,
+): string {
+  const prefix = (config.aliasPrefix ?? eventId).toLowerCase();
+  const safe = (v: string) =>
+    v
+      .toLowerCase()
+      .replace(/[^a-z0-9._=-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  const server = config.aliasServer ?? homeserverName(config.homeserver);
+  return `#${safe(prefix)}-${kind}-${safe(id)}:${server}`;
 }
 
 const ALIAS_RE = /^#[^:\s]+:[^\s]+$/;

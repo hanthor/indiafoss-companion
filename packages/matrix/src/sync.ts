@@ -9,6 +9,8 @@ export interface SyncDelta {
   events: MatrixEventRecord[];
   /** Latest `m.direct` map when the response carried one. */
   directMap?: Record<string, string[]>;
+  /** Users currently typing, per room (ephemeral; only rooms mentioned in the response). */
+  typing: Record<string, string[]>;
   nextBatch: string;
 }
 
@@ -41,8 +43,19 @@ function emptyRoom(roomId: string): MatrixRoomRecord {
   };
 }
 
+export interface DescribedEvent {
+  body: string;
+  msgtype?: string;
+  mediaUrl?: string;
+  mediaFile?: string;
+  mediaMime?: string;
+  mediaSize?: number;
+}
+
+const MEDIA_TYPES = new Set(['m.image', 'm.file', 'm.audio', 'm.video']);
+
 /** Human-readable body for a timeline event, or `null` when it should be hidden. */
-export function describeEvent(event: RawMatrixEvent): { body: string; msgtype?: string } | null {
+export function describeEvent(event: RawMatrixEvent): DescribedEvent | null {
   const content = event.content ?? {};
   switch (event.type) {
     case 'm.room.message': {
@@ -51,19 +64,23 @@ export function describeEvent(event: RawMatrixEvent): { body: string; msgtype?: 
       if (msgtype === 'm.text' || msgtype === 'm.notice' || msgtype === 'm.emote') {
         return body ? { body, msgtype } : null;
       }
-      const label = {
-        'm.image': 'image',
-        'm.file': 'file',
-        'm.audio': 'audio',
-        'm.video': 'video',
-      }[msgtype];
-      return { body: label ? `[${label}${body ? `: ${body}` : ''}]` : `[${msgtype}]`, msgtype };
+      if (MEDIA_TYPES.has(msgtype)) {
+        const file = content.file as { url?: string } | undefined;
+        const info = (content.info ?? {}) as { mimetype?: string; size?: number };
+        const mediaUrl = str(content.url) ?? str(file?.url);
+        return {
+          body: body || msgtype.slice(2),
+          msgtype,
+          mediaUrl,
+          mediaFile: file ? JSON.stringify(file) : undefined,
+          mediaMime: str(info.mimetype),
+          mediaSize: typeof info.size === 'number' ? info.size : undefined,
+        };
+      }
+      return { body: body || `[${msgtype}]`, msgtype };
     }
     case 'm.room.encrypted':
-      return {
-        body: '[encrypted message — open in a Matrix client to read it]',
-        msgtype: 'm.encrypted',
-      };
+      return { body: '[Encrypted message — waiting for the key]', msgtype: 'm.encrypted' };
     case 'm.sticker':
       return { body: '[sticker]', msgtype: 'm.sticker' };
     default:
@@ -106,6 +123,7 @@ function toRecord(roomId: string, event: RawMatrixEvent): MatrixEventRecord | nu
   if (!event.event_id || !event.sender) return null;
   const described = describeEvent(event);
   if (!described) return null;
+  const encrypted = event.unsigned?.encrypted === true || event.type === 'm.room.encrypted';
   return {
     eventId: event.event_id,
     roomId,
@@ -115,8 +133,17 @@ function toRecord(roomId: string, event: RawMatrixEvent): MatrixEventRecord | nu
     body: described.body,
     msgtype: described.msgtype,
     txnId: event.unsigned?.transaction_id,
+    ...(encrypted ? { encrypted: true } : {}),
+    ...(event.type === 'm.room.encrypted' ? { undecryptable: true } : {}),
+    ...(described.mediaUrl ? { mediaUrl: described.mediaUrl } : {}),
+    ...(described.mediaFile ? { mediaFile: described.mediaFile } : {}),
+    ...(described.mediaMime ? { mediaMime: described.mediaMime } : {}),
+    ...(described.mediaSize !== undefined ? { mediaSize: described.mediaSize } : {}),
   };
 }
+
+/** Exported for the session manager's decrypt-and-replace path. */
+export const eventToRecord = toRecord;
 
 /**
  * Pure reducer: fold one `/sync` response into the cached room summaries.
@@ -134,6 +161,7 @@ export function applySyncResponse(
     rooms: [],
     leftRoomIds: [],
     events: [],
+    typing: {},
     nextBatch: response.next_batch,
   };
 
@@ -169,6 +197,12 @@ export function applySyncResponse(
     }
     if (!previous || joined.timeline?.limited) {
       room.prevBatch = joined.timeline?.prev_batch ?? room.prevBatch;
+    }
+    for (const ephemeral of joined.ephemeral?.events ?? []) {
+      if (ephemeral.type === 'm.typing') {
+        const ids = (ephemeral.content?.user_ids as unknown[] | undefined) ?? [];
+        delta.typing[roomId] = ids.filter((id): id is string => typeof id === 'string');
+      }
     }
     const serverUnread = joined.unread_notifications?.notification_count;
     room.unread = serverUnread ?? room.unread + newFromOthers;

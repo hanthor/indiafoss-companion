@@ -22,6 +22,77 @@ dependencies) and `apps/web/src/lib/matrix.svelte.ts` (reactive state +
 IndexedDB persistence). UI: `/chat`, `/chat/[roomId]`, contact sharing and
 scanning on `/connect` and `/scan`.
 
+### Neutrino's missing features, covered on the companion side
+
+The Neutrino README lists what the embedded homeserver does not do yet:
+end-to-end encryption, file transfer, typing indicators and read receipts.
+The companion implements all four against standard Matrix so that attendees
+on a public homeserver get the full experience today, and the same UI lights
+up on a mesh homeserver as Neutrino grows into them:
+
+- **E2EE (Megolm).** `packages/matrix/src/crypto.ts` wraps
+  `@matrix-org/matrix-sdk-crypto-wasm` (the crypto crate behind Element X).
+  On sign-in the session manager creates an `OlmMachine` for the device
+  (store: IndexedDB, deleted on sign-out), feeds every `/sync` with
+  `to_device`, `device_lists` and one-time-key counts, and pumps the
+  machine's outgoing requests (`/keys/upload`, `/keys/query`, `/keys/claim`,
+  `/sendToDevice`). Sending in an encrypted room tracks the room's joined
+  members, claims missing Olm sessions, shares the Megolm session and sends
+  `m.room.encrypted`; incoming events are decrypted before the reducer runs.
+  Ciphertext whose key has not arrived is kept (`raw`) and retried when the
+  room-key callback fires. New DMs are created encrypted. Devices that join
+  later cannot read earlier history — that is Megolm's forward-secrecy
+  contract, and the UI says "waiting for the key" rather than pretending.
+  Senders stay _unverified_ (no cross-signing UI in the companion).
+- **Typing.** Throttled `PUT /typing` from the composer; `m.typing` ephemeral
+  events are folded into the snapshot per room (sender excluded).
+- **Files and photos.** `sendFile()` uploads to the content repository and
+  sends `m.image`/`m.file`; in encrypted rooms bytes are AES-CTR encrypted
+  with `Attachment.encrypt` first and the `EncryptedFile` descriptor rides in
+  the encrypted event. Downloads use the authenticated media endpoint and
+  are decrypted into object URLs (`MediaAttachment.svelte`). Attachments are
+  not queued offline.
+- **Read receipts.** Sent for the room you have open (existing behaviour).
+
+All of this is exercised by `packages/matrix/src/e2ee.test.ts` with a fake
+homeserver that implements the key endpoints: two devices establish Olm
+sessions, exchange encrypted text both ways, see typing, round-trip an
+encrypted attachment, recover a message whose key arrived late, and confirm
+that a third device only reads messages sent after it joined.
+
+### Session, booth and venue-room chats
+
+Every talk, booth and venue room has a chat without organizers creating
+anything. `conferenceChatAlias()` derives a deterministic alias —
+`#<eventId>-session-<activityId>:<server>`, `…-booth-<boothId>…`,
+`…-room-<locationId>…` (prefix and server overridable via
+`messaging.aliasPrefix` / `aliasServer`) — and `joinOrCreateRoom()` joins it
+or, on `M_NOT_FOUND`, creates a public room with that alias (racing creators
+fall back to join on `M_ROOM_IN_USE`). Buttons live on the activity page,
+the booth page and next to each live session on Now; the `/chat` list groups
+them under "Session, booth and venue chats". Because the alias is derived
+from stable ids, attendees on the public homeserver and on a Neutrino mesh
+converge on the same room name.
+
+### Connectivity at the venue (NIMHANS)
+
+Venue Wi-Fi and cellular are unreliable, so the design assumes no network:
+
+1. **Everything you need is already on the device** — schedule, map, ranking,
+   itinerary, contacts, and every chat you opened (rooms and timelines are
+   cached in IndexedDB).
+2. **Messages never fail** — they queue in the outbox with a local echo and
+   drain in order when a connection appears, even after a reload.
+3. **QR exchange needs no network at all** — contact and friend cards, session
+   handoff links and location markers are self-contained payloads.
+4. **P2P mesh when the native shell runs Neutrino** — the chat screen probes
+   `http://127.0.0.1:3000/_matrix/client/versions`; if an embedded Neutrino
+   node answers, it offers "Use the on-device P2P homeserver". The same
+   client code then talks to the mesh over loopback, with the deterministic
+   session aliases so people in the same hall land in the same rooms over
+   Bluetooth/Wi-Fi. Until Neutrino signs events and bridges to public Matrix,
+   this is explicitly experimental and shown as such.
+
 ### Room discovery and event-room membership
 
 - Organizers publish rooms in the event bundle:

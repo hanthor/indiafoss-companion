@@ -2,7 +2,17 @@
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
-  import { neutrinoMatrixId, parseScannedPayload, type ScannedPayload } from '@indiafoss/model';
+  import {
+    identiconSvg,
+    keyFingerprint,
+    neutrinoMatrixId,
+    parseScannedPayload,
+    shortFingerprint,
+    verifyFriendPayload,
+    type FriendSignatureState,
+    type ScannedPayload,
+  } from '@indiafoss/model';
+  import { computeNowState } from '@indiafoss/schedule';
   import { matrixToUrl } from '@indiafoss/matrix';
   import type { ContactRecord } from '@indiafoss/storage';
   import { downloadTextFile } from '$lib/calendar';
@@ -27,6 +37,8 @@
   let error = $state('');
   let status = $state('');
   let pending = $state<Pending | null>(null);
+  /** Signature check + key badge for a scanned friend card. */
+  let cardIdentity = $state<{ signature: FriendSignatureState; fingerprint?: string } | null>(null);
   let manualLocation = $state('');
   let manualVCard = $state('');
   let venue = $state<LoadedVenue | null>(null);
@@ -77,7 +89,27 @@
     // Never apply automatically — always preview first.
     stopCamera();
     pending = result;
+    cardIdentity = null;
+    if (result.kind === 'friend') {
+      void verifyFriendPayload(raw.trim()).then(async ({ signature, publicKey }) => {
+        cardIdentity = {
+          signature,
+          fingerprint: publicKey ? await keyFingerprint(publicKey) : undefined,
+        };
+      });
+    }
   }
+
+  /** The session running right now (or by ?now= developer time) and where you are. */
+  const meeting = $derived.by(() => {
+    const bundle = eventState.bundle;
+    if (!bundle) return {};
+    const nowState = computeNowState(bundle, new Date().toISOString());
+    return {
+      activityId: nowState.current[0]?.id,
+      locationId: currentLocation.value ?? nowState.current[0]?.locationId,
+    };
+  });
 
   /** Contact draft for any people-shaped payload; saved only after confirmation. */
   const draft = $derived.by((): ContactRecord | null => {
@@ -85,7 +117,9 @@
     if (!pending) return null;
     if (pending.kind === 'contact')
       return contactFromVCard(pending.profile, pending.vcard, eventId);
-    if (pending.kind === 'friend') return contactFromFriend(pending.friend, eventId);
+    if (pending.kind === 'friend') {
+      return contactFromFriend(pending.friend, eventId, cardIdentity ?? undefined, meeting);
+    }
     if (pending.kind === 'matrix-user') return contactFromMatrixId(pending.userId, eventId);
     return null;
   });
@@ -222,6 +256,41 @@
         <p class="unverified">
           Unverified — a QR code exchanges identifiers, it does not prove who someone is.
         </p>
+        {#if pending.kind === 'friend'}
+          <div class="handshake">
+            {#if cardIdentity?.fingerprint}
+              <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
+              <span class="identicon">{@html identiconSvg(cardIdentity.fingerprint, 64)}</span>
+            {/if}
+            <div>
+              {#if !cardIdentity}
+                <span class="muted small">Checking signature…</span>
+              {:else if cardIdentity.signature === 'valid'}
+                <strong class="sig-ok">✔ Signed card</strong>
+                <span class="muted small">
+                  Badge <code>{shortFingerprint(cardIdentity.fingerprint ?? '')}</code> — ask them to
+                  show their badge on the Connect screen; if it matches, you scanned their device's key.
+                </span>
+              {:else if cardIdentity.signature === 'invalid'}
+                <strong class="sig-bad">✖ Signature does not match</strong>
+                <span class="muted small"
+                  >The card was altered or re-encoded. Ask for a fresh code.</span
+                >
+              {:else}
+                <span class="muted small">Unsigned card (older app or no WebCrypto).</span>
+              {/if}
+            </div>
+          </div>
+          {#if meeting.activityId}
+            <p class="muted small">
+              You're meeting during
+              <strong
+                >{eventState.bundle?.activities.find((a) => a.id === meeting.activityId)
+                  ?.title}</strong
+              >; that context is saved with the contact.
+            </p>
+          {/if}
+        {/if}
         <dl class="fields">
           {#if contactPreview.fullName}<dt>Name</dt>
             <dd>{contactPreview.fullName}</dd>{/if}
@@ -420,6 +489,27 @@
   .warning {
     color: var(--warning);
     font-size: 0.85rem;
+  }
+  .handshake {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 0.5rem 0;
+  }
+  .handshake div {
+    display: grid;
+    gap: 0.15rem;
+  }
+  .identicon :global(svg) {
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+  }
+  .sig-ok {
+    color: var(--mint-ink);
+  }
+  .sig-bad {
+    color: var(--danger);
   }
   .unverified {
     background: color-mix(in srgb, var(--warning) 14%, var(--surface));

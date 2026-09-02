@@ -1,5 +1,18 @@
 import type { PublicRoomSummary, RawMatrixEvent, SyncResponse, MatrixSession } from './types.js';
 
+export interface CreateRoomOptions {
+  name?: string;
+  topic?: string;
+  /** Localpart of the canonical alias (`hallway` → `#hallway:server`). */
+  aliasLocalpart?: string;
+  invite?: string[];
+  isDirect?: boolean;
+  preset?: 'private_chat' | 'trusted_private_chat' | 'public_chat';
+  visibility?: 'public' | 'private';
+  /** Turn on Megolm encryption from the first event. */
+  encrypted?: boolean;
+}
+
 export class MatrixError extends Error {
   constructor(
     message: string,
@@ -25,15 +38,29 @@ function normalizeBaseUrl(url: string): string {
   return url.replace(/\/+$/, '');
 }
 
-/** Sync filter: message timelines only, lazy-loaded members, no presence. */
+/** Sync filter: message timelines, lazy-loaded members, typing only, no presence. */
 export const SYNC_FILTER = JSON.stringify({
   presence: { types: [] },
   room: {
     timeline: { limit: 30, lazy_load_members: true },
     state: { lazy_load_members: true },
-    ephemeral: { types: [] },
+    ephemeral: { types: ['m.typing'] },
   },
 });
+
+function normalizeBaseUrlHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  } catch {
+    return false;
+  }
+}
+
+/** True for an on-device homeserver (e.g. an embedded Neutrino node). */
+export function isLoopbackHomeserver(url: string): boolean {
+  return normalizeBaseUrlHost(url);
+}
 
 /**
  * Thin, dependency-free client for the Matrix client-server API. Only the
@@ -255,22 +282,157 @@ export class MatrixClient {
     return json.room_id;
   }
 
-  async createDirectRoom(userId: string): Promise<string> {
-    const json = await this.request<{ room_id: string }>('POST', `${CS}/createRoom`, {
-      preset: 'trusted_private_chat',
-      is_direct: true,
-      invite: [userId],
-    });
+  async createRoom(options: CreateRoomOptions): Promise<string> {
+    const body: Record<string, unknown> = {};
+    if (options.name) body.name = options.name;
+    if (options.topic) body.topic = options.topic;
+    if (options.aliasLocalpart) body.room_alias_name = options.aliasLocalpart;
+    if (options.invite?.length) body.invite = options.invite;
+    if (options.isDirect) body.is_direct = true;
+    if (options.preset) body.preset = options.preset;
+    if (options.visibility) body.visibility = options.visibility;
+    if (options.encrypted) {
+      body.initial_state = [
+        {
+          type: 'm.room.encryption',
+          state_key: '',
+          content: { algorithm: 'm.megolm.v1.aes-sha2' },
+        },
+      ];
+    }
+    const json = await this.request<{ room_id: string }>('POST', `${CS}/createRoom`, body);
     return json.room_id;
   }
 
-  async sendTextMessage(roomId: string, body: string, txnId: string): Promise<string> {
-    const json = await this.request<{ event_id: string }>(
+  async createDirectRoom(userId: string, encrypted = false): Promise<string> {
+    return this.createRoom({
+      preset: 'trusted_private_chat',
+      isDirect: true,
+      invite: [userId],
+      encrypted,
+    });
+  }
+
+  /** Turn on Megolm encryption for an existing room (irreversible). */
+  async enableEncryption(roomId: string): Promise<void> {
+    await this.request(
       'PUT',
-      `${CS}/rooms/${encodeURIComponent(roomId)}/send/m.room.message/${encodeURIComponent(txnId)}`,
-      { msgtype: 'm.text', body },
+      `${CS}/rooms/${encodeURIComponent(roomId)}/state/m.room.encryption/`,
+      { algorithm: 'm.megolm.v1.aes-sha2' },
     );
+  }
+
+  async joinedMembers(roomId: string): Promise<string[]> {
+    const json = await this.request<{ joined?: Record<string, unknown> }>(
+      'GET',
+      `${CS}/rooms/${encodeURIComponent(roomId)}/joined_members`,
+    );
+    return Object.keys(json.joined ?? {});
+  }
+
+  async sendEvent(
+    roomId: string,
+    type: string,
+    content: unknown,
+    txnId: string,
+  ): Promise<{ event_id: string }> {
+    return this.request<{ event_id: string }>(
+      'PUT',
+      `${CS}/rooms/${encodeURIComponent(roomId)}/send/${encodeURIComponent(type)}/${encodeURIComponent(txnId)}`,
+      content,
+    );
+  }
+
+  async sendTextMessage(roomId: string, body: string, txnId: string): Promise<string> {
+    const json = await this.sendEvent(roomId, 'm.room.message', { msgtype: 'm.text', body }, txnId);
     return json.event_id;
+  }
+
+  async setTyping(
+    roomId: string,
+    userId: string,
+    typing: boolean,
+    timeoutMs = 20_000,
+  ): Promise<void> {
+    await this.request(
+      'PUT',
+      `${CS}/rooms/${encodeURIComponent(roomId)}/typing/${encodeURIComponent(userId)}`,
+      typing ? { typing: true, timeout: timeoutMs } : { typing: false },
+    );
+  }
+
+  // ---- end-to-end encryption -------------------------------------------------
+
+  keysUpload(body: unknown): Promise<unknown> {
+    return this.request('POST', `${CS}/keys/upload`, body);
+  }
+
+  keysQuery(body: unknown): Promise<unknown> {
+    return this.request('POST', `${CS}/keys/query`, body);
+  }
+
+  keysClaim(body: unknown): Promise<unknown> {
+    return this.request('POST', `${CS}/keys/claim`, body);
+  }
+
+  keysSignatureUpload(body: unknown): Promise<unknown> {
+    return this.request('POST', `${CS}/keys/signatures/upload`, body);
+  }
+
+  sendToDevice(eventType: string, txnId: string, body: unknown): Promise<unknown> {
+    return this.request(
+      'PUT',
+      `${CS}/sendToDevice/${encodeURIComponent(eventType)}/${encodeURIComponent(txnId)}`,
+      body,
+    );
+  }
+
+  // ---- media ---------------------------------------------------------------
+
+  /** Upload bytes to the content repository; returns the `mxc://` URI. */
+  async uploadMedia(bytes: Uint8Array, mime: string, filename?: string): Promise<string> {
+    const params = filename ? `?filename=${encodeURIComponent(filename)}` : '';
+    const headers: Record<string, string> = { 'Content-Type': mime };
+    if (this.accessToken) headers.Authorization = `Bearer ${this.accessToken}`;
+    const res = await this.fetchFn(`${this.baseUrl}/_matrix/media/v3/upload${params}`, {
+      method: 'POST',
+      headers,
+      body: bytes as unknown as BodyInit,
+    });
+    const json = (await res.json().catch(() => ({}))) as {
+      content_uri?: string;
+      errcode?: string;
+      error?: string;
+    };
+    if (!res.ok || !json.content_uri) {
+      throw new MatrixError(
+        json.error ?? `Upload failed (HTTP ${res.status})`,
+        res.status,
+        json.errcode,
+      );
+    }
+    return json.content_uri;
+  }
+
+  /** Download media through the authenticated endpoint (v1.11+), falling back to the legacy one. */
+  async downloadMedia(mxcUrl: string): Promise<Uint8Array> {
+    const match = mxcUrl.match(/^mxc:\/\/([^/]+)\/(.+)$/);
+    if (!match) throw new Error(`Not an mxc:// URL: ${mxcUrl}`);
+    const [, server, mediaId] = match;
+    const headers: Record<string, string> = {};
+    if (this.accessToken) headers.Authorization = `Bearer ${this.accessToken}`;
+    const paths = [
+      `/_matrix/client/v1/media/download/${encodeURIComponent(server!)}/${encodeURIComponent(mediaId!)}`,
+      `/_matrix/media/v3/download/${encodeURIComponent(server!)}/${encodeURIComponent(mediaId!)}`,
+    ];
+    let last: Response | null = null;
+    for (const path of paths) {
+      const res = await this.fetchFn(`${this.baseUrl}${path}`, { headers });
+      if (res.ok) return new Uint8Array(await res.arrayBuffer());
+      last = res;
+      if (res.status !== 404) break;
+    }
+    throw new MatrixError(`Media download failed (HTTP ${last?.status ?? 0})`, last?.status ?? 0);
   }
 
   async sendReadReceipt(roomId: string, eventId: string): Promise<void> {

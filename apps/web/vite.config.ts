@@ -6,6 +6,10 @@ import { defineConfig } from 'vite';
 const base = process.env.SVELTE_BASE ?? '';
 
 export default defineConfig({
+  optimizeDeps: {
+    // The crypto WASM glue resolves its .wasm via import.meta.url; keep it out of the pre-bundler.
+    exclude: ['@matrix-org/matrix-sdk-crypto-wasm'],
+  },
   plugins: [
     sveltekit(),
     SvelteKitPWA({
@@ -52,6 +56,15 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff2}'],
+        // The 7.8 MB E2EE WASM is fetched on first sign-in and then kept for offline use.
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            urlPattern: /\.wasm$/,
+            handler: 'CacheFirst',
+            options: { cacheName: 'matrix-crypto-wasm', expiration: { maxEntries: 2 } },
+          },
+        ],
       },
     }),
   ],

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { conferenceChatQuery } from '$lib/matrix.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { CompanionStorage } from '@indiafoss/storage';
@@ -50,6 +51,22 @@
       </p>
     {/if}
 
+    {#if conferenceChatQuery(bundle, 'booth', booth.id, booth.name)}
+      <p>
+        <a
+          class="chatlink"
+          href={resolve(
+            `/chat?${conferenceChatQuery(
+              bundle,
+              'booth',
+              booth.id,
+              `Booth: ${booth.name}`,
+              `Talk to the ${booth.name} booth`,
+            )}`,
+          )}>💬 Booth chat</a
+        >
+      </p>
+    {/if}
     <section class="visit" aria-label="Schedule a booth visit">
       <h2>Plan a visit</h2>
       {#if scheduled}
@@ -73,6 +90,19 @@
   }
   .small {
     font-size: 0.82rem;
+  }
+  .chatlink {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
   }
   .visit {
     margin-top: 1.2rem;

@@ -7,7 +7,9 @@ import type {
   PublicRoomSummary,
 } from './types.js';
 import { MatrixClient, MatrixError, type FetchLike } from './http.js';
-import { applySyncResponse, deriveRoomName, describeEvent } from './sync.js';
+import { applySyncResponse, deriveRoomName, describeEvent, eventToRecord } from './sync.js';
+import type { CryptoBackend } from './crypto.js';
+import type { RawMatrixEvent, SyncJoinedRoom } from './types.js';
 
 /** Persistence contract; the web app backs it with IndexedDB. */
 export interface MatrixStore {
@@ -90,7 +92,18 @@ export interface MatrixSnapshot {
   /** Timeline per room; only rooms that were opened are populated. */
   timelines: Record<string, MatrixEventRecord[]>;
   outbox: MatrixOutboxRecord[];
+  /** Other users currently typing, per room. */
+  typing: Record<string, string[]>;
+  /** True when end-to-end encryption is available for this session. */
+  encryptionReady: boolean;
   error: string | null;
+}
+
+/** A room the app wants to exist (session/booth/venue chats). */
+export interface RoomSpec {
+  alias: string;
+  name: string;
+  topic?: string;
 }
 
 export interface MatrixSessionOptions {
@@ -105,6 +118,13 @@ export interface MatrixSessionOptions {
   sleep?: (ms: number) => Promise<void>;
   /** Called after every state change with a fresh snapshot. */
   onChange?: (snapshot: MatrixSnapshot) => void;
+  /**
+   * Factory for the E2EE backend. Omit to run without encryption support
+   * (encrypted rooms then show placeholders and cannot be written to).
+   */
+  crypto?: (userId: string, deviceId: string) => Promise<CryptoBackend | null>;
+  /** Called on sign-out so the host can delete the persistent crypto store. */
+  disposeCrypto?: (userId: string, deviceId: string) => Promise<void>;
 }
 
 const LOCAL_ECHO_PREFIX = 'local:';
@@ -127,8 +147,17 @@ export class MatrixSessionManager {
   private abort: AbortController | null = null;
   private loop: Promise<void> | null = null;
   private flushing = false;
-  private readonly opts: Required<Omit<MatrixSessionOptions, 'onChange'>> & {
+  private crypto: CryptoBackend | null = null;
+  private typing: Record<string, string[]> = {};
+  private typingSent: Record<string, { typing: boolean; at: number }> = {};
+  private readonly memberCache = new Map<string, { at: number; ids: string[] }>();
+  private readonly mediaCache = new Map<string, Uint8Array>();
+  private readonly opts: Required<
+    Omit<MatrixSessionOptions, 'onChange' | 'crypto' | 'disposeCrypto'>
+  > & {
     onChange: (snapshot: MatrixSnapshot) => void;
+    crypto: MatrixSessionOptions['crypto'];
+    disposeCrypto: MatrixSessionOptions['disposeCrypto'];
   };
 
   constructor(
@@ -143,6 +172,8 @@ export class MatrixSessionManager {
       now: options.now ?? (() => Date.now()),
       sleep: options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms))),
       onChange: options.onChange ?? (() => {}),
+      crypto: options.crypto,
+      disposeCrypto: options.disposeCrypto,
     };
   }
 
@@ -158,8 +189,30 @@ export class MatrixSessionManager {
         .sort((a, b) => b.lastActivityTs - a.lastActivityTs),
       timelines: Object.fromEntries(this.timelines),
       outbox: [...this.outbox],
+      typing: Object.fromEntries(
+        Object.entries(this.typing).map(([roomId, ids]) => [
+          roomId,
+          ids.filter((id) => id !== selfId),
+        ]),
+      ),
+      encryptionReady: this.crypto !== null,
       error: this.error,
     };
+  }
+
+  get encryptionReady(): boolean {
+    return this.crypto !== null;
+  }
+
+  private async initCrypto(): Promise<void> {
+    if (!this.opts.crypto || !this.session?.deviceId) return;
+    try {
+      this.crypto = await this.opts.crypto(this.session.userId, this.session.deviceId);
+      this.crypto?.onRoomKeys((roomIds) => void this.redecrypt(roomIds));
+    } catch (error) {
+      this.crypto = null;
+      this.error = `Encryption unavailable: ${error instanceof Error ? error.message : String(error)}`;
+    }
   }
 
   private emit(): void {
@@ -194,6 +247,7 @@ export class MatrixSessionManager {
     this.nextBatch = await this.store.loadNextBatch();
     for (const room of await this.store.listRooms()) this.rooms.set(room.roomId, room);
     this.outbox = await this.store.listOutbox();
+    await this.initCrypto();
     this.setStatus('connecting');
     this.start();
     return true;
@@ -229,12 +283,22 @@ export class MatrixSessionManager {
     this.session = session;
     session.displayName = await client.displayName(session.userId);
     await this.store.saveSession(session);
+    await this.initCrypto();
     this.setStatus('connecting');
     this.start();
   }
 
   async signOut(): Promise<void> {
     await this.stop();
+    const { userId, deviceId } = this.session ?? {};
+    if (this.crypto) {
+      await this.crypto.close().catch(() => {});
+      this.crypto = null;
+      if (userId && deviceId) await this.opts.disposeCrypto?.(userId, deviceId).catch(() => {});
+    }
+    this.typing = {};
+    this.memberCache.clear();
+    this.mediaCache.clear();
     if (this.client) {
       try {
         await this.client.logout();
@@ -312,9 +376,35 @@ export class MatrixSessionManager {
 
   private async applySync(response: Parameters<typeof applySyncResponse>[1]): Promise<void> {
     const selfId = this.session?.userId ?? '';
+    if (this.crypto) {
+      try {
+        await this.crypto.receiveSync({
+          toDevice: response.to_device?.events ?? [],
+          changed: response.device_lists?.changed ?? [],
+          left: response.device_lists?.left ?? [],
+          oneTimeKeyCounts: response.device_one_time_keys_count ?? {},
+          unusedFallbackKeys: response.device_unused_fallback_key_types,
+        });
+        await this.decryptSyncTimelines(response.rooms?.join ?? {});
+      } catch (error) {
+        this.error = `Encryption error: ${error instanceof Error ? error.message : String(error)}`;
+      }
+    }
     const delta = applySyncResponse(this.rooms, response, selfId, this.directMap);
+    for (const [roomId, ids] of Object.entries(delta.typing)) this.typing[roomId] = ids;
+    for (const event of delta.events) {
+      if (event.undecryptable) {
+        const raw = this.rawByEventId.get(event.eventId);
+        if (raw) event.raw = raw;
+      }
+    }
+    this.rawByEventId.clear();
     if (delta.directMap) this.directMap = delta.directMap;
-    for (const room of delta.rooms) this.rooms.set(room.roomId, room);
+    for (const room of delta.rooms) {
+      this.rooms.set(room.roomId, room);
+      // Membership may have changed: re-fetch members before the next key share.
+      this.memberCache.delete(room.roomId);
+    }
     for (const roomId of delta.leftRoomIds) {
       this.rooms.delete(roomId);
       this.timelines.delete(roomId);
@@ -328,6 +418,217 @@ export class MatrixSessionManager {
     this.nextBatch = delta.nextBatch;
     await this.store.saveNextBatch(delta.nextBatch);
     this.emit();
+    if (this.crypto && this.client) {
+      try {
+        await this.crypto.flushOutgoing(this.client);
+      } catch {
+        // Key uploads retry on the next sync.
+      }
+    }
+  }
+
+  /** Ciphertext of events that could not be decrypted in the current sync, by event id. */
+  private readonly rawByEventId = new Map<string, string>();
+
+  /** Replace decryptable `m.room.encrypted` events in place before the reducer runs. */
+  private async decryptSyncTimelines(join: Record<string, SyncJoinedRoom>): Promise<void> {
+    if (!this.crypto) return;
+    for (const [roomId, room] of Object.entries(join)) {
+      const events = room.timeline?.events;
+      if (!events) continue;
+      for (let i = 0; i < events.length; i += 1) {
+        const event = events[i]!;
+        if (event.type !== 'm.room.encrypted') continue;
+        const clear = await this.crypto.decryptEvent(roomId, event);
+        if (clear) {
+          events[i] = { ...clear, unsigned: { ...(clear.unsigned ?? {}), encrypted: true } };
+        } else if (event.event_id) {
+          this.rawByEventId.set(event.event_id, JSON.stringify(event));
+        }
+      }
+    }
+  }
+
+  /** Retry decryption of cached events once room keys arrive. */
+  private async redecrypt(roomIds: string[]): Promise<void> {
+    if (!this.crypto) return;
+    let changed = false;
+    for (const roomId of roomIds) {
+      const cached = await this.store.listEvents(roomId, 500);
+      for (const record of cached) {
+        if (!record.undecryptable || !record.raw) continue;
+        const clear = await this.crypto.decryptEvent(
+          roomId,
+          JSON.parse(record.raw) as RawMatrixEvent,
+        );
+        if (!clear) continue;
+        const next = eventToRecord(roomId, {
+          ...clear,
+          unsigned: { ...(clear.unsigned ?? {}), encrypted: true },
+        });
+        if (!next) continue;
+        await this.store.putEvents([next]);
+        this.mergeIntoTimeline(next);
+        changed = true;
+      }
+    }
+    if (changed) this.emit();
+  }
+
+  private async membersOf(roomId: string): Promise<string[]> {
+    const cached = this.memberCache.get(roomId);
+    if (cached && this.opts.now() - cached.at < 60_000) return cached.ids;
+    const ids = await this.requireClient().joinedMembers(roomId);
+    this.memberCache.set(roomId, { at: this.opts.now(), ids });
+    return ids;
+  }
+
+  /** Encrypt `content` for `roomId` (sharing the room key first) and send it. */
+  private async sendEncrypted(
+    roomId: string,
+    type: string,
+    content: unknown,
+    txnId: string,
+  ): Promise<string> {
+    const client = this.requireClient();
+    if (!this.crypto) {
+      throw new MatrixError(
+        'This room is encrypted and encryption is unavailable here.',
+        400,
+        'M_UNSUPPORTED',
+      );
+    }
+    const members = await this.membersOf(roomId);
+    await this.crypto.ensureRoomKey(client, roomId, members);
+    const encrypted = await this.crypto.encryptEvent(roomId, type, content);
+    const res = await client.sendEvent(roomId, 'm.room.encrypted', encrypted, txnId);
+    return res.event_id;
+  }
+
+  // ---- typing ---------------------------------------------------------------
+
+  /** Throttled typing notice (§ Matrix typing); no-op while offline. */
+  async setTyping(roomId: string, typing: boolean): Promise<void> {
+    if (!this.client || !this.session || this.status !== 'online') return;
+    const last = this.typingSent[roomId];
+    const now = this.opts.now();
+    if (last && last.typing === typing && now - last.at < 15_000) return;
+    this.typingSent[roomId] = { typing, at: now };
+    try {
+      await this.client.setTyping(roomId, this.session.userId, typing);
+    } catch {
+      // Typing is best effort.
+    }
+  }
+
+  // ---- files ----------------------------------------------------------------
+
+  /**
+   * Upload and send an attachment. In encrypted rooms the bytes are encrypted
+   * with a fresh AES-CTR key before upload (spec: EncryptedFile). Attachments
+   * are not queued offline: the caller sees the error and can retry.
+   */
+  async sendFile(roomId: string, bytes: Uint8Array, filename: string, mime: string): Promise<void> {
+    const client = this.requireClient();
+    const room = this.rooms.get(roomId);
+    const msgtype = mime.startsWith('image/')
+      ? 'm.image'
+      : mime.startsWith('video/')
+        ? 'm.video'
+        : mime.startsWith('audio/')
+          ? 'm.audio'
+          : 'm.file';
+    const txnId = this.newTxnId();
+    const info = { mimetype: mime, size: bytes.byteLength };
+    if (room?.encrypted) {
+      if (!this.crypto)
+        throw new Error('This room is encrypted and encryption is unavailable here.');
+      const { data, info: encInfo } = await this.crypto.encryptAttachment(bytes);
+      const mxc = await client.uploadMedia(data, 'application/octet-stream', filename);
+      const file = { ...(JSON.parse(encInfo) as Record<string, unknown>), url: mxc };
+      await this.sendEncrypted(
+        roomId,
+        'm.room.message',
+        { msgtype, body: filename, file, info },
+        txnId,
+      );
+    } else {
+      const mxc = await client.uploadMedia(bytes, mime, filename);
+      await client.sendEvent(
+        roomId,
+        'm.room.message',
+        { msgtype, body: filename, url: mxc, info },
+        txnId,
+      );
+    }
+  }
+
+  /** Bytes of an attachment, decrypted when needed; cached per event. */
+  async mediaBytes(record: MatrixEventRecord): Promise<Uint8Array> {
+    const cached = this.mediaCache.get(record.eventId);
+    if (cached) return cached;
+    if (!record.mediaUrl) throw new Error('Event has no media.');
+    const client = this.requireClient();
+    let bytes = await client.downloadMedia(record.mediaUrl);
+    if (record.mediaFile) {
+      if (!this.crypto) throw new Error('Encrypted attachment and encryption is unavailable here.');
+      bytes = await this.crypto.decryptAttachment(bytes, record.mediaFile);
+    }
+    this.mediaCache.set(record.eventId, bytes);
+    return bytes;
+  }
+
+  // ---- conference rooms ------------------------------------------------------
+
+  /** Join a room by alias, creating it (public, with that alias) when nobody has yet. */
+  async joinOrCreateRoom(spec: RoomSpec): Promise<string> {
+    const client = this.requireClient();
+    const known = [...this.rooms.values()].find(
+      (r) => r.alias === spec.alias && r.membership === 'join',
+    );
+    if (known) return known.roomId;
+    try {
+      return await this.joinRoom(spec.alias);
+    } catch (error) {
+      if (
+        !(error instanceof MatrixError) ||
+        (error.status !== 404 && error.errcode !== 'M_NOT_FOUND')
+      ) {
+        throw error;
+      }
+    }
+    const localpart = spec.alias.slice(1).split(':')[0] ?? spec.alias;
+    try {
+      const roomId = await client.createRoom({
+        aliasLocalpart: localpart,
+        name: spec.name,
+        topic: spec.topic,
+        preset: 'public_chat',
+        visibility: 'public',
+      });
+      const room: MatrixRoomRecord = {
+        roomId,
+        name: spec.name,
+        alias: spec.alias,
+        topic: spec.topic,
+        isDirect: false,
+        memberIds: [this.session?.userId ?? ''],
+        memberNames: {},
+        encrypted: false,
+        membership: 'join',
+        lastActivityTs: this.opts.now(),
+        unread: 0,
+      };
+      this.rooms.set(roomId, room);
+      await this.store.putRooms([room]);
+      this.emit();
+      return roomId;
+    } catch (error) {
+      // Someone else created it a moment ago.
+      if (error instanceof MatrixError && error.errcode === 'M_ROOM_IN_USE')
+        return this.joinRoom(spec.alias);
+      throw error;
+    }
   }
 
   private mergeIntoTimeline(event: MatrixEventRecord): void {
@@ -418,7 +719,7 @@ export class MatrixSessionManager {
       isDirect: true,
       memberIds: [selfId, userId],
       memberNames: {},
-      encrypted: false,
+      encrypted: this.crypto !== null,
       membership: 'join',
       lastActivityTs: this.opts.now(),
       unread: 0,
@@ -500,6 +801,7 @@ export class MatrixSessionManager {
       body: item.body,
       msgtype: 'm.text',
       txnId: item.txnId,
+      ...(this.rooms.get(item.roomId)?.encrypted ? { encrypted: true } : {}),
     };
   }
 
@@ -513,7 +815,7 @@ export class MatrixSessionManager {
     const text = body.trim();
     if (!text) return;
     const item: MatrixOutboxRecord = {
-      txnId: `ifc-${this.opts.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`,
+      txnId: this.newTxnId(),
       roomId,
       body: text,
       createdAt: new Date(this.opts.now()).toISOString(),
@@ -529,6 +831,10 @@ export class MatrixSessionManager {
     void this.flushOutbox();
   }
 
+  private newTxnId(): string {
+    return `ifc-${this.opts.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+
   /** Deliver queued messages in order; stops at the first network failure. */
   async flushOutbox(): Promise<void> {
     if (this.flushing || !this.client) return;
@@ -536,7 +842,16 @@ export class MatrixSessionManager {
     try {
       for (const item of [...this.outbox]) {
         try {
-          await this.client.sendTextMessage(item.roomId, item.body, item.txnId);
+          if (this.rooms.get(item.roomId)?.encrypted) {
+            await this.sendEncrypted(
+              item.roomId,
+              'm.room.message',
+              { msgtype: 'm.text', body: item.body },
+              item.txnId,
+            );
+          } else {
+            await this.client.sendTextMessage(item.roomId, item.body, item.txnId);
+          }
           this.outbox = this.outbox.filter((o) => o.txnId !== item.txnId);
           await this.store.deleteOutbox(item.txnId);
           this.emit();

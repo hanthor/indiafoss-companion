@@ -163,9 +163,21 @@ describe('describeEvent', () => {
       msgtype: 'm.text',
     });
     expect(
-      describeEvent({ type: 'm.room.message', content: { msgtype: 'm.image', body: 'cat.png' } })!
-        .body,
-    ).toBe('[image: cat.png]');
+      describeEvent({
+        type: 'm.room.message',
+        content: {
+          msgtype: 'm.image',
+          body: 'cat.png',
+          url: 'mxc://x/1',
+          info: { mimetype: 'image/png' },
+        },
+      }),
+    ).toMatchObject({
+      body: 'cat.png',
+      msgtype: 'm.image',
+      mediaUrl: 'mxc://x/1',
+      mediaMime: 'image/png',
+    });
     expect(describeEvent({ type: 'm.room.encrypted' })!.msgtype).toBe('m.encrypted');
     expect(describeEvent({ type: 'm.room.member' })).toBeNull();
     expect(

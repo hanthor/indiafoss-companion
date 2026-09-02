@@ -6,6 +6,7 @@
   import { localpart, matrixToUrl } from '@indiafoss/matrix';
   import { formatTime } from '@indiafoss/schedule';
   import { getMatrix, hydrateMatrix, matrixState, roomById, statusLabel } from '$lib/matrix.svelte';
+  import MediaAttachment from '$lib/components/MediaAttachment.svelte';
 
   const roomId = $derived(decodeURIComponent(page.params.roomId ?? ''));
   const room = $derived(roomById(roomId));
@@ -15,6 +16,46 @@
 
   let draft = $state('');
   let sending = $state(false);
+  let attaching = $state(false);
+  let fileInput = $state<HTMLInputElement | null>(null);
+  const typingUsers = $derived(matrixState.typing[roomId] ?? []);
+  const typingLabel = $derived.by(() => {
+    const names = typingUsers.map((id) => room?.memberNames[id] ?? localpart(id));
+    if (names.length === 0) return '';
+    if (names.length === 1) return `${names[0]} is typing…`;
+    if (names.length === 2) return `${names[0]} and ${names[1]} are typing…`;
+    return `${names.length} people are typing…`;
+  });
+  const canEncrypt = $derived(!room?.encrypted || matrixState.encryptionReady);
+  let typingTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function onInput() {
+    if (!draft.trim()) return;
+    void getMatrix().setTyping(roomId, true);
+    if (typingTimer) clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => void getMatrix().setTyping(roomId, false), 6000);
+  }
+
+  async function attach(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (file.size > 20 * 1024 * 1024) {
+      error = 'Files larger than 20 MB are not sent from the companion.';
+      return;
+    }
+    attaching = true;
+    error = null;
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      await getMatrix().sendFile(roomId, bytes, file.name, file.type || 'application/octet-stream');
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    } finally {
+      attaching = false;
+    }
+  }
   let loadingOlder = $state(false);
   let error = $state<string | null>(null);
   let list = $state<HTMLElement | null>(null);
@@ -46,6 +87,8 @@
     error = null;
     try {
       draft = '';
+      if (typingTimer) clearTimeout(typingTimer);
+      void getMatrix().setTyping(roomId, false);
       await getMatrix().sendMessage(roomId, text);
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
@@ -100,9 +143,14 @@
   </header>
 
   {#if room.encrypted}
-    <p class="notice" role="note">
-      This room is end-to-end encrypted. The companion can only show unencrypted messages; open the
-      room in a full Matrix client to read and send encrypted ones.
+    <p class="notice" class:ok={canEncrypt} role="note">
+      {#if canEncrypt}
+        🔒 End-to-end encrypted with Megolm. Messages and files are encrypted on this device;
+        senders are shown as unverified until you verify them in a full Matrix client.
+      {:else}
+        🔒 This room is end-to-end encrypted, but encryption could not start in this browser. Open
+        the room in a full Matrix client to read and send.
+      {/if}
     </p>
   {/if}
 
@@ -131,27 +179,50 @@
         class:notice={event.msgtype === 'm.notice' || event.msgtype === 'm.encrypted'}
       >
         {#if !mine}<span class="sender">{senderName(event.sender)}</span>{/if}
-        <p class="body">
-          {event.msgtype === 'm.emote' ? `* ${senderName(event.sender)} ${event.body}` : event.body}
-        </p>
-        <span class="meta">{pending ? 'Sending…' : timeOf(event.ts)}</span>
+        {#if event.mediaUrl}
+          <MediaAttachment {event} />
+        {:else}
+          <p class="body" class:undecryptable={event.undecryptable}>
+            {event.msgtype === 'm.emote'
+              ? `* ${senderName(event.sender)} ${event.body}`
+              : event.body}
+          </p>
+        {/if}
+        <span class="meta"
+          >{event.encrypted ? '🔒 ' : ''}{pending ? 'Sending…' : timeOf(event.ts)}</span
+        >
       </article>
     {/each}
   </section>
 
+  <p class="typing" aria-live="polite">{typingLabel}</p>
   <form class="composer" onsubmit={send}>
+    <input
+      type="file"
+      class="hidden-input"
+      bind:this={fileInput}
+      onchange={attach}
+      accept="image/*,application/pdf,.txt,.md,.zip"
+      aria-label="Attach a file"
+    />
+    <button
+      class="button secondary attach"
+      type="button"
+      aria-label="Attach a file or photo"
+      disabled={attaching || !canEncrypt || matrixState.status !== 'online'}
+      onclick={() => fileInput?.click()}>{attaching ? '…' : '📎'}</button
+    >
     <input
       aria-label="Message"
       bind:value={draft}
-      placeholder={room.encrypted ? 'Encrypted room — open in Element to send' : 'Message…'}
-      disabled={room.encrypted || room.membership !== 'join'}
+      oninput={onInput}
+      placeholder={canEncrypt ? 'Message…' : 'Encryption unavailable — open in Element to send'}
+      disabled={!canEncrypt || room.membership !== 'join'}
       autocomplete="off"
       enterkeyhint="send"
     />
-    <button
-      class="button primary"
-      type="submit"
-      disabled={sending || room.encrypted || !draft.trim()}>Send</button
+    <button class="button primary" type="submit" disabled={sending || !canEncrypt || !draft.trim()}
+      >Send</button
     >
   </form>
   {#if matrixState.status !== 'online'}
@@ -197,6 +268,29 @@
     border-radius: var(--radius);
     padding: 0.5rem 0.8rem;
     font-size: 0.85rem;
+  }
+  .notice.ok {
+    background: var(--mint-soft);
+    border-color: color-mix(in srgb, var(--mint) 50%, transparent);
+    color: var(--mint-ink);
+  }
+  .typing {
+    min-height: 1.1rem;
+    margin: 0.3rem 0 0;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .hidden-input {
+    display: none;
+  }
+  .attach {
+    min-width: 44px;
+    padding: 0.4rem 0.6rem;
+  }
+  .body.undecryptable {
+    font-style: italic;
+    color: var(--text-muted);
   }
   .statusline {
     display: flex;
