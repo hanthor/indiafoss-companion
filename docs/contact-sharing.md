@@ -166,3 +166,26 @@ Ideas that build on the same primitives (not implemented): mutual-scan
 "met in person" confirmation, an NFC tap that writes the friend card to a
 badge, and a local "hallway passport" that stamps sessions, booths and people
 you met into a shareable pixel-art card.
+
+## Messenger deep links (Telegram, WhatsApp, Signal, phone, Matrix)
+
+Profiles and saved contacts can carry a Telegram handle, a WhatsApp number
+and a Signal number or username alongside phone, email and Matrix id.
+`contactDeepLinks()` in `@indiafoss/model` turns whatever is present into
+tap-to-open links using only public, documented schemes:
+
+| Identity        | Link                                                                                                |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| Phone           | `tel:+91…`, `sms:+91…`                                                                              |
+| Email           | `mailto:`                                                                                           |
+| Matrix id       | `https://matrix.to/#/@user:server`                                                                  |
+| Telegram handle | `https://t.me/<handle>`                                                                             |
+| WhatsApp number | `https://wa.me/<digits>` (falls back to the phone number when no separate WhatsApp number is given) |
+| Signal          | `https://signal.me/#p/+<number>` or `https://signal.me/#u/<username>`                               |
+
+Values that do not parse as a handle or number are skipped rather than
+guessed. Messenger fields are **off by default** in the share card like every
+other contact field; when shared they ride in the vCard as
+`X-SOCIALPROFILE;TYPE=telegram|whatsapp|signal` and in the friend card as
+`social_<network>`. On the Scan preview and in the saved-contacts list they
+appear as buttons; nothing is sent automatically.

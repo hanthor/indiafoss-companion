@@ -172,8 +172,19 @@ export interface EventReference {
   locator: string;
 }
 
-export { attendeeProfileToVCard, DEFAULT_ATTENDEE_SHARE_SELECTION } from './contact.js';
-export type { AttendeeProfile, AttendeeShareSelection, AttendeeSocial } from './contact.js';
+export {
+  attendeeProfileToVCard,
+  contactDeepLinks,
+  DEFAULT_ATTENDEE_SHARE_SELECTION,
+  messengerHandle,
+  normalizePhone,
+} from './contact.js';
+export type {
+  AttendeeProfile,
+  AttendeeShareSelection,
+  AttendeeSocial,
+  ContactLink,
+} from './contact.js';
 export {
   MAX_SCAN_PAYLOAD_BYTES,
   parseLocationPayload,

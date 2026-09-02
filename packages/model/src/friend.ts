@@ -1,5 +1,6 @@
 import { isMatrixUserId } from './messaging.js';
 import type { AttendeeSocial } from './contact.js';
+import { messengerHandle, normalizePhone } from './contact.js';
 import { parsePublicKey, signCard, verifyCard } from './handshake.js';
 import type { HandshakeKeyPair, HandshakePublicKey } from './handshake.js';
 
@@ -38,6 +39,8 @@ export const MAX_SCAN_PAYLOAD_BYTES = 4096;
 const NEUTRINO_SERVER_NAME_RE = /^[0-9a-f]{64}$/i;
 const TICKET_REF_RE = /^ticket::[A-Za-z0-9_-]{1,64}$/;
 const SAFE_URL_SCHEMES = new Set(['https:', 'http:', 'mailto:']);
+/** Networks whose value is a handle or phone number rather than a profile URL. */
+const MESSENGERS = new Set<AttendeeSocial>(['telegram', 'whatsapp', 'signal']);
 const SOCIALS: AttendeeSocial[] = [
   'github',
   'gitlab',
@@ -49,6 +52,9 @@ const SOCIALS: AttendeeSocial[] = [
   'youtube',
   'medium',
   'devto',
+  'telegram',
+  'whatsapp',
+  'signal',
 ];
 
 export function isNeutrinoServerName(value: string): boolean {
@@ -160,7 +166,13 @@ export function decodeFriendPayload(text: string): FriendPayload | null {
   if (url && isSafeUrl(url)) payload.website = url;
   for (const network of SOCIALS) {
     const value = params.get(`social_${network}`);
-    if (value && isSafeUrl(value)) payload.socials[network] = value;
+    if (!value) continue;
+    if (MESSENGERS.has(network)) {
+      if (messengerHandle(value) || normalizePhone(value))
+        payload.socials[network] = value.slice(0, 80);
+    } else if (isSafeUrl(value)) {
+      payload.socials[network] = value;
+    }
   }
   const pk = params.get('pk');
   if (pk && parsePublicKey(pk)) payload.publicKey = pk;

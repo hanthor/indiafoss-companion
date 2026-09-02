@@ -3,6 +3,7 @@
   import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
   import {
+    contactDeepLinks,
     identiconSvg,
     keyFingerprint,
     neutrinoMatrixId,
@@ -320,6 +321,17 @@
             <dd>{url}</dd>
           {/each}
         </dl>
+        {#if contactDeepLinks(contactPreview).length > 0}
+          <p class="muted small">
+            Tap to reach them (opens the app or site, nothing is sent automatically):
+          </p>
+          <div class="preview-actions">
+            {#each contactDeepLinks(contactPreview) as link (link.kind)}
+              <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+              <a class="button secondary" href={link.href} rel="noreferrer">{link.label}</a>
+            {/each}
+          </div>
+        {/if}
       {/if}
       <div class="preview-actions">
         {#if pending.kind === 'location'}

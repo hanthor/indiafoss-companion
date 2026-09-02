@@ -8,7 +8,10 @@ export type AttendeeSocial =
   | 'instagram'
   | 'youtube'
   | 'medium'
-  | 'devto';
+  | 'devto'
+  | 'telegram'
+  | 'whatsapp'
+  | 'signal';
 
 /** Local projection of the attendee's FOSS United profile (§41). */
 export interface AttendeeProfile {
@@ -110,4 +113,101 @@ export function attendeeProfileToVCard(
 
   lines.push('END:VCARD');
   return `${lines.join('\r\n')}\r\n`;
+}
+
+/** A tappable way to reach a person; `href` uses the messenger's public deep-link scheme. */
+export interface ContactLink {
+  kind:
+    | 'phone'
+    | 'sms'
+    | 'email'
+    | 'matrix'
+    | 'telegram'
+    | 'whatsapp'
+    | 'signal'
+    | 'website'
+    | AttendeeSocial;
+  label: string;
+  href: string;
+}
+
+const HANDLE_RE = /^@?([A-Za-z0-9_.-]{2,64})$/;
+
+/** Digits with a leading `+` when present; `null` when it is not a phone number. */
+export function normalizePhone(value: string | undefined): string | null {
+  if (!value) return null;
+  const cleaned = value.replace(/[\s().-]/g, '');
+  return /^\+?[0-9]{6,15}$/.test(cleaned) ? cleaned : null;
+}
+
+/** Username from a handle or profile URL (`@alice`, `t.me/alice`, `https://t.me/alice`). */
+export function messengerHandle(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  const fromUrl = trimmed.match(
+    /(?:t\.me|telegram\.me|signal\.me\/#u)\/([A-Za-z0-9_.-]{2,64})/i,
+  )?.[1];
+  const raw = fromUrl ?? trimmed.match(HANDLE_RE)?.[1] ?? null;
+  return raw;
+}
+
+/**
+ * Deep links for every reachable identity on a profile or saved contact.
+ * Only public, well-documented schemes are generated (t.me, wa.me, signal.me,
+ * matrix.to, tel:, sms:, mailto:); unparseable values are skipped rather than
+ * guessed.
+ */
+export function contactDeepLinks(profile: {
+  phone?: string;
+  email?: string;
+  website?: string;
+  matrixId?: string;
+  socials?: Partial<Record<AttendeeSocial, string>>;
+}): ContactLink[] {
+  const links: ContactLink[] = [];
+  const phone = normalizePhone(profile.phone);
+  if (phone) {
+    links.push({ kind: 'phone', label: 'Call', href: `tel:${phone}` });
+    links.push({ kind: 'sms', label: 'SMS', href: `sms:${phone}` });
+  }
+  if (profile.email?.includes('@')) {
+    links.push({ kind: 'email', label: 'Email', href: `mailto:${profile.email.trim()}` });
+  }
+  if (profile.matrixId && /^@[^:\s]+:[^\s]+$/.test(profile.matrixId)) {
+    links.push({
+      kind: 'matrix',
+      label: 'Matrix',
+      href: `https://matrix.to/#/${encodeURIComponent(profile.matrixId)}`,
+    });
+  }
+  const socials = profile.socials ?? {};
+  const telegram = messengerHandle(socials.telegram);
+  if (telegram)
+    links.push({ kind: 'telegram', label: 'Telegram', href: `https://t.me/${telegram}` });
+  const whatsapp = normalizePhone(socials.whatsapp) ?? (socials.whatsapp ? null : phone);
+  if (whatsapp)
+    links.push({
+      kind: 'whatsapp',
+      label: 'WhatsApp',
+      href: `https://wa.me/${whatsapp.replace(/^\+/, '')}`,
+    });
+  const signal = normalizePhone(socials.signal);
+  const signalHandle = signal ? null : messengerHandle(socials.signal);
+  if (signal)
+    links.push({
+      kind: 'signal',
+      label: 'Signal',
+      href: `https://signal.me/#p/${signal.startsWith('+') ? signal : `+${signal}`}`,
+    });
+  else if (signalHandle)
+    links.push({ kind: 'signal', label: 'Signal', href: `https://signal.me/#u/${signalHandle}` });
+  if (profile.website && /^https?:\/\//i.test(profile.website)) {
+    links.push({ kind: 'website', label: 'Website', href: profile.website.trim() });
+  }
+  for (const [network, url] of Object.entries(socials) as [AttendeeSocial, string][]) {
+    if (network === 'telegram' || network === 'whatsapp' || network === 'signal') continue;
+    if (url && /^https?:\/\//i.test(url))
+      links.push({ kind: network, label: network, href: url.trim() });
+  }
+  return links;
 }

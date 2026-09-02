@@ -2,6 +2,7 @@
   import { resolve } from '$app/paths';
   import {
     attendeeProfileToVCard,
+    contactDeepLinks,
     encodeFriendPayload,
     encodeSignedFriendPayload,
     shortFingerprint,
@@ -33,6 +34,8 @@
     saveSelection,
     setSocial,
     setSocialSelection,
+    MESSENGERS,
+    SOCIAL_PLACEHOLDER,
     SOCIALS,
     usernameFromProfileUrl,
   } from '$lib/profile.svelte';
@@ -361,14 +364,18 @@
     </fieldset>
 
     <fieldset>
-      <legend>Public social links</legend>
+      <legend>Public social links and messengers</legend>
+      <p class="muted small">
+        Telegram, WhatsApp and Signal become tap-to-message links for whoever scans your card. They
+        are off by default like every other field.
+      </p>
       <div class="socials">
         {#each SOCIALS as network (network)}
           <label class="social-row">
             <span>{network}</span>
             <input
-              type="url"
-              placeholder={`https://${network}.com/…`}
+              type={MESSENGERS.includes(network) ? 'text' : 'url'}
+              placeholder={SOCIAL_PLACEHOLDER[network] ?? `https://${network}.com/…`}
               value={profileState.profile.socials[network] ?? ''}
               oninput={(event) => setSocial(network, event.currentTarget.value)}
             />
@@ -527,6 +534,12 @@
                   class="button secondary"
                   href={resolve(`/chat?dm=${encodeURIComponent(c.matrixId)}`)}>Message</a
                 >
+              {/if}
+              {#each contactDeepLinks(c).filter( (l) => ['phone', 'email', 'telegram', 'whatsapp', 'signal'].includes(l.kind) ) as link (link.kind)}
+                <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+                <a class="button secondary" href={link.href} rel="noreferrer">{link.label}</a>
+              {/each}
+              {#if c.matrixId}
                 <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
                 <a class="button secondary" href={matrixToUrl(c.matrixId)} rel="noreferrer"
                   >Element</a

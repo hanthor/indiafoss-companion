@@ -166,6 +166,9 @@ const KNOWN_SOCIALS: readonly AttendeeSocial[] = [
   'youtube',
   'medium',
   'devto',
+  'telegram',
+  'whatsapp',
+  'signal',
 ];
 
 /**
