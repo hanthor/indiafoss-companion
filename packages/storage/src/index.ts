@@ -86,12 +86,19 @@ export interface MatrixEventRecord {
   mediaFile?: string;
   mediaMime?: string;
   mediaSize?: number;
+  /** Event this one replies to (m.in_reply_to). */
+  replyTo?: string;
+  /** Event this one annotates, with the annotation key, for m.reaction. */
+  reactsTo?: string;
+  reactionKey?: string;
 }
 
 export interface MatrixOutboxRecord {
   txnId: string;
   roomId: string;
   body: string;
+  /** Event this queued message replies to. */
+  replyTo?: string;
   createdAt: string;
   attempts: number;
   lastError?: string;

@@ -50,6 +50,31 @@ export interface DescribedEvent {
   mediaFile?: string;
   mediaMime?: string;
   mediaSize?: number;
+  replyTo?: string;
+  reactsTo?: string;
+  reactionKey?: string;
+}
+
+/** `m.relates_to`: a reply target, or an annotation (reaction) target and key. */
+export function relationOf(content: Record<string, unknown>): {
+  replyTo?: string;
+  reactsTo?: string;
+  reactionKey?: string;
+} {
+  const rel = content['m.relates_to'] as
+    | {
+        rel_type?: string;
+        event_id?: string;
+        key?: string;
+        'm.in_reply_to'?: { event_id?: string };
+      }
+    | undefined;
+  if (!rel) return {};
+  const replyTo = str(rel['m.in_reply_to']?.event_id);
+  if (rel.rel_type === 'm.annotation' && rel.event_id) {
+    return { reactsTo: rel.event_id, reactionKey: str(rel.key) ?? '👍' };
+  }
+  return replyTo ? { replyTo } : {};
 }
 
 const MEDIA_TYPES = new Set(['m.image', 'm.file', 'm.audio', 'm.video']);
@@ -60,9 +85,12 @@ export function describeEvent(event: RawMatrixEvent): DescribedEvent | null {
   switch (event.type) {
     case 'm.room.message': {
       const msgtype = str(content.msgtype) ?? 'm.text';
-      const body = str(content.body) ?? '';
+      // A rich reply repeats the quoted text as "> …" lines; strip them, the UI shows the quote.
+      const rawBody = str(content.body) ?? '';
+      const relation = relationOf(content);
+      const body = relation.replyTo ? rawBody.replace(/^(> .*\n)+\n?/, '') : rawBody;
       if (msgtype === 'm.text' || msgtype === 'm.notice' || msgtype === 'm.emote') {
-        return body ? { body, msgtype } : null;
+        return body ? { body, msgtype, ...relation } : null;
       }
       if (MEDIA_TYPES.has(msgtype)) {
         const file = content.file as { url?: string } | undefined;
@@ -83,6 +111,12 @@ export function describeEvent(event: RawMatrixEvent): DescribedEvent | null {
       return { body: '[Encrypted message — waiting for the key]', msgtype: 'm.encrypted' };
     case 'm.sticker':
       return { body: '[sticker]', msgtype: 'm.sticker' };
+    case 'm.reaction': {
+      const relation = relationOf(content);
+      return relation.reactsTo
+        ? { body: relation.reactionKey ?? '👍', msgtype: 'm.reaction', ...relation }
+        : null;
+    }
     default:
       return null;
   }
@@ -139,6 +173,9 @@ function toRecord(roomId: string, event: RawMatrixEvent): MatrixEventRecord | nu
     ...(described.mediaFile ? { mediaFile: described.mediaFile } : {}),
     ...(described.mediaMime ? { mediaMime: described.mediaMime } : {}),
     ...(described.mediaSize !== undefined ? { mediaSize: described.mediaSize } : {}),
+    ...(described.replyTo ? { replyTo: described.replyTo } : {}),
+    ...(described.reactsTo ? { reactsTo: described.reactsTo } : {}),
+    ...(described.reactionKey ? { reactionKey: described.reactionKey } : {}),
   };
 }
 

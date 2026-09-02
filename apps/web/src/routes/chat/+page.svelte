@@ -55,6 +55,30 @@
     peers = await meshPeers();
   }
 
+  async function accept(roomId: string) {
+    busy = true;
+    actionError = null;
+    try {
+      await getMatrix().acceptInvite(roomId);
+    } catch (e) {
+      actionError = e instanceof Error ? e.message : String(e);
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function decline(roomId: string) {
+    busy = true;
+    actionError = null;
+    try {
+      await getMatrix().declineInvite(roomId);
+    } catch (e) {
+      actionError = e instanceof Error ? e.message : String(e);
+    } finally {
+      busy = false;
+    }
+  }
+
   async function connectMesh() {
     meshSearching = true;
     signInError = null;
@@ -349,9 +373,16 @@
               <strong>{room.name}</strong>
               <p class="muted small">You have been invited.</p>
             </div>
-            <button class="button primary" onclick={() => join(room.roomId)} disabled={busy}
-              >Accept</button
-            >
+            <div class="inviteactions">
+              <button class="button primary" onclick={() => accept(room.roomId)} disabled={busy}
+                >Accept</button
+              >
+              <button
+                class="button secondary small"
+                onclick={() => decline(room.roomId)}
+                disabled={busy}>Decline</button
+              >
+            </div>
           </li>
         {/each}
       </ul>
@@ -454,6 +485,10 @@
 {/if}
 
 <style>
+  .inviteactions {
+    display: flex;
+    gap: 0.35rem;
+  }
   .error {
     color: var(--danger);
     font-size: 0.9rem;

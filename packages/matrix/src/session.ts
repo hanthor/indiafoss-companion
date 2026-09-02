@@ -505,6 +505,59 @@ export class MatrixSessionManager {
     return res.event_id;
   }
 
+  // ---- reactions and invites -------------------------------------------------
+
+  /**
+   * Toggle an annotation on an event. Reactions are never encrypted (the spec
+   * keeps `m.reaction` in the clear) and are not queued: a failed reaction is
+   * simply not applied.
+   */
+  async toggleReaction(roomId: string, eventId: string, key = '👍'): Promise<void> {
+    const client = this.requireClient();
+    const self = this.session?.userId;
+    const timeline = this.timelines.get(roomId) ?? [];
+    const mine = timeline.find(
+      (e) => e.reactsTo === eventId && e.reactionKey === key && e.sender === self,
+    );
+    if (mine) {
+      await client.redactEvent(roomId, mine.eventId, this.newTxnId());
+      this.timelines.set(
+        roomId,
+        timeline.filter((e) => e.eventId !== mine.eventId),
+      );
+      await this.store.putEvents([]);
+      this.emit();
+      return;
+    }
+    await client.sendEvent(
+      roomId,
+      'm.reaction',
+      { 'm.relates_to': { rel_type: 'm.annotation', event_id: eventId, key } },
+      this.newTxnId(),
+    );
+  }
+
+  /** Accept a pending invite (joins and opens the room). */
+  async acceptInvite(roomId: string): Promise<void> {
+    const client = this.requireClient();
+    await client.joinRoom(roomId);
+    const room = this.rooms.get(roomId);
+    if (room) {
+      room.membership = 'join';
+      await this.store.putRooms([room]);
+      this.emit();
+    }
+  }
+
+  /** Decline a pending invite and forget the room. */
+  async declineInvite(roomId: string): Promise<void> {
+    const client = this.requireClient();
+    await client.leaveRoom(roomId);
+    this.rooms.delete(roomId);
+    await this.store.deleteRoom(roomId);
+    this.emit();
+  }
+
   // ---- typing ---------------------------------------------------------------
 
   /** Throttled typing notice (§ Matrix typing); no-op while offline. */
@@ -810,7 +863,7 @@ export class MatrixSessionManager {
    * so it survives reloads, and is delivered as soon as the homeserver is
    * reachable. The transaction id keeps retries idempotent.
    */
-  async sendMessage(roomId: string, body: string): Promise<void> {
+  async sendMessage(roomId: string, body: string, replyTo?: string): Promise<void> {
     if (!this.session) throw new Error('Sign in to Matrix first.');
     const text = body.trim();
     if (!text) return;
@@ -818,6 +871,7 @@ export class MatrixSessionManager {
       txnId: this.newTxnId(),
       roomId,
       body: text,
+      ...(replyTo ? { replyTo } : {}),
       createdAt: new Date(this.opts.now()).toISOString(),
       attempts: 0,
     };
@@ -842,15 +896,14 @@ export class MatrixSessionManager {
     try {
       for (const item of [...this.outbox]) {
         try {
+          const content: Record<string, unknown> = { msgtype: 'm.text', body: item.body };
+          if (item.replyTo) {
+            content['m.relates_to'] = { 'm.in_reply_to': { event_id: item.replyTo } };
+          }
           if (this.rooms.get(item.roomId)?.encrypted) {
-            await this.sendEncrypted(
-              item.roomId,
-              'm.room.message',
-              { msgtype: 'm.text', body: item.body },
-              item.txnId,
-            );
+            await this.sendEncrypted(item.roomId, 'm.room.message', content, item.txnId);
           } else {
-            await this.client.sendTextMessage(item.roomId, item.body, item.txnId);
+            await this.client.sendEvent(item.roomId, 'm.room.message', content, item.txnId);
           }
           this.outbox = this.outbox.filter((o) => o.txnId !== item.txnId);
           await this.store.deleteOutbox(item.txnId);

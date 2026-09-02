@@ -179,6 +179,16 @@ companion never signs in to that server: it links to the rooms and Element
 - `collectBundleIssues` rejects a listed room whose `activityId`,
   `locationId`, `boothId` or `trackId` is not in the bundle.
 
+### Timeline features
+
+Replies carry `m.relates_to`/`m.in_reply_to`; the quoted `> …` fallback body is
+stripped on read and the quote is rendered from the local timeline instead.
+Reactions are `m.reaction` annotations, folded onto the message they annotate
+and toggled by redacting your own; they are deliberately unencrypted, as the
+spec requires. The room header shows the member list on demand (display name
+and mesh id), and invites are accepted or declined from `/chat`. Read receipts
+are sent when a room is opened and while it stays open.
+
 ### Offline behaviour and reconnection
 
 - `/sync` long-polls (30 s) with a filter that lazy-loads members and limits

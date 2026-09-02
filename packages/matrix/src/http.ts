@@ -435,6 +435,15 @@ export class MatrixClient {
     throw new MatrixError(`Media download failed (HTTP ${last?.status ?? 0})`, last?.status ?? 0);
   }
 
+  /** Redact an event (used to take back a reaction). */
+  async redactEvent(roomId: string, eventId: string, txnId: string): Promise<void> {
+    await this.request(
+      'PUT',
+      `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/redact/${encodeURIComponent(eventId)}/${encodeURIComponent(txnId)}`,
+      {},
+    );
+  }
+
   async sendReadReceipt(roomId: string, eventId: string): Promise<void> {
     await this.request(
       'POST',
