@@ -478,7 +478,7 @@ export class MatrixSessionManager {
   private async membersOf(roomId: string): Promise<string[]> {
     const cached = this.memberCache.get(roomId);
     if (cached && this.opts.now() - cached.at < 60_000) return cached.ids;
-    const ids = await this.requireClient().joinedMembers(roomId);
+    const ids = await this.requireClient().roomMembers(roomId);
     this.memberCache.set(roomId, { at: this.opts.now(), ids });
     return ids;
   }
