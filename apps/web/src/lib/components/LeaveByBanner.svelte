@@ -4,7 +4,7 @@
   import { formatTime } from '@indiafoss/schedule';
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { eventState } from '$lib/event.svelte';
-  import { bookmarked } from '$lib/prefs.svelte';
+  import { bookmarked, dispositionOf } from '$lib/prefs.svelte';
   import { currentLocation, hydrateLocation } from '$lib/location.svelte';
   import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
   import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
@@ -47,6 +47,7 @@
           bundle,
           now,
           bookmarked,
+          mustAttend: (id) => dispositionOf(id) === 'must-attend',
           venue,
           currentLocation: currentLocation.value,
           profile: routingPrefs.profile,
@@ -81,9 +82,16 @@
 {#if next}
   <!-- `href` is built with resolve() above; the rule cannot see through the derived. -->
   <!-- eslint-disable svelte/no-navigation-without-resolve -- resolved in script -->
-  <a class="leaveby" class:urgent {href} aria-label="{kicker}: {next.activity.title}">
+  <a
+    class="leaveby"
+    class:urgent
+    class:must={next.mustAttend}
+    {href}
+    aria-label="{next.mustAttend ? 'Must attend, ' : ''}{kicker}: {next.activity.title}"
+  >
     <span class="kicker">
-      {kicker}
+      {#if next.mustAttend}<span class="musttag">★ MUST ATTEND</span> ·
+      {/if}{kicker}
       {#if next.leaveBy}<span class="clock">· {formatTime(next.leaveBy)}</span>{/if}
     </span>
     <span class="detail">
@@ -117,6 +125,15 @@
   }
   .leaveby.urgent {
     background: var(--amber);
+    color: var(--ink);
+  }
+  .leaveby.must {
+    border-left: 4px solid var(--amber);
+  }
+  .musttag {
+    color: var(--amber-ink);
+  }
+  .leaveby.urgent .musttag {
     color: var(--ink);
   }
   .kicker {

@@ -19,6 +19,8 @@
     toggleLock,
   } from '$lib/planEdits.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
+  import { dispositionOf, setDisposition } from '$lib/prefs.svelte';
+  import { MUST_ATTEND_HEADS_UP_MINUTES } from '$lib/notifications';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
@@ -129,6 +131,15 @@
   }
 
   const isCustom = (id: string): boolean => id.startsWith('custom-');
+
+  /** Everything marked must attend, across days, in programme order. */
+  const mustAttend = $derived(
+    (bundle?.activities ?? [])
+      .filter((a) => dispositionOf(a.id) === 'must-attend' && !a.cancelled)
+      .sort((a, b) => (a.start ?? '').localeCompare(b.start ?? '')),
+  );
+  const roomName = (locationId: string | undefined): string | undefined =>
+    bundle?.locations.find((l) => l.id === locationId)?.name;
 </script>
 
 <EventGate>
@@ -152,6 +163,40 @@
     {/if}
   </div>
   {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
+
+  <section class="mustlist" aria-labelledby="must-title">
+    <h2 id="must-title">★ Must attend</h2>
+    {#if mustAttend.length === 0}
+      <p class="muted small">
+        Mark the talks you cannot miss as <strong>★ Must attend</strong> on a session (or the
+        <strong>!!</strong> mark on any schedule row). They are pinned into your plan and get extra
+        reminders: {MUST_ATTEND_HEADS_UP_MINUTES} min before, starting soon, leave-by and at the start.
+      </p>
+    {:else}
+      <p class="muted small">
+        Pinned in your plan. Extra reminders {MUST_ATTEND_HEADS_UP_MINUTES} min before, when it is time
+        to leave, and as each starts (switch reminders on in Settings).
+      </p>
+      <ol>
+        {#each mustAttend as a (a.id)}
+          <li>
+            <time datetime={a.start}>
+              {#if a.start}{formatDayLabel(a.start.slice(0, 10))} {formatTime(a.start)}{/if}
+            </time>
+            <span class="what">
+              <a href={resolve(`/activity/${a.id}`)}>{a.title}</a>
+              {#if roomName(a.locationId)}<small>{roomName(a.locationId)}</small>{/if}
+            </span>
+            <button
+              class="unmust"
+              aria-label="Remove {a.title} from must attend"
+              onclick={() => setDisposition(a.id, 'normal')}>Remove</button
+            >
+          </li>
+        {/each}
+      </ol>
+    {/if}
+  </section>
 
   {#if solving}
     <p role="status">Computing your best day…</p>
@@ -400,6 +445,61 @@
     margin: 0.4rem 0 0;
     padding-left: 1.1rem;
   }
+  .mustlist {
+    margin: 0.5rem 0 1rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--amber);
+    border-left-width: 4px;
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--amber-soft) 60%, var(--surface));
+  }
+  .mustlist h2 {
+    margin: 0 0 0.3rem;
+    font-size: 0.95rem;
+  }
+  .mustlist ol {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+  }
+  .mustlist li {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr auto;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.35rem 0;
+    border-top: 1px solid color-mix(in srgb, var(--amber) 35%, transparent);
+  }
+  .mustlist time {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .mustlist .what {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .mustlist .what a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .mustlist small {
+    color: var(--text-muted);
+  }
+  .unmust {
+    min-height: 36px;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+
   .itinerary {
     list-style: none;
     padding: 0;

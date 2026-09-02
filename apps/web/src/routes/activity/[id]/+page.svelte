@@ -110,12 +110,14 @@
       </button>
       <button
         class:active={disposition === 'must-attend'}
+        aria-pressed={disposition === 'must-attend'}
         onclick={() => onDisposition(disposition === 'must-attend' ? 'normal' : 'must-attend')}
       >
         ★ Must attend
       </button>
       <button
         class:active={disposition === 'not-interested'}
+        aria-pressed={disposition === 'not-interested'}
         onclick={() =>
           onDisposition(disposition === 'not-interested' ? 'normal' : 'not-interested')}
       >
@@ -123,6 +125,7 @@
       </button>
       <button
         class:active={disposition === 'watch-later'}
+        aria-pressed={disposition === 'watch-later'}
         onclick={() => onDisposition(disposition === 'watch-later' ? 'normal' : 'watch-later')}
       >
         ▸ Watch later

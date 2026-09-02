@@ -75,8 +75,9 @@
   <section class="card">
     <h2>Reminders</h2>
     <p class="muted">
-      Local "starting soon" and "leave now" alerts for the sessions on your plan, timed with the
-      walk from your last scanned location. No push service, nothing leaves the device.
+      Local "starting soon" and "leave now" alerts for your bookmarked sessions, timed with the walk
+      from your last scanned location. Sessions marked <strong>★ Must attend</strong> also get a heads-up
+      30 minutes before and an alert as they start. No push service, nothing leaves the device.
     </p>
     <label class="switch">
       <input

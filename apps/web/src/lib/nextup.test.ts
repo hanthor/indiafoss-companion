@@ -123,4 +123,14 @@ describe('computeNextUp', () => {
   it('returns nothing beyond the horizon', () => {
     expect(computeNextUp({ ...base, bookmarked: () => false, horizonMinutes: 10 })).toBeNull();
   });
+
+  it('puts a must-attend session ahead of an earlier bookmark', () => {
+    const next = computeNextUp({
+      ...base,
+      bookmarked: (id) => id === 'a' || id === 'b',
+      mustAttend: (id) => id === 'b',
+    });
+    expect(next?.activity.id).toBe('b');
+    expect(next?.mustAttend).toBe(true);
+  });
 });

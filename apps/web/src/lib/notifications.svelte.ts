@@ -4,7 +4,8 @@ import {
   NativeLocalNotificationTransport,
   WebLocalNotificationTransport,
 } from '$lib/notifications';
-import type { NotificationTransport } from '$lib/notifications';
+import type { NotificationTransport, ReminderTier } from '$lib/notifications';
+import { bookmarked, dispositionOf, hydratePreferences } from '$lib/prefs.svelte';
 import { eventState } from '$lib/event.svelte';
 import { currentLocation } from '$lib/location.svelte';
 import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
@@ -80,7 +81,14 @@ export async function armNotifications(): Promise<void> {
   const isoNow = new Date(nowMs).toISOString();
   armedAt = isoNow;
 
-  const notifications = computeNotifications(bundle, isoNow, travelSecondsFor);
+  await hydratePreferences();
+  const tierFor = (activityId: string): ReminderTier =>
+    dispositionOf(activityId) === 'must-attend'
+      ? 'must-attend'
+      : bookmarked(activityId)
+        ? 'planned'
+        : 'none';
+  const notifications = computeNotifications(bundle, isoNow, travelSecondsFor, tierFor);
   const transport = await getTransport();
   for (const n of notifications) await transport.schedule(n);
 }

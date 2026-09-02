@@ -8,6 +8,8 @@ export interface NextUp {
   activity: Activity;
   /** Whether it came from the attendee's bookmarks rather than the programme order. */
   planned: boolean;
+  /** The attendee marked it must attend: it wins over bookmarks and gets extra reminders. */
+  mustAttend: boolean;
   startsInMinutes: number;
   /** Set when the venue graph and a current location give a walk. */
   travelSeconds: number | null;
@@ -23,6 +25,8 @@ export interface NextUpInput {
   now: string;
   /** The attendee's bookmarked session ids; the earliest upcoming one wins. */
   bookmarked: (activityId: string) => boolean;
+  /** Must-attend sessions come first, whatever else is bookmarked. */
+  mustAttend?: (activityId: string) => boolean;
   venue: LoadedVenue | null;
   currentLocation: string | null;
   profile: RoutingProfile;
@@ -45,7 +49,8 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
     .filter((a) => !a.cancelled && a.start && a.end && parseInstant(a.start) >= nowMs)
     .filter((a) => parseInstant(a.start!) - nowMs <= horizon)
     .sort((a, b) => parseInstant(a.start!) - parseInstant(b.start!));
-  const planned = upcoming.find((a) => input.bookmarked(a.id));
+  const must = input.mustAttend ? upcoming.find((a) => input.mustAttend!(a.id)) : undefined;
+  const planned = must ?? upcoming.find((a) => input.bookmarked(a.id));
   const activity = planned ?? computeNowState(bundle, now).next ?? null;
   if (!activity?.start || parseInstant(activity.start) - nowMs > horizon) return null;
 
@@ -80,6 +85,7 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
   return {
     activity,
     planned: !!planned,
+    mustAttend: !!must,
     startsInMinutes,
     travelSeconds,
     leaveBy,
