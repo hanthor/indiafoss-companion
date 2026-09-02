@@ -34,6 +34,7 @@
     IMPORT_MESSAGES,
     type ImportedChange,
   } from '$lib/fossunited';
+  import { profileUrlForUsername, usernameFromProfileUrl } from '@indiafoss/sources';
   import {
     hydrateProfile,
     profileState,
@@ -164,10 +165,20 @@
     return (profileState.profile[spec.key as keyof typeof profileState.profile] as string) ?? '';
   }
   function setValue(spec: CardFieldSpec, value: string): void {
-    (profileState.profile as unknown as Record<string, string | undefined>)[spec.key] = value.trim()
-      ? value
-      : undefined;
+    let stored: string | undefined = value.trim() ? value : undefined;
+    // The FOSS United row takes a username; the card carries the profile URL.
+    if (spec.key === 'fossUnitedProfileUrl' && stored) {
+      const username = usernameFromProfileUrl(stored);
+      stored = username ? profileUrlForUsername(username) : stored;
+    }
+    (profileState.profile as unknown as Record<string, string | undefined>)[spec.key] = stored;
     scheduleCard();
+  }
+  /** What the input shows: the username for the FOSS United row, the value otherwise. */
+  function shownValue(spec: CardFieldSpec): string {
+    const value = valueOf(spec);
+    if (spec.key === 'fossUnitedProfileUrl' && value) return usernameFromProfileUrl(value) ?? value;
+    return value;
   }
   function isOn(spec: CardFieldSpec): boolean {
     const key = selectionKeyFor(spec.key as never);
@@ -490,7 +501,7 @@
                   spellcheck="false"
                   class:mono={spec.mono}
                   placeholder={spec.placeholder}
-                  value={valueOf(spec)}
+                  value={shownValue(spec)}
                   oninput={(e) => setValue(spec, e.currentTarget.value)}
                 />
                 {#if spec.key === 'neutrinoServerName' && meshServerName && meshServerName !== profileState.profile.neutrinoServerName}

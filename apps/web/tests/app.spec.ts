@@ -245,6 +245,11 @@ test('map sets a location from a room and shows the walk to another', async ({ p
   await expect(page.locator('.steps li').first()).toBeVisible();
   // The other-floor hint points back down to where you are.
   await expect(page.getByText("YOU'RE DOWNSTAIRS")).toBeVisible();
+  // The plan zooms; labels grow their detail once zoomed in.
+  await page.getByRole('button', { name: 'Zoom in' }).click();
+  await expect(page.locator('.drawing')).toHaveAttribute('style', /scale\(1\.5/);
+  await page.getByRole('button', { name: 'Reset view' }).click();
+  await expect(page.locator('.drawing')).toHaveAttribute('style', /scale\(1\)/);
 });
 
 test('now screen shows leave-by with a known location', async ({ page }) => {
@@ -290,9 +295,8 @@ test('connect keeps a live QR card and downloads a vCard', async ({ page }) => {
   await page.goto(appUrl('/connect'));
   await expect(page.getByRole('heading', { name: 'Your card' })).toBeVisible();
   await page.getByLabel('Name', { exact: true }).fill('Test Attendee');
-  await page
-    .getByLabel('FOSS United profile', { exact: true })
-    .fill('https://fossunited.org/u/test_attendee');
+  // A bare username is enough; the card carries the profile URL.
+  await page.getByLabel('FOSS United username', { exact: true }).fill('test_attendee');
   // No generate step: the QR re-encodes on its own from the local vCard payload.
   const qr = page.getByRole('img', { name: /contact details as a QR code/ });
   await expect(qr).toBeVisible();

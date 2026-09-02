@@ -11,7 +11,9 @@ export type AttendeeSocial =
   | 'devto'
   | 'telegram'
   | 'whatsapp'
-  | 'signal';
+  | 'signal'
+  | 'xmpp'
+  | 'deltachat';
 
 /** Local projection of the attendee's FOSS United profile (§41). */
 export interface AttendeeProfile {
@@ -111,7 +113,10 @@ export function attendeeProfileToVCard(
   for (const [network, enabled] of Object.entries(selection.socials)) {
     if (!enabled) continue;
     const url = profile.socials[network as AttendeeSocial];
-    if (url) lines.push(`X-SOCIALPROFILE;TYPE=${network}:${escapeVCard(url)}`);
+    if (!url) continue;
+    lines.push(`X-SOCIALPROFILE;TYPE=${network}:${escapeVCard(url)}`);
+    // XMPP is also an IM address other address books understand.
+    if (network === 'xmpp') pushField(lines, 'IMPP', `xmpp:${url.replace(/^xmpp:/i, '')}`);
   }
 
   lines.push('END:VCARD');
@@ -204,11 +209,23 @@ export function contactDeepLinks(profile: {
     });
   else if (signalHandle)
     links.push({ kind: 'signal', label: 'Signal', href: `https://signal.me/#u/${signalHandle}` });
+  // XMPP (Prav and any other server): a JID, with or without the xmpp: scheme.
+  const jid = socials.xmpp?.trim().replace(/^xmpp:/i, '');
+  if (jid && /^[^@\s/]+@[^@\s/]+$/.test(jid)) {
+    links.push({ kind: 'xmpp', label: 'XMPP', href: `xmpp:${jid}` });
+  }
+  // Delta Chat: an invite link from the app, or the address it is reached at.
+  const delta = socials.deltachat?.trim();
+  if (delta && /^https:\/\/i\.delta\.chat\//i.test(delta)) {
+    links.push({ kind: 'deltachat', label: 'Delta Chat', href: delta });
+  } else if (delta && /^[^@\s/]+@[^@\s/]+\.[^@\s/]+$/.test(delta)) {
+    links.push({ kind: 'deltachat', label: 'Delta Chat', href: `mailto:${delta}` });
+  }
   if (profile.website && /^https?:\/\//i.test(profile.website)) {
     links.push({ kind: 'website', label: 'Website', href: profile.website.trim() });
   }
   for (const [network, url] of Object.entries(socials) as [AttendeeSocial, string][]) {
-    if (network === 'telegram' || network === 'whatsapp' || network === 'signal') continue;
+    if (['telegram', 'whatsapp', 'signal', 'xmpp', 'deltachat'].includes(network)) continue;
     if (url && /^https?:\/\//i.test(url))
       links.push({ kind: network, label: LINK_LABELS[network], href: url.trim() });
   }
@@ -227,6 +244,8 @@ const LINK_ORDER: LinkKind[] = [
   'bluesky',
   'x',
   'matrix',
+  'xmpp',
+  'deltachat',
   'telegram',
   'whatsapp',
   'signal',
@@ -248,6 +267,8 @@ export const LINK_LABELS: Record<LinkKind, string> = {
   bluesky: 'Bluesky',
   x: 'X',
   matrix: 'Matrix',
+  xmpp: 'XMPP',
+  deltachat: 'Delta Chat',
   telegram: 'Telegram',
   whatsapp: 'WhatsApp',
   signal: 'Signal',
@@ -273,6 +294,7 @@ export function classifyLink(url: string): LinkKind | null {
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
       if (parsed.protocol === 'mailto:') return 'email';
       if (parsed.protocol === 'tel:') return 'phone';
+      if (parsed.protocol === 'xmpp:') return 'xmpp';
       return null;
     }
     host = parsed.hostname.toLowerCase().replace(/^www\./, '');
@@ -294,6 +316,7 @@ export function classifyLink(url: string): LinkKind | null {
   if (is('wa.me')) return 'whatsapp';
   if (is('signal.me')) return 'signal';
   if (is('matrix.to')) return 'matrix';
+  if (is('i.delta.chat')) return 'deltachat';
   // Fediverse: profile paths look like /@user on any instance.
   if (
     /^\/@[^/]+\/?$/.test(path) ||

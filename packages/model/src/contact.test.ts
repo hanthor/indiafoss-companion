@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
-  attendeeProfileToVCard,
   DEFAULT_ATTENDEE_SHARE_SELECTION,
+  attendeeProfileToVCard,
+  classifyLink,
+  contactDeepLinks,
   type AttendeeProfile,
   type AttendeeShareSelection,
 } from './contact.js';
@@ -110,5 +112,23 @@ describe('attendeeProfileToVCard', () => {
     );
     expect(vcard).toContain('FN:Solo Attendee');
     expect(vcard).not.toContain('ORG');
+  });
+
+  it('links XMPP (Prav) and Delta Chat contacts', () => {
+    const links = contactDeepLinks({
+      socials: {
+        xmpp: 'xmpp:alice@prav.app',
+        deltachat: 'https://i.delta.chat/#ABC&a=alice%40example.org',
+      },
+    });
+    expect(links.map((l) => [l.kind, l.href])).toEqual([
+      ['xmpp', 'xmpp:alice@prav.app'],
+      ['deltachat', 'https://i.delta.chat/#ABC&a=alice%40example.org'],
+    ]);
+    expect(contactDeepLinks({ socials: { deltachat: 'alice@example.org' } })).toEqual([
+      { kind: 'deltachat', label: 'Delta Chat', href: 'mailto:alice@example.org' },
+    ]);
+    expect(classifyLink('xmpp:alice@prav.app')).toBe('xmpp');
+    expect(classifyLink('https://i.delta.chat/#X')).toBe('deltachat');
   });
 });

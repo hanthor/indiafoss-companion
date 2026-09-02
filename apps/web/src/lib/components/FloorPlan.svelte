@@ -192,10 +192,146 @@
     return { x: (boxW - w) / 2, y: (boxH - h) / 2, w, h };
   });
 
+  // ---- pan + zoom ---------------------------------------------------------
+  // The drawing is transformed as a whole; labels are positioned in screen
+  // space from the same transform so they never scale with it.
+
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 5;
+  let view = $state({ scale: 1, tx: 0, ty: 0 });
+  const zoomed = $derived(view.scale >= 1.6);
+
+  function clampView(next: { scale: number; tx: number; ty: number }) {
+    const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, next.scale));
+    // Keep at least a quarter of the drawing on screen in each direction.
+    const slackX = boxW * 0.75;
+    const slackY = boxH * 0.75;
+    const minTx = boxW - boxW * scale - slackX;
+    const minTy = boxH - boxH * scale - slackY;
+    return {
+      scale,
+      tx: Math.min(slackX, Math.max(minTx, next.tx)),
+      ty: Math.min(slackY, Math.max(minTy, next.ty)),
+    };
+  }
+
+  /** Zoom by `factor` keeping the screen point (px, py) fixed. */
+  function zoomAt(factor: number, px: number, py: number) {
+    const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, view.scale * factor));
+    const k = scale / view.scale;
+    view = clampView({ scale, tx: px - (px - view.tx) * k, ty: py - (py - view.ty) * k });
+  }
+
+  function zoomStep(factor: number) {
+    zoomAt(factor, boxW / 2, boxH / 2);
+  }
+
+  function resetView() {
+    view = { scale: 1, tx: 0, ty: 0 };
+  }
+
+  // Reset when the floor changes: the other floor has its own extent.
+  $effect(() => {
+    void floor;
+    resetView();
+  });
+
+  // Gesture bookkeeping only; nothing renders from it.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const pointers = new Map<number, { x: number; y: number }>();
+  let gesture: {
+    tx: number;
+    ty: number;
+    scale: number;
+    dist: number;
+    mx: number;
+    my: number;
+  } | null = null;
+  let moved = $state(false);
+
+  function localPoint(e: PointerEvent, el: HTMLElement) {
+    const r = el.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function onPointerDown(e: PointerEvent) {
+    const el = e.currentTarget as HTMLElement;
+    // No capture yet: capturing here would redirect the tap's click to the
+    // container and room buttons would never receive it.
+    pointers.set(e.pointerId, localPoint(e, el));
+    moved = false;
+    startGesture();
+  }
+
+  function startGesture() {
+    const pts = [...pointers.values()];
+    if (pts.length === 0) {
+      gesture = null;
+      return;
+    }
+    const mx = pts.reduce((n, p) => n + p.x, 0) / pts.length;
+    const my = pts.reduce((n, p) => n + p.y, 0) / pts.length;
+    const dist = pts.length >= 2 ? Math.hypot(pts[0]!.x - pts[1]!.x, pts[0]!.y - pts[1]!.y) : 0;
+    gesture = { tx: view.tx, ty: view.ty, scale: view.scale, dist, mx, my };
+  }
+
+  function onPointerMove(e: PointerEvent) {
+    if (!pointers.has(e.pointerId) || !gesture) return;
+    const el = e.currentTarget as HTMLElement;
+    pointers.set(e.pointerId, localPoint(e, el));
+    const pts = [...pointers.values()];
+    const mx = pts.reduce((n, p) => n + p.x, 0) / pts.length;
+    const my = pts.reduce((n, p) => n + p.y, 0) / pts.length;
+    let scale = gesture.scale;
+    if (pts.length >= 2 && gesture.dist > 0) {
+      const dist = Math.hypot(pts[0]!.x - pts[1]!.x, pts[0]!.y - pts[1]!.y);
+      scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, gesture.scale * (dist / gesture.dist)));
+    }
+    const dx = mx - gesture.mx;
+    const dy = my - gesture.my;
+    if (!moved && Math.hypot(dx, dy) > 6) {
+      moved = true;
+      for (const id of pointers.keys()) el.setPointerCapture(id);
+    }
+    if (!moved && scale === gesture.scale) return;
+    const k = scale / gesture.scale;
+    view = clampView({
+      scale,
+      tx: gesture.mx + dx - (gesture.mx - gesture.tx) * k,
+      ty: gesture.my + dy - (gesture.my - gesture.ty) * k,
+    });
+  }
+
+  function onPointerUp(e: PointerEvent) {
+    pointers.delete(e.pointerId);
+    startGesture();
+  }
+
+  /** A drag must not count as a tap on whatever ends up under the finger. */
+  function onClickCapture(e: MouseEvent) {
+    if (moved) {
+      e.stopPropagation();
+      e.preventDefault();
+      moved = false;
+    }
+  }
+
+  function onWheel(e: WheelEvent) {
+    e.preventDefault();
+    const el = e.currentTarget as HTMLElement;
+    const r = el.getBoundingClientRect();
+    const factor = Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.002));
+    zoomAt(factor, e.clientX - r.left, e.clientY - r.top);
+  }
+
+  const drawingStyle = $derived(
+    `transform:translate(${view.tx.toFixed(1)}px,${view.ty.toFixed(1)}px) scale(${view.scale.toFixed(3)})`,
+  );
+
   function labelStyle(room: FloorRoom): string {
     const p = anchorPercent(plan, room);
-    const x = content.x + (p.x / 100) * content.w;
-    const y = content.y + (p.y / 100) * content.h;
+    const x = view.tx + (content.x + (p.x / 100) * content.w) * view.scale;
+    const y = view.ty + (content.y + (p.y / 100) * content.h) * view.scale;
     return `left:${x.toFixed(1)}px;top:${y.toFixed(1)}px`;
   }
 
@@ -245,11 +381,24 @@
 {:else if !venue || !bundle}
   <p class="loading" role="status">Loading venue…</p>
 {:else}
-  <div class="plan" bind:clientWidth={boxW} bind:clientHeight={boxH}>
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="plan"
+    class:dragging={moved}
+    bind:clientWidth={boxW}
+    bind:clientHeight={boxH}
+    onpointerdown={onPointerDown}
+    onpointermove={onPointerMove}
+    onpointerup={onPointerUp}
+    onpointercancel={onPointerUp}
+    onwheel={onWheel}
+    onclickcapture={onClickCapture}
+  >
     <svg
       viewBox={plan.viewBox}
       preserveAspectRatio="xMidYMid meet"
       class="drawing"
+      style={drawingStyle}
       aria-hidden="true"
     >
       <path class="fill" d={plan.fill} />
@@ -282,6 +431,7 @@
         {@const first = live[0]}
         <button
           class="roomlabel {roomState(room.id)}"
+          class:compact={!zoomed}
           class:selected={selected === room.id}
           style={labelStyle(room)}
           aria-label="{roomTitle(room)}{first
@@ -292,7 +442,7 @@
         >
           <span class="name">{roomTitle(room)}</span>
           {#if first}
-            <span class="talk">{truncate(first.title)}</span>
+            {#if zoomed}<span class="talk">{truncate(first.title, 32)}</span>{/if}
             <span class="left">{minutesLeft(first)} MIN LEFT</span>
           {/if}
           {#if room.id === hereRoom}<span class="you" aria-hidden="true"></span>{/if}
@@ -322,6 +472,14 @@
     {#if otherFloorHint}
       <p class="hint">{otherFloorHint}</p>
     {/if}
+
+    <div class="zoom" role="group" aria-label="Zoom">
+      <button aria-label="Zoom in" onclick={() => zoomStep(1.5)}>+</button>
+      <button aria-label="Zoom out" onclick={() => zoomStep(1 / 1.5)} disabled={view.scale <= 1}
+        >−</button
+      >
+      <button aria-label="Reset view" onclick={resetView} disabled={view.scale <= 1}>⌖</button>
+    </div>
 
     <ul class="legend" aria-label="Legend">
       <li><span class="sw live"></span>LIVE</li>
@@ -429,13 +587,19 @@
     min-height: 60vh;
     background: var(--paper);
     overflow: hidden;
-    touch-action: manipulation;
+    touch-action: none;
+    cursor: grab;
+  }
+  .plan.dragging {
+    cursor: grabbing;
   }
   .drawing {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
+    transform-origin: 0 0;
+    will-change: transform;
   }
   .fill {
     fill: var(--surface-raised);
@@ -507,6 +671,17 @@
     box-shadow: var(--shadow-hard-sm);
     cursor: pointer;
     font: inherit;
+  }
+  .roomlabel.compact {
+    min-height: 32px;
+    padding: 0.15rem 0.35rem;
+    gap: 0;
+  }
+  .roomlabel.compact .name {
+    font-size: 0.55rem;
+  }
+  .roomlabel.compact .left {
+    font-size: 0.5rem;
   }
   .roomlabel .name {
     font-family: var(--font-mono);
@@ -623,6 +798,30 @@
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.08em;
+  }
+
+  .zoom {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .zoom button {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    color: var(--text);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .zoom button:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
 
   .legend {

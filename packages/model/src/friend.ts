@@ -55,6 +55,8 @@ const SOCIALS: AttendeeSocial[] = [
   'telegram',
   'whatsapp',
   'signal',
+  'xmpp',
+  'deltachat',
 ];
 
 export function isNeutrinoServerName(value: string): boolean {

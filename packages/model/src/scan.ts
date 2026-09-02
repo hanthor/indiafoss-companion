@@ -169,6 +169,8 @@ const KNOWN_SOCIALS: readonly AttendeeSocial[] = [
   'telegram',
   'whatsapp',
   'signal',
+  'xmpp',
+  'deltachat',
 ];
 
 /**
@@ -232,6 +234,8 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
       case 'IMPP':
         if (!profile.matrixId && decoded.toLowerCase().startsWith('matrix:')) {
           profile.matrixId = decoded.slice('matrix:'.length);
+        } else if (!profile.socials.xmpp && decoded.toLowerCase().startsWith('xmpp:')) {
+          profile.socials.xmpp = decoded.slice('xmpp:'.length);
         }
         break;
       case 'X-SOCIALPROFILE': {
