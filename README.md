@@ -1,72 +1,146 @@
+<div align="center">
+
 # IndiaFOSS Companion
 
-> **AI-generated disclaimer:** This project and its current implementation were generated with AI assistance. It is an unofficial community project, is not produced or endorsed by FOSS United, and requires human review before production use.
+**The conference in your pocket — schedule, personal ranking, itinerary and indoor navigation, all offline, no account.**
 
-Offline-first conference companion for [IndiaFOSS](https://indiafoss.fossunited.org/).
+[![CI](https://github.com/hanthor/indiafoss-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/hanthor/indiafoss-companion/actions/workflows/ci.yml)
+[![Nightly APK](https://img.shields.io/github/v/release/hanthor/indiafoss-companion?include_prereleases&label=nightly%20apk)](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
+[![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8.svg)](https://hanthor.github.io/indiafoss-companion/)
 
-**Conference schedule + adaptive Elo ranking + personal itinerary optimization + indoor SVG navigation.**
+[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [Docs](#documentation)
 
-The app answers four questions on the conference floor:
+<img src="docs/screenshots/now.png" width="30%" alt="The Now screen listing three sessions running right now, each with a progress bar and minutes remaining" />
+<img src="docs/screenshots/map.png" width="30%" alt="The venue map in dark mode with three halls lit mint, each labelled with the minutes left in its session, and a dot showing where you are" />
+<img src="docs/screenshots/rank.png" width="30%" alt="Two overlapping keynotes stacked as cards under a CLOSE CALL pill, waiting for a pick" />
 
-1. What is happening right now?
-2. What should I do next?
-3. How do I get there?
-4. When sessions overlap, which one do I prefer?
+</div>
+
+> [!NOTE]
+> This project and its implementation were generated with AI assistance. It is an unofficial community project, is not produced or endorsed by FOSS United, and needs human review before production use.
+
+---
+
+An offline-first companion for [IndiaFOSS](https://indiafoss.fossunited.org/), built around the four questions you actually ask on a conference floor.
+
+## 1. What is happening right now?
+
+<table>
+<tr>
+<td width="60%">
+
+Every hall, live, with a progress bar and the minutes left in each talk — so you can tell at a glance whether it is worth walking over or whether you have already missed it.
+
+A banner across every tab counts down to your next session and turns amber when it is time to move. Sessions you mark **★ Must attend** are pinned, remind you 30 minutes ahead, and take priority over ordinary bookmarks.
+
+The clock is honest about time zones: everything renders in the event's offset, not the phone's.
+
+</td>
+<td width="40%"><img src="docs/screenshots/now.png" alt="Now screen" /></td>
+</tr>
+</table>
+
+## 2. What should I do next?
+
+<table>
+<tr>
+<td width="40%"><img src="docs/screenshots/rank.png" alt="Ranking two overlapping sessions" /></td>
+<td width="60%">
+
+A programme with 130 talks has more conflicts than anyone wants to resolve by reading abstracts. Instead the app shows you **two sessions at a time** and asks which you would rather attend.
+
+Each pick updates a local [Elo](https://en.wikipedia.org/wiki/Elo_rating_system) rating, and the next pair is chosen for information gain: real conflicts first, then close calls, then sessions it knows nothing about. The pill tells you why this pair — `OVERLAP`, `CLOSE CALL` or `NEW TO YOU`.
+
+Your ratings never leave the phone.
+
+</td>
+</tr>
+</table>
+
+## 3. How do I get there?
+
+<table>
+<tr>
+<td width="60%">
+
+The venue's real floor plan, with halls lit up while sessions run in them and a dot for where you are — set by scanning the QR on a room door, or by tapping **I'm here**.
+
+Both floors are drawn as vectors, so pinch, drag and wheel zoom stay sharp, and a corner hint tells you when your next talk is on the other floor. Underneath is a routing graph with A\* pathfinding and accessible profiles (lift instead of stairs).
+
+</td>
+<td width="40%"><img src="docs/screenshots/map.png" alt="Venue map with live rooms" /></td>
+</tr>
+</table>
+
+## 4. Who did I just meet?
+
+<table>
+<tr>
+<td width="40%"><img src="docs/screenshots/connect.png" alt="The Connect screen showing a live QR card" /></td>
+<td width="60%">
+
+One live QR card, re-encoded as you type. Every field has its own switch, so you choose what a stranger gets — GitHub yes, phone number no.
+
+It is a plain **vCard 3.0** that any camera app can save, carrying the companion's extras as `X-` properties and a signature from a per-device key. Scanning someone back shows a pixel **key badge** and where you met them; if their key ever changes, the app says so instead of quietly overwriting them.
+
+Nothing is uploaded. There is no server to upload to.
+
+</td>
+</tr>
+</table>
+
+## More of it
+
+<div align="center">
+<img src="docs/screenshots/schedule.png" width="24%" alt="Schedule grouped by time with bookmark and must-attend marks" />
+<img src="docs/screenshots/plan.png" width="24%" alt="Personal itinerary in dark mode with hallway time between talks" />
+<img src="docs/screenshots/session.png" width="24%" alt="Session detail with speakers and key takeaways" />
+<img src="docs/screenshots/explore.png" width="24%" alt="Offline search across talks, speakers, devrooms and booths" />
+</div>
+
+<div align="center"><sub>Schedule · Plan · Session detail · Search — screenshots are time-travelled to day one, which is what the <code>DEV CLOCK</code> badge is showing.</sub></div>
+
+Beyond the four screens above: a **personal itinerary** solved from your ratings as a weighted longest-path over the day (with hallway and coffee time placed in the gaps, and manual overrides that stick), **offline search** across talks, speakers, devrooms and booths, a **booth directory**, **calendar export** for your plan or the whole programme, and **local reminders** that fire without a server.
+
+## Why it is built this way
+
+- **Offline-first, not offline-tolerant.** After one download everything works in airplane mode — schedule, search, map, routing, Elo, itinerary. The release gate is a Playwright suite that walks the whole attendee flow with the network disabled.
+- **No account, no tracking, no server.** Preferences, ratings, itinerary, notes and contacts live in IndexedDB on the device. There is nothing to sign into and nothing to leak.
+- **One canonical bundle.** Every upstream source (FOSS United, Pretalx, fixtures) is normalised into a single `EventBundle` schema; no screen ever reads raw upstream data. Updates are hash-addressed and immutable, downloaded in full and parsed before they replace anything, so a half-finished download can never show you a broken schedule.
+- **Accessibility is tested, not asserted.** axe-core WCAG A/AA runs over every core screen in _both_ colour schemes on every PR.
+
+```mermaid
+flowchart LR
+  U["FOSS United<br/>Pretalx · fixtures"] --> A["source adapters"]
+  A --> B["EventBundle<br/><i>one canonical schema</i>"]
+  B --> M["manifest.json<br/>hash-addressed assets"]
+  M --> W["SvelteKit PWA<br/>web · Android · iOS"]
+  M --> N["native Compose client"]
+  W --> D[("IndexedDB<br/><i>stays on device</i>")]
+  N --> P[("DataStore<br/><i>stays on device</i>")]
+```
+
+## Optional extras
+
+Neither is on unless you switch it on.
+
+- **Conference rooms on Matrix.** FOSDEM-style public rooms on the organiser's homeserver — one per hall, plus announcements and hallway — joined from whatever Matrix account you already have, via Element links. The companion never signs in there. Provisioned by `tools/matrix-rooms`; see [docs/messaging.md](docs/messaging.md).
+- **Peer-to-peer chat.** Session, booth and direct chats over a Bluetooth/Wi-Fi mesh through an embedded Neutrino node in the Android app, with typing indicators, files, photos and an offline outbox. Off until you enable it in Settings.
 
 ## Try it
 
-- Web/PWA: <https://hanthor.github.io/indiafoss-companion/> (deployed from
-  `main`; installable, works offline after the first load).
-- Android: the rolling **nightly** pre-release on the Releases page carries
-  the latest debug APK and its SHA-256. P2P chat is compiled in only when the
-  build had the Neutrino bindings (see `apps/android/capacitor/neutrino`).
-
-## Status
-
-Phases 0–8 of `docs/phases.md` have landed: canonical model and FOSS United
-adapter, schedule, Elo ranking, itinerary solver with manual edits, venue
-routing, schedule-aware navigation, booth directory, production sync, calendar
-export, contact sharing + QR scanning, and optional Matrix messaging. Remaining
-work is Android polish (#12), the native Material 3 client (#10), the real
-2026 programme (#2) and release hardening (#13).
-
-## Highlights
-
-- **Offline-first**: after one event download, everything (schedule, search,
-  map, routing, Elo, itinerary) works in airplane mode.
-- **No account, no tracking**: attendee state (preferences, Elo, itinerary,
-  notes) lives only in local IndexedDB.
-- **Canonical event model**: every upstream source (FOSS United, Pretalx,
-  fixtures) is normalized into one schema; components never read raw upstream
-  data.
-- **Historical fixture**: IndiaFOSS 2025 is the golden integration fixture
-  until 2026 data is published.
-- **Adaptive Elo ranking**: rank conflicting sessions head-to-head, and the
-  itinerary solver builds a feasible plan around your preferences.
-- **Typography**: Space Mono for labels and Inter for body text, with
-  [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) (OFL) as
-  the bundled display face. FFF Forward, used on the IndiaFOSS site, is not
-  redistributable, so it is referenced first and only used when a visitor
-  already has it; the app ships nothing that needs a licence (#33).
-- **Conference rooms on Matrix**: FOSDEM-style public rooms on the organiser's
-  homeserver (`reilly.asia`), one per hall plus announcements and hallway,
-  joined from any existing Matrix account via Element links; provisioned by
-  `tools/matrix-rooms` (`docs/messaging.md`).
-- **Indoor navigation**: SVG venue map with A\* routing, accessible profiles,
-  and leave-by calculations.
-- **Optional peer-to-peer chat**: session, booth and direct chats over
-  Bluetooth/Wi-Fi mesh through an embedded Neutrino node in the Android app,
-  with typing, files and photos and an offline outbox. Off until you switch
-  it on in Settings; public Matrix ids on contact cards open in Element.
-- **Handshake contact cards**: signed friend-card QR codes with pixel key
-  badges and "met during" context; nothing leaves the device.
+- **Web / PWA** — <https://hanthor.github.io/indiafoss-companion/>, deployed from `main`. Installable; works offline after the first load.
+- **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the latest debug APK and its SHA-256. P2P chat is compiled in only when the build had the Neutrino bindings.
+- **iOS** — the PWA is iOS-ready: **Share → Add to Home Screen**. Apple touch icon and standalone metadata are in the build; no App Store account needed.
 
 ## Repository layout
 
 ```text
 apps/
-  web/                 SvelteKit + Svelte 5 PWA
-  android/capacitor/   Capacitor Android wrapper
+  web/                 SvelteKit + Svelte 5 PWA — the primary client
+  android/capacitor/   Capacitor wrapper — the shipping Android app
+  android/native/      Jetpack Compose client (Material 3, dynamic colour)
 packages/
   model/               canonical domain model + validation
   schedule/            schedule engine (grouping, filtering, time math)
@@ -75,123 +149,113 @@ packages/
   venue/               venue routing graph, A*/Dijkstra pathfinding
   search/              local offline search
   storage/             IndexedDB persistence
-  matrix/              Matrix client-server layer: sync, offline outbox, handoff links
+  matrix/              Matrix layer: sync, offline outbox, handoff links
   sources/             event source adapters
   test-fixtures/       shared fixtures
 tools/
-  event-sync/          fetch/normalize/validate/publish event bundles
-  venue-validator/     venue SVG/graph/metadata validation
+  event-sync/          fetch / normalise / validate / publish event bundles
+  matrix-rooms/        provision the conference rooms idempotently
+  venue-validator/     venue SVG / graph / metadata validation
   fixture-recorder/    capture upstream responses as fixtures
 events/
-  indiafoss-2025/      historical fixture (raw + normalized)
+  indiafoss-2025/      historical fixture (raw + normalised)
   indiafoss-2026/      venue floor plan fixture
   synthetic/           hand-authored edge-case fixture
 ```
 
-## Prerequisites
-
-- Node.js ≥ 20.19
-- pnpm 11 (`corepack enable` or `npm i -g pnpm`)
-
 ## Development
 
+Node.js ≥ 20.19 and pnpm 11 (`corepack enable`).
+
 ```bash
-pnpm install          # install workspace
-pnpm -r test          # run all package tests
-pnpm -r typecheck     # typecheck everything
-pnpm -r lint          # lint everything
-pnpm format:check     # prettier check
-pnpm dev              # not yet wired; run apps/web directly:
+pnpm install
+pnpm --filter @indiafoss/web dev      # the app on :5173
 ```
 
 ```bash
-pnpm --filter @indiafoss/web dev
+just check    # format, lint, typecheck, tests, asset verification, build
+just ci       # check + browser E2E + a11y + the offline gate
+just a11y     # accessibility suite only
+just sbom     # CycloneDX SBOM (pnpm-aware)
 ```
 
-Build the web PWA:
+Vitest everywhere, `fast-check` for property tests, Playwright for browser E2E
+(`apps/web/tests/`) including the release-blocking offline gate and the
+axe-core accessibility sweep.
+
+Build the PWA:
 
 ```bash
-pnpm --filter @indiafoss/web build   # outputs apps/web/build (PWA + SW)
+pnpm --filter @indiafoss/web build     # → apps/web/build (PWA + service worker)
 ```
 
-Android (requires Android SDK + JDK 21):
+Android (needs an Android SDK and JDK 21):
 
 ```bash
 pnpm --filter @indiafoss/android exec cap add android   # once
-pnpm --filter @indiafoss/android build                  # sync web assets
+pnpm --filter @indiafoss/android build                  # patch + sync web assets
 cd apps/android/capacitor/android && ./gradlew assembleDebug
 ```
 
-The parallel **native Compose client** (`apps/android/native`) builds on its
-own, with no Node step — see [docs/native-client.md](docs/native-client.md):
+The parallel native Compose client builds on its own, with no Node step — see
+[docs/native-client.md](docs/native-client.md):
 
 ```bash
 cd apps/android/native && ./gradlew :core:test :app:assembleDebug
 ```
 
-### iOS
-
-The web app is already an iOS-compatible PWA. On iOS Safari, use **Share →
-Add to Home Screen**. The build includes the Apple touch icon and standalone
-web-app metadata; no App Store account or separate iOS UI is required for the
-initial distribution. A Capacitor iOS wrapper can be added later if App Store
-or native notification distribution becomes necessary.
-
-### GitHub Pages
-
-The static PWA can be hosted on GitHub Pages project sites. The `pages.yml`
-workflow builds with the repository name as the base path, copies `index.html`
-to `404.html` for SPA deep links, and deploys using the official Pages actions.
-Enable **Settings → Pages → Source: GitHub Actions** once in the repository.
-
-For local verification:
+Regenerate the screenshots in this README (they are time-travelled to day one
+so the screens have live data):
 
 ```bash
-just pages-build indiafoss-companion
-```
-
-## Testing
-
-Vitest is used everywhere; property tests use `fast-check`. Playwright drives
-browser E2E (`apps/web/tests/app.spec.ts`), the release-blocking offline gate
-(`tests/offline.spec.ts`), and automated accessibility checks
-(`tests/a11y.spec.ts`, axe-core WCAG A/AA).
-
-```bash
-just check        # format, lint, typecheck, tests, asset verification, build
-just ci           # check + browser E2E + a11y + offline gate
-just a11y         # accessibility suite only
-just sbom         # generate a CycloneDX SBOM (pnpm-aware)
+pnpm --filter @indiafoss/web build
+pnpm --filter @indiafoss/web screenshots
 ```
 
 ## Documentation
 
-- [Event onboarding](docs/event-onboarding.md) — bring a new event into the app
-- [Venue route review checklist](docs/venue-route-review-checklist.md) — finalise the venue graph
-- [Contact sharing & QR scanning](docs/contact-sharing.md)
-- [Calendar export](docs/calendar-export.md)
-- [Optional Matrix messaging](docs/messaging.md) — rooms, DMs, Neutrino handoff, threat model
-- [Privacy](docs/privacy.md)
-- [Release procedures](docs/release.md)
-- [Architecture decisions (ADRs)](docs/adr/README.md)
-- [Implementation phases](docs/phases.md)
+|                                                                                          |                                           |
+| ---------------------------------------------------------------------------------------- | ----------------------------------------- |
+| [Event onboarding](docs/event-onboarding.md)                                             | bring a new event into the app            |
+| [Venue map](docs/venue-map.md) · [route checklist](docs/venue-route-review-checklist.md) | floor plans and the routing graph         |
+| [Reminders](docs/reminders.md)                                                           | the notification tiers                    |
+| [Contact sharing](docs/contact-sharing.md)                                               | signed cards, QR scanning, key continuity |
+| [Calendar export](docs/calendar-export.md)                                               | ICS for a plan or the whole programme     |
+| [Messaging](docs/messaging.md)                                                           | Matrix rooms, P2P mesh, threat model      |
+| [Native client](docs/native-client.md)                                                   | the Compose app and its Kotlin core       |
+| [Privacy](docs/privacy.md) · [Release](docs/release.md)                                  | what is stored, and how a release is cut  |
+| [ADRs](docs/adr/README.md) · [Phases](docs/phases.md) · [Roadmap](docs/roadmap.md)       | decisions and where the project is going  |
+
+## Status
+
+Phases 0–8 of [docs/phases.md](docs/phases.md) have landed: canonical model and
+FOSS United adapter, schedule, Elo ranking, itinerary solver with manual edits,
+venue routing, booth directory, production sync, calendar export, contact
+sharing with QR scanning, and optional Matrix messaging. What is left is
+tracked in [#34](https://github.com/hanthor/indiafoss-companion/issues/34) and
+[docs/roadmap.md](docs/roadmap.md): the native client reaching parity
+([#10](https://github.com/hanthor/indiafoss-companion/issues/10)), the real
+2026 programme, and release hardening.
 
 ## Design
 
-The web app follows the IndiaFOSS 2026 landing page: FOSS United's v3 tokens
-(mint `hsl(144 92% 37%)`, near-black `#141414`, light `hsl(0 0% 94%)` /
-dark `hsl(0 0% 8%)` surfaces, 1 px hairline borders, 16 px card radii, soft
-shadows), the pixel display face for headings (`FFF Forward` when installed,
-bundled `Press Start 2P` fallback — FFF Forward's licence forbids
-redistribution, so it is not shipped), `Space Mono` for uppercase meta lines
-and `Inter` for body text. All fonts are bundled locally so the PWA looks the
-same offline. Tokens live in `apps/web/src/app.css`.
+The app follows the IndiaFOSS 2026 landing page: FOSS United's v3 tokens
+(mint `hsl(144 92% 37%)`, near-black `#141414`, light `hsl(0 0% 94%)` and dark
+`hsl(0 0% 8%)` surfaces, hairline borders, 16px card radii), a pixel display
+face for headings, `Space Mono` for uppercase meta lines and `Inter` for body
+text. Every font is bundled locally so the PWA looks the same offline; tokens
+live in `apps/web/src/app.css`.
+
+`FFF Forward`, the face used on the IndiaFOSS site, is not redistributable, so
+it is referenced first and used only when a visitor already has it;
+[Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) (OFL) ships
+as the fallback. The Android app drops the branding entirely in favour of the
+device's own Material You palette.
 
 ## License
 
-AGPL-3.0-or-later — see [LICENSE](LICENSE).
+[AGPL-3.0-or-later](LICENSE).
 
-The IndiaFOSS logo assets are from the official
-[`fossunited/Branding`](https://github.com/fossunited/Branding) repository and
-are distributed under its CC BY-SA 4.0 license. Their use here does not imply
-official FOSS United endorsement.
+The IndiaFOSS logo assets come from the official
+[`fossunited/Branding`](https://github.com/fossunited/Branding) repository under
+CC BY-SA 4.0. Their use here does not imply FOSS United endorsement.
