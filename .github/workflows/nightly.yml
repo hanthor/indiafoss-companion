@@ -18,6 +18,9 @@ jobs:
   apk:
     name: Build and publish nightly APK
     runs-on: ubuntu-latest
+    env:
+      # `secrets` cannot be used in `if:`; expose presence as a job env flag.
+      HAS_NEUTRINO_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -50,7 +53,7 @@ jobs:
       - name: Probe GitHub Packages for the Neutrino bindings
         # Diagnostic only: shows whether the token can read the package and
         # which versions exist. The token itself is never printed.
-        if: ${{ secrets.NEUTRINO_PACKAGES_TOKEN != '' }}
+        if: env.HAS_NEUTRINO_TOKEN == 'true'
         env:
           NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
           NEUTRINO_PACKAGES_USER: ${{ github.actor }}
