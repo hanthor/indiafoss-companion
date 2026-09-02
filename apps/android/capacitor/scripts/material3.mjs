@@ -74,6 +74,17 @@ patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
   );
 });
 
+// 3c. QR scanning uses getUserMedia in the WebView; Capacitor only grants the
+//     WebView's permission request when the app itself declares CAMERA.
+patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
+  if (s.includes('android.permission.CAMERA')) return s;
+  return s.replace(
+    '<uses-permission android:name="android.permission.INTERNET" />',
+    (m) =>
+      `${m}\n    <uses-permission android:name="android.permission.CAMERA" />\n    <uses-feature android:name="android.hardware.camera" android:required="false" />`,
+  );
+});
+
 // 4. Optional P2P chat: the Neutrino plugin, only when the GitHub Packages token
 //    for io.element.neutrino:bindings is available (NEUTRINO_PACKAGES_TOKEN).
 const NEUTRINO_VERSION = '0.8.2';

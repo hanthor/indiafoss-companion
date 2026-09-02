@@ -55,6 +55,11 @@
   } | null>(null);
   let manualLocation = $state('');
   let manualVCard = $state('');
+  /** Manual entry stays tucked away unless the camera cannot be used. */
+  let manualOpen = $state(false);
+  $effect(() => {
+    if (cameraBlocked || cameraError) manualOpen = true;
+  });
   let venue = $state<LoadedVenue | null>(null);
 
   $effect(() => {
@@ -181,7 +186,7 @@
     const { default: QrScannerCtor } = await import('qr-scanner');
     try {
       if (!(await QrScannerCtor.hasCamera())) {
-        cameraError = 'No camera was found. Use manual entry below.';
+        cameraError = 'No camera was found. Enter the code by hand below.';
         cameraStarting = false;
         return;
       }
@@ -199,8 +204,8 @@
       const denied = err instanceof Error && /denied|permission|NotAllowed/i.test(err.message);
       cameraBlocked = true;
       cameraError = denied
-        ? 'Camera permission was declined. Allow it, or use manual entry below.'
-        : 'The camera could not be started. Use manual entry below.';
+        ? 'Camera permission was declined. Allow it in the system settings for this app, then tap Allow camera.'
+        : 'The camera could not be started. Try again, or enter the code by hand below.';
     } finally {
       cameraStarting = false;
     }
@@ -448,9 +453,9 @@
     </section>
   {/if}
 
-  <section class="card">
-    <h2>Manual entry</h2>
-    <p class="muted small">No camera? Enter a location or paste a contact card instead.</p>
+  <details class="card manualentry" bind:open={manualOpen}>
+    <summary>Enter a code by hand</summary>
+    <p class="muted small">Only if the camera cannot: pick a location, or paste a card or link.</p>
 
     <form
       class="manual"
@@ -490,7 +495,7 @@
         Preview contact
       </button>
     </form>
-  </section>
+  </details>
 
   <p><a href={resolve('/connect')}>Share your own contact card →</a></p>
   {#if features.chat}
@@ -527,6 +532,13 @@
   }
   .fields dd {
     margin: 0;
+  }
+  .manualentry summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .manualentry > p {
+    margin-top: 0.5rem;
   }
   .manual {
     display: flex;

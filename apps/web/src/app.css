@@ -84,7 +84,11 @@
   --shadow-hard: 0 4px 32px rgb(0 0 0 / 0.06);
   --shadow-hard-sm: 0 2px 8px rgb(0 0 0 / 0.06);
   --shadow-soft: 0 4px 32px rgb(0 0 0 / 0.06);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  /* System-bar insets: browsers report env(); Capacitor's SystemBars plugin
+     injects --safe-area-inset-* on Android 15+, where the WebView is drawn
+     under the status bar (edge-to-edge). */
+  --safe-top: env(safe-area-inset-top, var(--safe-area-inset-top, 0px));
+  --safe-bottom: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
   --tabbar-height: 62px;
 }
 

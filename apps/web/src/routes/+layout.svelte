@@ -100,7 +100,11 @@
         aria-current={isActive('/scan') ? 'page' : undefined}
         title="Scan a code — opens the camera straight away"
       >
-        <span class="viewfinder" aria-hidden="true"></span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"
+          ><path
+            d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v4h-4v-2h2v-2zm-6 2h2v2h-2v-2z"
+          /></svg
+        >
         <span>Scan</span>
       </a>
       {#if features.chat}
@@ -214,7 +218,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.55rem 0.9rem;
+    padding: calc(0.55rem + var(--safe-top)) 0.9rem 0.55rem;
     background: var(--ink-2);
     color: #fff;
   }
@@ -283,7 +287,7 @@
      high-contrast control in the bar rather than another grey icon. */
   .toplinks a.scancta {
     flex-direction: row;
-    gap: 0.4rem;
+    gap: 0.35rem;
     padding: 0 0.7rem;
     background: var(--amber);
     color: var(--ink);
@@ -293,12 +297,6 @@
   .toplinks a.scancta[aria-current='page'] {
     background: color-mix(in srgb, var(--amber) 82%, #fff);
     color: var(--ink);
-  }
-  .viewfinder {
-    width: 0.6rem;
-    height: 0.6rem;
-    border: 2px solid currentColor;
-    flex: none;
   }
   .unread {
     position: absolute;
@@ -315,7 +313,7 @@
 
   .pixelstripe {
     position: sticky;
-    top: 60px;
+    top: calc(60px + var(--safe-top));
     z-index: 3;
   }
 
