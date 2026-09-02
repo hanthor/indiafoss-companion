@@ -51,30 +51,36 @@ jobs:
         run: pnpm --filter @indiafoss/android exec cap add android
 
       - name: Probe GitHub Packages for the Neutrino bindings
-        # Diagnostic only: shows whether the token can read the package and
-        # which versions exist. The token itself is never printed.
+        # Decides whether the P2P plugin can be built. GitHub Packages answers
+        # "429 Rate limit exceeded" for credentials it will not serve (e.g. a
+        # fine-grained PAT); in that case the nightly ships the plain companion
+        # instead of failing. The token itself is never printed.
+        id: probe
         if: env.HAS_NEUTRINO_TOKEN == 'true'
         env:
           NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
           NEUTRINO_PACKAGES_USER: ${{ github.actor }}
         run: |
           base=https://maven.pkg.github.com/element-hq/neutrino-iroh/io/element/neutrino/bindings
-          for path in maven-metadata.xml 0.8.2/bindings-0.8.2.pom; do
-            echo "== $path"
-            curl -sS -u "$NEUTRINO_PACKAGES_USER:$NEUTRINO_PACKAGES_TOKEN" -D - -o /tmp/probe.out "$base/$path" \
-              | grep -i -E "^HTTP/|retry-after|x-ratelimit|x-github-request-id|www-authenticate" || true
-            head -c 600 /tmp/probe.out; echo
-          done
+          code=$(curl -sS -u "$NEUTRINO_PACKAGES_USER:$NEUTRINO_PACKAGES_TOKEN" -o /tmp/probe.out -w '%{http_code}' "$base/0.8.2/bindings-0.8.2.pom" || echo 000)
+          echo "bindings-0.8.2.pom -> HTTP $code"
+          head -c 300 /tmp/probe.out; echo
+          if [ "$code" = "200" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Neutrino bindings not readable with NEUTRINO_PACKAGES_TOKEN (HTTP $code); building the plain companion. A classic PAT with read:packages is required."
+          fi
 
       - name: Sync web assets
         env:
-          NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+          NEUTRINO_PACKAGES_TOKEN: ${{ steps.probe.outputs.ok == 'true' && secrets.NEUTRINO_PACKAGES_TOKEN || '' }}
           NEUTRINO_PACKAGES_USER: ${{ github.actor }}
         run: pnpm --filter @indiafoss/android build
 
       - name: Assemble debug APK
         env:
-          NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+          NEUTRINO_PACKAGES_TOKEN: ${{ steps.probe.outputs.ok == 'true' && secrets.NEUTRINO_PACKAGES_TOKEN || '' }}
           NEUTRINO_PACKAGES_USER: ${{ github.actor }}
         run: cd apps/android/capacitor/android && ./gradlew assembleDebug
 
@@ -98,7 +104,7 @@ jobs:
           prerelease: true
           body: |
             Latest `main` (${{ github.sha }}) as a debug APK. Install over the previous nightly.
-            P2P chat is included only when the build had access to the Neutrino bindings.
+            P2P chat plugin included: ${{ steps.probe.outputs.ok == 'true' }} (requires a classic PAT with read:packages as NEUTRINO_PACKAGES_TOKEN).
           files: |
             dist/indiafoss-companion-nightly.apk
             dist/indiafoss-companion-nightly.apk.sha256
