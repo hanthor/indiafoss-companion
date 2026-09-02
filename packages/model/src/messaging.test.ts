@@ -77,4 +77,34 @@ describe('conferenceChatAlias', () => {
     expect(homeserverName('http://127.0.0.1:3000')).toBe('127.0.0.1:3000');
     expect(homeserverName('matrix.example')).toBe('matrix.example');
   });
+
+  it('reports rooms that name an activity, location, booth or track the bundle lacks', () => {
+    const refs = {
+      activityIds: new Set(['a1']),
+      locationIds: new Set(['audi-1']),
+      boothIds: new Set(['b1']),
+      trackIds: new Set(['t1']),
+    };
+    const ok = collectMessagingIssues(
+      {
+        homeserver: 'https://matrix.reilly.asia',
+        rooms: [
+          { alias: '#x-room-audi-1:reilly.asia', name: 'Audi 1', locationId: 'audi-1' },
+          { alias: '#x-booth-b1:reilly.asia', name: 'Booth', boothId: 'b1', activityId: 'a1' },
+        ],
+      },
+      refs,
+    );
+    expect(ok).toEqual([]);
+    const bad = collectMessagingIssues(
+      {
+        homeserver: 'https://matrix.reilly.asia',
+        rooms: [{ alias: '#x-room-audi-9:reilly.asia', name: 'Audi 9', locationId: 'audi-9' }],
+      },
+      refs,
+    );
+    expect(bad).toEqual([
+      'messaging room #x-room-audi-9:reilly.asia names an unknown location: audi-9',
+    ]);
+  });
 });

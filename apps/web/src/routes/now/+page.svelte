@@ -23,6 +23,7 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
   import { conferenceChatQuery } from '$lib/matrix.svelte';
+  import { sessionRoomLink } from '$lib/element-links';
 
   const BUFFER_SECONDS = 300; // §29 default 5 minutes
 
@@ -147,6 +148,16 @@
                     )}`,
                   )}>💬 chat</a
                 >
+              {/if}
+              {#if sessionRoomLink(bundle, activity.id, activity.locationId)}
+                <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
+                ·
+                <a
+                  href={sessionRoomLink(bundle, activity.id, activity.locationId)!.href}
+                  target="_blank"
+                  rel="noreferrer">room in Element ↗</a
+                >
+                <!-- eslint-enable svelte/no-navigation-without-resolve -->
               {/if}
             </p>
             <div

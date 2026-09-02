@@ -193,6 +193,23 @@ test('plan explains an infeasible custom block instead of dropping it', async ({
   await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap B' })).toBeVisible();
 });
 
+test('sessions and the chat tab link the organiser rooms for Element', async ({ page }) => {
+  await page.goto(appUrl('/activity/act-c8ak0iov2l'));
+  const room = page.getByRole('link', { name: 'Open room in Element' });
+  await expect(room).toHaveAttribute(
+    'href',
+    /matrix\.to\/#\/%23indiafoss-2025-room-devroom-1-aosp/,
+  );
+  // With P2P chat off, /chat still lists the public rooms, space first.
+  await page.goto(appUrl('/chat'));
+  const rooms = page.getByRole('region', { name: 'Conference rooms on Matrix' });
+  await expect(rooms.getByRole('link').first()).toHaveAttribute(
+    'href',
+    /%23indiafoss%3Areilly\.asia/,
+  );
+  await expect(rooms.getByRole('link', { name: /IndiaFOSS 2025.*Announcements/ })).toBeVisible();
+});
+
 test('must attend pins a talk in the plan and leads the leave-by banner', async ({ page }) => {
   await page.goto(appUrl('/activity/act-c8ak0iov2l'));
   const must = page.getByRole('button', { name: 'Must attend' });

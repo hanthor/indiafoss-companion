@@ -8411,5 +8411,36 @@
     "source": "fossunited",
     "sourceUpdatedAt": "2026-06-02 16:08:47.991809",
     "normalizerVersion": "0.1.0"
+  },
+  "messaging": {
+    "homeserver": "https://matrix.reilly.asia",
+    "aliasServer": "reilly.asia",
+    "aliasPrefix": "indiafoss-2025",
+    "space": "#indiafoss:reilly.asia",
+    "rooms": [
+      {
+        "alias": "#indiafoss-2025:reilly.asia",
+        "name": "IndiaFOSS 2025",
+        "purpose": "Announcements from the organisers",
+        "recommended": true
+      },
+      {
+        "alias": "#indiafoss-hallway:reilly.asia",
+        "name": "Hallway track",
+        "purpose": "Meet people between talks"
+      },
+      {
+        "alias": "#indiafoss-2025-room-audi-1:reilly.asia",
+        "name": "Audi 1",
+        "purpose": "Questions and chatter for everything in Audi 1",
+        "locationId": "audi-1"
+      },
+      {
+        "alias": "#indiafoss-2025-room-audi-2:reilly.asia",
+        "name": "Audi 2",
+        "purpose": "Questions and chatter for everything in Audi 2",
+        "locationId": "audi-2"
+      }
+    ]
   }
 }

@@ -145,6 +145,40 @@ Venue Wi-Fi and cellular are unreliable, so the design assumes no network:
 - Directory search uses `POST /_matrix/client/v3/publicRooms` with a search term
   on the signed-in homeserver.
 
+### Public rooms on the organiser's homeserver (FOSDEM-style)
+
+Rooms for everyone with a Matrix account; the mesh for offline. The organiser
+runs `matrix.reilly.asia` (server name `reilly.asia`) and does not hand out
+accounts. Like FOSDEM, there is a Space and public, world-readable rooms that
+attendees join from whatever account they already have, over federation. The
+companion never signs in to that server: it links to the rooms and Element
+(or any Matrix client) does the rest.
+
+- `events/<event-id>/messaging.json` is the organiser's config; `event-sync`
+  merges it into the bundle as `messaging` (2025: `#indiafoss:reilly.asia`
+  space, announcements, hallway, one room per hall).
+- `tools/matrix-rooms` provisions the rooms idempotently from a bundle:
+
+  ```sh
+  pnpm --filter @indiafoss/matrix-rooms start events/indiafoss-2025/normalized/event-bundle.json --dry-run
+  MATRIX_ACCESS_TOKEN=... pnpm --filter @indiafoss/matrix-rooms start events/indiafoss-2025/normalized/event-bundle.json
+  ```
+
+  It creates the Space, the listed rooms and one room per venue location
+  (`--booths` / `--sessions` add per-booth / per-session rooms; the default
+  follows FOSDEM's one-room-per-hall) with `public` join rule, `world_readable`
+  history and the organiser account as admin, and links each into the Space
+  (`m.space.child` / `m.space.parent`). Existing rooms are left alone. The
+  token belongs to an organiser account on that server and is never bundled.
+
+- In the app (`apps/web/src/lib/element-links.ts`): "Open room in Element ↗"
+  on every session (its hall's room, or a room the organisers tied to the
+  session), on booths (their location's room, else the Space) and next to
+  live sessions on Now, regardless of the P2P switch; `/chat` lists the Space
+  and rooms whenever the mesh is off or not available on this device.
+- `collectBundleIssues` rejects a listed room whose `activityId`,
+  `locationId`, `boothId` or `trackId` is not in the bundle.
+
 ### Offline behaviour and reconnection
 
 - `/sync` long-polls (30 s) with a filter that lazy-loads members and limits

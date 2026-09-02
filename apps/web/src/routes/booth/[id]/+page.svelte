@@ -1,5 +1,6 @@
 <script lang="ts">
   import { conferenceChatQuery } from '$lib/matrix.svelte';
+  import { boothRoomLink } from '$lib/element-links';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { linksFromUrls } from '@indiafoss/model';
   import { resolve } from '$app/paths';
@@ -66,6 +67,16 @@
             )}`,
           )}>💬 Booth chat</a
         >
+      </p>
+    {/if}
+    {#if boothRoomLink(bundle, booth)}
+      {@const room = boothRoomLink(bundle, booth)!}
+      <p>
+        <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
+        <a class="chatlink" href={room.href} target="_blank" rel="noreferrer" title={room.alias}
+          >Open {room.name} on Matrix ↗</a
+        >
+        <!-- eslint-enable svelte/no-navigation-without-resolve -->
       </p>
     {/if}
     <section class="visit" aria-label="Schedule a booth visit">

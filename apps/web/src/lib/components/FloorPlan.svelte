@@ -72,7 +72,7 @@
 
   const allRooms = $derived(FLOOR_ORDER.flatMap((f) => FLOORS[f].rooms));
 
-  /** The schedule's own name for a room (Audi 1 for Hall 1 on the 2025 programme). */
+  /** The schedule's own name for a room (a devroom name on the 2025 programme), else the plan's. */
   function roomTitle(room: FloorRoom): string {
     if (!venue || !bundle) return room.name;
     const primary = locationsForRoom(venue, room.id)[0];
