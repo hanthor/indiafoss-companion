@@ -212,11 +212,10 @@
     font-size: 0.82rem;
   }
   .calendar-link {
-    border: 2px solid var(--ink);
-    background: var(--mint);
-    color: var(--ink);
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: #fafafa;
     border-radius: var(--radius);
-    box-shadow: var(--shadow-hard-sm);
     padding: 0.4rem 0.7rem;
     cursor: pointer;
     font-size: 0.72rem;
@@ -234,7 +233,7 @@
     overflow-x: auto;
   }
   .daytab {
-    border: 2px solid var(--line-soft);
+    border: 1px solid var(--line);
     background: var(--surface);
     border-radius: var(--radius);
     padding: 0.45rem 0.9rem;
@@ -247,10 +246,9 @@
     color: var(--text-muted);
   }
   .daytab.active {
-    border-color: var(--line);
-    background: var(--mint);
-    color: var(--ink);
-    box-shadow: var(--shadow-hard-sm);
+    border-color: var(--mint);
+    background: var(--mint-soft);
+    color: var(--mint-dark);
   }
   .daytab.active small {
     color: inherit;

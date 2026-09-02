@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { resolve } from '$app/paths';
+  import { base, resolve } from '$app/paths';
   import { formatDayLabel } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
@@ -32,22 +32,29 @@
 </script>
 
 <EventGate>
-  <section class="hero card">
-    <span class="eyebrow">{dateLine}{bundle?.timezone ? ` · ${bundle.timezone}` : ''}</span>
-    <h1>{bundle?.name ?? 'IndiaFOSS Companion'}</h1>
-    <p class="lead">
+  <section class="hero" aria-labelledby="hero-title">
+    <span class="tagline">From the FOSS United community</span>
+    <h1 class="hero-title">
+      <img class="wordmark" src="{base}/branding/indiafoss-2026-white.svg" alt="" />
+      <span class="sr-only">{bundle?.name ?? 'IndiaFOSS Companion'}</span>
+    </h1>
+    <p class="hero-meta">
+      {dateLine}
+      <span aria-hidden="true">|</span>
+      Bengaluru
+      {#if during}
+        <span aria-hidden="true">|</span> Happening now
+      {:else if daysToGo !== null && daysToGo > 0}
+        <span aria-hidden="true">|</span> {daysToGo} day{daysToGo === 1 ? '' : 's'} to go
+      {/if}
+    </p>
+    <p id="hero-title" class="hero-desc">
       A festival of open source, in your pocket: schedule, personal ranking, itinerary and indoor
       navigation — all offline, no account needed.
     </p>
-    <div class="row">
-      {#if during}
-        <span class="pill amber">Happening now</span>
-      {:else if daysToGo !== null && daysToGo > 0}
-        <span class="pill">{daysToGo} day{daysToGo === 1 ? '' : 's'} to go</span>
-      {:else}
-        <span class="pill">Archive</span>
-      {/if}
-      <a class="button ghost small" href={resolve('/now')}>What's on right now →</a>
+    <div class="hero-actions" role="group" aria-label="Primary actions">
+      <a class="button light" href={resolve('/plan/rank')}>Rank your sessions</a>
+      <a class="button gray" href={resolve('/now')}>What's on now</a>
     </div>
   </section>
 
@@ -118,21 +125,84 @@
 </EventGate>
 
 <style>
+  /* Mirrors .if-hero on the IndiaFOSS 2026 landing page: dark, centred, rounded. */
   .hero {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.1rem;
+    text-align: center;
     margin-top: 0.5rem;
-    padding: 1.2rem 1.2rem 1rem;
-    background: linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--mint) 14%, var(--surface)),
-      var(--surface) 55%
-    );
+    padding: 2rem 1.25rem 2.25rem;
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(
+        60% 80% at 50% 100%,
+        color-mix(in srgb, var(--mint) 28%, transparent),
+        transparent 70%
+      ),
+      var(--ink-2);
+    color: #fafafa;
+    user-select: none;
   }
-  .hero h1 {
-    margin: 0.6rem 0 0.4rem;
-    font-size: clamp(1.05rem, 3.6vw, 1.6rem);
+  .tagline {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
   }
-  .hero .lead {
-    margin: 0 0 0.8rem;
+  .hero-title {
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+  .wordmark {
+    width: min(18rem, 70%);
+    height: auto;
+    display: block;
+  }
+  .hero-meta {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #fafafa;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  .hero-desc {
+    margin: 0;
+    max-width: 34rem;
+    color: #f4f4f4;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .hero .button.light,
+  .hero .button.light:hover {
+    background: #fafafa;
+    color: #141414;
+    border-color: #fafafa;
+  }
+  .hero .button.gray,
+  .hero .button.gray:hover {
+    background: hsl(0 0% 29%);
+    color: #fafafa;
+    border-color: hsl(0 0% 29%);
   }
 
   .rank-hero {
@@ -140,24 +210,17 @@
     flex-direction: column;
     gap: 0.25rem;
     margin: 1.1rem 0 1.2rem;
-    padding: 1.1rem 1.2rem;
-    border: 2px solid var(--ink);
-    border-radius: var(--radius);
-    background: var(--mint);
-    color: var(--ink);
+    padding: 1.25rem 1.4rem;
+    border: 1px solid color-mix(in srgb, var(--mint) 40%, transparent);
+    border-radius: var(--radius-lg);
+    background: var(--mint-soft);
+    color: var(--mint-dark);
     text-decoration: none;
-    box-shadow: 6px 6px 0 var(--ink);
-    transition:
-      transform 0.08s ease,
-      box-shadow 0.08s ease;
+    box-shadow: var(--shadow-soft);
+    transition: background 0.15s ease;
   }
   .rank-hero:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0 var(--ink);
-  }
-  .rank-hero:active {
-    transform: translate(3px, 3px);
-    box-shadow: 2px 2px 0 var(--ink);
+    background: color-mix(in srgb, var(--mint-soft) 80%, #fff);
   }
   .rank-kicker {
     font-family: var(--font-mono);
@@ -191,19 +254,16 @@
     display: grid;
     gap: 0.15rem;
     background: var(--surface);
-    border: 2px solid var(--line);
-    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
     box-shadow: var(--shadow-hard-sm);
-    padding: 0.85rem 0.9rem;
+    padding: 1rem 1.05rem;
     text-decoration: none;
     color: var(--text);
-    transition:
-      transform 0.08s ease,
-      box-shadow 0.08s ease;
+    transition: background 0.15s ease;
   }
   .quick a:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: var(--shadow-hard);
+    background: var(--surface-raised);
   }
   .quick .ico {
     font-family: var(--font-mono);

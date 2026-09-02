@@ -37,9 +37,12 @@ work is Android polish (#12), the native Material 3 client (#10), the real
   itinerary solver builds a feasible plan around your preferences.
 - **Indoor navigation**: SVG venue map with A\* routing, accessible profiles,
   and leave-by calculations.
-- **Optional Matrix messaging**: conference rooms and direct messages over any
-  Matrix homeserver with an offline outbox; QR/deep-link handoff to Element or
-  a Neutrino (P2P Matrix) client. Off until you sign in.
+- **Optional Matrix messaging**: end-to-end encrypted DMs, per-session and
+  per-booth chats created on demand, typing, files and photos, an offline
+  outbox, and a P2P mesh mode when the native shell runs a Neutrino node.
+  Off until you sign in.
+- **Handshake contact cards**: signed friend-card QR codes with pixel key
+  badges and "met during" context; nothing leaves the device.
 
 ## Repository layout
 
@@ -148,6 +151,17 @@ just sbom         # generate a CycloneDX SBOM (pnpm-aware)
 - [Release procedures](docs/release.md)
 - [Architecture decisions (ADRs)](docs/adr/README.md)
 - [Implementation phases](docs/phases.md)
+
+## Design
+
+The web app follows the IndiaFOSS 2026 landing page: FOSS United's v3 tokens
+(mint `hsl(144 92% 37%)`, near-black `#141414`, light `hsl(0 0% 94%)` /
+dark `hsl(0 0% 8%)` surfaces, 1 px hairline borders, 16 px card radii, soft
+shadows), the pixel display face for headings (`FFF Forward` when installed,
+bundled `Press Start 2P` fallback — FFF Forward's licence forbids
+redistribution, so it is not shipped), `Space Mono` for uppercase meta lines
+and `Inter` for body text. All fonts are bundled locally so the PWA looks the
+same offline. Tokens live in `apps/web/src/app.css`.
 
 ## License
 

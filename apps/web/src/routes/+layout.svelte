@@ -201,7 +201,7 @@
     justify-content: space-between;
     gap: 0.5rem;
     padding: 0.55rem 0.9rem;
-    background: var(--ink);
+    background: var(--ink-2);
     color: #fff;
   }
 
@@ -220,10 +220,15 @@
   }
   .brand-sub {
     font-family: var(--font-display);
-    font-size: 0.55rem;
+    font-size: 0.5rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--amber);
+  }
+  @media (max-width: 480px) {
+    .brand-sub {
+      display: none;
+    }
   }
 
   .toplinks {
@@ -253,9 +258,12 @@
     height: 1.25rem;
     fill: currentColor;
   }
+  .toplinks a:hover {
+    background: hsl(0 0% 20%);
+  }
   .toplinks a[aria-current='page'] {
-    background: color-mix(in srgb, #fff 14%, transparent);
-    color: var(--amber);
+    background: hsl(0 0% 29%);
+    color: #fff;
   }
   .unread {
     position: absolute;
@@ -291,7 +299,7 @@
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     background: var(--surface);
-    border-top: 2px solid var(--line);
+    border-top: 1px solid var(--line);
     padding-bottom: var(--safe-bottom);
   }
   .tabbar a {
@@ -322,10 +330,10 @@
   .tabbar a[aria-current='page']::before {
     content: '';
     position: absolute;
-    top: -2px;
+    top: -1px;
     left: 18%;
     right: 18%;
-    height: 4px;
+    height: 3px;
     background: var(--mint);
   }
 
