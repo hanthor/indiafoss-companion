@@ -41,7 +41,7 @@ export async function plannedBoothVisits(bundle: EventBundle): Promise<FlexibleG
  * the attendee's routing profile (§29). Falls back to the flat default when the
  * venue asset cannot be loaded (e.g. offline before the first fetch).
  */
-async function travelForEvent(bundle: EventBundle): Promise<TravelTimeProvider> {
+export async function travelForEvent(bundle: EventBundle): Promise<TravelTimeProvider> {
   await hydrateRoutingProfile();
   try {
     const venue = await loadVenue(venueKeyForEvent(bundle.id));
@@ -58,17 +58,28 @@ async function travelForEvent(bundle: EventBundle): Promise<TravelTimeProvider> 
  * planned booth visits (§7) as flexible activities. Feasibility uses real
  * venue route durations under the attendee's routing profile (§29).
  */
-export async function solveForDay(bundle: EventBundle, day: string) {
+export async function solveForDay(bundle: EventBundle, day: string, lockedIds: string[] = []) {
   await hydratePreferences();
   const [boothGoals, travel] = await Promise.all([
     plannedBoothVisits(bundle),
     travelForEvent(bundle),
   ]);
-  return solveDay({
+  // Locked itinerary rows are hard constraints: the solver must keep them (§18).
+  // Plain lookup set for one solve; nothing observes it.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const locked = new Set(lockedIds);
+  const prefs: SolverPreferences = locked.size
+    ? {
+        ...preferences,
+        dispositionOf: (id) => (locked.has(id) ? 'must-attend' : dispositionOf(id)),
+      }
+    : preferences;
+  const result = solveDay({
     bundle,
     day,
-    preferences,
+    preferences: prefs,
     travel,
     flexibleGoals: [...DEFAULT_FLEXIBLE_GOALS, ...boothGoals],
   });
+  return { ...result, travel };
 }

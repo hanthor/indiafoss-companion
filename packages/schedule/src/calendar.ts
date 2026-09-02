@@ -26,7 +26,7 @@ function escapeText(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
     .replace(/([;,])/g, '\\$1')
-    .replace(/\r?\n/g, '\\n');
+    .replace(/\r\n|\r|\n/g, '\\n');
 }
 
 function foldLine(line: string): string[] {

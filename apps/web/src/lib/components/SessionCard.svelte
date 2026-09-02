@@ -70,10 +70,15 @@
   }
 
   .times {
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 700;
     color: var(--text-muted);
-    padding-top: 0.15rem;
+    padding-top: 0.2rem;
+  }
+  .session:hover {
+    box-shadow: inset 4px 0 0 var(--mint);
   }
 
   h3 {
@@ -108,10 +113,9 @@
     flex-wrap: wrap;
   }
 
-  .chip {
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    color: var(--danger);
+  .chip.cancelled {
+    background: var(--danger);
+    color: #fff;
   }
 
   .bookmark {

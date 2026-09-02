@@ -22,6 +22,7 @@
   } from '$lib/location.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
+  import { conferenceChatQuery } from '$lib/matrix.svelte';
 
   const BUFFER_SECONDS = 300; // §29 default 5 minutes
 
@@ -133,10 +134,25 @@
               <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
               <TypeBadge type={activity.type} />
             </div>
-            <p class="muted">{locationName(activity)}</p>
+            <p class="muted">
+              {locationName(activity)}
+              {#if conferenceChatQuery(bundle, 'session', activity.id, activity.title)}
+                · <a
+                  href={resolve(
+                    `/chat?${conferenceChatQuery(
+                      bundle,
+                      'session',
+                      activity.id,
+                      `Chat: ${activity.title}`,
+                    )}`,
+                  )}>💬 chat</a
+                >
+              {/if}
+            </p>
             <div
               class="progress"
               role="progressbar"
+              aria-label="Progress of {activity.title}"
               aria-valuenow={Math.round(activityProgress(activity, now) * 100)}
               aria-valuemin={0}
               aria-valuemax={100}

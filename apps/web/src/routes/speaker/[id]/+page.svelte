@@ -5,6 +5,8 @@
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
+  import SocialLinks from '$lib/components/SocialLinks.svelte';
+  import { linksFromUrls } from '@indiafoss/model';
 
   const speakerId = $derived(page.params.id ?? '');
   const bundle = $derived(eventState.bundle!);
@@ -42,12 +44,7 @@
       </div>
       {#if speaker.bio}<p class="bio">{speaker.bio}</p>{/if}
       {#if speaker.links.length > 0}
-        <p class="links">
-          {#each speaker.links as link (link.url)}
-            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-            <a href={link.url} rel="noreferrer">{link.label}</a>
-          {/each}
-        </p>
+        <SocialLinks links={linksFromUrls(speaker.links)} />
       {/if}
     </header>
 

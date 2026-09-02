@@ -289,10 +289,12 @@ test('scan: pasting a vCard previews the shared fields and rejects junk', async 
   await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
   await expect(page.getByText('Riya Verma')).toBeVisible();
   await expect(page.getByText('KDE')).toBeVisible();
-  // Saving downloads the received card locally.
+  // The received card can be exported as a file, and saving keeps it on device (unverified).
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Save contact' }).click();
+  await page.getByRole('button', { name: 'Download .vcf' }).click();
   expect((await download).suggestedFilename()).toMatch(/\.vcf$/);
+  await page.getByRole('button', { name: 'Save contact' }).click();
+  await expect(page.getByRole('status')).toContainText(/Saved Riya Verma/);
 
   // A junk paste is rejected safely, with no preview.
   await page.getByLabel('Paste a vCard').fill('not a vcard at all');

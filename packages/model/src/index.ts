@@ -6,6 +6,8 @@
  * upstream structures directly.
  */
 
+import type { MessagingConfig } from './messaging.js';
+
 /** Everything an attendee can deliberately spend conference time doing. */
 export type ActivityType =
   | 'talk'
@@ -154,6 +156,9 @@ export interface EventBundle {
   booths: Booth[];
   tracks: Track[];
 
+  /** Optional Matrix rooms for the event; absent when organizers publish none. */
+  messaging?: MessagingConfig;
+
   sourceMetadata: SourceMetadata;
 }
 
@@ -167,8 +172,24 @@ export interface EventReference {
   locator: string;
 }
 
-export { attendeeProfileToVCard, DEFAULT_ATTENDEE_SHARE_SELECTION } from './contact.js';
-export type { AttendeeProfile, AttendeeShareSelection, AttendeeSocial } from './contact.js';
+export {
+  attendeeProfileToVCard,
+  classifyLink,
+  contactDeepLinks,
+  LINK_LABELS,
+  linksFromUrls,
+  sortLinks,
+  DEFAULT_ATTENDEE_SHARE_SELECTION,
+  messengerHandle,
+  normalizePhone,
+} from './contact.js';
+export type {
+  AttendeeProfile,
+  AttendeeShareSelection,
+  AttendeeSocial,
+  ContactLink,
+  LinkKind,
+} from './contact.js';
 export {
   MAX_SCAN_PAYLOAD_BYTES,
   parseLocationPayload,
@@ -177,9 +198,47 @@ export {
 } from './scan.js';
 export type {
   ScannedContact,
+  ScannedFriend,
   ScannedLocation,
+  ScannedMatrixRoom,
+  ScannedMatrixUser,
   ScannedPayload,
+  ScannedTicket,
   ScanError,
   ScanErrorReason,
 } from './scan.js';
+export {
+  decodeFriendPayload,
+  encodeFriendPayload,
+  encodeSignedFriendPayload,
+  verifyFriendPayload,
+  isNeutrinoServerName,
+  isSafeUrl,
+  isTicketRef,
+  neutrinoMatrixId,
+} from './friend.js';
+export type { FriendPayload, FriendSignatureState } from './friend.js';
+export {
+  canonicalCardString,
+  formatPublicKey,
+  fromBase64Url,
+  generateHandshakeKeyPair,
+  identiconSvg,
+  keyFingerprint,
+  parsePublicKey,
+  shortFingerprint,
+  signCard,
+  toBase64Url,
+  verifyCard,
+} from './handshake.js';
+export type { HandshakeAlgorithm, HandshakeKeyPair, HandshakePublicKey } from './handshake.js';
+export {
+  collectMessagingIssues,
+  conferenceChatAlias,
+  homeserverName,
+  isMatrixRoomAlias,
+  isMatrixRoomId,
+  isMatrixUserId,
+} from './messaging.js';
+export type { ConferenceChatKind, MessagingConfig, MessagingRoom } from './messaging.js';
 export { collectBundleIssues, isValidEventBundle } from './validation.js';

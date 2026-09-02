@@ -111,3 +111,100 @@ describe('CompanionStorage', () => {
     expect(await reopened.loadEventBundle('e1')).toBeDefined();
   });
 });
+
+describe('Matrix cache', () => {
+  it('stores rooms newest-first and events per room in time order', async () => {
+    await storage.putMatrixRooms([
+      {
+        roomId: '!a:x',
+        name: 'A',
+        isDirect: false,
+        memberIds: [],
+        memberNames: {},
+        encrypted: false,
+        membership: 'join',
+        lastActivityTs: 10,
+        unread: 0,
+      },
+      {
+        roomId: '!b:x',
+        name: 'B',
+        isDirect: true,
+        memberIds: ['@bob:x'],
+        memberNames: { '@bob:x': 'Bob' },
+        encrypted: false,
+        membership: 'join',
+        lastActivityTs: 20,
+        unread: 2,
+      },
+    ]);
+    expect((await storage.listMatrixRooms()).map((r) => r.roomId)).toEqual(['!b:x', '!a:x']);
+
+    await storage.putMatrixEvents([
+      {
+        eventId: '$2',
+        roomId: '!a:x',
+        sender: '@me:x',
+        ts: 2,
+        type: 'm.room.message',
+        body: 'two',
+      },
+      {
+        eventId: '$1',
+        roomId: '!a:x',
+        sender: '@me:x',
+        ts: 1,
+        type: 'm.room.message',
+        body: 'one',
+      },
+      { eventId: '$9', roomId: '!b:x', sender: '@me:x', ts: 9, type: 'm.room.message', body: 'b' },
+    ]);
+    expect((await storage.listMatrixEvents('!a:x')).map((e) => e.body)).toEqual(['one', 'two']);
+    expect((await storage.listMatrixEvents('!a:x', 1)).map((e) => e.body)).toEqual(['two']);
+
+    await storage.deleteMatrixRoom('!a:x');
+    expect(await storage.listMatrixEvents('!a:x')).toEqual([]);
+    expect((await storage.listMatrixRooms()).map((r) => r.roomId)).toEqual(['!b:x']);
+  });
+
+  it('queues outbox items and clears everything on sign-out', async () => {
+    await storage.putMatrixOutbox({
+      txnId: 't1',
+      roomId: '!b:x',
+      body: 'hello',
+      createdAt: '2026-09-19T10:00:00Z',
+      attempts: 0,
+    });
+    await storage.setSetting('matrix-session', '{"x":1}');
+    await storage.setSetting('current-location', 'hall-1');
+    expect(await storage.listMatrixOutbox()).toHaveLength(1);
+
+    await storage.deleteMatrixOutbox('t1');
+    expect(await storage.listMatrixOutbox()).toHaveLength(0);
+
+    await storage.clearMatrix();
+    expect(await storage.getSetting('matrix-session')).toBeUndefined();
+    expect(await storage.getSetting('current-location')).toBe('hall-1');
+  });
+});
+
+describe('contacts', () => {
+  it('stores scanned contacts newest-first and deletes them', async () => {
+    const base = { socials: {}, verified: false, vcard: '' };
+    await storage.saveContact({
+      ...base,
+      id: 'c1',
+      fullName: 'One',
+      savedAt: '2026-09-01T10:00:00Z',
+    });
+    await storage.saveContact({
+      ...base,
+      id: 'c2',
+      fullName: 'Two',
+      savedAt: '2026-09-01T11:00:00Z',
+    });
+    expect((await storage.listContacts()).map((c) => c.fullName)).toEqual(['Two', 'One']);
+    await storage.deleteContact('c2');
+    expect((await storage.listContacts()).map((c) => c.id)).toEqual(['c1']);
+  });
+});

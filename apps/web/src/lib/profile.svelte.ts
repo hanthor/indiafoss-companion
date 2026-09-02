@@ -15,7 +15,18 @@ export const SOCIALS: AttendeeSocial[] = [
   'youtube',
   'medium',
   'devto',
+  'telegram',
+  'whatsapp',
+  'signal',
 ];
+
+/** Networks entered as a handle or phone number instead of a URL. */
+export const MESSENGERS: AttendeeSocial[] = ['telegram', 'whatsapp', 'signal'];
+export const SOCIAL_PLACEHOLDER: Partial<Record<AttendeeSocial, string>> = {
+  telegram: '@username',
+  whatsapp: '+91 98765 43210',
+  signal: '+91 98765 43210 or username.42',
+};
 
 export const profileState = $state<{
   profile: AttendeeProfile;
@@ -30,6 +41,8 @@ export const profileState = $state<{
     phone: false,
     website: true,
     matrixId: false,
+    neutrinoServerName: false,
+    ticketRef: false,
     fossUnitedProfileUrl: true,
     socials: {},
   },
@@ -48,14 +61,20 @@ export async function hydrateProfile(): Promise<void> {
   const savedSelection = await getStorage().getSetting(SELECTION_KEY);
   if (savedProfile) {
     try {
-      profileState.profile = JSON.parse(savedProfile) as AttendeeProfile;
+      const parsed = JSON.parse(savedProfile) as Partial<AttendeeProfile>;
+      profileState.profile = { fullName: '', ...parsed, socials: { ...(parsed.socials ?? {}) } };
     } catch {
       // Ignore malformed local data and keep a clean empty profile.
     }
   }
   if (savedSelection) {
     try {
-      profileState.selection = JSON.parse(savedSelection) as AttendeeShareSelection;
+      const parsed = JSON.parse(savedSelection) as Partial<AttendeeShareSelection>;
+      profileState.selection = {
+        ...profileState.selection,
+        ...parsed,
+        socials: { ...(parsed.socials ?? {}) },
+      };
     } catch {
       // Ignore malformed local data and keep safe defaults.
     }

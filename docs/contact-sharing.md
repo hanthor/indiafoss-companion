@@ -141,3 +141,68 @@ Every scan path has a no-camera equivalent:
   attendee can scan with any camera app and import the card through the system
   contacts flow, matching the privacy model (the QR encodes the card itself,
   not a URL).
+
+## Handshake cards (signed friend cards and key badges)
+
+The companion friend card (`indiafoss://friend?v=1…`) is **signed** by a
+key pair the device generates once (WebCrypto Ed25519, ECDSA P-256 as a
+fallback; the private key is non-extractable and lives in IndexedDB). The
+card carries `pk` (`alg:base64url`) and `sig` over its other fields.
+
+- **Scanning** verifies the signature and shows ✔ signed / ✖ altered /
+  unsigned, plus a **key badge**: a 5×5 mirrored pixel identicon derived
+  from the SHA-256 fingerprint of the public key. The same badge is shown on
+  the owner's Connect screen, so two people can compare badges in person — a
+  quick, playful check that the card really came from that device.
+- **Meeting context** is saved with the contact: the session running when
+  you scanned and your current location, so the contact list reads "Met
+  during _Kernel devroom_".
+- This is a **handshake, not identity verification**: it proves the card was
+  produced by the holder of a key, not who they are. Matrix cross-signing
+  remains the authenticity mechanism for messaging, and every contact still
+  shows as unverified.
+
+Ideas that build on the same primitives (not implemented): mutual-scan
+"met in person" confirmation, an NFC tap that writes the friend card to a
+badge, and a local "hallway passport" that stamps sessions, booths and people
+you met into a shareable pixel-art card.
+
+## Messenger deep links (Telegram, WhatsApp, Signal, phone, Matrix)
+
+Profiles and saved contacts can carry a Telegram handle, a WhatsApp number
+and a Signal number or username alongside phone, email and Matrix id.
+`contactDeepLinks()` in `@indiafoss/model` turns whatever is present into
+tap-to-open links using only public, documented schemes:
+
+| Identity        | Link                                                                                                |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| Phone           | `tel:+91…`, `sms:+91…`                                                                              |
+| Email           | `mailto:`                                                                                           |
+| Matrix id       | `https://matrix.to/#/@user:server`                                                                  |
+| Telegram handle | `https://t.me/<handle>`                                                                             |
+| WhatsApp number | `https://wa.me/<digits>` (falls back to the phone number when no separate WhatsApp number is given) |
+| Signal          | `https://signal.me/#p/+<number>` or `https://signal.me/#u/<username>`                               |
+
+Values that do not parse as a handle or number are skipped rather than
+guessed. Messenger fields are **off by default** in the share card like every
+other contact field; when shared they ride in the vCard as
+`X-SOCIALPROFILE;TYPE=telegram|whatsapp|signal` and in the friend card as
+`social_<network>`. On the Scan preview and in the saved-contacts list they
+appear as buttons; nothing is sent automatically.
+
+## Developer profiles first: LinkedIn, GitHub, personal sites
+
+At a FOSS conference the links people actually swap are a personal site,
+GitHub and LinkedIn, so:
+
+- they are **on by default** in the share card (`DEFAULT_ATTENDEE_SHARE_SELECTION`
+  ticks `github` and `linkedin`; `website` was already on), while email, phone,
+  Matrix, Neutrino, ticket and the chat messengers stay opt-in;
+- every link list — speaker pages, the speakers block on a session, booths,
+  the scan preview and saved contacts — renders through `SocialLinks.svelte`
+  as labelled icon buttons ordered website → GitHub → GitLab → LinkedIn →
+  Mastodon → Bluesky → X → Matrix → messengers → email → phone;
+- speaker links from FOSS United arrive with the generic label "social", so
+  `classifyLink()` recognises the network from the host (LinkedIn including
+  regional subdomains, GitHub, X/Twitter, Bluesky, YouTube, fediverse `/@user`
+  paths) and treats anything else as the person's website.
