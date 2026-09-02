@@ -174,6 +174,8 @@ trusting them; payloads over 4 KiB are rejected. Both `matrix_id` and
 `neutrino_server_name` are retained separately — they are **not
 interchangeable**.
 
+See [neutrino-e2ee.md](./neutrino-e2ee.md) for what Neutrino itself needs before Megolm works on the mesh.
+
 ### Neutrino identity model
 
 Neutrino is Element's embedded Rust homeserver that federates over Iroh
