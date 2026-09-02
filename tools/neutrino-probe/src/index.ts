@@ -125,8 +125,8 @@ const PROBES: Probe[] = [
         signatures: {},
       },
     }),
-    // A server that stored nothing still answers with a key count, so the
-    // count alone proves nothing — keys/query below is the real check.
+    // The count is canned (always 100) and there is no claim endpoint to hand
+    // those keys out, so the count proves nothing — keys/query is the real check.
   },
   {
     feature: 'E2EE: query device keys',
@@ -135,10 +135,13 @@ const PROBES: Probe[] = [
     body: (c) => ({ device_keys: { [c.userId]: [] } }),
     verify: (r) => {
       const devices = json(json(r).device_keys)[Object.keys(json(json(r).device_keys))[0] ?? ''];
-      const first = Object.values(json(devices))[0];
-      return Object.keys(json(first)).length > 0
-        ? undefined
-        : 'answers 200 but returns no keys — a client would think E2EE is set up';
+      const ids = Object.keys(json(devices));
+      if (ids.length === 0) return 'answers 200 but returns no devices';
+      // Whatever device_id was uploaded, the directory files it under the
+      // literal "DEVICEID", and only the first upload is ever kept.
+      return ids.includes('DEVICEID') && !ids.includes('PROBE')
+        ? 'stores keys, but files every device under the hardcoded id "DEVICEID"'
+        : undefined;
     },
   },
   {

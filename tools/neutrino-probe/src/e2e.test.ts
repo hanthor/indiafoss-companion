@@ -213,15 +213,20 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     expect(await missing('POST', '/_matrix/media/v3/upload', {})).toBe(404);
   });
 
-  it('answers key uploads without storing anything — E2EE is not merely absent, it lies', async () => {
-    // The dangerous shape: 200 on upload and query, 404 on the endpoints that
-    // would actually encrypt. A client concludes encryption is configured.
+  it('stores device keys but files every device under one hardcoded id', async () => {
+    // The device-key directory is real: an upload comes back from /keys/query
+    // intact. Two flaws make it unusable for a mesh, and both are stable
+    // regardless of what the server has seen before:
+    //   - every device is filed under the literal id "DEVICEID", whatever
+    //     device_id was sent, and
+    //   - only the first upload is kept; later devices are accepted with 200
+    //     and discarded.
     const upload = await call('POST', '/_matrix/client/v3/keys/upload', {
       device_keys: {
         user_id: userId,
-        device_id: 'E2E',
+        device_id: 'E2E-SENT-ID',
         algorithms: ['m.olm.v1.curve25519-aes-sha2'],
-        keys: { 'curve25519:E2E': 'e2e-test-key' },
+        keys: { 'curve25519:E2E-SENT-ID': 'e2e-test-key' },
         signatures: {},
       },
     });
@@ -232,16 +237,29 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     });
     expect(query.status).toBe(200);
     const devices = (query.body.device_keys as Record<string, Record<string, unknown>>)[userId];
-    const stored = Object.values(devices ?? {})[0] ?? {};
-    // No keys came back: the upload was not persisted.
-    expect(Object.keys(stored)).toHaveLength(0);
+    expect(Object.keys(devices ?? {})).toContain('DEVICEID');
+    expect(Object.keys(devices ?? {})).not.toContain('E2E-SENT-ID');
+  });
 
+  it('cannot establish an Olm session: no one-time key claim, no to-device', async () => {
+    // These two are what actually block E2EE. Encrypting to someone requires
+    // claiming one of their one-time keys and sending them an encrypted
+    // to-device message; neither endpoint exists, so no session can start
+    // however good the client's crypto is.
     expect(await missing('POST', '/_matrix/client/v3/keys/claim', { one_time_keys: {} })).toBe(404);
     expect(
       await missing('PUT', '/_matrix/client/v3/sendToDevice/m.room.encrypted/e2e-td', {
         messages: {},
       }),
     ).toBe(404);
+
+    // One-time keys are accepted and answered with a canned count of 100,
+    // which no claim endpoint can ever hand out.
+    const otk = await call('POST', '/_matrix/client/v3/keys/upload', {
+      one_time_keys: { 'signed_curve25519:E2E': { key: 'e2e-otk' } },
+    });
+    expect(otk.status).toBe(200);
+    expect(otk.body.one_time_key_counts).toEqual({ signed_curve25519: 100 });
   });
 
   it('issues the same identity to everyone, so two users cannot be told apart', async () => {
