@@ -50,11 +50,13 @@ jobs:
       - name: Sync web assets
         env:
           NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+          NEUTRINO_PACKAGES_USER: ${{ github.actor }}
         run: pnpm --filter @indiafoss/android build
 
       - name: Assemble debug APK
         env:
           NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+          NEUTRINO_PACKAGES_USER: ${{ github.actor }}
         run: cd apps/android/capacitor/android && ./gradlew assembleDebug
 
       - name: Name and checksum the APK
