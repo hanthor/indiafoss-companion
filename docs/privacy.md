@@ -37,10 +37,16 @@ See [contact sharing & QR scanning](./contact-sharing.md).
 - Camera permission for QR scanning is requested lazily — only when you open the
   scanner — and denial falls back to manual entry.
 
-## Messaging
+## Messaging (opt-in)
 
-- Matrix/Neutrino messaging is **not** enabled in the conference MVP. A Matrix id
-  can be shared as an identifier only.
+- Matrix messaging is **off until you sign in** on `/chat`. Signing in talks
+  only to the homeserver you choose; the access token, cached rooms, messages
+  and queued outbox live in this device's IndexedDB and are wiped on sign-out.
+- Joining a room reveals your Matrix id to its members; rooms are suggested,
+  never auto-joined, and direct messages need a confirmation step.
+- Matrix ids and Neutrino peer identities are shared only when you tick them,
+  and anyone who scans them sees them as **unverified**. See
+  [messaging](./messaging.md) for the full threat model.
 
 ## Calendar export
 

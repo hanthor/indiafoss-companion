@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- IndiaFOSS / FOSS United brand tokens (kept in step with apps/web/src/app.css). -->
+<resources>
+    <color name="brand_mint">#08B74F</color>
+    <color name="brand_mint_dark">#07863E</color>
+    <color name="brand_mint_container">#D2F5DF</color>
+    <color name="brand_on_mint_container">#03361A</color>
+    <color name="brand_ink">#18222A</color>
+    <color name="brand_amber">#ECAC4B</color>
+    <color name="brand_amber_container">#FFE9BF</color>
+    <color name="brand_on_amber_container">#3D2A00</color>
+    <color name="brand_surface">#FFFFFF</color>
+    <color name="brand_surface_variant">#F3F3F3</color>
+    <color name="brand_on_surface">#141414</color>
+    <color name="brand_on_surface_variant">#475467</color>
+    <color name="brand_outline">#8A94A6</color>
+    <color name="brand_error">#E03636</color>
+    <color name="splash_background">#18222A</color>
+    <color name="ic_launcher_background">#18222A</color>
+</resources>

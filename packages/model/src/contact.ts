@@ -17,7 +17,15 @@ export interface AttendeeProfile {
   email?: string;
   phone?: string;
   website?: string;
+  /** Matrix user id, explicitly entered/associated by the attendee (never imported). */
   matrixId?: string;
+  /**
+   * Neutrino P2P node identity: the 64-hex `server_name` of the embedded
+   * homeserver. Distinct from the Matrix id and never interchangeable with it.
+   */
+  neutrinoServerName?: string;
+  /** Event-scoped ticket reference (`ticket::<id>`); a correlation key, never an identity. */
+  ticketRef?: string;
   fossUnitedProfileUrl?: string;
   socials: Partial<Record<AttendeeSocial, string>>;
 }
@@ -30,6 +38,9 @@ export interface AttendeeShareSelection {
   phone: boolean;
   website: boolean;
   matrixId: boolean;
+  /** Off by default: Neutrino identity and ticket reference are opt-in per share. */
+  neutrinoServerName?: boolean;
+  ticketRef?: boolean;
   fossUnitedProfileUrl: boolean;
   socials: Partial<Record<AttendeeSocial, boolean>>;
 }
@@ -41,6 +52,8 @@ export const DEFAULT_ATTENDEE_SHARE_SELECTION: AttendeeShareSelection = {
   phone: false,
   website: true,
   matrixId: false,
+  neutrinoServerName: false,
+  ticketRef: false,
   fossUnitedProfileUrl: true,
   socials: {},
 };
@@ -49,7 +62,7 @@ function escapeVCard(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
     .replace(/([,;])/g, '\\$1')
-    .replace(/\r?\n/g, '\\n');
+    .replace(/\r\n|\r|\n/g, '\\n');
 }
 
 function pushField(lines: string[], field: string, value: string | undefined): void {
@@ -84,6 +97,10 @@ export function attendeeProfileToVCard(
     pushField(lines, 'X-MATRIX-ID', profile.matrixId);
     if (profile.matrixId?.trim()) pushField(lines, 'IMPP', `matrix:${profile.matrixId}`);
   }
+  if (selection.neutrinoServerName) {
+    pushField(lines, 'X-NEUTRINO-SERVER-NAME', profile.neutrinoServerName);
+  }
+  if (selection.ticketRef) pushField(lines, 'X-INDIAFOSS-TICKET-REF', profile.ticketRef);
 
   for (const [network, enabled] of Object.entries(selection.socials)) {
     if (!enabled) continue;

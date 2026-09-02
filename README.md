@@ -15,9 +15,12 @@ The app answers four questions on the conference floor:
 
 ## Status
 
-Implementation is proceeding in phases (see `docs/phases.md`). Currently:
-**Phase 0 (bootstrap) complete** — monorepo, SvelteKit PWA, Capacitor Android
-wrapper, lint/typecheck/test/build all green, CI configured.
+Phases 0–8 of `docs/phases.md` have landed: canonical model and FOSS United
+adapter, schedule, Elo ranking, itinerary solver with manual edits, venue
+routing, schedule-aware navigation, booth directory, production sync, calendar
+export, contact sharing + QR scanning, and optional Matrix messaging. Remaining
+work is Android polish (#12), the native Material 3 client (#10), the real
+2026 programme (#2) and release hardening (#13).
 
 ## Highlights
 
@@ -34,6 +37,9 @@ wrapper, lint/typecheck/test/build all green, CI configured.
   itinerary solver builds a feasible plan around your preferences.
 - **Indoor navigation**: SVG venue map with A\* routing, accessible profiles,
   and leave-by calculations.
+- **Optional Matrix messaging**: conference rooms and direct messages over any
+  Matrix homeserver with an offline outbox; QR/deep-link handoff to Element or
+  a Neutrino (P2P Matrix) client. Off until you sign in.
 
 ## Repository layout
 
@@ -49,6 +55,7 @@ packages/
   venue/               venue routing graph, A*/Dijkstra pathfinding
   search/              local offline search
   storage/             IndexedDB persistence
+  matrix/              Matrix client-server layer: sync, offline outbox, handoff links
   sources/             event source adapters
   test-fixtures/       shared fixtures
 tools/
@@ -136,6 +143,7 @@ just sbom         # generate a CycloneDX SBOM (pnpm-aware)
 - [Venue route review checklist](docs/venue-route-review-checklist.md) — finalise the venue graph
 - [Contact sharing & QR scanning](docs/contact-sharing.md)
 - [Calendar export](docs/calendar-export.md)
+- [Optional Matrix messaging](docs/messaging.md) — rooms, DMs, Neutrino handoff, threat model
 - [Privacy](docs/privacy.md)
 - [Release procedures](docs/release.md)
 - [Architecture decisions (ADRs)](docs/adr/README.md)

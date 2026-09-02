@@ -6,6 +6,8 @@
  * upstream structures directly.
  */
 
+import type { MessagingConfig } from './messaging.js';
+
 /** Everything an attendee can deliberately spend conference time doing. */
 export type ActivityType =
   | 'talk'
@@ -154,6 +156,9 @@ export interface EventBundle {
   booths: Booth[];
   tracks: Track[];
 
+  /** Optional Matrix rooms for the event; absent when organizers publish none. */
+  messaging?: MessagingConfig;
+
   sourceMetadata: SourceMetadata;
 }
 
@@ -177,9 +182,29 @@ export {
 } from './scan.js';
 export type {
   ScannedContact,
+  ScannedFriend,
   ScannedLocation,
+  ScannedMatrixRoom,
+  ScannedMatrixUser,
   ScannedPayload,
+  ScannedTicket,
   ScanError,
   ScanErrorReason,
 } from './scan.js';
+export {
+  decodeFriendPayload,
+  encodeFriendPayload,
+  isNeutrinoServerName,
+  isSafeUrl,
+  isTicketRef,
+  neutrinoMatrixId,
+} from './friend.js';
+export type { FriendPayload } from './friend.js';
+export {
+  collectMessagingIssues,
+  isMatrixRoomAlias,
+  isMatrixRoomId,
+  isMatrixUserId,
+} from './messaging.js';
+export type { MessagingConfig, MessagingRoom } from './messaging.js';
 export { collectBundleIssues, isValidEventBundle } from './validation.js';

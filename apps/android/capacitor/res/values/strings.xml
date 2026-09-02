@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">IndiaFOSS Companion</string>
+    <string name="title_activity_main">IndiaFOSS Companion</string>
+    <string name="package_name">org.indiafoss.companion</string>
+    <string name="custom_url_scheme">indiafoss</string>
+</resources>

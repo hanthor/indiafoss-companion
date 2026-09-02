@@ -1,5 +1,6 @@
 import type { EventBundle } from './index.js';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from './index.js';
+import { collectMessagingIssues } from './messaging.js';
 
 /**
  * Minimal structural validator for an {@link EventBundle}.
@@ -39,6 +40,8 @@ export function collectBundleIssues(bundle: EventBundle): string[] {
       issues.push(`activity ${activity.id} has an empty title`);
     }
   }
+
+  if (bundle.messaging) issues.push(...collectMessagingIssues(bundle.messaging));
 
   return issues;
 }

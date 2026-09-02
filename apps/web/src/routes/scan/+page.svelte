@@ -1,15 +1,24 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
-  import { parseScannedPayload, type ScannedContact, type ScannedLocation } from '@indiafoss/model';
+  import { neutrinoMatrixId, parseScannedPayload, type ScannedPayload } from '@indiafoss/model';
+  import { matrixToUrl } from '@indiafoss/matrix';
+  import type { ContactRecord } from '@indiafoss/storage';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { currentLocation, hydrateLocation, setCurrentLocation } from '$lib/location.svelte';
   import { loadVenue, venueKeyForEvent, type LoadedVenue } from '$lib/venue.svelte';
+  import {
+    contactFromFriend,
+    contactFromMatrixId,
+    contactFromVCard,
+    saveContact,
+  } from '$lib/contacts.svelte';
+  import { hydrateMatrix, matrixState } from '$lib/matrix.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
 
-  type Pending =
-    { kind: 'location'; payload: ScannedLocation } | { kind: 'contact'; payload: ScannedContact };
+  type Pending = Exclude<ScannedPayload, { kind: 'error' }>;
 
   let videoEl: HTMLVideoElement;
   let scanner: QrScanner | null = null;
@@ -25,6 +34,13 @@
   $effect(() => {
     void loadEvent();
     void hydrateLocation();
+    void hydrateMatrix();
+  });
+
+  // Deep links (indiafoss://location/…, indiafoss://friend?…) arrive as ?payload=.
+  $effect(() => {
+    const payload = page.url.searchParams.get('payload');
+    if (payload) handlePayload(payload);
   });
 
   $effect(() => {
@@ -60,9 +76,25 @@
     }
     // Never apply automatically — always preview first.
     stopCamera();
-    if (result.kind === 'location') pending = { kind: 'location', payload: result };
-    else pending = { kind: 'contact', payload: result };
+    pending = result;
   }
+
+  /** Contact draft for any people-shaped payload; saved only after confirmation. */
+  const draft = $derived.by((): ContactRecord | null => {
+    const eventId = eventState.bundle?.id;
+    if (!pending) return null;
+    if (pending.kind === 'contact')
+      return contactFromVCard(pending.profile, pending.vcard, eventId);
+    if (pending.kind === 'friend') return contactFromFriend(pending.friend, eventId);
+    if (pending.kind === 'matrix-user') return contactFromMatrixId(pending.userId, eventId);
+    return null;
+  });
+
+  const locationKnown = $derived(
+    pending?.kind === 'location' && venue
+      ? Boolean(venue.metadata.locations[pending.locationId])
+      : false,
+  );
 
   async function startCamera(): Promise<void> {
     cameraError = '';
@@ -111,35 +143,41 @@
   async function confirmPending(): Promise<void> {
     if (!pending) return;
     if (pending.kind === 'location') {
-      await setCurrentLocation(pending.payload.locationId);
-      status = `Location set to ${labelForLocation(pending.payload.locationId)}.`;
-    } else {
-      // Contact import is local: offer to save the received card as a file.
-      downloadTextFile(
-        'indiafoss-scanned-contact.vcf',
-        pending.payload.vcard,
-        'text/vcard;charset=utf-8',
-      );
-      status = 'Contact card saved to your device.';
+      if (!locationKnown) {
+        error = 'This location marker is not part of the venue map.';
+        return;
+      }
+      await setCurrentLocation(pending.locationId);
+      status = `Location set to ${labelForLocation(pending.locationId)}.`;
+    } else if (draft) {
+      // Contact import is local: keep it in the on-device contact list (unverified).
+      await saveContact(draft);
+      status = `Saved ${draft.fullName} to your contacts. Identities stay unverified until checked in a Matrix client.`;
     }
     pending = null;
     manualLocation = '';
     manualVCard = '';
   }
 
+  function downloadDraft(): void {
+    if (!draft) return;
+    downloadTextFile('indiafoss-scanned-contact.vcf', draft.vcard, 'text/vcard;charset=utf-8');
+  }
+
   function cancelPending(): void {
     pending = null;
   }
 
-  const contactPreview = $derived(pending?.kind === 'contact' ? pending.payload.profile : null);
+  const contactPreview = $derived(draft);
 </script>
 
 <EventGate>
   <div class="eyebrow">SCAN · LOCAL · OPT-IN</div>
   <h1>Scan a code</h1>
   <p class="lead">
-    Scan a venue location marker or another attendee's contact card. Nothing is imported until you
-    confirm the preview. The camera turns on only while you are scanning.
+    Scan a venue location marker, another attendee's contact or friend card, a Matrix link or a
+    ticket. Nothing is imported, joined or sent until you confirm the preview. The camera turns on
+    only while you are scanning.
   </p>
 
   <section class="camera card">
@@ -164,10 +202,26 @@
       {#if pending.kind === 'location'}
         <p>
           Set your current location to
-          <strong>{labelForLocation(pending.payload.locationId)}</strong>?
+          <strong>{labelForLocation(pending.locationId)}</strong>?
         </p>
+        {#if venue && !locationKnown}
+          <p class="warning">This marker does not match any location on the venue map.</p>
+        {/if}
+      {:else if pending.kind === 'ticket'}
+        <p>Ticket reference <code>{pending.ticketRef}</code></p>
+        <p class="muted small">
+          A ticket QR only carries a ticket id. It is an event-scoped reference — not an identity,
+          not a Matrix id, and not proof that whoever holds it owns it. Ask the attendee for their
+          contact or friend card instead.
+        </p>
+      {:else if pending.kind === 'matrix-room'}
+        <p>Matrix room <code>{pending.idOrAlias}</code></p>
+        <p class="muted small">Joining reveals your Matrix id to the room's members.</p>
       {:else if contactPreview}
         <p class="muted">These fields were shared with you. Nothing is uploaded.</p>
+        <p class="unverified">
+          Unverified — a QR code exchanges identifiers, it does not prove who someone is.
+        </p>
         <dl class="fields">
           {#if contactPreview.fullName}<dt>Name</dt>
             <dd>{contactPreview.fullName}</dd>{/if}
@@ -183,6 +237,15 @@
             <dd>{contactPreview.phone}</dd>{/if}
           {#if contactPreview.matrixId}<dt>Matrix</dt>
             <dd>{contactPreview.matrixId}</dd>{/if}
+          {#if contactPreview.neutrinoServerName}<dt>Neutrino peer</dt>
+            <dd>
+              <code>{contactPreview.neutrinoServerName}</code>
+              <span class="muted small"
+                >P2P Matrix id {neutrinoMatrixId(contactPreview.neutrinoServerName)}</span
+              >
+            </dd>{/if}
+          {#if contactPreview.ticketRef}<dt>Ticket ref</dt>
+            <dd><code>{contactPreview.ticketRef}</code></dd>{/if}
           {#each Object.entries(contactPreview.socials) as [network, url] (network)}
             <dt>{network}</dt>
             <dd>{url}</dd>
@@ -190,10 +253,54 @@
         </dl>
       {/if}
       <div class="preview-actions">
-        <button class="button primary" onclick={confirmPending}>
-          {pending.kind === 'location' ? 'Set location' : 'Save contact'}
+        {#if pending.kind === 'location'}
+          <button
+            class="button primary"
+            onclick={confirmPending}
+            disabled={venue !== null && !locationKnown}
+          >
+            Set location
+          </button>
+        {:else if pending.kind === 'matrix-room'}
+          <a
+            class="button primary"
+            href={resolve(`/chat?join=${encodeURIComponent(pending.idOrAlias)}`)}
+          >
+            Join in Chat
+          </a>
+          <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+          <a class="button secondary" href={matrixToUrl(pending.idOrAlias)} rel="noreferrer"
+            >Open in Element</a
+          >
+        {:else if pending.kind !== 'ticket'}
+          <button class="button primary" onclick={confirmPending}>Save contact</button>
+          {#if contactPreview?.matrixId}
+            {#if matrixState.status !== 'signed-out'}
+              <a
+                class="button secondary"
+                href={resolve(`/chat?dm=${encodeURIComponent(contactPreview.matrixId)}`)}
+              >
+                Message
+              </a>
+            {/if}
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a class="button secondary" href={matrixToUrl(contactPreview.matrixId)} rel="noreferrer"
+              >Open in Element</a
+            >
+          {:else if contactPreview?.neutrinoServerName}
+            <!-- eslint-disable svelte/no-navigation-without-resolve -->
+            <a
+              class="button secondary"
+              href={matrixToUrl(neutrinoMatrixId(contactPreview.neutrinoServerName))}
+              rel="noreferrer">Open P2P id in a Neutrino client</a
+            >
+            <!-- eslint-enable svelte/no-navigation-without-resolve -->
+          {/if}
+          <button class="button secondary" onclick={downloadDraft}>Download .vcf</button>
+        {/if}
+        <button class="button secondary" onclick={cancelPending}>
+          {pending.kind === 'ticket' ? 'Dismiss' : 'Cancel'}
         </button>
-        <button class="button secondary" onclick={cancelPending}>Cancel</button>
       </div>
     </section>
   {/if}
@@ -229,19 +336,21 @@
       }}
     >
       <label>
-        Paste a vCard
+        Paste a vCard, friend card, Matrix id or link
         <textarea
           bind:value={manualVCard}
           rows="4"
-          placeholder="BEGIN:VCARD&#10;VERSION:3.0&#10;FN:…&#10;END:VCARD"></textarea>
+          placeholder="BEGIN:VCARD… · indiafoss://friend?v=1… · @alice:matrix.org · https://matrix.to/#/…"
+        ></textarea>
       </label>
       <button class="button secondary" type="submit" disabled={!manualVCard.trim()}>
-        Preview contact
+        Preview
       </button>
     </form>
   </section>
 
   <p><a href={resolve('/connect')}>Share your own contact card →</a></p>
+  <p><a href={resolve('/chat')}>Open chat →</a></p>
 </EventGate>
 
 <style>
@@ -365,6 +474,16 @@
   .warning {
     color: var(--warning);
     font-size: 0.85rem;
+  }
+  .unverified {
+    background: color-mix(in srgb, var(--warning) 14%, var(--surface));
+    border-radius: var(--radius);
+    padding: 0.4rem 0.7rem;
+    font-size: 0.85rem;
+  }
+  code {
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
   }
   .error {
     color: var(--warning);

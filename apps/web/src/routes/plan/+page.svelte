@@ -5,6 +5,7 @@
   import { formatDayLabel, formatTime, getEventDays, itineraryToIcs } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
   import { solveForDay } from '$lib/solver.svelte';
+  import type { TravelTimeProvider } from '@indiafoss/solver';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import {
     addCustomBlock,
@@ -24,7 +25,7 @@
 
   let selectedDay = $state<string | null>(null);
   let solving = $state(false);
-  let result: SolverResult | null = $state(null);
+  let result: (SolverResult & { travel: TravelTimeProvider }) | null = $state(null);
   let calendarMessage = $state('');
 
   // Custom-block form state.
@@ -40,9 +41,13 @@
 
   $effect(() => {
     if (!bundle || !selectedDay) return;
+    // Read locks synchronously so toggling a lock re-solves with it as a hard constraint.
+    const locked = [...planEdits.edits.locked];
+    const day = selectedDay;
     solving = true;
-    void Promise.all([solveForDay(bundle, selectedDay), hydratePlanEdits(bundle.id, selectedDay)])
-      .then(([r]) => {
+    void hydratePlanEdits(bundle.id, day)
+      .then(() => solveForDay(bundle, day, locked))
+      .then((r) => {
         result = r;
         solving = false;
       })
@@ -60,6 +65,7 @@
       base: r.itinerary.items,
       edits: planEdits.edits,
       activities: activityMap,
+      travel: r.travel,
     });
   });
 
@@ -207,7 +213,12 @@
                   >
                     {item.locked ? 'Unlock' : 'Lock'}
                   </button>
-                  <button class="chip" onclick={() => removeItem(item.id)}>Remove</button>
+                  <button
+                    class="chip"
+                    onclick={() => removeItem(item.replacedActivityId ?? item.id)}
+                  >
+                    Remove
+                  </button>
                   {#if item.replacedActivityId}
                     <button class="chip" onclick={() => clearReplacement(item.replacedActivityId!)}>
                       Undo replace

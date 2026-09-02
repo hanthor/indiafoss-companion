@@ -1,38 +1,55 @@
 # Android (Capacitor) wrapper
 
-The Android app is the same SvelteKit PWA wrapped by Capacitor — no separate UI (§3.2).
+The Android app is the same SvelteKit PWA wrapped by Capacitor in a
+**Material 3 shell** (§3.2). There is no separate native UI yet; see
+[ADR 0001](../../../docs/adr/0001-native-android-client-standalone-vs-neutrino-fork.md)
+for why the native client is a thin shell over the shared `EventBundle`.
+
+## Material 3 shell
+
+`cap add android` generates an AppCompat project in `android/` (never
+committed). `scripts/material3.mjs` is applied by `pnpm --filter @indiafoss/android build`
+(and in CI) and is idempotent. It:
+
+- adds `com.google.android.material` and switches the app and activity themes to
+  `Theme.Material3.DayNight` / `.NoActionBar` with the IndiaFOSS palette
+  (`res/values/colors.xml`, night variant in `res/values-night/`); dynamic
+  colour is off so the brand matches the web app;
+- installs an Android 12+ splash (`Theme.SplashScreen`, brand ink background,
+  wordmark icon) and an adaptive launcher foreground built from the IndiaFOSS
+  wordmark vector;
+- sets the app name, package strings and the `indiafoss` custom URL scheme;
+- adds the `indiafoss://` `VIEW` intent filter to `MainActivity`.
+
+Edit the overlay under `res/` — it is copied over the generated project on
+every build.
 
 ## Deep links (§57)
-
-Reserved schemes (handled by the web app's routes):
 
 ```text
 indiafoss://event/<event-id>      -> /
 indiafoss://activity/<id>         -> /activity/<id>
-indiafoss://location/<id>         -> /now?at=<id>   (sets current location)
 indiafoss://booth/<id>            -> /booth/<id>
+indiafoss://location/<id>         -> /scan?payload=…  (preview, then sets location)
+indiafoss://chat?dm=@u:s | join=#r:s -> /chat (confirmation before DM/join)
+indiafoss://friend?v=1&…          -> /scan?payload=…  (friend-card preview)
 ```
 
-Equivalent HTTPS routes exist in the app, so the web PWA and Android share the
-same URL handling. `locationIdFromDeepLink()` parses the payloads.
-
-Wiring the `indiafoss://` intent filter requires regenerating the Android
-project (`pnpm --filter @indiafoss/android exec cap add android`) and editing
-`android/app/src/main/AndroidManifest.xml` (intent-filter for `indiafoss`
-scheme) — this is a Phase 9 task that needs the Android SDK to verify.
+`apps/web/src/lib/native.ts` maps links to routes; on Android `@capacitor/app`
+delivers `appUrlOpen` and the launch URL to the same mapper. The scanner and
+chat screens always preview before acting.
 
 ## Notifications (§37)
 
 - `WebLocalNotificationTransport` — Notification API + timers (active now).
 - `AndroidLocalNotificationTransport` — stub ready for the Capacitor Local
-  Notifications plugin (`@capacitor/local-notifications`); install the plugin
-  and implement `schedule`/`cancel` in `apps/web/src/lib/notifications.ts`.
+  Notifications plugin (`@capacitor/local-notifications`).
 
 ## Build
 
 ```bash
 pnpm --filter @indiafoss/android exec cap add android   # once (needs SDK for gradle)
-pnpm --filter @indiafoss/android build                  # cap sync
+pnpm --filter @indiafoss/android build                  # material3 patch + cap sync
 cd android && ./gradlew assembleDebug                   # needs JDK 21 + SDK
 ```
 

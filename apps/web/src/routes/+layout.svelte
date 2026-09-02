@@ -8,6 +8,9 @@
   import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
   import { armNotifications, hydrateNotifications } from '$lib/notifications.svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
+  import { hydrateMatrix, matrixState, unreadTotal } from '$lib/matrix.svelte';
+  import { installNativeDeepLinks } from '$lib/native';
+  import { goto } from '$app/navigation';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
@@ -19,6 +22,10 @@
   onMount(() => {
     void hydratePreferences();
     void hydrateNotifications();
+    void hydrateMatrix();
+    // Deep-link targets are validated in routeForDeepLink() before navigation.
+    // eslint-disable-next-line svelte/no-navigation-without-resolve
+    void installNativeDeepLinks(base, (path) => goto(path)).catch(() => {});
     const timer = setInterval(() => {
       void armNotifications();
     }, 60_000);
@@ -51,6 +58,7 @@
       '/connect': 'Share contact',
       '/scan': 'Scan',
       '/settings': 'Settings',
+      '/chat': 'Chat',
     };
     const match =
       names[path] ??
@@ -75,6 +83,18 @@
       <img src={logoSrc} alt="IndiaFOSS 2026" />
       <span>Companion</span>
     </a>
+    <nav class="toplinks" aria-label="Account">
+      <a href={resolve('/scan')} aria-current={isActive('/scan') ? 'page' : undefined}>Scan</a>
+      <a href={resolve('/chat')} aria-current={isActive('/chat') ? 'page' : undefined}>
+        Chat{#if matrixState.status !== 'signed-out' && unreadTotal() > 0}<span
+            class="unread"
+            aria-label="{unreadTotal()} unread messages">{unreadTotal()}</span
+          >{/if}
+      </a>
+      <a href={resolve('/connect')} aria-current={isActive('/connect') ? 'page' : undefined}
+        >Connect</a
+      >
+    </nav>
   </header>
 
   <main class="content">
@@ -127,6 +147,38 @@
     position: sticky;
     top: 0;
     z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .toplinks {
+    display: flex;
+    gap: 0.2rem;
+  }
+  .toplinks a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.55rem;
+    border-radius: 999px;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .toplinks a[aria-current='page'] {
+    background: color-mix(in srgb, #fff 16%, transparent);
+  }
+  .unread {
+    background: var(--event-accent);
+    color: var(--event-secondary);
+    border-radius: 999px;
+    padding: 0 0.45rem;
+    font-size: 0.7rem;
+    line-height: 1.3rem;
   }
 
   .brand {

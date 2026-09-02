@@ -1,4 +1,7 @@
 import type { AttendeeProfile, AttendeeSocial } from './contact.js';
+import { decodeFriendPayload, isTicketRef } from './friend.js';
+import type { FriendPayload } from './friend.js';
+import { isMatrixUserId } from './messaging.js';
 
 /** Hard ceiling for a scanned payload, guarding against oversized QR abuse (§28, §42). */
 export const MAX_SCAN_PAYLOAD_BYTES = 8192;
@@ -26,7 +29,68 @@ export interface ScanError {
   message: string;
 }
 
-export type ScannedPayload = ScannedLocation | ScannedContact | ScanError;
+/** App-aware friend card (`indiafoss://friend?v=1…`), see friend.ts. */
+export interface ScannedFriend {
+  kind: 'friend';
+  friend: FriendPayload;
+}
+
+/** A Matrix user id from a raw id, matrix.to link, `matrix:` URI or `indiafoss://chat?dm=`. */
+export interface ScannedMatrixUser {
+  kind: 'matrix-user';
+  userId: string;
+}
+
+/** A Matrix room alias/id from a raw id, matrix.to link, `matrix:` URI or `indiafoss://chat?join=`. */
+export interface ScannedMatrixRoom {
+  kind: 'matrix-room';
+  idOrAlias: string;
+}
+
+/** A FOSS United ticket QR (bare ticket id) or explicit `ticket::<id>` reference. */
+export interface ScannedTicket {
+  kind: 'ticket';
+  ticketRef: string;
+}
+
+export type ScannedPayload =
+  | ScannedLocation
+  | ScannedContact
+  | ScannedFriend
+  | ScannedMatrixUser
+  | ScannedMatrixRoom
+  | ScannedTicket
+  | ScanError;
+
+const ROOM_TARGET = /^[#!][^:\s]+:[^\s]+$/;
+
+function safeDecode(value: string): string | null {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
+}
+
+/** Split a structured vCard value on unescaped `;` and unescape each part. */
+function splitStructured(value: string): string[] {
+  const parts: string[] = [];
+  let current = '';
+  for (let i = 0; i < value.length; i += 1) {
+    const ch = value[i]!;
+    if (ch === '\\' && i + 1 < value.length) {
+      current += ch + value[i + 1];
+      i += 1;
+    } else if (ch === ';') {
+      parts.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  parts.push(current);
+  return parts.map((p) => unescapeVCard(p).trim());
+}
 
 const LOCATION_ID = /^[a-z0-9][a-z0-9-]*$/i;
 
@@ -128,11 +192,8 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
         profile.fullName = decoded;
         break;
       case 'N': {
-        const parts = value.split(';');
-        structuredName = {
-          family: unescapeVCard(parts[0] ?? '').trim(),
-          given: unescapeVCard(parts[1] ?? '').trim(),
-        };
+        const parts = splitStructured(value);
+        structuredName = { family: parts[0] ?? '', given: parts[1] ?? '' };
         break;
       }
       case 'ORG':
@@ -153,6 +214,12 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
         break;
       case 'X-MATRIX-ID':
         if (decoded) profile.matrixId = decoded;
+        break;
+      case 'X-NEUTRINO-SERVER-NAME':
+        if (/^[0-9a-f]{64}$/i.test(decoded)) profile.neutrinoServerName = decoded.toLowerCase();
+        break;
+      case 'X-INDIAFOSS-TICKET-REF':
+        if (isTicketRef(decoded)) profile.ticketRef = decoded;
         break;
       case 'IMPP':
         if (!profile.matrixId && decoded.toLowerCase().startsWith('matrix:')) {
@@ -181,6 +248,7 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
     profile.phone ||
     profile.website ||
     profile.matrixId ||
+    profile.neutrinoServerName ||
     profile.fossUnitedProfileUrl ||
     Object.keys(profile.socials).length > 0;
   return hasAnyField ? profile : null;
@@ -194,8 +262,8 @@ export function parseLocationPayload(payload: string): string | null {
   const trimmed = payload.trim();
   const match = trimmed.match(/^indiafoss:\/\/location\/([^/?#\s]+)\/?$/i);
   if (!match) return null;
-  const id = decodeURIComponent(match[1]!);
-  return LOCATION_ID.test(id) ? id : null;
+  const id = safeDecode(match[1]!);
+  return id && LOCATION_ID.test(id) ? id : null;
 }
 
 /**
@@ -217,24 +285,64 @@ export function parseScannedPayload(input: string): ScannedPayload {
     };
   }
 
-  // A payload is classified by its opening token; the two forms cannot overlap.
+  // Reserved indiafoss:// payloads: location markers, chat handoff, friend cards.
   if (/^indiafoss:\/\//i.test(payload)) {
-    if (!/^indiafoss:\/\/location\//i.test(payload)) {
-      return {
-        kind: 'error',
-        reason: 'unsupported',
-        message: 'This indiafoss:// link type is not supported.',
-      };
+    if (/^indiafoss:\/\/location\//i.test(payload)) {
+      const locationId = parseLocationPayload(payload);
+      if (!locationId) {
+        return { kind: 'error', reason: 'malformed', message: 'The location link is malformed.' };
+      }
+      return { kind: 'location', locationId };
     }
-    const locationId = parseLocationPayload(payload);
-    if (!locationId) {
-      return {
-        kind: 'error',
-        reason: 'malformed',
-        message: 'The location link is malformed.',
-      };
+    if (/^indiafoss:\/\/friend/i.test(payload)) {
+      const friend = decodeFriendPayload(payload);
+      if (!friend) {
+        return {
+          kind: 'error',
+          reason: 'malformed',
+          message: 'The friend card could not be read.',
+        };
+      }
+      return { kind: 'friend', friend };
     }
-    return { kind: 'location', locationId };
+    const chat = payload.match(/^indiafoss:\/\/chat\/?\?(.*)$/i);
+    if (chat?.[1]) {
+      const params = new URLSearchParams(chat[1]);
+      const dm = params.get('dm');
+      if (dm && isMatrixUserId(dm)) return { kind: 'matrix-user', userId: dm };
+      const join = params.get('join');
+      if (join && ROOM_TARGET.test(join)) return { kind: 'matrix-room', idOrAlias: join };
+      return { kind: 'error', reason: 'malformed', message: 'The chat link has no valid target.' };
+    }
+    return {
+      kind: 'error',
+      reason: 'unsupported',
+      message: 'This indiafoss:// link type is not supported.',
+    };
+  }
+
+  // Matrix identifiers and links (raw ids, matrix.to permalinks, matrix: URIs).
+  if (isMatrixUserId(payload)) return { kind: 'matrix-user', userId: payload };
+  if (ROOM_TARGET.test(payload)) return { kind: 'matrix-room', idOrAlias: payload };
+  const matrixTo = payload.match(/^https?:\/\/matrix\.to\/#\/([^?]+)/i);
+  if (matrixTo?.[1]) {
+    const id = safeDecode(matrixTo[1]) ?? matrixTo[1];
+    if (isMatrixUserId(id)) return { kind: 'matrix-user', userId: id };
+    if (ROOM_TARGET.test(id)) return { kind: 'matrix-room', idOrAlias: id };
+    return { kind: 'error', reason: 'malformed', message: 'The matrix.to link is malformed.' };
+  }
+  const matrixUri = payload.match(/^matrix:(u|r|roomid)\/([^?#]+)/i);
+  if (matrixUri?.[1] && matrixUri[2]) {
+    const rest = safeDecode(matrixUri[2]) ?? matrixUri[2];
+    const kind = matrixUri[1].toLowerCase();
+    if (kind === 'u' && isMatrixUserId(`@${rest}`))
+      return { kind: 'matrix-user', userId: `@${rest}` };
+    if (kind === 'r' && ROOM_TARGET.test(`#${rest}`))
+      return { kind: 'matrix-room', idOrAlias: `#${rest}` };
+    if (kind === 'roomid' && ROOM_TARGET.test(`!${rest}`)) {
+      return { kind: 'matrix-room', idOrAlias: `!${rest}` };
+    }
+    return { kind: 'error', reason: 'malformed', message: 'The matrix: link is malformed.' };
   }
 
   if (/^BEGIN:VCARD/i.test(payload)) {
@@ -250,9 +358,14 @@ export function parseScannedPayload(input: string): ScannedPayload {
     return { kind: 'contact', profile, vcard: input };
   }
 
+  // FOSS United ticket QR codes carry the bare ticket id; explicit refs use ticket::<id>.
+  if (isTicketRef(payload)) return { kind: 'ticket', ticketRef: payload };
+  if (/^[A-Za-z0-9_-]{6,64}$/.test(payload))
+    return { kind: 'ticket', ticketRef: `ticket::${payload}` };
+
   return {
     kind: 'error',
     reason: 'unsupported',
-    message: 'This code is not an IndiaFOSS location or contact card.',
+    message: 'This code is not an IndiaFOSS location, contact card, chat link or ticket.',
   };
 }

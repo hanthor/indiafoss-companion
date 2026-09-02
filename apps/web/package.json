@@ -16,7 +16,10 @@
     "postbuild": "node scripts/patch-sw.mjs"
   },
   "dependencies": {
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/core": "^8.5.1",
     "@indiafoss/elo": "workspace:*",
+    "@indiafoss/matrix": "workspace:*",
     "@indiafoss/model": "workspace:*",
     "@indiafoss/schedule": "workspace:*",
     "@indiafoss/search": "workspace:*",

@@ -43,6 +43,70 @@ export interface NoteRecord {
   updatedAt: string;
 }
 
+/** Cached Matrix room summary (§ messaging). Mirrors the homeserver, never authoritative. */
+export interface MatrixRoomRecord {
+  roomId: string;
+  name: string;
+  alias?: string;
+  topic?: string;
+  isDirect: boolean;
+  /** Other members' user ids (display names live in `memberNames`). */
+  memberIds: string[];
+  memberNames: Record<string, string>;
+  encrypted: boolean;
+  /** Membership state of the signed-in user. */
+  membership: 'join' | 'invite' | 'leave';
+  /** origin_server_ts of the latest known event, for ordering. */
+  lastActivityTs: number;
+  unread: number;
+  /** Pagination token for backfilling older history. */
+  prevBatch?: string;
+}
+
+export interface MatrixEventRecord {
+  eventId: string;
+  roomId: string;
+  sender: string;
+  ts: number;
+  type: string;
+  body: string;
+  /** m.text, m.notice, m.emote... or a placeholder for unsupported content. */
+  msgtype?: string;
+  /** Client transaction id when the event was sent from this device. */
+  txnId?: string;
+}
+
+export interface MatrixOutboxRecord {
+  txnId: string;
+  roomId: string;
+  body: string;
+  createdAt: string;
+  attempts: number;
+  lastError?: string;
+}
+
+/** A contact saved from a scanned QR code. Stays on device; never uploaded. */
+export interface ContactRecord {
+  id: string;
+  /** vCard payload for export; regenerated from the parsed fields when absent. */
+  vcard: string;
+  fullName: string;
+  organization?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  fossUnitedProfileUrl?: string;
+  matrixId?: string;
+  /** Neutrino P2P node identity, kept separately from the Matrix id. */
+  neutrinoServerName?: string;
+  ticketRef?: string;
+  socials: Record<string, string>;
+  /** QR exchange is not identity verification; stays false until Matrix verification. */
+  verified: boolean;
+  savedAt: string;
+  eventId?: string;
+}
+
 export interface SyncStateRecord {
   eventId: string;
   revision?: string;
@@ -61,9 +125,12 @@ export class CompanionDatabase extends Dexie {
   itineraries!: Table<ItineraryRecord, string>;
   settings!: Table<{ key: string; value: string }, string>;
   notes!: Table<NoteRecord, string>;
-  contacts!: Table<{ id: string; vcard: string }, string>;
+  contacts!: Table<ContactRecord, string>;
   passport!: Table<{ activityId: string; scannedAt: string }, string>;
   'sync-state'!: Table<SyncStateRecord, string>;
+  'matrix-rooms'!: Table<MatrixRoomRecord, string>;
+  'matrix-events'!: Table<MatrixEventRecord, string>;
+  'matrix-outbox'!: Table<MatrixOutboxRecord, string>;
 
   constructor(name = 'indiafoss-companion') {
     super(name);
@@ -78,6 +145,12 @@ export class CompanionDatabase extends Dexie {
       contacts: 'id',
       passport: 'activityId',
       'sync-state': 'eventId',
+    });
+    // v2: optional Matrix messaging cache. Existing stores are untouched.
+    this.version(2).stores({
+      'matrix-rooms': 'roomId, lastActivityTs',
+      'matrix-events': 'eventId, roomId, [roomId+ts], txnId',
+      'matrix-outbox': 'txnId, roomId, createdAt',
     });
   }
 }
@@ -174,5 +247,83 @@ export class CompanionStorage {
 
   async getSetting(key: string): Promise<string | undefined> {
     return (await this.db.settings.get(key))?.value;
+  }
+
+  // ---- Contacts ------------------------------------------------------------
+
+  async saveContact(contact: ContactRecord): Promise<void> {
+    await this.db.contacts.put(contact);
+  }
+
+  async listContacts(): Promise<ContactRecord[]> {
+    const rows = await this.db.contacts.toArray();
+    return rows.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  }
+
+  async deleteContact(id: string): Promise<void> {
+    await this.db.contacts.delete(id);
+  }
+
+  // ---- Matrix messaging cache -------------------------------------------
+
+  async putMatrixRooms(rooms: MatrixRoomRecord[]): Promise<void> {
+    await this.db['matrix-rooms'].bulkPut(rooms);
+  }
+
+  async listMatrixRooms(): Promise<MatrixRoomRecord[]> {
+    return this.db['matrix-rooms'].orderBy('lastActivityTs').reverse().toArray();
+  }
+
+  async deleteMatrixRoom(roomId: string): Promise<void> {
+    await this.db.transaction('rw', this.db['matrix-rooms'], this.db['matrix-events'], async () => {
+      await this.db['matrix-rooms'].delete(roomId);
+      await this.db['matrix-events'].where('roomId').equals(roomId).delete();
+    });
+  }
+
+  async putMatrixEvents(events: MatrixEventRecord[]): Promise<void> {
+    await this.db['matrix-events'].bulkPut(events);
+  }
+
+  /** Newest `limit` events of a room, returned oldest-first. */
+  async listMatrixEvents(roomId: string, limit = 200): Promise<MatrixEventRecord[]> {
+    const rows = await this.db['matrix-events']
+      .where('[roomId+ts]')
+      .between([roomId, Dexie.minKey], [roomId, Dexie.maxKey])
+      .reverse()
+      .limit(limit)
+      .toArray();
+    return rows.reverse();
+  }
+
+  async putMatrixOutbox(item: MatrixOutboxRecord): Promise<void> {
+    await this.db['matrix-outbox'].put(item);
+  }
+
+  async listMatrixOutbox(): Promise<MatrixOutboxRecord[]> {
+    return this.db['matrix-outbox'].orderBy('createdAt').toArray();
+  }
+
+  async deleteMatrixOutbox(txnId: string): Promise<void> {
+    await this.db['matrix-outbox'].delete(txnId);
+  }
+
+  /** Sign-out: drop every cached room, event and queued message. */
+  async clearMatrix(): Promise<void> {
+    await this.db.transaction(
+      'rw',
+      [
+        this.db['matrix-rooms'],
+        this.db['matrix-events'],
+        this.db['matrix-outbox'],
+        this.db.settings,
+      ],
+      async () => {
+        await this.db['matrix-rooms'].clear();
+        await this.db['matrix-events'].clear();
+        await this.db['matrix-outbox'].clear();
+        await this.db.settings.where('key').startsWith('matrix-').delete();
+      },
+    );
   }
 }
