@@ -748,7 +748,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    min-height: 36px;
+    min-height: 44px;
     padding: 0.3rem 0.7rem;
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -816,8 +816,8 @@
     gap: 0.25rem;
   }
   .zoom button {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: var(--surface-raised);

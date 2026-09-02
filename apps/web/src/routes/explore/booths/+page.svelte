@@ -18,9 +18,7 @@
 
 <EventGate>
   <h1>Booths</h1>
-  <p class="muted">
-    Communities, projects and sponsors on the expo floor — schedule a visit (§30).
-  </p>
+  <p class="muted">Communities, projects and sponsors on the expo floor — schedule a visit.</p>
 
   <div class="filters" role="group" aria-label="Booth category">
     {#each categories as cat (cat)}

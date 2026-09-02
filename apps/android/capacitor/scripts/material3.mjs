@@ -46,28 +46,6 @@ patch(join(app, 'build.gradle'), (s) =>
 cpSync(join(root, 'res'), join(app, 'src', 'main', 'res'), { recursive: true, force: true });
 console.log('material3: copied res/ overlay');
 
-// 2b. Material You: dynamic colour on Android 12+ seeded from the wallpaper,
-//     applied before the WebView is created so the splash and window follow it.
-patch(mainActivity, (s) =>
-  s.includes('DynamicColors')
-    ? s
-    : s.replace(
-        'public class MainActivity extends BridgeActivity {',
-        'public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this);\n        super.onCreate(savedInstanceState);\n    }',
-      ),
-);
-if (
-  existsSync(mainActivity) &&
-  readFileSync(mainActivity, 'utf8').includes('public class MainActivity extends BridgeActivity {}')
-) {
-  patch(mainActivity, (s) =>
-    s.replace(
-      'public class MainActivity extends BridgeActivity {}',
-      'public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this);\n        super.onCreate(savedInstanceState);\n    }\n}',
-    ),
-  );
-}
-
 // 3. Deep links: indiafoss://… intent filter on the single-task activity.
 patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
   if (s.includes('android:scheme="indiafoss"')) return s;
@@ -117,6 +95,29 @@ const pluginDir = join(app, 'src', 'main', 'java', 'org', 'indiafoss', 'companio
 const pluginDst = join(pluginDir, 'NeutrinoPlugin.kt');
 const mainActivity = join(pluginDir, 'MainActivity.java');
 
+// MainActivity is written whole rather than regex-patched: the body depends on
+// whether the Neutrino plugin is compiled in, and two independent patches racing
+// over the same file is how the Material You call got lost before.
+function writeMainActivity({ neutrino }) {
+  const source = readFileSync(mainActivity, 'utf8');
+  const header = source.slice(0, source.indexOf('public class MainActivity'));
+  const body = [
+    '    @Override',
+    '    public void onCreate(android.os.Bundle savedInstanceState) {',
+    // Material You: seed the window from the wallpaper before the WebView
+    // exists, so the splash and system bars follow it too. No-op below API 31.
+    '        com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this);',
+    ...(neutrino ? ['        registerPlugin(NeutrinoPlugin.class);'] : []),
+    '        super.onCreate(savedInstanceState);',
+    '    }',
+  ].join('\n');
+  const next = `${header}public class MainActivity extends BridgeActivity {\n${body}\n}\n`;
+  if (next !== source) {
+    writeFileSync(mainActivity, next);
+    console.log(`material3: wrote ${mainActivity.replace(root + '/', '')}`);
+  }
+}
+
 if (token) {
   patch(join(android, 'build.gradle'), (s) =>
     s.includes('kotlin-gradle-plugin')
@@ -159,14 +160,7 @@ if (token) {
   mkdirSync(pluginDir, { recursive: true });
   cpSync(pluginSrc, pluginDst, { force: true });
   console.log('material3: installed NeutrinoPlugin.kt');
-  patch(mainActivity, (s) =>
-    s.includes('NeutrinoPlugin')
-      ? s
-      : s.replace(
-          'public class MainActivity extends BridgeActivity {}',
-          'public class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(NeutrinoPlugin.class);\n        super.onCreate(savedInstanceState);\n    }\n}',
-        ),
-  );
+  writeMainActivity({ neutrino: true });
   patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
     if (s.includes('android.permission.BLUETOOTH_SCAN')) return s;
     const perms = `
@@ -189,12 +183,7 @@ if (token) {
   // Plain companion: make sure nothing from an earlier token build lingers so
   // the generated project still compiles without the bindings.
   if (existsSync(pluginDst)) rmSync(pluginDst);
-  patch(mainActivity, (s) =>
-    s.replace(
-      /public class MainActivity extends BridgeActivity \{[\s\S]*\}\s*$/,
-      'public class MainActivity extends BridgeActivity {}\n',
-    ),
-  );
+  writeMainActivity({ neutrino: false });
   patch(join(app, 'build.gradle'), (s) =>
     s
       .replace("\napply plugin: 'org.jetbrains.kotlin.android'", '')
@@ -211,3 +200,33 @@ if (token) {
   );
   console.log('material3: NEUTRINO_PACKAGES_TOKEN not set — building the plain companion');
 }
+
+// 5. Verify the patches actually landed. Every one of these is invisible in a
+//    successful build and painful on a phone (no camera, no reminders, no deep
+//    links, an app bar under the status bar), and this script once failed
+//    half-way through without failing the build. Now it fails loudly.
+const manifest = readFileSync(join(app, 'src', 'main', 'AndroidManifest.xml'), 'utf8');
+const activity = readFileSync(mainActivity, 'utf8');
+const expected = [
+  ['CAMERA permission', manifest.includes('android.permission.CAMERA')],
+  ['POST_NOTIFICATIONS permission', manifest.includes('android.permission.POST_NOTIFICATIONS')],
+  ['indiafoss:// deep link', manifest.includes('android:scheme="indiafoss"')],
+  ['Material You dynamic colour', activity.includes('DynamicColors')],
+  [
+    'Material Components dependency',
+    readFileSync(join(app, 'build.gradle'), 'utf8').includes('com.google.android.material'),
+  ],
+  [
+    'Material 3 theme overlay',
+    existsSync(join(app, 'src', 'main', 'res', 'values', 'styles.xml')) &&
+      readFileSync(join(app, 'src', 'main', 'res', 'values', 'styles.xml'), 'utf8').includes(
+        'Theme.Material3',
+      ),
+  ],
+];
+const missing = expected.filter(([, ok]) => !ok).map(([name]) => name);
+if (missing.length > 0) {
+  console.error(`material3: patches did not apply: ${missing.join(', ')}`);
+  process.exit(1);
+}
+console.log(`material3: verified ${expected.length} patches`);

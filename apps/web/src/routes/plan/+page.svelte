@@ -148,7 +148,7 @@
 <EventGate>
   <h1>Plan</h1>
   <p class="muted">
-    Your personal itinerary, generated from ratings — then edited by you (§18–§21).
+    Your personal itinerary, generated from your ratings — edit it as the day goes.
   </p>
 
   <div class="days">
@@ -538,7 +538,9 @@
   }
   .itinerary li {
     display: grid;
-    grid-template-columns: 5.5rem 1fr;
+    /* max-content so a full HH:MM–HH:MM range cannot be clipped on a narrow
+       phone; the 5.5rem floor keeps the titles aligned. */
+    grid-template-columns: minmax(5.5rem, max-content) 1fr;
     gap: 0.6rem;
     padding: 0.6rem 0.75rem;
     border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
@@ -557,6 +559,7 @@
     font-variant-numeric: tabular-nums;
     color: var(--text-muted);
     font-size: 0.85rem;
+    white-space: nowrap;
   }
   .titleline {
     display: flex;

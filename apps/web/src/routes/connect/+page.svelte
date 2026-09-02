@@ -107,7 +107,6 @@
   );
 
   const fieldCount = $derived(sharedFieldCount(profileState.profile, profileState.selection));
-  const bytes = $derived(byteLength(vcard));
   const signed = $derived(!!identityState.pair);
 
   /** Re-encode the card a beat after the last edit; saves the profile at the same time. */
@@ -370,7 +369,13 @@
   <!-- Hero: the QR is always live -->
   <section class="card hero" aria-label="Your contact QR code">
     <div class="qrwrap">
-      {#if qrDataUrl}
+      {#if fieldCount === 0}
+        <!-- A code that encodes nothing is worse than no code: it invites
+             someone to scan an empty card. Ask for a name first. -->
+        <div class="qrempty" role="status">
+          Add your name below and this becomes a code someone can scan.
+        </div>
+      {:else if qrDataUrl}
         <img
           src={qrDataUrl}
           alt="Your selected contact details as a QR code"
@@ -400,10 +405,12 @@
         </div>
       {/if}
     </div>
-    <div class="meta">
-      <span>{fieldCount} FIELDS · {bytes} B</span>
-      <span class="ok">vCARD 3.0{signed ? ' · SIGNED' : ''}</span>
-    </div>
+    {#if fieldCount > 0}
+      <div class="meta">
+        <span>{fieldCount} {fieldCount === 1 ? 'FIELD' : 'FIELDS'} SHARED</span>
+        <span class="ok">vCARD 3.0{signed ? ' · SIGNED' : ''}</span>
+      </div>
+    {/if}
     {#if cardMessage && qrDataUrl}<p class="warning small">{cardMessage}</p>{/if}
     <div class="heroactions">
       <button class="button primary" onclick={shareCard} disabled={!vcard}>Share card</button>
@@ -463,7 +470,7 @@
                 role="switch"
                 aria-checked={on}
                 aria-label={`Share ${LINK_LABELS[n]}`}
-                class="switch"
+                class="switch tap-target"
                 class:on
                 onclick={() => toggleLink(n)}><span class="knob"></span></button
               >
@@ -535,7 +542,7 @@
                 role="switch"
                 aria-checked={on && !!valueOf(spec).trim()}
                 aria-label={`Share ${spec.label}`}
-                class="switch"
+                class="switch tap-target"
                 class:on={on && !!valueOf(spec).trim()}
                 disabled={!valueOf(spec).trim()}
                 title={valueOf(spec).trim() ? undefined : 'Fill in the field first'}
@@ -715,7 +722,10 @@
     display: grid;
     place-items: center;
     text-align: center;
-    color: var(--text-muted);
+    /* The plate stays white in both themes because it stands in for the QR, so
+       the text on it is dark in both themes too — --text-muted is light in
+       dark mode and vanished here. */
+    color: color-mix(in srgb, var(--ink) 80%, #fff);
     font-size: 0.85rem;
     padding: 1rem;
   }

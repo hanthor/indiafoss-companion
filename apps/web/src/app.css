@@ -378,6 +378,36 @@ input[type='radio'] {
   color: #fff;
 }
 
+/* --- Touch targets ---------------------------------------------------------
+   Android asks for 48dp; a phone thumb is about 9 mm wide and does not care
+   how tidy a 28 px switch looks. Controls whose visual size is deliberately
+   small get the extra area from a centred transparent overlay instead, so the
+   layout is untouched and only the hit box grows. */
+
+@media (pointer: coarse) {
+  button.chip,
+  button.pill,
+  a.chip,
+  a.pill,
+  label:has(> input[type='checkbox']),
+  label:has(> input[type='radio']) {
+    min-height: 44px;
+  }
+
+  .tap-target {
+    position: relative;
+  }
+  .tap-target::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 48px;
+    height: 48px;
+    transform: translate(-50%, -50%);
+  }
+}
+
 :focus-visible {
   outline: 3px solid var(--amber);
   outline-offset: 2px;

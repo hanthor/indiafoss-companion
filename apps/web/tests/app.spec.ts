@@ -26,7 +26,7 @@ test('schedule lists sessions grouped by time', async ({ page }) => {
 
 test('schedule search narrows results', async ({ page }) => {
   await page.goto(appUrl('/schedule'));
-  await page.getByPlaceholder('Search talks, speakers…').fill('AOSP');
+  await page.getByPlaceholder('Search sessions…').fill('AOSP');
   await expect(page.getByText(/1 session|sessions/).first()).toBeVisible();
   // Searching for AOSP should surface the AOSP devroom sessions.
   const results = page.getByRole('article');
@@ -281,18 +281,21 @@ test('activity calendar action downloads a portable ICS file', async ({ page }) 
 test('connect keeps a live QR card and downloads a vCard', async ({ page }) => {
   await page.goto(appUrl('/connect'));
   await expect(page.getByRole('heading', { name: 'Your card' })).toBeVisible();
+  // An empty card shows a prompt, not a code that encodes nothing.
+  await expect(page.getByRole('img', { name: /contact details as a QR code/ })).toHaveCount(0);
+  await expect(page.getByText(/Add your name below/)).toBeVisible();
   await page.getByLabel('Name', { exact: true }).fill('Test Attendee');
   // A bare username is enough; the card carries the profile URL.
   await page.getByLabel('FOSS United username', { exact: true }).fill('test_attendee');
   // No generate step: the QR re-encodes on its own from the local vCard payload.
   const qr = page.getByRole('img', { name: /contact details as a QR code/ });
   await expect(qr).toBeVisible();
-  await expect(page.getByText(/2 FIELDS · \d+ B/)).toBeVisible();
+  await expect(page.getByText('2 FIELDS SHARED')).toBeVisible();
   // Each row's switch changes what is encoded.
   const shareName = page.getByRole('switch', { name: 'Share Name' });
   await expect(shareName).toHaveAttribute('aria-checked', 'true');
   await shareName.click();
-  await expect(page.getByText(/1 FIELDS · \d+ B/)).toBeVisible();
+  await expect(page.getByText('1 FIELD SHARED')).toBeVisible();
   await shareName.click();
   // The .vcf can be saved on-device.
   const download = page.waitForEvent('download');

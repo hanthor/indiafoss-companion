@@ -263,3 +263,51 @@ describe('solver properties (§51)', () => {
     );
   });
 });
+
+describe('flexible gap boundaries', () => {
+  it('places a gap block on a whole minute even when travel is not a round minute', () => {
+    // 30 seconds of travel used to push the gap start to 540.5 minutes, which
+    // formatted as "09:0.5:00+05:30" and rendered as "09:0.".
+    const bundle = {
+      id: 'e',
+      activities: [
+        {
+          id: 'a',
+          title: 'A',
+          start: '2025-09-20T08:00:00+05:30',
+          end: '2025-09-20T09:00:00+05:30',
+          locationId: 'r1',
+        },
+        {
+          id: 'b',
+          title: 'B',
+          start: '2025-09-20T11:00:00+05:30',
+          end: '2025-09-20T12:00:00+05:30',
+          locationId: 'r2',
+        },
+      ],
+      people: [],
+      locations: [],
+      booths: [],
+      tracks: [],
+    } as unknown as EventBundle;
+
+    const result = solveDay({
+      bundle,
+      day: '2025-09-20',
+      preferences: {
+        ratingOf: () => 1200,
+        dispositionOf: () => 'normal',
+        bookmarked: () => false,
+      },
+      travel: { seconds: () => 30 },
+    });
+
+    const flexible = result.itinerary.items.filter((i) => i.flexible);
+    expect(flexible.length).toBeGreaterThan(0);
+    for (const item of flexible) {
+      expect(item.start).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00\+05:30$/);
+      expect(item.end).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:00\+05:30$/);
+    }
+  });
+});

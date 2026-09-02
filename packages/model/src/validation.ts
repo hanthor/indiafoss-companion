@@ -82,6 +82,38 @@ export function collectBundleWarnings(bundle: EventBundle): string[] {
       if (bad(link.url)) warnings.push(`activity ${activity.id} has a malformed link: ${link.url}`);
     }
   }
+
+  // Upstream lists a venue-wide item (registration, lunch) once per hall, which
+  // reaches the schedule as two identical rows and inflates the session count.
+  const seen = new Map<string, string[]>();
+  for (const activity of bundle.activities) {
+    if (!activity.start) continue;
+    const key = `${activity.title}@${activity.start}`;
+    seen.set(key, [...(seen.get(key) ?? []), activity.id]);
+  }
+  for (const [key, ids] of seen) {
+    if (ids.length > 1) {
+      warnings.push(
+        `${ids.length} activities share a title and start time (${key}): ${ids.join(', ')}`,
+      );
+    }
+  }
+
+  // A title like "Opening Note (Audi 1)" on an activity located in Audi 2 sends
+  // attendees to the wrong hall, and only the organiser can say which is right.
+  const roomNames = new Map((bundle.locations ?? []).map((l) => [l.id, l.name.toLowerCase()]));
+  for (const activity of bundle.activities) {
+    const named = /\(([^)]+)\)\s*$/.exec(activity.title)?.[1]?.trim().toLowerCase();
+    if (!named || !activity.locationId) continue;
+    const actual = roomNames.get(activity.locationId);
+    if (!actual || !roomNames.has(activity.locationId)) continue;
+    const namesARoom = [...roomNames.values()].includes(named);
+    if (namesARoom && named !== actual) {
+      warnings.push(
+        `activity ${activity.id} is titled "${activity.title}" but is located in ${actual}`,
+      );
+    }
+  }
   return warnings;
 }
 

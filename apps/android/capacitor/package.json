@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sync": "node scripts/material3.mjs; cap sync android",
+    "sync": "node scripts/material3.mjs && cap sync android",
     "add:android": "cap add android",
-    "build": "cap add android >/dev/null 2>&1 || true; node scripts/material3.mjs; cap sync android",
+    "build": "cap add android >/dev/null 2>&1 || true; node scripts/material3.mjs && cap sync android",
     "typecheck": "tsc --noEmit -p .",
     "lint": "eslint .",
     "material3": "node scripts/material3.mjs"
