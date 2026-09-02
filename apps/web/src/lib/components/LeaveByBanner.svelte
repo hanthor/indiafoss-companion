@@ -112,7 +112,7 @@
 <style>
   .leaveby {
     position: sticky;
-    top: 64px;
+    top: calc(64px + var(--safe-top));
     z-index: 3;
     display: flex;
     flex-direction: column;

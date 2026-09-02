@@ -54,7 +54,9 @@ test('a11y: ranking is fully operable with the keyboard only', async ({ browser 
   await page.goto(appUrl('/plan/rank'));
   await expect(page.getByTestId('candidate-a')).toBeVisible({ timeout: 10_000 });
   // A keyboard choice registers and is undoable using only key presses.
-  await page.locator('body').click();
+  // Focus the page through its heading: a click on <body> lands wherever the
+  // viewport centre happens to be, which on CI's fonts was a pick button.
+  await page.getByRole('heading', { level: 1 }).click();
   const undo = page.getByRole('button', { name: /Undo last/ });
   await page.keyboard.press('1');
   await page.waitForTimeout(250);

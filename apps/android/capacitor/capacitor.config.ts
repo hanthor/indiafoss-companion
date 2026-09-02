@@ -13,6 +13,11 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
   },
+  plugins: {
+    // The app bar is dark, so the status bar icons must be light. Insets are
+    // handled in CSS (--safe-top) from the variables the plugin injects.
+    SystemBars: { style: 'DARK', insetsHandling: 'css' },
+  },
 };
 
 export default config;

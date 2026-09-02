@@ -313,7 +313,9 @@ test('connect keeps a live QR card and downloads a vCard', async ({ page }) => {
 test('scan: manual location entry previews and sets the current location', async ({ page }) => {
   await page.goto(appUrl('/scan'));
   await expect(page.getByRole('heading', { name: 'Scan a code' })).toBeVisible();
-  // Choose a venue location via the keyboard/manual fallback.
+  // Choose a venue location via the keyboard/manual fallback, tucked behind a disclosure.
+  // Headless Chromium has no camera, so the manual disclosure opens on its own.
+  await expect(page.getByText(/No camera was found|could not be started/)).toBeVisible();
   const select = page.getByLabel('Set current location');
   await expect(select.locator('option').nth(1)).toBeAttached();
   const value = await select.locator('option').nth(1).getAttribute('value');
