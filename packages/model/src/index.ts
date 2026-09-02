@@ -242,3 +242,19 @@ export {
 } from './messaging.js';
 export type { ConferenceChatKind, MessagingConfig, MessagingRoom } from './messaging.js';
 export { collectBundleIssues, isValidEventBundle } from './validation.js';
+
+export {
+  CONTACT_BOOK_VERSION,
+  contactBookToJson,
+  contactBookToVCards,
+  splitVCards,
+  parseContactBook,
+  groupByDayMet,
+  searchContacts,
+} from './contact-book.js';
+export type {
+  ContactBookEntry,
+  ContactBookExport,
+  ContactBookImport,
+  MetGroup,
+} from './contact-book.js';

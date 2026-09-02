@@ -2,6 +2,7 @@ import { CompanionStorage } from '@indiafoss/storage';
 import type { ContactRecord } from '@indiafoss/storage';
 import { attendeeProfileToVCard } from '@indiafoss/model';
 import type { AttendeeProfile, FriendPayload } from '@indiafoss/model';
+import { parseContactBook } from '@indiafoss/model';
 import { reconcileContact } from '$lib/contact-continuity';
 import type { ContinuityResult } from '$lib/contact-continuity';
 
@@ -159,4 +160,39 @@ export async function saveContact(contact: ContactRecord): Promise<void> {
 export async function deleteContact(id: string): Promise<void> {
   await getStorage().deleteContact(id);
   contactsState.contacts = contactsState.contacts.filter((c) => c.id !== id);
+}
+
+export interface ImportOutcome {
+  added: number;
+  updated: number;
+  keyChanged: number;
+  skipped: number;
+  format: 'json' | 'vcard';
+}
+
+/**
+ * Import an exported contact book. Every entry goes through the same key
+ * continuity rules as a scanned card, so a re-import updates what is already
+ * there instead of duplicating it, and a changed key is flagged rather than
+ * silently replacing the saved one.
+ */
+export async function importContactBook(text: string): Promise<ImportOutcome | null> {
+  await hydrateContacts();
+  const parsed = parseContactBook(text, nowIso(), newId);
+  if (!parsed) return null;
+  const outcome: ImportOutcome = {
+    added: 0,
+    updated: 0,
+    keyChanged: 0,
+    skipped: parsed.skipped,
+    format: parsed.format,
+  };
+  for (const entry of parsed.entries) {
+    const result = reconcileContact(entry as ContactRecord, contactsState.contacts);
+    await saveContact(result.contact);
+    if (result.outcome === 'new') outcome.added++;
+    else if (result.outcome === 'updated') outcome.updated++;
+    else outcome.keyChanged++;
+  }
+  return outcome;
 }

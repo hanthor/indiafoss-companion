@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
@@ -38,6 +39,9 @@
   let scanner: QrScanner | null = null;
   let scanning = $state(false);
   let cameraError = $state('');
+  /** True once permission was refused, which is the only case that needs a button. */
+  let cameraBlocked = $state(false);
+  let cameraStarting = $state(true);
   let error = $state('');
   let status = $state('');
   let pending = $state<Pending | null>(null);
@@ -51,6 +55,16 @@
     void loadEvent();
     void hydrateLocation();
     void hydrateContacts();
+  });
+
+  // Scanning is the reason people open this screen, so ask for the camera at
+  // once instead of behind a button. A refusal falls back to manual entry.
+  onMount(() => {
+    if (page.url.searchParams.get('payload')) {
+      cameraStarting = false;
+      return;
+    }
+    void startCamera();
   });
 
   // Deep links (indiafoss://location/…, indiafoss://friend?…) arrive as ?payload=.
@@ -136,6 +150,8 @@
 
   async function startCamera(): Promise<void> {
     cameraError = '';
+    cameraBlocked = false;
+    cameraStarting = true;
     error = '';
     status = '';
     // Lazy-load the scanner engine (and request camera permission) only on demand.
@@ -143,6 +159,7 @@
     try {
       if (!(await QrScannerCtor.hasCamera())) {
         cameraError = 'No camera was found. Use manual entry below.';
+        cameraStarting = false;
         return;
       }
       scanner ??= new QrScannerCtor(videoEl, (result) => handlePayload(result.data), {
@@ -156,10 +173,13 @@
       scanning = true;
     } catch (err) {
       scanning = false;
-      cameraError =
-        err instanceof Error && /denied|permission|NotAllowed/i.test(err.message)
-          ? 'Camera permission was declined. Use manual entry below.'
-          : 'The camera could not be started. Use manual entry below.';
+      const denied = err instanceof Error && /denied|permission|NotAllowed/i.test(err.message);
+      cameraBlocked = true;
+      cameraError = denied
+        ? 'Camera permission was declined. Allow it, or use manual entry below.'
+        : 'The camera could not be started. Use manual entry below.';
+    } finally {
+      cameraStarting = false;
     }
   }
 
@@ -227,12 +247,16 @@
 
   <section class="camera card">
     <video bind:this={videoEl} class:hidden={!scanning} playsinline muted></video>
-    {#if !scanning}
-      <button class="button primary" onclick={startCamera}>Start camera</button>
-    {:else}
+    {#if scanning}
       <button class="button secondary" onclick={stopCamera}>Stop camera</button>
+    {:else if cameraStarting}
+      <p class="muted small">Opening the camera…</p>
+    {:else if cameraBlocked}
+      <button class="button primary" onclick={startCamera}>Allow camera</button>
+    {:else}
+      <button class="button primary" onclick={startCamera}>Start camera</button>
     {/if}
-    {#if cameraError}<p class="warning" role="status">{cameraError}</p>{/if}
+    {#if cameraError}<p class="warning">{cameraError}</p>{/if}
     {#if currentLocation.value}
       <p class="muted small">Your current location: {labelForLocation(currentLocation.value)}</p>
     {/if}

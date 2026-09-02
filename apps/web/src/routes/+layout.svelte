@@ -91,15 +91,12 @@
     </a>
     <nav class="toplinks" aria-label="Account">
       <a
+        class="scancta"
         href={resolve('/scan')}
         aria-current={isActive('/scan') ? 'page' : undefined}
-        title="Scan a code"
+        title="Scan a code — opens the camera straight away"
       >
-        <svg viewBox="0 0 24 24" aria-hidden="true"
-          ><path
-            d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 0h2v6h-6v-2h4v-4zM7 7h4v4H7V7zm6 0h4v4h-4V7zM7 13h4v4H7v-4zm6 0h2v2h-2v-2zm2 2h2v2h-2v-2z"
-          /></svg
-        >
+        <span class="viewfinder" aria-hidden="true"></span>
         <span>Scan</span>
       </a>
       {#if features.chat}
@@ -276,6 +273,27 @@
   .toplinks a[aria-current='page'] {
     background: hsl(0 0% 29%);
     color: #fff;
+  }
+  /* Scanning is the most frequent in-person action, so it gets the one
+     high-contrast control in the bar rather than another grey icon. */
+  .toplinks a.scancta {
+    flex-direction: row;
+    gap: 0.4rem;
+    padding: 0 0.7rem;
+    background: var(--amber);
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .toplinks a.scancta:hover,
+  .toplinks a.scancta[aria-current='page'] {
+    background: color-mix(in srgb, var(--amber) 82%, #fff);
+    color: var(--ink);
+  }
+  .viewfinder {
+    width: 0.6rem;
+    height: 0.6rem;
+    border: 2px solid currentColor;
+    flex: none;
   }
   .unread {
     position: absolute;
