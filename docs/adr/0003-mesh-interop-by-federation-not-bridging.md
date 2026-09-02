@@ -49,13 +49,18 @@ ciphertext; the plaintext exists only on the participants' devices.
 
 Measured from Spindle's `SPEC.md` and by probing a locally built Neutrino:
 
-| Capability                                                         | Spindle                            | Neutrino                           |
-| ------------------------------------------------------------------ | ---------------------------------- | ---------------------------------- |
-| C-S E2EE endpoints                                                 | full                               | `claim` and `sendToDevice` are 404 |
-| Federation `/user/keys/query`, `/user/keys/claim`, `/user/devices` | full (§740)                        | none registered                    |
-| `m.direct_to_device` / `m.device_list_update` EDUs                 | full (§743)                        | none                               |
-| Event signatures                                                   | signed and verified                | neither                            |
-| Room versions                                                      | 6–12, plus `org.matrix.msc3995.v1` | `org.matrix.msc4242.12` only       |
+| Capability                                                         | Spindle     | Neutrino                           |
+| ------------------------------------------------------------------ | ----------- | ---------------------------------- |
+| C-S E2EE endpoints                                                 | full        | `claim` and `sendToDevice` are 404 |
+| Federation `/user/keys/query`, `/user/keys/claim`, `/user/devices` | full (§740) | none registered                    |
+| `m.direct_to_device` / `m.device_list_update` EDUs                 | full (§743) | none                               |
+
+Every Neutrino row above is now written, as two patches in
+[`patches/neutrino/`](../../patches/neutrino/README.md) — `m.device_list_update`
+excepted — and verified against two servers on loopback. The table describes
+stock Neutrino, which is what a peer meets until upstream takes the work.
+| Event signatures | signed and verified | neither |
+| Room versions | 6–12, plus `org.matrix.msc3995.v1` | `org.matrix.msc4242.12` only |
 
 **For E2EE specifically, Spindle already has everything and the work is
 entirely Neutrino's.** That is the finding that makes this decision affordable
@@ -101,9 +106,11 @@ who are not in BLE range, so nobody is left with nothing.
 - RFC filed with `tuna-os/spindle` asking which convergence they would accept —
   Linearized Matrix (MSC3995), which both projects already touch, is our
   preferred candidate.
-- Neutrino work is gated on a fork we can push to; the first steps are the ones
-  E2EE needs anyway: a device directory keyed on the real `device_id`,
-  one-time key storage with `/keys/claim`, and `/sendToDevice` with `to_device`
-  delivery in sync.
+- ~~Neutrino work is gated on a fork we can push to.~~ Written as patches
+  instead (`patches/neutrino/`): the device directory keyed on the real
+  `device_id`, one-time key storage with `/keys/claim`, `/sendToDevice` with
+  `to_device` delivery in sync, and the federation key + to-device surface.
+  Offering them upstream still needs a fork to push from — a patch series is
+  where the work waits, not where it lands.
 - Report Neutrino's `/capabilities` mismatch upstream (it claims plain room
   version 12 while creating `org.matrix.msc4242.12`).
