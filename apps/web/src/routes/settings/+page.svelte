@@ -5,6 +5,7 @@
   import { features, hydrateFeatures, setChatEnabled } from '$lib/features.svelte';
   import { getMatrix } from '$lib/matrix.svelte';
   import { stopMeshNode } from '$lib/neutrino';
+  import { notificationsEnabled, setNotificationsEnabled } from '$lib/notifications.svelte';
 
   $effect(() => {
     void hydrateRoutingProfile();
@@ -70,6 +71,22 @@
       Public Matrix accounts are not used inside the app. Contact cards carry Matrix ids so you can
       continue a conversation in Element when you want to.
     </p>
+  </section>
+  <section class="card">
+    <h2>Reminders</h2>
+    <p class="muted">
+      Local "starting soon" and "leave now" alerts for the sessions on your plan, timed with the
+      walk from your last scanned location. No push service, nothing leaves the device.
+    </p>
+    <label class="switch">
+      <input
+        type="checkbox"
+        role="switch"
+        checked={notificationsEnabled.value}
+        onchange={(e) => void setNotificationsEnabled(e.currentTarget.checked)}
+      />
+      <span>Enable reminders</span>
+    </label>
   </section>
   <section class="card">
     <h2>Getting around</h2>

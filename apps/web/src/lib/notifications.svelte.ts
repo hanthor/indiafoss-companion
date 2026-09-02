@@ -1,5 +1,9 @@
 import { CompanionStorage } from '@indiafoss/storage';
-import { computeNotifications, WebLocalNotificationTransport } from '$lib/notifications';
+import {
+  computeNotifications,
+  NativeLocalNotificationTransport,
+  WebLocalNotificationTransport,
+} from '$lib/notifications';
 import type { NotificationTransport } from '$lib/notifications';
 import { eventState } from '$lib/event.svelte';
 import { currentLocation } from '$lib/location.svelte';
@@ -15,7 +19,22 @@ function getStorage(): CompanionStorage {
 /** Local notification preferences (§37) — off by default, on-device only. */
 export const notificationsEnabled = $state<{ value: boolean }>({ value: false });
 
-const transport: NotificationTransport = new WebLocalNotificationTransport();
+let transportPromise: Promise<NotificationTransport> | null = null;
+
+/** Native alarms on Android, the Notification API + timers on the web. */
+function getTransport(): Promise<NotificationTransport> {
+  transportPromise ??= (async () => {
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) return new NativeLocalNotificationTransport();
+    } catch {
+      /* not running under Capacitor */
+    }
+    return new WebLocalNotificationTransport();
+  })();
+  return transportPromise;
+}
+
 export async function hydrateNotifications(): Promise<void> {
   const setting = await getStorage().getSetting('notifications-enabled');
   if (setting !== null) notificationsEnabled.value = setting === 'true';
@@ -24,7 +43,7 @@ export async function hydrateNotifications(): Promise<void> {
 export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
   notificationsEnabled.value = enabled;
   await getStorage().setSetting('notifications-enabled', String(enabled));
-  if (enabled) await transport.requestPermission();
+  if (enabled) await (await getTransport()).requestPermission();
 }
 
 let armedAt: string | null = null;
@@ -62,5 +81,6 @@ export async function armNotifications(): Promise<void> {
   armedAt = isoNow;
 
   const notifications = computeNotifications(bundle, isoNow, travelSecondsFor);
+  const transport = await getTransport();
   for (const n of notifications) await transport.schedule(n);
 }

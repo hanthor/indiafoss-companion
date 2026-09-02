@@ -126,6 +126,12 @@ export interface ContactRecord {
   /** Where and when you met: the session running at scan time. */
   metActivityId?: string;
   metLocationId?: string;
+  /** How many times this card was scanned (key continuity, issue #31). */
+  metCount?: number;
+  lastMetAt?: string;
+  /** A card with the same name/ids but a different handshake key was saved earlier. */
+  keyChanged?: boolean;
+  previousFingerprint?: string;
 }
 
 /** The device's own handshake key pair (non-extractable CryptoKeys, structured-cloned by IndexedDB). */
