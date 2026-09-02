@@ -47,14 +47,32 @@ jobs:
       - name: Add Android platform
         run: pnpm --filter @indiafoss/android exec cap add android
 
+      - name: Probe GitHub Packages for the Neutrino bindings
+        # Diagnostic only: shows whether the token can read the package and
+        # which versions exist. The token itself is never printed.
+        if: ${{ secrets.NEUTRINO_PACKAGES_TOKEN != '' }}
+        env:
+          NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+          NEUTRINO_PACKAGES_USER: ${{ github.actor }}
+        run: |
+          base=https://maven.pkg.github.com/element-hq/neutrino-iroh/io/element/neutrino/bindings
+          for path in maven-metadata.xml 0.8.2/bindings-0.8.2.pom; do
+            echo "== $path"
+            curl -sS -u "$NEUTRINO_PACKAGES_USER:$NEUTRINO_PACKAGES_TOKEN" -D - -o /tmp/probe.out "$base/$path" \
+              | grep -i -E "^HTTP/|retry-after|x-ratelimit|x-github-request-id|www-authenticate" || true
+            head -c 600 /tmp/probe.out; echo
+          done
+
       - name: Sync web assets
         env:
           NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+          NEUTRINO_PACKAGES_USER: ${{ github.actor }}
         run: pnpm --filter @indiafoss/android build
 
       - name: Assemble debug APK
         env:
           NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+          NEUTRINO_PACKAGES_USER: ${{ github.actor }}
         run: cd apps/android/capacitor/android && ./gradlew assembleDebug
 
       - name: Name and checksum the APK

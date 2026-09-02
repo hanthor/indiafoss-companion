@@ -24,9 +24,11 @@
     contactFromFriend,
     contactFromMatrixId,
     contactFromVCard,
-    saveContact,
+    saveScannedContact,
   } from '$lib/contacts.svelte';
   import { features } from '$lib/features.svelte';
+  import { reconcileContact } from '$lib/contact-continuity';
+  import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
 
@@ -48,6 +50,7 @@
   $effect(() => {
     void loadEvent();
     void hydrateLocation();
+    void hydrateContacts();
   });
 
   // Deep links (indiafoss://location/…, indiafoss://friend?…) arrive as ?payload=.
@@ -186,8 +189,13 @@
       status = `Location set to ${labelForLocation(pending.locationId)}.`;
     } else if (draft) {
       // Contact import is local: keep it in the on-device contact list (unverified).
-      await saveContact(draft);
-      status = `Saved ${draft.fullName} to your contacts. Identities stay unverified until checked in a Matrix client.`;
+      const result = await saveScannedContact(draft);
+      status =
+        result.outcome === 'updated'
+          ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Identities stay unverified until compared in person.`
+          : result.outcome === 'key-changed'
+            ? `Saved ${result.contact.fullName} as a new entry: the card's key differs from the one you saved before, so the earlier contact was kept. Compare key badges in person before trusting either.`
+            : `Saved ${result.contact.fullName} to your contacts. Identities stay unverified until compared in person.`;
     }
     pending = null;
     manualLocation = '';
@@ -204,6 +212,8 @@
   }
 
   const contactPreview = $derived(draft);
+  /** What saving this card would do against the existing contact list (key continuity). */
+  const continuity = $derived(draft ? reconcileContact(draft, contactsState.contacts) : null);
 </script>
 
 <EventGate>
@@ -253,6 +263,19 @@
         <p>Matrix room <code>{pending.idOrAlias}</code></p>
         <p class="muted small">Joining reveals your Matrix id to the room's members.</p>
       {:else if contactPreview}
+        {#if continuity?.outcome === 'key-changed'}
+          <p class="warning" role="alert">
+            You already have {continuity.previous?.fullName} saved with a different key badge. This card
+            will be kept as a separate entry; compare badges in person before trusting either.
+          </p>
+        {:else if continuity?.outcome === 'updated'}
+          <p class="muted small">
+            Already in your contacts (met {continuity.previous?.metCount ?? 1} time{(continuity
+              .previous?.metCount ?? 1) === 1
+              ? ''
+              : 's'}); saving updates the entry.
+          </p>
+        {/if}
         <p class="muted">These fields were shared with you. Nothing is uploaded.</p>
         <p class="unverified">
           Unverified — a QR code exchanges identifiers, it does not prove who someone is.

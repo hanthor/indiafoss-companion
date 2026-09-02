@@ -2,6 +2,8 @@ import { CompanionStorage } from '@indiafoss/storage';
 import type { ContactRecord } from '@indiafoss/storage';
 import { attendeeProfileToVCard } from '@indiafoss/model';
 import type { AttendeeProfile, FriendPayload } from '@indiafoss/model';
+import { reconcileContact } from '$lib/contact-continuity';
+import type { ContinuityResult } from '$lib/contact-continuity';
 
 let storage: CompanionStorage | null = null;
 function getStorage(): CompanionStorage {
@@ -139,6 +141,14 @@ export function contactFromMatrixId(userId: string, eventId?: string): ContactRe
     savedAt: nowIso(),
     eventId,
   };
+}
+
+/** Save a scanned card with key continuity against the existing list. */
+export async function saveScannedContact(draft: ContactRecord): Promise<ContinuityResult> {
+  await hydrateContacts();
+  const result = reconcileContact(draft, contactsState.contacts);
+  await saveContact(result.contact);
+  return result;
 }
 
 export async function saveContact(contact: ContactRecord): Promise<void> {

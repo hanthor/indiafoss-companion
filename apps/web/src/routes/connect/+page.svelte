@@ -567,6 +567,12 @@
               <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
               <span class="identicon small-badge">{@html identiconSvg(c.fingerprint, 40)}</span>
             {/if}
+            {#if c.keyChanged}
+              <span class="warning small">Key changed since an earlier card</span>
+            {/if}
+            {#if (c.metCount ?? 1) > 1}
+              <span class="muted small">Met {c.metCount} times</span>
+            {/if}
             <SocialLinks links={contactDeepLinks(c)} compact />
             <div class="row-actions">
               {#if features.chat && c.neutrinoServerName}

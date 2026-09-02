@@ -63,6 +63,17 @@ patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
   );
 });
 
+// 3b. Local reminders: Android 13+ needs the runtime notification permission and
+//     exact alarms for "leave now" timing (@capacitor/local-notifications).
+patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
+  if (s.includes('android.permission.POST_NOTIFICATIONS')) return s;
+  return s.replace(
+    '<uses-permission android:name="android.permission.INTERNET" />',
+    (m) =>
+      `${m}\n    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />`,
+  );
+});
+
 // 4. Optional P2P chat: the Neutrino plugin, only when the GitHub Packages token
 //    for io.element.neutrino:bindings is available (NEUTRINO_PACKAGES_TOKEN).
 const NEUTRINO_VERSION = '0.8.2';

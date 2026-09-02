@@ -18,6 +18,7 @@
   "dependencies": {
     "@capacitor/app": "^8.0.0",
     "@capacitor/core": "^8.5.1",
+    "@capacitor/local-notifications": "^8.3.1",
     "@indiafoss/elo": "workspace:*",
     "@indiafoss/matrix": "workspace:*",
     "@indiafoss/model": "workspace:*",

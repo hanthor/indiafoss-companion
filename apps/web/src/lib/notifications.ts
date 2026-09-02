@@ -60,18 +60,54 @@ export class WebLocalNotificationTransport implements NotificationTransport {
   }
 }
 
-/** Android/local-platform transport placeholder (wired in the Capacitor app). */
-export class AndroidLocalNotificationTransport implements NotificationTransport {
+/** Stable 31-bit id for the native scheduler from the string notification id. */
+export function numericNotificationId(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) | 0;
+  return Math.abs(hash) || 1;
+}
+
+/**
+ * Android transport: `@capacitor/local-notifications` schedules through the
+ * system alarm manager, so reminders fire even when the WebView is gone.
+ * Imported lazily; the PWA bundle never loads it.
+ */
+export class NativeLocalNotificationTransport implements NotificationTransport {
+  private plugin: Promise<typeof import('@capacitor/local-notifications')> | null = null;
+
+  private load() {
+    this.plugin ??= import('@capacitor/local-notifications');
+    return this.plugin;
+  }
+
   async requestPermission(): Promise<boolean> {
-    return true;
+    const { LocalNotifications } = await this.load();
+    const current = await LocalNotifications.checkPermissions();
+    if (current.display === 'granted') return true;
+    const result = await LocalNotifications.requestPermissions();
+    return result.display === 'granted';
   }
+
   async schedule(notification: AppNotification): Promise<void> {
-    // AndroidNativeBridge.scheduleLocal(notification) — Phase 9 plugin wiring.
-    console.info('[notifications] android schedule', notification.id);
+    const { LocalNotifications } = await this.load();
+    const at = new Date(notification.at);
+    if (at.getTime() <= Date.now()) return;
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: numericNotificationId(notification.id),
+          title: notification.title,
+          body: notification.body,
+          schedule: { at, allowWhileIdle: true },
+          extra: { id: notification.id },
+        },
+      ],
+    });
   }
+
   async cancel(id: string): Promise<void> {
-    // AndroidNativeBridge.cancelLocal(id)
-    console.info('[notifications] android cancel', id);
+    const { LocalNotifications } = await this.load();
+    await LocalNotifications.cancel({ notifications: [{ id: numericNotificationId(id) }] });
   }
 }
 
