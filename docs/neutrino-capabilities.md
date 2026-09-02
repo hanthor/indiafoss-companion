@@ -89,6 +89,19 @@ empty `device_keys` object first, and the first-upload-only rule locked that in
 for the life of the process. Measured again on a fresh server, the keys
 round-trip. Tests that depend on server state prove whatever the state says.)
 
+**It misreports its own room version.** `/capabilities` claims plain room
+version 12:
+
+```json
+{ "capabilities": { "m.room_versions": { "available": { "12": "stable" }, "default": "12" } } }
+```
+
+…while the engine logs `supported=["org.matrix.msc4242.12"]` and every room it
+creates carries `{"room_version": "org.matrix.msc4242.12"}` — the experimental
+MSC4242 state-DAG version from Hydra phase 2, not room version 12. A client or
+server trusting `/capabilities` would conclude it was talking to an ordinary
+v12 homeserver. Worth reporting upstream.
+
 The server also reports `room versions supported=["org.matrix.msc4242.12"]` and
 `federation security: authenticate_connections: false, sign_messages: false` at
 startup — matching the README's "does not yet put signatures on events, nor

@@ -12,3 +12,5 @@ sequential.
   Native Android client: standalone vs Neutrino-fork feature layer
 - [0002](0002-native-compose-client-rendered-natively.md) —
   The native client renders natively, with a Kotlin port of the core engines
+- [0003](0003-mesh-interop-by-federation-not-bridging.md) —
+  Mesh ↔ internet interop is native federation, not a bridge
