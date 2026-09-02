@@ -16,12 +16,18 @@
 
   let draft = $state('');
   let sending = $state(false);
+  /** Filter over the locally cached timeline; no server search on the mesh. */
+  let search = $state('');
   /** Event being replied to, shown as a quote above the composer. */
   let replyTo = $state<string | null>(null);
   let showMembers = $state(false);
 
   /** Reactions are folded onto the message they annotate, not shown as rows. */
-  const messages = $derived(timeline.filter((e) => e.msgtype !== 'm.reaction'));
+  const messages = $derived.by(() => {
+    const rows = timeline.filter((e) => e.msgtype !== 'm.reaction');
+    const term = search.trim().toLowerCase();
+    return term ? rows.filter((e) => e.body.toLowerCase().includes(term)) : rows;
+  });
   const reactions = $derived.by(() => {
     const map: Record<string, { key: string; count: number; mine: boolean }[]> = {};
     for (const event of timeline) {
@@ -196,11 +202,18 @@
   </p>
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 
-  <p class="memberline">
+  <div class="roomtools">
     <button class="act" aria-expanded={showMembers} onclick={() => (showMembers = !showMembers)}>
       {members.length} in this room
     </button>
-  </p>
+    <input
+      class="search"
+      type="search"
+      bind:value={search}
+      aria-label="Search messages in this room"
+      placeholder="Search messages…"
+    />
+  </div>
   {#if showMembers}
     <ul class="members" aria-label="Room members">
       {#each members as member (member.id)}
@@ -216,7 +229,9 @@
       </button>
     {/if}
     {#if messages.length === 0}
-      <p class="muted small center">No messages yet.</p>
+      <p class="muted small center">
+        {search.trim() ? `No message matches “${search.trim()}”.` : 'No messages yet.'}
+      </p>
     {/if}
     {#each messages as event (event.eventId)}
       {@const mine = event.sender === selfId}
@@ -372,8 +387,21 @@
     font-size: 0.8rem;
     color: var(--text-muted);
   }
-  .memberline {
+  .roomtools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     margin: 0.2rem 0;
+  }
+  .search {
+    flex: 1;
+    min-width: 0;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.85rem;
   }
   .members {
     list-style: none;
