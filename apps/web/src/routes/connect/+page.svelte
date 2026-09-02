@@ -32,6 +32,12 @@
   import { meshStatus } from '$lib/neutrino';
   import { isLoopbackHomeserver } from '@indiafoss/matrix';
   import {
+    applyImportedProfile,
+    importFossUnitedProfile,
+    IMPORT_MESSAGES,
+    type ImportedChange,
+  } from '$lib/fossunited';
+  import {
     hydrateProfile,
     profileState,
     saveProfile,
@@ -168,6 +174,46 @@
     }
   }
 
+  let importing = $state(false);
+  let importMessage = $state('');
+  let importChanges = $state<ImportedChange[]>([]);
+
+  /** Pull the public FOSS United profile into the empty fields of this card. */
+  async function importProfile(): Promise<void> {
+    const url = profileState.profile.fossUnitedProfileUrl?.trim();
+    if (!url) {
+      importMessage = IMPORT_MESSAGES['invalid-url'];
+      return;
+    }
+    importing = true;
+    importMessage = '';
+    importChanges = [];
+    try {
+      const result = await importFossUnitedProfile(url);
+      if (!result.ok || !result.profile) {
+        importMessage = IMPORT_MESSAGES[result.failure ?? 'network'];
+        return;
+      }
+      const changes = applyImportedProfile(profileState.profile, result.profile);
+      // Imported socials are shared by default: they are already public.
+      for (const change of changes) {
+        const key = change.field as AttendeeSocial;
+        if (key in profileState.selection.socials || SOCIALS.includes(key)) {
+          profileState.selection.socials[key] = true;
+        }
+      }
+      importChanges = changes;
+      importMessage =
+        changes.length === 0
+          ? 'Nothing new to import: your card already has these fields.'
+          : `Imported ${changes.length} field${changes.length === 1 ? '' : 's'} from your public profile.`;
+      await saveProfile();
+      await saveSelection();
+    } finally {
+      importing = false;
+    }
+  }
+
   const profileUsername = $derived(
     profileState.profile.fossUnitedProfileUrl
       ? usernameFromProfileUrl(profileState.profile.fossUnitedProfileUrl)
@@ -281,6 +327,27 @@
       <p class="warning">Use a public URL in the form https://fossunited.org/u/username.</p>
     {/if}
     {#if profileUsername}<p class="muted small">Profile handle: @{profileUsername}</p>{/if}
+    <div class="importrow">
+      <button
+        type="button"
+        class="button secondary small"
+        onclick={importProfile}
+        disabled={importing || !profileUsername}
+      >
+        {importing ? 'Importing…' : 'Import name and socials'}
+      </button>
+      <span class="muted small">Fills empty fields only; nothing you typed is overwritten.</span>
+    </div>
+    {#if importMessage}
+      <p class="muted small" role="status">{importMessage}</p>
+    {/if}
+    {#if importChanges.length > 0}
+      <ul class="imported">
+        {#each importChanges as change (change.field)}
+          <li><strong>{change.field}</strong> {change.value}</li>
+        {/each}
+      </ul>
+    {/if}
 
     <div class="two-col">
       <label
@@ -622,6 +689,27 @@
 </EventGate>
 
 <style>
+  .importrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.2rem 0 0.4rem;
+  }
+  .imported {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 0.6rem;
+    font-size: 0.85rem;
+    display: grid;
+    gap: 0.15rem;
+  }
+  .imported li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .profile-link {
     display: flex;
     justify-content: space-between;

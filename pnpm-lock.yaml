@@ -90,6 +90,9 @@ importers:
       '@indiafoss/solver':
         specifier: workspace:*
         version: link:../../packages/solver
+      '@indiafoss/sources':
+        specifier: workspace:*
+        version: link:../../packages/sources
       '@indiafoss/storage':
         specifier: workspace:*
         version: link:../../packages/storage
