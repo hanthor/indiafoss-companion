@@ -131,4 +131,13 @@ describe('attendeeProfileToVCard', () => {
     expect(classifyLink('xmpp:alice@prav.app')).toBe('xmpp');
     expect(classifyLink('https://i.delta.chat/#X')).toBe('deltachat');
   });
+
+  it('turns a fediverse handle into a profile link', () => {
+    expect(contactDeepLinks({ socials: { mastodon: '@alice@fosstodon.org' } })).toEqual([
+      { kind: 'mastodon', label: 'Mastodon', href: 'https://fosstodon.org/@alice' },
+    ]);
+    expect(contactDeepLinks({ socials: { mastodon: 'https://fosstodon.org/@alice' } })).toEqual([
+      { kind: 'mastodon', label: 'Mastodon', href: 'https://fosstodon.org/@alice' },
+    ]);
+  });
 });

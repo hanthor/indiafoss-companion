@@ -1,4 +1,4 @@
-import { isValidEventBundle } from '@indiafoss/model';
+import { collectBundleWarnings, isValidEventBundle } from '@indiafoss/model';
 import type { EventBundle, EventReference, MessagingConfig } from '@indiafoss/model';
 import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
 import { FixtureSource, FossUnitedSource, mergeBooths, repoRoot } from '@indiafoss/sources';
@@ -75,6 +75,7 @@ export async function syncEvent(
   if (!isValidEventBundle(bundle)) {
     throw new Error('normalized bundle failed structural validation');
   }
+  for (const warning of collectBundleWarnings(bundle)) console.warn(`warning: ${warning}`);
 
   const publishedDir = publishedDirOverride ?? repoRoot('events', eventId, 'published');
   mkdirSync(publishedDir, { recursive: true });

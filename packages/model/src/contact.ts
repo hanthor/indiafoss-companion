@@ -226,6 +226,17 @@ export function contactDeepLinks(profile: {
   }
   for (const [network, url] of Object.entries(socials) as [AttendeeSocial, string][]) {
     if (['telegram', 'whatsapp', 'signal', 'xmpp', 'deltachat'].includes(network)) continue;
+    // Fediverse handles (@user@instance) are how people actually say their Mastodon.
+    const handle =
+      network === 'mastodon' ? url?.trim().match(/^@?([^@\s/]+)@([^@\s/]+\.[^@\s/]+)$/) : null;
+    if (handle) {
+      links.push({
+        kind: 'mastodon',
+        label: 'Mastodon',
+        href: `https://${handle[2]}/@${handle[1]}`,
+      });
+      continue;
+    }
     if (url && /^https?:\/\//i.test(url))
       links.push({ kind: network, label: LINK_LABELS[network], href: url.trim() });
   }

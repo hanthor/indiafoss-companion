@@ -132,6 +132,49 @@ export const DEFAULT_NOTIFICATION_WINDOW: NotificationWindow = {
  */
 export type ReminderTier = 'must-attend' | 'planned' | 'none';
 
+/** A time block the attendee put on their own plan (custom block or booth visit). */
+export interface PlannedBlock {
+  id: string;
+  label: string;
+  start: string;
+}
+
+/**
+ * Reminders for the attendee's own plan blocks: one alert ten minutes before
+ * each block that starts within the lookahead.
+ */
+export function computeBlockNotifications(
+  blocks: PlannedBlock[],
+  now: string,
+  minutesBefore = 10,
+): AppNotification[] {
+  const nowMs = Date.parse(now);
+  const lookaheadMs = 90 * 60_000;
+  const out: AppNotification[] = [];
+  for (const block of blocks) {
+    const startMs = Date.parse(block.start);
+    if (Number.isNaN(startMs) || startMs < nowMs || startMs > nowMs + lookaheadMs) continue;
+    const at = startMs - minutesBefore * 60_000;
+    if (at <= nowMs) continue;
+    out.push({
+      id: `block-${block.id}`,
+      title: 'On your plan',
+      body: `${block.label} in ${minutesBefore} min.`,
+      at: new Date(at).toISOString(),
+    });
+  }
+  return out;
+}
+
+/** Ids armed last time that are no longer wanted: cancel them (room or time changed, unbookmarked). */
+export function staleNotificationIds(
+  previous: Iterable<string>,
+  next: AppNotification[],
+): string[] {
+  const keep = new Set(next.map((n) => n.id));
+  return [...previous].filter((id) => !keep.has(id));
+}
+
 /** Minutes before a must-attend session for the early heads-up. */
 export const MUST_ATTEND_HEADS_UP_MINUTES = 30;
 

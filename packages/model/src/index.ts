@@ -246,7 +246,7 @@ export type {
   MessagingReferences,
   MessagingRoom,
 } from './messaging.js';
-export { collectBundleIssues, isValidEventBundle } from './validation.js';
+export { collectBundleIssues, collectBundleWarnings, isValidEventBundle } from './validation.js';
 
 export {
   CONTACT_BOOK_VERSION,

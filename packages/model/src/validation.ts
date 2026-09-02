@@ -55,6 +55,36 @@ export function collectBundleIssues(bundle: EventBundle): string[] {
   return issues;
 }
 
+/**
+ * Non-fatal findings: things worth fixing at the source but not worth
+ * refusing the bundle for (a speaker's social link that is not a URL, an
+ * activity link without a scheme).
+ */
+export function collectBundleWarnings(bundle: EventBundle): string[] {
+  const warnings: string[] = [];
+  const bad = (url: string) => {
+    try {
+      const parsed = new URL(url.trim());
+      return (
+        parsed.protocol !== 'https:' && parsed.protocol !== 'http:' && parsed.protocol !== 'mailto:'
+      );
+    } catch {
+      return true;
+    }
+  };
+  for (const person of bundle.people) {
+    for (const link of person.links ?? []) {
+      if (bad(link.url)) warnings.push(`person ${person.id} has a malformed link: ${link.url}`);
+    }
+  }
+  for (const activity of bundle.activities) {
+    for (const link of [...(activity.links ?? []), ...(activity.references ?? [])]) {
+      if (bad(link.url)) warnings.push(`activity ${activity.id} has a malformed link: ${link.url}`);
+    }
+  }
+  return warnings;
+}
+
 /** True when the bundle passes all structural checks. */
 export function isValidEventBundle(bundle: EventBundle): boolean {
   return collectBundleIssues(bundle).length === 0;

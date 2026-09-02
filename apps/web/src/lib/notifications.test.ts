@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { EventBundle } from '@indiafoss/model';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from '@indiafoss/model';
-import { computeNotifications } from './notifications.js';
+import {
+  computeBlockNotifications,
+  computeNotifications,
+  staleNotificationIds,
+} from './notifications.js';
 
 function bundle(activities: EventBundle['activities']): EventBundle {
   return {
@@ -94,5 +98,19 @@ describe('computeNotifications', () => {
     expect(Date.parse(notifications.find((n) => n.id === 'start-a')!.at)).toBe(
       Date.parse('2026-09-19T11:00:00+05:30'),
     );
+  });
+
+  it("reminds about the attendee's own plan blocks and cancels what is no longer wanted", () => {
+    const blocks = [
+      { id: 'custom-1', label: 'Lunch with the KDE folks', start: '2026-09-19T11:00:00+05:30' },
+      { id: 'custom-2', label: 'Far away', start: '2026-09-19T15:00:00+05:30' },
+    ];
+    const out = computeBlockNotifications(blocks, '2026-09-19T10:30:00+05:30');
+    expect(out.map((n) => n.id)).toEqual(['block-custom-1']);
+    expect(Date.parse(out[0]!.at)).toBe(Date.parse('2026-09-19T10:50:00+05:30'));
+    expect(staleNotificationIds(['soon-a', 'block-custom-1', 'leave-z'], out)).toEqual([
+      'soon-a',
+      'leave-z',
+    ]);
   });
 });

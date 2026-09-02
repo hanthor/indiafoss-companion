@@ -394,7 +394,8 @@
           <span class="identicon">{@html identityState.identicon}</span>
           <!-- eslint-enable svelte/no-at-html-tags -->
           <span class="badgetext">
-            KEY BADGE<br /><b>{shortFingerprint(identityState.fingerprint)}</b>
+            KEY BADGE<br /><b>{shortFingerprint(identityState.fingerprint)}</b><br />
+            <a href={resolve('/connect/compare')}>Compare ↗</a>
           </span>
         </div>
       {/if}
