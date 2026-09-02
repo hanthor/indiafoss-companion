@@ -164,6 +164,42 @@ describe.skipIf(!reachable)('neutrino contracts the companion depends on', () =>
     expect(chunk.some((e) => e.content?.membership === 'join')).toBe(true);
   });
 
+  it('speaks Simplified Sliding Sync, and it agrees with legacy /sync', async () => {
+    // MSC4186. Neutrino advertises it, and it is the sync that belongs on a
+    // BLE mesh: a legacy first sync ships every room's state, this asks for a
+    // bounded timeline and named state. The client prefers it when offered.
+    const versions = await call('GET', '/_matrix/client/versions');
+    const features = versions.body.unstable_features as Record<string, boolean>;
+    expect(features?.['org.matrix.simplified_msc3575']).toBe(true);
+
+    const sliding = await call(
+      'POST',
+      '/_matrix/client/unstable/org.matrix.simplified_msc3575/sync',
+      {
+        conn_id: 'e2e',
+        lists: {
+          rooms: {
+            ranges: [[0, 99]],
+            required_state: [['m.room.name', '']],
+            timeline_limit: 5,
+          },
+        },
+      },
+    );
+    expect(sliding.status).toBe(200);
+    expect(sliding.body.pos).toBeDefined();
+
+    // The room we created must appear in both syncs, or the two paths would
+    // show the attendee different conversations.
+    const slidingRooms = Object.keys((sliding.body.rooms as Record<string, unknown>) ?? {});
+    expect(slidingRooms).toContain(roomId);
+
+    const legacy = await call('GET', '/_matrix/client/v3/sync?timeout=0');
+    const legacyJoin = ((legacy.body.rooms as { join?: Record<string, unknown> })?.join ??
+      {}) as Record<string, unknown>;
+    expect(Object.keys(legacyJoin)).toContain(roomId);
+  });
+
   it('syncs the room', async () => {
     const sync = await call('GET', '/_matrix/client/v3/sync?timeout=0');
     expect(sync.status).toBe(200);

@@ -1,5 +1,9 @@
 # What Neutrino can actually do
 
+For where the wider P2P Matrix effort is heading — Hydra's phases, the ERA
+paper, and what the official tracker says is still missing — see
+[p2p-matrix-state-of-the-art.md](p2p-matrix-state-of-the-art.md).
+
 Measured, not read off a README. `tools/neutrino-probe` starts from the list of
 client-server endpoints `packages/matrix` really calls and asks a running
 Neutrino what happens, distinguishing three outcomes that matter to us:

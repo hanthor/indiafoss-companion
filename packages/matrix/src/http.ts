@@ -1,4 +1,11 @@
-import type { PublicRoomSummary, RawMatrixEvent, SyncResponse, MatrixSession } from './types.js';
+import type {
+  PublicRoomSummary,
+  RawMatrixEvent,
+  SyncResponse,
+  SyncJoinedRoom,
+  SyncInvitedRoom,
+  MatrixSession,
+} from './types.js';
 
 export interface CreateRoomOptions {
   name?: string;
@@ -38,6 +45,10 @@ function normalizeBaseUrl(url: string): string {
   return url.replace(/\/+$/, '');
 }
 
+/** Unstable flag and path for Simplified Sliding Sync (MSC4186). */
+export const SLIDING_SYNC_FLAG = 'org.matrix.simplified_msc3575';
+export const SLIDING_SYNC_PATH = '/_matrix/client/unstable/org.matrix.simplified_msc3575/sync';
+
 /** Sync filter: message timelines, lazy-loaded members, typing only, no presence. */
 export const SYNC_FILTER = JSON.stringify({
   presence: { types: [] },
@@ -47,6 +58,84 @@ export const SYNC_FILTER = JSON.stringify({
     ephemeral: { types: ['m.typing'] },
   },
 });
+
+/**
+ * Simplified Sliding Sync (MSC4186) response, as much of it as the companion
+ * reads. The endpoint is unstable
+ * (`/_matrix/client/unstable/org.matrix.simplified_msc3575/sync`) and is
+ * advertised as `org.matrix.simplified_msc3575` in `/versions`.
+ */
+export interface SlidingSyncResponse {
+  pos: string;
+  rooms?: Record<
+    string,
+    {
+      name?: string;
+      initial?: boolean;
+      limited?: boolean;
+      prev_batch?: string;
+      timeline?: RawMatrixEvent[];
+      required_state?: RawMatrixEvent[];
+      invite_state?: RawMatrixEvent[];
+    }
+  >;
+  extensions?: {
+    to_device?: { events?: RawMatrixEvent[]; next_batch?: string };
+    e2ee?: {
+      device_lists?: { changed?: string[]; left?: string[] };
+      device_one_time_keys_count?: Record<string, number>;
+      device_unused_fallback_key_types?: string[];
+    };
+    account_data?: { global?: RawMatrixEvent[] };
+  };
+}
+
+/**
+ * Fold a sliding-sync response into the `/sync` shape the session layer
+ * already understands, so only this file knows which sync a server speaks.
+ *
+ * Sliding sync matters most where bandwidth is scarcest: on the BLE mesh a
+ * legacy first sync ships every room's state, while this asks for a bounded
+ * window and a timeline limit.
+ */
+export function slidingSyncToSyncResponse(response: SlidingSyncResponse): SyncResponse {
+  const join: Record<string, SyncJoinedRoom> = {};
+  const invite: Record<string, SyncInvitedRoom> = {};
+
+  for (const [roomId, room] of Object.entries(response.rooms ?? {})) {
+    if (room.invite_state) {
+      invite[roomId] = { invite_state: { events: room.invite_state } };
+      continue;
+    }
+    join[roomId] = {
+      timeline: {
+        events: room.timeline ?? [],
+        limited: room.limited,
+        prev_batch: room.prev_batch,
+      },
+      state: { events: room.required_state ?? [] },
+    };
+  }
+
+  const e2ee = response.extensions?.e2ee;
+  return {
+    next_batch: response.pos,
+    rooms: { join, invite },
+    ...(response.extensions?.to_device?.events
+      ? { to_device: { events: response.extensions.to_device.events } }
+      : {}),
+    ...(response.extensions?.account_data?.global
+      ? { account_data: { events: response.extensions.account_data.global } }
+      : {}),
+    ...(e2ee?.device_lists ? { device_lists: e2ee.device_lists } : {}),
+    ...(e2ee?.device_one_time_keys_count
+      ? { device_one_time_keys_count: e2ee.device_one_time_keys_count }
+      : {}),
+    ...(e2ee?.device_unused_fallback_key_types
+      ? { device_unused_fallback_key_types: e2ee.device_unused_fallback_key_types }
+      : {}),
+  };
+}
 
 function normalizeBaseUrlHost(url: string): boolean {
   try {
@@ -69,6 +158,9 @@ export function isLoopbackHomeserver(url: string): boolean {
 export class MatrixClient {
   readonly baseUrl: string;
   private readonly fetchFn: FetchLike;
+  /** undefined until probed; false pins this client to the legacy /sync path. */
+  private slidingSyncSupported: boolean | undefined;
+  private slidingPos: string | undefined;
 
   constructor(
     homeserver: string,
@@ -248,11 +340,82 @@ export class MatrixClient {
     timeoutMs: number;
     signal?: AbortSignal;
   }): Promise<SyncResponse> {
+    if (await this.supportsSlidingSync()) {
+      try {
+        return await this.slidingSync(options);
+      } catch (error) {
+        // A server can advertise the flag and still refuse the call. Fall back
+        // once and stay on the legacy path rather than failing every sync.
+        if (error instanceof MatrixError && error.status === 404) {
+          this.slidingSyncSupported = false;
+        } else {
+          throw error;
+        }
+      }
+    }
     const params = new URLSearchParams({ timeout: String(options.timeoutMs), filter: SYNC_FILTER });
     if (options.since) params.set('since', options.since);
     return this.request('GET', `${CS}/sync?${params.toString()}`, undefined, {
       signal: options.signal,
     });
+  }
+
+  /**
+   * Does this server speak Simplified Sliding Sync (MSC4186)? Probed once from
+   * `/versions` and remembered; a server that does not answer the probe is
+   * treated as legacy-only.
+   */
+  private async supportsSlidingSync(): Promise<boolean> {
+    if (this.slidingSyncSupported !== undefined) return this.slidingSyncSupported;
+    try {
+      const versions = await this.request<{ unstable_features?: Record<string, boolean> }>(
+        'GET',
+        '/_matrix/client/versions',
+      );
+      this.slidingSyncSupported = versions.unstable_features?.[SLIDING_SYNC_FLAG] === true;
+    } catch {
+      this.slidingSyncSupported = false;
+    }
+    return this.slidingSyncSupported;
+  }
+
+  private async slidingSync(options: {
+    timeoutMs: number;
+    signal?: AbortSignal;
+  }): Promise<SyncResponse> {
+    const params = new URLSearchParams({ timeout: String(options.timeoutMs) });
+    if (this.slidingPos) params.set('pos', this.slidingPos);
+    const response = await this.request<SlidingSyncResponse>(
+      'POST',
+      `${SLIDING_SYNC_PATH}?${params.toString()}`,
+      {
+        conn_id: 'indiafoss-companion',
+        lists: {
+          // One window over every room the attendee is in. A conference
+          // account joins a handful of rooms, so a window is a formality —
+          // the win is the bounded timeline and the named state.
+          rooms: {
+            ranges: [[0, 99]],
+            required_state: [
+              ['m.room.name', ''],
+              ['m.room.topic', ''],
+              ['m.room.avatar', ''],
+              ['m.room.encryption', ''],
+              ['m.room.member', '$LAZY'],
+            ],
+            timeline_limit: 30,
+          },
+        },
+        extensions: {
+          to_device: { enabled: true },
+          e2ee: { enabled: true },
+          account_data: { enabled: true },
+        },
+      },
+      { signal: options.signal },
+    );
+    this.slidingPos = response.pos;
+    return slidingSyncToSyncResponse(response);
   }
 
   async joinRoom(idOrAlias: string): Promise<string> {

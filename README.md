@@ -214,17 +214,17 @@ pnpm --filter @indiafoss/web screenshots
 
 ## Documentation
 
-|                                                                                          |                                                                             |
-| ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| [Event onboarding](docs/event-onboarding.md)                                             | bring a new event into the app                                              |
-| [Venue map](docs/venue-map.md) · [route checklist](docs/venue-route-review-checklist.md) | floor plans and the routing graph                                           |
-| [Reminders](docs/reminders.md)                                                           | the notification tiers                                                      |
-| [Contact sharing](docs/contact-sharing.md)                                               | signed cards, QR scanning, key continuity                                   |
-| [Calendar export](docs/calendar-export.md)                                               | ICS for a plan or the whole programme                                       |
-| [Messaging](docs/messaging.md) · [Neutrino capabilities](docs/neutrino-capabilities.md)  | Matrix rooms, P2P mesh, threat model, and what the mesh measurably supports |
-| [Native client](docs/native-client.md)                                                   | the Compose app and its Kotlin core                                         |
-| [Privacy](docs/privacy.md) · [Release](docs/release.md)                                  | what is stored, and how a release is cut                                    |
-| [ADRs](docs/adr/README.md) · [Phases](docs/phases.md) · [Roadmap](docs/roadmap.md)       | decisions and where the project is going                                    |
+|                                                                                                                                                       |                                                                             |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| [Event onboarding](docs/event-onboarding.md)                                                                                                          | bring a new event into the app                                              |
+| [Venue map](docs/venue-map.md) · [route checklist](docs/venue-route-review-checklist.md)                                                              | floor plans and the routing graph                                           |
+| [Reminders](docs/reminders.md)                                                                                                                        | the notification tiers                                                      |
+| [Contact sharing](docs/contact-sharing.md)                                                                                                            | signed cards, QR scanning, key continuity                                   |
+| [Calendar export](docs/calendar-export.md)                                                                                                            | ICS for a plan or the whole programme                                       |
+| [Messaging](docs/messaging.md) · [Neutrino capabilities](docs/neutrino-capabilities.md) · [P2P state of the art](docs/p2p-matrix-state-of-the-art.md) | Matrix rooms, P2P mesh, threat model, and what the mesh measurably supports |
+| [Native client](docs/native-client.md)                                                                                                                | the Compose app and its Kotlin core                                         |
+| [Privacy](docs/privacy.md) · [Release](docs/release.md)                                                                                               | what is stored, and how a release is cut                                    |
+| [ADRs](docs/adr/README.md) · [Phases](docs/phases.md) · [Roadmap](docs/roadmap.md)                                                                    | decisions and where the project is going                                    |
 
 ## Status
 
