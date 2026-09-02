@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
@@ -37,7 +36,7 @@
 
   type Pending = Exclude<ScannedPayload, { kind: 'error' }>;
 
-  let videoEl: HTMLVideoElement;
+  let videoEl = $state<HTMLVideoElement | undefined>(undefined);
   let scanner: QrScanner | null = null;
   let scanning = $state(false);
   let cameraError = $state('');
@@ -70,7 +69,13 @@
 
   // Scanning is the reason people open this screen, so ask for the camera at
   // once instead of behind a button. A refusal falls back to manual entry.
-  onMount(() => {
+  // The <video> only exists once the event bundle has loaded (EventGate), so
+  // start when it is bound rather than on mount; otherwise qr-scanner gets an
+  // undefined element and the camera "could not be started".
+  let autoStarted = false;
+  $effect(() => {
+    if (autoStarted || !videoEl) return;
+    autoStarted = true;
     if (page.url.searchParams.get('payload')) {
       cameraStarting = false;
       return;
@@ -190,6 +195,7 @@
         cameraStarting = false;
         return;
       }
+      if (!videoEl) throw new Error('camera preview not ready');
       scanner ??= new QrScannerCtor(videoEl, (result) => handlePayload(result.data), {
         preferredCamera: 'environment',
         highlightScanRegion: true,
@@ -201,6 +207,7 @@
       scanning = true;
     } catch (err) {
       scanning = false;
+      console.warn('camera start failed', err);
       const denied = err instanceof Error && /denied|permission|NotAllowed/i.test(err.message);
       cameraBlocked = true;
       cameraError = denied
@@ -272,7 +279,22 @@
   </p>
 
   <section class="camera card">
-    <video bind:this={videoEl} class:hidden={!scanning} playsinline muted></video>
+    <!-- The preview is always laid out (never display:none): qr-scanner sizes its
+         scan region from the video, and Android Chrome shows a black frame for a
+         stream that started while the element was hidden. -->
+    <div class="viewfinder" class:live={scanning} class:idle={!scanning}>
+      <video bind:this={videoEl} playsinline muted></video>
+      <div class="frame" aria-hidden="true">
+        <span class="corner tl"></span><span class="corner tr"></span>
+        <span class="corner bl"></span><span class="corner br"></span>
+        {#if scanning}<span class="beam"></span>{/if}
+      </div>
+      {#if scanning}
+        <p class="hintline">Point at a QR code</p>
+      {:else if cameraStarting}
+        <p class="hintline">Opening the camera…</p>
+      {/if}
+    </div>
     {#if scanning}
       <button class="button secondary" onclick={stopCamera}>Stop camera</button>
     {:else if cameraStarting}
@@ -505,17 +527,107 @@
   .camera {
     text-align: center;
   }
-  video {
-    display: block;
+  .viewfinder {
+    position: relative;
     width: min(360px, 100%);
     margin: 0 auto 0.8rem;
     border-radius: var(--radius);
     background: #000;
     aspect-ratio: 1 / 1;
-    object-fit: cover;
+    overflow: hidden;
   }
-  video.hidden {
-    display: none;
+  .viewfinder video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000;
+  }
+  .viewfinder.idle video {
+    opacity: 0;
+  }
+  /* qr-scanner appends its own highlight box next to the video. */
+  .viewfinder :global(.scan-region-highlight) {
+    border-radius: 6px;
+  }
+  .frame {
+    position: absolute;
+    inset: 12%;
+    pointer-events: none;
+  }
+  .corner {
+    position: absolute;
+    width: 1.6rem;
+    height: 1.6rem;
+    border: 3px solid var(--mint);
+  }
+  .corner.tl {
+    top: 0;
+    left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-top-left-radius: 6px;
+  }
+  .corner.tr {
+    top: 0;
+    right: 0;
+    border-left: 0;
+    border-bottom: 0;
+    border-top-right-radius: 6px;
+  }
+  .corner.bl {
+    bottom: 0;
+    left: 0;
+    border-right: 0;
+    border-top: 0;
+    border-bottom-left-radius: 6px;
+  }
+  .corner.br {
+    bottom: 0;
+    right: 0;
+    border-left: 0;
+    border-top: 0;
+    border-bottom-right-radius: 6px;
+  }
+  .idle .corner {
+    opacity: 0.35;
+  }
+  .beam {
+    position: absolute;
+    left: 6%;
+    right: 6%;
+    top: 0;
+    height: 2px;
+    background: var(--mint);
+    box-shadow: 0 0 8px var(--mint);
+    animation: sweep 2.2s ease-in-out infinite alternate;
+  }
+  @keyframes sweep {
+    from {
+      top: 0;
+    }
+    to {
+      top: calc(100% - 2px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .beam {
+      animation: none;
+      top: 50%;
+    }
+  }
+  .hintline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.5rem;
+    margin: 0;
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px rgb(0 0 0 / 0.8);
   }
   .fields {
     display: grid;
