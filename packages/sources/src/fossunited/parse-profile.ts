@@ -158,10 +158,18 @@ export function parseFossUnitedProfile(html: string): FossUnitedProfile {
   return profile;
 }
 
-/** `https://fossunited.org/u/<username>` → `<username>`; null for anything else. */
+const USERNAME_RE = /^[A-Za-z0-9._-]+$/;
+
+/**
+ * `https://fossunited.org/u/<username>`, `fossunited.org/u/<username>` or a bare
+ * `<username>` → `<username>`; null for anything else. Nobody should have to
+ * type the whole URL.
+ */
 export function usernameFromProfileUrl(url: string): string | null {
+  const input = url.trim().replace(/^@/, '');
+  if (USERNAME_RE.test(input)) return input;
   try {
-    const parsed = new URL(url.trim());
+    const parsed = new URL(/^https?:\/\//i.test(input) ? input : `https://${input}`);
     if (parsed.hostname.replace(/^www\./, '') !== 'fossunited.org') return null;
     if (!parsed.pathname.startsWith('/u/')) return null;
     const username = parsed.pathname.slice(3).replace(/\/+$/, '');

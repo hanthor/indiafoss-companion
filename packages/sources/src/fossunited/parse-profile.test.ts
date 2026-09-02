@@ -72,6 +72,12 @@ describe('usernameFromProfileUrl', () => {
     );
   });
 
+  it('accepts a bare username or a scheme-less profile path', () => {
+    expect(usernameFromProfileUrl('james_reilly')).toBe('james_reilly');
+    expect(usernameFromProfileUrl(' @james_reilly ')).toBe('james_reilly');
+    expect(usernameFromProfileUrl('fossunited.org/u/james_reilly')).toBe('james_reilly');
+  });
+
   it('rejects other hosts and paths', () => {
     expect(usernameFromProfileUrl('https://example.com/u/alice')).toBeNull();
     expect(usernameFromProfileUrl('https://fossunited.org/c/indiafoss')).toBeNull();

@@ -50,9 +50,10 @@ export const CARD_FIELDS: CardFieldSpec[] = [
   {
     key: 'fossUnitedProfileUrl',
     group: 'identity',
-    label: 'FOSS United profile',
-    placeholder: 'https://fossunited.org/u/username',
-    inputType: 'url',
+    label: 'FOSS United username',
+    placeholder: 'your_username',
+    hint: 'Just the username from fossunited.org/u/…; the card carries the profile link.',
+    inputType: 'text',
   },
   {
     key: 'email',
@@ -111,6 +112,8 @@ export const LINK_LABELS: Record<AttendeeSocial, string> = {
   telegram: 'Telegram',
   whatsapp: 'WhatsApp',
   signal: 'Signal',
+  xmpp: 'XMPP / Prav',
+  deltachat: 'Delta Chat',
 };
 
 export const LINK_PLACEHOLDERS: Record<AttendeeSocial, string> = {
@@ -127,6 +130,8 @@ export const LINK_PLACEHOLDERS: Record<AttendeeSocial, string> = {
   telegram: '@username',
   whatsapp: '+91 98765 43210',
   signal: '+91 98765 43210 or username.42',
+  xmpp: 'you@prav.app',
+  deltachat: 'Invite link from Delta Chat, or your address',
 };
 
 const SELECTION_KEY: Partial<Record<keyof AttendeeProfile, keyof AttendeeShareSelection>> = {

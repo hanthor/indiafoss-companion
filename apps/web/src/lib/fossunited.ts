@@ -56,7 +56,7 @@ export async function importFossUnitedProfile(url: string): Promise<ImportResult
 }
 
 export const IMPORT_MESSAGES: Record<ImportFailure, string> = {
-  'invalid-url': 'Enter a profile URL like https://fossunited.org/u/your_username.',
+  'invalid-url': 'Enter your FOSS United username (the part after fossunited.org/u/).',
   'not-found': 'No public profile at that URL. Check the username on fossunited.org.',
   blocked:
     'Your browser blocks reading fossunited.org from this app. The Android app imports it directly; on the web, fill the fields in below.',

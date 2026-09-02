@@ -18,6 +18,8 @@ export const SOCIALS: AttendeeSocial[] = [
   'telegram',
   'whatsapp',
   'signal',
+  'xmpp',
+  'deltachat',
 ];
 
 /** Networks entered as a handle or phone number instead of a URL. */
