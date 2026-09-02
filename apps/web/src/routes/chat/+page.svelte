@@ -1,43 +1,48 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onDestroy, onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { base, resolve } from '$app/paths';
+  import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { parseMatrixTarget, matrixToUrl, localpart } from '@indiafoss/matrix';
-  import type { PublicRoomSummary } from '@indiafoss/matrix';
-  import type { MessagingRoom } from '@indiafoss/model';
+  import {
+    isLoopbackHomeserver,
+    parseMatrixTarget,
+    matrixToUrl,
+    localpart,
+  } from '@indiafoss/matrix';
+  import { neutrinoMatrixId } from '@indiafoss/model';
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { getMatrix, hydrateMatrix, matrixState, statusLabel } from '$lib/matrix.svelte';
-  import { homeserverLabel, messagingConfigFor } from '$lib/messaging-config';
+  import { messagingConfigFor } from '$lib/messaging-config';
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
+  import { features, hydrateFeatures, setChatEnabled } from '$lib/features.svelte';
+  import { meshPeers, shortServerName, startMeshNode } from '$lib/neutrino';
+  import type { MeshNode, NeutrinoPeer } from '$lib/neutrino';
+
+  /** Placeholder credentials: the embedded node does no client-server auth (single user "n"). */
+  const MESH_LOCALPART = 'n';
+  const MESH_PASSWORD = 'neutrino';
+  const PEER_REFRESH_MS = 10_000;
 
   const config = $derived(messagingConfigFor(eventState.bundle));
   const signedIn = $derived(matrixState.status !== 'signed-out');
+  const onMesh = $derived(!!matrixState.homeserver && isLoopbackHomeserver(matrixState.homeserver));
   const joinedRooms = $derived(matrixState.rooms.filter((r) => r.membership === 'join'));
   const invites = $derived(matrixState.rooms.filter((r) => r.membership === 'invite'));
-  const joinedAliases = $derived(new Set(joinedRooms.map((r) => r.alias).filter(Boolean)));
-  const matrixContacts = $derived(contactsState.contacts.filter((c) => c.matrixId));
+  const meshContacts = $derived(contactsState.contacts.filter((c) => c.neutrinoServerName));
 
-  // Sign-in form
-  let homeserver = $state('');
-  let username = $state('');
-  let password = $state('');
+  let mesh = $state<MeshNode | null>(null);
+  let meshSearching = $state(false);
+  let peers = $state<NeutrinoPeer[]>([]);
   let busy = $state(false);
-  let formError = $state<string | null>(null);
-
-  // Join / DM forms
+  let signInError = $state<string | null>(null);
   let joinInput = $state('');
   let dmInput = $state('');
   let pendingDm = $state<string | null>(null);
-  let search = $state('');
-  let searchResults = $state<PublicRoomSummary[]>([]);
-  let searching = $state(false);
   let actionError = $state<string | null>(null);
   /** Session/booth/venue chat requested via ?open= (joined or created on demand). */
   let pendingOpen = $state<{ alias: string; name: string; topic?: string } | null>(null);
   let opening = $state(false);
-  /** An embedded P2P (Neutrino) homeserver detected on this device. */
-  let meshHomeserver = $state<string | null>(null);
+  let peerTimer: ReturnType<typeof setInterval> | null = null;
 
   const sessionRooms = $derived.by(() => {
     const prefix = `#${(config.aliasPrefix ?? eventState.bundle?.id ?? '').toLowerCase()}-`;
@@ -45,21 +50,33 @@
   });
   const otherRooms = $derived(joinedRooms.filter((r) => !sessionRooms.includes(r)));
 
-  async function probeMeshHomeserver() {
-    // Neutrino's embedded homeserver listens on loopback when the native shell runs it.
-    for (const base of ['http://127.0.0.1:3000', 'http://localhost:3000']) {
-      try {
-        const res = await fetch(`${base}/_matrix/client/versions`, {
-          signal: AbortSignal.timeout(1200),
-        });
-        if (res.ok) {
-          meshHomeserver = base;
-          return;
-        }
-      } catch {
-        /* not running */
+  async function refreshPeers() {
+    peers = await meshPeers();
+  }
+
+  async function connectMesh() {
+    meshSearching = true;
+    signInError = null;
+    try {
+      mesh = await startMeshNode();
+      if (mesh && !signedIn) {
+        await getMatrix().signInWithPassword(mesh.baseUrl, MESH_LOCALPART, MESH_PASSWORD);
       }
+    } catch (error) {
+      signInError = error instanceof Error ? error.message : String(error);
+    } finally {
+      meshSearching = false;
     }
+    if (mesh?.native) {
+      await refreshPeers();
+      peerTimer ??= setInterval(() => void refreshPeers(), PEER_REFRESH_MS);
+    }
+  }
+
+  async function enable() {
+    await setChatEnabled(true);
+    await hydrateMatrix();
+    await connectMesh();
   }
 
   async function openConference() {
@@ -80,24 +97,11 @@
   onMount(async () => {
     void loadEvent();
     void hydrateContacts();
+    await hydrateFeatures();
+    if (!features.chat) return;
     await hydrateMatrix();
-    homeserver ||= homeserverLabel(config.homeserver);
 
     const params = page.url.searchParams;
-    const loginToken = params.get('loginToken');
-    const pendingHs = sessionStorage.getItem('matrix-sso-homeserver');
-    if (loginToken && pendingHs) {
-      sessionStorage.removeItem('matrix-sso-homeserver');
-      busy = true;
-      try {
-        await getMatrix().signInWithToken(pendingHs, loginToken);
-        await goto(resolve('/chat'), { replaceState: true });
-      } catch (error) {
-        formError = error instanceof Error ? error.message : String(error);
-      } finally {
-        busy = false;
-      }
-    }
     const dm = params.get('dm');
     if (dm && parseMatrixTarget(dm)?.kind === 'user') pendingDm = parseMatrixTarget(dm)!.id;
     const join = params.get('join');
@@ -110,7 +114,11 @@
         topic: params.get('topic') ?? undefined,
       };
     }
-    void probeMeshHomeserver();
+    await connectMesh();
+  });
+
+  onDestroy(() => {
+    if (peerTimer) clearInterval(peerTimer);
   });
 
   const sessionChatLabel = (alias: string | undefined): string => {
@@ -123,35 +131,6 @@
           ? 'Venue room'
           : 'Room';
   };
-
-  async function signIn(event: SubmitEvent) {
-    event.preventDefault();
-    busy = true;
-    formError = null;
-    try {
-      await getMatrix().signInWithPassword(homeserver, username, password);
-      password = '';
-    } catch (error) {
-      formError = error instanceof Error ? error.message : String(error);
-    } finally {
-      busy = false;
-    }
-  }
-
-  async function signInWithSso() {
-    busy = true;
-    formError = null;
-    try {
-      const redirect = new URL(`${base}/chat`, window.location.origin).toString();
-      const url = await getMatrix().ssoStartUrl(homeserver, redirect);
-      const m = await import('@indiafoss/matrix');
-      sessionStorage.setItem('matrix-sso-homeserver', await m.MatrixClient.discover(homeserver));
-      window.location.assign(url);
-    } catch (error) {
-      formError = error instanceof Error ? error.message : String(error);
-      busy = false;
-    }
-  }
 
   async function signOut() {
     busy = true;
@@ -166,7 +145,7 @@
     actionError = null;
     const target = parseMatrixTarget(idOrAlias);
     if (!target || target.kind === 'user') {
-      actionError = 'Enter a room alias like #hallway:matrix.org or a matrix.to room link.';
+      actionError = 'Enter a room alias like #hallway:… or a room id.';
       return;
     }
     busy = true;
@@ -185,7 +164,7 @@
     actionError = null;
     const target = parseMatrixTarget(input);
     if (!target || target.kind !== 'user') {
-      actionError = 'Enter a Matrix user id like @alice:matrix.org.';
+      actionError = 'Enter a mesh user id like @n:<node id>, or pick a nearby peer.';
       return;
     }
     pendingDm = target.id;
@@ -207,98 +186,67 @@
     }
   }
 
-  async function runSearch(event: SubmitEvent) {
-    event.preventDefault();
-    if (search.trim().length < 2) return;
-    searching = true;
-    actionError = null;
-    try {
-      searchResults = await getMatrix().searchPublicRooms(search.trim());
-    } catch (error) {
-      actionError = error instanceof Error ? error.message : String(error);
-    } finally {
-      searching = false;
-    }
-  }
-
-  const isJoined = (room: MessagingRoom) => joinedAliases.has(room.alias);
+  const peerLabel = (p: NeutrinoPeer) => p.displayName || shortServerName(p.serverName);
 </script>
 
 <h1>Chat</h1>
 <p class="muted">
-  Optional Matrix messaging for conference rooms and one-to-one conversations. The schedule, map and
-  ranking never need it.
+  Peer-to-peer chat with people at the venue: session and booth rooms, and direct messages, over
+  Bluetooth and Wi-Fi mesh. No account, no public server. The schedule, map and ranking never need
+  it.
 </p>
 
-{#if !matrixState.hydrated}
-  <p class="muted small" role="status">Restoring session…</p>
+{#if !features.loaded}
+  <p class="muted small" role="status">Loading…</p>
+{:else if !features.chat}
+  <section class="card">
+    <h2>P2P chat is off</h2>
+    <p class="muted small">
+      Switch it on to run the mesh node on this device and talk to nearby attendees. Nothing is
+      started or sent until you do.
+    </p>
+    <div class="actions">
+      <button class="button primary" onclick={enable}>Enable P2P chat</button>
+      <a class="button secondary small" href={resolve('/settings')}>Settings</a>
+    </div>
+    <p class="muted small">
+      Looking for a regular Matrix room? Contact cards and speaker profiles link Matrix ids that
+      open in <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+      <a href="https://element.io/download" rel="noreferrer">Element</a>.
+    </p>
+  </section>
+{:else if !matrixState.hydrated || meshSearching}
+  <p class="muted small" role="status">
+    {meshSearching ? 'Starting the mesh node on this device…' : 'Restoring session…'}
+  </p>
 {:else if !signedIn}
   <section class="card">
-    <h2>Sign in to Matrix</h2>
-    <p class="muted small">
-      Use any Matrix account (for example on {homeserverLabel(config.homeserver)}). Your access
-      token stays in this browser; nothing is sent anywhere except your homeserver.
-    </p>
-    {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
-    {#if pendingOpen}
-      <p class="pill amber">Sign in to open “{pendingOpen.name}”</p>
-    {/if}
-    {#if meshHomeserver}
-      <section class="mesh">
-        <strong>P2P mesh homeserver found on this device</strong>
-        <p class="muted small">
-          A Neutrino node is running locally, so chat can work over Bluetooth/Wi-Fi mesh without
-          venue internet. It is experimental: messages are not signed and do not reach public
-          Matrix.
-        </p>
-        <button
-          type="button"
-          class="button secondary small"
-          onclick={() => (homeserver = meshHomeserver!)}
-        >
-          Use {meshHomeserver}
-        </button>
-      </section>
-    {/if}
-    <form onsubmit={signIn} class="form">
-      <label>
-        Homeserver
-        <input name="homeserver" bind:value={homeserver} autocomplete="url" required />
-      </label>
-      <label>
-        Username
-        <input
-          name="username"
-          bind:value={username}
-          autocomplete="username"
-          placeholder="alice or @alice:matrix.org"
-          required
-        />
-      </label>
-      <label>
-        Password
-        <input
-          name="password"
-          type="password"
-          bind:value={password}
-          autocomplete="current-password"
-          required
-        />
-      </label>
-      {#if formError}<p class="error" role="alert">{formError}</p>{/if}
+    {#if mesh}
+      <h2>Could not join the mesh node</h2>
+      {#if signInError}<p class="error" role="alert">{signInError}</p>{/if}
+      {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
       <div class="actions">
-        <button class="button primary" type="submit" disabled={busy}>Sign in</button>
-        <button type="button" class="button secondary" onclick={signInWithSso} disabled={busy}
-          >Sign in with SSO</button
-        >
+        <button class="button primary" onclick={connectMesh} disabled={busy}>Try again</button>
       </div>
-    </form>
-    <p class="muted small">
-      No account? Create one on the homeserver of your choice, or use
-      <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-      <a href="https://matrix.org/ecosystem/clients/" rel="noreferrer">any Matrix client</a>
-      with the same rooms.
-    </p>
+    {:else}
+      <h2>No mesh node on this device</h2>
+      <p class="muted small">
+        P2P chat runs inside the Android app, which carries the Neutrino node (Bluetooth and Wi-Fi
+        mesh). In a browser there is nothing to connect to.
+      </p>
+      {#if pendingOpen}
+        <p class="pill amber">“{pendingOpen.name}” will open once the mesh is available.</p>
+      {/if}
+      <div class="actions">
+        <button class="button secondary small" onclick={connectMesh}>Look again</button>
+      </div>
+      <p class="muted small">
+        For regular Matrix rooms use
+        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+        <a href="https://element.io/download" rel="noreferrer">Element</a> with the Matrix ids on contact
+        cards.
+      </p>
+    {/if}
   </section>
 {:else}
   <section class="status" aria-live="polite">
@@ -308,10 +256,18 @@
       <span class="pill">{matrixState.outbox.length} queued</span>
     {/if}
     <span class="spacer"></span>
-    <span class="muted small">{matrixState.displayName ?? localpart(matrixState.userId ?? '')}</span
-    >
+    <span class="muted small" title={matrixState.userId ?? ''}>
+      {matrixState.displayName ?? localpart(matrixState.userId ?? '')}
+      {#if mesh?.serverName}· node {shortServerName(mesh.serverName)}{/if}
+    </span>
     <button class="button ghost small" onclick={signOut} disabled={busy}>Sign out</button>
   </section>
+  {#if !onMesh}
+    <p class="pill amber">
+      This session is on {matrixState.homeserver}, not the on-device mesh. Sign out to reconnect to
+      the mesh node.
+    </p>
+  {/if}
   {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
   {#if actionError}<p class="error" role="alert">{actionError}</p>{/if}
 
@@ -319,9 +275,9 @@
     <section class="card accent confirm" aria-labelledby="open-title">
       <h2 id="open-title">Open “{pendingOpen.name}”?</h2>
       <p class="muted small">
-        {pendingOpen.topic ?? ''} Room <code>{pendingOpen.alias}</code> is public and created on demand
-        — the first person to open it creates it, everyone else joins. Joining reveals your Matrix id
-        to its members.
+        {pendingOpen.topic ?? ''} Room <code>{pendingOpen.alias}</code> is created on demand on the mesh:
+        the first person to open it creates it, everyone nearby joins the same one. Joining reveals your
+        mesh id to its members.
       </p>
       <div class="actions">
         <button class="button primary" onclick={openConference} disabled={opening}>
@@ -337,17 +293,46 @@
       <h2 id="dm-title">Start a direct message?</h2>
       <p>
         With <strong>{pendingDm}</strong>. A scanned or pasted id is an identifier exchange, not
-        proof of identity — this person is <em>unverified</em> until you verify them in a full Matrix
-        client.
+        proof of identity: this person is <em>unverified</em> until you compare key badges in person.
       </p>
       <div class="actions">
         <button class="button primary" onclick={confirmDm} disabled={busy}
           >Start conversation</button
         >
         <button class="button secondary small" onclick={() => (pendingDm = null)}>Cancel</button>
-        <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-        <a href={matrixToUrl(pendingDm)} rel="noreferrer">Open in Element instead</a>
+        {#if !pendingDm.startsWith(`@${MESH_LOCALPART}:`)}
+          <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+          <a href={matrixToUrl(pendingDm)} rel="noreferrer">Open in Element instead</a>
+        {/if}
       </div>
+    </section>
+  {/if}
+
+  {#if mesh?.native}
+    <section>
+      <h2>Nearby</h2>
+      {#if peers.length === 0}
+        <p class="muted small">
+          No peers found yet. Others need the app open with P2P chat on; Bluetooth discovery takes a
+          moment.
+        </p>
+      {:else}
+        <ul class="rooms">
+          {#each peers as peer (peer.serverName)}
+            <li>
+              <div>
+                <strong>{peerLabel(peer)}</strong>
+                <p class="muted small"><code>{shortServerName(peer.serverName)}</code></p>
+              </div>
+              <button
+                class="button secondary small"
+                onclick={() => requestDm(neutrinoMatrixId(peer.serverName))}
+                disabled={busy}>Message</button
+              >
+            </li>
+          {/each}
+        </ul>
+      {/if}
     </section>
   {/if}
 
@@ -370,36 +355,6 @@
     </section>
   {/if}
 
-  {#if config.rooms.length > 0}
-    <section>
-      <h2>Conference rooms</h2>
-      <ul class="rooms">
-        {#each config.rooms as room (room.alias)}
-          <li>
-            <div>
-              <strong>{room.name}</strong>
-              <p class="muted small">{room.purpose ?? room.alias}</p>
-            </div>
-            {#if isJoined(room)}
-              <a
-                class="button"
-                href={resolve(
-                  `/chat/${encodeURIComponent(joinedRooms.find((r) => r.alias === room.alias)!.roomId)}`,
-                )}>Open</a
-              >
-            {:else}
-              <button
-                class="button secondary small"
-                onclick={() => join(room.alias)}
-                disabled={busy}>Join</button
-              >
-            {/if}
-          </li>
-        {/each}
-      </ul>
-    </section>
-  {/if}
-
   {#if sessionRooms.length > 0}
     <section>
       <h2>Session, booth and venue chats</h2>
@@ -408,9 +363,7 @@
           <li>
             <a class="roomlink" href={resolve(`/chat/${encodeURIComponent(room.roomId)}`)}>
               <strong>{room.name}</strong>
-              <span class="muted small"
-                >{sessionChatLabel(room.alias)}{room.encrypted ? ' · 🔒' : ''}</span
-              >
+              <span class="muted small">{sessionChatLabel(room.alias)}</span>
             </a>
             {#if room.unread > 0}<span class="badge" aria-label="{room.unread} unread"
                 >{room.unread}</span
@@ -419,14 +372,17 @@
         {/each}
       </ul>
     </section>
+  {:else}
+    <p class="muted small">
+      Session and booth chats open from the <a href={resolve('/schedule')}>schedule</a>, a session
+      page or a booth page.
+    </p>
   {/if}
 
   <section>
     <h2>Your rooms</h2>
     {#if otherRooms.length === 0}
-      <p class="muted">
-        No rooms yet. Join a conference room, search the directory, or start a direct message.
-      </p>
+      <p class="muted">No conversations yet. Message a nearby peer or a saved contact.</p>
     {:else}
       <ul class="rooms">
         {#each otherRooms as room (room.roomId)}
@@ -434,9 +390,7 @@
             <a class="roomlink" href={resolve(`/chat/${encodeURIComponent(room.roomId)}`)}>
               <strong>{room.name}</strong>
               <span class="muted small">
-                {room.isDirect ? 'Direct message' : (room.alias ?? 'Room')}{room.encrypted
-                  ? ' · encrypted'
-                  : ''}
+                {room.isDirect ? 'Direct message' : (room.alias ?? 'Room')}
               </span>
             </a>
             {#if room.unread > 0}<span class="badge" aria-label="{room.unread} unread"
@@ -457,19 +411,17 @@
         requestDm(dmInput);
       }}
     >
-      <input
-        aria-label="Matrix user id"
-        bind:value={dmInput}
-        placeholder="@alice:matrix.org or matrix.to link"
-      />
+      <input aria-label="Mesh user id" bind:value={dmInput} placeholder="@n:<node id>" />
       <button class="button secondary small" type="submit" disabled={busy}>Message</button>
     </form>
-    {#if matrixContacts.length > 0}
-      <p class="muted small">Saved contacts</p>
+    {#if meshContacts.length > 0}
+      <p class="muted small">Saved contacts on the mesh</p>
       <ul class="chips">
-        {#each matrixContacts as contact (contact.id)}
+        {#each meshContacts as contact (contact.id)}
           <li>
-            <button class="button secondary small" onclick={() => requestDm(contact.matrixId!)}
+            <button
+              class="button secondary small"
+              onclick={() => requestDm(neutrinoMatrixId(contact.neutrinoServerName!))}
               >{contact.fullName}</button
             >
           </li>
@@ -477,8 +429,8 @@
       </ul>
     {/if}
     <p class="muted small">
-      <a href={resolve('/scan')}>Scan a contact QR code</a> to add people.
-      {#if matrixState.encryptionReady}New direct messages are end-to-end encrypted.{/if}
+      <a href={resolve('/scan')}>Scan a contact card</a> to add people; cards carry their mesh id when
+      they chose to share it.
     </p>
   </section>
 
@@ -491,35 +443,10 @@
         void join(joinInput);
       }}
     >
-      <input aria-label="Room alias" bind:value={joinInput} placeholder="#hallway:matrix.org" />
+      <input aria-label="Room alias" bind:value={joinInput} placeholder="#hallway:<node id>" />
       <button class="button secondary small" type="submit" disabled={busy}>Join</button>
     </form>
-    <form class="inline" onsubmit={runSearch}>
-      <input
-        aria-label="Search public rooms"
-        type="search"
-        bind:value={search}
-        placeholder="Search the room directory…"
-      />
-      <button class="button secondary small" type="submit" disabled={searching}>Search</button>
-    </form>
-    {#if searchResults.length > 0}
-      <ul class="rooms">
-        {#each searchResults as room (room.roomId)}
-          <li>
-            <div>
-              <strong>{room.name ?? room.alias ?? room.roomId}</strong>
-              <p class="muted small">{room.topic ?? room.alias ?? ''} · {room.members} members</p>
-            </div>
-            <button
-              class="button secondary small"
-              onclick={() => join(room.alias ?? room.roomId)}
-              disabled={busy}>Join</button
-            >
-          </li>
-        {/each}
-      </ul>
-    {/if}
+    <p class="muted small">Rooms on the mesh are unencrypted; do not share secrets.</p>
   </section>
 {/if}
 
@@ -532,15 +459,6 @@
     border: 2px solid var(--event-accent);
     background: color-mix(in srgb, var(--event-accent) 12%, var(--surface));
   }
-  .form {
-    display: grid;
-    gap: 0.75rem;
-  }
-  .form label {
-    display: grid;
-    gap: 0.25rem;
-    font-size: 0.85rem;
-  }
   .inline {
     display: flex;
     gap: 0.5rem;
@@ -551,15 +469,6 @@
     flex-wrap: wrap;
     gap: 0.6rem;
     align-items: center;
-  }
-  .mesh {
-    border: 2px dashed var(--mint);
-    border-radius: var(--radius);
-    padding: 0.7rem 0.9rem;
-    margin: 0.6rem 0;
-  }
-  .mesh p {
-    margin: 0.2rem 0 0.5rem;
   }
   .status {
     display: flex;
@@ -592,6 +501,10 @@
     padding: 0.1rem 0.55rem;
     font-size: 0.75rem;
     font-weight: 700;
+  }
+  .pill.amber {
+    display: inline-block;
+    margin: 0 0 0.8rem;
   }
   .rooms {
     list-style: none;

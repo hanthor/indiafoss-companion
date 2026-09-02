@@ -52,3 +52,7 @@ alignment, #3 CI packages token, #4 fork roadmap.
   implemented; mesh rooms are unencrypted and the UI says so.
 - 2026-09-02: FFF Forward is not redistributable; Press Start 2P is the bundled
   display fallback pending a licence decision (#33).
+- 2026-09-02: **In-app chat is P2P only.** No public-homeserver sign-in in the
+  app; Matrix ids on profiles open in Element. Reason: Neutrino nodes do not
+  federate with public Matrix and identities cannot be linked, so mixing both
+  would split conversations (#35).

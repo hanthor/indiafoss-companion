@@ -1,0 +1,83 @@
+name: Nightly APK
+
+# Publishes the latest main as an installable debug APK on the rolling
+# "nightly" pre-release so testers never need a GitHub login for artifacts.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Build and publish nightly APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web app
+        run: pnpm --filter @indiafoss/web build
+
+      - name: Add Android platform
+        run: pnpm --filter @indiafoss/android exec cap add android
+
+      - name: Sync web assets
+        env:
+          NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+        run: pnpm --filter @indiafoss/android build
+
+      - name: Assemble debug APK
+        env:
+          NEUTRINO_PACKAGES_TOKEN: ${{ secrets.NEUTRINO_PACKAGES_TOKEN }}
+        run: cd apps/android/capacitor/android && ./gradlew assembleDebug
+
+      - name: Name and checksum the APK
+        run: |
+          mkdir -p dist
+          cp apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk dist/indiafoss-companion-nightly.apk
+          cd dist && sha256sum indiafoss-companion-nightly.apk > indiafoss-companion-nightly.apk.sha256
+          cat indiafoss-companion-nightly.apk.sha256
+
+      - name: Move the nightly tag to this commit
+        run: |
+          git tag -f nightly
+          git push -f origin nightly
+
+      - name: Publish to the nightly pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: nightly
+          name: Nightly build
+          prerelease: true
+          body: |
+            Latest `main` (${{ github.sha }}) as a debug APK. Install over the previous nightly.
+            P2P chat is included only when the build had access to the Neutrino bindings.
+          files: |
+            dist/indiafoss-companion-nightly.apk
+            dist/indiafoss-companion-nightly.apk.sha256
