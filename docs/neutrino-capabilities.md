@@ -160,11 +160,22 @@ not by spec completeness.
    The first three are ordinary storage-and-routing work. The fourth is the
    real design question, and the one to put to upstream before writing code.
 
+   **All four are now written**, as two patches in
+   [`patches/neutrino/`](../patches/neutrino/README.md), verified against two
+   servers on loopback. The results table above still describes _stock_
+   Neutrino, which is what the probe measures; run the probe again with the
+   patches applied and the four E2EE rows move to "works". What is still
+   missing there is durability, not protocol: outbound to-device EDUs bypass
+   the PDU outbox, so a peer out of range when a room key is shared does not
+   get it later.
+
 Everything above 3 needs upstream work in `element-hq/neutrino`. Two notes on
 how:
 
 - **Upstream, do not fork.** Neutrino is moving fast and is pre-alpha; a
-  long-lived fork of it would be a maintenance trap for a conference app.
+  long-lived fork of it would be a maintenance trap for a conference app. The
+  patches in `patches/neutrino/` are kept as patches for exactly this reason:
+  they rebase, a fork drifts.
 - **`neutrino-testkit` is the test rig.** It is a multi-federation harness and
   its loopback tests drive iroh over UDP, so features can be developed and
   tested in CI without a pair of phones. BLE hardware is only needed for the

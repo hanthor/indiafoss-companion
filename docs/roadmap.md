@@ -30,16 +30,16 @@ changes, update the issue first, then this file, so neither drifts.
 
 ## Open, ordered by conference impact
 
-| Rank | Issue                                                                                 | Why it matters                                                                         |
-| ---- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app       | Device verification of the Neutrino plugin, foreground service, working Packages token |
-| 1    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue | Architecture decided and shipped; two-phone verification is the only step left         |
-| 2    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2          | Remaining: NFC (needs a native plugin), end-of-conference summary image                |
-| 3    | [#30](https://github.com/hanthor/indiafoss-companion/issues/30) Chat UX               | Remaining: device verification, which waits on #27                                     |
-| 4    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish         | Remaining: visual regression snapshots, empty states                                   |
-| 5    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications         | Remaining: a push while the _web_ app is closed, which the no-push policy rules out    |
-| 6    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE    | Upstream Rust work; parked until someone can build Neutrino                            |
-| 7    | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client      | In progress: `apps/android/native` builds in CI; Now/Schedule/Plan/Map render natively |
+| Rank | Issue                                                                                 | Why it matters                                                                                                               |
+| ---- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app       | Device verification of the Neutrino plugin, foreground service, working Packages token                                       |
+| 1    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue | Architecture decided and shipped; two-phone verification is the only step left                                               |
+| 2    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2          | Remaining: NFC (needs a native plugin), end-of-conference summary image                                                      |
+| 3    | [#30](https://github.com/hanthor/indiafoss-companion/issues/30) Chat UX               | Remaining: device verification, which waits on #27                                                                           |
+| 4    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish         | Remaining: visual regression snapshots, empty states                                                                         |
+| 5    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications         | Remaining: a push while the _web_ app is closed, which the no-push policy rules out                                          |
+| 6    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE    | Written: `patches/neutrino/` carries the client-server and federation halves, verified on loopback. Upstream has to take it. |
+| 7    | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client      | In progress: `apps/android/native` builds in CI; Now/Schedule/Plan/Map render natively                                       |
 
 Closed as done: #2 (2025 data), #7 (revision handling), #29 (organiser rooms),
 #32 (socials), #52–#55 and #60 (device and UX feedback).
@@ -61,8 +61,11 @@ alignment, #3 CI packages token, #4 fork roadmap.
 - 2026-09-01: Handshake cards are signed with a per-device WebCrypto key;
   nothing is verified server-side; GitHub and LinkedIn are shared by default,
   email, phone and messengers are opt-in.
-- 2026-09-02: Neutrino mesh E2EE is scoped in `neutrino-e2ee.md` but not
-  implemented; mesh rooms are unencrypted and the UI says so.
+- 2026-09-02: Neutrino mesh E2EE is **written but not upstream**. Both halves —
+  the client-server key surface and the federation one — live in
+  `patches/neutrino/`, verified against two servers on loopback. Mesh rooms stay
+  unencrypted, and the UI says so, until a Neutrino carrying them ships: a patch
+  in this repository encrypts nothing on anyone's phone.
 - 2026-09-02: FFF Forward is not redistributable; Press Start 2P is the bundled
   display fallback pending a licence decision (#33).
 - 2026-09-02: **The native client renders natively, neutral M3.** `apps/android/native`

@@ -50,6 +50,32 @@ conference fork. The companion side needs nothing new: the same crypto
 layer that talks to matrix.org will talk to a Neutrino node that implements
 the above.
 
+## What we implemented, and what is left
+
+Items 2 and 3 above are done, as two patches kept in
+[`patches/neutrino/`](../patches/neutrino/README.md) — see that README for how
+to apply them and exactly what each one covers.
+
+- **Client-server half** (`0001`): a real per-device key store, honest one-time
+  key counts, `POST /keys/claim` that pops rather than reads, and
+  `PUT /sendToDevice/{type}/{txn}` delivered under `to_device` in `/sync`.
+- **Federation half** (`0002`): `user/keys/query`, `user/keys/claim`,
+  `user/devices`, and `m.direct_to_device` EDUs in both directions, with the
+  client-server handlers fanning out to whichever server owns each user. This
+  is the half that matters on a mesh, where every phone is its own homeserver
+  and therefore every peer is a remote user.
+
+Verified against two servers on loopback: a remote device queried, its one-time
+keys claimed exactly once each, and a room key delivered to the other server's
+`/sync`. Twelve tests cover the routes, the ownership scoping, claim
+exhaustion, EDU dedup and the auth gate.
+
+Still open: to-device delivery bypasses the durable outbox (best-effort, so a
+peer out of range when a key is shared does not get it later), keys live in
+memory rather than sqlite, `m.device_list_update` is not sent, item 4 (the
+sliding-sync E2EE extension) is untouched, and item 5 — signing — is unchanged
+and is what still makes this "private, not authenticated".
+
 ## What the IndiaFOSS fork does meanwhile
 
 - Keeps Element X's E2EE for public-homeserver accounts.

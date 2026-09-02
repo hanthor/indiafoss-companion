@@ -1,0 +1,1175 @@
+From 23101a332cf7b85e943ddc6aa7fd4d21a87315fa Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Wed, 2 Sep 2026 21:41:46 +0000
+Subject: [PATCH 2/2] Carry device keys and to-device messages across
+ federation
+
+The client-server key endpoints only help when both devices are on the
+same homeserver. On a phone mesh they never are: every phone runs its own
+Neutrino, so every peer you want to encrypt to is a remote user, and a
+purely local key directory answers every query with an empty object.
+
+Adds the federation half:
+
+- POST /_matrix/federation/v1/user/keys/query
+- POST /_matrix/federation/v1/user/keys/claim
+- GET  /_matrix/federation/v1/user/devices/{userId}
+- m.direct_to_device EDUs, both directions
+
+The client-server /keys/query, /keys/claim and /sendToDevice handlers now
+split their request by the server that owns each user, answer for our own
+and ask (or tell) the owning server for the rest. A peer we cannot reach
+lands in `failures` rather than failing the whole call, so a client still
+encrypts to everyone it did get keys for.
+
+Inbound EDUs are handled past the whole-transaction dedup, so a peer
+retrying a transaction does not re-deliver a room key. Messages addressed
+to users we do not own are dropped, never relayed: forwarding would let
+any peer inject to-device traffic under our origin.
+
+Known limitation, called out in the code: outbound EDUs bypass the durable
+outbox (which stores PDUs), so delivery is best-effort. A peer out of range
+when a key is shared does not get it later; the client's re-share on the
+next send to an unknown device is the recovery path. Making this durable is
+the obvious next step.
+
+Verified against two servers on loopback: a remote device queried, its
+one-time keys claimed exactly once each, and a room key delivered to the
+other server's /sync. Twelve tests cover the routes, the ownership scoping,
+claim exhaustion, EDU dedup and the auth gate.
+---
+ crates/neutrino-http/src/federation/client.rs | 100 ++++++
+ crates/neutrino-http/src/federation/keys.rs   | 152 +++++++++
+ crates/neutrino-http/src/federation/mod.rs    |   1 +
+ crates/neutrino-http/src/federation/send.rs   |  78 ++++-
+ crates/neutrino-http/src/federation/tests.rs  | 309 +++++++++++++++++
+ crates/neutrino-http/src/legacy_sync/mod.rs   |   2 +-
+ crates/neutrino-http/src/lib.rs               | 321 ++++++++++++++----
+ 7 files changed, 893 insertions(+), 70 deletions(-)
+ create mode 100644 crates/neutrino-http/src/federation/keys.rs
+
+diff --git a/crates/neutrino-http/src/federation/client.rs b/crates/neutrino-http/src/federation/client.rs
+index a55e70e..9988569 100644
+--- a/crates/neutrino-http/src/federation/client.rs
++++ b/crates/neutrino-http/src/federation/client.rs
+@@ -218,6 +218,106 @@ impl FederationClient {
+             .unwrap_or_default())
+     }
+ 
++    /// `POST http://{dest}/_matrix/federation/v1/user/keys/query` — ask the
++    /// server that owns a set of users for their device keys. `requested` is
++    /// the `{user: [device_ids]}` map; the peer's whole answer object is
++    /// returned for the caller to merge.
++    pub(crate) async fn keys_query(
++        &self,
++        dest: &ServerName,
++        requested: &serde_json::Map<String, Value>,
++    ) -> Result<Value, FederationClientError> {
++        let url = format!(
++            "http://{}/_matrix/federation/v1/user/keys/query",
++            self.url_authority(dest)
++        );
++        info!(target: "neutrino_http", %dest, users = requested.len(), "outbound POST /_matrix/federation/v1/user/keys/query");
++        let resp = self
++            .http
++            .post(&url)
++            .header(reqwest::header::AUTHORIZATION, self.x_matrix(dest))
++            .json(&serde_json::json!({ "device_keys": requested }))
++            .send()
++            .await?;
++        if !resp.status().is_success() {
++            return Err(non_2xx_error(resp, dest, "POST /user/keys/query").await);
++        }
++        Ok(resp.json::<Value>().await?)
++    }
++
++    /// `POST http://{dest}/_matrix/federation/v1/user/keys/claim` — take one
++    /// one-time key per requested remote device. Returns the peer's
++    /// `one_time_keys` map (absent or malformed becomes an empty object: a peer
++    /// with no keys left is a normal answer, not a transport failure).
++    pub(crate) async fn keys_claim(
++        &self,
++        dest: &ServerName,
++        requested: &serde_json::Map<String, Value>,
++    ) -> Result<Value, FederationClientError> {
++        let url = format!(
++            "http://{}/_matrix/federation/v1/user/keys/claim",
++            self.url_authority(dest)
++        );
++        info!(target: "neutrino_http", %dest, users = requested.len(), "outbound POST /_matrix/federation/v1/user/keys/claim");
++        let resp = self
++            .http
++            .post(&url)
++            .header(reqwest::header::AUTHORIZATION, self.x_matrix(dest))
++            .json(&serde_json::json!({ "one_time_keys": requested }))
++            .send()
++            .await?;
++        if !resp.status().is_success() {
++            return Err(non_2xx_error(resp, dest, "POST /user/keys/claim").await);
++        }
++        let body = resp.json::<Value>().await?;
++        Ok(body
++            .get("one_time_keys")
++            .cloned()
++            .unwrap_or_else(|| Value::Object(serde_json::Map::new())))
++    }
++
++    /// `PUT http://{dest}/_matrix/federation/v1/send/{txn_id}` carrying one EDU
++    /// and no PDUs — the transport for `m.direct_to_device`.
++    ///
++    /// This bypasses the durable outbox (which stores PDUs, not EDUs), so
++    /// delivery is best-effort: a 4xx or an unreachable peer is logged and
++    /// dropped. That is a deliberate first step, not the end state — see the
++    /// caller in `lib.rs::send_to_device`.
++    pub(crate) async fn send_edu(
++        &self,
++        dest: &ServerName,
++        txn_id: &str,
++        edu: &Value,
++    ) -> Result<(), FederationClientError> {
++        let url = format!(
++            "http://{}/_matrix/federation/v1/send/{txn_id}",
++            self.url_authority(dest)
++        );
++        let edu = serde_json::value::to_raw_value(edu).map_err(|_| {
++            // An EDU we built ourselves from `serde_json::json!` always
++            // serializes; this arm is unreachable in practice.
++            FederationClientError::InvalidUrl
++        })?;
++        let edus = [edu];
++        let body = TransactionRequest {
++            pdus: &[],
++            edus: &edus,
++            forward_extremities: &BTreeMap::new(),
++        };
++        info!(target: "neutrino_http", %dest, txn = %txn_id, "outbound PUT /_matrix/federation/v1/send (edu)");
++        let resp = self
++            .http
++            .put(&url)
++            .header(reqwest::header::AUTHORIZATION, self.x_matrix(dest))
++            .json(&body)
++            .send()
++            .await?;
++        if !resp.status().is_success() {
++            return Err(non_2xx_error(resp, dest, "PUT /send (edu)").await);
++        }
++        Ok(())
++    }
++
+     /// `POST http://{dest}/_matrix/federation/v1/get_missing_events/{room_id}`
+     /// to fetch ancestry between `earliest` (boundary already held) and
+     /// `latest` (heads to walk back from), up to `limit` events. Returns the
+diff --git a/crates/neutrino-http/src/federation/keys.rs b/crates/neutrino-http/src/federation/keys.rs
+new file mode 100644
+index 0000000..590a23e
+--- /dev/null
++++ b/crates/neutrino-http/src/federation/keys.rs
+@@ -0,0 +1,152 @@
++//! Federation device-key and one-time-key endpoints — the half of E2EE that
++//! crosses the mesh.
++//!
++//! On a phone mesh every device is its own homeserver, so *every* peer is a
++//! remote peer: without these routes a client can hold a perfect Olm
++//! implementation and still never learn a single key belonging to the person
++//! sitting next to it. The client-server siblings in `lib.rs` answer for users
++//! this node owns; these answer the same questions for a peer that asks over
++//! federation, reading the same [`crate::KeyStore`].
++//!
++//! - `POST /_matrix/federation/v1/user/keys/query`
++//! - `POST /_matrix/federation/v1/user/keys/claim`
++//! - `GET  /_matrix/federation/v1/user/devices/{userId}`
++//!
++//! Trust model matches the rest of `federation/`: the `X-Matrix` origin is
++//! network-attested, not signed (see [`auth`]). A peer therefore learns any
++//! device key it asks for — which is what a key directory is for, but worth
++//! stating plainly: these endpoints publish public keys, and nothing here is a
++//! secret. One-time keys are the exception that matters, and `claim` pops
++//! rather than reads so a claimed key is never handed out twice, however many
++//! peers ask.
++//!
++//! **Users this node does not own are simply absent from the answer.** We never
++//! proxy a query onward: answering for someone else's user would let one node
++//! substitute keys for another's, which is exactly the attack E2EE exists to
++//! stop.
++
++use axum::{
++    Json,
++    extract::{Path, State},
++    http::HeaderMap,
++};
++use ruma::OwnedUserId;
++use serde_json::{Map, Value, json};
++
++use crate::federation::{FedError, auth};
++use crate::{AppState, lock_app};
++
++/// Restrict a `{user: …}` request map to the users this node actually owns.
++/// A user id that does not parse, or whose server is not us, is dropped
++/// silently — the spec's answer for "I don't know them" is absence, not an
++/// error.
++fn ours(requested: &Map<String, Value>, our_name: &str) -> Map<String, Value> {
++    requested
++        .iter()
++        .filter(|(user, _)| {
++            OwnedUserId::try_from(user.as_str()).is_ok_and(|u| u.server_name().as_str() == our_name)
++        })
++        .map(|(user, value)| (user.clone(), value.clone()))
++        .collect()
++}
++
++/// `POST /_matrix/federation/v1/user/keys/query` — the device directory as
++/// seen from another server. Body and response mirror the client-server
++/// `/keys/query`, minus the per-user `failures` (a server answers only for its
++/// own users, so there is nothing to fail).
++pub(crate) async fn query(
++    State(state): State<AppState>,
++    headers: HeaderMap,
++    Json(body): Json<Value>,
++) -> Result<Json<Value>, FedError> {
++    let our_name = lock_app(&state).config.server_name.clone();
++    auth::authenticated_origin(&headers, &our_name)?;
++
++    let requested = body
++        .pointer("/device_keys")
++        .and_then(Value::as_object)
++        .cloned()
++        .unwrap_or_default();
++    let app = lock_app(&state);
++    let device_keys = app.keys.device_keys_for(&ours(&requested, &our_name));
++    let mut response = Map::new();
++    response.insert("device_keys".to_owned(), Value::Object(device_keys));
++    for (key, value) in app.keys.cross_signing.iter() {
++        response.insert(key.clone(), value.clone());
++    }
++    Ok(Json(Value::Object(response)))
++}
++
++/// `POST /_matrix/federation/v1/user/keys/claim` — take one one-time key per
++/// requested device so the asking peer can open an Olm session with one of our
++/// users. The keys are removed as they are handed out.
++pub(crate) async fn claim(
++    State(state): State<AppState>,
++    headers: HeaderMap,
++    Json(body): Json<Value>,
++) -> Result<Json<Value>, FedError> {
++    let our_name = lock_app(&state).config.server_name.clone();
++    auth::authenticated_origin(&headers, &our_name)?;
++
++    let requested = body
++        .pointer("/one_time_keys")
++        .and_then(Value::as_object)
++        .cloned()
++        .unwrap_or_default();
++    let mut app = lock_app(&state);
++    let claimed = app.keys.claim_for(&ours(&requested, &our_name));
++    Ok(Json(json!({ "one_time_keys": claimed })))
++}
++
++/// `GET /_matrix/federation/v1/user/devices/{userId}` — the whole device list
++/// for one of our users, which is how a peer discovers devices it was never
++/// told about rather than having to guess device ids.
++///
++/// `stream_id` is required by the spec and is meant to order device-list
++/// updates. We have no device-list stream (nothing here ever revokes a device),
++/// so it is a constant: a peer using it to detect staleness will conclude our
++/// list never changes, which is true of this implementation.
++pub(crate) async fn devices(
++    State(state): State<AppState>,
++    headers: HeaderMap,
++    Path(user_id): Path<String>,
++) -> Result<Json<Value>, FedError> {
++    let our_name = lock_app(&state).config.server_name.clone();
++    auth::authenticated_origin(&headers, &our_name)?;
++
++    let user = OwnedUserId::try_from(user_id.as_str())
++        .map_err(|_| FedError::BadRequest("user id is not a valid Matrix user id"))?;
++    if user.server_name().as_str() != our_name {
++        return Err(FedError::BadRequest("user does not belong to this server"));
++    }
++
++    let app = lock_app(&state);
++    let devices = app
++        .keys
++        .devices
++        .get(user.as_str())
++        .into_iter()
++        .flatten()
++        .map(|(device_id, keys)| json!({ "device_id": device_id, "keys": keys }))
++        .collect::<Vec<_>>();
++    let mut response = json!({
++        "user_id": user.as_str(),
++        "stream_id": 1,
++        "devices": devices,
++    });
++    // Cross-signing keys ride along under the names the spec gives them here,
++    // when the user has uploaded any.
++    if let Some(object) = response.as_object_mut() {
++        for name in ["master_key", "self_signing_key"] {
++            let uploaded = app
++                .keys
++                .cross_signing
++                .get(&format!("{name}s"))
++                .or_else(|| app.keys.cross_signing.get(name));
++            if let Some(value) = uploaded {
++                object.insert(name.to_owned(), value.clone());
++            }
++        }
++    }
++    Ok(Json(response))
++}
+diff --git a/crates/neutrino-http/src/federation/mod.rs b/crates/neutrino-http/src/federation/mod.rs
+index d0555c7..42f6978 100644
+--- a/crates/neutrino-http/src/federation/mod.rs
++++ b/crates/neutrino-http/src/federation/mod.rs
+@@ -25,6 +25,7 @@ pub(crate) mod client;
+ pub(crate) mod get_missing_events;
+ pub(crate) mod invite;
+ pub(crate) mod join;
++pub(crate) mod keys;
+ pub(crate) mod leave;
+ pub(crate) mod make_join;
+ pub(crate) mod make_leave;
+diff --git a/crates/neutrino-http/src/federation/send.rs b/crates/neutrino-http/src/federation/send.rs
+index 6ef5c99..e9b7fff 100644
+--- a/crates/neutrino-http/src/federation/send.rs
++++ b/crates/neutrino-http/src/federation/send.rs
+@@ -74,10 +74,12 @@ pub(crate) struct TransactionBody {
+     /// an empty transaction.
+     #[serde(default)]
+     pdus: Vec<Box<RawJsonValue>>,
+-    /// EDUs are out of scope (no presence/typing/receipts/E2EE on this server).
+-    /// Deserialized for shape validation, then dropped — stubbed per CLAUDE.md.
+-    #[serde(default, rename = "edus")]
+-    _edus: Vec<Box<RawJsonValue>>,
++    /// Ephemeral events. Only `m.direct_to_device` is acted on (it carries
++    /// Megolm room keys between devices, and on a mesh those devices are always
++    /// on different servers); presence, typing and receipts are still parsed
++    /// for shape and dropped.
++    #[serde(default)]
++    edus: Vec<Box<RawJsonValue>>,
+     /// Anti-entropy: the sender's per-room forward extremities. Optional; a peer
+     /// that has not implemented forward-extremity reconciliation omits it and the
+     /// transaction behaves exactly as before. For each advertised room we hold,
+@@ -168,6 +170,12 @@ pub(crate) async fn handle(
+         }));
+     }
+ 
++    // EDUs. Handled here — past the whole-transaction dedup, before the PDUs —
++    // so a resent transaction does not deliver the same room key twice; an
++    // EDU-only transaction stages nothing, records itself as seen, and is
++    // therefore deduped by exactly the same path as one carrying events.
++    deliver_to_device(&state, &our_name, &body.edus);
++
+     // Parse + dedup by event_id, then durably stage each PDU. A PDU that fails
+     // `from_wire` is unkeyable (no derivable id) and cannot appear in the
+     // result map — silently dropped, matching Synapse's log-and-skip. The
+@@ -354,3 +362,65 @@ pub(crate) async fn handle(
+         forward_extremities,
+     }))
+ }
++
++/// Deposit the recipients of every `m.direct_to_device` EDU into the local
++/// to-device inboxes, ignoring EDU types this server does not implement.
++///
++/// This is the receiving half of mesh E2EE: the sending phone's homeserver PUT
++/// this transaction because the recipient is, from its point of view, a remote
++/// user. Messages addressed to users we do not own are dropped rather than
++/// relayed onward — we are not a router for someone else's devices, and
++/// forwarding would let any peer inject to-device traffic under our origin.
++fn deliver_to_device(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>]) {
++    use serde_json::{Value, json};
++
++    for raw in edus {
++        let Ok(edu) = serde_json::from_str::<Value>(raw.get()) else {
++            continue;
++        };
++        if edu.get("edu_type").and_then(Value::as_str) != Some("m.direct_to_device") {
++            continue;
++        }
++        let content = edu.get("content");
++        let sender = content
++            .and_then(|c| c.get("sender"))
++            .and_then(Value::as_str)
++            .unwrap_or_default()
++            .to_owned();
++        let event_type = content
++            .and_then(|c| c.get("type"))
++            .and_then(Value::as_str)
++            .unwrap_or_default()
++            .to_owned();
++        let messages = content
++            .and_then(|c| c.get("messages"))
++            .and_then(Value::as_object);
++        let Some(messages) = messages else {
++            continue;
++        };
++
++        let mut app = lock_app(state);
++        for (user, devices) in messages {
++            let ours = ruma::OwnedUserId::try_from(user.as_str())
++                .is_ok_and(|u| u.server_name().as_str() == our_name);
++            if !ours {
++                warn!(%user, "dropping to-device message for a user we do not own");
++                continue;
++            }
++            let Some(devices) = devices.as_object() else {
++                continue;
++            };
++            // Device targeting collapses to the user, matching the local inbox:
++            // login hands every device the same id, so the server cannot tell
++            // two of a user's devices apart yet. `*` (every device) and a named
++            // device therefore behave identically here.
++            for message in devices.values() {
++                app.to_device.entry(user.clone()).or_default().push(json!({
++                    "type": event_type,
++                    "sender": sender,
++                    "content": message.clone(),
++                }));
++            }
++        }
++    }
++}
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index a9a05f2..0b96cf4 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -5598,6 +5598,21 @@ async fn federation_endpoints_require_x_matrix_header() {
+             backfill_path(room_id.as_str(), &[head.as_str()], Some(10)),
+             None,
+         ),
++        (
++            "POST",
++            FED_KEYS_QUERY.to_owned(),
++            Some(json!({ "device_keys": {} })),
++        ),
++        (
++            "POST",
++            FED_KEYS_CLAIM.to_owned(),
++            Some(json!({ "one_time_keys": {} })),
++        ),
++        (
++            "GET",
++            format!("/_matrix/federation/v1/user/devices/{}", alice()),
++            None,
++        ),
+     ];
+     for (method, path, body) in &cases {
+         let (status, b) = fed_req(&router, method, path, body.as_ref(), None).await;
+@@ -5735,3 +5750,297 @@ async fn invite_oob_rejects_forged_sender() {
+         "honest OOB invite stub must be stored"
+     );
+ }
++
++// === E2EE key transport over federation ====================================
++//
++// On a phone mesh every device is its own homeserver, so a peer's keys are
++// always *remote* keys. These cover the three inbound routes a peer uses to
++// learn them, plus the `m.direct_to_device` EDU that carries the Megolm
++// session once a session can be opened.
++
++const FED_KEYS_QUERY: &str = "/_matrix/federation/v1/user/keys/query";
++const FED_KEYS_CLAIM: &str = "/_matrix/federation/v1/user/keys/claim";
++
++/// Upload one device (and optionally some one-time keys) through the
++/// client-server API, which is how a real client populates the directory the
++/// federation routes then serve.
++async fn upload_device(app: &axum::Router, user: &str, device: &str, one_time_keys: Value) {
++    let (status, _) = post_json(
++        app,
++        "/_matrix/client/v3/keys/upload",
++        &json!({
++            "device_keys": {
++                "user_id": user,
++                "device_id": device,
++                "algorithms": ["m.olm.v1.curve25519-aes-sha2"],
++                "keys": { format!("curve25519:{device}"): "curve", format!("ed25519:{device}"): "ed" },
++            },
++            "one_time_keys": one_time_keys,
++        }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "keys/upload");
++}
++
++/// Drive a federation transaction carrying EDUs and no PDUs.
++async fn send_edus(app: &axum::Router, txn_id: &str, edus: Value) -> StatusCode {
++    let req = Request::builder()
++        .method("PUT")
++        .uri(format!("/_matrix/federation/v1/send/{txn_id}"))
++        .header("content-type", "application/json")
++        .body(Body::from(
++            serde_json::to_vec(&json!({ "pdus": [], "edus": edus })).unwrap(),
++        ))
++        .unwrap();
++    drive(app, req).await.0
++}
++
++/// Everything currently sitting in the local to-device inbox, as a client sees
++/// it. `/sync` drains, so a second call returns nothing.
++async fn sync_to_device(app: &axum::Router) -> Vec<Value> {
++    let req = Request::builder()
++        .method("GET")
++        .uri("/_matrix/client/v3/sync?timeout=0")
++        .body(Body::empty())
++        .unwrap();
++    let (status, body) = drive(app, req).await;
++    assert_eq!(status, StatusCode::OK, "sync");
++    body.pointer("/to_device/events")
++        .and_then(Value::as_array)
++        .cloned()
++        .unwrap_or_default()
++}
++
++#[tokio::test]
++async fn federation_keys_query_returns_a_local_users_devices() {
++    let (app, _tmp) = test_router().await;
++    upload_device(&app, alice().as_str(), "PHONE", json!({})).await;
++
++    let (status, body) = post_json(
++        &app,
++        FED_KEYS_QUERY,
++        &json!({ "device_keys": { alice().as_str(): [] } }),
++    )
++    .await;
++
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(
++        body["device_keys"][alice().as_str()]["PHONE"]["device_id"],
++        "PHONE"
++    );
++}
++
++#[tokio::test]
++async fn federation_keys_query_answers_only_for_our_own_users() {
++    // Answering for another server's user would let one node substitute keys
++    // for another's — the exact attack E2EE exists to stop.
++    let (app, _tmp) = test_router().await;
++    upload_device(&app, peer_user().as_str(), "THEIRS", json!({})).await;
++
++    let (status, body) = post_json(
++        &app,
++        FED_KEYS_QUERY,
++        &json!({ "device_keys": { peer_user().as_str(): [] } }),
++    )
++    .await;
++
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(body["device_keys"], json!({}));
++}
++
++#[tokio::test]
++async fn federation_keys_query_honours_a_device_filter() {
++    let (app, _tmp) = test_router().await;
++    upload_device(&app, alice().as_str(), "PHONE", json!({})).await;
++    upload_device(&app, alice().as_str(), "LAPTOP", json!({})).await;
++
++    let (_, body) = post_json(
++        &app,
++        FED_KEYS_QUERY,
++        &json!({ "device_keys": { alice().as_str(): ["LAPTOP"] } }),
++    )
++    .await;
++
++    let devices = body["device_keys"][alice().as_str()].as_object().unwrap();
++    assert_eq!(devices.len(), 1, "only the requested device");
++    assert!(devices.contains_key("LAPTOP"));
++}
++
++#[tokio::test]
++async fn federation_keys_claim_hands_each_one_time_key_out_once() {
++    let (app, _tmp) = test_router().await;
++    upload_device(
++        &app,
++        alice().as_str(),
++        "PHONE",
++        json!({ "signed_curve25519:k1": { "key": "one" }, "signed_curve25519:k2": { "key": "two" } }),
++    )
++    .await;
++
++    let ask = json!({ "one_time_keys": { alice().as_str(): { "PHONE": "signed_curve25519" } } });
++    let mut handed_out = Vec::new();
++    for _ in 0..3 {
++        let (status, body) = post_json(&app, FED_KEYS_CLAIM, &ask).await;
++        assert_eq!(status, StatusCode::OK);
++        if let Some(keys) = body
++            .pointer(&format!("/one_time_keys/{}/PHONE", alice()))
++            .and_then(Value::as_object)
++        {
++            handed_out.extend(keys.keys().cloned());
++        }
++    }
++
++    // Two keys uploaded, two claims answered, the third empty — a one-time key
++    // handed out twice is not one-time.
++    assert_eq!(
++        handed_out,
++        vec!["signed_curve25519:k1", "signed_curve25519:k2"]
++    );
++}
++
++#[tokio::test]
++async fn federation_user_devices_lists_every_device() {
++    let (app, _tmp) = test_router().await;
++    upload_device(&app, alice().as_str(), "PHONE", json!({})).await;
++    upload_device(&app, alice().as_str(), "LAPTOP", json!({})).await;
++
++    let req = Request::builder()
++        .method("GET")
++        .uri(format!("/_matrix/federation/v1/user/devices/{}", alice()))
++        .body(Body::empty())
++        .unwrap();
++    let (status, body) = drive(&app, req).await;
++
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(body["user_id"], alice().as_str());
++    let mut ids: Vec<&str> = body["devices"]
++        .as_array()
++        .unwrap()
++        .iter()
++        .map(|d| d["device_id"].as_str().unwrap())
++        .collect();
++    ids.sort_unstable();
++    assert_eq!(ids, ["LAPTOP", "PHONE"]);
++}
++
++#[tokio::test]
++async fn federation_user_devices_rejects_a_user_we_do_not_own() {
++    let (app, _tmp) = test_router().await;
++    let req = Request::builder()
++        .method("GET")
++        .uri(format!(
++            "/_matrix/federation/v1/user/devices/{}",
++            peer_user()
++        ))
++        .body(Body::empty())
++        .unwrap();
++    let (status, body) = drive(&app, req).await;
++
++    assert_eq!(status, StatusCode::BAD_REQUEST);
++    assert_eq!(body["errcode"], "M_INVALID_PARAM");
++}
++
++#[tokio::test]
++async fn direct_to_device_edu_reaches_the_local_inbox() {
++    let (app, _tmp) = test_router().await;
++
++    let status = send_edus(
++        &app,
++        "edu-1",
++        json!([{
++            "edu_type": "m.direct_to_device",
++            "content": {
++                "sender": peer_user().as_str(),
++                "type": "m.room_key",
++                "message_id": "m1",
++                "messages": { alice().as_str(): { "PHONE": { "session_id": "S1" } } },
++            },
++        }]),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++
++    let events = sync_to_device(&app).await;
++    assert_eq!(events.len(), 1);
++    assert_eq!(events[0]["type"], "m.room_key");
++    assert_eq!(events[0]["sender"], peer_user().as_str());
++    assert_eq!(events[0]["content"]["session_id"], "S1");
++
++    // `/sync` drains: a to-device message is delivered once.
++    assert!(sync_to_device(&app).await.is_empty());
++}
++
++#[tokio::test]
++async fn resent_transaction_does_not_deliver_the_edu_twice() {
++    let (app, _tmp) = test_router().await;
++    let edus = json!([{
++        "edu_type": "m.direct_to_device",
++        "content": {
++            "sender": peer_user().as_str(),
++            "type": "m.room_key",
++            "message_id": "m1",
++            "messages": { alice().as_str(): { "PHONE": { "session_id": "S1" } } },
++        },
++    }]);
++
++    assert_eq!(
++        send_edus(&app, "edu-dup", edus.clone()).await,
++        StatusCode::OK
++    );
++    assert_eq!(send_edus(&app, "edu-dup", edus).await, StatusCode::OK);
++
++    // Whole-transaction dedup covers the EDU too: a peer retrying a
++    // transaction must not re-key the room.
++    assert_eq!(sync_to_device(&app).await.len(), 1);
++}
++
++#[tokio::test]
++async fn direct_to_device_edu_for_someone_elses_user_is_dropped() {
++    // We are not a router for another server's devices; relaying would let any
++    // peer inject to-device traffic under our origin.
++    let (app, _tmp) = test_router().await;
++
++    let status = send_edus(
++        &app,
++        "edu-2",
++        json!([{
++            "edu_type": "m.direct_to_device",
++            "content": {
++                "sender": peer_user().as_str(),
++                "type": "m.room_key",
++                "messages": { "@someone:third.example.org": { "*": { "session_id": "S1" } } },
++            },
++        }]),
++    )
++    .await;
++
++    assert_eq!(status, StatusCode::OK);
++    assert!(sync_to_device(&app).await.is_empty());
++}
++
++#[tokio::test]
++async fn unimplemented_edu_types_are_ignored() {
++    // Typing/presence/receipts still have no implementation; an EDU carrying
++    // one must not fail the transaction that also carries real work.
++    let (app, _tmp) = test_router().await;
++
++    let status = send_edus(
++        &app,
++        "edu-3",
++        json!([
++            { "edu_type": "m.typing", "content": { "user_id": peer_user().as_str(), "typing": true } },
++            {
++                "edu_type": "m.direct_to_device",
++                "content": {
++                    "sender": peer_user().as_str(),
++                    "type": "m.room_key",
++                    "messages": { alice().as_str(): { "*": { "session_id": "S1" } } },
++                },
++            },
++        ]),
++    )
++    .await;
++
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(sync_to_device(&app).await.len(), 1);
++}
+diff --git a/crates/neutrino-http/src/legacy_sync/mod.rs b/crates/neutrino-http/src/legacy_sync/mod.rs
+index c672dc2..434c796 100644
+--- a/crates/neutrino-http/src/legacy_sync/mod.rs
++++ b/crates/neutrino-http/src/legacy_sync/mod.rs
+@@ -17,8 +17,8 @@ use axum::{
+     response::IntoResponse,
+ };
+ use neutrino_store::{Membership, StorageBackend};
+-use serde_json::Value;
+ use ruma::{OwnedRoomId, OwnedUserId};
++use serde_json::Value;
+ 
+ use crate::{AppState, error_response, lock_app};
+ use crate::{
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 1d80ece..4bdbc89 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -73,7 +73,12 @@ impl KeyStore {
+     }
+ 
+     /// Merge uploaded one-time keys, keeping any already held.
+-    fn put_one_time_keys(&mut self, user: &str, device: &str, keys: &serde_json::Map<String, Value>) {
++    fn put_one_time_keys(
++        &mut self,
++        user: &str,
++        device: &str,
++        keys: &serde_json::Map<String, Value>,
++    ) {
+         let slot = self
+             .one_time_keys
+             .entry(user.to_owned())
+@@ -106,6 +111,61 @@ impl KeyStore {
+         counts
+     }
+ 
++    /// Device keys for an explicit `{user: [device_ids]}` request map. An
++    /// empty device list means every device of that user, per the spec; a user
++    /// we hold nothing for is absent from the answer rather than present and
++    /// empty, so a caller can tell "no such user" from "user with no devices".
++    fn device_keys_for(
++        &self,
++        requested: &serde_json::Map<String, Value>,
++    ) -> serde_json::Map<String, Value> {
++        let mut out = serde_json::Map::new();
++        for (user, wanted) in requested {
++            let Some(devices) = self.devices.get(user) else {
++                continue;
++            };
++            let filter = wanted.as_array().filter(|ids| !ids.is_empty());
++            let mut per_user = serde_json::Map::new();
++            for (device, keys) in devices {
++                let asked_for = filter
++                    .is_none_or(|ids| ids.iter().any(|id| id.as_str() == Some(device.as_str())));
++                if asked_for {
++                    per_user.insert(device.clone(), keys.clone());
++                }
++            }
++            out.insert(user.clone(), Value::Object(per_user));
++        }
++        out
++    }
++
++    /// Claim one one-time key per `{user: {device: algorithm}}` entry. Shared
++    /// by the client-server and federation `/keys/claim` handlers so a key can
++    /// never be handed to a local client and a remote peer both.
++    fn claim_for(
++        &mut self,
++        requested: &serde_json::Map<String, Value>,
++    ) -> serde_json::Map<String, Value> {
++        let mut claimed = serde_json::Map::new();
++        for (user, devices) in requested {
++            let Some(devices) = devices.as_object() else {
++                continue;
++            };
++            let mut per_device = serde_json::Map::new();
++            for (device, algorithm) in devices {
++                let Some(algorithm) = algorithm.as_str() else {
++                    continue;
++                };
++                if let Some((key_id, key)) = self.claim_one_time_key(user, device, algorithm) {
++                    per_device.insert(device.clone(), json!({ key_id: key }));
++                }
++            }
++            if !per_device.is_empty() {
++                claimed.insert(user.clone(), Value::Object(per_device));
++            }
++        }
++        claimed
++    }
++
+     /// Take one key of `algorithm` for a device, removing it. A one-time key
+     /// handed out twice is not one-time, so this is a pop and not a read.
+     fn claim_one_time_key(
+@@ -773,6 +833,18 @@ fn build_router(state: &AppState) -> Router {
+             "/_matrix/federation/v2/send_leave/{room_id}/{event_id}",
+             put(federation::send_leave::handle),
+         )
++        .route(
++            "/_matrix/federation/v1/user/keys/query",
++            post(federation::keys::query),
++        )
++        .route(
++            "/_matrix/federation/v1/user/keys/claim",
++            post(federation::keys::claim),
++        )
++        .route(
++            "/_matrix/federation/v1/user/devices/{user_id}",
++            get(federation::keys::devices),
++        )
+         .fallback(default_fallback)
+         // Log one INFO line per request (method + path) and one per response
+         // (status + latency), with 5xx surfaced at ERROR. We emit these under our
+@@ -1310,79 +1382,191 @@ fn error_response(status: StatusCode, errcode: &str, error: &str) -> axum::respo
+     (status, Json(json!({"errcode": errcode, "error": error}))).into_response()
+ }
+ 
+-async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+-    info!("Received query: {:?}", body.0);
+-    let app = lock_app(&state.0);
+-
+-    // An empty device list for a user means "every device", per the spec.
+-    let requested = body.pointer("/device_keys").and_then(Value::as_object);
+-    let mut device_keys = serde_json::Map::new();
+-    for (user, devices) in app.keys.devices.iter() {
+-        let wanted = match requested {
+-            Some(map) if !map.is_empty() => match map.get(user) {
+-                Some(list) => list.as_array().is_none_or(|ids| {
+-                    ids.is_empty() || ids.iter().any(|id| id.as_str() == Some(user.as_str()))
+-                }),
+-                None => false,
+-            },
+-            _ => true,
++/// Split a `{user: …}` request map into the users this node owns and the rest,
++/// grouped by the server that owns them. A user id that does not parse is
++/// dropped: there is no server to ask about it.
++fn split_by_server(
++    requested: &serde_json::Map<String, Value>,
++    our_name: &str,
++) -> (
++    serde_json::Map<String, Value>,
++    BTreeMap<ruma::OwnedServerName, serde_json::Map<String, Value>>,
++) {
++    let mut mine = serde_json::Map::new();
++    let mut theirs: BTreeMap<ruma::OwnedServerName, serde_json::Map<String, Value>> =
++        BTreeMap::new();
++    for (user, value) in requested {
++        let Ok(parsed) = ruma::OwnedUserId::try_from(user.as_str()) else {
++            continue;
+         };
+-        if !wanted {
++        if parsed.server_name().as_str() == our_name {
++            mine.insert(user.clone(), value.clone());
++        } else {
++            theirs
++                .entry(parsed.server_name().to_owned())
++                .or_default()
++                .insert(user.clone(), value.clone());
++        }
++    }
++    (mine, theirs)
++}
++
++/// Fold a peer's `{device_keys, master_keys, …}` answer into ours. Per-user
++/// entries are inserted whole: each server is the sole authority on its own
++/// users, so there is nothing to reconcile — and a peer that answered for a
++/// user it does not own is ignored by the sender, not merged here.
++fn merge_key_answer(into: &mut serde_json::Map<String, Value>, answer: Value) {
++    let Some(answer) = answer.as_object() else {
++        return;
++    };
++    for (section, users) in answer {
++        if section == "failures" {
+             continue;
+         }
+-        let filter = requested
+-            .and_then(|map| map.get(user))
+-            .and_then(Value::as_array)
+-            .filter(|ids| !ids.is_empty());
+-        let mut out = serde_json::Map::new();
+-        for (device, keys) in devices {
+-            if filter.is_some_and(|ids| !ids.iter().any(|id| id.as_str() == Some(device.as_str()))) {
+-                continue;
+-            }
+-            out.insert(device.clone(), keys.clone());
++        let Some(users) = users.as_object() else {
++            continue;
++        };
++        let slot = into
++            .entry(section.clone())
++            .or_insert_with(|| Value::Object(serde_json::Map::new()));
++        let Some(slot) = slot.as_object_mut() else {
++            continue;
++        };
++        for (user, value) in users {
++            slot.insert(user.clone(), value.clone());
+         }
+-        device_keys.insert(user.clone(), Value::Object(out));
+     }
++}
++
++/// Answer with the device keys held for `device_keys`, asking the owning server
++/// for any user this node does not own.
++///
++/// The federation fan-out is what makes E2EE possible on a mesh: every phone is
++/// its own homeserver, so *every* other participant is a remote user and a
++/// purely local answer would always be empty. A peer we cannot reach lands in
++/// `failures` rather than failing the whole query — the client can still
++/// encrypt to everyone it did get keys for, and will retry the rest.
++async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
++    info!("Received query: {:?}", body.0);
++    let (our_name, fed_client) = {
++        let app = lock_app(&state.0);
++        (app.config.server_name.clone(), app.fed_client.clone())
++    };
+ 
+-    let mut response = serde_json::Map::new();
+-    response.insert("device_keys".to_owned(), Value::Object(device_keys));
+-    for (key, value) in app.keys.cross_signing.iter() {
+-        response.insert(key.clone(), value.clone());
++    let requested = body
++        .pointer("/device_keys")
++        .and_then(Value::as_object)
++        .cloned()
++        .filter(|map| !map.is_empty());
++
++    // An absent or empty request map means "everything this node holds" — the
++    // shape the single-user dev client sends. It has no federated meaning
++    // (there is no peer to ask for "everyone"), so that path stays local.
++    let Some(requested) = requested else {
++        let app = lock_app(&state.0);
++        let all = app
++            .keys
++            .devices
++            .keys()
++            .map(|user| (user.clone(), Value::Array(Vec::new())))
++            .collect();
++        let device_keys = app.keys.device_keys_for(&all);
++        let mut response = serde_json::Map::new();
++        response.insert("device_keys".to_owned(), Value::Object(device_keys));
++        for (key, value) in app.keys.cross_signing.iter() {
++            response.insert(key.clone(), value.clone());
++        }
++        return Json(Value::Object(response));
++    };
++
++    let (mine, theirs) = split_by_server(&requested, &our_name);
++    let mut response = {
++        let app = lock_app(&state.0);
++        let device_keys = app.keys.device_keys_for(&mine);
++        let mut response = serde_json::Map::new();
++        response.insert("device_keys".to_owned(), Value::Object(device_keys));
++        for (key, value) in app.keys.cross_signing.iter() {
++            response.insert(key.clone(), value.clone());
++        }
++        response
++    };
++
++    let mut failures = serde_json::Map::new();
++    for (dest, ask) in theirs {
++        match fed_client.keys_query(&dest, &ask).await {
++            Ok(answer) => merge_key_answer(&mut response, answer),
++            Err(e) => {
++                warn!(%dest, error = %e, "federated /keys/query failed");
++                failures.insert(dest.to_string(), json!({ "message": e.to_string() }));
++            }
++        }
+     }
++    response.insert("failures".to_owned(), Value::Object(failures));
+     Json(Value::Object(response))
+ }
+ 
+ /// Queue to-device messages for their recipients. This is how a Megolm room
+ /// key reaches the devices that need it: without it a client can claim a
+ /// one-time key and still have nowhere to send the session it just built.
++///
++/// Recipients on other servers get the message as an `m.direct_to_device` EDU
++/// in a federation transaction. On a mesh that is the normal case, not the
++/// exception — the peer you are sharing a room key with is a different phone,
++/// which is a different homeserver.
+ async fn send_to_device(
+     state: State<AppState>,
+     AuthUser(sender): AuthUser,
+-    axum::extract::Path((event_type, _txn_id)): axum::extract::Path<(String, String)>,
++    axum::extract::Path((event_type, txn_id)): axum::extract::Path<(String, String)>,
+     body: Json<Value>,
+ ) -> Json<Value> {
+-    let mut app = lock_app(&state.0);
++    let (our_name, fed_client) = {
++        let app = lock_app(&state.0);
++        (app.config.server_name.clone(), app.fed_client.clone())
++    };
+     let messages = body
+         .pointer("/messages")
+         .and_then(Value::as_object)
+         .cloned()
+         .unwrap_or_default();
++    let (mine, theirs) = split_by_server(&messages, &our_name);
+ 
+-    for (user, devices) in messages {
+-        let Some(devices) = devices.as_object() else {
+-            continue;
+-        };
+-        // `*` means every device of that user, which is what a room-key share
+-        // to a freshly-seen peer uses.
+-        for content in devices.values() {
+-            app.to_device
+-                .entry(user.clone())
+-                .or_default()
+-                .push(json!({
++    {
++        let mut app = lock_app(&state.0);
++        for (user, devices) in &mine {
++            let Some(devices) = devices.as_object() else {
++                continue;
++            };
++            // `*` means every device of that user, which is what a room-key
++            // share to a freshly-seen peer uses.
++            for content in devices.values() {
++                app.to_device.entry(user.clone()).or_default().push(json!({
+                     "type": event_type,
+                     "sender": sender,
+                     "content": content.clone(),
+                 }));
++            }
++        }
++    }
++
++    // One EDU per destination server, carrying only that server's recipients.
++    // Fire-and-forget: the transaction is not queued in the durable outbox, so
++    // a peer that is out of range when a key is shared does not get it later.
++    // The client re-shares room keys on the next send to a device it has no
++    // session with, which is the recovery path for a dropped EDU — but this is
++    // the weakest link in the mesh E2EE story and the obvious next thing to
++    // make durable.
++    for (dest, recipients) in theirs {
++        let edu = json!({
++            "edu_type": "m.direct_to_device",
++            "content": {
++                "sender": sender,
++                "type": event_type,
++                "message_id": txn_id,
++                "messages": Value::Object(recipients),
++            },
++        });
++        if let Err(e) = fed_client.send_edu(&dest, &txn_id, &edu).await {
++            warn!(%dest, error = %e, "to-device EDU delivery failed");
+         }
+     }
+ 
+@@ -1402,40 +1586,47 @@ pub(crate) fn drain_to_device(state: &AppState, user_id: &str) -> Vec<Value> {
+ /// Hand out one one-time key per requested device so a peer can open an Olm
+ /// session. Without this endpoint no client can encrypt to anyone, however
+ /// complete its own crypto is.
++///
++/// Keys for our own users are popped locally; keys for anyone else are claimed
++/// from the server that owns them. A claim is destructive on whichever side
++/// serves it, so a request is never sent twice speculatively.
+ async fn keys_claim(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     info!("Received keys claim: {:?}", body.0);
+-    let mut app = lock_app(&state.0);
++    let (our_name, fed_client) = {
++        let app = lock_app(&state.0);
++        (app.config.server_name.clone(), app.fed_client.clone())
++    };
+ 
+-    let mut claimed = serde_json::Map::new();
+     let requested = body
+         .pointer("/one_time_keys")
+         .and_then(Value::as_object)
+         .cloned()
+         .unwrap_or_default();
++    let (mine, theirs) = split_by_server(&requested, &our_name);
+ 
+-    for (user, devices) in requested {
+-        let Some(devices) = devices.as_object() else {
+-            continue;
+-        };
+-        let mut per_device = serde_json::Map::new();
+-        for (device, algorithm) in devices {
+-            let Some(algorithm) = algorithm.as_str() else {
+-                continue;
+-            };
+-            if let Some((key_id, key)) = app.keys.claim_one_time_key(&user, device, algorithm) {
+-                let mut one = serde_json::Map::new();
+-                one.insert(key_id, key);
+-                per_device.insert(device.clone(), Value::Object(one));
++    let mut claimed = {
++        let mut app = lock_app(&state.0);
++        app.keys.claim_for(&mine)
++    };
++
++    let mut failures = serde_json::Map::new();
++    for (dest, ask) in theirs {
++        match fed_client.keys_claim(&dest, &ask).await {
++            Ok(answer) => {
++                for (user, keys) in answer.as_object().into_iter().flatten() {
++                    claimed.insert(user.clone(), keys.clone());
++                }
++            }
++            Err(e) => {
++                warn!(%dest, error = %e, "federated /keys/claim failed");
++                failures.insert(dest.to_string(), json!({ "message": e.to_string() }));
+             }
+-        }
+-        if !per_device.is_empty() {
+-            claimed.insert(user, Value::Object(per_device));
+         }
+     }
+ 
+     // `failures` is required by the spec even when empty; a client that cannot
+     // find it treats the response as malformed.
+-    Json(json!({ "one_time_keys": claimed, "failures": {} }))
++    Json(json!({ "one_time_keys": claimed, "failures": failures }))
+ }
+ 
+ async fn keys_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+-- 
+2.43.0
+
