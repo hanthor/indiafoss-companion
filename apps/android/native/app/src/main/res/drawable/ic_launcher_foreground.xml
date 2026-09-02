@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- A neutral calendar-and-pin glyph: no IndiaFOSS wordmark. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,30h36a4,4 0 0 1 4,4v40a4,4 0 0 1 -4,4H36a4,4 0 0 1 -4,-4V34a4,4 0 0 1 4,-4zM36,44v30h36V44zM42,26h4v8h-4zM62,26h4v8h-4z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,50a7,7 0 0 1 7,7c0,5 -7,13 -7,13s-7,-8 -7,-13a7,7 0 0 1 7,-7zM54,54a3,3 0 1 0 0,6a3,3 0 0 0 0,-6z" />
+</vector>

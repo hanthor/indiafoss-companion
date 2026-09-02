@@ -122,6 +122,13 @@ pnpm --filter @indiafoss/android build                  # sync web assets
 cd apps/android/capacitor/android && ./gradlew assembleDebug
 ```
 
+The parallel **native Compose client** (`apps/android/native`) builds on its
+own, with no Node step — see [docs/native-client.md](docs/native-client.md):
+
+```bash
+cd apps/android/native && ./gradlew :core:test :app:assembleDebug
+```
+
 ### iOS
 
 The web app is already an iOS-compatible PWA. On iOS Safari, use **Share →

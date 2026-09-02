@@ -13,6 +13,10 @@ coverage/
 playwright-report/
 test-results/
 
+# Gradle
+.gradle/
+local.properties
+
 # Capacitor / Android generated output
 apps/android/capacitor/android/
 apps/android/capacitor/ios/

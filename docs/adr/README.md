@@ -10,3 +10,5 @@ sequential.
 
 - [0001](0001-native-android-client-standalone-vs-neutrino-fork.md) —
   Native Android client: standalone vs Neutrino-fork feature layer
+- [0002](0002-native-compose-client-rendered-natively.md) —
+  The native client renders natively, with a Kotlin port of the core engines
