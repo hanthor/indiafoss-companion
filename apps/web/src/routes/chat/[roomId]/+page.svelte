@@ -189,6 +189,9 @@
       {#if canEncrypt}
         🔒 End-to-end encrypted with Megolm. Messages and files are encrypted on this device;
         senders are shown as unverified until you verify them in a full Matrix client.
+      {:else if matrixState.serverCarriesEncryption === false}
+        🔒 This room is marked encrypted, but this server cannot carry encryption keys, so nothing
+        can be encrypted or decrypted here. Nothing you type will send.
       {:else}
         🔒 This room is end-to-end encrypted, but encryption could not start in this browser. Open
         the room in a full Matrix client to read and send.

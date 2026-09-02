@@ -96,6 +96,13 @@ export interface MatrixSnapshot {
   typing: Record<string, string[]>;
   /** True when end-to-end encryption is available for this session. */
   encryptionReady: boolean;
+  /**
+   * False once the homeserver has proved it cannot carry key material — no
+   * `/keys/claim`, no `/sendToDevice`. Distinct from `encryptionReady`, which
+   * also covers "this browser has no crypto backend": the two need different
+   * things said to the attendee.
+   */
+  serverCarriesEncryption: boolean;
   error: string | null;
 }
 
@@ -195,14 +202,23 @@ export class MatrixSessionManager {
           ids.filter((id) => id !== selfId),
         ]),
       ),
-      encryptionReady: this.crypto !== null,
+      encryptionReady: this.crypto !== null && this.serverCarriesEncryption,
+      serverCarriesEncryption: this.serverCarriesEncryption,
       error: this.error,
     };
   }
 
   get encryptionReady(): boolean {
-    return this.crypto !== null;
+    return this.crypto !== null && this.serverCarriesEncryption;
   }
+
+  /**
+   * False once a server has proved it cannot carry key material (no
+   * `/keys/claim`, no `/sendToDevice`). Assumed true until then: probing every
+   * server up front would cost a round trip on a link where round trips are
+   * the expensive part.
+   */
+  private serverCarriesEncryption = true;
 
   private async initCrypto(): Promise<void> {
     if (!this.opts.crypto || !this.session?.deviceId) return;
@@ -499,7 +515,26 @@ export class MatrixSessionManager {
       );
     }
     const members = await this.membersOf(roomId);
-    await this.crypto.ensureRoomKey(client, roomId, members);
+    try {
+      await this.crypto.ensureRoomKey(client, roomId, members);
+    } catch (error) {
+      // Establishing a Megolm session needs the server to hand out one-time
+      // keys and carry to-device messages. A homeserver without those answers
+      // 404 — Neutrino does today — and the failure is worth naming, because
+      // "404" tells an attendee nothing and the alternative (sending in the
+      // clear from a room marked encrypted) is not an option.
+      if (error instanceof MatrixError && error.status === 404) {
+        this.serverCarriesEncryption = false;
+        this.emit();
+        throw new MatrixError(
+          'This server cannot carry encryption keys, so the room cannot be encrypted here. ' +
+            'Messages were not sent.',
+          400,
+          'M_UNSUPPORTED',
+        );
+      }
+      throw error;
+    }
     const encrypted = await this.crypto.encryptEvent(roomId, type, content);
     const res = await client.sendEvent(roomId, 'm.room.encrypted', encrypted, txnId);
     return res.event_id;

@@ -303,3 +303,54 @@ describe('end-to-end encryption', () => {
     await carol.manager.stop();
   }, 30_000);
 });
+
+describe('a homeserver that cannot carry key material', () => {
+  it('names the failure instead of surfacing a bare 404, and marks the server', async () => {
+    // Neutrino answers 404 on /keys/claim and /sendToDevice while accepting
+    // key uploads, so a client can believe encryption is configured right up
+    // until it tries to send. The failure must say what is wrong, and nothing
+    // may go out in the clear from a room marked encrypted.
+    const server = new KeyServer();
+    // Same server, but the two endpoints Megolm needs are missing.
+    const withoutKeyTransport = {
+      fetchFor(userId: string, deviceId: string): FetchLike {
+        const inner = server.fetchFor(userId, deviceId);
+        return async (input, init) => {
+          const path = new URL(input).pathname;
+          if (path.endsWith('/keys/claim') || path.includes('/sendToDevice/')) {
+            return new Response(JSON.stringify({ errcode: 'M_UNRECOGNIZED', error: 'nope' }), {
+              status: 404,
+              headers: { 'content-type': 'application/json' },
+            });
+          }
+          return inner(input, init);
+        };
+      },
+    } as KeyServer;
+    const alice = client(withoutKeyTransport, '@alice:hs', 'ALICE1');
+    const bob = client(server, '@bob:hs', 'BOB1');
+
+    // Bob has to be present and have uploaded keys, or Alice has nobody to
+    // share a Megolm session with and never touches the missing endpoints —
+    // the failure only bites when there is someone to encrypt to.
+    await alice.manager.signInWithPassword('https://hs', 'alice', 'pw');
+    await bob.manager.signInWithPassword('https://hs', 'bob', 'pw');
+    await settle(150);
+
+    // Sends are queued, so the failure surfaces through the outbox rather than
+    // by rejecting: the item is dropped as a permanent 4xx, its local echo is
+    // removed, and the reason is put in front of the attendee.
+    await alice.manager.sendMessage('!r:hs', 'this must not go out');
+    await settle(200);
+
+    const snapshot = alice.manager.snapshot();
+    expect(String(snapshot.error)).toMatch(/cannot carry encryption keys/i);
+    expect(snapshot.serverCarriesEncryption).toBe(false);
+    expect(snapshot.encryptionReady).toBe(false);
+    // No pending message left implying it will go later, no local echo left
+    // implying it went, and nothing on the wire in the clear.
+    expect(snapshot.outbox).toHaveLength(0);
+    expect(snapshot.timelines['!r:hs'] ?? []).toHaveLength(0);
+    expect(server.timeline).toHaveLength(0);
+  });
+});
