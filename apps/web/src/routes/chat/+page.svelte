@@ -204,8 +204,10 @@
       </label>
       {#if formError}<p class="error" role="alert">{formError}</p>{/if}
       <div class="actions">
-        <button class="primary" type="submit" disabled={busy}>Sign in</button>
-        <button type="button" onclick={signInWithSso} disabled={busy}>Sign in with SSO</button>
+        <button class="button primary" type="submit" disabled={busy}>Sign in</button>
+        <button type="button" class="button secondary" onclick={signInWithSso} disabled={busy}
+          >Sign in with SSO</button
+        >
       </div>
     </form>
     <p class="muted small">
@@ -225,13 +227,13 @@
     <span class="spacer"></span>
     <span class="muted small">{matrixState.displayName ?? localpart(matrixState.userId ?? '')}</span
     >
-    <button class="link" onclick={signOut} disabled={busy}>Sign out</button>
+    <button class="button ghost small" onclick={signOut} disabled={busy}>Sign out</button>
   </section>
   {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
   {#if actionError}<p class="error" role="alert">{actionError}</p>{/if}
 
   {#if pendingDm}
-    <section class="card confirm" aria-labelledby="dm-title">
+    <section class="card accent confirm" aria-labelledby="dm-title">
       <h2 id="dm-title">Start a direct message?</h2>
       <p>
         With <strong>{pendingDm}</strong>. A scanned or pasted id is an identifier exchange, not
@@ -239,8 +241,10 @@
         client.
       </p>
       <div class="actions">
-        <button class="primary" onclick={confirmDm} disabled={busy}>Start conversation</button>
-        <button onclick={() => (pendingDm = null)}>Cancel</button>
+        <button class="button primary" onclick={confirmDm} disabled={busy}
+          >Start conversation</button
+        >
+        <button class="button secondary small" onclick={() => (pendingDm = null)}>Cancel</button>
         <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
         <a href={matrixToUrl(pendingDm)} rel="noreferrer">Open in Element instead</a>
       </div>
@@ -257,7 +261,8 @@
               <strong>{room.name}</strong>
               <p class="muted small">You have been invited.</p>
             </div>
-            <button class="primary" onclick={() => join(room.roomId)} disabled={busy}>Accept</button
+            <button class="button primary" onclick={() => join(room.roomId)} disabled={busy}
+              >Accept</button
             >
           </li>
         {/each}
@@ -283,7 +288,11 @@
                 )}>Open</a
               >
             {:else}
-              <button onclick={() => join(room.alias)} disabled={busy}>Join</button>
+              <button
+                class="button secondary small"
+                onclick={() => join(room.alias)}
+                disabled={busy}>Join</button
+              >
             {/if}
           </li>
         {/each}
@@ -332,14 +341,14 @@
         bind:value={dmInput}
         placeholder="@alice:matrix.org or matrix.to link"
       />
-      <button type="submit" disabled={busy}>Message</button>
+      <button class="button secondary small" type="submit" disabled={busy}>Message</button>
     </form>
     {#if matrixContacts.length > 0}
       <p class="muted small">Saved contacts</p>
       <ul class="chips">
         {#each matrixContacts as contact (contact.id)}
           <li>
-            <button class="chip" onclick={() => requestDm(contact.matrixId!)}
+            <button class="button secondary small" onclick={() => requestDm(contact.matrixId!)}
               >{contact.fullName}</button
             >
           </li>
@@ -359,7 +368,7 @@
       }}
     >
       <input aria-label="Room alias" bind:value={joinInput} placeholder="#hallway:matrix.org" />
-      <button type="submit" disabled={busy}>Join</button>
+      <button class="button secondary small" type="submit" disabled={busy}>Join</button>
     </form>
     <form class="inline" onsubmit={runSearch}>
       <input
@@ -368,7 +377,7 @@
         bind:value={search}
         placeholder="Search the room directory…"
       />
-      <button type="submit" disabled={searching}>Search</button>
+      <button class="button secondary small" type="submit" disabled={searching}>Search</button>
     </form>
     {#if searchResults.length > 0}
       <ul class="rooms">
@@ -378,7 +387,11 @@
               <strong>{room.name ?? room.alias ?? room.roomId}</strong>
               <p class="muted small">{room.topic ?? room.alias ?? ''} · {room.members} members</p>
             </div>
-            <button onclick={() => join(room.alias ?? room.roomId)} disabled={busy}>Join</button>
+            <button
+              class="button secondary small"
+              onclick={() => join(room.alias ?? room.roomId)}
+              disabled={busy}>Join</button
+            >
           </li>
         {/each}
       </ul>
@@ -387,26 +400,9 @@
 {/if}
 
 <style>
-  .muted {
-    color: var(--text-muted);
-  }
-  .small {
-    font-size: 0.82rem;
-  }
   .error {
     color: var(--danger);
     font-size: 0.9rem;
-  }
-  .card {
-    background: var(--surface-raised);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin: 1rem 0;
-  }
-  .card h2,
-  section h2 {
-    font-size: 1.05rem;
-    margin: 0 0 0.5rem;
   }
   .confirm {
     border: 2px solid var(--event-accent);
@@ -421,13 +417,6 @@
     gap: 0.25rem;
     font-size: 0.85rem;
   }
-  input {
-    padding: 0.55rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent);
-    border-radius: var(--radius);
-    width: 100%;
-    background: var(--surface);
-  }
   .inline {
     display: flex;
     gap: 0.5rem;
@@ -438,36 +427,6 @@
     flex-wrap: wrap;
     gap: 0.6rem;
     align-items: center;
-  }
-  button,
-  .button {
-    border: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent);
-    background: var(--surface);
-    border-radius: 999px;
-    padding: 0.45rem 1rem;
-    min-height: 40px;
-    cursor: pointer;
-    text-decoration: none;
-    color: var(--text);
-    display: inline-flex;
-    align-items: center;
-  }
-  button.primary {
-    background: var(--event-primary);
-    border-color: var(--event-primary);
-    color: #fff;
-    font-weight: 600;
-  }
-  button.link {
-    border: none;
-    background: none;
-    color: var(--event-primary-dark);
-    padding: 0.2rem 0.4rem;
-    min-height: 0;
-  }
-  button:disabled {
-    opacity: 0.6;
-    cursor: wait;
   }
   .status {
     display: flex;
@@ -541,10 +500,5 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
-  }
-  .chip {
-    min-height: 32px;
-    padding: 0.2rem 0.7rem;
-    font-size: 0.85rem;
   }
 </style>

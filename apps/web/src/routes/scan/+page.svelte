@@ -344,7 +344,7 @@
         ></textarea>
       </label>
       <button class="button secondary" type="submit" disabled={!manualVCard.trim()}>
-        Preview
+        Preview contact
       </button>
     </form>
   </section>
@@ -354,34 +354,6 @@
 </EventGate>
 
 <style>
-  .eyebrow {
-    color: var(--event-primary-dark);
-    font-family: 'Space Mono', ui-monospace, monospace;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-  }
-  .lead {
-    color: var(--text-muted);
-    line-height: 1.5;
-    max-width: 42rem;
-  }
-  .muted {
-    color: var(--text-muted);
-  }
-  .small {
-    font-size: 0.82rem;
-  }
-  .card {
-    background: var(--surface-raised);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin: 1rem 0;
-  }
-  h2 {
-    margin: 0 0 0.5rem;
-    font-size: 1.05rem;
-  }
   .camera {
     text-align: center;
   }
@@ -444,32 +416,6 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
-  }
-  .button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    border-radius: 999px;
-    padding: 0.55rem 1rem;
-    text-decoration: none;
-    cursor: pointer;
-    font-size: 0.85rem;
-    font-weight: 700;
-    border: 1px solid var(--event-primary-dark);
-  }
-  .button.primary {
-    background: var(--event-primary);
-    color: var(--event-secondary);
-  }
-  .button.secondary {
-    background: var(--surface);
-    color: var(--event-primary-dark);
-    border: 1px solid color-mix(in srgb, var(--event-primary-dark) 40%, transparent);
-  }
-  .button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
   }
   .warning {
     color: var(--warning);

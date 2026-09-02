@@ -137,6 +137,7 @@
             <div
               class="progress"
               role="progressbar"
+              aria-label="Progress of {activity.title}"
               aria-valuenow={Math.round(activityProgress(activity, now) * 100)}
               aria-valuemin={0}
               aria-valuemax={100}

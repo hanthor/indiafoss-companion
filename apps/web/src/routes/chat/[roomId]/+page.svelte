@@ -95,7 +95,7 @@
     <div class="headactions">
       <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
       <a href={matrixToUrl(room.alias ?? room.roomId)} rel="noreferrer">Open in Element</a>
-      <button class="link" onclick={leave}>Leave</button>
+      <button class="button ghost small danger" onclick={leave}>Leave</button>
     </div>
   </header>
 
@@ -148,8 +148,10 @@
       autocomplete="off"
       enterkeyhint="send"
     />
-    <button class="primary" type="submit" disabled={sending || room.encrypted || !draft.trim()}
-      >Send</button
+    <button
+      class="button primary"
+      type="submit"
+      disabled={sending || room.encrypted || !draft.trim()}>Send</button
     >
   </form>
   {#if matrixState.status !== 'online'}
@@ -158,12 +160,6 @@
 {/if}
 
 <style>
-  .muted {
-    color: var(--text-muted);
-  }
-  .small {
-    font-size: 0.82rem;
-  }
   .center {
     text-align: center;
   }
@@ -289,26 +285,5 @@
     padding: 0.6rem 0.8rem;
     border: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent);
     border-radius: 999px;
-  }
-  button.primary {
-    border: none;
-    background: var(--event-primary);
-    color: #fff;
-    border-radius: 999px;
-    padding: 0.45rem 1.1rem;
-    font-weight: 600;
-    min-height: 44px;
-    cursor: pointer;
-  }
-  button.primary:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-  button.link {
-    border: none;
-    background: none;
-    color: var(--danger);
-    cursor: pointer;
-    padding: 0.2rem;
   }
 </style>

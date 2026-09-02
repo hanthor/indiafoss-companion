@@ -68,19 +68,6 @@
 </section>
 
 <style>
-  .eyebrow {
-    color: var(--event-primary-dark);
-    font-family: 'Space Mono', ui-monospace, monospace;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-  }
-  .muted {
-    color: var(--text-muted);
-  }
-  .small {
-    font-size: 0.8rem;
-  }
   .profiles {
     display: flex;
     flex-direction: column;
@@ -112,28 +99,7 @@
   .profile .small {
     grid-area: hint;
   }
-  .card {
-    background: var(--surface-raised);
-    border-radius: var(--radius);
-    padding: 1rem;
-    margin: 1rem 0;
-  }
-  .card h2 {
-    margin: 0 0 0.35rem;
-    font-size: 1.05rem;
-  }
   li {
     margin: 0.45rem 0;
-  }
-  .button {
-    display: inline-flex;
-    min-height: 44px;
-    align-items: center;
-    border-radius: 999px;
-    padding: 0.5rem 1rem;
-    background: var(--event-primary);
-    color: var(--event-secondary);
-    font-weight: 700;
-    text-decoration: none;
   }
 </style>
