@@ -76,16 +76,21 @@
   $effect(() => {
     if (autoStarted || !videoEl) return;
     autoStarted = true;
-    if (page.url.searchParams.get('payload')) {
+    if (sharedPayload()) {
       cameraStarting = false;
       return;
     }
     void startCamera();
   });
 
-  // Deep links (indiafoss://location/…, indiafoss://friend?…) arrive as ?payload=.
+  // Deep links (indiafoss://location/…, indiafoss://friend?…) arrive as ?payload=;
+  // the PWA share target delivers ?url= / ?text= (Web Share Target, GET).
+  function sharedPayload(): string | null {
+    const q = page.url.searchParams;
+    return q.get('payload') || q.get('url') || q.get('text') || null;
+  }
   $effect(() => {
-    const payload = page.url.searchParams.get('payload');
+    const payload = sharedPayload();
     if (payload) handlePayload(payload);
   });
 

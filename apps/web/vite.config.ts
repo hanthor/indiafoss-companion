@@ -35,6 +35,12 @@ export default defineConfig({
         display: 'standalone',
         start_url: base || '/',
         scope: base || '/',
+        // A shared friend link, Matrix link or pasted card lands in the scan preview.
+        share_target: {
+          action: `${base || ''}/scan`,
+          method: 'GET',
+          params: { title: 'title', text: 'text', url: 'url' },
+        },
         icons: [
           {
             src: 'icons/icon-192.png',

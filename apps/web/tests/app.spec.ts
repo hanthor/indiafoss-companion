@@ -359,3 +359,20 @@ test('P2P chat is off by default and switches on from settings', async ({ page }
   await expect(page.getByRole('heading', { name: 'No mesh node on this device' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
 });
+
+test('key badges can be compared side by side', async ({ page }) => {
+  await page.goto(appUrl('/connect/compare'));
+  await expect(page.getByRole('heading', { name: 'Compare badges' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Your key badge' }).locator('svg')).toBeVisible({
+    timeout: 10_000,
+  });
+  await expect(page.getByText(/No saved contact carries a key badge yet/)).toBeVisible();
+});
+
+test('a shared link lands in the scan preview (web share target)', async ({ page }) => {
+  const shared = encodeURIComponent('https://matrix.to/#/@alice:matrix.org');
+  await page.goto(appUrl(`/scan?url=${shared}`));
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible({
+    timeout: 10_000,
+  });
+});

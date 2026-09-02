@@ -66,6 +66,7 @@
       '/map': 'Map',
       '/explore': 'Explore',
       '/connect': 'Share contact',
+      '/connect/compare': 'Compare key badges',
       '/scan': 'Scan',
       '/settings': 'Settings',
       '/chat': 'Chat',

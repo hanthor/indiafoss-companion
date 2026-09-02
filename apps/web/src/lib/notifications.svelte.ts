@@ -4,7 +4,10 @@ import {
   NativeLocalNotificationTransport,
   WebLocalNotificationTransport,
 } from '$lib/notifications';
-import type { NotificationTransport, ReminderTier } from '$lib/notifications';
+import type { NotificationTransport, PlannedBlock, ReminderTier } from '$lib/notifications';
+import { computeBlockNotifications, staleNotificationIds } from '$lib/notifications';
+import { getEventDays } from '@indiafoss/schedule';
+import type { PlanEdits } from '@indiafoss/solver';
 import { bookmarked, dispositionOf, hydratePreferences } from '$lib/prefs.svelte';
 import { eventState } from '$lib/event.svelte';
 import { currentLocation } from '$lib/location.svelte';
@@ -48,6 +51,26 @@ export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
 }
 
 let armedAt: string | null = null;
+// Bookkeeping only; nothing renders from it.
+let armedIds = new Set<string>();
+
+/** Custom blocks from every day's plan edits (stored per day, see planEdits.svelte.ts). */
+async function plannedBlocks(eventId: string, days: string[]): Promise<PlannedBlock[]> {
+  const out: PlannedBlock[] = [];
+  for (const day of days) {
+    const saved = await getStorage().getSetting(`plan-edits-${eventId}-${day}`);
+    if (!saved) continue;
+    try {
+      const edits = JSON.parse(saved) as Partial<PlanEdits>;
+      for (const block of edits.customBlocks ?? []) {
+        out.push({ id: block.id, label: block.label, start: block.start });
+      }
+    } catch {
+      /* malformed local data: no reminders for that day */
+    }
+  }
+  return out;
+}
 
 /**
  * Arm notifications for the coming hour: compute the alerts for the current
@@ -88,7 +111,14 @@ export async function armNotifications(): Promise<void> {
       : bookmarked(activityId)
         ? 'planned'
         : 'none';
-  const notifications = computeNotifications(bundle, isoNow, travelSecondsFor, tierFor);
+  const notifications = [
+    ...computeNotifications(bundle, isoNow, travelSecondsFor, tierFor),
+    ...computeBlockNotifications(await plannedBlocks(bundle.id, getEventDays(bundle)), isoNow),
+  ];
   const transport = await getTransport();
+  // Time or room changes and un-bookmarking: cancel what was armed but is not wanted any more.
+  for (const id of staleNotificationIds(armedIds, notifications)) await transport.cancel(id);
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  armedIds = new Set(notifications.map((n) => n.id));
   for (const n of notifications) await transport.schedule(n);
 }
