@@ -16,6 +16,47 @@
 
   let draft = $state('');
   let sending = $state(false);
+  /** Filter over the locally cached timeline; no server search on the mesh. */
+  let search = $state('');
+  /** Event being replied to, shown as a quote above the composer. */
+  let replyTo = $state<string | null>(null);
+  let showMembers = $state(false);
+
+  /** Reactions are folded onto the message they annotate, not shown as rows. */
+  const messages = $derived.by(() => {
+    const rows = timeline.filter((e) => e.msgtype !== 'm.reaction');
+    const term = search.trim().toLowerCase();
+    return term ? rows.filter((e) => e.body.toLowerCase().includes(term)) : rows;
+  });
+  const reactions = $derived.by(() => {
+    const map: Record<string, { key: string; count: number; mine: boolean }[]> = {};
+    for (const event of timeline) {
+      if (!event.reactsTo || !event.reactionKey) continue;
+      const list = (map[event.reactsTo] ??= []);
+      const existing = list.find((r) => r.key === event.reactionKey);
+      if (existing) {
+        existing.count += 1;
+        existing.mine ||= event.sender === selfId;
+      } else {
+        list.push({ key: event.reactionKey, count: 1, mine: event.sender === selfId });
+      }
+    }
+    return map;
+  });
+  const quoted = $derived(replyTo ? timeline.find((e) => e.eventId === replyTo) : null);
+  const members = $derived(
+    (room?.memberIds ?? []).map((id) => ({ id, name: room?.memberNames[id] ?? localpart(id) })),
+  );
+
+  const QUICK_REACTIONS = ['👍', '🎉', '❤️', '😀'];
+
+  async function react(eventId: string, key: string) {
+    try {
+      await getMatrix().toggleReaction(roomId, eventId, key);
+    } catch (e) {
+      error = e instanceof Error ? e.message : String(e);
+    }
+  }
   let attaching = $state(false);
   let fileInput = $state<HTMLInputElement | null>(null);
   const typingUsers = $derived(matrixState.typing[roomId] ?? []);
@@ -89,7 +130,8 @@
       draft = '';
       if (typingTimer) clearTimeout(typingTimer);
       void getMatrix().setTyping(roomId, false);
-      await getMatrix().sendMessage(roomId, text);
+      await getMatrix().sendMessage(roomId, text, replyTo ?? undefined);
+      replyTo = null;
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
     } finally {
@@ -160,16 +202,38 @@
   </p>
   {#if error}<p class="error" role="alert">{error}</p>{/if}
 
+  <div class="roomtools">
+    <button class="act" aria-expanded={showMembers} onclick={() => (showMembers = !showMembers)}>
+      {members.length} in this room
+    </button>
+    <input
+      class="search"
+      type="search"
+      bind:value={search}
+      aria-label="Search messages in this room"
+      placeholder="Search messages…"
+    />
+  </div>
+  {#if showMembers}
+    <ul class="members" aria-label="Room members">
+      {#each members as member (member.id)}
+        <li><strong>{member.name}</strong> <code>{member.id}</code></li>
+      {/each}
+    </ul>
+  {/if}
+
   <section class="timeline" bind:this={list} aria-label="Messages">
     {#if room.prevBatch}
       <button class="older" onclick={loadOlder} disabled={loadingOlder}>
         {loadingOlder ? 'Loading…' : 'Load older messages'}
       </button>
     {/if}
-    {#if timeline.length === 0}
-      <p class="muted small center">No messages yet.</p>
+    {#if messages.length === 0}
+      <p class="muted small center">
+        {search.trim() ? `No message matches “${search.trim()}”.` : 'No messages yet.'}
+      </p>
     {/if}
-    {#each timeline as event (event.eventId)}
+    {#each messages as event (event.eventId)}
       {@const mine = event.sender === selfId}
       {@const pending = event.txnId ? queued.has(event.txnId) : false}
       <article
@@ -179,6 +243,13 @@
         class:notice={event.msgtype === 'm.notice' || event.msgtype === 'm.encrypted'}
       >
         {#if !mine}<span class="sender">{senderName(event.sender)}</span>{/if}
+        {#if event.replyTo}
+          {@const target = timeline.find((e) => e.eventId === event.replyTo)}
+          <p class="quote">
+            <span class="quotewho">{target ? senderName(target.sender) : 'Earlier message'}</span>
+            {target ? target.body : '…'}
+          </p>
+        {/if}
         {#if event.mediaUrl}
           <MediaAttachment {event} />
         {:else}
@@ -188,14 +259,43 @@
               : event.body}
           </p>
         {/if}
+        {#if reactions[event.eventId]}
+          <div class="reactions">
+            {#each reactions[event.eventId]! as r (r.key)}
+              <button
+                class="reaction"
+                class:mine={r.mine}
+                aria-pressed={r.mine}
+                aria-label="{r.key} {r.count}"
+                onclick={() => react(event.eventId, r.key)}>{r.key} {r.count}</button
+              >
+            {/each}
+          </div>
+        {/if}
         <span class="meta"
           >{event.encrypted ? '🔒 ' : ''}{pending ? 'Sending…' : timeOf(event.ts)}</span
         >
+        {#if !pending}
+          <div class="actions" aria-label="Message actions">
+            <button class="act" onclick={() => (replyTo = event.eventId)}>Reply</button>
+            {#each QUICK_REACTIONS as key (key)}
+              <button class="act" aria-label="React {key}" onclick={() => react(event.eventId, key)}
+                >{key}</button
+              >
+            {/each}
+          </div>
+        {/if}
       </article>
     {/each}
   </section>
 
   <p class="typing" aria-live="polite">{typingLabel}</p>
+  {#if quoted}
+    <p class="replying">
+      Replying to <strong>{senderName(quoted.sender)}</strong>: {quoted.body.slice(0, 60)}
+      <button class="act" onclick={() => (replyTo = null)} aria-label="Cancel reply">×</button>
+    </p>
+  {/if}
   <form class="composer" onsubmit={send}>
     <input
       type="file"
@@ -231,6 +331,91 @@
 {/if}
 
 <style>
+  .quote {
+    margin: 0 0 0.3rem;
+    padding: 0.25rem 0.5rem;
+    border-left: 3px solid var(--line-strong);
+    background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+    border-radius: 4px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+  .quotewho {
+    display: block;
+    font-weight: 700;
+  }
+  .reactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.3rem;
+  }
+  .reaction {
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+  .reaction.mine {
+    border-color: var(--mint);
+    background: var(--mint-soft);
+    color: var(--mint-ink);
+  }
+  .actions {
+    display: flex;
+    gap: 0.15rem;
+    margin-top: 0.2rem;
+    opacity: 0.75;
+  }
+  .act {
+    min-height: 32px;
+    padding: 0.1rem 0.4rem;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+  .act:hover {
+    color: var(--text);
+  }
+  .replying {
+    margin: 0 0 0.3rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .roomtools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.2rem 0;
+  }
+  .search {
+    flex: 1;
+    min-width: 0;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.85rem;
+  }
+  .members {
+    list-style: none;
+    margin: 0 0 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    font-size: 0.82rem;
+  }
+  .members code {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+  }
   .center {
     text-align: center;
   }

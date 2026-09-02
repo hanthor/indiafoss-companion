@@ -376,3 +376,40 @@ test('a shared link lands in the scan preview (web share target)', async ({ page
     timeout: 10_000,
   });
 });
+
+test('a newer published revision is offered, downloaded first, then applied (#7)', async ({
+  page,
+}) => {
+  // Load once so the current revision is recorded locally.
+  await page.goto(appUrl('/'));
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  const current = await page.evaluate(async () => {
+    const res = await fetch(
+      `${location.pathname.replace(/\/$/, '')}/events/indiafoss-2025/event-bundle.json`,
+    );
+    return res.json();
+  });
+  const changed = structuredClone(current);
+  changed.activities[0].title = 'Renamed by the organisers';
+  // A manifest one revision ahead, naming a new immutable asset.
+  await page.route(/\/events\/indiafoss-2025\/manifest\.json/, (route) =>
+    route.fulfill({
+      json: {
+        schemaVersion: 1,
+        eventId: 'indiafoss-2025',
+        revision: 999,
+        assets: { event: 'event.deadbeef.json' },
+      },
+    }),
+  );
+  await page.route(/\/events\/indiafoss-2025\/event\.deadbeef\.json/, (route) =>
+    route.fulfill({ json: changed }),
+  );
+  await page.goto(appUrl('/schedule'));
+  const banner = page.getByRole('status', { name: 'Schedule update available' });
+  await expect(banner).toBeVisible({ timeout: 10_000 });
+  await expect(banner).toContainText(/title-changed/);
+  await banner.getByRole('button', { name: 'Update' }).click();
+  await expect(banner).toBeHidden();
+  await expect(page.getByText('Renamed by the organisers')).toBeVisible();
+});

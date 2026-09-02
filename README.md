@@ -43,6 +43,11 @@ work is Android polish (#12), the native Material 3 client (#10), the real
   until 2026 data is published.
 - **Adaptive Elo ranking**: rank conflicting sessions head-to-head, and the
   itinerary solver builds a feasible plan around your preferences.
+- **Typography**: Space Mono for labels and Inter for body text, with
+  [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) (OFL) as
+  the bundled display face. FFF Forward, used on the IndiaFOSS site, is not
+  redistributable, so it is referenced first and only used when a visitor
+  already has it; the app ships nothing that needs a licence (#33).
 - **Conference rooms on Matrix**: FOSDEM-style public rooms on the organiser's
   homeserver (`reilly.asia`), one per hall plus announcements and hallway,
   joined from any existing Matrix account via Element links; provisioned by

@@ -30,19 +30,19 @@ changes, update the issue first, then this file, so neither drifts.
 
 ## Open, ordered by conference impact
 
-| Rank | Issue                                                                                                                                            | Why it matters                                                                                       |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app                                                                  | Companion first, P2P chat add-on; remaining: plugin device check, foreground service, Packages token |
-| 2    | [#2](https://github.com/hanthor/indiafoss-companion/issues/2) 2025 data, [#32](https://github.com/hanthor/indiafoss-companion/issues/32) socials | Real speakers, booths and LinkedIn/GitHub links                                                      |
-| 3    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2                                                                     | In-person verification, NFC; signed vCard and "who I met" shipped                                    |
-| 4    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications                                                                    | Tiers shipped (#50); leave-by push while the app is closed                                           |
-| 5    | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Revision handling                                                                  | Safe schedule updates during the event                                                               |
-| 6    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                                    | Four handoff screens shipped; dark audit, display font decision                                      |
-| 7    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue                                                            | Mesh behaviour: discovery, outbox flush, offline tests                                               |
-| 8    | [#30](https://github.com/hanthor/indiafoss-companion/issues/30) Chat UX                                                                          | Receipts, replies, reactions, member list                                                            |
-| 9    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE                                                               | Upstream Rust work; unencrypted mesh ships first                                                     |
-| 10   | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client                                                                 | Optional later optimisation of the companion surfaces                                                |
-| 11   | [#11](https://github.com/hanthor/indiafoss-companion/issues/11) Neutrino/Matrix                                                                  | Parent issue for the chat add-on                                                                     |
+| Rank | Issue                                                                                 | Why it matters                                                                         |
+| ---- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app       | Device verification of the Neutrino plugin, foreground service, working Packages token |
+| 1    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue | Architecture decided and shipped; two-phone verification is the only step left         |
+| 2    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2          | Remaining: NFC (needs a native plugin), end-of-conference summary image                |
+| 3    | [#30](https://github.com/hanthor/indiafoss-companion/issues/30) Chat UX               | Remaining: device verification, which waits on #27                                     |
+| 4    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish         | Remaining: visual regression snapshots, empty states                                   |
+| 5    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications         | Remaining: a push while the _web_ app is closed, which the no-push policy rules out    |
+| 6    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE    | Upstream Rust work; parked until someone can build Neutrino                            |
+| 7    | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client      | Proposed not planned: one Android app is the decision                                  |
+
+Closed as done: #2 (2025 data), #7 (revision handling), #29 (organiser rooms),
+#32 (socials), #52–#55 and #60 (device and UX feedback).
 
 ## Sibling repository
 
@@ -83,3 +83,11 @@ alignment, #3 CI packages token, #4 fork roadmap.
   map sheet no longer show walking times, leave-by or routing steps; the
   routing profile setting is gone. The map keeps the Google I/O-style peeking
   sheet and highlights the destination instead (#60).
+- 2026-09-02: Event revisions publish immutable hash-addressed assets and the
+  client downloads the named asset in full before replacing anything; the
+  committed normalized bundle is rewritten by the same sync so the two cannot
+  drift (`phases.md`).
+- 2026-09-02: Display font decided: Press Start 2P (OFL) ships as the display
+  face, FFF Forward is referenced but never bundled (#33).
+- 2026-09-02: The a11y suite runs every core screen in light **and** dark; a
+  `--on-strong` token keeps text readable on mint and danger fills.

@@ -185,3 +185,41 @@ describe('describeEvent', () => {
     ).toBeNull();
   });
 });
+
+describe('replies and reactions', () => {
+  it('carries a reply relation and strips the quoted fallback body', () => {
+    const described = describeEvent({
+      type: 'm.room.message',
+      event_id: '$reply',
+      sender: '@a:x',
+      origin_server_ts: 1,
+      content: {
+        msgtype: 'm.text',
+        body: '> <@b:x> original\n\nagreed',
+        'm.relates_to': { 'm.in_reply_to': { event_id: '$original' } },
+      },
+    });
+    expect(described).toEqual({ body: 'agreed', msgtype: 'm.text', replyTo: '$original' });
+  });
+
+  it('describes a reaction as its annotation key', () => {
+    expect(
+      describeEvent({
+        type: 'm.reaction',
+        event_id: '$r',
+        sender: '@a:x',
+        origin_server_ts: 1,
+        content: { 'm.relates_to': { rel_type: 'm.annotation', event_id: '$msg', key: '🎉' } },
+      }),
+    ).toEqual({ body: '🎉', msgtype: 'm.reaction', reactsTo: '$msg', reactionKey: '🎉' });
+    expect(
+      describeEvent({
+        type: 'm.reaction',
+        event_id: '$r',
+        sender: '@a:x',
+        origin_server_ts: 1,
+        content: {},
+      }),
+    ).toBeNull();
+  });
+});

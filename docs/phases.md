@@ -38,3 +38,22 @@ See `roadmap.md` (mirror of tracking issue #34) for everything after Phase 10.
 
 - Android Gradle/APK builds run in CI (Android SDK + JDK 21); no local SDK required for web work.
 - Playwright E2E and accessibility checks arrive with Phase 2.
+
+## Event revisions (#7)
+
+`event-sync sync <event-id>` writes immutable, hash-addressed assets into
+`events/<id>/published/`: `event.<hash>.json` plus `schedule.`, `people.` and
+`booths.` slices, a `changes.<rev>.json` and the short-lived `manifest.json`.
+The same run rewrites `events/<id>/normalized/event-bundle.json` so the
+committed bundle and the published asset never drift. `event-sync publish`
+copies the manifest, the hash-less `event-bundle.json` (precached by the
+service worker) and the hash-addressed asset into the web app's static files.
+
+In the app, `checkForUpdates()` fetches the manifest network-first with a
+four-second timeout and falls back to the stored bundle on any failure. When
+the manifest names a newer revision it downloads the **hash-addressed asset in
+full** before anything is replaced, diffs it against the running bundle and
+only then offers the update; a revision whose diff is empty is recorded as
+applied so it never nags. `applyUpdate()` saves the already-downloaded bundle,
+so bookmarks, ratings, dispositions and itinerary edits keep matching by
+stable activity id.

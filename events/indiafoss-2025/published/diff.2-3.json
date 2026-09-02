@@ -1,0 +1,45 @@
+{
+  "eventId": "indiafoss-2025",
+  "revision": 3,
+  "from": 2,
+  "changes": [
+    {
+      "activityId": "act-c8ak0iov2l",
+      "title": "First Step into Open Source with AOSP",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-c8akqqerfa",
+      "title": "Implementing a Custom HAL in AOSP",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-3ecofm0lie",
+      "title": "JIgIta - jump to soldering joy from pain",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-0ju368irth",
+      "title": "BoF: Learnings from Tech+Policy Scholarship",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-3ecoa4t3gk",
+      "title": "Makerville Badge",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-dvgslq0ivm",
+      "title": "Building a culture of openness",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-a4liqhhup7",
+      "title": "How Switzerland Became a Global Leader in FOSS",
+      "type": "title-changed"
+    }
+  ],
+  "summary": {
+    "title-changed": 7
+  }
+}

@@ -38,7 +38,7 @@
     margin-top: 1rem;
     border: none;
     background: var(--event-primary);
-    color: #fff;
+    color: var(--ink);
     padding: 0.6rem 1.4rem;
     border-radius: var(--radius);
     font-size: 1rem;

@@ -32,6 +32,16 @@ export const updateState = $state<{
   error: null,
 });
 
+/** The newer bundle, already downloaded in full; applied only when the attendee says so. */
+let pendingBundle: EventBundle | null = null;
+
+/** Immutable, hash-addressed asset named by the manifest; the hash-less copy is the fallback. */
+function assetUrl(asset: string | undefined): string {
+  return asset && /^event\.[0-9a-f]+\.json$/.test(asset)
+    ? `${EVENT_BUNDLE_URL.replace(/event-bundle\.json$/, '')}${asset}`
+    : EVENT_BUNDLE_URL;
+}
+
 let checked = false;
 
 /**
@@ -48,15 +58,24 @@ export async function checkForUpdates(eventId: string): Promise<void> {
     const res = await fetch(EVENT_MANIFEST_URL, { cache: 'no-store', signal: controller.signal });
     clearTimeout(timer);
     if (!res.ok) return;
-    const manifest = (await res.json()) as { revision?: number };
+    const manifest = (await res.json()) as { revision?: number; assets?: Record<string, string> };
     const local = await storedRevision(eventId);
     if (!manifest.revision || (local !== null && manifest.revision <= local)) return;
 
-    const bundleRes = await fetch(EVENT_BUNDLE_URL, { cache: 'no-store' });
+    // Download the changed asset in full before anything is replaced (§34).
+    let bundleRes = await fetch(assetUrl(manifest.assets?.event), { cache: 'no-store' });
+    if (!bundleRes.ok && bundleRes.status === 404) {
+      bundleRes = await fetch(EVENT_BUNDLE_URL, { cache: 'no-store' });
+    }
     if (!bundleRes.ok) return;
     const next = (await bundleRes.json()) as EventBundle;
     const changes = diffBundles(eventState.bundle, next);
-    if (changes.length === 0) return;
+    if (changes.length === 0) {
+      // A no-op revision (metadata only) must not nag: remember it as applied.
+      await recordRevision(eventId, manifest.revision);
+      return;
+    }
+    pendingBundle = next;
 
     updateState.available = true;
     updateState.revision = manifest.revision;
@@ -74,9 +93,13 @@ export async function checkForUpdates(eventId: string): Promise<void> {
  */
 export async function applyUpdate(eventId: string): Promise<void> {
   if (!updateState.available) return;
-  const res = await fetch(EVENT_BUNDLE_URL, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`update fetch failed (HTTP ${res.status})`);
-  const next = (await res.json()) as EventBundle;
+  let next = pendingBundle;
+  if (!next) {
+    const res = await fetch(EVENT_BUNDLE_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`update fetch failed (HTTP ${res.status})`);
+    next = (await res.json()) as EventBundle;
+  }
+  pendingBundle = null;
   await getStorage().saveEventBundle(next);
   await recordRevision(eventId, updateState.revision ?? undefined);
   eventState.bundle = next;
