@@ -532,10 +532,12 @@
               <button
                 type="button"
                 role="switch"
-                aria-checked={on}
+                aria-checked={on && !!valueOf(spec).trim()}
                 aria-label={`Share ${spec.label}`}
                 class="switch"
-                class:on
+                class:on={on && !!valueOf(spec).trim()}
+                disabled={!valueOf(spec).trim()}
+                title={valueOf(spec).trim() ? undefined : 'Fill in the field first'}
                 onclick={() => toggle(spec)}><span class="knob"></span></button
               >
             </div>
@@ -853,7 +855,7 @@
     font-size: 0.72rem;
     color: var(--text-muted);
     line-height: 1.4;
-    word-break: break-all;
+    overflow-wrap: anywhere;
   }
   .hint.warning {
     color: var(--amber-ink);

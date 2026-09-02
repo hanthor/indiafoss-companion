@@ -79,3 +79,7 @@ alignment, #3 CI packages token, #4 fork roadmap.
 - 2026-09-02: The halls are Audi 1, 2 and 3 (owner); plan ids stay
   `hall-1..3` from the drawing. Reminders are tiered: must-attend >
   bookmarked > silent; the programme as a whole never notifies.
+- 2026-09-02: **No walk estimates** (owner): the Now screen, the banner and the
+  map sheet no longer show walking times, leave-by or routing steps; the
+  routing profile setting is gone. The map keeps the Google I/O-style peeking
+  sheet and highlights the destination instead (#60).

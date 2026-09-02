@@ -62,6 +62,17 @@ export function frappeDateTimeToIso(value: string | undefined): string | undefin
   return toIsoInKolkata(date, time ?? '00:00:00');
 }
 
+/** Strip a stray leading/trailing quote left by the source when quotes do not pair up. */
+export function cleanTitle(title: string): string {
+  let t = title.trim();
+  const quotes = (t.match(/"/g) ?? []).length;
+  if (quotes % 2 === 1) {
+    if (t.endsWith('"')) t = t.slice(0, -1).trimEnd();
+    else if (t.startsWith('"')) t = t.slice(1).trimStart();
+  }
+  return t;
+}
+
 export function slugify(input: string): string {
   return input
     .toLowerCase()
@@ -236,7 +247,9 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           id: `act-${s.name}`,
           sourceId: s.name,
           type: resolveType(s, proposalByCfp),
-          title: s.title || s.talk_title || s.proposal_title || cfp?.talk_title || 'Untitled',
+          title: cleanTitle(
+            s.title || s.talk_title || s.proposal_title || cfp?.talk_title || 'Untitled',
+          ),
           ...(s.other_category || cfp?.session_type
             ? { subtitle: s.other_category ?? cfp?.session_type }
             : {}),

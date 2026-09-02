@@ -158,7 +158,12 @@
               {#if speaker.avatarUrl}
                 <!-- public speaker image from the captured FOSS United page -->
                 <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-                <img src={speaker.avatarUrl} alt="" loading="lazy" />
+                <img
+                  src={speaker.avatarUrl}
+                  alt=""
+                  loading="lazy"
+                  onerror={(e) => ((e.currentTarget as HTMLImageElement).hidden = true)}
+                />
               {/if}
               <div>
                 <a href={resolve(`/speaker/${speaker.id}`)}>{speaker.name}</a>

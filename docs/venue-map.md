@@ -46,23 +46,20 @@ says when you or your next talk are on the other floor.
 
 ## Room sheet
 
-Tapping a room (shape or label) opens a bottom sheet: name, floor and seats,
-ON NOW with speaker and progress, NEXT HERE, and, when your location is known,
-the walk from where you are (duration, distance, step list from the routing
-graph and the active routing profile). "I'm here" sets the current location
-(`setCurrentLocation`), the same state a room QR's `?at=` deep link sets;
-"Clear location" removes it. The route is not drawn on the plan in v1; the
-destination room is highlighted instead.
+Tapping a room (shape or label) pans it into the strip above the sheet and
+opens a bottom sheet that **peeks** (name, floor and seats, ON NOW) and expands
+on the grabber to NEXT HERE and "I'm here" / "Clear location" (the same state a
+room QR's `?at=` deep link sets). This is the Google I/O app's map pattern:
+full-screen vector map, floor selector, small markers, a peeking bottom sheet.
+There are no walk estimates or drawn routes: the owner dropped them; the
+destination room is highlighted instead. Labels hide once they leave the plan
+rather than dangling off-screen, and the drawing's viewBox carries 6 % padding
+so no wing is clipped at any aspect ratio.
 
-## Leave-by banner
+## Next-up banner
 
-`LeaveByBanner.svelte` sits under the app bar on every tab. It names the next
-session and, once a location and the venue graph are known, when to leave:
-`LEAVE IN 12 MIN · 14:35 — title · Hall 2 · starts 14:45 · 2 min walk · take
-the stairs`. It turns amber at five minutes and reads LEAVE NOW after the
-leave-by instant. Tapping it opens `/map/to/<location>`. The local reminder at
-leave-by time is scheduled separately by `notifications.ts` when reminders are
-enabled in Settings.
-
-`leaveByInstant()` keeps the session start's UTC offset, so `formatTime()`
-shows event-local time in the banner, the Now screen and reminders.
+`LeaveByBanner.svelte` sits under the app bar on every tab and names the next
+session: `STARTS IN 12 MIN · 14:45 — title · Hall 2`, amber at five minutes,
+STARTING NOW after. Must-attend sessions come first and are tagged. Tapping it
+opens `/map/to/<location>`. Reminders are scheduled separately by
+`notifications.ts` when they are enabled in Settings.

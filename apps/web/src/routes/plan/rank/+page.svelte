@@ -1,7 +1,14 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import type { Activity } from '@indiafoss/model';
-  import { activitiesForDay, formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
+  import {
+    activitiesForDay,
+    formatDayLabel,
+    formatInstant,
+    formatTime,
+    getEventDays,
+    offsetMinutesOf,
+  } from '@indiafoss/schedule';
   import {
     applyComparison,
     pairKey,
@@ -218,7 +225,7 @@
     const B = candidate.activityB.activity;
     const clash =
       A.start && B.start && A.end && B.end
-        ? `${formatTime(new Date(Math.max(Date.parse(A.start), Date.parse(B.start))).toISOString())}–${formatTime(new Date(Math.min(Date.parse(A.end), Date.parse(B.end))).toISOString())}`
+        ? `${formatTime(formatInstant(Math.max(Date.parse(A.start), Date.parse(B.start)), offsetMinutesOf(A.start)))}–${formatTime(formatInstant(Math.min(Date.parse(A.end), Date.parse(B.end)), offsetMinutesOf(A.start)))}`
         : '';
     switch (candidate.reason) {
       case 'conflict':

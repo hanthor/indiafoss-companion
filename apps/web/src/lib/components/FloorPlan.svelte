@@ -2,8 +2,6 @@
   import { page } from '$app/state';
   import type { Activity } from '@indiafoss/model';
   import { activityProgress, formatTime, parseInstant } from '@indiafoss/schedule';
-  import { findRoute } from '@indiafoss/venue';
-  import type { Route } from '@indiafoss/venue';
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { eventState } from '$lib/event.svelte';
   import { bookmarked } from '$lib/prefs.svelte';
@@ -13,7 +11,6 @@
     locationIdFromDeepLink,
     setCurrentLocation,
   } from '$lib/location.svelte';
-  import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
   import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
   import { FLOORS, FLOOR_ORDER, anchorPercent } from '$lib/venue-floors';
   import type { FloorId, FloorRoom } from '$lib/venue-floors';
@@ -44,7 +41,6 @@
     const at = page.url.searchParams.get('at');
     void (async () => {
       await hydrateLocation();
-      await hydrateRoutingProfile();
       if (at) await setCurrentLocation(locationIdFromDeepLink(at) ?? at);
     })();
     void loadVenue(venueKey)
@@ -125,7 +121,7 @@
           bookmarked,
           venue,
           currentLocation: currentLocation.value,
-          profile: routingPrefs.profile,
+          profile: 'fastest',
           bufferSeconds: BUFFER_SECONDS,
         })
       : null,
@@ -174,8 +170,14 @@
     return '';
   }
 
+  let sheetExpanded = $state(false);
+
   function select(id: string) {
-    selectedChoice = selected === id ? null : id;
+    const next = selected === id ? null : id;
+    selectedChoice = next;
+    sheetExpanded = false;
+    const room = next ? allRooms.find((r) => r.id === next) : null;
+    if (room) focusRoom(room);
   }
 
   // ---- overlay geometry --------------------------------------------------
@@ -183,8 +185,15 @@
   let boxW = $state(0);
   let boxH = $state(0);
   /** Where the letterboxed drawing sits inside the container, as CSS pixels. */
+  /** The drawing's viewBox with breathing room so no wing is clipped at any aspect ratio. */
+  const paddedViewBox = $derived.by(() => {
+    const [x, y, w, h] = plan.viewBox.split(' ').map(Number) as [number, number, number, number];
+    const px = w * 0.06;
+    const py = h * 0.06;
+    return `${x - px} ${y - py} ${w + 2 * px} ${h + 2 * py}`;
+  });
   const content = $derived.by(() => {
-    const [, , vw, vh] = plan.viewBox.split(' ').map(Number) as [number, number, number, number];
+    const [, , vw, vh] = paddedViewBox.split(' ').map(Number) as [number, number, number, number];
     if (!boxW || !boxH) return { x: 0, y: 0, w: boxW, h: boxH };
     const scale = Math.min(boxW / vw, boxH / vh);
     const w = vw * scale;
@@ -328,11 +337,40 @@
     `transform:translate(${view.tx.toFixed(1)}px,${view.ty.toFixed(1)}px) scale(${view.scale.toFixed(3)})`,
   );
 
-  function labelStyle(room: FloorRoom): string {
+  /** Screen position of a room's label anchor under the current view. */
+  function labelPoint(room: FloorRoom): { x: number; y: number } {
     const p = anchorPercent(plan, room);
-    const x = view.tx + (content.x + (p.x / 100) * content.w) * view.scale;
-    const y = view.ty + (content.y + (p.y / 100) * content.h) * view.scale;
-    return `left:${x.toFixed(1)}px;top:${y.toFixed(1)}px`;
+    return {
+      x: view.tx + (content.x + (p.x / 100) * content.w) * view.scale,
+      y: view.ty + (content.y + (p.y / 100) * content.h) * view.scale,
+    };
+  }
+
+  function labelStyle(room: FloorRoom): string {
+    const { x, y } = labelPoint(room);
+    // Labels that leave the plan are hidden rather than left dangling off-screen.
+    if (x < -40 || x > boxW + 40 || y < -20 || y > boxH + 20) return 'display:none';
+    const cx = Math.min(boxW - 44, Math.max(44, x));
+    const cy = Math.min(boxH - 20, Math.max(20, y));
+    return `left:${cx.toFixed(1)}px;top:${cy.toFixed(1)}px`;
+  }
+
+  /** Height the room sheet takes at the bottom, so a selected room is panned above it. */
+  const SHEET_PEEK = 150;
+
+  /** Pan so `room` sits in the strip that stays visible above the sheet. */
+  function focusRoom(room: FloorRoom) {
+    const { x, y } = labelPoint(room);
+    const visibleH = Math.max(120, boxH - SHEET_PEEK);
+    const targetX = boxW / 2;
+    const targetY = visibleH / 2;
+    const inside = x > 60 && x < boxW - 60 && y > 40 && y < visibleH - 20;
+    if (inside) return;
+    view = clampView({
+      scale: view.scale,
+      tx: view.tx + (targetX - x),
+      ty: view.ty + (targetY - y),
+    });
   }
 
   function minutesLeft(a: Activity): number {
@@ -347,22 +385,6 @@
   }
   function truncate(text: string, max = 22): string {
     return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
-  }
-
-  // ---- sheet: route from here -------------------------------------------
-
-  const route = $derived.by<Route | null>(() => {
-    if (!venue || !selectedRoom || !currentLocation.value) return null;
-    const to = primaryLocation(selectedRoom.id);
-    if (!to) return null;
-    const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
-    const toNode = venue.metadata.locations[to]?.entrances[0];
-    if (!from || !toNode || from === toNode) return null;
-    return findRoute(venue.graph, from, toNode, routingPrefs.profile);
-  });
-
-  function nodeLabel(nodeId: string): string {
-    return nodeId.replace(/^(gf|ff)-/, '').replace(/-/g, ' ');
   }
 
   const isHere = $derived(selectedRoom !== null && hereRoom === selectedRoom.id);
@@ -395,7 +417,7 @@
     onclickcapture={onClickCapture}
   >
     <svg
-      viewBox={plan.viewBox}
+      viewBox={paddedViewBox}
       preserveAspectRatio="xMidYMid meet"
       class="drawing"
       style={drawingStyle}
@@ -484,14 +506,20 @@
     <ul class="legend" aria-label="Legend">
       <li><span class="sw live"></span>LIVE</li>
       <li><span class="sw next"></span>NEXT</li>
-      <li><span class="sw you"></span>YOU</li>
+      <li><span class="sw sw-you"></span>YOU</li>
     </ul>
   </div>
 
   {#if selectedRoom}
     {@const live = liveByRoom.get(selectedRoom.id) ?? []}
     {@const next = nextByRoom.get(selectedRoom.id)}
-    <section class="sheet" aria-label="Room details">
+    <section class="sheet" class:expanded={sheetExpanded} aria-label="Room details">
+      <button
+        class="grabber"
+        aria-expanded={sheetExpanded}
+        aria-label={sheetExpanded ? 'Show less' : 'Show more'}
+        onclick={() => (sheetExpanded = !sheetExpanded)}><span></span></button
+      >
       <header>
         <div>
           <h2>{roomTitle(selectedRoom)}</h2>
@@ -537,27 +565,6 @@
         </div>
       {:else if live.length === 0}
         <p class="muted">Nothing scheduled here right now.</p>
-      {/if}
-
-      {#if route}
-        <div class="block routeinfo">
-          <span class="kicker">FROM WHERE YOU ARE</span>
-          <strong
-            >{Math.max(1, Math.round(route.durationSeconds / 60))} min walk · {Math.round(
-              route.distanceMeters,
-            )} m{#if route.restricted}
-              · step-free{/if}</strong
-          >
-          <ol class="steps">
-            {#each route.segments as seg, i (i)}
-              <li>
-                {nodeLabel(seg.fromNode)}
-                {seg.instruction ? `→ ${seg.instruction} →` : '→'}
-                {nodeLabel(seg.toNode)}
-              </li>
-            {/each}
-          </ol>
-        </div>
       {/if}
 
       <div class="actions">
@@ -859,11 +866,33 @@
     background: var(--amber-soft);
     border: 1px solid var(--amber);
   }
-  .sw.you {
+  .sw-you {
     background: var(--mint);
     border-radius: 999px;
   }
 
+  .grabber {
+    display: block;
+    width: 100%;
+    padding: 0.35rem 0 0.1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+  }
+  .grabber span {
+    display: block;
+    width: 2.5rem;
+    height: 4px;
+    margin: 0 auto;
+    border-radius: 999px;
+    background: var(--line-strong);
+    opacity: 0.4;
+  }
+  /* Peek state: the header and the first block; tap the grabber for the rest. */
+  .sheet:not(.expanded) {
+    max-height: 11rem;
+    overflow: hidden;
+  }
   .sheet {
     position: sticky;
     bottom: calc(var(--tabbar-height) + var(--safe-bottom));
@@ -946,16 +975,6 @@
     display: block;
     height: 100%;
     background: var(--mint);
-  }
-  .steps {
-    margin: 0.2rem 0 0;
-    padding-left: 1.1rem;
-    color: var(--text-muted);
-    font-size: 0.82rem;
-  }
-  .steps li {
-    padding: 0.1rem 0;
-    text-transform: capitalize;
   }
   .actions {
     display: flex;

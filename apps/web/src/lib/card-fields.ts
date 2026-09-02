@@ -73,7 +73,7 @@ export const CARD_FIELDS: CardFieldSpec[] = [
     key: 'neutrinoServerName',
     group: 'extras',
     label: 'Mesh id',
-    placeholder: 'Filled in when P2P chat is on',
+    placeholder: 'Set when P2P chat is on',
     hint: 'Lets someone who scans this message you over the venue mesh.',
     inputType: 'text',
     mono: true,

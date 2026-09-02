@@ -268,9 +268,7 @@
   <div class="eyebrow">SCAN · LOCAL · OPT-IN</div>
   <h1>Scan a code</h1>
   <p class="lead">
-    Scan a venue location marker, another attendee's contact or friend card, a Matrix link or a
-    ticket. Nothing is imported, joined or sent until you confirm the preview. The camera turns on
-    only while you are scanning.
+    Point at a room marker, a contact card or a Matrix link. Nothing is saved until you confirm.
   </p>
 
   <section class="camera card">

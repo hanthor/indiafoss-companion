@@ -34,7 +34,12 @@ function toLink(room: MessagingRoom): ConferenceRoomLink {
 export function spaceLink(bundle: EventBundle | null): ConferenceRoomLink | null {
   const space = bundle?.messaging?.space;
   return space
-    ? { alias: space, name: bundle!.name, href: matrixToRoom(space), recommended: true }
+    ? {
+        alias: space,
+        name: `${bundle!.name} · Space`,
+        href: matrixToRoom(space),
+        recommended: true,
+      }
     : null;
 }
 

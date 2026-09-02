@@ -5,9 +5,6 @@
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { eventState } from '$lib/event.svelte';
   import { bookmarked, dispositionOf } from '$lib/prefs.svelte';
-  import { currentLocation, hydrateLocation } from '$lib/location.svelte';
-  import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
-  import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
   import { computeNextUp } from '$lib/nextup';
 
   const BUFFER_SECONDS = 300;
@@ -26,20 +23,6 @@
   });
 
   const bundle = $derived(eventState.bundle);
-  let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
-
-  $effect(() => {
-    if (!bundle) return;
-    void hydrateLocation();
-    void hydrateRoutingProfile();
-    void loadVenue(venueKeyForEvent(bundle.id))
-      .then((v) => {
-        venue = v;
-      })
-      .catch(() => {
-        venue = null;
-      });
-  });
 
   const next = $derived(
     bundle && now
@@ -48,9 +31,9 @@
           now,
           bookmarked,
           mustAttend: (id) => dispositionOf(id) === 'must-attend',
-          venue,
-          currentLocation: currentLocation.value,
-          profile: routingPrefs.profile,
+          venue: null,
+          currentLocation: null,
+          profile: 'fastest',
           bufferSeconds: BUFFER_SECONDS,
         })
       : null,
@@ -63,13 +46,12 @@
       : null,
   );
 
-  const urgent = $derived(next?.leaveInMinutes !== null && (next?.leaveInMinutes ?? 99) <= 5);
+  const urgent = $derived((next?.startsInMinutes ?? 99) <= 5);
 
   const kicker = $derived.by(() => {
     if (!next) return '';
-    if (next.leaveInMinutes === null) return `STARTS IN ${next.startsInMinutes} MIN`;
-    if (next.leaveInMinutes <= 0) return 'LEAVE NOW';
-    return `LEAVE IN ${next.leaveInMinutes} MIN`;
+    if (next.startsInMinutes <= 0) return 'STARTING NOW';
+    return `STARTS IN ${next.startsInMinutes} MIN`;
   });
 
   const href = $derived(
@@ -92,18 +74,12 @@
     <span class="kicker">
       {#if next.mustAttend}<span class="musttag">★ MUST ATTEND</span> ·
       {/if}{kicker}
-      {#if next.leaveBy}<span class="clock">· {formatTime(next.leaveBy)}</span>{/if}
+      <span class="clock">· {formatTime(next.activity.start!)}</span>
     </span>
     <span class="detail">
       <strong>{next.activity.title}</strong>
       {#if roomName}· {roomName}{/if}
-      · starts {formatTime(next.activity.start!)}
-      {#if next.travelSeconds !== null}
-        · {Math.max(1, Math.round(next.travelSeconds / 60))} min walk
-      {/if}
-      {#if next.floorChange}
-        · take the {routingPrefs.profile === 'fastest' ? 'stairs' : 'lift'}
-      {/if}
+      {#if next.planned && !next.mustAttend}· bookmarked{/if}
     </span>
   </a>
   <!-- eslint-enable svelte/no-navigation-without-resolve -->

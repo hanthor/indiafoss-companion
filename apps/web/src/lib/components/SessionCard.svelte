@@ -5,7 +5,11 @@
   import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
   import TypeBadge from './TypeBadge.svelte';
 
-  let { activity, bundle }: { activity: Activity; bundle: EventBundle } = $props();
+  let {
+    activity,
+    bundle,
+    compactTime = false,
+  }: { activity: Activity; bundle: EventBundle; compactTime?: boolean } = $props();
 
   const location = $derived(bundle.locations.find((l) => l.id === activity.locationId));
   const speakers = $derived(
@@ -29,18 +33,21 @@
   }
 </script>
 
-<article class="session" class:cancelled={activity.cancelled}>
-  <time class="times" datetime={activity.start}>
-    {#if activity.start && activity.end}
-      {formatTime(activity.start)}–{formatTime(activity.end)}
-    {/if}
-  </time>
+<article class="session" class:cancelled={activity.cancelled} class:compact={compactTime}>
+  {#if !compactTime}
+    <time class="times" datetime={activity.start}>
+      {#if activity.start && activity.end}
+        {formatTime(activity.start)}–{formatTime(activity.end)}
+      {/if}
+    </time>
+  {/if}
 
   <div class="body">
     <h3>
       <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
     </h3>
     <p class="meta">
+      {#if compactTime && activity.end}<span>until {formatTime(activity.end)}</span>{/if}
       {#if location}<span>{location.name}</span>{/if}
       {#if speakers.length > 0}
         <span>{speakers.map((s) => s.name).join(', ')}</span>
@@ -67,12 +74,15 @@
       aria-pressed={mustAttend}
       aria-label={mustAttend ? 'Remove from must attend' : 'Mark as must attend'}
       title="Must attend: pinned in your plan, extra reminders"
-      onclick={onMustAttend}>!!</button
+      onclick={onMustAttend}>MUST</button
     >
   </div>
 </article>
 
 <style>
+  .session.compact {
+    grid-template-columns: 1fr auto;
+  }
   .session {
     display: grid;
     grid-template-columns: 5.5rem 1fr auto;
@@ -152,10 +162,10 @@
     border: none;
     background: none;
     font-family: var(--font-mono);
-    font-size: 0.9rem;
+    font-size: 0.58rem;
     font-weight: 700;
-    letter-spacing: -0.05em;
-    color: color-mix(in srgb, var(--text-muted) 45%, transparent);
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
     cursor: pointer;
     min-width: 44px;
     min-height: 44px;
