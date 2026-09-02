@@ -1,5 +1,12 @@
 # Optional Matrix messaging
 
+> **Android packaging (decided 2026-09-02):** on Android the companion and
+> the chat client ship as one app, built from
+> [`hanthor/indiafoss-chat-android`](https://github.com/hanthor/indiafoss-chat-android)
+> with this web UI bundled inside. The `indiafoss://` handoff described below
+> still applies to the web/iOS PWA and to the in-app bridge; see
+> [issue #35](https://github.com/hanthor/indiafoss-companion/issues/35).
+
 > Status: implemented in the PWA as an **optional, opt-in** layer (issue #11,
 > #5, #8). The schedule, map, ranking, itinerary and contact sharing never
 > depend on it. Neutrino (P2P Matrix over Bluetooth) is handled by **handoff**,
