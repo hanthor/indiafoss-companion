@@ -289,6 +289,15 @@ capability. Association is a claim, not authentication.
 | F-Droid                            | The bindings are now built from a pinned tag by a workflow anyone can read, which is the precondition for a reproducible build, though F-Droid would still need to run that build itself rather than take our `.aar`. The PWA/Capacitor core remains F-Droid clean.                                                              |
 | Prototype                          | Not built yet: it requires an Android device pair with BLE. The PWA side (QR payload, identity fields, handoff links) is done so the prototype can consume it.                                                                                                                                                                   |
 
+### What the mesh can actually do
+
+Neutrino is pre-alpha and supports a fraction of the client-server API. Rather
+than guess from its README, `tools/neutrino-probe` measures it: see
+[neutrino-capabilities.md](neutrino-capabilities.md) for the current matrix and
+the feature ladder. As of neutrino `90bc1b1`: sending, history, replies and
+reactions work; redaction, receipts, typing, media and E2EE do not, and the
+E2EE key endpoints answer 200 with nothing behind them.
+
 ### Building the P2P variant
 
 No credentials, by design.
