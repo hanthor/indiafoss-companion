@@ -16,31 +16,46 @@ cargo run --bin neutrino                       # in an element-hq/neutrino check
 pnpm --filter @indiafoss/neutrino-probe start  # defaults to http://localhost:8008
 ```
 
+Alongside the probe there is an **e2e suite** — `pnpm --filter
+@indiafoss/neutrino-probe test` — holding two kinds of test:
+
+- **contracts**: the behaviour mesh chat depends on (send, history, replies,
+  reactions, membership, sync). If one breaks upstream, chat is broken and we
+  find out from CI rather than from a phone at the venue.
+- **tripwires**: each missing feature is asserted _still missing_. When
+  upstream implements redaction or receipts, the tripwire fails, and that
+  failure is the reminder to go and turn the feature on. A gap that closes
+  silently is a feature we never ship.
+
+Both skip cleanly when no server is running, so `pnpm -r test` stays green
+without a Rust toolchain. The `Neutrino e2e` workflow builds a server weekly
+and runs them.
+
 ## Results — neutrino @ `90bc1b1`, 2026-09-02
 
 `8 working, 1 stubbed, 10 missing`
 
-| Companion feature           | Endpoint                               | Result                                                             |
-| --------------------------- | -------------------------------------- | ------------------------------------------------------------------ |
-| Create a room               | `POST /createRoom`                     | works                                                              |
-| Sync                        | `GET /sync`                            | works                                                              |
-| Send a message              | `PUT /rooms/{}/send/m.room.message/{}` | works                                                              |
-| History / backfill          | `GET /rooms/{}/messages`               | works                                                              |
-| **React to a message**      | `PUT /rooms/{}/send/m.reaction/{}`     | **works** — the annotation is stored and comes back in `/messages` |
-| Invite someone              | `POST /rooms/{}/invite`                | works                                                              |
-| Display name                | `GET /profile/{}/displayname`          | works                                                              |
-| **Un-react / delete**       | `PUT /rooms/{}/redact/{}/{}`           | missing (404)                                                      |
-| **Typing indicator**        | `PUT /rooms/{}/typing/{}`              | missing (404)                                                      |
-| **Read receipt**            | `POST /rooms/{}/receipt/m.read/{}`     | missing (404)                                                      |
-| **Member list**             | `GET /rooms/{}/joined_members`         | missing (404)                                                      |
-| **Files and photos**        | `POST /_matrix/media/v3/upload`        | missing (404)                                                      |
-| E2EE: upload device keys    | `POST /keys/upload`                    | answers `{"one_time_key_counts":{"signed_curve25519":100}}`        |
-| **E2EE: query device keys** | `POST /keys/query`                     | **stub** — 200 with an empty device object; nothing was stored     |
-| E2EE: claim one-time keys   | `POST /keys/claim`                     | missing (404)                                                      |
-| E2EE: to-device             | `PUT /sendToDevice/{}/{}`              | missing (404)                                                      |
-| Public room directory       | `GET /publicRooms`                     | missing (404)                                                      |
-| Whoami                      | `GET /account/whoami`                  | missing (404)                                                      |
-| Account data (DM list)      | `PUT /user/{}/account_data/{}`         | missing (405)                                                      |
+| Companion feature           | Endpoint                               | Result                                                                                 |
+| --------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
+| Create a room               | `POST /createRoom`                     | works                                                                                  |
+| Sync                        | `GET /sync`                            | works                                                                                  |
+| Send a message              | `PUT /rooms/{}/send/m.room.message/{}` | works                                                                                  |
+| History / backfill          | `GET /rooms/{}/messages`               | works                                                                                  |
+| **React to a message**      | `PUT /rooms/{}/send/m.reaction/{}`     | **works** — the annotation is stored and comes back in `/messages`                     |
+| Invite someone              | `POST /rooms/{}/invite`                | works                                                                                  |
+| Display name                | `GET /profile/{}/displayname`          | works                                                                                  |
+| **Un-react / delete**       | `PUT /rooms/{}/redact/{}/{}`           | missing (404)                                                                          |
+| **Typing indicator**        | `PUT /rooms/{}/typing/{}`              | missing (404)                                                                          |
+| **Read receipt**            | `POST /rooms/{}/receipt/m.read/{}`     | missing (404)                                                                          |
+| **Member list**             | `GET /rooms/{}/joined_members`         | missing (404) — but `GET /rooms/{}/members` works, and the client now falls back to it |
+| **Files and photos**        | `POST /_matrix/media/v3/upload`        | missing (404)                                                                          |
+| E2EE: upload device keys    | `POST /keys/upload`                    | answers `{"one_time_key_counts":{"signed_curve25519":100}}`                            |
+| **E2EE: query device keys** | `POST /keys/query`                     | **stub** — 200 with an empty device object; nothing was stored                         |
+| E2EE: claim one-time keys   | `POST /keys/claim`                     | missing (404)                                                                          |
+| E2EE: to-device             | `PUT /sendToDevice/{}/{}`              | missing (404)                                                                          |
+| Public room directory       | `GET /publicRooms`                     | missing (404)                                                                          |
+| Whoami                      | `GET /account/whoami`                  | missing (404)                                                                          |
+| Account data (DM list)      | `PUT /user/{}/account_data/{}`         | missing (405)                                                                          |
 
 Two things the probe found that the README does not say:
 
@@ -74,7 +89,7 @@ On the mesh path, of the chat features we ship:
 | Search                  | ✅   | runs over our own cached timeline                                    |
 | Offline outbox          | ✅   | ours, not the server's                                               |
 | Un-reacting             | ❌   | needs redaction                                                      |
-| Member list             | ⚠️   | `joined_members` is missing; derivable from `m.room.member` in sync  |
+| Member list             | ✅   | `joined_members` is missing, but the client falls back to `/members` |
 | Read receipts           | ❌   | endpoint missing                                                     |
 | Typing indicators       | ❌   | endpoint missing                                                     |
 | Files and photos        | ❌   | no media repository                                                  |
@@ -93,8 +108,8 @@ not by spec completeness.
    the below.
 2. **Redaction.** One core primitive that unblocks un-reacting and deleting a
    message you regret. Small, and the event type already exists.
-3. **`joined_members`.** Or we stop calling it and derive membership from sync
-   — a client-side change we can make without touching Neutrino.
+3. ~~**`joined_members`.**~~ Done client-side: `/members` exists and the
+   client now falls back to it, so no upstream work is needed.
 4. **Read receipts, then typing.** Both are EDUs; receipts are the more useful
    of the two in a room where people drift in and out.
 5. **A media repository.** The biggest surface, and the one most constrained by

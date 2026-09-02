@@ -330,6 +330,23 @@ export class MatrixClient {
     return Object.keys(json.joined ?? {});
   }
 
+  /**
+   * Members from the `/members` state endpoint, which some servers implement
+   * when `/joined_members` is absent — Neutrino is one, so the mesh member
+   * list came back empty until this fallback existed.
+   */
+  async roomMembers(roomId: string): Promise<string[]> {
+    try {
+      return await this.joinedMembers(roomId);
+    } catch {
+      const json = await this.request<{
+        chunk?: { sender?: string; state_key?: string; content?: { membership?: string } }[];
+      }>('GET', `${CS}/rooms/${encodeURIComponent(roomId)}/members`);
+      const joined = (json.chunk ?? []).filter((e) => e.content?.membership === 'join');
+      return [...new Set(joined.map((e) => e.state_key ?? e.sender ?? '').filter(Boolean))];
+    }
+  }
+
   async sendEvent(
     roomId: string,
     type: string,

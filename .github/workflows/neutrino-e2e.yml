@@ -1,0 +1,101 @@
+name: Neutrino e2e
+
+# Builds a real Neutrino homeserver and runs the companion's chat contracts
+# against it. Two things this catches that unit tests cannot:
+#
+#   - a contract we depend on breaking upstream (mesh chat silently stops
+#     working), and
+#   - a gap upstream *closing* — the tripwire tests assert each missing
+#     feature is still missing, so implementing one turns this job red and we
+#     go and enable the feature instead of never noticing.
+#
+# It is not on the PR path: building Neutrino costs minutes and its result
+# depends on upstream, not on the pull request. Weekly, and on demand.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'element-hq/neutrino ref to test against (default: main)'
+        required: false
+  schedule:
+    # Mondays, 06:00 UTC.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neutrino-e2e
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Chat contracts against a live Neutrino
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out neutrino
+        uses: actions/checkout@v4
+        with:
+          repository: element-hq/neutrino
+          ref: ${{ inputs.ref || 'main' }}
+          path: neutrino
+
+      - name: Install the Rust toolchain
+        # Neutrino's dependency tree tracks recent Rust; take current stable
+        # rather than pinning a version that would rot.
+        run: |
+          rustup update stable
+          rustup default stable
+          rustc --version
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: neutrino
+
+      - name: Build the neutrino dev binary
+        working-directory: neutrino
+        run: cargo build --bin neutrino
+
+      - name: Start it
+        working-directory: neutrino
+        run: |
+          ./target/debug/neutrino > /tmp/neutrino.log 2>&1 &
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:8008/_matrix/client/versions >/dev/null; then
+              echo "neutrino is up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "neutrino did not start"; cat /tmp/neutrino.log; exit 1
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run the chat contracts
+        run: pnpm --filter @indiafoss/neutrino-probe test
+
+      - name: Refresh the capability matrix
+        # Printed into the job summary so a drift is visible without reading
+        # the diff of docs/neutrino-capabilities.md.
+        if: always()
+        run: |
+          echo '## Neutrino capability probe' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          pnpm --filter @indiafoss/neutrino-probe start >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Server log
+        if: failure()
+        run: tail -100 /tmp/neutrino.log
