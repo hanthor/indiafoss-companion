@@ -139,9 +139,9 @@ jobs:
         run: pnpm --filter @indiafoss/android exec cap add android
 
       - name: Sync web assets
-        # PR CI builds the plain companion that every contributor can build.
-        # The P2P variant (Neutrino plugin, needs the GitHub Packages token)
-        # is built and published by nightly.yml.
+        # PR CI builds the plain companion: fast, and it needs no bindings.
+        # The nightly fetches the .aar (built from source by
+        # neutrino-bindings.yml) and ships the P2P variant.
         run: pnpm --filter @indiafoss/android build
 
       - name: Assemble debug APK
