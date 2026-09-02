@@ -23,6 +23,10 @@ changes, update the issue first, then this file, so neither drifts.
 - #51 (closes #29): FOSDEM-style rooms on `reilly.asia`, `tools/matrix-rooms`,
   "Open room in Element" links, `/chat` room list; halls labelled Audi 1/2/3.
   Server step pending: run the tool once with an organiser token (see #29).
+- Device feedback from the nightly APK (#52–#55, PRs #57 and #58): app bar
+  below the Android 15 status bar, camera permission for scanning, Scan icon,
+  manual entry behind a disclosure; map pinch/drag/wheel zoom with compact
+  labels; XMPP (Prav) and Delta Chat on cards; FOSS United by username.
 
 ## Open, ordered by conference impact
 
