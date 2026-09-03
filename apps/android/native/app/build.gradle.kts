@@ -72,6 +72,10 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons)
+    // QR codes: zxing draws the card; the embedded scanner (Apache-2.0, no
+    // Google services) reads a friend's — F-Droid friendly.
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
 

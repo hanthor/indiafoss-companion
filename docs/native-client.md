@@ -26,8 +26,9 @@ of plan cancels alarms that no longer apply; `ReminderReceiver` posts the
 notification. Ratings, answered pairs and room preferences live in
 `RatingsStore` as one JSON document in DataStore.
 
-Not native yet: Explore/search, speaker pages, booths, Connect (card and QR),
-Scan, the drawn floor plan with routing.
+Not native yet: the drawn floor plan with routing, signed cards (the PWA
+signs its QR with a per-device WebCrypto key; the native card is unsigned
+and the scanner treats every card as unsigned), the leave-by banner.
 
 ## Layout
 

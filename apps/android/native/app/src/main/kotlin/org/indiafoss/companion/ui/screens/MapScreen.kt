@@ -23,12 +23,12 @@ import org.indiafoss.companion.core.Schedule
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(state: UiState) {
+fun MapScreen(state: UiState, actions: @Composable () -> Unit) {
     val bundle = state.bundle
     val rooms = bundle?.locations.orEmpty()
     val live = state.nowState?.current.orEmpty().groupBy { it.locationId }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Rooms") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Rooms") }, actions = { actions() }) }) { padding ->
         if (rooms.isEmpty()) {
             EmptyState("No venue yet", "Room information arrives with the schedule.", Modifier.padding(padding))
             return@Scaffold

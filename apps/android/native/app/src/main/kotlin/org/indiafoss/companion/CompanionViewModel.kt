@@ -10,6 +10,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.AffinityModel
+import org.indiafoss.companion.core.ContactCard
+import org.indiafoss.companion.core.VCard
+import org.indiafoss.companion.data.MetContact
+import org.indiafoss.companion.data.ProfileStore
 import org.indiafoss.companion.core.Choice
 import org.indiafoss.companion.core.Disposition
 import org.indiafoss.companion.core.EventBundle
@@ -34,6 +38,8 @@ data class UiState(
     val mustAttend: Set<String> = emptySet(),
     val ranking: RankingState = RankingState(),
     val remindersEnabled: Boolean = false,
+    val profile: ContactCard = ContactCard(),
+    val contacts: List<MetContact> = emptyList(),
     val message: String? = null,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
@@ -84,6 +90,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val preferences = PreferencesStore(app)
     private val ratings = RatingsStore(app)
     private val reminders = ReminderScheduler(app)
+    private val profiles = ProfileStore(app)
     private val _state = MutableStateFlow(UiState(now = nowIso()))
     val state: StateFlow<UiState> = _state.asStateFlow()
 
@@ -104,6 +111,8 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             preferences.remindersEnabled.collect { on -> _state.update { it.copy(remindersEnabled = on) } }
         }
+        viewModelScope.launch { profiles.profile.collect { card -> _state.update { it.copy(profile = card) } } }
+        viewModelScope.launch { profiles.contacts.collect { met -> _state.update { it.copy(contacts = met) } } }
         // Whatever changes the plan re-arms the alarms: bookmarks, must-attend, the bundle.
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
@@ -139,6 +148,35 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     fun toggleMustAttend(id: String) {
         viewModelScope.launch { preferences.toggleMustAttend(id) }
+    }
+
+    // ---------- Contact card (docs/contact-sharing.md) ----------
+
+    fun saveProfile(card: ContactCard) {
+        viewModelScope.launch { profiles.saveProfile(card) }
+    }
+
+    /** A scanned QR: a vCard becomes a saved contact, tagged with the session running now. */
+    fun addScanned(text: String) {
+        val card = VCard.parse(text)
+        if (card == null || card.fullName.isBlank()) {
+            _state.update { it.copy(message = "That code is not a contact card.") }
+            return
+        }
+        val running = state.value.nowState?.current?.firstOrNull()?.id
+        viewModelScope.launch {
+            profiles.addContact(
+                MetContact(
+                    id = "contact-${System.currentTimeMillis()}", card = card, vcard = text,
+                    savedAt = System.currentTimeMillis(), metActivityId = running,
+                ),
+            )
+            _state.update { it.copy(message = "Saved ${card.fullName}") }
+        }
+    }
+
+    fun removeContact(id: String) {
+        viewModelScope.launch { profiles.removeContact(id) }
     }
 
     fun setRemindersEnabled(on: Boolean) {

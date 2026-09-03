@@ -35,11 +35,11 @@ import org.indiafoss.companion.core.Itinerary
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlanScreen(state: UiState, onRank: () -> Unit, onOpen: (String) -> Unit) {
+fun PlanScreen(state: UiState, actions: @Composable () -> Unit, onRank: () -> Unit, onOpen: (String) -> Unit) {
     val days = state.days
     var selected by remember(days) { mutableIntStateOf(0) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("My plan") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("My plan") }, actions = { actions() }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (days.isEmpty()) {
                 EmptyState("No programme yet", "The plan appears once the schedule has been downloaded.")

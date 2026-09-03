@@ -21,8 +21,8 @@ import org.indiafoss.companion.core.Schedule
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NowScreen(state: UiState, onRefresh: () -> Unit, onOpen: (String) -> Unit) {
-    Scaffold(topBar = { TopAppBar(title = { Text("Now") }) }) { padding ->
+fun NowScreen(state: UiState, actions: @Composable () -> Unit, onRefresh: () -> Unit, onOpen: (String) -> Unit) {
+    Scaffold(topBar = { TopAppBar(title = { Text("Now") }, actions = { actions() }) }) { padding ->
         val now = state.nowState
         when {
             state.loading -> Column(
