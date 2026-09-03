@@ -52,7 +52,7 @@ the above.
 
 ## What we implemented, and what is left
 
-Items 2 and 3 above are done, as three patches kept in
+Items 2, 3 and 4 above are done, as four patches kept in
 [`patches/neutrino/`](../patches/neutrino/README.md) — see that README for how
 to apply them and exactly what each one covers.
 
@@ -74,10 +74,21 @@ exhaustion, EDU dedup and the auth gate.
   PDUs, so a room key shared while the peer is out of BLE range is delivered
   when the peer comes back rather than dropped.
 
+- **Sliding sync** (`0004`, item 4): `extensions.to_device` drains the real
+  inbox, `extensions.e2ee.device_one_time_keys_count` is the real count, and a
+  room key wakes a waiting long-poll. Before this the extensions were echo
+  stubs, so a room key never reached a client using sliding sync — which is
+  the sync ours uses.
+
+**Proven end to end**: `tools/neutrino-probe/src/two-nodes.e2e.test.ts` runs
+one of our client sessions against each of two Neutrino nodes, creates an
+encrypted room on one, invites and joins over federation, and decrypts on the
+other — in both directions. It skips without two servers and fails against
+stock Neutrino, which is the point.
+
 Still open: keys live in memory rather than sqlite, `m.device_list_update` is
-not sent, item 4 (the sliding-sync E2EE extension) is untouched, and item 5 —
-signing — is unchanged and is what still makes this "private, not
-authenticated".
+not sent, and item 5 — signing — is unchanged and is what still makes this
+"private, not authenticated".
 
 ## What the IndiaFOSS fork does meanwhile
 

@@ -61,6 +61,14 @@ alignment, #3 CI packages token, #4 fork roadmap.
 - 2026-09-01: Handshake cards are signed with a per-device WebCrypto key;
   nothing is verified server-side; GitHub and LinkedIn are shared by default,
   email, phone and messengers are opt-in.
+- 2026-09-03: **P2P build-out roadmap** filed as #74 with nine sequential
+  sub-issues (#75–#83), worked in order, stopping at the first thing that
+  does not work. Step 1 (#75) is done: Neutrino's sliding sync now carries
+  real `to_device` events and key counts and wakes a long-poll on a room key,
+  and a two-node test proves an encrypted message from one of our client
+  sessions decrypts on the other node. It also caught a real client bug: our
+  sliding-sync `conn_id` was 19 characters against MSC4186's cap of 16, and
+  Neutrino rejects that, so every mesh sync had been failing silently.
 - 2026-09-02: Neutrino mesh E2EE is **written but not upstream**. Both halves —
   the client-server key surface and the federation one — live in
   `patches/neutrino/`, verified against two servers on loopback. Mesh rooms stay

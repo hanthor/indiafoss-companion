@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Three patches that give Neutrino enough of the Matrix key surface for the
+Four patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -92,6 +92,25 @@ so a client retry queues nothing new. Bumps the sqlite schema version to 3.
 Tests: EDU-only delivery and drain, EDUs riding along with PDUs, and the one
 that is the point — a key queued while the peer is unreachable is delivered
 when the peer comes back.
+
+## 0004 — sliding sync carries E2EE
+
+The sliding-sync `e2ee` and `to_device` extensions were echo stubs: an
+empty events array, a one-time key count hard-coded at 100, and a long-poll
+that deliberately ignored both. For a client on sliding sync — Element X, and
+ours — a Megolm room key therefore never arrived, however complete the rest of
+the transport was.
+
+The key directory and inbox move into a shared `E2eeState` with its own watch.
+Sliding sync drains the inbox into `extensions.to_device.events` for a client
+that opted in (the drained events are part of the cached response, so a retried
+request gets them again), reports real one-time key counts, and wakes a waiting
+long-poll when a room key lands.
+
+Proven from outside the tree by
+`tools/neutrino-probe/src/two-nodes.e2e.test.ts`: two nodes on loopback, one
+of our client sessions on each, an encrypted message decrypting on the far
+side, in both directions.
 
 ## What is still missing
 

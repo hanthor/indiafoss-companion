@@ -1,0 +1,1354 @@
+From 533fc99b8b4168b0103b5cd4fbb5f1a27f842b35 Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 03:57:49 +0000
+Subject: [PATCH] Carry to-device messages and real key counts through sliding
+ sync
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The sliding-sync e2ee and to_device extensions were echo stubs: an empty
+events array and a one-time key count hard-coded at 100, with the
+long-poll deliberately ignoring both. For a client on sliding sync — which
+is what Element X and the companion use — a Megolm room key therefore
+never arrived, however complete the rest of the key transport was.
+
+The device-key directory and the to-device inbox move into a shared
+E2eeState with its own watch, reachable from the HTTP handlers and the
+sync path without taking the application lock. Sliding sync now:
+
+- drains the inbox into extensions.to_device.events when the client opted
+  in, with next_batch carrying the pos token; the drained events are part
+  of the cached response, so a retried request gets them again rather
+  than losing them;
+- reports the caller's real one-time key counts (the minimum across the
+  user's devices, since the request names no device), and no unused
+  fallback key types, since none are stored;
+- wakes a waiting long-poll when a to-device message lands, via the new
+  watch, and reports has-data for it.
+
+A client that did not opt in is not drained. Legacy /sync keeps its own
+merge on the same inbox.
+
+Tests: real counts after upload, delivery and drain, no drain when the
+extension is off, and a long-poll woken by a room key pushed mid-wait.
+Proven end to end from outside the tree: two nodes on loopback, a client
+session on each, an encrypted message decrypting on the far side.
+---
+ crates/neutrino-engine/src/sender.rs          |   6 +-
+ crates/neutrino-http/src/e2ee.rs              | 287 ++++++++++++++++++
+ crates/neutrino-http/src/federation/keys.rs   |  22 +-
+ crates/neutrino-http/src/federation/send.rs   |  10 +-
+ crates/neutrino-http/src/legacy_sync/mod.rs   |   5 +-
+ crates/neutrino-http/src/lib.rs               | 270 ++++------------
+ crates/neutrino-http/src/sliding_sync/mod.rs  | 108 +++++--
+ .../neutrino-http/src/sliding_sync/tests.rs   | 128 ++++++--
+ .../neutrino-http/tests/e2e_sliding_sync.rs   |  35 ++-
+ 9 files changed, 592 insertions(+), 279 deletions(-)
+ create mode 100644 crates/neutrino-http/src/e2ee.rs
+
+diff --git a/crates/neutrino-engine/src/sender.rs b/crates/neutrino-engine/src/sender.rs
+index a3d7b3d..5e7bf70 100644
+--- a/crates/neutrino-engine/src/sender.rs
++++ b/crates/neutrino-engine/src/sender.rs
+@@ -1076,7 +1076,7 @@ mod tests {
+         let tempfile = TempDir::new().unwrap();
+         let store = Arc::new(SqliteStore::open_in_dir(tempfile.path()).await.unwrap());
+         store
+-            .enqueue_edu(&[dest.clone()], "k1", &room_key_edu("S1"))
++            .enqueue_edu(std::slice::from_ref(&dest), "k1", &room_key_edu("S1"))
+             .await
+             .unwrap();
+ 
+@@ -1132,7 +1132,7 @@ mod tests {
+         // Share the key while the peer cannot be reached; give the sender a
+         // moment to fail and back off, and check nothing was lost.
+         store
+-            .enqueue_edu(&[dest.clone()], "k1", &room_key_edu("S1"))
++            .enqueue_edu(std::slice::from_ref(&dest), "k1", &room_key_edu("S1"))
+             .await
+             .unwrap();
+         tokio::time::sleep(Duration::from_millis(300)).await;
+@@ -1159,7 +1159,7 @@ mod tests {
+         let dest = peer();
+         let (store, _tmp, _room, _ids) = store_with_outbox(&dest, 2).await;
+         store
+-            .enqueue_edu(&[dest.clone()], "k1", &room_key_edu("S1"))
++            .enqueue_edu(std::slice::from_ref(&dest), "k1", &room_key_edu("S1"))
+             .await
+             .unwrap();
+ 
+diff --git a/crates/neutrino-http/src/e2ee.rs b/crates/neutrino-http/src/e2ee.rs
+new file mode 100644
+index 0000000..ed4be85
+--- /dev/null
++++ b/crates/neutrino-http/src/e2ee.rs
+@@ -0,0 +1,287 @@
++//! The server's share of end-to-end encryption: a device-key directory and a
++//! to-device inbox, shared between the HTTP handlers and the sliding-sync
++//! long-poll.
++//!
++//! Matrix keeps the cryptography in the client. What a homeserver holds is
++//! public key material and ciphertext addressed to devices, and what it has
++//! to do well is *wake the recipient*: a Megolm room key that sits in an inbox
++//! until the next unrelated event is a message the recipient cannot read
++//! until then. So this state carries its own watch, advanced on every inbox
++//! write, and the sync handlers select on it alongside the event stream.
++//!
++//! Held once per server behind an `Arc`, locked independently of `App`: the
++//! sync path must reach it without taking the whole application lock, and
++//! nothing here ever needs `App`. Lock order, where both are taken, is `App`
++//! then this — never the reverse.
++
++use std::collections::BTreeMap;
++use std::sync::{Mutex, MutexGuard};
++
++use serde_json::{Value, json};
++use tokio::sync::watch;
++
++/// The end-to-end encryption key directory.
++///
++/// Matrix keeps the cryptography in the client: a homeserver's whole job here
++/// is to remember which devices exist, hand out one one-time key per requested
++/// device so a peer can open an Olm session, and never hand the same one out
++/// twice. This is that, and no more.
++#[derive(Default)]
++pub(crate) struct KeyStore {
++    /// `device_keys[user][device] -> the uploaded device key object`.
++    pub(crate) devices: BTreeMap<String, BTreeMap<String, Value>>,
++    /// `one_time_keys[user][device][key_id] -> key`. Claiming removes.
++    pub(crate) one_time_keys: BTreeMap<String, BTreeMap<String, BTreeMap<String, Value>>>,
++    /// Cross-signing keys, merged as uploaded and echoed back on query.
++    pub(crate) cross_signing: serde_json::Map<String, Value>,
++}
++
++impl KeyStore {
++    /// Store a device's keys under the id the device actually claims, not a
++    /// fixed one: two devices of the same user must not overwrite each other.
++    pub(crate) fn put_device(&mut self, user: &str, device: &str, keys: Value) {
++        self.devices
++            .entry(user.to_owned())
++            .or_default()
++            .insert(device.to_owned(), keys);
++    }
++
++    /// Merge uploaded one-time keys, keeping any already held.
++    pub(crate) fn put_one_time_keys(
++        &mut self,
++        user: &str,
++        device: &str,
++        keys: &serde_json::Map<String, Value>,
++    ) {
++        let slot = self
++            .one_time_keys
++            .entry(user.to_owned())
++            .or_default()
++            .entry(device.to_owned())
++            .or_default();
++        for (key_id, key) in keys {
++            slot.insert(key_id.clone(), key.clone());
++        }
++    }
++
++    /// Counts by algorithm, which is what `/keys/upload` answers with. The
++    /// client uses these to decide when to top the server up, so an invented
++    /// number means it either never replenishes or replenishes forever.
++    pub(crate) fn one_time_key_counts(
++        &self,
++        user: &str,
++        device: &str,
++    ) -> serde_json::Map<String, Value> {
++        let mut counts = serde_json::Map::new();
++        let held = self
++            .one_time_keys
++            .get(user)
++            .and_then(|devices| devices.get(device));
++        for key_id in held.into_iter().flat_map(|keys| keys.keys()) {
++            let algorithm = key_id.split_once(':').map_or(key_id.as_str(), |(a, _)| a);
++            let entry = counts
++                .entry(algorithm.to_owned())
++                .or_insert_with(|| Value::from(0u64));
++            if let Some(n) = entry.as_u64() {
++                *entry = Value::from(n + 1);
++            }
++        }
++        counts
++    }
++
++    /// Device keys for an explicit `{user: [device_ids]}` request map. An
++    /// empty device list means every device of that user, per the spec; a user
++    /// we hold nothing for is absent from the answer rather than present and
++    /// empty, so a caller can tell "no such user" from "user with no devices".
++    pub(crate) fn device_keys_for(
++        &self,
++        requested: &serde_json::Map<String, Value>,
++    ) -> serde_json::Map<String, Value> {
++        let mut out = serde_json::Map::new();
++        for (user, wanted) in requested {
++            let Some(devices) = self.devices.get(user) else {
++                continue;
++            };
++            let filter = wanted.as_array().filter(|ids| !ids.is_empty());
++            let mut per_user = serde_json::Map::new();
++            for (device, keys) in devices {
++                let asked_for = filter
++                    .is_none_or(|ids| ids.iter().any(|id| id.as_str() == Some(device.as_str())));
++                if asked_for {
++                    per_user.insert(device.clone(), keys.clone());
++                }
++            }
++            out.insert(user.clone(), Value::Object(per_user));
++        }
++        out
++    }
++
++    /// Claim one one-time key per `{user: {device: algorithm}}` entry. Shared
++    /// by the client-server and federation `/keys/claim` handlers so a key can
++    /// never be handed to a local client and a remote peer both.
++    pub(crate) fn claim_for(
++        &mut self,
++        requested: &serde_json::Map<String, Value>,
++    ) -> serde_json::Map<String, Value> {
++        let mut claimed = serde_json::Map::new();
++        for (user, devices) in requested {
++            let Some(devices) = devices.as_object() else {
++                continue;
++            };
++            let mut per_device = serde_json::Map::new();
++            for (device, algorithm) in devices {
++                let Some(algorithm) = algorithm.as_str() else {
++                    continue;
++                };
++                if let Some((key_id, key)) = self.claim_one_time_key(user, device, algorithm) {
++                    per_device.insert(device.clone(), json!({ key_id: key }));
++                }
++            }
++            if !per_device.is_empty() {
++                claimed.insert(user.clone(), Value::Object(per_device));
++            }
++        }
++        claimed
++    }
++
++    /// Take one key of `algorithm` for a device, removing it. A one-time key
++    /// handed out twice is not one-time, so this is a pop and not a read.
++    pub(crate) fn claim_one_time_key(
++        &mut self,
++        user: &str,
++        device: &str,
++        algorithm: &str,
++    ) -> Option<(String, Value)> {
++        let keys = self.one_time_keys.get_mut(user)?.get_mut(device)?;
++        let key_id = keys
++            .keys()
++            .find(|id| id.split_once(':').is_some_and(|(a, _)| a == algorithm))
++            .cloned()?;
++        let key = keys.remove(&key_id)?;
++        Some((key_id, key))
++    }
++}
++
++/// What the lock guards: the directory and the inbox, together because a
++/// claim and the to-device message it enables belong to one flow.
++#[derive(Default)]
++pub(crate) struct Inner {
++    /// Device keys, one-time keys and cross-signing blobs, per user and device.
++    pub(crate) keys: KeyStore,
++    /// Undelivered to-device messages, per recipient user. Drained by sync.
++    ///
++    /// Keyed by user rather than by device because login issues one device id
++    /// for everyone, so the server cannot yet tell two of a user's devices
++    /// apart. On a mesh node — one user, one phone — the two are the same
++    /// thing; on a multi-device account they are not, and this needs
++    /// revisiting when login stops handing out a fixed device id.
++    pub(crate) to_device: BTreeMap<String, Vec<Value>>,
++}
++
++pub(crate) struct E2eeState {
++    inner: Mutex<Inner>,
++    /// Bumped on every inbox write. Sync long-polls watch it so a room key
++    /// wakes the recipient now rather than on the next room event.
++    changed: watch::Sender<u64>,
++}
++
++impl Default for E2eeState {
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
++impl E2eeState {
++    pub(crate) fn new() -> Self {
++        let (changed, _) = watch::channel(0);
++        Self {
++            inner: Mutex::new(Inner::default()),
++            changed,
++        }
++    }
++
++    /// The directory and inbox, for handlers that read or write keys
++    /// directly. Poison is ignored for the same reason `lock_app` ignores it:
++    /// every field here is independently meaningful, so a panic mid-write
++    /// leaves nothing half-true.
++    pub(crate) fn lock(&self) -> MutexGuard<'_, Inner> {
++        self.inner.lock().unwrap_or_else(|e| e.into_inner())
++    }
++
++    /// Queue one to-device event for `user` and wake anyone syncing as them.
++    pub(crate) fn push_to_device(
++        &self,
++        user: &str,
++        event_type: &str,
++        sender: &str,
++        content: Value,
++    ) {
++        self.lock()
++            .to_device
++            .entry(user.to_owned())
++            .or_default()
++            .push(json!({
++                "type": event_type,
++                "sender": sender,
++                "content": content,
++            }));
++        self.changed.send_modify(|n| *n += 1);
++    }
++
++    /// Take everything queued for a user, leaving the inbox empty. Matrix
++    /// expects a to-device message to be delivered once; the client
++    /// acknowledges by syncing again with the returned token.
++    pub(crate) fn drain_to_device(&self, user: &str) -> Vec<Value> {
++        self.lock().to_device.remove(user).unwrap_or_default()
++    }
++
++    /// How many to-device events wait for `user` — what a long-poll checks to
++    /// decide whether it has something to return.
++    pub(crate) fn pending_to_device(&self, user: &str) -> usize {
++        self.lock().to_device.get(user).map_or(0, Vec::len)
++    }
++
++    /// A receiver that changes whenever the inbox is written to. Subscribe
++    /// *before* checking `pending_to_device`, or a push between the two is
++    /// missed until the next unrelated wake-up — the same discipline as the
++    /// store's event watch.
++    pub(crate) fn subscribe(&self) -> watch::Receiver<u64> {
++        self.changed.subscribe()
++    }
++
++    /// One-time key counts for a user, as sync reports them. Sync does not
++    /// know which of the user's devices is asking (the request carries no
++    /// device id), so with several devices this is the *minimum* per
++    /// algorithm: every device then believes it should top up, which errs on
++    /// the side of never running out. With one device — the mesh case — it is
++    /// simply that device's counts.
++    pub(crate) fn one_time_key_counts_for_user(
++        &self,
++        user: &str,
++    ) -> serde_json::Map<String, Value> {
++        let inner = self.lock();
++        let devices: Vec<String> = inner
++            .keys
++            .devices
++            .get(user)
++            .map(|d| d.keys().cloned().collect())
++            .unwrap_or_default();
++        let mut min: Option<serde_json::Map<String, Value>> = None;
++        for device in devices {
++            let counts = inner.keys.one_time_key_counts(user, &device);
++            min = Some(match min {
++                None => counts,
++                Some(mut acc) => {
++                    for (algorithm, n) in counts {
++                        let n = n.as_u64().unwrap_or(0);
++                        let entry = acc.entry(algorithm).or_insert_with(|| Value::from(n));
++                        let cur = entry.as_u64().unwrap_or(0);
++                        *entry = Value::from(cur.min(n));
++                    }
++                    acc
++                }
++            });
++        }
++        min.unwrap_or_default()
++    }
++}
+diff --git a/crates/neutrino-http/src/federation/keys.rs b/crates/neutrino-http/src/federation/keys.rs
+index 590a23e..a704261 100644
+--- a/crates/neutrino-http/src/federation/keys.rs
++++ b/crates/neutrino-http/src/federation/keys.rs
+@@ -6,7 +6,7 @@
+ //! implementation and still never learn a single key belonging to the person
+ //! sitting next to it. The client-server siblings in `lib.rs` answer for users
+ //! this node owns; these answer the same questions for a peer that asks over
+-//! federation, reading the same [`crate::KeyStore`].
++//! federation, reading the same [`crate::e2ee::KeyStore`].
+ //!
+ //! - `POST /_matrix/federation/v1/user/keys/query`
+ //! - `POST /_matrix/federation/v1/user/keys/claim`
+@@ -67,11 +67,12 @@ pub(crate) async fn query(
+         .and_then(Value::as_object)
+         .cloned()
+         .unwrap_or_default();
+-    let app = lock_app(&state);
+-    let device_keys = app.keys.device_keys_for(&ours(&requested, &our_name));
++    let e2ee = lock_app(&state).e2ee.clone();
++    let inner = e2ee.lock();
++    let device_keys = inner.keys.device_keys_for(&ours(&requested, &our_name));
+     let mut response = Map::new();
+     response.insert("device_keys".to_owned(), Value::Object(device_keys));
+-    for (key, value) in app.keys.cross_signing.iter() {
++    for (key, value) in inner.keys.cross_signing.iter() {
+         response.insert(key.clone(), value.clone());
+     }
+     Ok(Json(Value::Object(response)))
+@@ -93,8 +94,8 @@ pub(crate) async fn claim(
+         .and_then(Value::as_object)
+         .cloned()
+         .unwrap_or_default();
+-    let mut app = lock_app(&state);
+-    let claimed = app.keys.claim_for(&ours(&requested, &our_name));
++    let e2ee = lock_app(&state).e2ee.clone();
++    let claimed = e2ee.lock().keys.claim_for(&ours(&requested, &our_name));
+     Ok(Json(json!({ "one_time_keys": claimed })))
+ }
+ 
+@@ -120,8 +121,9 @@ pub(crate) async fn devices(
+         return Err(FedError::BadRequest("user does not belong to this server"));
+     }
+ 
+-    let app = lock_app(&state);
+-    let devices = app
++    let e2ee = lock_app(&state).e2ee.clone();
++    let inner = e2ee.lock();
++    let devices = inner
+         .keys
+         .devices
+         .get(user.as_str())
+@@ -138,11 +140,11 @@ pub(crate) async fn devices(
+     // when the user has uploaded any.
+     if let Some(object) = response.as_object_mut() {
+         for name in ["master_key", "self_signing_key"] {
+-            let uploaded = app
++            let uploaded = inner
+                 .keys
+                 .cross_signing
+                 .get(&format!("{name}s"))
+-                .or_else(|| app.keys.cross_signing.get(name));
++                .or_else(|| inner.keys.cross_signing.get(name));
+             if let Some(value) = uploaded {
+                 object.insert(name.to_owned(), value.clone());
+             }
+diff --git a/crates/neutrino-http/src/federation/send.rs b/crates/neutrino-http/src/federation/send.rs
+index e9b7fff..2412c05 100644
+--- a/crates/neutrino-http/src/federation/send.rs
++++ b/crates/neutrino-http/src/federation/send.rs
+@@ -372,7 +372,7 @@ pub(crate) async fn handle(
+ /// relayed onward — we are not a router for someone else's devices, and
+ /// forwarding would let any peer inject to-device traffic under our origin.
+ fn deliver_to_device(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>]) {
+-    use serde_json::{Value, json};
++    use serde_json::Value;
+ 
+     for raw in edus {
+         let Ok(edu) = serde_json::from_str::<Value>(raw.get()) else {
+@@ -399,7 +399,7 @@ fn deliver_to_device(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>
+             continue;
+         };
+ 
+-        let mut app = lock_app(state);
++        let e2ee = lock_app(state).e2ee.clone();
+         for (user, devices) in messages {
+             let ours = ruma::OwnedUserId::try_from(user.as_str())
+                 .is_ok_and(|u| u.server_name().as_str() == our_name);
+@@ -415,11 +415,7 @@ fn deliver_to_device(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>
+             // two of a user's devices apart yet. `*` (every device) and a named
+             // device therefore behave identically here.
+             for message in devices.values() {
+-                app.to_device.entry(user.clone()).or_default().push(json!({
+-                    "type": event_type,
+-                    "sender": sender,
+-                    "content": message.clone(),
+-                }));
++                e2ee.push_to_device(user, &event_type, &sender, message.clone());
+             }
+         }
+     }
+diff --git a/crates/neutrino-http/src/legacy_sync/mod.rs b/crates/neutrino-http/src/legacy_sync/mod.rs
+index 434c796..c3f8888 100644
+--- a/crates/neutrino-http/src/legacy_sync/mod.rs
++++ b/crates/neutrino-http/src/legacy_sync/mod.rs
+@@ -80,7 +80,10 @@ pub(crate) async fn handle(
+             let mut body = translate_response(v5_resp, &memberships);
+             // To-device messages ride out on the sync that follows them; the
+             // sliding-sync core does not carry them, so they are merged here.
+-            let pending = crate::drain_to_device(&state.0, user_id.as_str());
++            let pending = lock_app(&state.0)
++                .e2ee
++                .clone()
++                .drain_to_device(user_id.as_str());
+             if !pending.is_empty()
+                 && let Some(slot) = body.pointer_mut("/to_device/events")
+             {
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 289cd8b..46cd3af 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -33,6 +33,7 @@ use tower_http::classify::ServerErrorsFailureClass;
+ use tower_http::trace::TraceLayer;
+ use tracing::{Span, error, info, info_span, warn};
+ 
++mod e2ee;
+ mod federation;
+ mod legacy_sync;
+ mod membership;
+@@ -42,148 +43,11 @@ mod sliding_sync;
+ #[cfg(feature = "multi-user-shim")]
+ mod multi_user;
+ 
++use e2ee::E2eeState;
+ use federation::client::{FederationClient, ReqwestFetcher};
+ use neutrino_engine::{MissingEventsFetcher, RoomActorError, RoomRegistry};
+ use sliding_sync::{SyncError, SyncState};
+ 
+-/// The end-to-end encryption key directory.
+-///
+-/// Matrix keeps the cryptography in the client: a homeserver's whole job here
+-/// is to remember which devices exist, hand out one one-time key per requested
+-/// device so a peer can open an Olm session, and never hand the same one out
+-/// twice. This is that, and no more.
+-#[derive(Default)]
+-struct KeyStore {
+-    /// `device_keys[user][device] -> the uploaded device key object`.
+-    devices: BTreeMap<String, BTreeMap<String, Value>>,
+-    /// `one_time_keys[user][device][key_id] -> key`. Claiming removes.
+-    one_time_keys: BTreeMap<String, BTreeMap<String, BTreeMap<String, Value>>>,
+-    /// Cross-signing keys, merged as uploaded and echoed back on query.
+-    cross_signing: serde_json::Map<String, Value>,
+-}
+-
+-impl KeyStore {
+-    /// Store a device's keys under the id the device actually claims, not a
+-    /// fixed one: two devices of the same user must not overwrite each other.
+-    fn put_device(&mut self, user: &str, device: &str, keys: Value) {
+-        self.devices
+-            .entry(user.to_owned())
+-            .or_default()
+-            .insert(device.to_owned(), keys);
+-    }
+-
+-    /// Merge uploaded one-time keys, keeping any already held.
+-    fn put_one_time_keys(
+-        &mut self,
+-        user: &str,
+-        device: &str,
+-        keys: &serde_json::Map<String, Value>,
+-    ) {
+-        let slot = self
+-            .one_time_keys
+-            .entry(user.to_owned())
+-            .or_default()
+-            .entry(device.to_owned())
+-            .or_default();
+-        for (key_id, key) in keys {
+-            slot.insert(key_id.clone(), key.clone());
+-        }
+-    }
+-
+-    /// Counts by algorithm, which is what `/keys/upload` answers with. The
+-    /// client uses these to decide when to top the server up, so an invented
+-    /// number means it either never replenishes or replenishes forever.
+-    fn one_time_key_counts(&self, user: &str, device: &str) -> serde_json::Map<String, Value> {
+-        let mut counts = serde_json::Map::new();
+-        let held = self
+-            .one_time_keys
+-            .get(user)
+-            .and_then(|devices| devices.get(device));
+-        for key_id in held.into_iter().flat_map(|keys| keys.keys()) {
+-            let algorithm = key_id.split_once(':').map_or(key_id.as_str(), |(a, _)| a);
+-            let entry = counts
+-                .entry(algorithm.to_owned())
+-                .or_insert_with(|| Value::from(0u64));
+-            if let Some(n) = entry.as_u64() {
+-                *entry = Value::from(n + 1);
+-            }
+-        }
+-        counts
+-    }
+-
+-    /// Device keys for an explicit `{user: [device_ids]}` request map. An
+-    /// empty device list means every device of that user, per the spec; a user
+-    /// we hold nothing for is absent from the answer rather than present and
+-    /// empty, so a caller can tell "no such user" from "user with no devices".
+-    fn device_keys_for(
+-        &self,
+-        requested: &serde_json::Map<String, Value>,
+-    ) -> serde_json::Map<String, Value> {
+-        let mut out = serde_json::Map::new();
+-        for (user, wanted) in requested {
+-            let Some(devices) = self.devices.get(user) else {
+-                continue;
+-            };
+-            let filter = wanted.as_array().filter(|ids| !ids.is_empty());
+-            let mut per_user = serde_json::Map::new();
+-            for (device, keys) in devices {
+-                let asked_for = filter
+-                    .is_none_or(|ids| ids.iter().any(|id| id.as_str() == Some(device.as_str())));
+-                if asked_for {
+-                    per_user.insert(device.clone(), keys.clone());
+-                }
+-            }
+-            out.insert(user.clone(), Value::Object(per_user));
+-        }
+-        out
+-    }
+-
+-    /// Claim one one-time key per `{user: {device: algorithm}}` entry. Shared
+-    /// by the client-server and federation `/keys/claim` handlers so a key can
+-    /// never be handed to a local client and a remote peer both.
+-    fn claim_for(
+-        &mut self,
+-        requested: &serde_json::Map<String, Value>,
+-    ) -> serde_json::Map<String, Value> {
+-        let mut claimed = serde_json::Map::new();
+-        for (user, devices) in requested {
+-            let Some(devices) = devices.as_object() else {
+-                continue;
+-            };
+-            let mut per_device = serde_json::Map::new();
+-            for (device, algorithm) in devices {
+-                let Some(algorithm) = algorithm.as_str() else {
+-                    continue;
+-                };
+-                if let Some((key_id, key)) = self.claim_one_time_key(user, device, algorithm) {
+-                    per_device.insert(device.clone(), json!({ key_id: key }));
+-                }
+-            }
+-            if !per_device.is_empty() {
+-                claimed.insert(user.clone(), Value::Object(per_device));
+-            }
+-        }
+-        claimed
+-    }
+-
+-    /// Take one key of `algorithm` for a device, removing it. A one-time key
+-    /// handed out twice is not one-time, so this is a pop and not a read.
+-    fn claim_one_time_key(
+-        &mut self,
+-        user: &str,
+-        device: &str,
+-        algorithm: &str,
+-    ) -> Option<(String, Value)> {
+-        let keys = self.one_time_keys.get_mut(user)?.get_mut(device)?;
+-        let key_id = keys
+-            .keys()
+-            .find(|id| id.split_once(':').is_some_and(|(a, _)| a == algorithm))
+-            .cloned()?;
+-        let key = keys.remove(&key_id)?;
+-        Some((key_id, key))
+-    }
+-}
+-
+ struct App {
+     store: Arc<SqliteStore>,
+     /// Per-room state-machine actors. CSAPI writes go through here so they
+@@ -212,16 +76,9 @@ struct App {
+     /// erased `MissingEventsFetcher`, which exposes no `backfill` method.)
+     fed_client: Arc<FederationClient>,
+     sync_state: Arc<SyncState<SqliteStore>>,
+-    /// Device keys, one-time keys and cross-signing blobs, per user and device.
+-    keys: KeyStore,
+-    /// Undelivered to-device messages, per recipient user. Drained by `/sync`.
+-    ///
+-    /// Keyed by user rather than by device because login issues one device id
+-    /// for everyone, so the server cannot yet tell two of a user's devices
+-    /// apart. On a mesh node — one user, one phone — the two are the same
+-    /// thing; on a multi-device account they are not, and this needs revisiting
+-    /// when login stops handing out a fixed device id.
+-    to_device: BTreeMap<String, Vec<Value>>,
++    /// The device-key directory and to-device inbox, shared with the sliding
++    /// sync so a room key can wake a long-poll. See [`e2ee`].
++    e2ee: Arc<E2eeState>,
+     /// Out-of-band peer discovery (BLE mesh): the host pushes the set of
+     /// currently-visible peers here and the user-directory search handler reads
+     /// it. Shared (`Arc`) so the host can hold a write handle while the router
+@@ -415,8 +272,10 @@ impl AppState {
+         policy: EventPolicy,
+     ) -> Self {
+         let shutdown = CancellationToken::new();
++        let e2ee = Arc::new(E2eeState::new());
+         let mut sync_state = SyncState::new(store.clone(), shutdown.clone());
+         sync_state.delivery_receipts = config.delivery_receipts;
++        sync_state.e2ee = e2ee.clone();
+         let sync_state = Arc::new(sync_state);
+         let room_registry = Arc::new(RoomRegistry::new(
+             store.clone(),
+@@ -450,8 +309,7 @@ impl AppState {
+             fetcher,
+             fed_client,
+             sync_state,
+-            keys: KeyStore::default(),
+-            to_device: BTreeMap::new(),
++            e2ee,
+             discovery,
+             display_name_tx: None,
+             policy,
+@@ -1438,6 +1296,9 @@ fn merge_key_answer(into: &mut serde_json::Map<String, Value>, answer: Value) {
+     }
+ }
+ 
++/// Answer with the device keys held for `device_keys`, asking the owning server
++/// for any user this node does not own.
++///
+ /// Answer with the device keys held for `device_keys`, asking the owning server
+ /// for any user this node does not own.
+ ///
+@@ -1448,9 +1309,13 @@ fn merge_key_answer(into: &mut serde_json::Map<String, Value>, answer: Value) {
+ /// encrypt to everyone it did get keys for, and will retry the rest.
+ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     info!("Received query: {:?}", body.0);
+-    let (our_name, fed_client) = {
++    let (our_name, fed_client, e2ee) = {
+         let app = lock_app(&state.0);
+-        (app.config.server_name.clone(), app.fed_client.clone())
++        (
++            app.config.server_name.clone(),
++            app.fed_client.clone(),
++            app.e2ee.clone(),
++        )
+     };
+ 
+     let requested = body
+@@ -1463,17 +1328,17 @@ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     // shape the single-user dev client sends. It has no federated meaning
+     // (there is no peer to ask for "everyone"), so that path stays local.
+     let Some(requested) = requested else {
+-        let app = lock_app(&state.0);
+-        let all = app
++        let inner = e2ee.lock();
++        let all = inner
+             .keys
+             .devices
+             .keys()
+             .map(|user| (user.clone(), Value::Array(Vec::new())))
+             .collect();
+-        let device_keys = app.keys.device_keys_for(&all);
++        let device_keys = inner.keys.device_keys_for(&all);
+         let mut response = serde_json::Map::new();
+         response.insert("device_keys".to_owned(), Value::Object(device_keys));
+-        for (key, value) in app.keys.cross_signing.iter() {
++        for (key, value) in inner.keys.cross_signing.iter() {
+             response.insert(key.clone(), value.clone());
+         }
+         return Json(Value::Object(response));
+@@ -1481,11 +1346,11 @@ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+ 
+     let (mine, theirs) = split_by_server(&requested, &our_name);
+     let mut response = {
+-        let app = lock_app(&state.0);
+-        let device_keys = app.keys.device_keys_for(&mine);
++        let inner = e2ee.lock();
++        let device_keys = inner.keys.device_keys_for(&mine);
+         let mut response = serde_json::Map::new();
+         response.insert("device_keys".to_owned(), Value::Object(device_keys));
+-        for (key, value) in app.keys.cross_signing.iter() {
++        for (key, value) in inner.keys.cross_signing.iter() {
+             response.insert(key.clone(), value.clone());
+         }
+         response
+@@ -1505,6 +1370,10 @@ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     Json(Value::Object(response))
+ }
+ 
++/// Queue to-device messages for their recipients. This is how a Megolm room
++/// key reaches the devices that need it: without it a client can claim a
++/// one-time key and still have nowhere to send the session it just built.
++///
+ /// Queue to-device messages for their recipients. This is how a Megolm room
+ /// key reaches the devices that need it: without it a client can claim a
+ /// one-time key and still have nowhere to send the session it just built.
+@@ -1521,9 +1390,13 @@ async fn send_to_device(
+     axum::extract::Path((event_type, txn_id)): axum::extract::Path<(String, String)>,
+     body: Json<Value>,
+ ) -> axum::response::Response {
+-    let (our_name, store) = {
++    let (our_name, store, e2ee) = {
+         let app = lock_app(&state.0);
+-        (app.config.server_name.clone(), app.store.clone())
++        (
++            app.config.server_name.clone(),
++            app.store.clone(),
++            app.e2ee.clone(),
++        )
+     };
+     let messages = body
+         .pointer("/messages")
+@@ -1532,21 +1405,14 @@ async fn send_to_device(
+         .unwrap_or_default();
+     let (mine, theirs) = split_by_server(&messages, &our_name);
+ 
+-    {
+-        let mut app = lock_app(&state.0);
+-        for (user, devices) in &mine {
+-            let Some(devices) = devices.as_object() else {
+-                continue;
+-            };
+-            // `*` means every device of that user, which is what a room-key
+-            // share to a freshly-seen peer uses.
+-            for content in devices.values() {
+-                app.to_device.entry(user.clone()).or_default().push(json!({
+-                    "type": event_type,
+-                    "sender": sender,
+-                    "content": content.clone(),
+-                }));
+-            }
++    for (user, devices) in &mine {
++        let Some(devices) = devices.as_object() else {
++            continue;
++        };
++        // `*` means every device of that user, which is what a room-key
++        // share to a freshly-seen peer uses.
++        for content in devices.values() {
++            e2ee.push_to_device(user, &event_type, sender.as_str(), content.clone());
+         }
+     }
+ 
+@@ -1583,16 +1449,10 @@ async fn send_to_device(
+     Json(json!({})).into_response()
+ }
+ 
+-/// Take everything queued for a user, leaving the inbox empty. Matrix expects
+-/// a to-device message to be delivered once; the client acknowledges by
+-/// syncing again with the returned token.
+-pub(crate) fn drain_to_device(state: &AppState, user_id: &str) -> Vec<Value> {
+-    lock_app(state)
+-        .to_device
+-        .remove(user_id)
+-        .unwrap_or_default()
+-}
+-
++/// Hand out one one-time key per requested device so a peer can open an Olm
++/// session. Without this endpoint no client can encrypt to anyone, however
++/// complete its own crypto is.
++///
+ /// Hand out one one-time key per requested device so a peer can open an Olm
+ /// session. Without this endpoint no client can encrypt to anyone, however
+ /// complete its own crypto is.
+@@ -1602,9 +1462,13 @@ pub(crate) fn drain_to_device(state: &AppState, user_id: &str) -> Vec<Value> {
+ /// serves it, so a request is never sent twice speculatively.
+ async fn keys_claim(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     info!("Received keys claim: {:?}", body.0);
+-    let (our_name, fed_client) = {
++    let (our_name, fed_client, e2ee) = {
+         let app = lock_app(&state.0);
+-        (app.config.server_name.clone(), app.fed_client.clone())
++        (
++            app.config.server_name.clone(),
++            app.fed_client.clone(),
++            app.e2ee.clone(),
++        )
+     };
+ 
+     let requested = body
+@@ -1614,10 +1478,7 @@ async fn keys_claim(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+         .unwrap_or_default();
+     let (mine, theirs) = split_by_server(&requested, &our_name);
+ 
+-    let mut claimed = {
+-        let mut app = lock_app(&state.0);
+-        app.keys.claim_for(&mine)
+-    };
++    let mut claimed = e2ee.lock().keys.claim_for(&mine);
+ 
+     let mut failures = serde_json::Map::new();
+     for (dest, ask) in theirs {
+@@ -1642,9 +1503,11 @@ async fn keys_claim(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+ async fn keys_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     info!("Received keys upload: {:?}", body.0);
+ 
+-    let mut app = lock_app(&state.0);
++    let (fallback_user, e2ee) = {
++        let app = lock_app(&state.0);
++        (app.config.user_id(), app.e2ee.clone())
++    };
+     let body = body.0;
+-    let fallback_user = app.config.user_id();
+ 
+     // Trust the ids the device names for itself, falling back to this node's
+     // user and a conventional device id only when the upload omits them.
+@@ -1660,19 +1523,20 @@ async fn keys_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+         .unwrap_or("DEVICEID")
+         .to_owned();
+ 
++    let mut inner = e2ee.lock();
+     if let Some(keys) = device_keys {
+-        app.keys.put_device(&user, &device, keys.clone());
++        inner.keys.put_device(&user, &device, keys.clone());
+     }
+     if let Some(one_time) = body.pointer("/one_time_keys").and_then(Value::as_object) {
+-        app.keys.put_one_time_keys(&user, &device, one_time);
++        inner.keys.put_one_time_keys(&user, &device, one_time);
+     }
+ 
+-    let counts = app.keys.one_time_key_counts(&user, &device);
++    let counts = inner.keys.one_time_key_counts(&user, &device);
+     Json(json!({ "one_time_key_counts": counts }))
+ }
+ 
+ async fn device_signing_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+-    let mut app = lock_app(&state.0);
++    let e2ee = lock_app(&state.0).e2ee.clone();
+ 
+     let mut body = body.0;
+     if let Some(obj) = body.as_object_mut() {
+@@ -1683,8 +1547,9 @@ async fn device_signing_upload(state: State<AppState>, body: Json<Value>) -> Jso
+     // alongside device keys on query; a malformed body is ignored rather than
+     // panicking the handler.
+     if let Some(body_obj) = body.as_object() {
++        let mut inner = e2ee.lock();
+         for (key, value) in body_obj {
+-            app.keys.cross_signing.insert(key.clone(), value.clone());
++            inner.keys.cross_signing.insert(key.clone(), value.clone());
+         }
+     }
+ 
+@@ -1693,8 +1558,8 @@ async fn device_signing_upload(state: State<AppState>, body: Json<Value>) -> Jso
+ 
+ async fn signatures_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     info!("Received signatures upload: {:?}", body.0);
+-    let mut app = lock_app(&state.0);
+-    let user_id = app.config.user_id();
++    let e2ee = lock_app(&state.0).e2ee.clone();
++    let mut inner = e2ee.lock();
+ 
+     // The body is `{user: {device: {signatures...}}}`. Merge each signature
+     // block into the stored device it signs; an absent device is skipped
+@@ -1712,7 +1577,7 @@ async fn signatures_upload(state: State<AppState>, body: Json<Value>) -> Json<Va
+             else {
+                 continue;
+             };
+-            let Some(stored) = app
++            let Some(stored) = inner
+                 .keys
+                 .devices
+                 .get_mut(&user)
+@@ -1728,7 +1593,6 @@ async fn signatures_upload(state: State<AppState>, body: Json<Value>) -> Json<Va
+             }
+         }
+     }
+-    let _ = user_id;
+ 
+     Json(json!({}))
+ }
+diff --git a/crates/neutrino-http/src/sliding_sync/mod.rs b/crates/neutrino-http/src/sliding_sync/mod.rs
+index a84a27d..18b120a 100644
+--- a/crates/neutrino-http/src/sliding_sync/mod.rs
++++ b/crates/neutrino-http/src/sliding_sync/mod.rs
+@@ -21,6 +21,8 @@ use std::sync::LazyLock;
+ use std::time::Duration;
+ 
+ use neutrino_event::event_view::StateEventConversionError;
++
++use crate::e2ee::E2eeState;
+ use neutrino_store::{StorageBackend, StorageError};
+ use ruma::OneTimeKeyAlgorithm;
+ use ruma::UInt;
+@@ -102,6 +104,10 @@ pub enum SyncError {
+ pub struct SyncState<S> {
+     pub store: Arc<S>,
+     pub registry: ConnRegistry,
++    /// The device-key directory and to-device inbox. Shared with the HTTP
++    /// handlers that fill it (`/keys/*`, `/sendToDevice`, inbound EDUs); the
++    /// long-poll watches it so a room key wakes the recipient.
++    pub e2ee: Arc<E2eeState>,
+     /// Whether to synthesise delivery receipts from federation delivery marks
+     /// (`Config::delivery_receipts`, off by default — see [`receipts`]). Set by
+     /// the composition root; a client must *also* opt into the receipts
+@@ -118,6 +124,7 @@ impl<S> SyncState<S> {
+         Self {
+             store,
+             registry: ConnRegistry::new(),
++            e2ee: Arc::new(E2eeState::new()),
+             delivery_receipts: false,
+             shutdown,
+         }
+@@ -139,10 +146,11 @@ impl<S> SyncState<S> {
+ /// 4. **Long-poll loop** — subscribe to the event watch BEFORE the first
+ ///    build (TOCTOU per the trait docs), then iterate
+ ///    build → has_data?-or-timeout?-or-cancelled? → `rx.changed()`.
+-/// 5. **Extension stubs + idempotency cache write** — populate the
+-///    e2ee/to_device echoes the client opted into, then snapshot the final
+-///    response into `Conn::last_response` so any retry returns the same
+-///    bytes.
++/// 5. **Extensions + idempotency cache write** — fill the e2ee/to_device
++///    extensions the client opted into (real key counts, the drained inbox),
++///    then snapshot the final response into `Conn::last_response` so any
++///    retry returns the same bytes — including the to-device events, which
++///    is what makes a drain safe against a lost response.
+ pub async fn handle<S: StorageBackend>(
+     state: &SyncState<S>,
+     user_id: &UserId,
+@@ -213,6 +221,9 @@ pub async fn handle<S: StorageBackend>(
+     // the event stream: a peer acknowledging an event we sent minutes ago is
+     // new data for this client without any new event behind it.
+     let mut delivery_rx = state.store.subscribe_deliveries();
++    // And the to-device inbox, which is neither: a room key arriving is new
++    // data for exactly this client and must not wait for a room event.
++    let mut e2ee_rx = state.e2ee.subscribe();
+ 
+     // Short wait while the prior holder (if any) observes the cancel above
+     // and unwinds.
+@@ -261,7 +272,7 @@ pub async fn handle<S: StorageBackend>(
+ 
+     let mut final_resp = loop {
+         let resp = build::build_response(state, user_id, &req, &mut conn_guard).await?;
+-        if !wait_for_data || has_data(&resp) {
++        if !wait_for_data || has_data(&resp) || has_to_device(state, user_id, &extensions_req) {
+             break resp;
+         }
+         let remaining = deadline.saturating_duration_since(Instant::now());
+@@ -292,6 +303,7 @@ pub async fn handle<S: StorageBackend>(
+             tokio::select! {
+                 _ = rx.changed() => {}
+                 _ = delivery_rx.changed(), if state.delivery_receipts => {}
++                _ = e2ee_rx.changed(), if extensions_req.to_device.enabled == Some(true) => {}
+             }
+         };
+         tokio::select! {
+@@ -305,7 +317,7 @@ pub async fn handle<S: StorageBackend>(
+         }
+     };
+ 
+-    populate_extension_stubs(&extensions_req, &mut final_resp);
++    populate_extensions(state, user_id, &extensions_req, &mut final_resp);
+ 
+     // `build_response` chose `conn.pos + 1` as the response's pos_token but
+     // didn't mutate `conn.pos` — commit the advance here, once per request,
+@@ -411,53 +423,85 @@ fn clamp_timeout(req_timeout: Option<Duration>) -> Duration {
+ ///
+ /// **Today's definition is deliberately narrow: a non-empty `rooms`, or a
+ /// receipts extension carrying at least one synthesised delivery receipt.**
+-/// This is correct *only* for the current scope — the embedded server with
+-/// stubbed extensions and no EDUs. The following signals do NOT cause this
+-/// helper to return `true`, even though a fully-spec'd server would have to
+-/// surface them on the wire:
++/// To-device messages are checked separately by [`has_to_device`], since they
++/// live outside the response until the drain at the end. The following
++/// signals do NOT cause this helper to return `true`, even though a
++/// fully-spec'd server would have to surface them on the wire:
+ /// - **OTK / fallback-key changes** (`extensions.e2ee.device_one_time_keys_count`).
+ /// - **Device-list changes** (`extensions.e2ee.device_lists`).
+-/// - **New to-device messages** (`extensions.to_device.events`).
+ /// - **Account-data updates** (`extensions.account_data.*`).
+ /// - **Typing / presence** (and any real, federated receipt — the receipts
+ ///   below are locally synthesised delivery marks, not EDUs).
+ /// - **List `count` changes** (a room joining/leaving the candidate set
+ ///   without otherwise being included in `resp.rooms`).
+ ///
+-/// Why it's safe right now: the e2ee/to_device extensions are pure echo
+-/// stubs of the request, with constant payload — they never *independently*
+-/// change between long-poll iterations, so waiting on them would be waiting
+-/// forever. The other extensions are dropped entirely per CLAUDE.md.
+-///
+-/// If any of those signals ever gets a real implementation, this helper is
+-/// the one place that needs to learn about them — or the loop will hold the
+-/// connection open for events the response no longer reflects.
++/// Why it's safe right now: the key counts change only on the client's own
++/// upload or a peer's claim, and a client that just uploaded does not need
++/// waking to learn its own count. The other extensions are dropped entirely
++/// per CLAUDE.md. If any of those signals ever gets a real implementation,
++/// this helper is the one place that needs to learn about them — or the loop
++/// will hold the connection open for events the response no longer reflects.
+ fn has_data(resp: &v5::Response) -> bool {
+     !resp.rooms.is_empty() || !resp.extensions.receipts.rooms.is_empty()
+ }
+ 
+-/// Echo the e2ee / to_device extensions when the client opted in.
++/// Whether a to-device message waits for this client — only meaningful when
++/// the client opted into the extension, since otherwise nothing would carry
++/// it out and the loop would spin on data it can never return.
++fn has_to_device<S>(
++    state: &SyncState<S>,
++    user_id: &UserId,
++    req_ext: &v5::request::Extensions,
++) -> bool {
++    req_ext.to_device.enabled == Some(true) && state.e2ee.pending_to_device(user_id.as_str()) > 0
++}
++
++/// Fill the e2ee / to_device extensions the client opted into.
++///
++/// `to_device` **drains** the inbox: Matrix delivers a to-device message once,
++/// and the client acknowledges by syncing again with the returned `pos`. The
++/// drained events are part of the response that goes into the idempotency
++/// cache, so a client retrying a lost response gets them again rather than
++/// losing them. `next_batch` is required by the shape; the `pos` token is
++/// what actually orders this connection, so the field carries it.
+ ///
+-/// The data is fake: we don't track device keys, one-time keys, or to-device
+-/// messages. The point is *shape* — Element and similar clients abort if
+-/// these fields are absent on a sync they opted in to. Matches the legacy
+-/// `sync()` handler's stub semantics.
+-fn populate_extension_stubs(req_ext: &v5::request::Extensions, resp: &mut v5::Response) {
++/// `e2ee` reports the caller's real one-time key counts (see
++/// [`E2eeState::one_time_key_counts_for_user`] for the multi-device caveat)
++/// and, honestly, no unused fallback key types: fallback keys are not stored.
++/// `device_lists` stays empty — device-list updates are not implemented.
++fn populate_extensions<S>(
++    state: &SyncState<S>,
++    user_id: &UserId,
++    req_ext: &v5::request::Extensions,
++    resp: &mut v5::Response,
++) {
+     if req_ext.e2ee.enabled == Some(true) {
+         let mut e2ee = v5::response::E2EE::default();
+-        // Constant "we have 100 OTKs of this type" stub. Real number tracking
+-        // would require an OTK store, which is out of scope (CLAUDE.md).
+-        e2ee.device_one_time_keys_count
+-            .insert(OneTimeKeyAlgorithm::SignedCurve25519, UInt::from(100u32));
+-        e2ee.device_unused_fallback_key_types = Some(vec![OneTimeKeyAlgorithm::SignedCurve25519]);
++        for (algorithm, count) in state.e2ee.one_time_key_counts_for_user(user_id.as_str()) {
++            let n = count.as_u64().unwrap_or(0);
++            e2ee.device_one_time_keys_count.insert(
++                OneTimeKeyAlgorithm::from(algorithm),
++                UInt::new_saturating(n),
++            );
++        }
++        e2ee.device_unused_fallback_key_types = Some(Vec::new());
+         resp.extensions.e2ee = e2ee;
+     }
+     if req_ext.to_device.enabled == Some(true) {
+         // ruma v5's response types are `#[non_exhaustive]`; build via Default
+         // and field assignment rather than struct literal.
+         let mut to_device = v5::response::ToDevice::default();
+-        to_device.next_batch = "0".to_string();
+-        to_device.events = Vec::<Raw<AnyToDeviceEvent>>::new();
++        to_device.next_batch = resp.pos.clone();
++        to_device.events = state
++            .e2ee
++            .drain_to_device(user_id.as_str())
++            .into_iter()
++            .filter_map(|event| {
++                serde_json::value::to_raw_value(&event)
++                    .ok()
++                    .map(Raw::<AnyToDeviceEvent>::from_json)
++            })
++            .collect();
+         resp.extensions.to_device = Some(to_device);
+     }
+ }
+diff --git a/crates/neutrino-http/src/sliding_sync/tests.rs b/crates/neutrino-http/src/sliding_sync/tests.rs
+index 81ffbbb..51ad3f6 100644
+--- a/crates/neutrino-http/src/sliding_sync/tests.rs
++++ b/crates/neutrino-http/src/sliding_sync/tests.rs
+@@ -1594,44 +1594,138 @@ async fn too_many_lists_rejected() {
+ }
+ 
+ #[tokio::test]
+-async fn e2ee_extension_echoed_when_enabled() {
++async fn e2ee_extension_reports_real_one_time_key_counts() {
+     let (store, _tmp) = fresh_store().await;
+     let state = SyncState::new(store, no_shutdown());
+     let user = user_id!("@alice:example.org");
+ 
++    // Nothing uploaded yet: an honest empty map, not a canned 100 that
++    // nothing could ever hand out.
+     let mut req = Request::new();
+     req.extensions.e2ee.enabled = Some(true);
++    let resp = handle(&state, user, req.clone()).await.unwrap();
++    assert!(resp.extensions.e2ee.device_one_time_keys_count.is_empty());
++    assert_eq!(
++        resp.extensions.e2ee.device_unused_fallback_key_types,
++        Some(Vec::new()),
++        "no fallback keys are stored, so none are unused"
++    );
++
++    // Two keys uploaded for the user's device: the count is two.
++    {
++        let mut inner = state.e2ee.lock();
++        inner
++            .keys
++            .put_device(user.as_str(), "PHONE", serde_json::json!({}));
++        let keys = serde_json::json!({
++            "signed_curve25519:k1": { "key": "one" },
++            "signed_curve25519:k2": { "key": "two" },
++        });
++        inner
++            .keys
++            .put_one_time_keys(user.as_str(), "PHONE", keys.as_object().unwrap());
++    }
+     let resp = handle(&state, user, req).await.unwrap();
+-
+-    assert!(
+-        !resp.extensions.e2ee.device_one_time_keys_count.is_empty(),
+-        "OTK count populated"
+-    );
+-    assert!(
+-        resp.extensions
+-            .e2ee
+-            .device_unused_fallback_key_types
+-            .is_some()
+-    );
++    let count = resp
++        .extensions
++        .e2ee
++        .device_one_time_keys_count
++        .get(&ruma::OneTimeKeyAlgorithm::SignedCurve25519)
++        .copied();
++    assert_eq!(count, Some(UInt::from(2u32)));
+ }
+ 
+ #[tokio::test]
+-async fn to_device_extension_echoed_when_enabled() {
++async fn to_device_extension_delivers_and_drains_the_inbox() {
+     let (store, _tmp) = fresh_store().await;
+     let state = SyncState::new(store, no_shutdown());
+     let user = user_id!("@alice:example.org");
+ 
++    state.e2ee.push_to_device(
++        user.as_str(),
++        "m.room_key",
++        "@bob:peer.example",
++        serde_json::json!({ "session_id": "S1" }),
++    );
++
+     let mut req = Request::new();
+     req.extensions.to_device.enabled = Some(true);
+-    let resp = handle(&state, user, req).await.unwrap();
++    let resp = handle(&state, user, req.clone()).await.unwrap();
+ 
+     let to_device = resp
+         .extensions
+         .to_device
+         .as_ref()
+-        .expect("to_device echo populated");
+-    assert_eq!(to_device.next_batch, "0");
+-    assert!(to_device.events.is_empty());
++        .expect("to_device populated");
++    assert_eq!(
++        to_device.next_batch, resp.pos,
++        "next_batch carries the pos token"
++    );
++    assert_eq!(to_device.events.len(), 1);
++    let event: Value = serde_json::from_str(to_device.events[0].json().get()).unwrap();
++    assert_eq!(event["type"], "m.room_key");
++    assert_eq!(event["sender"], "@bob:peer.example");
++    assert_eq!(event["content"]["session_id"], "S1");
++
++    // Delivered once: the next sync carries nothing.
++    req.pos = Some(resp.pos.clone());
++    req.timeout = Some(std::time::Duration::ZERO);
++    let resp = handle(&state, user, req).await.unwrap();
++    assert!(resp.extensions.to_device.unwrap().events.is_empty());
++}
++
++#[tokio::test]
++async fn to_device_message_wakes_a_long_poll() {
++    // The point of sharing the inbox with the sync path: a Megolm room key
++    // must reach the recipient now, not on the next unrelated room event.
++    let (store, _tmp) = fresh_store().await;
++    let state = Arc::new(SyncState::new(store, no_shutdown()));
++    let user = user_id!("@alice:example.org");
++
++    let mut req = Request::new();
++    req.extensions.to_device.enabled = Some(true);
++    let initial = handle(&state, user, req.clone()).await.unwrap();
++
++    req.pos = Some(initial.pos.clone());
++    req.timeout = Some(std::time::Duration::from_secs(10));
++    let poll = {
++        let state = state.clone();
++        tokio::spawn(async move { handle(&state, user, req).await })
++    };
++
++    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
++    state.e2ee.push_to_device(
++        user.as_str(),
++        "m.room_key",
++        "@bob:peer.example",
++        serde_json::json!({ "session_id": "S1" }),
++    );
++
++    let resp = tokio::time::timeout(std::time::Duration::from_secs(3), poll)
++        .await
++        .expect("long-poll woke on the to-device message")
++        .unwrap()
++        .unwrap();
++    assert_eq!(resp.extensions.to_device.unwrap().events.len(), 1);
++}
++
++#[tokio::test]
++async fn to_device_not_drained_when_extension_is_off() {
++    // A client that did not opt in must not lose messages to a drain nothing
++    // carried out.
++    let (store, _tmp) = fresh_store().await;
++    let state = SyncState::new(store, no_shutdown());
++    let user = user_id!("@alice:example.org");
++    state.e2ee.push_to_device(
++        user.as_str(),
++        "m.room_key",
++        "@bob:peer.example",
++        serde_json::json!({ "session_id": "S1" }),
++    );
++
++    let resp = handle(&state, user, Request::new()).await.unwrap();
++    assert!(resp.extensions.to_device.is_none());
++    assert_eq!(state.e2ee.pending_to_device(user.as_str()), 1);
+ }
+ 
+ #[tokio::test]
+diff --git a/crates/neutrino-http/tests/e2e_sliding_sync.rs b/crates/neutrino-http/tests/e2e_sliding_sync.rs
+index f147808..242620f 100644
+--- a/crates/neutrino-http/tests/e2e_sliding_sync.rs
++++ b/crates/neutrino-http/tests/e2e_sliding_sync.rs
+@@ -442,21 +442,44 @@ async fn invalid_conn_id_too_long_returns_m_invalid_param() {
+ }
+ 
+ #[tokio::test]
+-async fn extension_e2ee_echoed_on_request() {
++async fn extension_e2ee_reports_the_real_one_time_key_count() {
+     let (app, _tmp) = test_router().await;
+ 
+-    let body = json!({
++    let sync = json!({
+         "lists": {"all": {"ranges": [[0, 99]], "timeline_limit": 1, "required_state": []}},
+         "extensions": {"e2ee": {"enabled": true}}
+     });
+-    let (status, body) = post(&app, SYNC_PATH, None, &body).await;
+-    assert_eq!(status, StatusCode::OK);
+ 
++    // Nothing uploaded: honestly no count — ruma omits the empty map on the
++    // wire — rather than a canned number nothing could ever hand out.
++    let (status, body) = post(&app, SYNC_PATH, None, &sync).await;
++    assert_eq!(status, StatusCode::OK);
+     let otk_count = body
+         .pointer("/extensions/e2ee/device_one_time_keys_count")
+         .and_then(|v| v.as_object())
+-        .expect("e2ee echo populated");
+-    assert!(!otk_count.is_empty(), "OTK count map present");
++        .cloned()
++        .unwrap_or_default();
++    assert!(
++        otk_count.is_empty(),
++        "no keys uploaded, so no count: {otk_count:?}"
++    );
++
++    // Upload two one-time keys for the local user's device; the count follows.
++    let upload = json!({
++        "device_keys": { "device_id": "PHONE", "keys": {} },
++        "one_time_keys": {
++            "signed_curve25519:k1": { "key": "one" },
++            "signed_curve25519:k2": { "key": "two" },
++        }
++    });
++    let (status, _) = post(&app, "/_matrix/client/v3/keys/upload", None, &upload).await;
++    assert_eq!(status, StatusCode::OK);
++
++    let (_, body) = post(&app, SYNC_PATH, None, &sync).await;
++    assert_eq!(
++        body.pointer("/extensions/e2ee/device_one_time_keys_count/signed_curve25519"),
++        Some(&json!(2))
++    );
+ }
+ 
+ #[tokio::test]
+-- 
+2.43.0
+

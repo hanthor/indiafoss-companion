@@ -47,6 +47,8 @@ function normalizeBaseUrl(url: string): string {
 
 /** Unstable flag and path for Simplified Sliding Sync (MSC4186). */
 export const SLIDING_SYNC_FLAG = 'org.matrix.simplified_msc3575';
+/** MSC4186 connection id; at most 16 characters. */
+export const SLIDING_SYNC_CONN_ID = 'companion';
 export const SLIDING_SYNC_PATH = '/_matrix/client/unstable/org.matrix.simplified_msc3575/sync';
 
 /** Sync filter: message timelines, lazy-loaded members, typing only, no presence. */
@@ -389,7 +391,10 @@ export class MatrixClient {
       'POST',
       `${SLIDING_SYNC_PATH}?${params.toString()}`,
       {
-        conn_id: 'indiafoss-companion',
+        // MSC4186 caps `conn_id` at 16 characters, and a strict server
+        // (Neutrino) rejects a longer one outright — which silently took the
+        // mesh client offline until an end-to-end test noticed.
+        conn_id: SLIDING_SYNC_CONN_ID,
         lists: {
           // One window over every room the attendee is in. A conference
           // account joins a handful of rooms, so a window is a formality —

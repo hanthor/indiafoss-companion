@@ -274,3 +274,10 @@ describe('slidingSyncToSyncResponse (MSC4186)', () => {
     expect(folded.to_device).toBeUndefined();
   });
 });
+
+describe('sliding sync request', () => {
+  it('keeps conn_id within the 16-character cap MSC4186 imposes', async () => {
+    const { SLIDING_SYNC_CONN_ID } = await import('./http.js');
+    expect(SLIDING_SYNC_CONN_ID.length).toBeLessThanOrEqual(16);
+  });
+});
