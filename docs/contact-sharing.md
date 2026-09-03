@@ -292,3 +292,20 @@ so a browser cannot read the page from the companion's origin. The Android app
 fetches it through `CapacitorHttp`, which performs the request natively and is
 not subject to that rule. On the web the import is attempted anyway and, when
 the browser blocks it, the UI says so and the fields stay manual.
+
+## Handles or URLs, and Prav
+
+A social link takes a handle or a full URL (#105): `alice`, `@alice`,
+`github.com/alice` and `https://github.com/alice` all mean the same GitHub
+profile, a fediverse handle (`@alice@fosstodon.org`) is a Mastodon profile,
+and a Bluesky handle is its domain. `socialProfileUrl()` in the model (and
+`VCard.socialUrl` natively) turns any of them into the canonical profile
+URL; the card, the deep links and the saved contact all carry that URL, so
+a handle typed on one phone reads as a link on any other.
+
+Prav (#106), the community's XMPP service, is its own network on the card:
+it takes the phone number the account was made with, a username, or a full
+JID, and `pravJid()` makes the JID on `prav.app` (`+919876543210@prav.app`).
+It is encoded as `X-SOCIALPROFILE;TYPE=prav` plus an `IMPP:xmpp:` line other
+address books understand, linked as `xmpp:` and shown as Prav; an XMPP
+address on any other server stays under XMPP.

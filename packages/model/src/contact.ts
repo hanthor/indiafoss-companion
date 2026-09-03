@@ -13,7 +13,68 @@ export type AttendeeSocial =
   | 'whatsapp'
   | 'signal'
   | 'xmpp'
+  | 'prav'
   | 'deltachat';
+
+/**
+ * Social links take a handle or a full URL (#105): `alice`, `@alice` and
+ * `https://github.com/alice` all mean the same GitHub profile. This is the
+ * canonical profile URL for a network, or null when the value is neither a
+ * handle nor a URL on that network. Messengers (Telegram, WhatsApp, Signal,
+ * XMPP, Prav, Delta Chat) are not profiles and are handled by
+ * `contactDeepLinks`.
+ */
+const PROFILE_HOSTS: Partial<
+  Record<AttendeeSocial, { hosts: string[]; path: (h: string) => string }>
+> = {
+  github: { hosts: ['github.com'], path: (h) => `https://github.com/${h}` },
+  gitlab: { hosts: ['gitlab.com'], path: (h) => `https://gitlab.com/${h}` },
+  linkedin: { hosts: ['linkedin.com'], path: (h) => `https://linkedin.com/in/${h}` },
+  bluesky: { hosts: ['bsky.app'], path: (h) => `https://bsky.app/profile/${h}` },
+  x: { hosts: ['x.com', 'twitter.com'], path: (h) => `https://x.com/${h}` },
+  instagram: { hosts: ['instagram.com'], path: (h) => `https://instagram.com/${h}` },
+  youtube: { hosts: ['youtube.com'], path: (h) => `https://youtube.com/@${h}` },
+  medium: { hosts: ['medium.com'], path: (h) => `https://medium.com/@${h}` },
+  devto: { hosts: ['dev.to'], path: (h) => `https://dev.to/${h}` },
+};
+const PROFILE_HANDLE_RE = /^@?([A-Za-z0-9_.-]{1,64})$/;
+
+export function socialProfileUrl(
+  network: AttendeeSocial,
+  value: string | undefined,
+): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) return null;
+  if (network === 'mastodon') {
+    const handle = trimmed.match(/^@?([^@\s/]+)@([^@\s/]+\.[^@\s/]+)$/);
+    if (handle) return `https://${handle[2]}/@${handle[1]}`;
+    return /^https?:\/\//i.test(trimmed) ? trimmed : null;
+  }
+  const spec = PROFILE_HOSTS[network];
+  if (!spec) return /^https?:\/\//i.test(trimmed) ? trimmed : null;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  // A pasted URL without its scheme: github.com/alice.
+  const bare = trimmed.match(/^(?:www\.)?([a-z0-9.-]+)\/(.+)$/i);
+  if (bare && spec.hosts.includes(bare[1]!.toLowerCase())) return `https://${bare[1]}/${bare[2]}`;
+  // Bluesky handles are domains (alice.bsky.social), so dots are part of the handle.
+  const handle = trimmed.match(PROFILE_HANDLE_RE)?.[1];
+  return handle ? spec.path(handle) : null;
+}
+
+/**
+ * Prav (#106) is the FOSS United community's XMPP service: like Quicksy,
+ * accounts are phone numbers on prav.app. Accepts the number, a bare
+ * username, or a full JID with or without the xmpp: scheme; returns the JID.
+ */
+export function pravJid(value: string | undefined): string | null {
+  const trimmed = value?.trim().replace(/^xmpp:/i, '');
+  if (!trimmed) return null;
+  if (/^[^@\s/]+@[^@\s/]+$/.test(trimmed)) return trimmed;
+  const phone = normalizePhone(trimmed);
+  if (phone) return `${phone.startsWith('+') ? phone : `+${phone}`}@prav.app`;
+  const handle = trimmed.match(/^@?([A-Za-z0-9_.-]{2,64})$/)?.[1];
+  return handle ? `${handle}@prav.app` : null;
+}
 
 /** Local projection of the attendee's FOSS United profile (§41). */
 export interface AttendeeProfile {
@@ -177,13 +238,23 @@ export function attendeeProfileToVCard(
     if (photo) lines.push(`PHOTO;VALUE=URI:${escapeVCard(photo)}`);
   }
 
-  for (const [network, enabled] of Object.entries(selection.socials)) {
+  for (const [network, enabled] of Object.entries(selection.socials) as [
+    AttendeeSocial,
+    boolean | undefined,
+  ][]) {
     if (!enabled) continue;
-    const url = profile.socials[network as AttendeeSocial];
-    if (!url) continue;
+    const raw = profile.socials[network];
+    if (!raw?.trim()) continue;
+    // The card carries the canonical form: a profile URL for a handle (#105), a JID for Prav (#106).
+    const url =
+      network === 'prav'
+        ? (pravJid(raw) ?? raw.trim())
+        : (socialProfileUrl(network, raw) ?? raw.trim());
     lines.push(`X-SOCIALPROFILE;TYPE=${network}:${escapeVCard(url)}`);
-    // XMPP is also an IM address other address books understand.
-    if (network === 'xmpp') pushField(lines, 'IMPP', `xmpp:${url.replace(/^xmpp:/i, '')}`);
+    // XMPP and Prav are also IM addresses other address books understand.
+    if (network === 'xmpp' || network === 'prav') {
+      pushField(lines, 'IMPP', `xmpp:${url.replace(/^xmpp:/i, '')}`);
+    }
   }
 
   lines.push('END:VCARD');
@@ -278,10 +349,16 @@ export function contactDeepLinks(profile: {
     });
   else if (signalHandle)
     links.push({ kind: 'signal', label: 'Signal', href: `https://signal.me/#u/${signalHandle}` });
-  // XMPP (Prav and any other server): a JID, with or without the xmpp: scheme.
+  // Prav first (#106), then XMPP on any other server: a JID, with or without the xmpp: scheme.
+  const prav = pravJid(socials.prav);
+  if (prav) links.push({ kind: 'prav', label: 'Prav', href: `xmpp:${prav}` });
   const jid = socials.xmpp?.trim().replace(/^xmpp:/i, '');
   if (jid && /^[^@\s/]+@[^@\s/]+$/.test(jid)) {
-    links.push({ kind: 'xmpp', label: 'XMPP', href: `xmpp:${jid}` });
+    links.push({
+      kind: jid.endsWith('@prav.app') ? 'prav' : 'xmpp',
+      label: jid.endsWith('@prav.app') ? 'Prav' : 'XMPP',
+      href: `xmpp:${jid}`,
+    });
   }
   // Delta Chat: an invite link from the app, or the address it is reached at.
   const delta = socials.deltachat?.trim();
@@ -301,21 +378,11 @@ export function contactDeepLinks(profile: {
       href: profile.fossUnitedProfileUrl.trim(),
     });
   }
-  for (const [network, url] of Object.entries(socials) as [AttendeeSocial, string][]) {
-    if (['telegram', 'whatsapp', 'signal', 'xmpp', 'deltachat'].includes(network)) continue;
-    // Fediverse handles (@user@instance) are how people actually say their Mastodon.
-    const handle =
-      network === 'mastodon' ? url?.trim().match(/^@?([^@\s/]+)@([^@\s/]+\.[^@\s/]+)$/) : null;
-    if (handle) {
-      links.push({
-        kind: 'mastodon',
-        label: 'Mastodon',
-        href: `https://${handle[2]}/@${handle[1]}`,
-      });
-      continue;
-    }
-    if (url && /^https?:\/\//i.test(url))
-      links.push({ kind: network, label: LINK_LABELS[network], href: url.trim() });
+  for (const [network, value] of Object.entries(socials) as [AttendeeSocial, string][]) {
+    if (['telegram', 'whatsapp', 'signal', 'xmpp', 'prav', 'deltachat'].includes(network)) continue;
+    // A handle or a URL, either way the canonical profile (#105).
+    const url = socialProfileUrl(network, value);
+    if (url) links.push({ kind: network, label: LINK_LABELS[network], href: url });
   }
   return sortLinks(links);
 }
@@ -333,6 +400,7 @@ const LINK_ORDER: LinkKind[] = [
   'bluesky',
   'x',
   'matrix',
+  'prav',
   'xmpp',
   'deltachat',
   'telegram',
@@ -357,6 +425,7 @@ export const LINK_LABELS: Record<LinkKind, string> = {
   bluesky: 'Bluesky',
   x: 'X',
   matrix: 'Matrix',
+  prav: 'Prav',
   xmpp: 'XMPP',
   deltachat: 'Delta Chat',
   telegram: 'Telegram',
@@ -384,7 +453,8 @@ export function classifyLink(url: string): LinkKind | null {
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
       if (parsed.protocol === 'mailto:') return 'email';
       if (parsed.protocol === 'tel:') return 'phone';
-      if (parsed.protocol === 'xmpp:') return 'xmpp';
+      if (parsed.protocol === 'xmpp:')
+        return parsed.pathname.endsWith('@prav.app') ? 'prav' : 'xmpp';
       return null;
     }
     host = parsed.hostname.toLowerCase().replace(/^www\./, '');

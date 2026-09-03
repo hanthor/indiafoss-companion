@@ -179,6 +179,8 @@ export {
   avatarUrlFor,
   classifyLink,
   contactDeepLinks,
+  socialProfileUrl,
+  pravJid,
   githubAvatarUrl,
   githubUsername,
   gravatarUrl,
