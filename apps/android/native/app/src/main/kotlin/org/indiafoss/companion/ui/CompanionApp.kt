@@ -171,6 +171,8 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 ConnectScreen(
                     profile = state.profile,
                     contacts = state.contacts,
+                    signedCard = state.signedCard,
+                    fingerprint = state.deviceFingerprint,
                     onSave = viewModel::saveProfile,
                     onScan = scan,
                     onRemoveContact = viewModel::removeContact,
