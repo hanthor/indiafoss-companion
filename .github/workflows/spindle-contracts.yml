@@ -1,0 +1,93 @@
+name: Spindle contracts
+
+# The conference Spindle (#115) is an ordinary Matrix homeserver on the
+# internet; remote attendees take part through it with their own accounts.
+# This runs the chat contracts the companion depends on against a Spindle
+# built from source at a pinned commit, so a Spindle change cannot silently
+# break the app before the conference. Weekly, on demand, and when the
+# contracts or the client change.
+on:
+  schedule:
+    - cron: '0 5 * * 1'
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'tools/neutrino-probe/**'
+      - 'packages/matrix/**'
+      - '.github/workflows/spindle-contracts.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spindle-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Bump deliberately: the commit the contracts were last proven against.
+  SPINDLE_REV: 70b56eb
+
+jobs:
+  contracts:
+    name: Chat contracts against Spindle
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out Spindle
+        uses: actions/checkout@v4
+        with:
+          repository: tuna-os/spindle
+          ref: ${{ env.SPINDLE_REV }}
+          path: spindle
+
+      - name: Install the Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: spindle
+
+      - name: Build Spindle
+        working-directory: spindle
+        run: cargo build --release -p spindle-server --bin spindle
+
+      - name: Start Spindle
+        working-directory: spindle
+        run: |
+          cat > spindle.toml <<'TOML'
+          [server]
+          name = "localhost:8008"
+          bind = "127.0.0.1:8008"
+          [storage]
+          path = "./data"
+          TOML
+          nohup ./target/release/spindle spindle.toml > spindle.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fsS http://127.0.0.1:8008/_matrix/client/versions >/dev/null && exit 0
+            sleep 1
+          done
+          echo "Spindle did not come up"; cat spindle.log; exit 1
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run the contracts
+        env:
+          NEUTRINO_URL: http://127.0.0.1:8008
+          PROBE_GAPS: '0'
+        run: pnpm --filter @indiafoss/neutrino-probe test
+
+      - name: Spindle log
+        if: failure()
+        run: tail -100 spindle/spindle.log
