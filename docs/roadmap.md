@@ -143,6 +143,11 @@ alignment, #3 CI packages token, #4 fork roadmap.
   drift (`phases.md`).
 - 2026-09-02: Display font decided: Press Start 2P (OFL) ships as the display
   face, FFF Forward is referenced but never bundled (#33).
+- 2026-09-03: **P2P step 7, device-list updates (#80).** Patch `0009`:
+  `m.device_list_update` over the outbox on every device change, a
+  persisted per-user stream, `device_lists.changed` through sliding and
+  legacy sync, `/keys/changes`, and a fresh device id per sign-in on the
+  client. Proof: the two-node reinstall test.
 - 2026-09-03: **Complement for P2P** (owner ask). The fork now runs
   matrix-org/complement's client-server suite through Neutrino's own
   harness, in the companion's CI against the pinned rev

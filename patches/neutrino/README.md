@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Eight patches that give Neutrino enough of the Matrix key surface for the
+Nine patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -186,6 +186,37 @@ turned four spec behaviours our client had not needed into server changes:
   device list that is not a list; `/keys/claim` hands out one-time keys in
   upload order (MSC4225), which took a sequence column — schema v5, so an
   older store is refused at open, as before.
+
+## 0009 — device-list updates
+
+A peer who reinstalls the app is a new device with new keys; without this,
+every other phone keeps encrypting to the device that is gone.
+
+- Every `/keys/upload` that carries device keys is a device-list change:
+  the user's `stream_id` advances (persisted, so a restart cannot replay an
+  old one), and an `m.device_list_update` EDU goes through the durable
+  outbox to every server sharing a room with the user — the same path as
+  room keys, so a peer out of range hears of the new device when the link
+  heals.
+- Inbound updates land in a change log; each sliding-sync connection
+  remembers where it last read it and reports the users after that under
+  `extensions.e2ee.device_lists.changed`, filtered to those sharing a room
+  with the caller, and wakes a waiting long-poll. Legacy `/sync` carries the
+  same under the top-level `device_lists`, with the real one-time key counts.
+- `GET /keys/changes` answers with every user sharing a room whose devices
+  have changed at all — a superset of the exact answer, because legacy
+  tokens carry no device-log coordinate, and safe, since the only thing a
+  client does with the list is fetch keys again.
+- The federation `GET /user/devices/{user}` reports the real `stream_id`.
+- Under the multi-user shim, a login that names no device gets a fresh id,
+  as on a real homeserver; the single-user build keeps `DEVICEID`. A login
+  that names one is honoured in both, which is what a reinstalled client
+  relies on.
+
+The client side needed one thing: a fresh device id on each password
+sign-in, so a reinstalled client is a new device rather than one claiming
+the old id with keys that no longer match. `packages/matrix` already fed
+`device_lists.changed` to the crypto machine.
 
 ## What is still missing
 

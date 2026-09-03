@@ -275,6 +275,7 @@ export class MatrixClient {
     user: string,
     password: string,
     deviceName: string,
+    deviceId?: string,
   ): Promise<MatrixSession> {
     const localpart = user.trim().replace(/^@/, '').replace(/:.*$/, '');
     const json = await this.request<{ user_id: string; access_token: string; device_id?: string }>(
@@ -285,6 +286,13 @@ export class MatrixClient {
         identifier: { type: 'm.id.user', user: localpart },
         password,
         initial_device_display_name: deviceName,
+        // A fresh install is a fresh device: naming it makes the server
+        // file this session's keys under a new device rather than over the
+        // one the previous install had, so peers are told to fetch keys
+        // again instead of encrypting to a device that no longer exists.
+        // A homeserver that ignores it answers with its own id, which is
+        // what gets stored.
+        ...(deviceId ? { device_id: deviceId } : {}),
       },
       { auth: false },
     );
