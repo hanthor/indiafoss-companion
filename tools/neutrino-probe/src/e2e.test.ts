@@ -78,13 +78,31 @@ const reachable = await (async () => {
   }
 })();
 
+/**
+ * Dummy-flow registration the spec way: a first request answers 401 with the
+ * flows and a UIAA session, the second carries that session. Neutrino
+ * accepts the shortcut without a session; Spindle (and Synapse) do not.
+ */
+async function registerDummy(
+  body: Record<string, unknown>,
+): Promise<{ status: number; body: Record<string, unknown> }> {
+  const first = await call('POST', '/_matrix/client/v3/register', {
+    ...body,
+    auth: { type: 'm.login.dummy' },
+  });
+  if (first.status !== 401 || typeof first.body.session !== 'string') return first;
+  return call('POST', '/_matrix/client/v3/register', {
+    ...body,
+    auth: { type: 'm.login.dummy', session: first.body.session },
+  });
+}
+
 beforeAll(async () => {
   if (!reachable) return;
 
-  const registered = await call('POST', '/_matrix/client/v3/register', {
+  const registered = await registerDummy({
     username: `e2e-${Date.now()}`,
     password: 'e2e-password',
-    auth: { type: 'm.login.dummy' },
   });
   token = String(registered.body.access_token ?? '');
   userId = String(registered.body.user_id ?? '');
@@ -180,7 +198,17 @@ describe.skipIf(!reachable)('neutrino contracts the companion depends on', () =>
     // bounded timeline and named state. The client prefers it when offered.
     const versions = await call('GET', '/_matrix/client/versions');
     const features = versions.body.unstable_features as Record<string, boolean>;
-    expect(features?.['org.matrix.simplified_msc3575']).toBe(true);
+    const advertised = features?.['org.matrix.simplified_msc3575'] === true;
+    // Neutrino must offer it. A server that is not Neutrino (the conference
+    // Spindle, run with PROBE_GAPS=0) may not; the client then uses legacy
+    // /sync, which the second half of this contract still checks.
+    if (gaps) expect(advertised).toBe(true);
+
+    const legacy = await call('GET', '/_matrix/client/v3/sync?timeout=0');
+    const legacyJoin = ((legacy.body.rooms as { join?: Record<string, unknown> })?.join ??
+      {}) as Record<string, unknown>;
+    expect(Object.keys(legacyJoin)).toContain(roomId);
+    if (!advertised) return;
 
     const sliding = await call(
       'POST',
@@ -203,11 +231,6 @@ describe.skipIf(!reachable)('neutrino contracts the companion depends on', () =>
     // show the attendee different conversations.
     const slidingRooms = Object.keys((sliding.body.rooms as Record<string, unknown>) ?? {});
     expect(slidingRooms).toContain(roomId);
-
-    const legacy = await call('GET', '/_matrix/client/v3/sync?timeout=0');
-    const legacyJoin = ((legacy.body.rooms as { join?: Record<string, unknown> })?.join ??
-      {}) as Record<string, unknown>;
-    expect(Object.keys(legacyJoin)).toContain(roomId);
   });
 
   it('syncs the room', async () => {
@@ -453,10 +476,9 @@ describe.skipIf(!reachable || !gaps)('gaps — these fail when upstream closes t
   }
 
   async function registerAs(localpart: string, deviceId?: string) {
-    const r = await call('POST', '/_matrix/client/v3/register', {
+    const r = await registerDummy({
       username: localpart,
       password: 'x',
-      auth: { type: 'm.login.dummy' },
       ...(deviceId ? { device_id: deviceId } : {}),
     });
     expect(r.status).toBe(200);

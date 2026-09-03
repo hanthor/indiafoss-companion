@@ -62,6 +62,9 @@ jobs:
           bind = "127.0.0.1:8008"
           [storage]
           path = "./data"
+          # The probe registers several users from one address in seconds.
+          [ratelimit]
+          enabled = false
           TOML
           nohup ./target/release/spindle spindle.toml > spindle.log 2>&1 &
           for i in $(seq 1 60); do

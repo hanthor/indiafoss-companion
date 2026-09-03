@@ -65,8 +65,12 @@ direct messages work the same as at the venue.
 What the app checks before trusting a Spindle (the chat contract probe,
 `tools/neutrino-probe`, run with `PROBE_GAPS=0` so only the contracts apply):
 registration and login, room creation, messages and history, reply
-relations, reactions, `/members`, Simplified Sliding Sync agreeing with
-legacy `/sync`. Run it against a local Spindle before the conference:
+relations, reactions, `/members`, and sync. Spindle at the pinned commit
+does not advertise Simplified Sliding Sync (MSC4186), so the client uses
+legacy `/sync` against it, which the probe checks; registration is the
+spec's two-step dummy flow (a UIAA session first), which Neutrino also
+accepts. Proven against a source build of Spindle `70b56eb`: all seven
+contracts pass. Run it against a local Spindle before the conference:
 
 ```bash
 NEUTRINO_URL=http://127.0.0.1:8008 PROBE_GAPS=0 pnpm --filter @indiafoss/neutrino-probe test
