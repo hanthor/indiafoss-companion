@@ -1,7 +1,9 @@
 import { CompanionStorage } from '@indiafoss/storage';
+import { base } from '$app/paths';
 import {
   computeNotifications,
   NativeLocalNotificationTransport,
+  RealTransportClock,
   WebLocalNotificationTransport,
 } from '$lib/notifications';
 import type { NotificationTransport, PlannedBlock, ReminderTier } from '$lib/notifications';
@@ -43,6 +45,7 @@ function getTransport(): Promise<NotificationTransport> {
     simulatorTransport ??= new WebLocalNotificationTransport(
       { nowMs: appNowMs, speed: appSpeed },
       (n) => logSimEvent('notification', n.title, n.body),
+      base,
     );
     return Promise.resolve(simulatorTransport);
   }
@@ -53,7 +56,7 @@ function getTransport(): Promise<NotificationTransport> {
     } catch {
       /* not running under Capacitor */
     }
-    return new WebLocalNotificationTransport();
+    return new WebLocalNotificationTransport(RealTransportClock, () => {}, base);
   })();
   return transportPromise;
 }
@@ -87,7 +90,12 @@ async function plannedBlocks(eventId: string, days: string[]): Promise<PlannedBl
     try {
       const edits = JSON.parse(saved) as Partial<PlanEdits>;
       for (const block of edits.customBlocks ?? []) {
-        out.push({ id: block.id, label: block.label, start: block.start });
+        out.push({
+          id: block.id,
+          label: block.label,
+          start: block.start,
+          locationName: eventState.bundle?.locations.find((l) => l.id === block.locationId)?.name,
+        });
       }
     } catch {
       /* malformed local data: no reminders for that day */
@@ -113,13 +121,16 @@ export async function armNotifications(): Promise<void> {
   } catch {
     venue = null;
   }
-  const travelSecondsFor = (locationId: string | undefined): number => {
-    if (!venue || !locationId || !currentLocation.value) return 300;
+  // Null when the walk cannot be worked out (no location set, no route): the
+  // alert then leaves the walk out rather than inventing five minutes.
+  const travelSecondsFor = (locationId: string | undefined): number | null => {
+    if (!venue || !locationId || !currentLocation.value) return null;
     const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
     const to = venue.metadata.locations[locationId]?.entrances[0];
-    if (!from || !to || from === to) return 300;
+    if (!from || !to) return null;
+    if (from === to) return 0;
     const route = findRoute(venue.graph, from, to, 'fastest');
-    return route?.durationSeconds ?? 300;
+    return route?.durationSeconds ?? null;
   };
 
   const nowMs = appNowMs();

@@ -13,6 +13,8 @@ export interface AppNotification {
   body: string;
   /** ISO instant at which the notification should fire. */
   at: string;
+  /** Where tapping the notification should land, as an app path. */
+  url?: string;
 }
 
 export interface NotificationTransport {
@@ -44,6 +46,8 @@ export class WebLocalNotificationTransport implements NotificationTransport {
     private readonly clock: TransportClock = RealTransportClock,
     /** Called when a notification fires, before the system notification. */
     private readonly onFire: (notification: AppNotification) => void = () => {},
+    /** Base path the app is served under, so a tapped notification lands in the right place. */
+    private readonly basePath = '',
   ) {}
 
   async requestPermission(): Promise<boolean> {
@@ -64,7 +68,23 @@ export class WebLocalNotificationTransport implements NotificationTransport {
         this.timers.delete(notification.id);
         this.onFire(notification);
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          new Notification(notification.title, { body: notification.body });
+          // `tag` replaces an earlier alert for the same session instead of
+          // stacking a second one; the icon is what turns a generic browser
+          // notification into one the attendee recognises as this app.
+          const shown = new Notification(notification.title, {
+            body: notification.body,
+            tag: notification.id,
+            icon: `${this.basePath}/icons/icon-192.png`,
+            badge: `${this.basePath}/icons/icon-192.png`,
+          });
+          const url = notification.url;
+          if (url) {
+            shown.onclick = () => {
+              window.focus();
+              window.location.assign(`${this.basePath}${url}`);
+              shown.close();
+            };
+          }
         }
       },
       Math.max(0, delay),
@@ -120,7 +140,7 @@ export class NativeLocalNotificationTransport implements NotificationTransport {
           title: notification.title,
           body: notification.body,
           schedule: { at, allowWhileIdle: true },
-          extra: { id: notification.id },
+          extra: { id: notification.id, url: notification.url },
         },
       ],
     });
@@ -158,6 +178,8 @@ export interface PlannedBlock {
   id: string;
   label: string;
   start: string;
+  /** Where the block happens, when it has a place (a booth visit does). */
+  locationName?: string;
 }
 
 /**
@@ -179,9 +201,12 @@ export function computeBlockNotifications(
     if (at <= nowMs) continue;
     out.push({
       id: `block-${block.id}`,
-      title: 'On your plan',
-      body: `${block.label} in ${minutesBefore} min.`,
+      title: `In ${minutesBefore} min: ${shortTitle(block.label)}`,
+      body: [`On your plan`, block.locationName, `starts ${clockTime(block.start)}`]
+        .filter(Boolean)
+        .join(' · '),
       at: new Date(at).toISOString(),
+      url: '/plan',
     });
   }
   return out;
@@ -200,20 +225,62 @@ export function staleNotificationIds(
 export const MUST_ATTEND_HEADS_UP_MINUTES = 30;
 
 /**
+ * A notification title has one line on a phone, and the time cue at the front
+ * is what makes it scannable — so a very long session title is trimmed on a
+ * word boundary rather than left for the system to cut mid-word.
+ */
+export const MAX_NOTIFICATION_TITLE = 56;
+
+export function shortTitle(title: string, max = MAX_NOTIFICATION_TITLE): string {
+  const trimmed = title.trim().replace(/\s+/g, ' ');
+  if (trimmed.length <= max) return trimmed;
+  const cut = trimmed.slice(0, max - 1);
+  const lastSpace = cut.lastIndexOf(' ');
+  const kept = lastSpace > max * 0.6 ? cut.slice(0, lastSpace) : cut;
+  return `${kept.replace(/[\s,.:;–-]+$/, '')}…`;
+}
+
+/** `10:15` from an ISO instant, in the offset the instant carries. */
+function clockTime(iso: string): string {
+  return iso.slice(11, 16);
+}
+
+function walkText(seconds: number | null): string | null {
+  if (seconds === null || !Number.isFinite(seconds)) return null;
+  return `${Math.max(1, Math.round(seconds / 60))} min walk`;
+}
+
+/**
+ * Two alerts a few minutes apart saying nearly the same thing is noise, so
+ * "starting soon" is dropped when "leave now" lands within this window: the
+ * leave-now alert carries the walk and the start time, so it says strictly
+ * more.
+ */
+export const MERGE_WINDOW_MINUTES = 5;
+
+/**
  * Compute the local notifications the app should have armed for `now`.
  * Pure and testable — returns notifications whose fire time is in the
  * future but within the lookahead window.
+ *
+ * Every alert names the session, the room and (when the attendee's location
+ * is known) the walk, because a reminder that does not say where to go is
+ * only half a reminder. `travelSecondsFor` returns null when the walk cannot
+ * be worked out; the leave-by time then falls back to a default allowance and
+ * the body simply leaves the walk out.
  */
 export function computeNotifications(
   bundle: EventBundle,
   now: string,
-  travelSecondsFor: (locationId: string | undefined) => number,
+  travelSecondsFor: (locationId: string | undefined) => number | null,
   tierFor: (activityId: string) => ReminderTier,
   window: NotificationWindow = DEFAULT_NOTIFICATION_WINDOW,
 ): AppNotification[] {
   const nowMs = Date.parse(now);
   const lookaheadMs = 90 * 60_000;
   const out: AppNotification[] = [];
+  const roomFor = (locationId: string | undefined): string | undefined =>
+    bundle.locations.find((l) => l.id === locationId)?.name;
 
   for (const activity of bundle.activities) {
     if (activity.cancelled || !activity.start || !activity.end) continue;
@@ -222,44 +289,64 @@ export function computeNotifications(
     const startMs = Date.parse(activity.start);
     if (startMs < nowMs || startMs > nowMs + lookaheadMs) continue;
 
+    const name = shortTitle(activity.title);
+    const url = `/activity/${activity.id}`;
+    const room = roomFor(activity.locationId);
+    const travel = travelSecondsFor(activity.locationId);
+    const walk = walkText(travel);
+    const startsAt = clockTime(activity.start);
+    /** "10:15 in Devroom 1 (AOSP) · 4 min walk", with whatever is known. */
+    const whereAndWhen = [room ? `${startsAt} in ${room}` : `Starts ${startsAt}`, walk]
+      .filter(Boolean)
+      .join(' · ');
+
     if (tier === 'must-attend') {
       const headsUpAt = startMs - MUST_ATTEND_HEADS_UP_MINUTES * 60_000;
       if (headsUpAt > nowMs) {
         out.push({
           id: `must-${activity.id}`,
-          title: "Don't miss this",
-          body: `${activity.title} starts in ${MUST_ATTEND_HEADS_UP_MINUTES} min — it's on your must-attend list.`,
+          title: `In ${MUST_ATTEND_HEADS_UP_MINUTES} min: ${name}`,
+          body: `Must attend · ${whereAndWhen}`,
           at: new Date(headsUpAt).toISOString(),
+          url,
         });
       }
       out.push({
         id: `start-${activity.id}`,
-        title: 'Starting now',
-        body: `${activity.title} is starting. You marked it must attend.`,
+        title: `Starting now: ${name}`,
+        body: [room, 'you marked it must attend'].filter(Boolean).join(' · '),
         at: new Date(startMs).toISOString(),
+        url,
       });
     }
 
     const startingSoonAt = startMs - window.startingSoonMinutes * 60_000;
-    if (startingSoonAt > nowMs) {
+    const leaveAtMs = Date.parse(
+      leaveByInstant(activity.start, travel ?? 300, window.leaveBufferMinutes * 60),
+    );
+    const bothAhead = startingSoonAt > nowMs && leaveAtMs > nowMs;
+    const merged =
+      bothAhead && Math.abs(leaveAtMs - startingSoonAt) <= MERGE_WINDOW_MINUTES * 60_000;
+
+    if (startingSoonAt > nowMs && !merged) {
       out.push({
         id: `soon-${activity.id}`,
-        title: 'Starting soon',
-        body: `${activity.title} begins in ${window.startingSoonMinutes} min.`,
+        title: `In ${window.startingSoonMinutes} min: ${name}`,
+        body: whereAndWhen,
         at: new Date(startingSoonAt).toISOString(),
+        url,
       });
     }
 
-    const travel = travelSecondsFor(activity.locationId);
-    const leaveAtMs = Date.parse(
-      leaveByInstant(activity.start, travel, window.leaveBufferMinutes * 60),
-    );
     if (leaveAtMs > nowMs) {
       out.push({
         id: `leave-${activity.id}`,
-        title: 'Leave now',
-        body: `Time to head to ${activity.title}.`,
+        title: `Leave now: ${name}`,
+        body: [walk ? `${walk} to ${room ?? 'the room'}` : room, `starts ${startsAt}`]
+          .filter(Boolean)
+          .join(' · '),
         at: new Date(leaveAtMs).toISOString(),
+        url,
       });
     }
   }

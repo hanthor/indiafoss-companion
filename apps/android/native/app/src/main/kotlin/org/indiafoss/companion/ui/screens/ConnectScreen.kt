@@ -30,6 +30,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -86,9 +88,32 @@ fun ConnectScreen(
     onSave: (ContactCard) -> Unit,
     onScan: () -> Unit,
     onRemoveContact: (String) -> Unit,
+    onImportGithub: () -> Unit = {},
+    onImportFossUnited: () -> Unit = {},
+    onImportVcard: (String) -> Unit = {},
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
+    // Your own contact, from the phone's address book (one picked contact, read as a vCard) or a .vcf file (#110).
+    val pickContact = rememberLauncherForActivityResult(ActivityResultContracts.PickContact()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching {
+            context.contentResolver.query(uri, arrayOf(android.provider.ContactsContract.Contacts.LOOKUP_KEY), null, null, null)?.use { c ->
+                if (!c.moveToFirst()) return@use null
+                val key = c.getString(0)
+                val vcardUri = android.net.Uri.withAppendedPath(android.provider.ContactsContract.Contacts.CONTENT_VCARD_URI, key)
+                context.contentResolver.openInputStream(vcardUri)?.bufferedReader()?.use { it.readText() }
+            }
+        }.getOrNull()?.let(onImportVcard)
+    }
+    val askContacts = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) pickContact.launch(null)
+    }
+    val openVcf = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        runCatching { context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() } }
+            .getOrNull()?.let(onImportVcard)
+    }
     val vcard = remember(profile, signedCard) { signedCard.ifBlank { VCard.encode(profile) } }
     val bytes = vcard.toByteArray(Charsets.UTF_8).size
     val qr = remember(vcard) { if (profile.fullName.isBlank() || bytes > MAX_QR_BYTES) null else qrBitmap(vcard) }
@@ -154,6 +179,22 @@ fun ConnectScreen(
                 )
             }
             item { SectionHeader("Identity") }
+            item {
+                Text(
+                    "Fill the card from what is already public, or from your own entry in the phone's contacts. Blank fields are filled; nothing you typed is overwritten.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 4.dp),
+                )
+                Row(Modifier.padding(16.dp, 0.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = onImportGithub, enabled = profile.socials["github"].orEmpty().isNotBlank()) { Text("From GitHub") }
+                    OutlinedButton(onClick = onImportFossUnited, enabled = profile.fossUnitedUsername.isNotBlank()) { Text("From FOSS United") }
+                }
+                Row(Modifier.padding(16.dp, 0.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { askContacts.launch(android.Manifest.permission.READ_CONTACTS) }) { Text("From my contacts") }
+                    OutlinedButton(onClick = { openVcf.launch(arrayOf("text/x-vcard", "text/vcard", "*/*")) }) { Text("Open a .vcf") }
+                }
+            }
             items(IDENTITY, key = { it.key }) { FieldRow(it, profile, onSave) }
             item { SectionHeader("Profiles & links") }
             items(LINKS, key = { it.key }) { FieldRow(it, profile, onSave) }

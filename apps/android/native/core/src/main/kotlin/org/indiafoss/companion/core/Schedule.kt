@@ -23,6 +23,34 @@ object Schedule {
     /** `10:15` for an instant, in the offset the instant itself carries. */
     fun formatTime(iso: String): String = iso.substring(11, 16)
 
+    /** The UTC offset an instant carries, in minutes (+05:30 → 330). */
+    fun offsetMinutes(iso: String): Int {
+        val raw = INSTANT.matchEntire(iso.trim())?.groupValues?.get(7).orEmpty()
+        return (offsetSeconds(raw) / 60).toInt()
+    }
+
+    /** An ISO instant for epoch millis in a fixed offset: `2025-09-20T10:15:00+05:30`. */
+    fun formatInstant(millis: Long, offsetMinutes: Int = 330): String {
+        val total = Math.floorDiv(millis, 1000L) + offsetMinutes * 60L
+        val days = Math.floorDiv(total, 86_400L)
+        val secondsOfDay = Math.floorMod(total, 86_400L)
+        val z = days + 719_468
+        val era = Math.floorDiv(z, 146_097L)
+        val doe = z - era * 146_097
+        val yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365
+        val y = yoe + era * 400
+        val doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+        val mp = (5 * doy + 2) / 153
+        val d = doy - (153 * mp + 2) / 5 + 1
+        val m = mp + if (mp < 10) 3 else -9
+        val year = if (m <= 2) y + 1 else y
+        val sign = if (offsetMinutes < 0) '-' else '+'
+        val abs = kotlin.math.abs(offsetMinutes)
+        return "%04d-%02d-%02dT%02d:%02d:%02d%c%02d:%02d".format(
+            year, m, d, secondsOfDay / 3600, (secondsOfDay % 3600) / 60, secondsOfDay % 60, sign, abs / 60, abs % 60,
+        )
+    }
+
     /** `2025-09-20` for an instant, in the offset the instant itself carries. */
     fun dayKey(iso: String): String = iso.substring(0, 10)
 

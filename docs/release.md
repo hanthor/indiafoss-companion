@@ -55,6 +55,16 @@ Debug APKs are produced in CI with a sha256 checksum. For release builds:
 - F-Droid / core distribution must contain **no mandatory Google Play Services
   or FCM** dependencies (local notifications only).
 
+### Accrescent
+
+[Accrescent](https://accrescent.app) is the app-store channel we are aiming
+for, and it wants a different artifact from everyone else: a **bundletool-made,
+developer-signed `.apks` APK set**, one signer, signature scheme v2/v3/v3.1,
+plus DNS proof that we control `indiafoss.org`. Its developer sign-up is
+closed today, so nothing is published there yet. The requirements, the
+attendee-facing install and update instructions, and the checklist of what we
+still owe are in [accrescent.md](./accrescent.md).
+
 ## iOS
 
 The PWA is iOS-installable via Safari **Share → Add to Home Screen** (Apple
@@ -87,6 +97,7 @@ separate iOS UI is required for the initial distribution.
 ## Related docs
 
 - [Event onboarding](./event-onboarding.md)
+- [Accrescent distribution](./accrescent.md)
 - [Venue route review checklist](./venue-route-review-checklist.md)
 - [Contact sharing & QR scanning](./contact-sharing.md)
 - [Calendar export](./calendar-export.md)

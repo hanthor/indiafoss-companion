@@ -11,7 +11,10 @@ import org.indiafoss.companion.core.bundleJson
 import org.indiafoss.companion.data.RankingState
 import org.indiafoss.companion.data.StoredComparison
 import org.indiafoss.companion.ui.LeaveByBanner
+import org.indiafoss.companion.ui.screens.BoothScreen
 import org.indiafoss.companion.ui.screens.ConnectScreen
+import org.indiafoss.companion.core.ScheduleDiff
+import org.indiafoss.companion.data.StoredBlock
 import org.indiafoss.companion.ui.screens.ExploreScreen
 import org.indiafoss.companion.ui.screens.MapScreen
 import org.indiafoss.companion.ui.screens.NowScreen
@@ -85,7 +88,12 @@ class ScreenshotTest {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
-    @Test fun explore() = shoot("explore") { ExploreScreen(state(), {}, {}) {} }
+    @Test fun explore() = shoot("explore") { ExploreScreen(state(), {}, {}, {}) {} }
+    @Test fun booth() = shoot("booth") { BoothScreen(state(), bundle.booths.first().id, { _, _ -> }, {}) {} }
+    @Test fun nowUpdated() = shoot("now-updated") {
+        val update = ScheduleUpdate(7, listOf(ScheduleDiff.Change("act-c8ak0iov2l", "First Step into Open Source", ScheduleDiff.Kind.TIME, "10:15 → 11:00")))
+        NowScreen(state().copy(update = update, blocks = listOf(StoredBlock("visit-1", "Visit the Zulip booth", "2025-09-20"))), {}, {}) {}
+    }
     @Test fun connect() = shoot("connect") {
         ConnectScreen(
             ContactCard(fullName = "Asha Menon", organization = "FOSS United", socials = mapOf("github" to "https://github.com/asha")),

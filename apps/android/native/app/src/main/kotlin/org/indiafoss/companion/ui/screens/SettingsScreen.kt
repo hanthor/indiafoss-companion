@@ -24,7 +24,14 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,7 +40,14 @@ import org.indiafoss.companion.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit, onRoutingProfile: (String) -> Unit, onSetup: () -> Unit = {}) {
+fun SettingsScreen(
+    state: UiState,
+    onReminders: (Boolean) -> Unit,
+    onRoutingProfile: (String) -> Unit,
+    onStartSimulation: (day: String, time: String, speed: Int) -> Unit = { _, _, _ -> },
+    onStopSimulation: () -> Unit = {},
+    onSetup: () -> Unit = {},
+) {
     val context = LocalContext.current
     // Android 13+ asks for the notification permission; below that it is granted by install.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -89,6 +103,48 @@ fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit, onRoutingProf
                                 label = { Text(label) },
                             )
                         }
+                    }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Simulate the day", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Run the app through a conference day in minutes: Now, the leave-by banner and every reminder behave as they would, on a clock that runs faster than real time. Your bookmarks and ratings are the real ones.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    val sim = state.simulation
+                    if (sim != null) {
+                        Text("Running at ${sim.speed}× · now ${state.now.substring(11, 16)}", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
+                        Button(onClick = onStopSimulation, modifier = Modifier.padding(top = 8.dp)) { Text("Stop simulation") }
+                        if (sim.log.isNotEmpty()) {
+                            Text("What happened (${sim.log.size})", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 12.dp))
+                            sim.log.takeLast(12).reversed().forEach { e ->
+                                Text("${e.simAt.substring(11, 16)}  ${e.kind}  ${e.title}${if (e.body.isNotBlank()) " — ${e.body}" else ""}", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 2.dp))
+                            }
+                        }
+                    } else {
+                        var dayIndex by remember { mutableIntStateOf(0) }
+                        var time by remember { mutableStateOf("09:00") }
+                        var speed by remember { mutableIntStateOf(60) }
+                        val days = state.days
+                        if (days.size > 1) SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                            days.forEachIndexed { index, _ ->
+                                SegmentedButton(selected = dayIndex == index, onClick = { dayIndex = index }, shape = SegmentedButtonDefaults.itemShape(index, days.size), label = { Text("Day ${index + 1}") })
+                            }
+                        }
+                        OutlinedTextField(time, { time = it }, label = { Text("Start at (HH:MM)") }, singleLine = true, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+                        val speeds = listOf(10, 60, 300)
+                        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                            speeds.forEachIndexed { index, s ->
+                                SegmentedButton(selected = speed == s, onClick = { speed = s }, shape = SegmentedButtonDefaults.itemShape(index, speeds.size), label = { Text("${s}×") })
+                            }
+                        }
+                        val ok = days.isNotEmpty() && Regex("^([01]?\\d|2[0-3]):[0-5]\\d$").matches(time.trim())
+                        Button(onClick = { onStartSimulation(days[dayIndex.coerceIn(0, days.lastIndex)], time.trim(), speed) }, enabled = ok, modifier = Modifier.padding(top = 8.dp)) { Text("Start simulation") }
+                        if (!state.remindersEnabled) Text("Reminders are off, so the run shows the screens but no alerts. Switch them on above to see them fire too.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 6.dp))
                     }
                 }
             }

@@ -51,9 +51,10 @@ class EventRepository(
             val body = get(url)
             // Parse before writing: a malformed download must not evict a good cache.
             val bundle = bundleJson.decodeFromString<EventBundle>(body)
+            val previous = cached()
             cacheFile.writeText(body)
             revisionFile.writeText(manifest.revision.toString())
-            RefreshResult.Updated(bundle, manifest.revision)
+            RefreshResult.Updated(bundle, manifest.revision, previous)
         } catch (error: Exception) {
             RefreshResult.Failed(error.message ?: "network error")
         }
@@ -81,6 +82,6 @@ class EventRepository(
 
 sealed interface RefreshResult {
     data object UpToDate : RefreshResult
-    data class Updated(val bundle: EventBundle, val revision: Int) : RefreshResult
+    data class Updated(val bundle: EventBundle, val revision: Int, val previous: EventBundle? = null) : RefreshResult
     data class Failed(val reason: String) : RefreshResult
 }
