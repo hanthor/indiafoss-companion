@@ -819,7 +819,11 @@
   <section class="group people" aria-labelledby="g-people">
     <div class="grouphead">
       <span class="eyebrow" id="g-people">PEOPLE I MET · {contactsState.contacts.length}</span>
-      <a href={resolve('/scan')}>Scan a code →</a>
+      {#if contactsState.contacts.length > 0}
+        <a href={resolve('/connect/recap')}>Who I met →</a>
+      {:else}
+        <a href={resolve('/scan')}>Scan a code →</a>
+      {/if}
     </div>
     {#if contactsState.contacts.length === 0}
       <div class="empty">

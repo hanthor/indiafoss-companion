@@ -124,6 +124,7 @@
       '/explore': 'Explore',
       '/connect': 'Share contact',
       '/connect/compare': 'Compare key badges',
+      '/connect/recap': 'Who I met',
       '/scan': 'Scan',
       '/settings': 'Settings',
       '/welcome': 'Welcome',
