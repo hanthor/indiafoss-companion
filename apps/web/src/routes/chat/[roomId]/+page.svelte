@@ -243,7 +243,9 @@
         class="msg"
         class:mine
         class:pending
-        class:notice={event.msgtype === 'm.notice' || event.msgtype === 'm.encrypted'}
+        class:notice={event.msgtype === 'm.notice' ||
+          event.msgtype === 'm.encrypted' ||
+          event.redacted}
       >
         {#if !mine}<span class="sender">{senderName(event.sender)}</span>{/if}
         {#if event.replyTo}

@@ -69,6 +69,13 @@ alignment, #3 CI packages token, #4 fork roadmap.
   sessions decrypts on the other node. It also caught a real client bug: our
   sliding-sync `conn_id` was 19 characters against MSC4186's cap of 16, and
   Neutrino rejects that, so every mesh sync had been failing silently.
+- 2026-09-03: **P2P step 5** (#78): redaction on the mesh. Server side (patch
+  `0006`) an `m.room.redaction` is an ordinary event and is applied on read —
+  sync and `/messages` prune the target when the redaction is allowed, with
+  `unsigned.redacted_because` alongside. Client side the reducer blanks a
+  redacted message, drops a redacted reaction's relation so it stops counting,
+  and blanks cached copies when a redaction arrives later. Un-react and delete
+  now work between two nodes.
 - 2026-09-03: **P2P step 4** (#77): mesh direct messages are created
   encrypted when the server carries key material — asked for at creation and
   set as a state event, since Neutrino ignores `initial_state` — and the room

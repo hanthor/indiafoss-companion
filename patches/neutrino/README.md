@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Five patches that give Neutrino enough of the Matrix key surface for the
+Six patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -129,6 +129,24 @@ Tests: the store's round-trip and conflict rules, and an HTTP-level restart —
 upload, claim one key, receive a room key, then a fresh application state over
 the same store finds the device, exactly the unclaimed key, and the waiting
 room key, delivered once.
+
+## 0006 — redaction
+
+`PUT /rooms/{room}/redact/{eventId}/{txnId}` builds an `m.room.redaction`
+(room v11+ carries `redacts` in content) and sends it through the room actor
+like any other event, so it is persisted, DAG-linked and federated with no
+special path. What makes it a redaction is what the read paths do with it:
+sliding sync and `/messages` ask the store which accepted redactions target
+the events they are about to return (`json_extract` on the stored row — no
+new table), decide whether each is allowed (the redaction's sender is the
+target's sender, or holds the room's `redact` level), and prune the target per
+the room version's rules with the redaction alongside as
+`unsigned.redacted_because`. A redaction that is not allowed is served as an
+event and changes nothing. Applying on read keeps the DAG's bytes intact and
+copes with a redaction arriving before its target over federation.
+
+Un-react and delete now work on the mesh; the probe's redaction tripwire
+flips to a contract in fork mode.
 
 ## What is still missing
 

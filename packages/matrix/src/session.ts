@@ -431,6 +431,7 @@ export class MatrixSessionManager {
       await this.store.putEvents(delta.events);
       for (const event of delta.events) this.mergeIntoTimeline(event);
     }
+    if (delta.redactedIds.length) await this.applyRedactions(delta.redactedIds);
     this.nextBatch = delta.nextBatch;
     await this.store.saveNextBatch(delta.nextBatch);
     this.emit();
@@ -441,6 +442,41 @@ export class MatrixSessionManager {
         // Key uploads retry on the next sync.
       }
     }
+  }
+
+  /**
+   * Blank the cached copies of redacted events. The server already serves
+   * them pruned on the next read; this is for what the client holds now —
+   * an open timeline, the store — so a deleted message and a withdrawn
+   * reaction disappear without a refetch.
+   */
+  private async applyRedactions(eventIds: string[]): Promise<void> {
+    const wanted = new Set(eventIds);
+    const rooms = new Set<string>();
+    for (const [roomId, timeline] of this.timelines) {
+      if (timeline.some((e) => wanted.has(e.eventId))) rooms.add(roomId);
+    }
+    for (const room of this.rooms.keys()) rooms.add(room);
+    const updated: MatrixEventRecord[] = [];
+    for (const roomId of rooms) {
+      const cached = this.timelines.get(roomId) ?? (await this.store.listEvents(roomId, 500));
+      for (const record of cached) {
+        if (!wanted.has(record.eventId) || record.redacted) continue;
+        const blank: MatrixEventRecord = {
+          eventId: record.eventId,
+          roomId: record.roomId,
+          sender: record.sender,
+          ts: record.ts,
+          type: record.type,
+          body: record.msgtype === 'm.reaction' ? '' : 'Message deleted',
+          msgtype: record.msgtype === 'm.reaction' ? 'm.reaction' : 'm.redacted',
+          redacted: true,
+        };
+        updated.push(blank);
+        this.mergeIntoTimeline(blank);
+      }
+    }
+    if (updated.length) await this.store.putEvents(updated);
   }
 
   /** Ciphertext of events that could not be decrypted in the current sync, by event id. */

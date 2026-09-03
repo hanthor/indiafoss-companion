@@ -91,6 +91,8 @@ export interface MatrixEventRecord {
   /** Event this one annotates, with the annotation key, for m.reaction. */
   reactsTo?: string;
   reactionKey?: string;
+  /** Redacted by its author or a moderator: the body is a placeholder and any relation is gone. */
+  redacted?: boolean;
 }
 
 export interface MatrixOutboxRecord {

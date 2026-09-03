@@ -17,7 +17,7 @@ export interface RawMatrixEvent {
   state_key?: string;
   origin_server_ts?: number;
   content?: Record<string, unknown>;
-  unsigned?: { transaction_id?: string; [key: string]: unknown };
+  unsigned?: { transaction_id?: string; [key: string]: unknown; redacted_because?: RawMatrixEvent };
 }
 
 export interface SyncTimeline {

@@ -312,3 +312,63 @@ describe('sliding sync connection loss', () => {
     expect(bodies.map((b) => b.pos)).toEqual([null, 'p1', 'p2', null]);
   });
 });
+
+describe('redactions', () => {
+  it('blanks a redacted message, drops a redacted reaction, and reports the targets', () => {
+    const rooms = new Map();
+    const delta = applySyncResponse(
+      rooms,
+      {
+        next_batch: 'n',
+        rooms: {
+          join: {
+            '!r:hs': {
+              timeline: {
+                events: [
+                  {
+                    event_id: '$m',
+                    sender: '@a:hs',
+                    type: 'm.room.message',
+                    origin_server_ts: 1,
+                    content: {},
+                    unsigned: {
+                      redacted_because: {
+                        event_id: '$r1',
+                        sender: '@a:hs',
+                        type: 'm.room.redaction',
+                        content: { redacts: '$m' },
+                      },
+                    },
+                  },
+                  {
+                    event_id: '$react',
+                    sender: '@b:hs',
+                    type: 'm.reaction',
+                    origin_server_ts: 2,
+                    content: {},
+                    unsigned: { redacted_because: { type: 'm.room.redaction', content: {} } },
+                  },
+                  {
+                    event_id: '$r2',
+                    sender: '@a:hs',
+                    type: 'm.room.redaction',
+                    origin_server_ts: 3,
+                    content: { redacts: '$older' },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      '@a:hs',
+      {},
+    );
+    expect(delta.events.map((e) => [e.eventId, e.body, e.msgtype, e.redacted])).toEqual([
+      ['$m', 'Message deleted', 'm.redacted', true],
+      ['$react', '', 'm.reaction', true],
+    ]);
+    expect(delta.events[1]!.reactsTo).toBeUndefined();
+    expect(delta.redactedIds).toEqual(['$older']);
+  });
+});

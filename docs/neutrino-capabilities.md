@@ -118,7 +118,7 @@ On the mesh path, of the chat features we ship:
 | Reactions (adding)      | ✅   | `m.reaction` is an ordinary event send                                    |
 | Search                  | ✅   | runs over our own cached timeline                                         |
 | Offline outbox          | ✅   | ours, not the server's                                                    |
-| Un-reacting             | ❌   | needs redaction                                                           |
+| Un-reacting             | ❌\* | stock: needs redaction. \*With `patches/neutrino/`: redaction works       |
 | Member list             | ✅   | `joined_members` is missing, but the client falls back to `/members`      |
 | Read receipts           | ❌   | endpoint missing                                                          |
 | Typing indicators       | ❌   | endpoint missing                                                          |
@@ -137,7 +137,11 @@ not by spec completeness.
    users until register/login stop returning Alice. Prerequisite for all of
    the below.
 2. **Redaction.** One core primitive that unblocks un-reacting and deleting a
-   message you regret. Small, and the event type already exists.
+   message you regret. Small, and the event type already exists. **Written**
+   as patch `0006`: an `m.room.redaction` is an ordinary event through the
+   room actor, and every client read prunes what an allowed redaction targets
+   (same sender, or the room's `redact` level), carrying the redaction as
+   `unsigned.redacted_because`.
 3. ~~**`joined_members`.**~~ Done client-side: `/members` exists and the
    client now falls back to it, so no upstream work is needed.
 4. **Read receipts, then typing.** Both are EDUs; receipts are the more useful

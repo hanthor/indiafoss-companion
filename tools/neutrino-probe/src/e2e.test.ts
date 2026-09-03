@@ -20,6 +20,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const BASE = process.env.NEUTRINO_URL ?? 'http://localhost:8008';
+// Against our fork (patches/neutrino/), gaps are closed one by one and the
+// matching tripwires flip into contracts. NEUTRINO_FORK=1 says which server is
+// under test; guessing from behaviour would defeat the point of a tripwire.
+const fork = process.env.NEUTRINO_FORK === '1';
 
 let token = '';
 let userId = '';
@@ -212,7 +216,7 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     return response.status;
   };
 
-  it('has no redaction, so un-reacting and deleting cannot work', async () => {
+  it.skipIf(fork)('has no redaction, so un-reacting and deleting cannot work', async () => {
     expect(
       await missing(
         'PUT',
@@ -220,6 +224,49 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
         {},
       ),
     ).toBe(404);
+  });
+
+  it.skipIf(!fork)('fork: redacts a message and a reaction, and serves them pruned', async () => {
+    const sent = await call(
+      'PUT',
+      `/_matrix/client/v3/rooms/${room()}/send/m.room.message/e2e-rd-1`,
+      {
+        msgtype: 'm.text',
+        body: 'regrettable',
+      },
+    );
+    const target = sent.body.event_id as string;
+    const reacted = await call(
+      'PUT',
+      `/_matrix/client/v3/rooms/${room()}/send/m.reaction/e2e-rd-2`,
+      {
+        'm.relates_to': { rel_type: 'm.annotation', event_id: target, key: '👍' },
+      },
+    );
+    const reaction = reacted.body.event_id as string;
+
+    const unreact = await call(
+      'PUT',
+      `/_matrix/client/v3/rooms/${room()}/redact/${encodeURIComponent(reaction)}/e2e-rd-3`,
+      {},
+    );
+    expect(unreact.status).toBe(200);
+    const deleted = await call(
+      'PUT',
+      `/_matrix/client/v3/rooms/${room()}/redact/${encodeURIComponent(target)}/e2e-rd-4`,
+      { reason: 'typo' },
+    );
+    expect(deleted.status).toBe(200);
+
+    const history = await call('GET', `/_matrix/client/v3/rooms/${room()}/messages?dir=b&limit=20`);
+    const chunk = history.body.chunk as Record<string, unknown>[];
+    const message = chunk.find((e) => e.event_id === target)!;
+    expect(message.content).toEqual({});
+    expect(
+      (message.unsigned as { redacted_because: { content: { reason: string } } }).redacted_because
+        .content.reason,
+    ).toBe('typo');
+    expect(chunk.find((e) => e.event_id === reaction)!.content).toEqual({});
   });
 
   it('has no typing notifications', async () => {
@@ -248,11 +295,6 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
   it('has no media repository, so files and photos cannot be sent', async () => {
     expect(await missing('POST', '/_matrix/media/v3/upload', {})).toBe(404);
   });
-
-  // Against our fork (patches/neutrino/), the E2EE gaps below are closed and
-  // the tripwires flip into contracts. NEUTRINO_FORK=1 says which server is
-  // under test; guessing from behaviour would defeat the point of a tripwire.
-  const fork = process.env.NEUTRINO_FORK === '1';
 
   it.skipIf(fork)('stores device keys but files every device under one hardcoded id', async () => {
     // The device-key directory is real: an upload comes back from /keys/query
