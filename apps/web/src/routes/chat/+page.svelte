@@ -12,6 +12,7 @@
   import { neutrinoMatrixId } from '@indiafoss/model';
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { getMatrix, hydrateMatrix, matrixState, statusLabel } from '$lib/matrix.svelte';
+  import { hydrateProfile, profileState, saveProfile } from '$lib/profile.svelte';
   import { messagingConfigFor } from '$lib/messaging-config';
   import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
@@ -44,6 +45,29 @@
   let pendingOpen = $state<{ alias: string; name: string; topic?: string } | null>(null);
   let opening = $state(false);
   let peerTimer: ReturnType<typeof setInterval> | null = null;
+  /** Issue #111: publishing this phone's mesh identity on the internet account. */
+  let linkState = $state<'idle' | 'busy' | 'done' | 'error'>('idle');
+  let linkError = $state<string | null>(null);
+  const meshIdentity = $derived(profileState.profile.neutrinoServerName?.trim() || null);
+  const linkedAlready = $derived(
+    !!matrixState.userId && profileState.profile.matrixId?.trim() === matrixState.userId,
+  );
+
+  async function linkMeshIdentity() {
+    if (!meshIdentity || !matrixState.userId) return;
+    linkState = 'busy';
+    linkError = null;
+    try {
+      await getMatrix().publishMeshIdentity(meshIdentity);
+      profileState.profile.matrixId = matrixState.userId;
+      profileState.selection.matrixId = true;
+      await saveProfile();
+      linkState = 'done';
+    } catch (error) {
+      linkState = 'error';
+      linkError = error instanceof Error ? error.message : String(error);
+    }
+  }
 
   const sessionRooms = $derived.by(() => {
     const prefix = `#${(config.aliasPrefix ?? eventState.bundle?.id ?? '').toLowerCase()}-`;
@@ -122,6 +146,7 @@
   onMount(async () => {
     void loadEvent();
     void hydrateContacts();
+    void hydrateProfile();
     await hydrateFeatures();
     if (!features.chat) return;
     await hydrateMatrix();
@@ -294,6 +319,34 @@
       This session is on {matrixState.homeserver}, not the on-device mesh. Sign out to reconnect to
       the mesh node.
     </p>
+    {#if meshIdentity}
+      <section class="linkbox" aria-label="Link this account to your mesh identity">
+        {#if linkState === 'done' || linkedAlready}
+          <p class="muted small">
+            ✓ {matrixState.userId} is linked to your mesh identity. People who scan your card can verify
+            it against this account.
+          </p>
+          {#if linkState !== 'done'}
+            <button
+              class="button ghost small"
+              onclick={linkMeshIdentity}
+              disabled={linkState === 'busy'}
+            >
+              Publish again
+            </button>
+          {/if}
+        {:else}
+          <p class="muted small">
+            Let people you meet on the mesh verify that {matrixState.userId} is you: this publishes your
+            mesh node id on this account's profile. Nothing from your conversations leaves the phone.
+          </p>
+          <button class="button small" onclick={linkMeshIdentity} disabled={linkState === 'busy'}>
+            {linkState === 'busy' ? 'Publishing…' : 'Link this account to my mesh identity'}
+          </button>
+        {/if}
+        {#if linkError}<p class="error" role="alert">{linkError}</p>{/if}
+      </section>
+    {/if}
   {/if}
   {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
   {#if actionError}<p class="error" role="alert">{actionError}</p>{/if}

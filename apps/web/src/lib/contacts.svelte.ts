@@ -4,6 +4,8 @@ import { attendeeProfileToVCard } from '@indiafoss/model';
 import type { AttendeeProfile, FriendPayload } from '@indiafoss/model';
 import { parseContactBook } from '@indiafoss/model';
 import { reconcileContact } from '$lib/contact-continuity';
+import { verifyMeshLink } from '@indiafoss/matrix';
+import { claimsMeshLink, meshLinkStale } from '$lib/mesh-link';
 import type { ContinuityResult } from '$lib/contact-continuity';
 
 let storage: CompanionStorage | null = null;
@@ -207,4 +209,34 @@ export async function importContactBook(text: string): Promise<ImportOutcome | n
     else outcome.keyChanged++;
   }
   return outcome;
+}
+
+/**
+ * Check one card's claim that its Matrix id belongs to its mesh identity, by
+ * reading the account's public profile (issue #111). Saves the result.
+ */
+export async function verifyContactMeshLink(contact: ContactRecord): Promise<ContactRecord> {
+  if (!claimsMeshLink(contact)) return contact;
+  const meshLink = await verifyMeshLink({
+    matrixId: contact.matrixId,
+    meshServerName: contact.neutrinoServerName,
+  });
+  const updated = { ...contact, meshLink };
+  // Written in place: a check must not reorder the list under the reader.
+  await getStorage().saveContact(updated);
+  contactsState.contacts = contactsState.contacts.map((c) => (c.id === updated.id ? updated : c));
+  return updated;
+}
+
+/**
+ * Re-check every card whose link is unchecked or stale. Runs when the app
+ * is online; each check is one public profile read against the peer's own
+ * homeserver, nothing about the mesh leaves the phone.
+ */
+export async function verifyMeshLinks(now: () => number = () => Date.now()): Promise<void> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
+  const due = contactsState.contacts.filter((c) => claimsMeshLink(c) && meshLinkStale(c, now()));
+  for (const contact of due) {
+    await verifyContactMeshLink(contact);
+  }
 }

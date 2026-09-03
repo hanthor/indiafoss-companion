@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
+  import { contactForMeshUser } from '$lib/mesh-link';
   import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { localpart, matrixToUrl } from '@indiafoss/matrix';
+  import { localpart, matrixToUrl, meshLinkLabel } from '@indiafoss/matrix';
   import { formatTime } from '@indiafoss/schedule';
   import { getMatrix, hydrateMatrix, matrixState, roomById, statusLabel } from '$lib/matrix.svelte';
   import MediaAttachment from '$lib/components/MediaAttachment.svelte';
@@ -13,6 +15,12 @@
   const timeline = $derived(matrixState.timelines[roomId] ?? []);
   const queued = $derived(new Set(matrixState.outbox.map((o) => o.txnId)));
   const selfId = $derived(matrixState.userId);
+  /** Issue #111: the saved card behind a mesh DM peer, with its claimed Matrix id. */
+  const peerContact = $derived.by(() => {
+    if (!room?.isDirect) return undefined;
+    const peerId = room.memberIds.find((id) => id !== selfId);
+    return peerId ? contactForMeshUser(contactsState.contacts, peerId) : undefined;
+  });
 
   let draft = $state('');
   let sending = $state(false);
@@ -102,6 +110,7 @@
   let list = $state<HTMLElement | null>(null);
 
   onMount(async () => {
+    void hydrateContacts();
     await hydrateMatrix();
     if (matrixState.status === 'signed-out') {
       await goto(resolve('/chat'), { replaceState: true });
@@ -178,6 +187,19 @@
       </p>
     </div>
     <div class="headactions">
+      {#if peerContact?.matrixId}
+        <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to permalink -->
+        <a
+          href={matrixToUrl(peerContact.matrixId)}
+          rel="noreferrer"
+          title="Their Matrix account, from the card they showed you · {meshLinkLabel(
+            peerContact.meshLink,
+          )}"
+        >
+          Continue on Matrix · {meshLinkLabel(peerContact.meshLink)}
+        </a>
+        <!-- eslint-enable svelte/no-navigation-without-resolve -->
+      {/if}
       <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
       <a href={matrixToUrl(room.alias ?? room.roomId)} rel="noreferrer">Open in Element</a>
       <button class="button ghost small danger" onclick={leave}>Leave</button>

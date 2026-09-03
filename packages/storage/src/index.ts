@@ -148,6 +148,15 @@ export interface ContactRecord {
   lastMetAt?: string;
   /** A card with the same name/ids but a different handshake key was saved earlier. */
   keyChanged?: boolean;
+  /**
+   * Whether the card's Matrix id really belongs to its mesh identity: the
+   * account's own profile is checked when online (issue #111). Absent until
+   * checked; only meaningful when both ids are on the card.
+   */
+  meshLink?: {
+    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable';
+    checkedAt: number;
+  };
   previousFingerprint?: string;
 }
 

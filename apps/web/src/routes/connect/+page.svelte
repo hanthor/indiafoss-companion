@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { ContactRecord } from '@indiafoss/storage';
+  import { meshLinkLabel } from '@indiafoss/matrix';
   import { onMount } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
   import { resolve } from '$app/paths';
@@ -26,6 +28,8 @@
     deleteContact,
     hydrateContacts,
     importContactBook,
+    verifyContactMeshLink,
+    verifyMeshLinks,
   } from '$lib/contacts.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
@@ -72,7 +76,7 @@
 
   $effect(() => {
     void hydrateProfile();
-    void hydrateContacts();
+    void hydrateContacts().then(() => verifyMeshLinks());
     void hydrateIdentity();
     void hydrateFeatures().then(async () => {
       if (!features.chat) return;
@@ -455,6 +459,18 @@
     } finally {
       importingBook = false;
       input.value = '';
+    }
+  }
+
+  let checkingLink = $state<string | null>(null);
+
+  async function checkLink(c: ContactRecord) {
+    checkingLink = c.id;
+
+    try {
+      await verifyContactMeshLink(c);
+    } finally {
+      checkingLink = null;
     }
   }
 
@@ -860,6 +876,16 @@
                             ? 'BAD SIGNATURE'
                             : 'UNSIGNED CARD'}
                     </span>
+                    {#if c.matrixId && c.neutrinoServerName}
+                      <span
+                        class="line3"
+                        class:sig-ok={c.meshLink?.state === 'verified'}
+                        class:sig-bad={c.meshLink?.state === 'mismatch'}
+                        title="Whether this Matrix account's own profile names this mesh identity"
+                      >
+                        MATRIX {c.matrixId} · {meshLinkLabel(c.meshLink).toUpperCase()}
+                      </span>
+                    {/if}
                   </span>
                   <span class="chev" aria-hidden="true">›</span>
                 </button>
@@ -867,6 +893,15 @@
                   <div class="persondetail">
                     <SocialLinks links={contactDeepLinks(c)} compact />
                     <div class="detailactions">
+                      {#if c.matrixId && c.neutrinoServerName}
+                        <button
+                          class="button ghost small"
+                          disabled={checkingLink === c.id}
+                          onclick={() => checkLink(c)}
+                        >
+                          {checkingLink === c.id ? 'Checking…' : 'Check Matrix link'}
+                        </button>
+                      {/if}
                       {#if features.chat && c.neutrinoServerName}
                         <a
                           class="button secondary small"

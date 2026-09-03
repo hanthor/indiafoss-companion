@@ -7,6 +7,7 @@ import type {
   PublicRoomSummary,
 } from './types.js';
 import { MatrixClient, MatrixError, type FetchLike } from './http.js';
+import { publishMeshLink } from './mesh-link.js';
 import { applySyncResponse, deriveRoomName, describeEvent, eventToRecord } from './sync.js';
 import type { CryptoBackend } from './crypto.js';
 import type { RawMatrixEvent, SyncJoinedRoom } from './types.js';
@@ -739,6 +740,17 @@ export class MatrixSessionManager {
         txnId,
       );
     }
+  }
+
+  /**
+   * Publish this phone's mesh identity on the signed-in account's profile
+   * (issue #111), so peers holding this account's id on a card can verify
+   * the link. `null` clears it. Only meaningful on an internet homeserver.
+   */
+  async publishMeshIdentity(meshServerName: string | null): Promise<void> {
+    const client = this.requireClient();
+    if (!this.session) throw new Error('Not signed in.');
+    await publishMeshLink(client, this.session.userId, meshServerName);
   }
 
   /** Ask the server for its upload cap once per signed-in client. */

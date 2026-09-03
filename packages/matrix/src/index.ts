@@ -33,3 +33,10 @@ export type {
   RawMatrixEvent,
   SyncResponse,
 } from './types.js';
+export {
+  MESH_IDENTITY_FIELD,
+  meshLinkLabel,
+  publishMeshLink,
+  verifyMeshLink,
+} from './mesh-link.js';
+export type { MeshLinkCheck, MeshLinkState } from './mesh-link.js';
