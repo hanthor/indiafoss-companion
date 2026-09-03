@@ -111,7 +111,9 @@ fun PlanScreen(
                     val why = when (item.reason) {
                         Itinerary.Reason.MUST_ATTEND -> "Must attend"
                         Itinerary.Reason.BOOKMARKED -> "Bookmarked"
-                        Itinerary.Reason.RANKED -> "Best rated in this slot"
+                        Itinerary.Reason.RANKED ->
+                            if (state.ranking.rating(item.activity.id).comparisons > 0 || ranked) "Best rated in this slot"
+                            else "The programme's pick for this slot"
                     }
                     Row(Modifier.fillMaxWidth().padding(start = 32.dp, end = 16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         Text(why, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))

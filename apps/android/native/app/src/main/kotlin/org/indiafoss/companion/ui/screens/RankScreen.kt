@@ -52,7 +52,7 @@ import org.indiafoss.companion.core.Track
 import org.indiafoss.companion.data.SessionRating
 
 /** The three rounds of ranking (docs/ranking.md): rooms, quick pass, head to head. */
-private enum class Round(val label: String) { ROOMS("Rooms"), QUICK("Quick pass"), PAIRS("Head to head") }
+private enum class Round(val label: String) { ROOMS("Rooms"), QUICK("Quick pass"), PAIRS("Compare") }
 
 /** One answer that can be taken back: the ratings before it, and the record to forget. */
 private data class Undo(val before: Map<String, SessionRating>, val comparisonId: String)
@@ -117,7 +117,7 @@ fun RankScreen(
                         selected = round == r,
                         onClick = { chosen = r },
                         shape = SegmentedButtonDefaults.itemShape(index, Round.entries.size),
-                        label = { Text("${index + 1} · ${r.label}") },
+                        label = { Text(r.label, maxLines = 1) },
                     )
                 }
             }

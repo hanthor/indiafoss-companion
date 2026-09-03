@@ -64,6 +64,13 @@ It is a deliberate port of the small slice of `@indiafoss/schedule` and
 unit tests. If you change the TypeScript engines, change these too — the tests
 are what keeps the two in step.
 
+## Looking at it without a device
+
+`./gradlew :app:testDebugUnitTest` renders every screen with the seed bundle
+under Robolectric (`ScreenshotTest`) and writes PNGs to
+`app/build/screenshots`; CI uploads them as `native-screenshots` on every
+PR, so a change to a screen can be looked at from the Actions page.
+
 ## Building
 
 ```sh

@@ -53,6 +53,10 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
@@ -82,6 +86,14 @@ dependencies {
     implementation(libs.zxing.core)
     implementation(libs.zxing.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Screenshots of every screen on the JVM (Robolectric), for a look at the
+    // UI without a device: `./gradlew :app:testDebugUnitTest`, PNGs under
+    // app/build/screenshots.
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.kotlin.test)
 }
 
 tasks.named("preBuild") { dependsOn(copySeedBundle) }
