@@ -480,7 +480,14 @@
       <input aria-label="Room alias" bind:value={joinInput} placeholder="#hallway:<node id>" />
       <button class="button secondary small" type="submit" disabled={busy}>Join</button>
     </form>
-    <p class="muted small">Rooms on the mesh are unencrypted; do not share secrets.</p>
+    {#if matrixState.encryptionReady}
+      <p class="muted small">
+        Direct messages on the mesh are end-to-end encrypted. Conference rooms are not, so people
+        who join later can read what was said.
+      </p>
+    {:else}
+      <p class="muted small">Rooms on the mesh are unencrypted; do not share secrets.</p>
+    {/if}
   </section>
 {/if}
 

@@ -111,19 +111,19 @@ does it check them".
 
 On the mesh path, of the chat features we ship:
 
-| Feature                 | Mesh | Why                                                                  |
-| ----------------------- | ---- | -------------------------------------------------------------------- |
-| Send / receive, history | ✅   | plain sends and `/messages`                                          |
-| Replies                 | ✅   | a relation in the content plus a fallback body; entirely client-side |
-| Reactions (adding)      | ✅   | `m.reaction` is an ordinary event send                               |
-| Search                  | ✅   | runs over our own cached timeline                                    |
-| Offline outbox          | ✅   | ours, not the server's                                               |
-| Un-reacting             | ❌   | needs redaction                                                      |
-| Member list             | ✅   | `joined_members` is missing, but the client falls back to `/members` |
-| Read receipts           | ❌   | endpoint missing                                                     |
-| Typing indicators       | ❌   | endpoint missing                                                     |
-| Files and photos        | ❌   | no media repository                                                  |
-| E2EE                    | ❌   | directory works; no key claim or to-device, so no session can start  |
+| Feature                 | Mesh | Why                                                                       |
+| ----------------------- | ---- | ------------------------------------------------------------------------- |
+| Send / receive, history | ✅   | plain sends and `/messages`                                               |
+| Replies                 | ✅   | a relation in the content plus a fallback body; entirely client-side      |
+| Reactions (adding)      | ✅   | `m.reaction` is an ordinary event send                                    |
+| Search                  | ✅   | runs over our own cached timeline                                         |
+| Offline outbox          | ✅   | ours, not the server's                                                    |
+| Un-reacting             | ❌   | needs redaction                                                           |
+| Member list             | ✅   | `joined_members` is missing, but the client falls back to `/members`      |
+| Read receipts           | ❌   | endpoint missing                                                          |
+| Typing indicators       | ❌   | endpoint missing                                                          |
+| Files and photos        | ❌   | no media repository                                                       |
+| E2EE                    | ❌\* | stock: no key claim or to-device. \*With `patches/neutrino/`: DMs encrypt |
 
 Our own docs previously implied typing, files and photos worked over the mesh.
 They do not, and now say so.
