@@ -182,12 +182,16 @@ fun CompanionApp(viewModel: CompanionViewModel) {
             composable("rank") {
                 RankScreen(
                     state = state,
-                    onAnswerQuick = viewModel::answerQuick,
+                    onAnswerCard = viewModel::answerCard,
+                    onClearAnswer = { viewModel.answerQuick(it, null) },
                     onRoom = viewModel::setRoom,
                     onRoomsDecided = viewModel::roomsDecided,
-                    onChoose = viewModel::choose,
+                    onPick = viewModel::pickInSlot,
+                    onTie = viewModel::tieSlot,
+                    onDrop = viewModel::dropSlot,
                     onUndo = viewModel::undoLast,
                     onOpen = { navController.navigate("activity/$it") },
+                    onOpenSpeaker = { navController.navigate("speaker/$it") },
                     onBack = { navController.popBackStack() },
                 )
             }

@@ -121,4 +121,34 @@ class RankingTest {
         assertEquals(1.0, Ranking.stability(decided), 1e-9)
         assertTrue(abs(decided[0].rating - decided[1].rating) >= 2 * Ranking.K_FACTOR)
     }
+
+    @Test
+    fun `slots are anchored per session with an open pair and never chain through a long one`() {
+        val w = ranked("w", "2025-09-20T11:00:00+05:30", "2025-09-20T13:00:00+05:30")
+        val x = ranked("x", "2025-09-20T11:00:00+05:30", "2025-09-20T11:30:00+05:30")
+        val y = ranked("y", "2025-09-20T12:30:00+05:30", "2025-09-20T13:00:00+05:30")
+        val slots = Ranking.slots(listOf(y, x, w), emptySet())
+        assertEquals(listOf("w", "x", "y"), slots.map { it.key })
+        assertEquals(listOf("w", "x", "y"), slots[0].members.map { it.activity.id })
+        assertEquals(listOf("w", "x"), slots[1].members.map { it.activity.id })
+        assertEquals(2, slots[0].open)
+    }
+
+    @Test
+    fun `a slot closes once its pairs are answered or settled`() {
+        val a = ranked("a", "2025-09-20T11:00:00+05:30", "2025-09-20T11:30:00+05:30", rating = 1300.0)
+        val b = ranked("b", "2025-09-20T11:00:00+05:30", "2025-09-20T11:30:00+05:30")
+        val c = ranked("c", "2025-09-20T11:00:00+05:30", "2025-09-20T11:30:00+05:30")
+        val answered = setOf(Ranking.pairKey("a", "b"), Ranking.pairKey("a", "c"))
+        val slots = Ranking.slots(listOf(a, b, c), answered)
+        assertEquals(listOf("b", "c"), slots.map { it.key })
+        assertEquals(listOf("b", "c"), slots[0].members.map { it.activity.id })
+        assertTrue(Ranking.slots(listOf(a, b, c), answered + Ranking.pairKey("b", "c")).isEmpty())
+    }
+
+    @Test
+    fun `day labels carry the weekday`() {
+        assertEquals("Sat 20 Sep", Schedule.formatDayLabel("2025-09-20"))
+        assertEquals("Thu 1 Jan", Schedule.formatDayLabel("1970-01-01"))
+    }
 }

@@ -121,7 +121,42 @@ object Ranking {
         return p.settled.toDouble() / p.conflicts
     }
 
-    private fun overlaps(a: Activity, b: Activity): Boolean {
+    /**
+     * A slot (#108): one session and everything still undecided against it,
+     * mirroring `conflictSlots` in `@indiafoss/elo`. Anchored on each live
+     * session with an open pair, in time order, so a slot stays the size of
+     * one time band even when a long workshop overlaps half the morning.
+     */
+    data class Slot(val key: String, val members: List<RankedActivity>, val start: String, val end: String, val open: Int)
+
+    /** A pair needs an answer when it overlaps, is unanswered and not settled by a wide gap. */
+    fun pairOpen(a: RankedActivity, b: RankedActivity, alreadyCompared: Set<String>): Boolean =
+        overlaps(a.activity, b.activity) &&
+            pairKey(a.activity.id, b.activity.id) !in alreadyCompared &&
+            abs(a.rating - b.rating) < SETTLED_GAP
+
+    fun slots(pool: List<RankedActivity>, alreadyCompared: Set<String>): List<Slot> {
+        val live = pool
+            .filter { it.disposition != Disposition.NOT_INTERESTED && !it.activity.cancelled }
+            .filter { it.activity.start != null && it.activity.end != null }
+            .sortedWith(compareBy<RankedActivity> { it.activity.start }.thenBy { it.activity.id })
+        val slots = ArrayList<Slot>()
+        for (anchor in live) {
+            val around = live.filter { it === anchor || overlaps(anchor.activity, it.activity) }
+            val members = around.filter { m -> around.any { o -> o !== m && pairOpen(m, o, alreadyCompared) } }
+            if (members.size < 2 || anchor !in members) continue
+            slots += Slot(
+                key = anchor.activity.id,
+                members = members,
+                start = anchor.activity.start!!,
+                end = anchor.activity.end!!,
+                open = progress(members, alreadyCompared).open,
+            )
+        }
+        return slots
+    }
+
+    fun overlaps(a: Activity, b: Activity): Boolean {
         val aStart = a.start ?: return false
         val aEnd = a.end ?: return false
         val bStart = b.start ?: return false

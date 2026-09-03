@@ -293,27 +293,80 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { ratings.markRoomsDecided() }
     }
 
-    /** One head-to-head answer: the Elo update on the stored ratings, recorded for undo and the prior. */
-    fun choose(a: Activity, b: Activity, choice: Choice) {
-        val s = state.value
-        val ra = s.ranking.rating(a.id)
-        val rb = s.ranking.rating(b.id)
-        val result = Ranking.applyComparison(ra.rating, rb.rating, choice, Ranking.pairKScale(ra.comparisons, rb.comparisons))
+    /** A card answer (#108): "no" rules the talk out, "yes" keeps it, "must" keeps it and marks it must-attend. */
+    fun answerCard(id: String, answer: String) {
         viewModelScope.launch {
-            ratings.setRating(a.id, result.ratingA, ra.comparisons + 1)
-            ratings.setRating(b.id, result.ratingB, rb.comparisons + 1)
-            if (choice == Choice.NEITHER) {
-                ratings.setDisposition(a.id, Disposition.NOT_INTERESTED)
-                ratings.setDisposition(b.id, Disposition.NOT_INTERESTED)
-            }
-            ratings.record(StoredComparison("cmp-${System.currentTimeMillis()}", a.id, b.id, choice.scoreA, System.currentTimeMillis()))
+            ratings.setTriage(id, if (answer == "no") "no" else "yes")
+            if (answer == "must") preferences.setMustAttend(id, true)
         }
     }
 
-    /** Take back the last answer: ratings, dispositions and the record. */
-    fun undoLast(before: Map<String, org.indiafoss.companion.data.SessionRating>, comparisonId: String) {
+    /** What an answer needs to be taken back: the ratings before it, and the records to forget. */
+    data class Undo(val before: Map<String, org.indiafoss.companion.data.SessionRating>, val comparisonIds: List<String>)
+
+    /**
+     * One tap for a slot: the winner beats every loser in one go, one recorded
+     * comparison per pair. The Elo update works on the stored ratings, never
+     * the prior view; sessions answered about for the first time move further.
+     */
+    fun pickInSlot(winner: Activity, losers: List<Activity>): Undo {
+        val s = state.value
+        val ids = listOf(winner.id) + losers.map { it.id }
+        val before = ids.associateWith { s.ranking.rating(it) }
+        val live = HashMap(before.mapValues { it.value.rating to it.value.comparisons })
+        val records = ArrayList<StoredComparison>()
+        for (loser in losers) {
+            val (rw, cw) = live.getValue(winner.id)
+            val (rl, cl) = live.getValue(loser.id)
+            val result = Ranking.applyComparison(rw, rl, Choice.A, Ranking.pairKScale(cw, cl))
+            live[winner.id] = result.ratingA to cw + 1
+            live[loser.id] = result.ratingB to cl + 1
+            records += StoredComparison("cmp-${System.currentTimeMillis()}-${records.size}", winner.id, loser.id, 1.0, System.currentTimeMillis())
+        }
         viewModelScope.launch {
-            for ((id, r) in before) {
+            for ((id, r) in live) ratings.setRating(id, r.first, r.second)
+            for (record in records) ratings.record(record)
+        }
+        return Undo(before, records.map { it.id })
+    }
+
+    /** "Any of these": every open pair among the members is a tie. */
+    fun tieSlot(members: List<Activity>): Undo {
+        val s = state.value
+        val before = members.associate { it.id to s.ranking.rating(it.id) }
+        val live = HashMap(before.mapValues { it.value.rating to it.value.comparisons })
+        val answered = s.ranking.answeredPairs
+        val records = ArrayList<StoredComparison>()
+        for (i in members.indices) for (j in i + 1 until members.size) {
+            val a = members[i]
+            val b = members[j]
+            if (!Ranking.overlaps(a, b) || Ranking.pairKey(a.id, b.id) in answered) continue
+            val (ra, ca) = live.getValue(a.id)
+            val (rb, cb) = live.getValue(b.id)
+            val result = Ranking.applyComparison(ra, rb, Choice.TIE, Ranking.pairKScale(ca, cb))
+            live[a.id] = result.ratingA to ca + 1
+            live[b.id] = result.ratingB to cb + 1
+            records += StoredComparison("cmp-${System.currentTimeMillis()}-${records.size}", a.id, b.id, 0.5, System.currentTimeMillis())
+        }
+        viewModelScope.launch {
+            for ((id, r) in live) ratings.setRating(id, r.first, r.second)
+            for (record in records) ratings.record(record)
+        }
+        return Undo(before, records.map { it.id })
+    }
+
+    /** "None of these": the slot's sessions leave the day. */
+    fun dropSlot(members: List<Activity>): Undo {
+        val s = state.value
+        val before = members.associate { it.id to s.ranking.rating(it.id) }
+        viewModelScope.launch { for (m in members) ratings.setDisposition(m.id, Disposition.NOT_INTERESTED) }
+        return Undo(before, emptyList())
+    }
+
+    /** Take back the last answer: ratings, dispositions and the records. */
+    fun undoLast(undo: Undo) {
+        viewModelScope.launch {
+            for ((id, r) in undo.before) {
                 ratings.setRating(id, r.rating, r.comparisons)
                 ratings.setDisposition(id, when (r.disposition) {
                     "must-attend" -> Disposition.MUST_ATTEND
@@ -322,7 +375,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                     else -> Disposition.NORMAL
                 })
             }
-            ratings.forget(comparisonId)
+            for (id in undo.comparisonIds) ratings.forget(id)
         }
     }
 

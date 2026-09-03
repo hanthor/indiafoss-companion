@@ -26,6 +26,15 @@ object Schedule {
     /** `2025-09-20` for an instant, in the offset the instant itself carries. */
     fun dayKey(iso: String): String = iso.substring(0, 10)
 
+    /** "Sat 20 Sep" for a day key, without java.time (kept out of core for the JVM tests). */
+    fun formatDayLabel(day: String): String {
+        val (y, m, d) = day.split("-").map { it.toInt() }
+        val days = daysFromCivil(y, m, d)
+        val weekday = listOf("Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed")[Math.floorMod(days, 7L).toInt()]
+        val month = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")[m - 1]
+        return "$weekday $d $month"
+    }
+
     /** Distinct day keys with at least one placed activity, in order. */
     fun eventDays(bundle: EventBundle): List<String> =
         bundle.activities.mapNotNull { it.start }.map(::dayKey).distinct().sorted()
