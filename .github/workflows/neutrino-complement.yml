@@ -1,0 +1,104 @@
+name: Neutrino Complement
+
+# Runs matrix-org/complement — the Matrix conformance suite — against the
+# Neutrino we ship: our fork, at the rev pinned in
+# apps/android/capacitor/neutrino/version.json. The fork's own CI runs the same
+# thing on every push to it; this job pins the companion to a result, so a
+# bump of the pin that regresses a spec behaviour is caught here, on the PR
+# that bumps it, rather than found on a phone.
+#
+# What it covers is the fork's `complement/allowlist.txt`: the client-server
+# tests Neutrino's harness can run (federation is out of its scope, as is
+# anything behind `/sync` filters). The entries that matter to us are the ones
+# our patches made viable — redaction, typing, receipts, key claim, to-device
+# — and they are what a stock-Neutrino run would fail.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'neutrino ref to test (default: the pinned fork rev)'
+        required: false
+      repo:
+        description: 'neutrino repository (default: the pinned fork)'
+        required: false
+  pull_request:
+    paths:
+      - 'patches/neutrino/**'
+      - 'apps/android/capacitor/neutrino/version.json'
+      - '.github/workflows/neutrino-complement.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: neutrino-complement-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  complement:
+    name: Complement allowlist against the pinned fork
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide which Neutrino to test
+        id: which
+        run: |
+          pin=./apps/android/capacitor/neutrino/version.json
+          repo="${{ inputs.repo }}"; ref="${{ inputs.ref }}"
+          [ -n "$repo" ] || repo=$(node -p "require('$pin').neutrino.repo")
+          [ -n "$ref" ] || ref=$(node -p "require('$pin').neutrino.rev")
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+      - name: Check out neutrino
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ steps.which.outputs.repo }}
+          ref: ${{ steps.which.outputs.ref }}
+          path: neutrino
+
+      - name: Install the Rust toolchain
+        run: |
+          rustup update stable
+          rustup default stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: neutrino
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the Complement image
+        # The fork's Dockerfile is cargo-chef-structured, so the dependency
+        # layer is cached across runs until the lockfile changes; `load` puts
+        # the image where the harness's `docker run` finds it.
+        uses: docker/build-push-action@v6
+        with:
+          context: neutrino
+          file: neutrino/docker/complement/Dockerfile
+          tags: neutrino:complement
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run the allowlist
+        working-directory: neutrino
+        env:
+          SKIP_IMAGE_BUILD: '1'
+        run: cargo xtask complement 2>&1 | tee complement.log
+
+      - name: Summarise
+        if: always()
+        working-directory: neutrino
+        run: |
+          echo "## Complement (${{ steps.which.outputs.repo }}@${{ steps.which.outputs.ref }})" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E '^(--- (PASS|FAIL)|=== Allowlist entry)' complement.log >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

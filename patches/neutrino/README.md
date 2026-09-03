@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Seven patches that give Neutrino enough of the Matrix key surface for the
+Eight patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -160,6 +160,32 @@ user that only moves forward — and the sliding-sync `typing` and `receipts`
 extensions carry them, waking a waiting long-poll when they change. The
 `receipts` extension merges real `m.read` receipts over the delivery-mark
 synthesis that was already there.
+
+## 0008 — what Complement asked for
+
+Running matrix-org/complement against the fork (see
+[`neutrino-complement.yml`](../../.github/workflows/neutrino-complement.yml))
+turned four spec behaviours our client had not needed into server changes:
+
+- **A typing stop is news.** The sliding-sync `typing` extension reported only
+  rooms with someone typing, so a client learnt that typing had stopped by
+  the room going missing — which a delta cannot express. Each connection now
+  remembers the ephemeral version it last served and is told every room whose
+  typing set changed since, empty ones included.
+- **Legacy `/sync` carries ephemeral events.** The MSC4186 translator enables
+  the `typing` and `receipts` extensions and folds them into each joined
+  room's `ephemeral.events`, creating the room entry when the notice is the
+  only news. Our client uses sliding sync; Complement and ordinary Matrix
+  clients use this.
+- **`GET /rooms/{room}/event/{id}`**, the same redaction-aware view
+  `/messages` gives, one event at a time; `404 M_NOT_FOUND` for a non-member
+  or an event of another room.
+- **The key directory is stricter and ordered.** `/keys/upload` rejects a
+  device key object that is malformed or names another user (`M_BAD_JSON`);
+  `/keys/query` answers an empty map for a user with no devices and rejects a
+  device list that is not a list; `/keys/claim` hands out one-time keys in
+  upload order (MSC4225), which took a sequence column — schema v5, so an
+  older store is refused at open, as before.
 
 ## What is still missing
 
