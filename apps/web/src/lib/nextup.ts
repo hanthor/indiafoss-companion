@@ -51,7 +51,10 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
     .sort((a, b) => parseInstant(a.start!) - parseInstant(b.start!));
   const must = input.mustAttend ? upcoming.find((a) => input.mustAttend!(a.id)) : undefined;
   const planned = must ?? upcoming.find((a) => input.bookmarked(a.id));
-  const activity = planned ?? computeNowState(bundle, now).next ?? null;
+  // Nothing planned: the programme's next talk. Not a break or a meal, which
+  // nobody needs to be told to leave for; those still count when bookmarked.
+  const activity =
+    planned ?? upcoming.find((a) => !isPause(a)) ?? computeNowState(bundle, now).next ?? null;
   if (!activity?.start || parseInstant(activity.start) - nowMs > horizon) return null;
 
   const startsInMinutes = Math.ceil((parseInstant(activity.start) - nowMs) / 60_000);
@@ -93,4 +96,11 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
     floorChange,
     restricted,
   };
+}
+
+/** Breaks, meals and registration desks: never the fallback the banner nags about. */
+export function isPause(activity: Activity): boolean {
+  return (
+    activity.type === 'meal' || /\b(break|lunch|tea|breakfast|registration)\b/i.test(activity.title)
+  );
 }
