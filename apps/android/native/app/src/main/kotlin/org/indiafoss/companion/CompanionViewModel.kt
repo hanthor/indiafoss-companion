@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.AffinityModel
+import org.indiafoss.companion.core.Calendar
+import org.indiafoss.companion.core.RoutingProfile
 import org.indiafoss.companion.core.ContactCard
 import org.indiafoss.companion.core.VCard
 import org.indiafoss.companion.data.MetContact
@@ -49,6 +51,7 @@ data class UiState(
     val walkSecondsTo: (String) -> Int? = { null },
     /** A route asked for by a deep link, consumed by the navigation host. */
     val pendingRoute: String? = null,
+    val routingProfile: String = "fastest",
     val message: String? = null,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
@@ -127,6 +130,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             preferences.location.collect { at -> _state.update { it.copy(currentLocation = at, walkSecondsTo = walker(at)) } }
         }
+        viewModelScope.launch {
+            preferences.routingProfile.collect { p -> _state.update { it.copy(routingProfile = p, walkSecondsTo = walker(it.currentLocation, p)) } }
+        }
         // Whatever changes the plan re-arms the alarms: bookmarks, must-attend, the bundle.
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
@@ -202,8 +208,30 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { preferences.setLocation(locationId) }
     }
 
-    private fun walker(from: String?): (String) -> Int? =
-        if (from == null) { _ -> null } else { to -> venue.walkSeconds(floors, from, to) }
+    private fun walker(from: String?, profile: String = state.value.routingProfile): (String) -> Int? {
+        val routing = when (profile) {
+            "accessible" -> RoutingProfile.ACCESSIBLE
+            "avoid-stairs" -> RoutingProfile.AVOID_STAIRS
+            else -> RoutingProfile.FASTEST
+        }
+        return if (from == null) { _ -> null } else { to -> venue.walkSeconds(floors, from, to, routing) }
+    }
+
+    fun setRoutingProfile(profile: String) {
+        _state.update { it.copy(routingProfile = profile, walkSecondsTo = walker(it.currentLocation, profile)) }
+        viewModelScope.launch { preferences.setRoutingProfile(profile) }
+    }
+
+    /** The planned day as an .ics for the system share sheet (calendar apps import it). */
+    fun calendarFor(day: String): String? {
+        val bundle = state.value.bundle ?: return null
+        return Calendar.ics(bundle, state.value.itineraryFor(day).map { it.activity })
+    }
+
+    /** "Not this one" on a planned row: the session leaves the plan and the ranking. */
+    fun skipSession(id: String) {
+        viewModelScope.launch { ratings.setDisposition(id, Disposition.NOT_INTERESTED) }
+    }
 
     /** indiafoss://activity/<id>, indiafoss://location/<id>: the same links the PWA answers to. */
     fun openDeepLink(url: String) {

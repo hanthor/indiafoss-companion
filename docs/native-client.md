@@ -42,7 +42,8 @@ screen from a launch or a running app.
 
 Not native yet: signed cards (the PWA signs its QR with a per-device
 WebCrypto key; the native card is unsigned and the scanner treats every card
-as unsigned), calendar export, itinerary edits, the routing profile switch.
+as unsigned), custom plan blocks, booth-visit goals, the day simulator, the
+optional P2P chat.
 
 ## Layout
 

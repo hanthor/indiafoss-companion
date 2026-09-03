@@ -8,7 +8,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import android.content.Intent
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -35,9 +40,17 @@ import org.indiafoss.companion.core.Itinerary
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PlanScreen(state: UiState, actions: @Composable () -> Unit, onRank: () -> Unit, onOpen: (String) -> Unit) {
+fun PlanScreen(
+    state: UiState,
+    actions: @Composable () -> Unit,
+    onRank: () -> Unit,
+    onCalendar: (String) -> String?,
+    onSkip: (String) -> Unit,
+    onOpen: (String) -> Unit,
+) {
     val days = state.days
     var selected by remember(days) { mutableIntStateOf(0) }
+    val context = LocalContext.current
 
     Scaffold(topBar = { TopAppBar(title = { Text("My plan") }, actions = { actions() }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
@@ -60,6 +73,22 @@ fun PlanScreen(state: UiState, actions: @Composable () -> Unit, onRank: () -> Un
                         Button(onClick = onRank) {
                             Icon(Icons.Filled.SwapVert, contentDescription = null)
                             Text(if (ranked) "  Keep ranking" else "  Rank this day first")
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                val ics = onCalendar(day) ?: return@OutlinedButton
+                                val send = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/calendar"
+                                    putExtra(Intent.EXTRA_TEXT, ics)
+                                    putExtra(Intent.EXTRA_SUBJECT, "IndiaFOSS plan · day ${selected + 1}")
+                                }
+                                context.startActivity(Intent.createChooser(send, "Add to calendar"))
+                            },
+                            enabled = plan.isNotEmpty(),
+                            modifier = Modifier.padding(start = 8.dp),
+                        ) {
+                            Icon(Icons.Filled.Event, contentDescription = null)
+                            Text("  Calendar")
                         }
                     }
                     if (!ranked) Text(
@@ -84,12 +113,12 @@ fun PlanScreen(state: UiState, actions: @Composable () -> Unit, onRank: () -> Un
                         Itinerary.Reason.BOOKMARKED -> "Bookmarked"
                         Itinerary.Reason.RANKED -> "Best rated in this slot"
                     }
-                    Text(
-                        why,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 32.dp, bottom = 6.dp),
-                    )
+                    Row(Modifier.fillMaxWidth().padding(start = 32.dp, end = 16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text(why, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+                        if (item.reason == Itinerary.Reason.RANKED) {
+                            TextButton(onClick = { onSkip(item.activity.id) }) { Text("Not this one") }
+                        }
+                    }
                 }
             }
         }

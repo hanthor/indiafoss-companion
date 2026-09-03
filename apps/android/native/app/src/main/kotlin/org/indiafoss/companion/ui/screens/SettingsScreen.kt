@@ -17,6 +17,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +33,7 @@ import org.indiafoss.companion.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit) {
+fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit, onRoutingProfile: (String) -> Unit) {
     val context = LocalContext.current
     // Android 13+ asks for the notification permission; below that it is granted by install.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -64,6 +67,28 @@ fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit) {
                         TextButton(onClick = {
                             context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
                         }) { Text("Allow exact alarms for on-the-minute timing") }
+                    }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Getting around", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "How walk times between rooms are worked out.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    val options = listOf("fastest" to "Fastest", "avoid-stairs" to "Avoid stairs", "accessible" to "Step-free")
+                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                        options.forEachIndexed { index, (value, label) ->
+                            SegmentedButton(
+                                selected = state.routingProfile == value,
+                                onClick = { onRoutingProfile(value) },
+                                shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                                label = { Text(label) },
+                            )
+                        }
                     }
                 }
             }

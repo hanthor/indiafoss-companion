@@ -143,9 +143,13 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 }
             }
             composable("plan") {
-                PlanScreen(state, topActions, onRank = { navController.navigate("rank") }) {
-                    navController.navigate("activity/$it")
-                }
+                PlanScreen(
+                    state = state,
+                    actions = topActions,
+                    onRank = { navController.navigate("rank") },
+                    onCalendar = viewModel::calendarFor,
+                    onSkip = viewModel::skipSession,
+                ) { navController.navigate("activity/$it") }
             }
             composable("explore") {
                 ExploreScreen(
@@ -186,7 +190,9 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 )
             }
             composable("map") { MapScreen(state, topActions, viewModel::setLocation) }
-            composable("settings") { SettingsScreen(state, viewModel::setRemindersEnabled) }
+            composable("settings") {
+                SettingsScreen(state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile)
+            }
             composable("activity/{id}") { entry ->
                 ActivityScreen(
                     state = state,

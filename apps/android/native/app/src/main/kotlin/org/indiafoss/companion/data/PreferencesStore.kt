@@ -35,6 +35,15 @@ class PreferencesStore(private val context: Context) {
         context.dataStore.edit { it[remindersKey] = on }
     }
 
+    private val profileKey = stringPreferencesKey("routing-profile")
+
+    /** fastest | avoid-stairs | accessible, as the web's routing preference. */
+    val routingProfile: Flow<String> = context.dataStore.data.map { it[profileKey] ?: "fastest" }
+
+    suspend fun setRoutingProfile(profile: String) {
+        context.dataStore.edit { it[profileKey] = profile }
+    }
+
     private val locationKey = stringPreferencesKey("current-location")
 
     val location: Flow<String?> = context.dataStore.data.map { it[locationKey] }
