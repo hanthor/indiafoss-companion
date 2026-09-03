@@ -160,14 +160,12 @@ not by spec completeness.
    The first three are ordinary storage-and-routing work. The fourth is the
    real design question, and the one to put to upstream before writing code.
 
-   **All four are now written**, as two patches in
-   [`patches/neutrino/`](../patches/neutrino/README.md), verified against two
-   servers on loopback. The results table above still describes _stock_
-   Neutrino, which is what the probe measures; run the probe again with the
-   patches applied and the four E2EE rows move to "works". What is still
-   missing there is durability, not protocol: outbound to-device EDUs bypass
-   the PDU outbox, so a peer out of range when a room key is shared does not
-   get it later.
+   **All four are now written**, as three patches in
+   [`patches/neutrino/`](../patches/neutrino/README.md), verified against two servers on loopback, with to-device EDUs riding the
+   durable federation outbox so a peer out of range when a room key is shared
+   gets it when the link heals. The results table above still describes
+   _stock_ Neutrino, which is what the probe measures; run the probe again
+   with the patches applied and the four E2EE rows move to "works".
 
 Everything above 3 needs upstream work in `element-hq/neutrino`. Two notes on
 how:

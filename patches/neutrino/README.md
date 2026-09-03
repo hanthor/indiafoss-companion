@@ -1,10 +1,13 @@
 # E2EE patches for `element-hq/neutrino`
 
-Two patches that give Neutrino enough of the Matrix key surface for the
+Three patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02) and are kept here because the
 work is upstream's to accept — this repository is where it was written and
-measured, not where it will live.
+measured, not where it will live. The same commits are on the
+[`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
+branch of the `hanthor/neutrino` fork, which is where an upstream PR is raised
+from.
 
 Why they exist: Matrix keeps the cryptography in the client, so a homeserver's
 only job in E2EE is to remember which devices exist, hand out one one-time key
@@ -66,21 +69,37 @@ Twelve tests cover the routes, ownership scoping, claim exhaustion, EDU dedup
 and the auth gate; both patches were also verified against two servers on
 loopback.
 
+## 0003 — durable to-device delivery
+
+The first cut of `0002` fired the EDU at the peer and forgot it. On a BLE mesh
+that is the wrong shape: the peer you are sharing a room key with is a phone
+that walks in and out of range, and a key dropped because it was out of range
+for a second is a conversation that cannot be read.
+
+This patch gives EDUs a row in the federation outbox (`outbox_edus`, stored
+verbatim since an EDU has no event id to reference), and the per-destination
+sender carries them in the same transaction as any pending PDUs — or one of
+their own when nothing else is queued. A destination owed only a room key
+gets a sender task; a peer that is unreachable is retried with the usual
+backoff and kicked when connectivity returns; the rows go only on the peer's
+2xx. The outbox row is keyed on the client's `/sendToDevice` transaction id,
+so a client retry queues nothing new. Bumps the sqlite schema version to 3.
+
+Tests: EDU-only delivery and drain, EDUs riding along with PDUs, and the one
+that is the point — a key queued while the peer is unreachable is delivered
+when the peer comes back.
+
 ## What is still missing
 
-- **Outbound EDUs bypass the durable outbox** (which stores PDUs), so to-device
-  delivery is best-effort: a peer out of BLE range when a room key is shared
-  does not get it later. The client's re-share on the next send to an unknown
-  device is the recovery path. Making this durable is the next patch.
 - **Keys live in memory**, so they do not survive a restart. Persisting them is
   storage work, not protocol work.
 - **`m.device_list_update` EDUs** are not sent; `stream_id` is a constant.
-- **Identity is still a stub** in the dev binary: register and login return the
-  same `@alice:localhost` / `DEVICEID` whatever you send, which is why the
-  to-device inbox is keyed per user rather than per device. Two phones on a mesh
-  get distinct identities from their node keys, so this is a dev-binary
-  limitation — but it is the reason these patches cannot be exercised with two
-  users against one server.
+- **Identity is a stub in the default dev binary** — register and login return
+  the same `@alice:localhost` / `DEVICEID` whatever you send — which is why the
+  to-device inbox is keyed per user rather than per device. Building with
+  `--features multi-user-shim` gives the dev binary real per-user tokens, so two
+  users against one server _can_ be exercised; two phones on a mesh get distinct
+  identities from their node keys regardless.
 - **Events are still unsigned.** Neutrino is explicitly not secure on the public
   internet, and encrypting the payload does not change that: it means a mesh
   message is private, not that its sender is authenticated.

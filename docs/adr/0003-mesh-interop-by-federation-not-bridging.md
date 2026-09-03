@@ -55,7 +55,7 @@ Measured from Spindle's `SPEC.md` and by probing a locally built Neutrino:
 | Federation `/user/keys/query`, `/user/keys/claim`, `/user/devices` | full (§740) | none registered                    |
 | `m.direct_to_device` / `m.device_list_update` EDUs                 | full (§743) | none                               |
 
-Every Neutrino row above is now written, as two patches in
+Every Neutrino row above is now written, as three patches in
 [`patches/neutrino/`](../../patches/neutrino/README.md) — `m.device_list_update`
 excepted — and verified against two servers on loopback. The table describes
 stock Neutrino, which is what a peer meets until upstream takes the work.

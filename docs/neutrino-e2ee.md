@@ -52,7 +52,7 @@ the above.
 
 ## What we implemented, and what is left
 
-Items 2 and 3 above are done, as two patches kept in
+Items 2 and 3 above are done, as three patches kept in
 [`patches/neutrino/`](../patches/neutrino/README.md) — see that README for how
 to apply them and exactly what each one covers.
 
@@ -70,11 +70,14 @@ keys claimed exactly once each, and a room key delivered to the other server's
 `/sync`. Twelve tests cover the routes, the ownership scoping, claim
 exhaustion, EDU dedup and the auth gate.
 
-Still open: to-device delivery bypasses the durable outbox (best-effort, so a
-peer out of range when a key is shared does not get it later), keys live in
-memory rather than sqlite, `m.device_list_update` is not sent, item 4 (the
-sliding-sync E2EE extension) is untouched, and item 5 — signing — is unchanged
-and is what still makes this "private, not authenticated".
+- **Durable delivery** (`0003`): to-device EDUs ride the federation outbox like
+  PDUs, so a room key shared while the peer is out of BLE range is delivered
+  when the peer comes back rather than dropped.
+
+Still open: keys live in memory rather than sqlite, `m.device_list_update` is
+not sent, item 4 (the sliding-sync E2EE extension) is untouched, and item 5 —
+signing — is unchanged and is what still makes this "private, not
+authenticated".
 
 ## What the IndiaFOSS fork does meanwhile
 
