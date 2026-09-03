@@ -30,8 +30,25 @@ Only pairs whose answer changes the plan are offered, in this order:
 3. Closest calls first; a pair the attendee has said nothing about is worth a
    little more than one where a side is already placed.
 
+**Provisional K.** A session nobody has answered about yet moves twice as
+far on its first result and one and a half times on its second
+(`pairKScale`), so one clear pick between two fresh sessions opens a settled
+gap at once instead of after two.
+
 `conflictProgress()` counts the open overlaps, and the readout says
-"N CHOICES · M TO GO" so the end is visible. The `ALL SETTLED` state means
+"N CHOICES · M OVERLAPS OPEN" so the end is visible. The badge on the
+head-to-head tab only appears once the quick pass is done or a pair has been
+answered: 130 open overlaps on an unsorted day is a number that means little
+until the Nos are out.
+
+**What to expect.** Simulated on the 2025 day one (56 sessions, 130
+overlapping pairs) with a consistent underlying preference and 90%
+consistent answers: settling every overlap head to head from scratch takes
+about 100 taps, close to the information-theoretic floor for ordering four
+or five parallel sessions in each of a dozen slots. After a quick pass that
+keeps 60% of the day (32 sessions, 46 overlaps) it takes about 34. The quick
+pass, not the pairwise round, is where the time goes down, which is why it
+comes first. The `ALL SETTLED` state means
 every overlap among the kept sessions has a winner. "Neither, skip both"
 drops both sessions from the day (before it only recorded a tie).
 

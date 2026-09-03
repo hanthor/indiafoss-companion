@@ -65,13 +65,13 @@
     border-bottom: 1px solid var(--line);
     padding: 0.3rem 1rem;
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     letter-spacing: 0.04em;
   }
   .line {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.45rem;
     flex-wrap: wrap;
   }
   .tag {
@@ -90,7 +90,7 @@
     background: transparent;
     color: var(--amber-ink);
     border-radius: 6px;
-    padding: 0.15rem 0.5rem;
+    padding: 0.1rem 0.4rem;
     font: inherit;
     font-weight: 700;
     text-decoration: none;

@@ -14,6 +14,7 @@
     applyComparison,
     applyPriors,
     conflictProgress,
+    pairKScale,
     scheduleStability,
     selectNextComparison,
     type AffinityModel,
@@ -188,8 +189,14 @@
         disposition: dispositionOf(idB),
       },
     };
-    // The Elo update works on the stored ratings, never the prior-adjusted view.
-    const result = applyComparison(before.a.rating, before.b.rating, choice);
+    // The Elo update works on the stored ratings, never the prior-adjusted view;
+    // sessions answered about for the first time move further (provisional K).
+    const result = applyComparison(
+      before.a.rating,
+      before.b.rating,
+      choice,
+      pairKScale(before.a.comparisons, before.b.comparisons),
+    );
     await Promise.all([
       setRating(idA, result.ratingA, before.a.comparisons + 1),
       setRating(idB, result.ratingB, before.b.comparisons + 1),
@@ -396,7 +403,10 @@
       onclick={() => (chosenMode = 'pairs')}
     >
       2 · Head to head
-      {#if progress.open > 0}<span class="count">{progress.open}</span>{/if}
+      <!-- The count means little before the quick pass has thinned the day. -->
+      {#if progress.open > 0 && (untriaged.length === 0 || choicesMade > 0)}
+        <span class="count">{progress.open}</span>
+      {/if}
     </button>
   </div>
 
@@ -501,7 +511,8 @@
     <div class="progress" role="status">
       <div class="progresstext">
         <span class="ok">{Math.round(stability * 100)}% RESOLVED</span>
-        <span>{choicesMade} {choicesMade === 1 ? 'CHOICE' : 'CHOICES'} · {progress.open} TO GO</span
+        <span
+          >{`${choicesMade} ${choicesMade === 1 ? 'CHOICE' : 'CHOICES'} · ${progress.open} ${progress.open === 1 ? 'OVERLAP' : 'OVERLAPS'} OPEN`}</span
         >
       </div>
       <div class="track"><div class="fill" style="width:{Math.round(stability * 100)}%"></div></div>

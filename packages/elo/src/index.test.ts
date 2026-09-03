@@ -10,6 +10,7 @@ import {
   learnAffinity,
   MAX_PRIOR_OFFSET,
   pairKey,
+  pairKScale,
   priorOffset,
   ratingWithPrior,
   scheduleStability,
@@ -236,6 +237,14 @@ describe('selectNextComparison asks only what matters', () => {
     const pick = selectNextComparison({ activities: [a, b, c], alreadyCompared: new Set() });
     expect([pick?.activityA.activity.id, pick?.activityB.activity.id].sort()).toEqual(['a', 'b']);
     expect(pick?.reason).toBe('new');
+  });
+
+  it('a first answer between two fresh sessions opens a settled gap at once', () => {
+    const r = applyComparison(1200, 1200, 'definitely-a', pairKScale(0, 0));
+    expect(r.ratingA - r.ratingB).toBeGreaterThanOrEqual(SETTLED_GAP);
+    // Sides with history move at the ordinary K.
+    expect(pairKScale(3, 3)).toBe(1);
+    expect(pairKScale(0, 3)).toBe(1.5);
   });
 
   it('settles a whole day in at most one question per open conflict', () => {

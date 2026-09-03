@@ -579,6 +579,8 @@
                     : ''}</span
                 >
               </span>
+            {:else if ownAvatar}
+              <span class="hint">{avatarSource} · could not load it right now (offline?)</span>
             {:else}
               <span class="hint"
                 >Add a GitHub link, or fill from your profiles, and it appears.</span
