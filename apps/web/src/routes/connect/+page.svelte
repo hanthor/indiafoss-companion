@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { ContactRecord } from '@indiafoss/storage';
+  import { meshLinkLabel } from '@indiafoss/matrix';
   import { onMount } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
   import { resolve } from '$app/paths';
@@ -18,6 +20,7 @@
     shortFingerprint,
     signedAttendeeVCard,
     type AttendeeSocial,
+    socialFromLink,
   } from '@indiafoss/model';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
@@ -26,6 +29,8 @@
     deleteContact,
     hydrateContacts,
     importContactBook,
+    verifyContactMeshLink,
+    verifyMeshLinks,
   } from '$lib/contacts.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
@@ -72,7 +77,7 @@
 
   $effect(() => {
     void hydrateProfile();
-    void hydrateContacts();
+    void hydrateContacts().then(() => verifyMeshLinks());
     void hydrateIdentity();
     void hydrateFeatures().then(async () => {
       if (!features.chat) return;
@@ -243,6 +248,27 @@
   function addNetwork(n: AttendeeSocial): void {
     extraNetworks = [...extraNetworks, n];
     showAddMenu = false;
+  }
+  /** One box for any link or handle; it lands on the right network. */
+  let pasteLink = $state('');
+  let pasteError = $state<string | null>(null);
+  function addPastedLink(event: SubmitEvent): void {
+    event.preventDefault();
+    pasteError = null;
+    const sorted = socialFromLink(pasteLink);
+    if (!sorted) {
+      pasteError = 'Paste a full profile link, or a handle like @you@fosstodon.org.';
+      return;
+    }
+    if (sorted.network === 'website') {
+      profileState.profile.website = sorted.value;
+      profileState.selection.website = true;
+      scheduleCard();
+    } else {
+      if (!shownNetworks.includes(sorted.network)) addNetwork(sorted.network);
+      setLink(sorted.network, sorted.value);
+    }
+    pasteLink = '';
   }
   function setLink(n: AttendeeSocial, value: string): void {
     setSocial(n, value);
@@ -455,6 +481,18 @@
     } finally {
       importingBook = false;
       input.value = '';
+    }
+  }
+
+  let checkingLink = $state<string | null>(null);
+
+  async function checkLink(c: ContactRecord) {
+    checkingLink = c.id;
+
+    try {
+      await verifyContactMeshLink(c);
+    } finally {
+      checkingLink = null;
     }
   }
 
@@ -685,6 +723,19 @@
               >
             </div>
           {/each}
+          <form class="pastebox" onsubmit={addPastedLink}>
+            <input
+              aria-label="Paste a profile link or handle"
+              bind:value={pasteLink}
+              placeholder="Paste any profile link or @you@fosstodon.org"
+              inputmode="url"
+              autocomplete="off"
+            />
+            <button class="button secondary small" type="submit" disabled={!pasteLink.trim()}>
+              Add
+            </button>
+          </form>
+          {#if pasteError}<p class="error small" role="alert">{pasteError}</p>{/if}
           {#if addableNetworks.length > 0}
             {#if showAddMenu}
               <div class="addmenu" role="group" aria-label="Add a network">
@@ -860,6 +911,16 @@
                             ? 'BAD SIGNATURE'
                             : 'UNSIGNED CARD'}
                     </span>
+                    {#if c.matrixId && c.neutrinoServerName}
+                      <span
+                        class="line3"
+                        class:sig-ok={c.meshLink?.state === 'verified'}
+                        class:sig-bad={c.meshLink?.state === 'mismatch'}
+                        title="Whether this Matrix account's own profile names this mesh identity"
+                      >
+                        MATRIX {c.matrixId} · {meshLinkLabel(c.meshLink).toUpperCase()}
+                      </span>
+                    {/if}
                   </span>
                   <span class="chev" aria-hidden="true">›</span>
                 </button>
@@ -867,6 +928,15 @@
                   <div class="persondetail">
                     <SocialLinks links={contactDeepLinks(c)} compact />
                     <div class="detailactions">
+                      {#if c.matrixId && c.neutrinoServerName}
+                        <button
+                          class="button ghost small"
+                          disabled={checkingLink === c.id}
+                          onclick={() => checkLink(c)}
+                        >
+                          {checkingLink === c.id ? 'Checking…' : 'Check Matrix link'}
+                        </button>
+                      {/if}
                       {#if features.chat && c.neutrinoServerName}
                         <a
                           class="button secondary small"
@@ -1333,5 +1403,14 @@
   }
   .danger {
     color: var(--danger);
+  }
+  .pastebox {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.5rem 0 0.25rem;
+  }
+  .pastebox input {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 </style>

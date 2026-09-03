@@ -67,6 +67,17 @@ export interface MatrixRoomRecord {
   unread: number;
   /** Pagination token for backfilling older history. */
   prevBatch?: string;
+  /**
+   * The parts of `m.room.power_levels` that decide who may post (issue #113):
+   * absent until the room has sent its power levels.
+   */
+  powerLevels?: {
+    usersDefault: number;
+    eventsDefault: number;
+    /** Level required for `m.room.message`, when the room sets one. */
+    message?: number;
+    users: Record<string, number>;
+  };
 }
 
 export interface MatrixEventRecord {
@@ -99,6 +110,8 @@ export interface MatrixEventRecord {
   reactionKey?: string;
   /** Redacted by its author or a moderator: the body is a placeholder and any relation is gone. */
   redacted?: boolean;
+  /** Asked as a question in a session room (`in.indiafoss.question`, issue #114). */
+  question?: boolean;
 }
 
 export interface MatrixOutboxRecord {
@@ -107,6 +120,8 @@ export interface MatrixOutboxRecord {
   body: string;
   /** Event this queued message replies to. */
   replyTo?: string;
+  /** Send as a session question (issue #114). */
+  question?: boolean;
   createdAt: string;
   attempts: number;
   lastError?: string;
@@ -148,6 +163,15 @@ export interface ContactRecord {
   lastMetAt?: string;
   /** A card with the same name/ids but a different handshake key was saved earlier. */
   keyChanged?: boolean;
+  /**
+   * Whether the card's Matrix id really belongs to its mesh identity: the
+   * account's own profile is checked when online (issue #111). Absent until
+   * checked; only meaningful when both ids are on the card.
+   */
+  meshLink?: {
+    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable';
+    checkedAt: number;
+  };
   previousFingerprint?: string;
 }
 

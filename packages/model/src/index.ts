@@ -186,6 +186,7 @@ export {
   DEFAULT_ATTENDEE_SHARE_SELECTION,
   messengerHandle,
   normalizePhone,
+  socialFromLink,
 } from './contact.js';
 export type {
   AttendeeProfile,
@@ -243,6 +244,7 @@ export {
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
+  announcementsRoom,
 } from './messaging.js';
 export type {
   ConferenceChatKind,

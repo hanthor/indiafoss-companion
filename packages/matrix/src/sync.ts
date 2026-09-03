@@ -45,9 +45,13 @@ function emptyRoom(roomId: string): MatrixRoomRecord {
   };
 }
 
+/** Content key marking a message as a session question (issue #114). */
+export const QUESTION_CONTENT_KEY = 'in.indiafoss.question';
+
 export interface DescribedEvent {
   body: string;
   msgtype?: string;
+  question?: boolean;
   mediaUrl?: string;
   mediaFile?: string;
   mediaMime?: string;
@@ -92,7 +96,9 @@ export function describeEvent(event: RawMatrixEvent): DescribedEvent | null {
       const relation = relationOf(content);
       const body = relation.replyTo ? rawBody.replace(/^(> .*\n)+\n?/, '') : rawBody;
       if (msgtype === 'm.text' || msgtype === 'm.notice' || msgtype === 'm.emote') {
-        return body ? { body, msgtype, ...relation } : null;
+        if (!body) return null;
+        const question = content[QUESTION_CONTENT_KEY] === true;
+        return { body, msgtype, ...relation, ...(question ? { question } : {}) };
       }
       if (MEDIA_TYPES.has(msgtype)) {
         const file = content.file as { url?: string } | undefined;
@@ -139,6 +145,25 @@ function applyStateEvent(room: MatrixRoomRecord, event: RawMatrixEvent): void {
     case 'm.room.encryption':
       room.encrypted = true;
       break;
+    case 'm.room.power_levels': {
+      const num = (v: unknown, fallback: number) => (typeof v === 'number' ? v : fallback);
+      const users: Record<string, number> = {};
+      const rawUsers = content.users;
+      if (rawUsers && typeof rawUsers === 'object') {
+        for (const [id, level] of Object.entries(rawUsers as Record<string, unknown>)) {
+          if (typeof level === 'number') users[id] = level;
+        }
+      }
+      const events = (content.events ?? {}) as Record<string, unknown>;
+      room.powerLevels = {
+        usersDefault: num(content.users_default, 0),
+        eventsDefault: num(content.events_default, 0),
+        message:
+          typeof events['m.room.message'] === 'number' ? events['m.room.message'] : undefined,
+        users,
+      };
+      break;
+    }
     case 'm.room.member': {
       const userId = event.state_key;
       if (!userId) break;
@@ -199,6 +224,7 @@ function toRecord(roomId: string, event: RawMatrixEvent): MatrixEventRecord | nu
     ...(described.replyTo ? { replyTo: described.replyTo } : {}),
     ...(described.reactsTo ? { reactsTo: described.reactsTo } : {}),
     ...(described.reactionKey ? { reactionKey: described.reactionKey } : {}),
+    ...(described.question ? { question: true } : {}),
   };
 }
 
@@ -291,4 +317,17 @@ export function applySyncResponse(
 
   delta.events.sort((a, b) => a.ts - b.ts);
   return delta;
+}
+
+/**
+ * Whether `userId` may send messages in `room` under its power levels. A room
+ * that has not sent power levels yet (or a mesh room without any) is open.
+ * Used for the announcements channel (issue #113), where only moderators post.
+ */
+export function canPost(room: Pick<MatrixRoomRecord, 'powerLevels'>, userId: string): boolean {
+  const levels = room.powerLevels;
+  if (!levels) return true;
+  const mine = levels.users[userId] ?? levels.usersDefault;
+  const needed = levels.message ?? levels.eventsDefault;
+  return mine >= needed;
 }

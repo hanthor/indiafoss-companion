@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
+  import { contactForMeshUser } from '$lib/mesh-link';
   import { onMount, tick } from 'svelte';
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { localpart, matrixToUrl } from '@indiafoss/matrix';
+  import { localpart, matrixToUrl, meshLinkLabel, canPost } from '@indiafoss/matrix';
   import { formatTime } from '@indiafoss/schedule';
   import { getMatrix, hydrateMatrix, matrixState, roomById, statusLabel } from '$lib/matrix.svelte';
   import MediaAttachment from '$lib/components/MediaAttachment.svelte';
@@ -13,6 +15,14 @@
   const timeline = $derived(matrixState.timelines[roomId] ?? []);
   const queued = $derived(new Set(matrixState.outbox.map((o) => o.txnId)));
   const selfId = $derived(matrixState.userId);
+  /** Issue #113: the announcements room is read-only for everyone below moderator. */
+  const mayPost = $derived(!room || !selfId || canPost(room, selfId));
+  /** Issue #111: the saved card behind a mesh DM peer, with its claimed Matrix id. */
+  const peerContact = $derived.by(() => {
+    if (!room?.isDirect) return undefined;
+    const peerId = room.memberIds.find((id) => id !== selfId);
+    return peerId ? contactForMeshUser(contactsState.contacts, peerId) : undefined;
+  });
 
   let draft = $state('');
   let sending = $state(false);
@@ -44,6 +54,27 @@
     return map;
   });
   const quoted = $derived(replyTo ? timeline.find((e) => e.eventId === replyTo) : null);
+  /** Issue #114: compose the next message as a session question. */
+  let asking = $state(false);
+  let showQuestions = $state(true);
+  const questions = $derived.by(() => {
+    const rows = timeline
+      .filter((e) => e.question && !e.redacted)
+      .map((e) => {
+        const rs = reactions[e.eventId] ?? [];
+        const up = rs.find((r) => r.key === '👍');
+        return {
+          event: e,
+          votes: up?.count ?? 0,
+          mine: up?.mine ?? false,
+          answered: rs.some((r) => r.key === '✅'),
+        };
+      });
+    return rows.sort(
+      (a, b) =>
+        Number(a.answered) - Number(b.answered) || b.votes - a.votes || a.event.ts - b.event.ts,
+    );
+  });
   const members = $derived(
     (room?.memberIds ?? []).map((id) => ({ id, name: room?.memberNames[id] ?? localpart(id) })),
   );
@@ -102,6 +133,7 @@
   let list = $state<HTMLElement | null>(null);
 
   onMount(async () => {
+    void hydrateContacts();
     await hydrateMatrix();
     if (matrixState.status === 'signed-out') {
       await goto(resolve('/chat'), { replaceState: true });
@@ -130,7 +162,8 @@
       draft = '';
       if (typingTimer) clearTimeout(typingTimer);
       void getMatrix().setTyping(roomId, false);
-      await getMatrix().sendMessage(roomId, text, replyTo ?? undefined);
+      await getMatrix().sendMessage(roomId, text, replyTo ?? undefined, { question: asking });
+      asking = false;
       replyTo = null;
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
@@ -178,6 +211,19 @@
       </p>
     </div>
     <div class="headactions">
+      {#if peerContact?.matrixId}
+        <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to permalink -->
+        <a
+          href={matrixToUrl(peerContact.matrixId)}
+          rel="noreferrer"
+          title="Their Matrix account, from the card they showed you · {meshLinkLabel(
+            peerContact.meshLink,
+          )}"
+        >
+          Continue on Matrix · {meshLinkLabel(peerContact.meshLink)}
+        </a>
+        <!-- eslint-enable svelte/no-navigation-without-resolve -->
+      {/if}
       <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
       <a href={matrixToUrl(room.alias ?? room.roomId)} rel="noreferrer">Open in Element</a>
       <button class="button ghost small danger" onclick={leave}>Leave</button>
@@ -225,6 +271,48 @@
     </ul>
   {/if}
 
+  {#if questions.length > 0}
+    <section class="questions" aria-label="Questions">
+      <button
+        class="qhead"
+        onclick={() => (showQuestions = !showQuestions)}
+        aria-expanded={showQuestions}
+      >
+        <strong>Questions</strong>
+        <span class="muted small">{questions.length} · most wanted first</span>
+      </button>
+      {#if showQuestions}
+        <ol>
+          {#each questions as q (q.event.eventId)}
+            <li class:answered={q.answered}>
+              <button
+                class="vote"
+                class:mine={q.mine}
+                aria-pressed={q.mine}
+                aria-label="Upvote, {q.votes} so far"
+                onclick={() => react(q.event.eventId, '👍')}>▲ {q.votes}</button
+              >
+              <span class="qtext">
+                {q.event.body}
+                <span class="muted small">
+                  · {senderName(q.event.sender)}{q.answered ? ' · answered' : ''}
+                </span>
+              </span>
+              {#if mayPost}
+                <button
+                  class="act"
+                  title={q.answered ? 'Unmark as answered' : 'Mark as answered'}
+                  aria-label={q.answered ? 'Unmark as answered' : 'Mark as answered'}
+                  onclick={() => react(q.event.eventId, '✅')}>✅</button
+                >
+              {/if}
+            </li>
+          {/each}
+        </ol>
+      {/if}
+    </section>
+  {/if}
+
   <section class="timeline" bind:this={list} aria-label="Messages">
     {#if room.prevBatch}
       <button class="older" onclick={loadOlder} disabled={loadingOlder}>
@@ -248,6 +336,7 @@
           event.redacted}
       >
         {#if !mine}<span class="sender">{senderName(event.sender)}</span>{/if}
+        {#if event.question}<span class="qtag">Question</span>{/if}
         {#if event.replyTo}
           {@const target = timeline.find((e) => e.eventId === event.replyTo)}
           <p class="quote">
@@ -301,35 +390,57 @@
       <button class="act" onclick={() => (replyTo = null)} aria-label="Cancel reply">×</button>
     </p>
   {/if}
-  <form class="composer" onsubmit={send}>
-    <input
-      type="file"
-      class="hidden-input"
-      bind:this={fileInput}
-      onchange={attach}
-      accept="image/*,application/pdf,.txt,.md,.zip"
-      aria-label="Attach a file"
-    />
-    <button
-      class="button secondary attach"
-      type="button"
-      aria-label="Attach a file or photo"
-      disabled={attaching || !canEncrypt || matrixState.status !== 'online'}
-      onclick={() => fileInput?.click()}>{attaching ? '…' : '📎'}</button
-    >
-    <input
-      aria-label="Message"
-      bind:value={draft}
-      oninput={onInput}
-      placeholder={canEncrypt ? 'Message…' : 'Encryption unavailable — open in Element to send'}
-      disabled={!canEncrypt || room.membership !== 'join'}
-      autocomplete="off"
-      enterkeyhint="send"
-    />
-    <button class="button primary" type="submit" disabled={sending || !canEncrypt || !draft.trim()}
-      >Send</button
-    >
-  </form>
+  {#if mayPost}
+    <form class="composer" onsubmit={send}>
+      <input
+        type="file"
+        class="hidden-input"
+        bind:this={fileInput}
+        onchange={attach}
+        accept="image/*,application/pdf,.txt,.md,.zip"
+        aria-label="Attach a file"
+      />
+      <button
+        class="button secondary attach"
+        class:asking
+        type="button"
+        aria-pressed={asking}
+        aria-label={asking ? 'Sending as a question' : 'Ask a question'}
+        title={asking ? 'Sending as a question' : 'Ask a question'}
+        disabled={!canEncrypt || room.membership !== 'join'}
+        onclick={() => (asking = !asking)}>❓</button
+      >
+      <button
+        class="button secondary attach"
+        type="button"
+        aria-label="Attach a file or photo"
+        disabled={attaching || !canEncrypt || matrixState.status !== 'online'}
+        onclick={() => fileInput?.click()}>{attaching ? '…' : '📎'}</button
+      >
+      <input
+        aria-label="Message"
+        bind:value={draft}
+        oninput={onInput}
+        placeholder={!canEncrypt
+          ? 'Encryption unavailable — open in Element to send'
+          : asking
+            ? 'Your question…'
+            : 'Message…'}
+        disabled={!canEncrypt || room.membership !== 'join'}
+        autocomplete="off"
+        enterkeyhint="send"
+      />
+      <button
+        class="button primary"
+        type="submit"
+        disabled={sending || !canEncrypt || !draft.trim()}>Send</button
+      >
+    </form>
+  {:else}
+    <p class="muted small readonly" role="note">
+      Only the organisers post in this room; you can read along.
+    </p>
+  {/if}
   {#if matrixState.status !== 'online'}
     <p class="muted small">You're offline: messages are queued and delivered when you reconnect.</p>
   {/if}
@@ -569,5 +680,67 @@
     padding: 0.6rem 0.8rem;
     border: 1px solid color-mix(in srgb, var(--text-muted) 40%, transparent);
     border-radius: 999px;
+  }
+  .questions {
+    margin: 0 0 0.6rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    background: var(--surface, transparent);
+  }
+  .qhead {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    width: 100%;
+    background: none;
+    border: 0;
+    padding: 0.2rem 0;
+    text-align: left;
+    cursor: pointer;
+  }
+  .questions ol {
+    list-style: none;
+    margin: 0.3rem 0 0;
+    padding: 0;
+  }
+  .questions li {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    padding: 0.3rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .questions li.answered {
+    opacity: 0.6;
+  }
+  .vote {
+    flex: 0 0 auto;
+    min-width: 3rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: none;
+    padding: 0.15rem 0.5rem;
+    cursor: pointer;
+  }
+  .vote.mine {
+    background: var(--accent-soft, rgba(0, 0, 0, 0.08));
+    border-color: var(--accent, currentColor);
+  }
+  .qtext {
+    flex: 1 1 auto;
+  }
+  .qtag {
+    display: inline-block;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0.35rem;
+    border-radius: 0.3rem;
+    border: 1px solid var(--line);
+    margin-bottom: 0.15rem;
+  }
+  .attach.asking {
+    outline: 2px solid var(--accent, currentColor);
   }
 </style>

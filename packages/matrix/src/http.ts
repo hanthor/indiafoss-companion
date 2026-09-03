@@ -18,6 +18,8 @@ export interface CreateRoomOptions {
   visibility?: 'public' | 'private';
   /** Turn on Megolm encryption from the first event. */
   encrypted?: boolean;
+  /** `power_level_content_override`: e.g. `{ events_default: 50 }` for a read-mostly room. */
+  powerLevelOverride?: Record<string, unknown>;
 }
 
 export class MatrixError extends Error {
@@ -481,6 +483,7 @@ export class MatrixClient {
     if (options.isDirect) body.is_direct = true;
     if (options.preset) body.preset = options.preset;
     if (options.visibility) body.visibility = options.visibility;
+    if (options.powerLevelOverride) body.power_level_content_override = options.powerLevelOverride;
     if (options.encrypted) {
       body.initial_state = [
         {

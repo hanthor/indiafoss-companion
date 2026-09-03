@@ -9,10 +9,11 @@
     matrixToUrl,
     localpart,
   } from '@indiafoss/matrix';
-  import { neutrinoMatrixId } from '@indiafoss/model';
+  import { announcementsRoom, neutrinoMatrixId } from '@indiafoss/model';
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { getMatrix, hydrateMatrix, matrixState, statusLabel } from '$lib/matrix.svelte';
-  import { messagingConfigFor } from '$lib/messaging-config';
+  import { hydrateProfile, profileState, saveProfile } from '$lib/profile.svelte';
+  import { homeserverLabel, messagingConfigFor } from '$lib/messaging-config';
   import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import { features, hydrateFeatures, setChatEnabled } from '$lib/features.svelte';
@@ -44,12 +45,57 @@
   let pendingOpen = $state<{ alias: string; name: string; topic?: string } | null>(null);
   let opening = $state(false);
   let peerTimer: ReturnType<typeof setInterval> | null = null;
+  /** Issue #111: publishing this phone's mesh identity on the internet account. */
+  let linkState = $state<'idle' | 'busy' | 'done' | 'error'>('idle');
+  let linkError = $state<string | null>(null);
+  const meshIdentity = $derived(profileState.profile.neutrinoServerName?.trim() || null);
+  const linkedAlready = $derived(
+    !!matrixState.userId && profileState.profile.matrixId?.trim() === matrixState.userId,
+  );
+
+  async function linkMeshIdentity() {
+    if (!meshIdentity || !matrixState.userId) return;
+    linkState = 'busy';
+    linkError = null;
+    try {
+      await getMatrix().publishMeshIdentity(meshIdentity);
+      profileState.profile.matrixId = matrixState.userId;
+      profileState.selection.matrixId = true;
+      await saveProfile();
+      linkState = 'done';
+    } catch (error) {
+      linkState = 'error';
+      linkError = error instanceof Error ? error.message : String(error);
+    }
+  }
 
   const sessionRooms = $derived.by(() => {
     const prefix = `#${(config.aliasPrefix ?? eventState.bundle?.id ?? '').toLowerCase()}-`;
     return joinedRooms.filter((r) => r.alias?.startsWith(prefix));
   });
-  const otherRooms = $derived(joinedRooms.filter((r) => !sessionRooms.includes(r)));
+  /** Issue #113: the organiser-owned room, pinned first. */
+  const announcements = $derived(announcementsRoom(config, eventState.bundle?.id ?? ''));
+  const announcementsJoined = $derived(
+    announcements ? joinedRooms.find((r) => r.alias === announcements.alias) : undefined,
+  );
+  const otherRooms = $derived(
+    joinedRooms.filter((r) => !sessionRooms.includes(r) && r !== announcementsJoined),
+  );
+  let joiningAnnouncements = $state(false);
+
+  async function joinAnnouncements() {
+    if (!announcements) return;
+    joiningAnnouncements = true;
+    actionError = null;
+    try {
+      const roomId = await getMatrix().joinOrCreateRoom({ ...announcements, announcements: true });
+      await goto(resolve(`/chat/${encodeURIComponent(roomId)}`));
+    } catch (error) {
+      actionError = error instanceof Error ? error.message : String(error);
+    } finally {
+      joiningAnnouncements = false;
+    }
+  }
 
   async function refreshPeers() {
     peers = await meshPeers();
@@ -122,6 +168,7 @@
   onMount(async () => {
     void loadEvent();
     void hydrateContacts();
+    void hydrateProfile();
     await hydrateFeatures();
     if (!features.chat) return;
     await hydrateMatrix();
@@ -212,7 +259,75 @@
   }
 
   const peerLabel = (p: NeutrinoPeer) => p.displayName || shortServerName(p.serverName);
+
+  /** Issue #115: take part from anywhere with an ordinary Matrix account. */
+  let ownHomeserver = $state('');
+  let ownUser = $state('');
+  let ownPassword = $state('');
+  let ownSigningIn = $state(false);
+  let ownError = $state<string | null>(null);
+  const homeserverPlaceholder = $derived(homeserverLabel(config.homeserver));
+
+  async function signInWithOwnAccount(event: SubmitEvent) {
+    event.preventDefault();
+    ownError = null;
+    const user = ownUser.trim();
+    if (!user || !ownPassword) {
+      ownError = 'Enter your Matrix user name and password.';
+      return;
+    }
+    // A full id names its own server; otherwise the conference homeserver.
+    const idServer = user.match(/^@[^:]+:(.+)$/)?.[1];
+    const homeserver = ownHomeserver.trim() || idServer || config.homeserver;
+    ownSigningIn = true;
+    try {
+      await hydrateMatrix();
+      await getMatrix().signInWithPassword(homeserver, user, ownPassword);
+      ownPassword = '';
+    } catch (error) {
+      ownError = error instanceof Error ? error.message : String(error);
+    } finally {
+      ownSigningIn = false;
+    }
+  }
 </script>
+
+{#snippet ownAccountForm()}
+  <details class="own">
+    <summary>Join from anywhere with your own Matrix account</summary>
+    <p class="muted small">
+      The conference rooms live on {homeserverPlaceholder}. Sign in there, or with any Matrix
+      account you already have: rooms on the conference server join by alias from anywhere.
+    </p>
+    <form class="stack" onsubmit={signInWithOwnAccount}>
+      <label>
+        <span class="muted small">Homeserver</span>
+        <input
+          bind:value={ownHomeserver}
+          placeholder={homeserverPlaceholder}
+          autocomplete="url"
+          inputmode="url"
+        />
+      </label>
+      <label>
+        <span class="muted small">User</span>
+        <input
+          bind:value={ownUser}
+          placeholder="alice or @alice:matrix.org"
+          autocomplete="username"
+        />
+      </label>
+      <label>
+        <span class="muted small">Password</span>
+        <input bind:value={ownPassword} type="password" autocomplete="current-password" />
+      </label>
+      {#if ownError}<p class="error" role="alert">{ownError}</p>{/if}
+      <button class="button secondary" type="submit" disabled={ownSigningIn}>
+        {ownSigningIn ? 'Signing in…' : 'Sign in'}
+      </button>
+    </form>
+  </details>
+{/snippet}
 
 <h1>Chat</h1>
 <p class="muted">
@@ -254,6 +369,7 @@
       <div class="actions">
         <button class="button primary" onclick={connectMesh} disabled={busy}>Try again</button>
       </div>
+      {@render ownAccountForm()}
     {:else}
       <h2>No mesh node on this device</h2>
       <p class="muted small">
@@ -263,15 +379,16 @@
       {#if pendingOpen}
         <p class="pill amber">“{pendingOpen.name}” will open once the mesh is available.</p>
       {/if}
+      {@render ownAccountForm()}
       <ConferenceRooms bundle={eventState.bundle} />
       <div class="actions">
         <button class="button secondary small" onclick={connectMesh}>Look again</button>
       </div>
       <p class="muted small">
-        For regular Matrix rooms use
+        Prefer another client? Use
         <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-        <a href="https://element.io/download" rel="noreferrer">Element</a> with the Matrix ids on contact
-        cards.
+        <a href="https://element.io/download" rel="noreferrer">Element</a> with the same account; the
+        rooms are ordinary Matrix rooms.
       </p>
     {/if}
   </section>
@@ -291,9 +408,37 @@
   </section>
   {#if !onMesh}
     <p class="pill amber">
-      This session is on {matrixState.homeserver}, not the on-device mesh. Sign out to reconnect to
-      the mesh node.
+      Signed in on {matrixState.homeserver}: the conference rooms, from anywhere. Sign out to use
+      the on-device mesh instead.
     </p>
+    {#if meshIdentity}
+      <section class="linkbox" aria-label="Link this account to your mesh identity">
+        {#if linkState === 'done' || linkedAlready}
+          <p class="muted small">
+            ✓ {matrixState.userId} is linked to your mesh identity. People who scan your card can verify
+            it against this account.
+          </p>
+          {#if linkState !== 'done'}
+            <button
+              class="button ghost small"
+              onclick={linkMeshIdentity}
+              disabled={linkState === 'busy'}
+            >
+              Publish again
+            </button>
+          {/if}
+        {:else}
+          <p class="muted small">
+            Let people you meet on the mesh verify that {matrixState.userId} is you: this publishes your
+            mesh node id on this account's profile. Nothing from your conversations leaves the phone.
+          </p>
+          <button class="button small" onclick={linkMeshIdentity} disabled={linkState === 'busy'}>
+            {linkState === 'busy' ? 'Publishing…' : 'Link this account to my mesh identity'}
+          </button>
+        {/if}
+        {#if linkError}<p class="error" role="alert">{linkError}</p>{/if}
+      </section>
+    {/if}
   {/if}
   {#if matrixState.error}<p class="error" role="alert">{matrixState.error}</p>{/if}
   {#if actionError}<p class="error" role="alert">{actionError}</p>{/if}
@@ -385,6 +530,40 @@
             </div>
           </li>
         {/each}
+      </ul>
+    </section>
+  {/if}
+
+  {#if announcements}
+    <section class="pinned" aria-label="Announcements">
+      <ul class="rooms">
+        <li>
+          {#if announcementsJoined}
+            <a
+              class="roomlink"
+              href={resolve(`/chat/${encodeURIComponent(announcementsJoined.roomId)}`)}
+            >
+              <strong>📣 {announcementsJoined.name || announcements.name}</strong>
+              <span class="muted small">From the organisers · read-only</span>
+            </a>
+            {#if announcementsJoined.unread > 0}<span
+                class="badge"
+                aria-label="{announcementsJoined.unread} unread">{announcementsJoined.unread}</span
+              >{/if}
+          {:else}
+            <span class="roomlink">
+              <strong>📣 {announcements.name}</strong>
+              <span class="muted small">Schedule changes and room moves, from the organisers</span>
+            </span>
+            <button
+              class="button small"
+              onclick={joinAnnouncements}
+              disabled={busy || joiningAnnouncements}
+            >
+              {joiningAnnouncements ? 'Joining…' : 'Join'}
+            </button>
+          {/if}
+        </li>
       </ul>
     </section>
   {/if}
@@ -591,5 +770,21 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
+  }
+  .own {
+    margin: 0.75rem 0;
+  }
+  .own summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .stack {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .stack label {
+    display: grid;
+    gap: 0.15rem;
   }
 </style>

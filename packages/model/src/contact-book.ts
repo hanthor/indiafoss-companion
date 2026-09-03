@@ -31,6 +31,8 @@ export interface ContactBookEntry {
   metCount?: number;
   lastMetAt?: string;
   keyChanged?: boolean;
+  /** Whether the card's Matrix id was verified against that account's profile (issue #111). */
+  meshLink?: { state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable'; checkedAt: number };
   previousFingerprint?: string;
 }
 

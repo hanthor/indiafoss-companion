@@ -1,4 +1,4 @@
-import { githubUsername } from '@indiafoss/model';
+import { githubUsername, socialFromLink } from '@indiafoss/model';
 import type { ImportFailure, ImportedProfile } from '$lib/fossunited';
 
 /**
@@ -37,6 +37,26 @@ export function profileFromGithubUser(user: GithubUser): ImportedProfile {
   return profile;
 }
 
+/**
+ * GitHub's "social accounts" (the links a person lists on their profile),
+ * public and unauthenticated. Each is sorted onto the card by its URL, so
+ * a Mastodon, LinkedIn or Bluesky link lands where a pasted one would.
+ */
+export function socialsFromGithubAccounts(
+  accounts: { provider?: string; url?: string }[],
+): ImportedProfile['socials'] {
+  const socials: ImportedProfile['socials'] = {};
+  for (const account of accounts) {
+    const url = account.url?.trim();
+    if (!url?.startsWith('https://')) continue;
+    const sorted = socialFromLink(url);
+    if (sorted && sorted.network !== 'website' && !socials[sorted.network]) {
+      socials[sorted.network] = sorted.value;
+    }
+  }
+  return socials;
+}
+
 export async function importGithubProfile(github: string): Promise<GithubImportResult> {
   const username = githubUsername(github);
   if (!username) return { ok: false, failure: 'invalid-url' };
@@ -51,5 +71,21 @@ export async function importGithubProfile(github: string): Promise<GithubImportR
   if (res.status === 404) return { ok: false, failure: 'not-found' };
   if (res.status === 403 || res.status === 429) return { ok: false, failure: 'rate-limited' };
   if (!res.ok) return { ok: false, failure: 'network' };
-  return { ok: true, profile: profileFromGithubUser((await res.json()) as GithubUser) };
+  const profile = profileFromGithubUser((await res.json()) as GithubUser);
+  // The listed accounts are a second, optional read: their absence is not a failure.
+  try {
+    const accounts = await fetch(
+      `https://api.github.com/users/${encodeURIComponent(username)}/social_accounts`,
+      { headers: { Accept: 'application/vnd.github+json' } },
+    );
+    if (accounts.ok) {
+      const listed = socialsFromGithubAccounts(
+        (await accounts.json()) as { provider?: string; url?: string }[],
+      );
+      profile.socials = { ...listed, ...profile.socials };
+    }
+  } catch {
+    // Offline halfway through: the profile fields already read still apply.
+  }
+  return { ok: true, profile };
 }

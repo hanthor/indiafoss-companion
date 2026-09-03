@@ -455,4 +455,35 @@ describe('a homeserver that cannot carry key material', () => {
 
     await alice.manager.stop();
   });
+
+  it('carries a session question and its upvotes through an encrypted room (#114)', async () => {
+    const server = new KeyServer();
+    const alice = client(server, '@alice:hs', 'ALICE1');
+    const bob = client(server, '@bob:hs', 'BOB1');
+    await alice.manager.signInWithPassword('https://hs', 'alice', 'pw');
+    await bob.manager.signInWithPassword('https://hs', 'bob', 'pw');
+    await settle(150);
+
+    await alice.manager.sendMessage('!r:hs', 'Will the slides be shared?', undefined, {
+      question: true,
+    });
+    await alice.manager.sendMessage('!r:hs', 'just a remark');
+    await settle(250);
+    const bobEvents = await bob.manager.openRoom('!r:hs');
+    const question = bobEvents.find((e) => e.body === 'Will the slides be shared?')!;
+    expect(question.question).toBe(true);
+    expect(bobEvents.find((e) => e.body === 'just a remark')?.question).toBeUndefined();
+
+    await bob.manager.toggleReaction('!r:hs', question.eventId, '👍');
+    await settle(250);
+    const aliceEvents = await alice.manager.openRoom('!r:hs');
+    const votes = aliceEvents.filter(
+      (e) => e.reactsTo === question.eventId && e.reactionKey === '👍',
+    );
+    expect(votes).toHaveLength(1);
+    expect(votes[0]!.sender).toBe('@bob:hs');
+
+    await alice.manager.stop();
+    await bob.manager.stop();
+  }, 30_000);
 });
