@@ -269,7 +269,7 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     expect(chunk.find((e) => e.event_id === reaction)!.content).toEqual({});
   });
 
-  it('has no typing notifications', async () => {
+  it.skipIf(fork)('has no typing notifications', async () => {
     expect(
       await missing(
         'PUT',
@@ -282,7 +282,22 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     ).toBe(404);
   });
 
-  it('has no read receipts', async () => {
+  it.skipIf(!fork)('fork: accepts typing notices and read receipts', async () => {
+    const typing = await call(
+      'PUT',
+      `/_matrix/client/v3/rooms/${room()}/typing/${encodeURIComponent(userId)}`,
+      { typing: true, timeout: 5000 },
+    );
+    expect(typing.status).toBe(200);
+    const receipt = await call(
+      'POST',
+      `/_matrix/client/v3/rooms/${room()}/receipt/m.read/${encodeURIComponent(messageId)}`,
+      {},
+    );
+    expect(receipt.status).toBe(200);
+  });
+
+  it.skipIf(fork)('has no read receipts', async () => {
     expect(
       await missing(
         'POST',

@@ -120,8 +120,8 @@ On the mesh path, of the chat features we ship:
 | Offline outbox          | ✅   | ours, not the server's                                                    |
 | Un-reacting             | ❌\* | stock: needs redaction. \*With `patches/neutrino/`: redaction works       |
 | Member list             | ✅   | `joined_members` is missing, but the client falls back to `/members`      |
-| Read receipts           | ❌   | endpoint missing                                                          |
-| Typing indicators       | ❌   | endpoint missing                                                          |
+| Read receipts           | ❌\* | stock: endpoint missing. \*With the patches: `m.receipt` over federation  |
+| Typing indicators       | ❌\* | stock: endpoint missing. \*With the patches: `m.typing` over federation   |
 | Files and photos        | ❌   | no media repository                                                       |
 | E2EE                    | ❌\* | stock: no key claim or to-device. \*With `patches/neutrino/`: DMs encrypt |
 
@@ -145,7 +145,11 @@ not by spec completeness.
 3. ~~**`joined_members`.**~~ Done client-side: `/members` exists and the
    client now falls back to it, so no upstream work is needed.
 4. **Read receipts, then typing.** Both are EDUs; receipts are the more useful
-   of the two in a room where people drift in and out.
+   of the two in a room where people drift in and out. **Written** as patch
+   `0007`: `/typing` and `/receipt` accepted, `m.typing` and `m.receipt` EDUs
+   through the same outbox as to-device messages, applied on receipt, and
+   surfaced through the sliding-sync `typing` and `receipts` extensions, which
+   wake a waiting long-poll.
 5. **A media repository.** The biggest surface, and the one most constrained by
    BLE bandwidth — worth prototyping a size cap before building it.
 6. **E2EE.** Smaller than "no E2EE" implies, because Matrix keeps the crypto in

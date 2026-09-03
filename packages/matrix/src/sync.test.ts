@@ -372,3 +372,22 @@ describe('redactions', () => {
     expect(delta.redactedIds).toEqual(['$older']);
   });
 });
+
+describe('sliding sync typing extension', () => {
+  it('folds the per-room typing event into the ephemeral events the reducer reads', () => {
+    const folded = slidingSyncToSyncResponse({
+      pos: 'p',
+      rooms: { '!r:hs': { timeline: [] } },
+      extensions: {
+        typing: {
+          rooms: { '!r:hs': { type: 'm.typing', content: { user_ids: ['@bob:hs'] } } },
+        },
+      },
+    });
+    expect(folded.rooms?.join?.['!r:hs']?.ephemeral?.events).toEqual([
+      { type: 'm.typing', content: { user_ids: ['@bob:hs'] } },
+    ]);
+    const delta = applySyncResponse(new Map(), folded, '@a:hs', {});
+    expect(delta.typing['!r:hs']).toEqual(['@bob:hs']);
+  });
+});

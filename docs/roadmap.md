@@ -69,6 +69,13 @@ alignment, #3 CI packages token, #4 fork roadmap.
   sessions decrypts on the other node. It also caught a real client bug: our
   sliding-sync `conn_id` was 19 characters against MSC4186's cap of 16, and
   Neutrino rejects that, so every mesh sync had been failing silently.
+- 2026-09-03: **P2P step 6** (#79): typing notices and read receipts cross
+  the mesh. The fork accepts `/typing` and `/receipt`, sends `m.typing` and
+  `m.receipt` EDUs to every server in the room through the durable outbox,
+  applies the inbound ones, and surfaces both through the sliding-sync
+  extensions — a typing notice wakes a waiting long-poll, which is the whole
+  point of one. The client enables the typing extension and folds it into the
+  ephemeral events it already reads.
 - 2026-09-03: **P2P step 5** (#78): redaction on the mesh. Server side (patch
   `0006`) an `m.room.redaction` is an ordinary event and is applied on read —
   sync and `/messages` prune the target when the redaction is allowed, with

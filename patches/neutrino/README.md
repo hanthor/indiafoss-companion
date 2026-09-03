@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Six patches that give Neutrino enough of the Matrix key surface for the
+Seven patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -147,6 +147,19 @@ copes with a redaction arriving before its target over federation.
 
 Un-react and delete now work on the mesh; the probe's redaction tripwire
 flips to a contract in fork mode.
+
+## 0007 — typing and read receipts
+
+`PUT /rooms/{room}/typing/{user}` and `POST /rooms/{room}/receipt/{type}/{event}`
+are accepted; each produces an `m.typing` / `m.receipt` EDU addressed to every
+server with a member in the room, through the same durable outbox as to-device
+messages (a stale typing notice expires on the receiving side; a receipt that
+waits for the link is still a receipt). Inbound EDUs land in an ephemeral
+state shared with the sync path — typing with expiry, one read position per
+user that only moves forward — and the sliding-sync `typing` and `receipts`
+extensions carry them, waking a waiting long-poll when they change. The
+`receipts` extension merges real `m.read` receipts over the delivery-mark
+synthesis that was already there.
 
 ## What is still missing
 
