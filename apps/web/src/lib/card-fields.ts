@@ -17,7 +17,7 @@ export interface CardFieldSpec {
 
 export const CARD_GROUPS: Record<CardGroup, { title: string; note: string; tone?: 'amber' }> = {
   identity: { title: 'Identity', note: 'On by default' },
-  links: { title: 'Links', note: 'On by default — already public' },
+  links: { title: 'Profiles & links', note: 'On by default — already public' },
   private: { title: 'Private', note: 'Off by default', tone: 'amber' },
   extras: { title: 'Companion extras', note: 'Other camera apps ignore these' },
 };
@@ -49,8 +49,8 @@ export const CARD_FIELDS: CardFieldSpec[] = [
   },
   {
     key: 'fossUnitedProfileUrl',
-    group: 'identity',
-    label: 'FOSS United username',
+    group: 'links',
+    label: 'FOSS United',
     placeholder: 'your_username',
     hint: 'Just the username from fossunited.org/u/…; the card carries the profile link.',
     inputType: 'text',

@@ -12,6 +12,7 @@ import {
   getEventDays,
   groupByStart,
   isBefore,
+  RunningClock,
   SystemClock,
 } from './index.js';
 
@@ -202,5 +203,24 @@ describe('formatters', () => {
   it('formats HH:MM and day labels', () => {
     expect(formatTime('2026-09-19T09:05:00+05:30')).toBe('09:05');
     expect(formatDayLabel('2026-09-20')).toBe('Sun 20 Sep');
+  });
+});
+
+describe('RunningClock', () => {
+  it('advances at the given multiple of real time and keeps the event offset', () => {
+    let real = 1_000_000;
+    const clock = new RunningClock('2025-09-20T09:00:00+05:30', 60, real, () => real);
+    expect(clock.now()).toBe('2025-09-20T09:00:00+05:30');
+    real += 30_000; // 30 real seconds = 30 simulated minutes at 60x
+    expect(clock.now()).toBe('2025-09-20T09:30:00+05:30');
+  });
+
+  it('stands still at speed 0 and never runs backwards', () => {
+    let real = 5_000;
+    const paused = new RunningClock('2025-09-20T09:00:00+05:30', 0, real, () => real);
+    real += 60_000;
+    expect(paused.now()).toBe('2025-09-20T09:00:00+05:30');
+    const early = new RunningClock('2025-09-20T09:00:00+05:30', 10, 10_000, () => 5_000);
+    expect(early.now()).toBe('2025-09-20T09:00:00+05:30');
   });
 });

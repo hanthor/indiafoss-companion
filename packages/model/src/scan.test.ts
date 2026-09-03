@@ -168,3 +168,21 @@ describe('vCard extension fields (single-QR redesign)', () => {
     expect(profile?.ticketRef).toBe('ticket::T9');
   });
 });
+
+describe('PHOTO on scanned cards (#95)', () => {
+  it('keeps a public https picture link and ignores anything else', () => {
+    const card = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      'FN:Aarav Sharma',
+      'PHOTO;VALUE=URI:https://github.com/aarav.png?size=160',
+      'END:VCARD',
+    ].join('\r\n');
+    expect(parseVCard(card)?.avatarUrl).toBe('https://github.com/aarav.png?size=160');
+    const inline = card.replace(
+      'PHOTO;VALUE=URI:https://github.com/aarav.png?size=160',
+      'PHOTO;ENCODING=b;TYPE=JPEG:/9j/4AAQ',
+    );
+    expect(parseVCard(inline)?.avatarUrl).toBeUndefined();
+  });
+});

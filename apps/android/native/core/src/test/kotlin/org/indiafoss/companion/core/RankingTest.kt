@@ -49,7 +49,29 @@ class RankingTest {
         val candidate = Ranking.selectNext(pool, emptySet())
         assertNotNull(candidate)
         assertEquals(setOf("a", "b"), setOf(candidate.activityA.activity.id, candidate.activityB.activity.id))
-        assertEquals(Reason.CLOSE_RATINGS, candidate.reason)
+        // Neither side ranked yet: a new pair, not a close call.
+        assertEquals(Reason.NEW, candidate.reason)
+    }
+
+    @Test
+    fun `sessions that do not overlap are never offered`() {
+        val pool = listOf(
+            ranked("a", "2025-09-20T10:00:00+05:30", "2025-09-20T11:00:00+05:30"),
+            ranked("c", "2025-09-20T14:00:00+05:30", "2025-09-20T15:00:00+05:30"),
+        )
+        assertNull(Ranking.selectNext(pool, emptySet()))
+    }
+
+    @Test
+    fun `a clash settled by a wide gap is not asked again`() {
+        val pool = listOf(
+            ranked("a", "2025-09-20T10:00:00+05:30", "2025-09-20T11:00:00+05:30", rating = 1200.0 + Ranking.SETTLED_GAP),
+            ranked("b", "2025-09-20T10:30:00+05:30", "2025-09-20T11:30:00+05:30"),
+        )
+        assertNull(Ranking.selectNext(pool, emptySet()))
+        val progress = Ranking.progress(pool, emptySet())
+        assertEquals(1, progress.conflicts)
+        assertEquals(0, progress.open)
     }
 
     @Test

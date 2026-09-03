@@ -28,10 +28,20 @@ accepted by the scanner for cards already in circulation.
 Every field is one row: label, editable value, share switch. Groups and
 defaults:
 
-- **Identity** (on): name, organisation, website, FOSS United profile.
-  "Fill from FOSS United" pulls the public profile.
-- **Links** (on, already public): GitHub, LinkedIn, Mastodon by default;
-  "+ Add" for more networks. A newly filled link is shared unless switched off.
+- **Identity** (on): name, organisation, website, and the photo row.
+  "From my contacts" fills them from the attendee's own entry in the
+  phone's contacts (#94): the Contact Picker API where the browser has it
+  (Chrome on Android), otherwise a `.vcf` shared out of the Contacts app and
+  picked here (iOS, and the Android app's WebView). Nothing is uploaded.
+- **Profiles & links** (on, already public): FOSS United, then GitHub,
+  LinkedIn, Mastodon by default; "+ Add" for more networks. The FOSS United
+  profile is one profile among the others (#96), on the card as
+  `URL;TYPE=profile` and shown as a link chip on speakers and contacts like
+  any other. "Fill from my profiles" reads every public profile the card
+  links to at once — the FOSS United page (Android only, see below) and the
+  GitHub API (works on the web too) — fills only empty fields, lists what it
+  filled, and can be taken back in one tap. A newly filled link is shared
+  unless switched off.
 - **Private** (off, amber): email, phone. A QR can be photographed.
 - **Companion extras** (mesh id on, Matrix id on, ticket off): other camera
   apps ignore these.
@@ -44,6 +54,17 @@ re-encoded a beat after each edit and the profile is saved at the same time;
 key badge, where you met (the session running at scan time) and the
 signature state; search, export (.vcf / JSON backup) and import live in the
 same section.
+
+## Photo (#95)
+
+The card can carry a `PHOTO;VALUE=URI:` link — never the bytes, which would
+not fit a QR. `avatarUrlFor()` picks, in order: a picture the profile states
+(imported from FOSS United or GitHub), the GitHub avatar
+(`github.com/<user>.png`) when the GitHub link is shared, then a Gravatar
+(SHA-256 of the email, `d=404`) only when the email is shared, since the hash
+identifies it. The photo switch in the Identity group turns it off. The
+scanner keeps an https `PHOTO` link on a scanned card and "People I met"
+shows it, falling back to the key badge; a broken link falls back too.
 
 ## Privacy guarantees
 

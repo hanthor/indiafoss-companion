@@ -60,8 +60,16 @@ a11y: build
 offline-e2e: build
     cd apps/web && pnpm exec playwright test tests/offline.spec.ts
 
+# Run the day simulator gate (reminders and banner over a simulated morning).
+simulate-e2e: build
+    cd apps/web && pnpm exec playwright test tests/simulate.spec.ts
+
+# Walk the built app through a whole conference day at speed and print the timeline.
+simulate day="2025-09-20" speed="600":
+    cd apps/web && node scripts/simulate.mjs --day {{day}} --speed {{speed}}
+
 # Run all local checks, including browser E2E and accessibility.
-ci: check test-e2e a11y offline-e2e
+ci: check test-e2e a11y offline-e2e simulate-e2e
 
 # Run the production dependency audit (report-only in GitHub Actions for now).
 audit:

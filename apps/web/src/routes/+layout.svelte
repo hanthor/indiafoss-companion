@@ -6,13 +6,27 @@
   import { registerSW } from 'virtual:pwa-register';
   import { hydratePreferences } from '$lib/prefs.svelte';
   import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
-  import { armNotifications, hydrateNotifications } from '$lib/notifications.svelte';
+  import {
+    armNotifications,
+    disarmNotifications,
+    hydrateNotifications,
+  } from '$lib/notifications.svelte';
+  import { untrack } from 'svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
   import { hydrateMatrix, matrixState, unreadTotal } from '$lib/matrix.svelte';
   import { features, hydrateFeatures } from '$lib/features.svelte';
   import { installNativeDeepLinks } from '$lib/native';
   import LeaveByBanner from '$lib/components/LeaveByBanner.svelte';
+  import SimulatorStrip from '$lib/components/SimulatorStrip.svelte';
   import { goto } from '$app/navigation';
+  import {
+    hydrateSimulator,
+    logSimEvent,
+    simState,
+    startSimulationFromParams,
+    tickInterval,
+  } from '$lib/simulator.svelte';
+  import { simulationSpeed } from '$lib/clock';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
@@ -28,11 +42,38 @@
     // Deep-link targets are validated in routeForDeepLink() before navigation.
     // eslint-disable-next-line svelte/no-navigation-without-resolve
     void installNativeDeepLinks(base, (path) => goto(path)).catch(() => {});
+    hydrateSimulator();
+  });
+
+  // Reminders are re-armed once a minute of app time: every real minute, or
+  // much more often while the day simulator runs the clock fast. A run
+  // starting or stopping moves the clock, so everything armed is dropped and
+  // re-armed on the new one.
+  $effect(() => {
+    const run = simState.run;
+    const every = run ? untrack(() => tickInterval(60_000)) : 60_000;
     const timer = setInterval(() => {
       void armNotifications();
-    }, 60_000);
-    void armNotifications();
+    }, every);
+    void disarmNotifications().then(() => armNotifications());
     return () => clearInterval(timer);
+  });
+
+  // `?now=<iso>&speed=<n>` starts the day simulator from a link (#93). Only
+  // the URL is a dependency: stopping the run must not start it again.
+  $effect(() => {
+    const now = page.url.searchParams.get('now');
+    const speed = simulationSpeed(page.url.searchParams.get('speed'));
+    if (now && speed !== null) untrack(() => startSimulationFromParams(now, speed));
+  });
+
+  // The simulator log records which screen was open when, for the walk-through.
+  let loggedPath = '';
+  $effect(() => {
+    const path = page.url.pathname.replace(base, '') || '/';
+    if (!simState.run || path === loggedPath) return;
+    loggedPath = path;
+    untrack(() => logSimEvent('screen', path));
   });
 
   $effect(() => {
@@ -138,6 +179,7 @@
     </nav>
   </header>
   <div class="pixelstripe" aria-hidden="true"></div>
+  <SimulatorStrip />
   <LeaveByBanner />
 
   <main class="content" class:fullbleed>

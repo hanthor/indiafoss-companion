@@ -99,6 +99,9 @@ jobs:
       - name: Run offline E2E gate
         run: pnpm --filter @indiafoss/web exec playwright test tests/offline.spec.ts
 
+      - name: Run the day-simulator gate
+        run: pnpm --filter @indiafoss/web exec playwright test tests/simulate.spec.ts
+
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4

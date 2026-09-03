@@ -3,7 +3,14 @@ import { solveDay, DefaultTravelTime, DEFAULT_FLEXIBLE_GOALS } from '@indiafoss/
 import type { FlexibleGoal, SolverPreferences, TravelTimeProvider } from '@indiafoss/solver';
 import { createGraphTravelTime } from '@indiafoss/venue';
 import { CompanionStorage } from '@indiafoss/storage';
-import { bookmarked, dispositionOf, hydratePreferences, ratingOf } from '$lib/prefs.svelte';
+import {
+  bookmarked,
+  dispositionOf,
+  hydrateComparisons,
+  hydratePreferences,
+  ratingOf,
+} from '$lib/prefs.svelte';
+import { affinityModel, effectiveRating } from '$lib/priors.svelte';
 import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
 import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
 
@@ -59,21 +66,32 @@ export async function travelForEvent(bundle: EventBundle): Promise<TravelTimePro
  * venue route durations under the attendee's routing profile (§29).
  */
 export async function solveForDay(bundle: EventBundle, day: string, lockedIds: string[] = []) {
-  await hydratePreferences();
+  await Promise.all([hydratePreferences(), hydrateComparisons()]);
   const [boothGoals, travel] = await Promise.all([
     plannedBoothVisits(bundle),
     travelForEvent(bundle),
   ]);
+  // Sessions the attendee has not ranked yet borrow the taste learnt from the
+  // ones they have (#90); the stored ratings are untouched.
+  const model = affinityModel(bundle);
+  // Lookup table for one solve; nothing observes it.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const activityById = new Map(bundle.activities.map((a) => [a.id, a]));
+  const ratingWithTaste = (id: string): number => {
+    const activity = activityById.get(id);
+    return activity ? effectiveRating(activity, model) : ratingOf(id);
+  };
   // Locked itinerary rows are hard constraints: the solver must keep them (§18).
   // Plain lookup set for one solve; nothing observes it.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const locked = new Set(lockedIds);
-  const prefs: SolverPreferences = locked.size
-    ? {
-        ...preferences,
-        dispositionOf: (id) => (locked.has(id) ? 'must-attend' : dispositionOf(id)),
-      }
-    : preferences;
+  const prefs: SolverPreferences = {
+    ...preferences,
+    ratingOf: ratingWithTaste,
+    ...(locked.size
+      ? { dispositionOf: (id) => (locked.has(id) ? 'must-attend' : dispositionOf(id)) }
+      : {}),
+  };
   const result = solveDay({
     bundle,
     day,

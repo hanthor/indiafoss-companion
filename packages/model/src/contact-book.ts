@@ -15,6 +15,7 @@ export interface ContactBookEntry {
   phone?: string;
   website?: string;
   fossUnitedProfileUrl?: string;
+  avatarUrl?: string;
   matrixId?: string;
   neutrinoServerName?: string;
   ticketRef?: string;
@@ -107,6 +108,7 @@ function entryFromProfile(
     ...(profile.phone ? { phone: profile.phone } : {}),
     ...(profile.website ? { website: profile.website } : {}),
     ...(profile.fossUnitedProfileUrl ? { fossUnitedProfileUrl: profile.fossUnitedProfileUrl } : {}),
+    ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl } : {}),
     ...(profile.matrixId ? { matrixId: profile.matrixId } : {}),
     ...(profile.neutrinoServerName ? { neutrinoServerName: profile.neutrinoServerName } : {}),
     ...(profile.ticketRef ? { ticketRef: profile.ticketRef } : {}),

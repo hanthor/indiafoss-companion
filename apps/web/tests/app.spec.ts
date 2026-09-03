@@ -64,7 +64,7 @@ test('explore search responds and renders results', async ({ page }) => {
 });
 
 test('elo ranking compares two sessions and advances', async ({ page }) => {
-  await page.goto(appUrl('/plan/rank'));
+  await page.goto(appUrl('/plan/rank?mode=pairs'));
   // Two candidate cards appear.
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await expect(page.getByTestId('candidate-b')).toBeVisible();
@@ -93,14 +93,14 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
 });
 
 test('ranking supports keyboard choices and undo', async ({ page }) => {
-  await page.goto(appUrl('/plan/rank'));
+  await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await expect(page.getByText(/0 \/ \d+ CHOICES/)).toBeVisible();
+  await expect(page.getByText(/0 CHOICES · \d+ TO GO/)).toBeVisible();
 
   // Keyboard choice via number key advances the choice count.
   await page.keyboard.press('1');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 \/ \d+ CHOICES/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
 
   // Undo becomes enabled after a choice and reverses the last comparison.
   const undo = page.getByRole('button', { name: /Undo last/ });
@@ -112,7 +112,52 @@ test('ranking supports keyboard choices and undo', async ({ page }) => {
   // Arrow keys pick the top or bottom card without a pointer.
   await page.keyboard.press('ArrowUp');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 \/ \d+ CHOICES/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+});
+
+test('ranking starts with a quick pass that narrows the overlaps to settle', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank'));
+  // A fresh day opens on the quick pass.
+  await expect(page.getByRole('tab', { name: /Quick pass/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  const rows = page.getByTestId('quick-row');
+  const before = await rows.count();
+  expect(before).toBeGreaterThan(5);
+  // "No" removes a session from the running; "Yes" keeps it.
+  await rows
+    .first()
+    .getByRole('button', { name: /^No to/ })
+    .click();
+  await rows
+    .first()
+    .getByRole('button', { name: /^Yes to/ })
+    .click();
+  await expect(rows).toHaveCount(before - 2);
+  await expect(page.getByText(/1 IN · 1 OUT/)).toBeVisible();
+  // Answers survive a reload and can be changed.
+  await page.reload();
+  await expect(page.getByText(/1 IN · 1 OUT/)).toBeVisible();
+  await page.getByRole('button', { name: /Change answered/ }).click();
+  await page.getByRole('button', { name: 'Undo' }).first().click();
+  await expect(page.getByText(/1 IN · 0 OUT|0 IN · 1 OUT/)).toBeVisible();
+  // Head to head is one tap away and shows only open overlaps.
+  await page.getByRole('tab', { name: /Head to head/ }).click();
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+});
+
+test('answered pairs are not asked again after a reload', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank?mode=pairs'));
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+  const first = await page.getByTestId('candidate-a').textContent();
+  await page.getByTestId('candidate-a').click();
+  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+  await page.reload();
+  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+  // The winner now leads its clash, so the same pair does not come back.
+  const again = await page.getByTestId('candidate-a').textContent();
+  expect(again).not.toBe(first);
 });
 
 test('ranking respects reduced motion while still recording choices', async ({ browser }) => {
@@ -120,11 +165,11 @@ test('ranking respects reduced motion while still recording choices', async ({ b
   const page = await context.newPage();
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
-  await page.goto(appUrl('/plan/rank'));
+  await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await page.getByTestId('candidate-a').click();
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 \/ \d+ CHOICES/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
   await context.close();
 });
 

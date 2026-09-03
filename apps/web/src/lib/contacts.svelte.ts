@@ -63,6 +63,7 @@ export function contactFromVCard(
     phone: card.phone,
     website: card.website,
     fossUnitedProfileUrl: card.fossUnitedProfileUrl,
+    avatarUrl: card.avatarUrl,
     matrixId: card.matrixId,
     neutrinoServerName: card.neutrinoServerName,
     ticketRef: card.ticketRef,

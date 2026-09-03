@@ -68,6 +68,17 @@ export interface ImportedChange {
   value: string;
 }
 
+/** What any import can contribute: a FOSS United page, the GitHub API, the phone's own contact card. */
+export interface ImportedProfile {
+  fullName?: string;
+  organization?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  avatarUrl?: string;
+  socials: Partial<Record<AttendeeSocial, string>>;
+}
+
 /**
  * Merge an imported profile into the attendee's card without clobbering
  * anything they typed: only empty fields are filled. Returns what changed so
@@ -75,17 +86,28 @@ export interface ImportedChange {
  */
 export function applyImportedProfile(
   target: AttendeeProfile,
-  imported: FossUnitedProfile,
+  imported: ImportedProfile | FossUnitedProfile,
 ): ImportedChange[] {
   const changes: ImportedChange[] = [];
+  const fill = (
+    key: 'organization' | 'email' | 'phone' | 'website' | 'avatarUrl',
+    label: string,
+  ): void => {
+    const value = (imported as ImportedProfile)[key];
+    if (value && !target[key]?.trim()) {
+      target[key] = value;
+      changes.push({ field: label, value });
+    }
+  };
   if (imported.fullName && !target.fullName.trim()) {
     target.fullName = imported.fullName;
     changes.push({ field: 'Name', value: imported.fullName });
   }
-  if (imported.website && !target.website?.trim()) {
-    target.website = imported.website;
-    changes.push({ field: 'Website', value: imported.website });
-  }
+  fill('organization', 'Organisation');
+  fill('email', 'Email');
+  fill('phone', 'Phone');
+  fill('website', 'Website');
+  fill('avatarUrl', 'Photo');
   for (const [network, value] of Object.entries(imported.socials)) {
     const key = network as AttendeeSocial;
     if (!value || target.socials[key]?.trim()) continue;

@@ -14,7 +14,9 @@
     "lint": "eslint .",
     "test:e2e": "playwright test tests/app.spec.ts",
     "postbuild": "node scripts/patch-sw.mjs",
-    "screenshots": "node scripts/screenshots.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "simulate": "node scripts/simulate.mjs",
+    "test:simulate": "playwright test tests/simulate.spec.ts"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.0",

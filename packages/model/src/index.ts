@@ -174,8 +174,12 @@ export interface EventReference {
 
 export {
   attendeeProfileToVCard,
+  avatarUrlFor,
   classifyLink,
   contactDeepLinks,
+  githubAvatarUrl,
+  githubUsername,
+  gravatarUrl,
   LINK_LABELS,
   linksFromUrls,
   sortLinks,

@@ -48,8 +48,9 @@ export async function signedAttendeeVCard(
   profile: AttendeeProfile,
   selection: AttendeeShareSelection,
   pair: HandshakeKeyPair | null,
+  options?: { gravatarUrl?: string | null },
 ): Promise<string> {
-  const base = attendeeProfileToVCard(profile, selection);
+  const base = attendeeProfileToVCard(profile, selection, options);
   if (!pair) return base;
 
   const withKey = base.replace(

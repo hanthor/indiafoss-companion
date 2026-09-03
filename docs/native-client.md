@@ -11,7 +11,7 @@ exist.
 
 ```
 apps/android/native
-├── core/   pure-JVM Kotlin: bundle model, schedule maths, Elo ranking
+├── core/   pure-JVM Kotlin: bundle model, schedule maths, Elo ranking (same selection rules as the PWA: overlaps only, settled gaps skipped — docs/ranking.md)
 └── app/    Compose UI, DataStore preferences, bundle repository
 ```
 

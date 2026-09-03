@@ -217,6 +217,10 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
       case 'X-FOSSUNITED-PROFILE':
         if (decoded) profile.fossUnitedProfileUrl = decoded;
         break;
+      case 'PHOTO':
+        // Only a public https link; inline image data would not fit a QR anyway.
+        if (/^https:\/\/\S+$/i.test(decoded)) profile.avatarUrl = decoded;
+        break;
       // Both spellings: cards written before the single-QR redesign used the
       // longer names, and they still scan.
       case 'X-INDIAFOSS-MATRIX':
