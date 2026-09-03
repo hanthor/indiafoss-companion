@@ -89,6 +89,25 @@ describe('computeNextUp', () => {
     expect(next?.leaveBy).toBeNull();
   });
 
+  it('never falls back to a break or a meal, but a bookmarked one still counts', () => {
+    const first = base.bundle.activities[0]!;
+    const tea = {
+      ...first,
+      id: 'tea',
+      title: 'Tea Break',
+      start: new Date(Date.parse(first.start!) - 30 * 60_000).toISOString(),
+      end: new Date(Date.parse(first.start!) - 15 * 60_000).toISOString(),
+    };
+    const withBreak = {
+      ...base,
+      bundle: { ...base.bundle, activities: [tea, ...base.bundle.activities] },
+    };
+    expect(computeNextUp({ ...withBreak, bookmarked: () => false })?.activity.id).toBe('a');
+    expect(computeNextUp({ ...withBreak, bookmarked: (id) => id === 'tea' })?.activity.id).toBe(
+      'tea',
+    );
+  });
+
   it('falls back to the next session in the programme', () => {
     const next = computeNextUp({ ...base, bookmarked: () => false });
     expect(next?.activity.id).toBe('a');

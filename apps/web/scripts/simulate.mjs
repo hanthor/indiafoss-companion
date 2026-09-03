@@ -32,18 +32,41 @@ const OFFSET = '+05:30';
 const MUST = (args.must ?? 'act-c8ak0iov2l').split(',').filter(Boolean);
 const BOOKMARK = (args.bookmark ?? '').split(',').filter(Boolean);
 /** Screens the walk-through cycles through while the day runs. */
-const SCREENS = ['/now', '/plan', '/map', '/schedule'];
+const SCREENS = [
+  { path: '/now', label: 'Now' },
+  { path: '/plan', label: 'Plan' },
+  { path: '/map', label: 'Map' },
+  { path: '/schedule', label: 'Schedule' },
+];
 
 const startIso = `${DAY}T${FROM}:00${OFFSET}`;
 const untilIso = `${DAY}T${UNTIL}:00${OFFSET}`;
 
-const server = spawn('pnpm', ['exec', 'sirv', build, '--single', '--port', '4181'], {
+// A port of its own each run: a server left behind by an interrupted run would
+// otherwise keep serving a stale build. sirv is started directly, in its own
+// process group, so it can be killed for certain at the end (through `pnpm
+// exec` the grandchild would outlive the parent and hold the port).
+const port = 4200 + Math.floor(Math.random() * 500);
+const sirv = join(here, '..', 'node_modules', 'sirv-cli', 'bin.js');
+const server = spawn(process.execPath, [sirv, build, '--single', '--port', String(port)], {
   stdio: 'ignore',
+  detached: true,
 });
+const stopServer = () => {
+  try {
+    process.kill(-server.pid, 'SIGTERM');
+  } catch {
+    /* already gone */
+  }
+};
+process.on('exit', stopServer);
 await new Promise((r) => setTimeout(r, 2500));
-const origin = 'http://127.0.0.1:4181';
+const origin = `http://127.0.0.1:${port}`;
 
-const browser = await chromium.launch();
+// PW_CHROME points at a Chromium to use instead of Playwright's own download.
+const browser = await chromium.launch(
+  process.env.PW_CHROME ? { executablePath: process.env.PW_CHROME } : {},
+);
 const context = await browser.newContext({
   ...devices['Pixel 7'],
   viewport: { width: 390, height: 844 },
@@ -71,6 +94,8 @@ try {
   await page.getByTestId('sim-strip').waitFor();
 
   // Cycle the screens every couple of real seconds until the day is over.
+  // Through the tab bar, as a thumb would: a full navigation would reload the
+  // page and drop the reminder timers, which is not what happens in the app.
   let screen = 0;
   const deadline = Date.now() + 10 * 60_000;
   for (;;) {
@@ -78,7 +103,7 @@ try {
     if (!now || now >= untilIso || Date.now() > deadline) break;
     await page.waitForTimeout(2000);
     screen = (screen + 1) % SCREENS.length;
-    await page.goto(`${origin}${SCREENS[screen]}`);
+    await page.getByRole('link', { name: SCREENS[screen].label, exact: true }).first().click();
   }
 
   const state = await page.evaluate(() => window.__indiafossSim?.state());
@@ -102,5 +127,6 @@ try {
   console.log('Full log: apps/web/simulation-report.json');
 } finally {
   await browser.close();
-  server.kill();
+  stopServer();
 }
+process.exit(0);
