@@ -42,8 +42,7 @@ changes, update the issue first, then this file, so neither drifts.
 | 8   | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Production event revision handling                                          | Confirm against the live 2026 programme.                                                                                                                                                                         |
 | 9   | [#35](https://github.com/hanthor/indiafoss-companion/issues/35), [#74](https://github.com/hanthor/indiafoss-companion/issues/74) P2P chat | Worked separately.                                                                                                                                                                                               |
 
-Closed as done: #2, #7 (revision handling, see queue row 8 for the live
-check), #10 (native client), #12 (notifications), #29, #32 (socials), #52–#55,
+Closed as done: #2, #10 (native client), #12 (notifications), #29, #32 (socials), #52–#55,
 #60, #90 (ranking speed), #92 (dup of #93), #93 (simulator), #94 (contacts
 import), #95 (photo), #96 (FOSS United as a link).
 
