@@ -307,7 +307,7 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     ).toBe(404);
   });
 
-  it('has no media repository, so files and photos cannot be sent', async () => {
+  it.skipIf(fork)('has no media repository, so files and photos cannot be sent', async () => {
     expect(await missing('POST', '/_matrix/media/v3/upload', {})).toBe(404);
   });
 
@@ -542,4 +542,44 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     const onLaptop = await callAs(laptopToken, 'GET', '/_matrix/client/v3/sync?timeout=0');
     expect(events(onLaptop)).toEqual(['laptop']);
   });
+
+  it.skipIf(!fork)(
+    'fork: media uploads, downloads on both paths, and refuses over the cap',
+    async () => {
+      const config = await call('GET', '/_matrix/media/v3/config');
+      expect(config.status).toBe(200);
+      const cap = Number(config.body['m.upload.size']);
+      expect(cap).toBeGreaterThan(0);
+
+      const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4]);
+      const upload = await fetch(`${BASE}/_matrix/media/v3/upload?filename=probe.png`, {
+        method: 'POST',
+        headers: { 'content-type': 'image/png', authorization: `Bearer ${token}` },
+        body: png,
+      });
+      expect(upload.status).toBe(200);
+      const { content_uri } = (await upload.json()) as { content_uri: string };
+      const [, server, id] = content_uri.match(/^mxc:\/\/([^/]+)\/(.+)$/)!;
+
+      for (const path of [
+        `/_matrix/client/v1/media/download/${server}/${id}`,
+        `/_matrix/media/v3/download/${server}/${id}`,
+      ]) {
+        const res = await fetch(`${BASE}${path}`, {
+          headers: { authorization: `Bearer ${token}` },
+        });
+        expect(res.status).toBe(200);
+        expect(res.headers.get('content-type')).toBe('image/png');
+        expect(new Uint8Array(await res.arrayBuffer())).toEqual(png);
+      }
+
+      const tooBig = await fetch(`${BASE}/_matrix/media/v3/upload`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/octet-stream', authorization: `Bearer ${token}` },
+        body: new Uint8Array(cap + 1),
+      });
+      expect(tooBig.status).toBe(413);
+      expect(((await tooBig.json()) as { errcode: string }).errcode).toBe('M_TOO_LARGE');
+    },
+  );
 });

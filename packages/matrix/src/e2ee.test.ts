@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MatrixSessionManager, MemoryMatrixStore } from './session.js';
+import { MatrixSessionManager, MemoryMatrixStore, type MatrixSessionOptions } from './session.js';
 import { WasmCryptoBackend } from './crypto.js';
 import type { FetchLike } from './http.js';
 import type { RawMatrixEvent } from './types.js';
@@ -10,6 +10,8 @@ import type { RawMatrixEvent } from './types.js';
  * Megolm room key and exchange encrypted messages and attachments.
  */
 class KeyServer {
+  /** `m.upload.size`; `null` = the server does not say (no config route). */
+  uploadLimit: number | null = null;
   deviceKeys: Record<string, Record<string, unknown>> = {};
   oneTimeKeys: Record<string, Record<string, Record<string, unknown>[]>> = {};
   fallbackKeys: Record<string, Record<string, Record<string, unknown>>> = {};
@@ -123,6 +125,13 @@ class KeyServer {
         this.typing['!r:hs'] = [...set];
         return json({});
       }
+      if (path.includes('/media/config')) {
+        return this.uploadLimit === null
+          ? new Response(JSON.stringify({ errcode: 'M_UNRECOGNIZED', error: 'no' }), {
+              status: 404,
+            })
+          : json({ 'm.upload.size': this.uploadLimit });
+      }
       if (path.includes('/media/v3/upload')) {
         const id = `m${++this.counter}`;
         this.media[id] = new Uint8Array(await new Response(init?.body as BodyInit).arrayBuffer());
@@ -199,7 +208,12 @@ async function settle(ms = 60): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function client(server: KeyServer, userId: string, deviceId: string) {
+function client(
+  server: KeyServer,
+  userId: string,
+  deviceId: string,
+  extra: Partial<MatrixSessionOptions> = {},
+) {
   const store = new MemoryMatrixStore();
   const manager = new MatrixSessionManager(store, {
     fetch: server.fetchFor(userId, deviceId),
@@ -207,6 +221,7 @@ function client(server: KeyServer, userId: string, deviceId: string) {
     maxBackoffMs: 10,
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, Math.min(ms, 10))),
     crypto: (u, d) => WasmCryptoBackend.create(u, d),
+    ...extra,
   });
   return { manager, store };
 }
@@ -409,5 +424,35 @@ describe('a homeserver that cannot carry key material', () => {
     expect(snapshot.outbox).toHaveLength(0);
     expect(snapshot.timelines['!r:hs'] ?? []).toHaveLength(0);
     expect(server.timeline).toHaveLength(0);
+  });
+
+  it('honours the server upload cap before a byte leaves the device', async () => {
+    const server = new KeyServer();
+    server.uploadLimit = 64;
+    const shrunk: number[] = [];
+    const alice = client(server, '@alice:hs', 'ALICE1', {
+      downscaleImage: async (bytes, _mime, maxBytes) => {
+        shrunk.push(bytes.byteLength);
+        return bytes.slice(0, maxBytes);
+      },
+    });
+    await alice.manager.signInWithPassword('https://hs', 'alice', 'pw');
+    await settle(150);
+
+    // A file over the cap is refused with the spec's code and never uploaded.
+    const big = new Uint8Array(200);
+    await expect(
+      alice.manager.sendFile('!r:hs', big, 'big.bin', 'application/pdf'),
+    ).rejects.toMatchObject({ errcode: 'M_TOO_LARGE' });
+    expect(Object.keys(server.media)).toHaveLength(0);
+    expect(alice.manager.snapshot().uploadLimit).toBe(64);
+
+    // An image over the cap is shrunk by the host and then sent.
+    await alice.manager.sendFile('!r:hs', big, 'big.png', 'image/png');
+    await settle(150);
+    expect(shrunk).toEqual([200]);
+    expect(Object.keys(server.media)).toHaveLength(1);
+
+    await alice.manager.stop();
   });
 });

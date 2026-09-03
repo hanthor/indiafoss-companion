@@ -1,0 +1,1063 @@
+From 599e3eb195109c5377ba858aa7031c4a67617c0f Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 07:34:25 +0000
+Subject: [PATCH] Media over the mesh, with a size cap
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+A content repository small enough for a BLE hop.
+
+- `POST /_matrix/media/v3/upload` stores the body verbatim under
+  `mxc://{our name}/{id}`; `GET /_matrix/client/v1/media/download` (the
+  authenticated path) and its legacy `/_matrix/media/v3/download` twin
+  serve it with the spec's inline-or-attachment disposition and CSP.
+- `GET /_matrix/media/v3/config` and `/_matrix/client/v1/media/config`
+  advertise `m.upload.size`, the cap: 256 KiB by default,
+  `NEUTRINO_MEDIA_MAX_BYTES` overrides. An upload over it is refused
+  `413 M_TOO_LARGE` on its declared length before the body is read, and
+  capped as it is read when nothing is declared.
+- `GET /_matrix/federation/v1/media/download/{id}` serves what this
+  server's users uploaded to an authenticated peer as `multipart/mixed`
+  (metadata part, then content), the spec's shape. A download for
+  another server's `mxc://` that this node does not hold is fetched from
+  that server once, refused unread over the cap, cached under the
+  peer's name, and served — so a photo sent on one phone opens on the
+  next.
+- Blobs live in the store (`media` table): uploads are capped small,
+  and one file to back up beats a second store on disk.
+
+Complement: TestMediaConfig joins the allowlist.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BpiYvGvwkJUSJAXCXAkai1
+---
+ complement/allowlist.txt                      |   6 +
+ crates/neutrino-ctl/src/lib.rs                |  15 +
+ crates/neutrino-http/src/federation/client.rs |  57 +++
+ crates/neutrino-http/src/lib.rs               |  16 +
+ crates/neutrino-http/src/media.rs             | 405 ++++++++++++++++++
+ crates/neutrino-http/tests/e2e_media.rs       | 234 ++++++++++
+ crates/neutrino-store-sqlite/src/schema.sql   |  13 +
+ .../neutrino-store-sqlite/src/store/media.rs  |  97 +++++
+ crates/neutrino-store-sqlite/src/store/mod.rs |   1 +
+ crates/neutrino-store/src/lib.rs              |  34 ++
+ 10 files changed, 878 insertions(+)
+ create mode 100644 crates/neutrino-http/src/media.rs
+ create mode 100644 crates/neutrino-http/tests/e2e_media.rs
+ create mode 100644 crates/neutrino-store-sqlite/src/store/media.rs
+
+diff --git a/complement/allowlist.txt b/complement/allowlist.txt
+index 0a47daa..b3e82e0 100644
+--- a/complement/allowlist.txt
++++ b/complement/allowlist.txt
+@@ -146,3 +146,9 @@ TestKeyChangesLocal$
+ # keyed per device. `TestRoomReadMarkers` stays out: `/read_markers` is not
+ # wired.
+ TestAddAccountData$
++
++# Media (2026-09-03): upload, authenticated and legacy download, config with
++# the cap, federation download. `TestRoomImageRoundtrip` stays out: it reads
++# the room back through a `/messages` filter (`contains_url`), which is not
++# wired. `TestAsyncUpload` stays out: no `/create` for async uploads.
++TestMediaConfig$
+diff --git a/crates/neutrino-ctl/src/lib.rs b/crates/neutrino-ctl/src/lib.rs
+index f075477..ebba591 100644
+--- a/crates/neutrino-ctl/src/lib.rs
++++ b/crates/neutrino-ctl/src/lib.rs
+@@ -109,8 +109,17 @@ pub struct Config {
+     /// `DeliveryStore`), so flipping this on takes effect immediately rather
+     /// than from the next delivery onwards.
+     pub delivery_receipts: bool,
++    /// Largest media upload the content repository accepts, in bytes, and the
++    /// largest it will fetch from a peer. Advertised as `m.upload.size` so a
++    /// client can refuse before any bytes cross the link. Default 256 KiB:
++    /// a mesh hop is a BLE link, and a photo that size still reads fine on a
++    /// phone. `NEUTRINO_MEDIA_MAX_BYTES` overrides.
++    pub media_max_bytes: usize,
+ }
+ 
++/// See [`Config::media_max_bytes`].
++pub const DEFAULT_MEDIA_MAX_BYTES: usize = 256 * 1024;
++
+ impl Default for Config {
+     fn default() -> Self {
+         Self {
+@@ -126,6 +135,7 @@ impl Default for Config {
+             trusted_network: true,
+             log_dir: None,
+             delivery_receipts: false,
++            media_max_bytes: DEFAULT_MEDIA_MAX_BYTES,
+         }
+     }
+ }
+@@ -172,6 +182,11 @@ impl Config {
+             // the field docs — the receipts are synthesised, not real).
+             delivery_receipts: std::env::var("NEUTRINO_DELIVERY_RECEIPTS")
+                 .is_ok_and(|v| matches!(v.as_str(), "1" | "true")),
++            media_max_bytes: std::env::var("NEUTRINO_MEDIA_MAX_BYTES")
++                .ok()
++                .and_then(|v| v.parse().ok())
++                .filter(|n| *n > 0)
++                .unwrap_or(DEFAULT_MEDIA_MAX_BYTES),
+             // `localpart` (and any future non-env field) defaults from `Default`,
+             // so the value lives in exactly one place.
+             ..Default::default()
+diff --git a/crates/neutrino-http/src/federation/client.rs b/crates/neutrino-http/src/federation/client.rs
+index 3f8d989..381b652 100644
+--- a/crates/neutrino-http/src/federation/client.rs
++++ b/crates/neutrino-http/src/federation/client.rs
+@@ -59,6 +59,10 @@ pub(crate) enum FederationClientError {
+     /// surfaced rather than panicked on.
+     #[error("could not build federation URL")]
+     InvalidUrl,
++    /// The peer answered 2xx with a body that is not what the endpoint
++    /// promises — or more of it than this server will hold.
++    #[error("malformed federation response: {0}")]
++    Malformed(&'static str),
+ }
+ 
+ /// reqwest-backed client for outbound federation requests.
+@@ -246,6 +250,59 @@ impl FederationClient {
+         Ok(resp.json::<Value>().await?)
+     }
+ 
++    /// `GET http://{dest}/_matrix/federation/v1/media/download/{media_id}` —
++    /// fetch content a peer's user uploaded. The body is `multipart/mixed`
++    /// (metadata, then content); anything over `cap` bytes is refused
++    /// unread, so a peer cannot push more than this server will hold.
++    pub(crate) async fn media_download(
++        &self,
++        dest: &ServerName,
++        media_id: &str,
++        cap: usize,
++    ) -> Result<neutrino_store::StoredMedia, FederationClientError> {
++        let url = format!(
++            "http://{}/_matrix/federation/v1/media/download/{}",
++            self.url_authority(dest),
++            media_id
++        );
++        info!(target: "neutrino_http", %dest, %media_id, "outbound GET /_matrix/federation/v1/media/download");
++        let resp = self
++            .http
++            .get(&url)
++            .header(reqwest::header::AUTHORIZATION, self.x_matrix(dest))
++            .send()
++            .await?;
++        if !resp.status().is_success() {
++            return Err(non_2xx_error(resp, dest, "GET /media/download").await);
++        }
++        if resp
++            .content_length()
++            .is_some_and(|len| len > cap as u64 + 1024)
++        {
++            return Err(FederationClientError::Malformed("media over the cap"));
++        }
++        let boundary = resp
++            .headers()
++            .get(reqwest::header::CONTENT_TYPE)
++            .and_then(|v| v.to_str().ok())
++            .and_then(crate::media::multipart_boundary)
++            .ok_or(FederationClientError::Malformed("not multipart/mixed"))?;
++        let body = resp.bytes().await?;
++        if body.len() > cap + 1024 {
++            return Err(FederationClientError::Malformed("media over the cap"));
++        }
++        let (content_type, bytes) = crate::media::parse_multipart(&boundary, &body)
++            .ok_or(FederationClientError::Malformed("no content part"))?;
++        if bytes.len() > cap {
++            return Err(FederationClientError::Malformed("media over the cap"));
++        }
++        Ok(neutrino_store::StoredMedia {
++            content_type,
++            filename: None,
++            bytes,
++        })
++    }
++
+     /// `POST http://{dest}/_matrix/federation/v1/user/keys/claim` — take one
+     /// one-time key per requested remote device. Returns the peer's
+     /// `one_time_keys` map (absent or malformed becomes an empty object: a peer
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 10012d3..f9e97a6 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -40,6 +40,7 @@ mod e2ee;
+ mod ephemeral;
+ mod federation;
+ mod legacy_sync;
++mod media;
+ mod membership;
+ mod messages;
+ mod redactions;
+@@ -733,6 +734,21 @@ fn build_router(state: &AppState) -> Router {
+             get(get_room_account_data).put(put_room_account_data),
+         )
+         .route("/_matrix/client/v3/account/whoami", get(whoami))
++        .route("/_matrix/media/v3/upload", post(media::upload))
++        .route("/_matrix/media/v3/config", get(media::config))
++        .route("/_matrix/client/v1/media/config", get(media::config))
++        .route(
++            "/_matrix/client/v1/media/download/{server_name}/{media_id}",
++            get(media::download),
++        )
++        .route(
++            "/_matrix/media/v3/download/{server_name}/{media_id}",
++            get(media::download_legacy),
++        )
++        .route(
++            "/_matrix/federation/v1/media/download/{media_id}",
++            get(media::federation_download),
++        )
+         .route("/_matrix/client/v3/room_keys/version", get(get_room_keys))
+         .route("/_matrix/client/v3/createRoom", post(create_room))
+         .route("/_matrix/client/v3/rooms/{room_id}/members", get(members))
+diff --git a/crates/neutrino-http/src/media.rs b/crates/neutrino-http/src/media.rs
+new file mode 100644
+index 0000000..18d9474
+--- /dev/null
++++ b/crates/neutrino-http/src/media.rs
+@@ -0,0 +1,405 @@
++//! The content repository: `POST /_matrix/media/v3/upload`, the
++//! authenticated download and its legacy twin, `/media/config`, and the
++//! federation download a peer uses to fetch what another node holds.
++//!
++//! Everything is capped at [`neutrino_ctl::Config::media_max_bytes`]: an
++//! upload over it is refused on its declared length before the body is read,
++//! and a peer's content over it is not fetched. The cap is advertised as
++//! `m.upload.size` so a client can refuse before any bytes cross a BLE link.
++//! Content is stored verbatim under `(origin, media id)`; what a peer serves
++//! is cached under the peer's name, so the same `mxc://` resolves the same
++//! way on every node that has seen it.
++
++use std::collections::HashMap;
++
++use axum::Json;
++use axum::body::Body;
++use axum::extract::{Path, Query, State};
++use axum::http::{HeaderMap, StatusCode, header};
++use axum::response::{IntoResponse, Response};
++use neutrino_store::{MediaStore, StoredMedia};
++use ruma::OwnedServerName;
++use serde_json::{Value, json};
++use tracing::warn;
++
++use crate::federation::{FedError, auth};
++use crate::{AppState, AuthUser, error_response, lock_app};
++
++fn too_large(cap: usize) -> Response {
++    error_response(
++        StatusCode::PAYLOAD_TOO_LARGE,
++        "M_TOO_LARGE",
++        &format!("Media exceeds this server's {cap} byte cap"),
++    )
++}
++
++fn not_found() -> Response {
++    error_response(StatusCode::NOT_FOUND, "M_NOT_FOUND", "Media not found")
++}
++
++fn fresh_media_id() -> String {
++    use rand::Rng;
++    use rand::distr::Alphanumeric;
++    rand::rng()
++        .sample_iter(Alphanumeric)
++        .take(24)
++        .map(char::from)
++        .collect()
++}
++
++/// `GET /_matrix/media/v3/config` and `/_matrix/client/v1/media/config`.
++pub(crate) async fn config(State(state): State<AppState>, AuthUser(_): AuthUser) -> Json<Value> {
++    let cap = lock_app(&state).config.media_max_bytes;
++    Json(json!({ "m.upload.size": cap }))
++}
++
++/// `POST /_matrix/media/v3/upload`: the body is the content, verbatim.
++pub(crate) async fn upload(
++    State(state): State<AppState>,
++    AuthUser(uploader): AuthUser,
++    Query(params): Query<HashMap<String, String>>,
++    headers: HeaderMap,
++    body: Body,
++) -> Response {
++    let (cap, store, our_name) = {
++        let app = lock_app(&state);
++        (
++            app.config.media_max_bytes,
++            app.store.clone(),
++            app.config.server_name.clone(),
++        )
++    };
++    // The declared length is checked first so an oversized upload is refused
++    // before its bytes are read; the read itself is capped for the ones that
++    // declare nothing.
++    let declared = headers
++        .get(header::CONTENT_LENGTH)
++        .and_then(|v| v.to_str().ok())
++        .and_then(|v| v.parse::<usize>().ok());
++    if declared.is_some_and(|len| len > cap) {
++        return too_large(cap);
++    }
++    let bytes = match axum::body::to_bytes(body, cap).await {
++        Ok(bytes) => bytes,
++        Err(_) => return too_large(cap),
++    };
++    let content_type = headers
++        .get(header::CONTENT_TYPE)
++        .and_then(|v| v.to_str().ok())
++        .unwrap_or("application/octet-stream")
++        .to_owned();
++    let media = StoredMedia {
++        content_type,
++        filename: params.get("filename").cloned(),
++        bytes: bytes.to_vec(),
++    };
++    let media_id = fresh_media_id();
++    if let Err(e) = store
++        .put_media(&our_name, &media_id, uploader.as_str(), &media)
++        .await
++    {
++        return error_response(
++            StatusCode::INTERNAL_SERVER_ERROR,
++            "M_UNKNOWN",
++            &e.to_string(),
++        );
++    }
++    Json(json!({ "content_uri": format!("mxc://{our_name}/{media_id}") })).into_response()
++}
++
++/// `GET /_matrix/client/v1/media/download/{server}/{id}` (authenticated).
++pub(crate) async fn download(
++    State(state): State<AppState>,
++    AuthUser(_): AuthUser,
++    Path((server, media_id)): Path<(String, String)>,
++) -> Response {
++    serve(&state, &server, &media_id).await
++}
++
++/// `GET /_matrix/media/v3/download/{server}/{id}`: the pre-v1.11 path older
++/// clients still try first. Unauthenticated, as the spec had it.
++pub(crate) async fn download_legacy(
++    State(state): State<AppState>,
++    Path((server, media_id)): Path<(String, String)>,
++) -> Response {
++    serve(&state, &server, &media_id).await
++}
++
++async fn serve(state: &AppState, server: &str, media_id: &str) -> Response {
++    let (our_name, store, fed_client, cap) = {
++        let app = lock_app(state);
++        (
++            app.config.server_name.clone(),
++            app.store.clone(),
++            app.fed_client.clone(),
++            app.config.media_max_bytes,
++        )
++    };
++    match store.get_media(server, media_id).await {
++        Ok(Some(media)) => return content_response(media),
++        Ok(None) => {}
++        Err(e) => {
++            return error_response(
++                StatusCode::INTERNAL_SERVER_ERROR,
++                "M_UNKNOWN",
++                &e.to_string(),
++            );
++        }
++    }
++    if server == our_name {
++        return not_found();
++    }
++    // Someone else's: fetch it from the node that has it, once, and keep it.
++    let Ok(dest) = OwnedServerName::try_from(server) else {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_INVALID_PARAM",
++            "invalid server name",
++        );
++    };
++    match fed_client.media_download(&dest, media_id, cap).await {
++        Ok(media) => {
++            if let Err(e) = store.put_media(server, media_id, "", &media).await {
++                warn!(error = %e, "caching a peer's media");
++            }
++            content_response(media)
++        }
++        Err(e) => {
++            warn!(%dest, %media_id, error = %e, "fetching a peer's media");
++            error_response(
++                StatusCode::NOT_FOUND,
++                "M_NOT_FOUND",
++                "Media not found on the server that holds it",
++            )
++        }
++    }
++}
++
++/// Content types a browser may render inline; anything else is served as
++/// an attachment, per the spec's list.
++fn inline_safe(content_type: &str) -> bool {
++    let essence = content_type.split(';').next().unwrap_or("").trim();
++    matches!(
++        essence,
++        "text/css"
++            | "text/plain"
++            | "text/csv"
++            | "application/json"
++            | "application/ld+json"
++            | "image/jpeg"
++            | "image/gif"
++            | "image/png"
++            | "image/apng"
++            | "image/webp"
++            | "image/avif"
++            | "video/mp4"
++            | "video/webm"
++            | "video/ogg"
++            | "video/quicktime"
++            | "audio/mp4"
++            | "audio/webm"
++            | "audio/aac"
++            | "audio/mpeg"
++            | "audio/ogg"
++            | "audio/wave"
++            | "audio/wav"
++            | "audio/x-wav"
++            | "audio/x-pn-wav"
++            | "audio/flac"
++            | "audio/x-flac"
++    )
++}
++
++fn content_response(media: StoredMedia) -> Response {
++    let disposition = match (&media.filename, inline_safe(&media.content_type)) {
++        (Some(name), true) => format!("inline; filename=\"{}\"", name.replace('"', "")),
++        (Some(name), false) => format!("attachment; filename=\"{}\"", name.replace('"', "")),
++        (None, true) => "inline".to_owned(),
++        (None, false) => "attachment".to_owned(),
++    };
++    (
++        StatusCode::OK,
++        [
++            (header::CONTENT_TYPE, media.content_type),
++            (header::CONTENT_DISPOSITION, disposition),
++            (
++                header::CONTENT_SECURITY_POLICY,
++                "sandbox; default-src 'none'; script-src 'none'; plugin-types application/pdf; \
++                 style-src 'unsafe-inline'; object-src 'self';"
++                    .to_owned(),
++            ),
++            (
++                header::CACHE_CONTROL,
++                "public,max-age=86400,s-maxage=86400".to_owned(),
++            ),
++        ],
++        media.bytes,
++    )
++        .into_response()
++}
++
++/// `GET /_matrix/federation/v1/media/download/{id}`: what this server's
++/// users uploaded, as `multipart/mixed` — a JSON metadata part, then the
++/// content — the shape the spec gives a peer to fetch.
++pub(crate) async fn federation_download(
++    State(state): State<AppState>,
++    headers: HeaderMap,
++    Path(media_id): Path<String>,
++) -> Result<Response, FedError> {
++    let (our_name, store) = {
++        let app = lock_app(&state);
++        (app.config.server_name.clone(), app.store.clone())
++    };
++    auth::authenticated_origin(&headers, &our_name)?;
++    let media = store
++        .get_media(&our_name, &media_id)
++        .await
++        .map_err(|_| FedError::Internal("reading media"))?;
++    let Some(media) = media else {
++        return Ok(not_found());
++    };
++    let boundary = format!("neutrino-{}", fresh_media_id());
++    let body = multipart_body(&boundary, &media);
++    Ok((
++        StatusCode::OK,
++        [(
++            header::CONTENT_TYPE,
++            format!("multipart/mixed; boundary={boundary}"),
++        )],
++        body,
++    )
++        .into_response())
++}
++
++/// The two-part body the federation download carries: an empty JSON
++/// metadata object, then the content under its own type.
++pub(crate) fn multipart_body(boundary: &str, media: &StoredMedia) -> Vec<u8> {
++    let mut body = Vec::with_capacity(media.bytes.len() + 256);
++    body.extend_from_slice(
++        format!("--{boundary}\r\nContent-Type: application/json\r\n\r\n{{}}\r\n").as_bytes(),
++    );
++    body.extend_from_slice(
++        format!(
++            "--{boundary}\r\nContent-Type: {}\r\n\r\n",
++            media.content_type
++        )
++        .as_bytes(),
++    );
++    body.extend_from_slice(&media.bytes);
++    body.extend_from_slice(format!("\r\n--{boundary}--\r\n").as_bytes());
++    body
++}
++
++/// The boundary named by a `multipart/mixed` content type, if any.
++pub(crate) fn multipart_boundary(content_type: &str) -> Option<String> {
++    let (essence, params) = content_type.split_once(';')?;
++    if essence.trim() != "multipart/mixed" {
++        return None;
++    }
++    params.split(';').find_map(|p| {
++        let (k, v) = p.trim().split_once('=')?;
++        (k.trim() == "boundary").then(|| v.trim().trim_matches('"').to_owned())
++    })
++}
++
++/// The content part of a federation download body: the last part that is
++/// not the JSON metadata, with its declared type. `None` when the body is
++/// not the shape the spec describes.
++pub(crate) fn parse_multipart(boundary: &str, body: &[u8]) -> Option<(String, Vec<u8>)> {
++    let delimiter = format!("--{boundary}");
++    let delimiter = delimiter.as_bytes();
++    let mut parts = Vec::new();
++    let mut rest = body;
++    // Skip to the first delimiter.
++    let first = find(rest, delimiter)?;
++    rest = &rest[first + delimiter.len()..];
++    loop {
++        if rest.starts_with(b"--") {
++            break;
++        }
++        // Past the CRLF that ends the delimiter line.
++        rest = rest.strip_prefix(b"\r\n").unwrap_or(rest);
++        let end = find(rest, delimiter)?;
++        let part = &rest[..end];
++        // The CRLF before the next delimiter belongs to the delimiter.
++        let part = part.strip_suffix(b"\r\n").unwrap_or(part);
++        parts.push(part);
++        rest = &rest[end + delimiter.len()..];
++    }
++    for part in parts.into_iter().rev() {
++        let split = find(part, b"\r\n\r\n")?;
++        let headers = std::str::from_utf8(&part[..split]).ok()?;
++        let content = &part[split + 4..];
++        let content_type = headers
++            .lines()
++            .find_map(|l| {
++                let (k, v) = l.split_once(':')?;
++                k.trim()
++                    .eq_ignore_ascii_case("content-type")
++                    .then(|| v.trim().to_owned())
++            })
++            .unwrap_or_else(|| "application/octet-stream".to_owned());
++        if content_type.starts_with("application/json") {
++            continue;
++        }
++        return Some((content_type, content.to_vec()));
++    }
++    None
++}
++
++fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
++    haystack
++        .windows(needle.len())
++        .position(|window| window == needle)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn multipart_round_trips_binary_content() {
++        let media = StoredMedia {
++            content_type: "image/png".to_owned(),
++            filename: None,
++            bytes: vec![0x89, b'P', b'N', b'G', b'\r', b'\n', 0, 0xff, b'-', b'-'],
++        };
++        let body = multipart_body("b0undary", &media);
++        let (content_type, bytes) = parse_multipart("b0undary", &body).expect("parsed");
++        assert_eq!(content_type, "image/png");
++        assert_eq!(bytes, media.bytes);
++    }
++
++    #[test]
++    fn multipart_boundary_is_read_from_the_content_type() {
++        assert_eq!(
++            multipart_boundary("multipart/mixed; boundary=abc").as_deref(),
++            Some("abc")
++        );
++        assert_eq!(
++            multipart_boundary("multipart/mixed;boundary=\"q q\"").as_deref(),
++            Some("q q")
++        );
++        assert_eq!(multipart_boundary("image/png"), None);
++    }
++
++    #[test]
++    fn a_body_without_a_content_part_is_rejected() {
++        assert_eq!(
++            parse_multipart(
++                "b",
++                b"--b\r\nContent-Type: application/json\r\n\r\n{}\r\n--b--\r\n"
++            ),
++            None
++        );
++        assert_eq!(parse_multipart("b", b"garbage"), None);
++    }
++
++    #[test]
++    fn inline_only_for_safe_types() {
++        assert!(inline_safe("image/png"));
++        assert!(inline_safe("text/plain; charset=utf-8"));
++        assert!(!inline_safe("text/html"));
++        assert!(!inline_safe("application/octet-stream"));
++    }
++}
+diff --git a/crates/neutrino-http/tests/e2e_media.rs b/crates/neutrino-http/tests/e2e_media.rs
+new file mode 100644
+index 0000000..8ffaa49
+--- /dev/null
++++ b/crates/neutrino-http/tests/e2e_media.rs
+@@ -0,0 +1,234 @@
++//! End-to-end tests for the content repository: upload, download on both
++//! paths, the size cap, and the federation download a peer uses.
++#![cfg(not(feature = "multi-user-shim"))]
++
++use axum::body::Body;
++use axum::http::{Request, StatusCode};
++use neutrino_ctl::Config;
++use neutrino_http::router;
++use serde_json::Value;
++use tower::ServiceExt;
++
++const CAP: usize = 4096;
++
++fn config() -> Config {
++    Config {
++        server_name: "example.org".to_string(),
++        bind_addr: "127.0.0.1:0".to_string(),
++        localpart: "alice".to_string(),
++        media_max_bytes: CAP,
++        ..Default::default()
++    }
++}
++
++async fn test_router() -> (axum::Router, tempfile::TempDir) {
++    let tmp = tempfile::TempDir::new().expect("create storage tempdir");
++    let mut cfg = config();
++    cfg.storage_dir = tmp.path().to_path_buf();
++    let app = router(cfg).await.expect("router");
++    (app, tmp)
++}
++
++struct Reply {
++    status: StatusCode,
++    content_type: String,
++    disposition: String,
++    bytes: Vec<u8>,
++}
++
++impl Reply {
++    fn json(&self) -> Value {
++        serde_json::from_slice(&self.bytes).unwrap_or(Value::Null)
++    }
++}
++
++async fn drive(app: &axum::Router, req: Request<Body>) -> Reply {
++    let resp = app.clone().oneshot(req).await.unwrap();
++    let status = resp.status();
++    let header = |name: &str| {
++        resp.headers()
++            .get(name)
++            .and_then(|v| v.to_str().ok())
++            .unwrap_or_default()
++            .to_owned()
++    };
++    let content_type = header("content-type");
++    let disposition = header("content-disposition");
++    let bytes = axum::body::to_bytes(resp.into_body(), 1 << 22)
++        .await
++        .unwrap()
++        .to_vec();
++    Reply {
++        status,
++        content_type,
++        disposition,
++        bytes,
++    }
++}
++
++async fn upload(app: &axum::Router, bytes: Vec<u8>, mime: &str, filename: Option<&str>) -> Reply {
++    let path = match filename {
++        Some(name) => format!("/_matrix/media/v3/upload?filename={name}"),
++        None => "/_matrix/media/v3/upload".to_owned(),
++    };
++    let req = Request::builder()
++        .method("POST")
++        .uri(path)
++        .header("content-type", mime)
++        .header("content-length", bytes.len())
++        .body(Body::from(bytes))
++        .unwrap();
++    drive(app, req).await
++}
++
++async fn get(app: &axum::Router, path: &str, x_matrix: Option<&str>) -> Reply {
++    let mut builder = Request::builder().method("GET").uri(path);
++    if let Some(auth) = x_matrix {
++        builder = builder.header("authorization", auth);
++    }
++    drive(app, builder.body(Body::empty()).unwrap()).await
++}
++
++fn png() -> Vec<u8> {
++    let mut bytes = vec![0x89, b'P', b'N', b'G', b'\r', b'\n', 0x1a, b'\n'];
++    bytes.extend((0..1000u32).map(|i| (i % 251) as u8));
++    bytes
++}
++
++#[tokio::test]
++async fn config_advertises_the_cap() {
++    let (app, _tmp) = test_router().await;
++    for path in [
++        "/_matrix/media/v3/config",
++        "/_matrix/client/v1/media/config",
++    ] {
++        let reply = get(&app, path, None).await;
++        assert_eq!(reply.status, StatusCode::OK, "{path}");
++        assert_eq!(reply.json()["m.upload.size"], CAP);
++    }
++}
++
++#[tokio::test]
++async fn upload_then_download_on_both_paths() {
++    let (app, _tmp) = test_router().await;
++    let reply = upload(&app, png(), "image/png", Some("photo.png")).await;
++    assert_eq!(
++        reply.status,
++        StatusCode::OK,
++        "{}",
++        String::from_utf8_lossy(&reply.bytes)
++    );
++    let mxc = reply.json()["content_uri"].as_str().unwrap().to_owned();
++    let (server, id) = mxc.strip_prefix("mxc://").unwrap().split_once('/').unwrap();
++    assert_eq!(server, "example.org");
++
++    let authenticated = get(
++        &app,
++        &format!("/_matrix/client/v1/media/download/{server}/{id}"),
++        None,
++    )
++    .await;
++    assert_eq!(authenticated.status, StatusCode::OK);
++    assert_eq!(authenticated.content_type, "image/png");
++    assert_eq!(authenticated.disposition, "inline; filename=\"photo.png\"");
++    assert_eq!(authenticated.bytes, png());
++
++    let legacy = get(
++        &app,
++        &format!("/_matrix/media/v3/download/{server}/{id}"),
++        None,
++    )
++    .await;
++    assert_eq!(legacy.status, StatusCode::OK);
++    assert_eq!(legacy.bytes, png());
++
++    // An unsafe type is an attachment, whatever it is called.
++    let reply = upload(&app, b"<html>".to_vec(), "text/html", Some("page.html")).await;
++    let mxc = reply.json()["content_uri"].as_str().unwrap().to_owned();
++    let id = mxc.rsplit('/').next().unwrap();
++    let html = get(
++        &app,
++        &format!("/_matrix/client/v1/media/download/example.org/{id}"),
++        None,
++    )
++    .await;
++    assert_eq!(html.disposition, "attachment; filename=\"page.html\"");
++
++    let missing = get(
++        &app,
++        "/_matrix/client/v1/media/download/example.org/nothing-here",
++        None,
++    )
++    .await;
++    assert_eq!(missing.status, StatusCode::NOT_FOUND);
++    assert_eq!(missing.json()["errcode"], "M_NOT_FOUND");
++}
++
++#[tokio::test]
++async fn an_upload_over_the_cap_is_refused_on_its_declared_length() {
++    let (app, _tmp) = test_router().await;
++    let reply = upload(&app, vec![7u8; CAP + 1], "application/octet-stream", None).await;
++    assert_eq!(reply.status, StatusCode::PAYLOAD_TOO_LARGE);
++    assert_eq!(reply.json()["errcode"], "M_TOO_LARGE");
++
++    // Exactly the cap is fine.
++    let reply = upload(&app, vec![7u8; CAP], "application/octet-stream", None).await;
++    assert_eq!(reply.status, StatusCode::OK);
++}
++
++#[tokio::test]
++async fn federation_download_serves_multipart_to_an_authenticated_peer() {
++    let (app, _tmp) = test_router().await;
++    let reply = upload(&app, png(), "image/png", None).await;
++    let mxc = reply.json()["content_uri"].as_str().unwrap().to_owned();
++    let id = mxc.rsplit('/').next().unwrap().to_owned();
++
++    let unauthenticated = get(
++        &app,
++        &format!("/_matrix/federation/v1/media/download/{id}"),
++        None,
++    )
++    .await;
++    assert_eq!(unauthenticated.status, StatusCode::UNAUTHORIZED);
++
++    let peer = r#"X-Matrix origin="peer.example.org",destination="example.org""#;
++    let reply = get(
++        &app,
++        &format!("/_matrix/federation/v1/media/download/{id}"),
++        Some(peer),
++    )
++    .await;
++    assert_eq!(reply.status, StatusCode::OK);
++    assert!(
++        reply.content_type.starts_with("multipart/mixed; boundary="),
++        "{}",
++        reply.content_type
++    );
++    let boundary = reply.content_type.split("boundary=").nth(1).unwrap();
++    let body = String::from_utf8_lossy(&reply.bytes);
++    assert!(
++        body.contains("Content-Type: application/json\r\n\r\n{}"),
++        "{body}"
++    );
++    assert!(body.contains("Content-Type: image/png"), "{body}");
++    assert!(
++        body.trim_end().ends_with(&format!("--{boundary}--")),
++        "{body}"
++    );
++    let content_start = reply
++        .bytes
++        .windows(4)
++        .rposition(|w| w == b"\r\n\r\n")
++        .unwrap()
++        + 4;
++    let content_end = reply.bytes.len() - format!("\r\n--{boundary}--\r\n").len();
++    assert_eq!(&reply.bytes[content_start..content_end], &png()[..]);
++
++    let missing = get(
++        &app,
++        "/_matrix/federation/v1/media/download/nothing-here",
++        Some(peer),
++    )
++    .await;
++    assert_eq!(missing.status, StatusCode::NOT_FOUND);
++}
+diff --git a/crates/neutrino-store-sqlite/src/schema.sql b/crates/neutrino-store-sqlite/src/schema.sql
+index 571760d..0fb50d0 100644
+--- a/crates/neutrino-store-sqlite/src/schema.sql
++++ b/crates/neutrino-store-sqlite/src/schema.sql
+@@ -542,3 +542,16 @@ CREATE TABLE sessions (
+     user    TEXT NOT NULL,
+     device  TEXT NOT NULL
+ ) STRICT, WITHOUT ROWID;
++
++-- The content repository: what this server's users uploaded (origin = our
++-- server name) and what it fetched from peers (origin = theirs), verbatim.
++-- Uploads are capped small, so blobs live here rather than on disk.
++CREATE TABLE media (
++    origin        TEXT NOT NULL,
++    media_id      TEXT NOT NULL,
++    uploader      TEXT NOT NULL,
++    content_type  TEXT NOT NULL,
++    filename      TEXT,
++    bytes         BLOB NOT NULL,
++    PRIMARY KEY (origin, media_id)
++) STRICT, WITHOUT ROWID;
+diff --git a/crates/neutrino-store-sqlite/src/store/media.rs b/crates/neutrino-store-sqlite/src/store/media.rs
+new file mode 100644
+index 0000000..f40ac7d
+--- /dev/null
++++ b/crates/neutrino-store-sqlite/src/store/media.rs
+@@ -0,0 +1,97 @@
++//! `MediaStore` impl on [`crate::SqliteStore`]: the content repository as
++//! one table of blobs. Uploads are capped small (a mesh hop is a BLE link),
++//! so keeping them in the database — one file to back up, one directory to
++//! wipe — beats a second store on disk.
++
++use async_trait::async_trait;
++use deadpool_sqlite::rusqlite::{OptionalExtension, params};
++use neutrino_store::{MediaStore, StorageError, StoredMedia};
++
++use crate::{SqliteStore, error::Error};
++
++#[async_trait]
++impl MediaStore for SqliteStore {
++    async fn put_media(
++        &self,
++        origin: &str,
++        media_id: &str,
++        uploader: &str,
++        media: &StoredMedia,
++    ) -> Result<(), StorageError> {
++        let (origin, media_id, uploader) =
++            (origin.to_owned(), media_id.to_owned(), uploader.to_owned());
++        let (content_type, filename, bytes) = (
++            media.content_type.clone(),
++            media.filename.clone(),
++            media.bytes.clone(),
++        );
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "INSERT OR IGNORE INTO media \
++                 (origin, media_id, uploader, content_type, filename, bytes) \
++                 VALUES (?, ?, ?, ?, ?, ?)",
++                params![origin, media_id, uploader, content_type, filename, bytes],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++
++    async fn get_media(
++        &self,
++        origin: &str,
++        media_id: &str,
++    ) -> Result<Option<StoredMedia>, StorageError> {
++        let (origin, media_id) = (origin.to_owned(), media_id.to_owned());
++        self.run_read(move |conn| -> Result<Option<StoredMedia>, Error> {
++            let row = conn
++                .query_row(
++                    "SELECT content_type, filename, bytes FROM media \
++                     WHERE origin = ? AND media_id = ?",
++                    params![origin, media_id],
++                    |row| {
++                        Ok(StoredMedia {
++                            content_type: row.get(0)?,
++                            filename: row.get(1)?,
++                            bytes: row.get(2)?,
++                        })
++                    },
++                )
++                .optional()?;
++            Ok(row)
++        })
++        .await
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[tokio::test]
++    async fn media_round_trips_and_keeps_the_first_under_an_id() {
++        let tmp = tempfile::TempDir::new().unwrap();
++        let s = SqliteStore::open(tmp.path().join("store.sqlite"))
++            .await
++            .unwrap();
++        let png = StoredMedia {
++            content_type: "image/png".to_owned(),
++            filename: Some("a.png".to_owned()),
++            bytes: vec![0x89, b'P', b'N', b'G'],
++        };
++        s.put_media("x", "m1", "@a:x", &png).await.unwrap();
++        let other = StoredMedia {
++            content_type: "text/plain".to_owned(),
++            filename: None,
++            bytes: b"nope".to_vec(),
++        };
++        s.put_media("x", "m1", "@a:x", &other).await.unwrap();
++        assert_eq!(s.get_media("x", "m1").await.unwrap(), Some(png));
++        assert_eq!(s.get_media("x", "m2").await.unwrap(), None);
++        assert_eq!(
++            s.get_media("y", "m1").await.unwrap(),
++            None,
++            "keyed by origin too"
++        );
++    }
++}
+diff --git a/crates/neutrino-store-sqlite/src/store/mod.rs b/crates/neutrino-store-sqlite/src/store/mod.rs
+index 2166d8b..e605c6b 100644
+--- a/crates/neutrino-store-sqlite/src/store/mod.rs
++++ b/crates/neutrino-store-sqlite/src/store/mod.rs
+@@ -9,6 +9,7 @@ mod events;
+ mod identity;
+ mod inbox;
+ mod invites;
++mod media;
+ mod outbox;
+ mod rooms;
+ mod sessions;
+diff --git a/crates/neutrino-store/src/lib.rs b/crates/neutrino-store/src/lib.rs
+index 03a385a..15e17bb 100644
+--- a/crates/neutrino-store/src/lib.rs
++++ b/crates/neutrino-store/src/lib.rs
+@@ -954,6 +954,38 @@ pub trait SessionStore: Send + Sync {
+     async fn put_session(&self, token: &str, user: &str, device: &str) -> Result<(), StorageError>;
+ }
+ 
++/// One piece of content in the repository: what was uploaded, verbatim.
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub struct StoredMedia {
++    pub content_type: String,
++    pub filename: Option<String>,
++    pub bytes: Vec<u8>,
++}
++
++/// The content repository. Keyed by `(origin server, media id)`: what this
++/// server's users uploaded lives under its own name, and what it fetched
++/// from a peer is cached under the peer's, so an `mxc://` URI resolves the
++/// same way whichever node serves it.
++#[async_trait]
++pub trait MediaStore: Send + Sync {
++    /// Post: `(origin, media_id)` holds `media`; a repeat of the same key
++    ///       keeps the first (content under an id never changes).
++    async fn put_media(
++        &self,
++        origin: &str,
++        media_id: &str,
++        uploader: &str,
++        media: &StoredMedia,
++    ) -> Result<(), StorageError>;
++
++    /// The content under `(origin, media_id)`, if held.
++    async fn get_media(
++        &self,
++        origin: &str,
++        media_id: &str,
++    ) -> Result<Option<StoredMedia>, StorageError>;
++}
++
+ /// Combined storage interface. Use as a generic bound: `S: StorageBackend`.
+ pub trait StorageBackend:
+     RoomStore
+@@ -969,6 +1001,7 @@ pub trait StorageBackend:
+     + E2eeStore
+     + AccountDataStore
+     + SessionStore
++    + MediaStore
+ {
+ }
+ 
+@@ -986,6 +1019,7 @@ impl<T> StorageBackend for T where
+         + E2eeStore
+         + AccountDataStore
+         + SessionStore
++        + MediaStore
+ {
+ }
+ 
+-- 
+2.43.0
+

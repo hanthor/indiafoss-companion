@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Ten patches that give Neutrino enough of the Matrix key surface for the
+Eleven patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -247,6 +247,29 @@ user and no multi-user behaviour could be tested against it. Patch `0010`:
   DM list (`m.direct`) lives, so it survives a reinstall.
 
 Complement: `TestAddAccountData` joins the allowlist. Schema v7.
+
+## 0011 — media over the mesh, with a size cap
+
+A content repository small enough for a BLE hop:
+
+- `POST /_matrix/media/v3/upload`, the authenticated
+  `GET /_matrix/client/v1/media/download/{server}/{id}` and its legacy
+  `/_matrix/media/v3/download` twin, and `/media/config` advertising
+  `m.upload.size` — **256 KiB** by default (`NEUTRINO_MEDIA_MAX_BYTES`).
+  An upload over the cap is refused `413 M_TOO_LARGE` on its declared
+  length before the body is read.
+- `GET /_matrix/federation/v1/media/download/{id}` serves a node's uploads to
+  an authenticated peer as `multipart/mixed`, the spec's shape. A download
+  for another node's `mxc://` is fetched from that node once, refused unread
+  over the cap, cached under the peer's name, and served — a photo sent on
+  one phone opens on the next.
+- Blobs live in the store (`media` table): capped small, one file to back up.
+
+The client learns the cap from `/media/config` and refuses an oversized file
+before a byte leaves the phone; an oversized image is shrunk first when the
+host supplies a downscaler (`MatrixSessionOptions.downscaleImage`). E2EE for
+attachments needs nothing new: the bytes are encrypted client-side and the
+key travels in the event, as before. Complement: `TestMediaConfig`.
 
 ## What is still missing
 

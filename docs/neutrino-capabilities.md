@@ -53,7 +53,7 @@ a stub, because it is a partial implementation rather than a complete one.
 | **Typing indicator**      | `PUT /rooms/{}/typing/{}`              | missing (404)                                                                          |
 | **Read receipt**          | `POST /rooms/{}/receipt/m.read/{}`     | missing (404)                                                                          |
 | **Member list**           | `GET /rooms/{}/joined_members`         | missing (404) — but `GET /rooms/{}/members` works, and the client now falls back to it |
-| **Files and photos**      | `POST /_matrix/media/v3/upload`        | missing (404)                                                                          |
+| **Files and photos**      | `POST /_matrix/media/v3/upload`        | missing (404) — with the patches: works, capped at 256 KiB, fetched across nodes       |
 | E2EE: upload device keys  | `POST /keys/upload`                    | works — first device only, filed under a hardcoded id                                  |
 | E2EE: query device keys   | `POST /keys/query`                     | works — the uploaded device comes back intact                                          |
 | E2EE: claim one-time keys | `POST /keys/claim`                     | missing (404)                                                                          |
@@ -127,7 +127,7 @@ On the mesh path, of the chat features we ship:
 | Member list             | ✅   | `joined_members` is missing, but the client falls back to `/members`      |
 | Read receipts           | ❌\* | stock: endpoint missing. \*With the patches: `m.receipt` over federation  |
 | Typing indicators       | ❌\* | stock: endpoint missing. \*With the patches: `m.typing` over federation   |
-| Files and photos        | ❌   | no media repository                                                       |
+| Files and photos        | ❌\* | stock: no media repository. \*With the patches: capped at 256 KiB per hop |
 | E2EE                    | ❌\* | stock: no key claim or to-device. \*With `patches/neutrino/`: DMs encrypt |
 
 Our own docs previously implied typing, files and photos worked over the mesh.
@@ -160,6 +160,9 @@ not by spec completeness.
    wake a waiting long-poll.
 5. **A media repository.** The biggest surface, and the one most constrained by
    BLE bandwidth — worth prototyping a size cap before building it.
+   **Written** as patch `0011`: upload, both download paths, a federation
+   download so a peer's photo is fetched once and cached, and a 256 KiB cap
+   the client learns from `/media/config` and enforces before uploading.
 6. **E2EE.** Smaller than "no E2EE" implies, because Matrix keeps the crypto in
    the client and we already have Megolm in `packages/matrix`. The server's
    remaining job is a key directory and a relay:

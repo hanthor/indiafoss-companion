@@ -97,6 +97,12 @@ export interface MatrixSnapshot {
   /** True when end-to-end encryption is available for this session. */
   encryptionReady: boolean;
   /**
+   * The server's upload cap in bytes, once asked (`null` until then, or
+   * when the server does not say). On the mesh this is small: a photo has
+   * to cross a BLE link.
+   */
+  uploadLimit: number | null;
+  /**
    * False once the homeserver has proved it cannot carry key material — no
    * `/keys/claim`, no `/sendToDevice`. Distinct from `encryptionReady`, which
    * also covers "this browser has no crypto backend": the two need different
@@ -132,9 +138,26 @@ export interface MatrixSessionOptions {
   crypto?: (userId: string, deviceId: string) => Promise<CryptoBackend | null>;
   /** Called on sign-out so the host can delete the persistent crypto store. */
   disposeCrypto?: (userId: string, deviceId: string) => Promise<void>;
+  /**
+   * Shrink an image that is over the server's upload cap. Returns the
+   * smaller encoding, or `null` when it cannot get under `maxBytes`; the
+   * host supplies this because encoding needs a canvas, which the package
+   * does not assume. Without it an oversized image is refused up front.
+   */
+  downscaleImage?: (
+    bytes: Uint8Array,
+    mime: string,
+    maxBytes: number,
+  ) => Promise<Uint8Array | null>;
 }
 
 const LOCAL_ECHO_PREFIX = 'local:';
+
+function formatBytes(n: number): string {
+  if (n >= 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+  if (n >= 1024) return `${Math.round(n / 1024)} KB`;
+  return `${n} B`;
+}
 
 /**
  * Orchestrates one signed-in Matrix account: restore, sync loop with
@@ -160,11 +183,12 @@ export class MatrixSessionManager {
   private readonly memberCache = new Map<string, { at: number; ids: string[] }>();
   private readonly mediaCache = new Map<string, Uint8Array>();
   private readonly opts: Required<
-    Omit<MatrixSessionOptions, 'onChange' | 'crypto' | 'disposeCrypto'>
+    Omit<MatrixSessionOptions, 'onChange' | 'crypto' | 'disposeCrypto' | 'downscaleImage'>
   > & {
     onChange: (snapshot: MatrixSnapshot) => void;
     crypto: MatrixSessionOptions['crypto'];
     disposeCrypto: MatrixSessionOptions['disposeCrypto'];
+    downscaleImage: MatrixSessionOptions['downscaleImage'];
   };
 
   constructor(
@@ -181,6 +205,7 @@ export class MatrixSessionManager {
       onChange: options.onChange ?? (() => {}),
       crypto: options.crypto,
       disposeCrypto: options.disposeCrypto,
+      downscaleImage: options.downscaleImage,
     };
   }
 
@@ -204,6 +229,7 @@ export class MatrixSessionManager {
       ),
       encryptionReady: this.crypto !== null && this.serverCarriesEncryption,
       serverCarriesEncryption: this.serverCarriesEncryption,
+      uploadLimit: this.uploadLimit,
       error: this.error,
     };
   }
@@ -219,6 +245,9 @@ export class MatrixSessionManager {
    * the expensive part.
    */
   private serverCarriesEncryption = true;
+  /** `null` until asked; see `MatrixSnapshot.uploadLimit`. */
+  private uploadLimit: number | null = null;
+  private uploadLimitAsked = false;
 
   private async initCrypto(): Promise<void> {
     if (!this.opts.crypto || !this.session?.deviceId) return;
@@ -328,6 +357,8 @@ export class MatrixSessionManager {
       }
     }
     this.client = null;
+    this.uploadLimit = null;
+    this.uploadLimitAsked = false;
     this.session = null;
     this.nextBatch = null;
     this.rooms.clear();
@@ -660,6 +691,24 @@ export class MatrixSessionManager {
   async sendFile(roomId: string, bytes: Uint8Array, filename: string, mime: string): Promise<void> {
     const client = this.requireClient();
     const room = this.rooms.get(roomId);
+    // Honour the cap before a byte leaves the device: on the mesh the
+    // server's limit is what a BLE hop can carry, and an image that is
+    // over it is shrunk when the host knows how, refused otherwise.
+    const limit = await this.ensureUploadLimit();
+    if (limit !== null && bytes.byteLength > limit) {
+      const smaller =
+        mime.startsWith('image/') && this.opts.downscaleImage
+          ? await this.opts.downscaleImage(bytes, mime, limit)
+          : null;
+      if (!smaller || smaller.byteLength > limit) {
+        throw new MatrixError(
+          `This file is ${formatBytes(bytes.byteLength)}; the server accepts up to ${formatBytes(limit)}.`,
+          413,
+          'M_TOO_LARGE',
+        );
+      }
+      bytes = smaller;
+    }
     const msgtype = mime.startsWith('image/')
       ? 'm.image'
       : mime.startsWith('video/')
@@ -690,6 +739,16 @@ export class MatrixSessionManager {
         txnId,
       );
     }
+  }
+
+  /** Ask the server for its upload cap once per signed-in client. */
+  private async ensureUploadLimit(): Promise<number | null> {
+    if (this.uploadLimitAsked) return this.uploadLimit;
+    const client = this.requireClient();
+    this.uploadLimit = await client.mediaUploadLimit();
+    this.uploadLimitAsked = true;
+    this.emit();
+    return this.uploadLimit;
   }
 
   /** Bytes of an attachment, decrypted when needed; cached per event. */
