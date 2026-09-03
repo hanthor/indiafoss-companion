@@ -18,16 +18,18 @@ export const SOCIALS: AttendeeSocial[] = [
   'telegram',
   'whatsapp',
   'signal',
+  'prav',
   'xmpp',
   'deltachat',
 ];
 
 /** Networks entered as a handle or phone number instead of a URL. */
-export const MESSENGERS: AttendeeSocial[] = ['telegram', 'whatsapp', 'signal'];
+export const MESSENGERS: AttendeeSocial[] = ['telegram', 'whatsapp', 'signal', 'prav'];
 export const SOCIAL_PLACEHOLDER: Partial<Record<AttendeeSocial, string>> = {
   telegram: '@username',
   whatsapp: '+91 98765 43210',
   signal: '+91 98765 43210 or username.42',
+  prav: '+91 98765 43210 or you@prav.app',
 };
 
 export const profileState = $state<{

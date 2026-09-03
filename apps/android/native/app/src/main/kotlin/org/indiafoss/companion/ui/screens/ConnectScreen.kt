@@ -63,6 +63,7 @@ private val LINKS = listOf(
     Field("github", "GitHub", { it.socials["github"].orEmpty() }, { c, v -> c.copy(socials = c.socials + ("github" to v)) }),
     Field("linkedin", "LinkedIn", { it.socials["linkedin"].orEmpty() }, { c, v -> c.copy(socials = c.socials + ("linkedin" to v)) }),
     Field("mastodon", "Mastodon", { it.socials["mastodon"].orEmpty() }, { c, v -> c.copy(socials = c.socials + ("mastodon" to v)) }),
+    Field("prav", "Prav (number or you@prav.app)", { it.socials["prav"].orEmpty() }, { c, v -> c.copy(socials = c.socials + ("prav" to v)) }),
     Field("matrixId", "Matrix ID", { it.matrixId }, { c, v -> c.copy(matrixId = v) }),
 )
 private val PRIVATE = listOf(

@@ -8,6 +8,8 @@ import {
   githubAvatarUrl,
   githubUsername,
   gravatarUrl,
+  pravJid,
+  socialProfileUrl,
   type AttendeeProfile,
   type AttendeeShareSelection,
 } from './contact.js';
@@ -126,13 +128,14 @@ describe('attendeeProfileToVCard', () => {
       },
     });
     expect(links.map((l) => [l.kind, l.href])).toEqual([
-      ['xmpp', 'xmpp:alice@prav.app'],
+      ['prav', 'xmpp:alice@prav.app'],
       ['deltachat', 'https://i.delta.chat/#ABC&a=alice%40example.org'],
     ]);
     expect(contactDeepLinks({ socials: { deltachat: 'alice@example.org' } })).toEqual([
       { kind: 'deltachat', label: 'Delta Chat', href: 'mailto:alice@example.org' },
     ]);
-    expect(classifyLink('xmpp:alice@prav.app')).toBe('xmpp');
+    expect(classifyLink('xmpp:alice@prav.app')).toBe('prav');
+    expect(classifyLink('xmpp:alice@example.org')).toBe('xmpp');
     expect(classifyLink('https://i.delta.chat/#X')).toBe('deltachat');
   });
 
@@ -221,5 +224,60 @@ describe('FOSS United as a link (#96)', () => {
     expect(links.map((l) => l.kind).indexOf('fossunited')).toBeLessThan(
       links.map((l) => l.kind).indexOf('github'),
     );
+  });
+});
+
+describe('handles or URLs for social links (#105)', () => {
+  it('turns a handle, an @handle or a bare host path into the canonical profile URL', () => {
+    expect(socialProfileUrl('github', 'alice')).toBe('https://github.com/alice');
+    expect(socialProfileUrl('github', '@alice')).toBe('https://github.com/alice');
+    expect(socialProfileUrl('github', 'github.com/alice')).toBe('https://github.com/alice');
+    expect(socialProfileUrl('github', 'https://github.com/alice')).toBe('https://github.com/alice');
+    expect(socialProfileUrl('linkedin', 'alice-b')).toBe('https://linkedin.com/in/alice-b');
+    expect(socialProfileUrl('bluesky', 'alice.bsky.social')).toBe(
+      'https://bsky.app/profile/alice.bsky.social',
+    );
+    expect(socialProfileUrl('youtube', 'alice')).toBe('https://youtube.com/@alice');
+    expect(socialProfileUrl('mastodon', '@alice@fosstodon.org')).toBe(
+      'https://fosstodon.org/@alice',
+    );
+    expect(socialProfileUrl('mastodon', 'alice')).toBeNull();
+    expect(socialProfileUrl('github', '')).toBeNull();
+    expect(socialProfileUrl('github', 'not a handle')).toBeNull();
+  });
+
+  it('links and encodes a handle the same as its URL', () => {
+    expect(contactDeepLinks({ socials: { github: 'alice' } })).toEqual([
+      { kind: 'github', label: 'GitHub', href: 'https://github.com/alice' },
+    ]);
+    const vcard = attendeeProfileToVCard(
+      { fullName: 'Alice', socials: { github: '@alice' } },
+      { ...DEFAULT_ATTENDEE_SHARE_SELECTION, socials: { github: true } },
+    );
+    expect(vcard).toContain('X-SOCIALPROFILE;TYPE=github:https://github.com/alice');
+  });
+});
+
+describe('first-class Prav (#106)', () => {
+  it('accepts a phone number, a username or a JID and links it as Prav', () => {
+    expect(pravJid('+91 98765 43210')).toBe('+919876543210@prav.app');
+    expect(pravJid('alice')).toBe('alice@prav.app');
+    expect(pravJid('xmpp:alice@prav.app')).toBe('alice@prav.app');
+    expect(pravJid('')).toBeNull();
+    expect(contactDeepLinks({ socials: { prav: '+91 98765 43210' } })).toEqual([
+      { kind: 'prav', label: 'Prav', href: 'xmpp:+919876543210@prav.app' },
+    ]);
+    // A generic XMPP address on prav.app is shown as Prav too.
+    expect(contactDeepLinks({ socials: { xmpp: 'bob@prav.app' } })[0]?.kind).toBe('prav');
+    expect(classifyLink('xmpp:bob@prav.app')).toBe('prav');
+  });
+
+  it('puts Prav on the card as a social profile and an IM address', () => {
+    const vcard = attendeeProfileToVCard(
+      { fullName: 'Alice', socials: { prav: 'alice' } },
+      { ...DEFAULT_ATTENDEE_SHARE_SELECTION, socials: { prav: true } },
+    );
+    expect(vcard).toContain('X-SOCIALPROFILE;TYPE=prav:alice@prav.app');
+    expect(vcard).toContain('IMPP:xmpp:alice@prav.app');
   });
 });
