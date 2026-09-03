@@ -40,7 +40,9 @@ async function up(i) {
     try {
       const r = await fetch(`${url(i)}/_matrix/client/versions`);
       if (r.ok) return;
-    } catch {}
+    } catch {
+      // Not up yet.
+    }
     await sleep(100);
   }
   throw new Error(`node ${i} never came up`);
@@ -187,7 +189,10 @@ console.log(
 );
 const du = execSync(`du -sk ${ROOT}`).toString().split('\t')[0];
 console.log(`disk for ${N} nodes: ${Math.round(du / 1024)} MiB`);
-for (const p of procs)
+for (const p of procs) {
   try {
     process.kill(-p.pid, 'SIGTERM');
-  } catch {}
+  } catch {
+    // Already gone.
+  }
+}

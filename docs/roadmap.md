@@ -171,6 +171,16 @@ alignment, #3 CI packages token, #4 fork roadmap.
   drift (`phases.md`).
 - 2026-09-02: Display font decided: Press Start 2P (OFL) ships as the display
   face, FFF Forward is referenced but never bundled (#33).
+- 2026-09-03: **Neutrino at conference scale** (`docs/neutrino-scale.md`). A
+  loopback swarm harness (`tools/neutrino-probe/scripts/swarm.mjs`) ran 20,
+  50 and 100 fork nodes in one room. Finding: a join storm is the failure
+  mode (50 simultaneous joins leave a room undelivered for minutes; the same
+  joins spread over seconds all land and a message reaches 99 peers in under
+  0.8 s at about 28 MB per node). Rooms stay small on the mesh; the big room
+  is the conference Spindle's job, which is the RFC's hub-based convergence.
+- 2026-09-03: **Socials the easy way.** One paste box sorts any profile link
+  or handle onto the right network, and "Fill from GitHub" reads the public
+  social accounts list too.
 - 2026-09-03: **Conference communications batch** (#111, #113, #114, #115).
   Bring your own Matrix ID: a mesh identity link published on the attendee's
   own account profile and verified by peers from the card, with "Continue on
