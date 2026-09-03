@@ -44,6 +44,7 @@ import org.indiafoss.companion.ui.screens.RankScreen
 import org.indiafoss.companion.ui.screens.ScheduleScreen
 import org.indiafoss.companion.ui.screens.SettingsScreen
 import org.indiafoss.companion.ui.screens.SpeakerScreen
+import org.indiafoss.companion.ui.screens.WelcomeScreen
 
 private data class Destination(val route: String, val label: String, val icon: ImageVector)
 
@@ -86,6 +87,11 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         }
     }
 
+    // First run (#107): the welcome steps come up once, over the Now tab.
+    LaunchedEffect(state.onboardingDone) {
+        if (state.onboardingDone == false && navController.currentDestination?.route != "welcome") navController.navigate("welcome")
+    }
+
     LaunchedEffect(state.pendingRoute) {
         state.pendingRoute?.let { route ->
             navController.navigate(route)
@@ -103,7 +109,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            NavigationBar {
+            if (backStack?.destination?.route != "welcome") NavigationBar {
                 val current = backStack?.destination?.route
                 destinations.forEach { destination ->
                     NavigationBarItem(
@@ -196,8 +202,20 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 )
             }
             composable("map") { MapScreen(state, topActions, viewModel::setLocation) }
+            composable("welcome") {
+                WelcomeScreen(
+                    state = state,
+                    onReminders = viewModel::setRemindersEnabled,
+                    onSave = viewModel::saveProfile,
+                    onScan = scan,
+                    onDone = { rank ->
+                        viewModel.setOnboardingDone()
+                        navController.navigate(if (rank) "rank" else "now") { popUpTo("welcome") { inclusive = true } }
+                    },
+                )
+            }
             composable("settings") {
-                SettingsScreen(state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile)
+                SettingsScreen(state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->
                 ActivityScreen(

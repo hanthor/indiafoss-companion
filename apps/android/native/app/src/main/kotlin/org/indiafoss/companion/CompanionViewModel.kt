@@ -45,6 +45,8 @@ data class UiState(
     val mustAttend: Set<String> = emptySet(),
     val ranking: RankingState = RankingState(),
     val remindersEnabled: Boolean = false,
+    /** Null until read from the store; false shows the welcome steps once (#107). */
+    val onboardingDone: Boolean? = null,
     val profile: ContactCard = ContactCard(),
     val contacts: List<MetContact> = emptyList(),
     /** This device's handshake key (`p256:…`) and its fingerprint; null where the keystore is unavailable. */
@@ -131,6 +133,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             preferences.remindersEnabled.collect { on -> _state.update { it.copy(remindersEnabled = on) } }
+        }
+        viewModelScope.launch {
+            preferences.onboardingDone.collect { done -> _state.update { it.copy(onboardingDone = done) } }
         }
         viewModelScope.launch {
             val key = DeviceKey.publicKey()
@@ -270,6 +275,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     fun removeContact(id: String) {
         viewModelScope.launch { profiles.removeContact(id) }
+    }
+
+    fun setOnboardingDone(done: Boolean = true) {
+        viewModelScope.launch { preferences.setOnboardingDone(done) }
     }
 
     fun setRemindersEnabled(on: Boolean) {

@@ -10,15 +10,16 @@ roadmap's decisions log).
 
 ## Screens
 
-| Tab / route | State                                                                                                                                        |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Now         | live sessions with progress, up next                                                                                                         |
-| Schedule    | per day, bookmark from the list                                                                                                              |
-| My plan     | the day planned from must-attend, bookmarks and ratings (`Itinerary`); "Rank this day"                                                       |
-| Rank        | rooms (Skip / OK / Love) → quick pass (Yes / No) → head to head, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
-| Map         | rooms and what is on in each (the floor plan is not drawn natively yet)                                                                      |
-| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                        |
-| Session     | detail, bookmark, must attend                                                                                                                |
+| Tab / route | State                                                                                                                                                                              |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Now         | live sessions with progress, up next                                                                                                                                               |
+| Schedule    | per day, bookmark from the list                                                                                                                                                    |
+| My plan     | the day planned from must-attend, bookmarks and ratings (`Itinerary`); "Rank this day"                                                                                             |
+| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
+| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                        |
+| Map         | rooms and what is on in each (the floor plan is not drawn natively yet)                                                                                                            |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                                                              |
+| Session     | detail, bookmark, must attend                                                                                                                                                      |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
 plan whenever bookmarks, must-attend marks or the bundle change, so a change

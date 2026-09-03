@@ -29,6 +29,7 @@
   } from '$lib/simulator.svelte';
   import { simulationSpeed } from '$lib/clock';
   import { hydrateLook } from '$lib/look.svelte';
+  import { hydrateOnboarding, markOnboardingDone, onboardingState } from '$lib/onboarding.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
@@ -46,6 +47,18 @@
     void installNativeDeepLinks(base, (path) => goto(path)).catch(() => {});
     hydrateSimulator();
     void hydrateLook(page.url.searchParams.get('look'));
+    // `?setup=done` skips the welcome wizard (links, automation).
+    if (page.url.searchParams.get('setup') === 'done') void markOnboardingDone();
+    else void hydrateOnboarding();
+  });
+
+  // First run (#107): the home screen hands over to the welcome wizard once.
+  // Only a plain visit to `/` does; deep links and parameterised URLs never.
+  $effect(() => {
+    const path = page.url.pathname.replace(base, '') || '/';
+    if (path !== '/' || page.url.search) return;
+    if (eventState.status !== 'ready' || !onboardingState.loaded || onboardingState.done) return;
+    void goto(resolve('/welcome'));
   });
 
   // Reminders are re-armed once a minute of app time: every real minute, or
@@ -113,6 +126,7 @@
       '/connect/compare': 'Compare key badges',
       '/scan': 'Scan',
       '/settings': 'Settings',
+      '/welcome': 'Welcome',
       '/chat': 'Chat',
     };
     const match =

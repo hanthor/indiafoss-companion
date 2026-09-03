@@ -48,4 +48,13 @@ class SearchAndVCardTest {
         assertEquals("https://github.com/asha.png?size=160", back.avatarUrl)
         assertNull(VCard.parse("hello"))
     }
+
+    @Test
+    fun `the ticket reference is off the card unless switched on, and round-trips`() {
+        val card = ContactCard(fullName = "Asha Menon", ticketRef = "ticket::abc123")
+        assertTrue("X-INDIAFOSS-TICKET" !in VCard.encode(card))
+        val shared = VCard.encode(card.copy(share = mapOf("ticketRef" to true)))
+        assertTrue("X-INDIAFOSS-TICKET:ticket::abc123" in shared)
+        assertEquals("ticket::abc123", VCard.parse(shared)?.ticketRef)
+    }
 }

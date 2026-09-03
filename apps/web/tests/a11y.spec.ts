@@ -9,7 +9,8 @@ import { appUrl } from './app-url.js';
  */
 
 const CORE_SCREENS: [string, string][] = [
-  ['home', '/'],
+  ['welcome', '/'],
+  ['home', '/?setup=done'],
   ['schedule', '/schedule'],
   ['explore', '/explore'],
   ['plan', '/plan'],
