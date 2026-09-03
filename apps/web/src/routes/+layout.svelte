@@ -282,7 +282,7 @@
     gap: 0.5rem;
     padding: calc(0.55rem + var(--safe-top)) 0.9rem 0.55rem;
     background: var(--ink-2);
-    color: #fff;
+    color: var(--on-ink);
   }
 
   .brand {
@@ -329,7 +329,7 @@
     min-height: 44px;
     padding: 0.25rem 0.45rem;
     border-radius: var(--radius);
-    color: #fff;
+    color: var(--on-ink);
     text-decoration: none;
     font-family: var(--font-mono);
     font-size: 0.56rem;
@@ -346,7 +346,7 @@
   }
   .toplinks a[aria-current='page'] {
     background: hsl(0 0% 29%);
-    color: #fff;
+    color: var(--on-ink);
   }
   /* Scanning is the most frequent in-person action, so it gets the one
      high-contrast control in the bar rather than another grey icon. */
@@ -360,7 +360,7 @@
   }
   .toplinks a.scancta:hover,
   .toplinks a.scancta[aria-current='page'] {
-    background: color-mix(in srgb, var(--amber) 82%, #fff);
+    background: color-mix(in srgb, var(--amber) 82%, var(--on-ink));
     color: var(--ink);
   }
   .unread {

@@ -214,7 +214,7 @@
   .calendar-link {
     border: 1px solid var(--ink);
     background: var(--ink);
-    color: #fafafa;
+    color: var(--on-ink);
     border-radius: var(--radius);
     padding: 0.4rem 0.7rem;
     cursor: pointer;

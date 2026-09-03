@@ -219,7 +219,7 @@
 <style>
   .hero {
     background: var(--ink);
-    color: #fafafa;
+    color: var(--on-ink);
     border-radius: 20px;
     padding: 1.4rem 1.2rem 1.3rem;
     margin-bottom: 1rem;
@@ -239,7 +239,7 @@
   .hero-desc {
     margin: 0;
     line-height: 1.5;
-    color: color-mix(in srgb, #fafafa 80%, transparent);
+    color: color-mix(in srgb, var(--on-ink) 80%, transparent);
     text-wrap: pretty;
   }
   .dots {
@@ -318,7 +318,7 @@
   }
   .button.dark {
     background: var(--ink);
-    color: #fafafa;
+    color: var(--on-ink);
     border-color: var(--ink);
   }
   .center {

@@ -148,7 +148,7 @@
         transparent 70%
       ),
       var(--ink-2);
-    color: #fafafa;
+    color: var(--on-ink);
     user-select: none;
   }
   .tagline {
@@ -157,7 +157,7 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #fff;
+    color: var(--on-ink);
   }
   .hero-title {
     margin: 0;
@@ -176,7 +176,7 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #fafafa;
+    color: var(--on-ink);
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -185,7 +185,7 @@
   .hero-desc {
     margin: 0;
     max-width: 34rem;
-    color: #f4f4f4;
+    color: var(--on-ink);
     font-size: 0.9rem;
     line-height: 1.6;
   }
@@ -197,14 +197,14 @@
   }
   .hero .button.light,
   .hero .button.light:hover {
-    background: #fafafa;
-    color: #141414;
-    border-color: #fafafa;
+    background: var(--on-ink);
+    color: var(--ink);
+    border-color: var(--on-ink);
   }
   .hero .button.gray,
   .hero .button.gray:hover {
     background: hsl(0 0% 29%);
-    color: #fafafa;
+    color: var(--on-ink);
     border-color: hsl(0 0% 29%);
   }
 
@@ -223,7 +223,7 @@
     transition: background 0.15s ease;
   }
   .rank-hero:hover {
-    background: color-mix(in srgb, var(--mint-soft) 80%, #fff);
+    background: color-mix(in srgb, var(--mint-soft) 80%, var(--on-ink));
   }
   .rank-kicker {
     font-family: var(--font-mono);

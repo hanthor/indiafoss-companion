@@ -87,8 +87,18 @@
   /* System-bar insets: browsers report env(); Capacitor's SystemBars plugin
      injects --safe-area-inset-* on Android 15+, where the WebView is drawn
      under the status bar (edge-to-edge). */
-  /* Readable text on a filled mint/danger surface in either theme. */
+  /* Readable text on a filled mint/danger surface. Themed on purpose: the
+     dark palette's mint is bright, so dark text reads better on it there. */
   --on-strong: #ffffff;
+  /* Text and fills on a surface that is dark in both themes: the hero, the
+     app bar, a filled ink button, the camera backdrop, a map pin's ring. Not
+     themed, unlike --on-strong. One role, one token: this used to be written
+     as #fff, #fafafa and #f4f4f4 across the routes, which is what "leftover
+     pre-2026 colours" meant. */
+  --on-ink: #fafafa;
+  /* The QR plate stays white in both themes: it stands in for the code, and a
+     dark plate would not scan. Declared once so it reads as a decision. */
+  --qr-plate: #ffffff;
   --safe-top: env(safe-area-inset-top, var(--safe-area-inset-top, 0px));
   --safe-bottom: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
   --tabbar-height: 62px;
