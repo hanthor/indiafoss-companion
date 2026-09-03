@@ -15,11 +15,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         org.indiafoss.companion.reminders.ReminderScheduler.ensureChannel(this)
+        intent?.dataString?.let(viewModel::openDeepLink)
         setContent {
             CompanionTheme {
                 CompanionApp(viewModel)
             }
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        intent.dataString?.let(viewModel::openDeepLink)
     }
 
     override fun onResume() {

@@ -86,6 +86,13 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         }
     }
 
+    LaunchedEffect(state.pendingRoute) {
+        state.pendingRoute?.let { route ->
+            navController.navigate(route)
+            viewModel.consumeRoute()
+        }
+    }
+
     LaunchedEffect(state.message) {
         state.message?.let {
             snackbarHostState.showSnackbar(it)

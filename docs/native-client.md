@@ -31,10 +31,18 @@ that matters (must attend, then the earliest bookmark, then the programme's
 next talk, never a break) counting down, tertiary-coloured within five
 minutes.
 
-Not native yet: routing between rooms (walk times and the leave-by offset
-that depends on them), signed cards (the PWA signs its QR with a per-device
+Walk times come from the venue graph (`venue.graph.json` and
+`venue.metadata.json`, shipped in assets; `Routing` is the web package's
+shortest-walk logic ported, with the fastest / avoid-stairs / accessible
+profiles and tests): once a location is set, the banner says "LEAVE IN N
+MIN · WALK M MIN" (start minus the walk minus a five-minute buffer) and a
+tapped room on the map says how far it is. `indiafoss://activity/<id>`,
+`indiafoss://location/<id>` and `indiafoss://speaker/<id>` open the right
+screen from a launch or a running app.
+
+Not native yet: signed cards (the PWA signs its QR with a per-device
 WebCrypto key; the native card is unsigned and the scanner treats every card
-as unsigned), calendar export, itinerary edits.
+as unsigned), calendar export, itinerary edits, the routing profile switch.
 
 ## Layout
 

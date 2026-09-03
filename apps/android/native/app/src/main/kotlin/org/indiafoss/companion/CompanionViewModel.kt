@@ -28,6 +28,9 @@ import org.indiafoss.companion.data.RankingState
 import org.indiafoss.companion.data.RatingsStore
 import org.indiafoss.companion.data.RefreshResult
 import org.indiafoss.companion.data.StoredComparison
+import org.indiafoss.companion.data.VenueRepository
+import org.indiafoss.companion.ui.screens.Floor
+import org.indiafoss.companion.ui.screens.FloorPlans
 import org.indiafoss.companion.reminders.ReminderScheduler
 
 data class UiState(
@@ -42,6 +45,10 @@ data class UiState(
     val contacts: List<MetContact> = emptyList(),
     /** Where the attendee is, as a bundle location id: set on the map or by a room's code. */
     val currentLocation: String? = null,
+    /** Seconds of walking from where the attendee is to a location, when both are on the plan. */
+    val walkSecondsTo: (String) -> Int? = { null },
+    /** A route asked for by a deep link, consumed by the navigation host. */
+    val pendingRoute: String? = null,
     val message: String? = null,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
@@ -93,7 +100,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val ratings = RatingsStore(app)
     private val reminders = ReminderScheduler(app)
     private val profiles = ProfileStore(app)
-    private val _state = MutableStateFlow(UiState(now = nowIso()))
+    private val venue = VenueRepository(app)
+    private val floors: List<Floor> = FloorPlans.load(app)
+    private val _state = MutableStateFlow(UiState(now = nowIso(), walkSecondsTo = { null }))
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     init {
@@ -115,7 +124,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch { profiles.profile.collect { card -> _state.update { it.copy(profile = card) } } }
         viewModelScope.launch { profiles.contacts.collect { met -> _state.update { it.copy(contacts = met) } } }
-        viewModelScope.launch { preferences.location.collect { at -> _state.update { it.copy(currentLocation = at) } } }
+        viewModelScope.launch {
+            preferences.location.collect { at -> _state.update { it.copy(currentLocation = at, walkSecondsTo = walker(at)) } }
+        }
         // Whatever changes the plan re-arms the alarms: bookmarks, must-attend, the bundle.
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
@@ -187,9 +198,25 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun setLocation(locationId: String?) {
-        _state.update { it.copy(currentLocation = locationId) }
+        _state.update { it.copy(currentLocation = locationId, walkSecondsTo = walker(locationId)) }
         viewModelScope.launch { preferences.setLocation(locationId) }
     }
+
+    private fun walker(from: String?): (String) -> Int? =
+        if (from == null) { _ -> null } else { to -> venue.walkSeconds(floors, from, to) }
+
+    /** indiafoss://activity/<id>, indiafoss://location/<id>: the same links the PWA answers to. */
+    fun openDeepLink(url: String) {
+        val match = Regex("^indiafoss://([a-z]+)/([A-Za-z0-9._:@#!-]{1,128})", RegexOption.IGNORE_CASE).find(url.trim()) ?: return
+        val (kind, id) = match.destructured
+        when (kind.lowercase()) {
+            "activity" -> _state.update { it.copy(pendingRoute = "activity/$id") }
+            "location" -> { setLocation(id); _state.update { it.copy(pendingRoute = "map") } }
+            "speaker" -> _state.update { it.copy(pendingRoute = "speaker/$id") }
+        }
+    }
+
+    fun consumeRoute() = _state.update { it.copy(pendingRoute = null) }
 
     fun removeContact(id: String) {
         viewModelScope.launch { profiles.removeContact(id) }

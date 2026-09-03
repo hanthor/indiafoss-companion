@@ -14,6 +14,9 @@ val copySeedBundle by tasks.registering(Copy::class) {
     from(rootProject.file("../../web/static/events/indiafoss-2025/event-bundle.json"))
     // The floor plans the web map draws, exported to JSON (`pnpm --filter @indiafoss/web floors`).
     from(rootProject.file("../../web/static/venues/indiafoss-2026/floors.json"))
+    // The routing graph and room entrances behind the web map's walk times.
+    from(rootProject.file("../../web/static/venues/indiafoss-2026/venue.graph.json"))
+    from(rootProject.file("../../web/static/venues/indiafoss-2026/venue.metadata.json"))
     into(seedAssets)
 }
 

@@ -74,6 +74,9 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (S
                     Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                         Column(Modifier.padding(16.dp)) {
                             Text(room?.name ?: floor.roomFor(id)?.name ?: id, style = MaterialTheme.typography.titleMedium)
+                            state.walkSecondsTo(id)?.takeIf { state.currentLocation != id }?.let { seconds ->
+                                Text("Walk ${(seconds + 59) / 60} min from where you are", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                            }
                             val running = live[id].orEmpty()
                             if (running.isEmpty()) Text("Nothing on right now", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             running.forEach { a ->
