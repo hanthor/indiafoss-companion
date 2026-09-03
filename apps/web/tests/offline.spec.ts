@@ -64,7 +64,7 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await expect(page.getByRole('heading', { name: /First Step into Open Source/ })).toBeVisible();
 
   // 9. Modify Elo ranking.
-  await page.goto(appUrl('/plan/rank'));
+  await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await page.getByTestId('candidate-a').click();
   await page.waitForTimeout(200);

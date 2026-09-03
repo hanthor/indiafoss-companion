@@ -32,6 +32,11 @@ export interface AttendeeProfile {
   /** Event-scoped ticket reference (`ticket::<id>`); a correlation key, never an identity. */
   ticketRef?: string;
   fossUnitedProfileUrl?: string;
+  /**
+   * Public picture, as an https URL: imported from a FOSS United or GitHub
+   * profile, or derived (`avatarUrlFor`). Never uploaded by the app.
+   */
+  avatarUrl?: string;
   socials: Partial<Record<AttendeeSocial, string>>;
 }
 
@@ -47,6 +52,8 @@ export interface AttendeeShareSelection {
   neutrinoServerName?: boolean;
   ticketRef?: boolean;
   fossUnitedProfileUrl: boolean;
+  /** On by default: the card carries a `PHOTO` link when a public picture is known. */
+  photo?: boolean;
   socials: Partial<Record<AttendeeSocial, boolean>>;
 }
 
@@ -62,9 +69,59 @@ export const DEFAULT_ATTENDEE_SHARE_SELECTION: AttendeeShareSelection = {
   neutrinoServerName: true,
   ticketRef: false,
   fossUnitedProfileUrl: true,
+  photo: true,
   // Public developer profiles are what people actually swap at a FOSS conference.
   socials: { github: true, linkedin: true },
 };
+
+/** GitHub username from a profile URL or a bare handle; null for organisations' sub-pages etc. */
+export function githubUsername(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  const fromUrl = trimmed.match(
+    /^(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9-]{1,39})\/?$/i,
+  );
+  const raw = fromUrl?.[1] ?? trimmed.match(/^@?([A-Za-z0-9-]{1,39})$/)?.[1] ?? null;
+  return raw && !/^(orgs|sponsors|features|topics|about)$/i.test(raw) ? raw : null;
+}
+
+/** GitHub serves every user's avatar at a stable public address. */
+export function githubAvatarUrl(github: string | undefined, size = 160): string | null {
+  const user = githubUsername(github);
+  return user ? `https://github.com/${user}.png?size=${size}` : null;
+}
+
+/**
+ * The picture for a card or a saved contact (#95), in order of preference:
+ * one the profile states (imported from FOSS United or GitHub, or scanned
+ * from a card's `PHOTO`), the GitHub avatar when a GitHub link is present and
+ * shared, then a Gravatar the caller has already hashed (only ever when the
+ * email is shared, since the hash identifies it). Null when nothing is known:
+ * the UI falls back to the key badge.
+ */
+export function avatarUrlFor(
+  profile: { avatarUrl?: string; socials?: Partial<Record<AttendeeSocial, string>> },
+  options: { shareGithub?: boolean; gravatarUrl?: string | null } = {},
+): string | null {
+  if (profile.avatarUrl && /^https:\/\//i.test(profile.avatarUrl)) return profile.avatarUrl.trim();
+  if (options.shareGithub !== false) {
+    const github = githubAvatarUrl(profile.socials?.github);
+    if (github) return github;
+  }
+  return options.gravatarUrl ?? null;
+}
+
+/** Gravatar address for an email (SHA-256, the current Gravatar scheme); `d=404` so a missing one stays blank. */
+export async function gravatarUrl(email: string | undefined, size = 160): Promise<string | null> {
+  const normalized = email?.trim().toLowerCase();
+  if (!normalized || !normalized.includes('@') || !globalThis.crypto?.subtle) return null;
+  const digest = await globalThis.crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(normalized),
+  );
+  const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  return `https://gravatar.com/avatar/${hex}?s=${size}&d=404`;
+}
 
 function escapeVCard(value: string): string {
   return value
@@ -84,6 +141,7 @@ function pushField(lines: string[], field: string, value: string | undefined): v
 export function attendeeProfileToVCard(
   profile: AttendeeProfile,
   selection: AttendeeShareSelection = DEFAULT_ATTENDEE_SHARE_SELECTION,
+  options?: { gravatarUrl?: string | null },
 ): string {
   const lines = ['BEGIN:VCARD', 'VERSION:3.0'];
   if (selection.name) {
@@ -109,6 +167,15 @@ export function attendeeProfileToVCard(
     pushField(lines, 'X-INDIAFOSS-MESH', profile.neutrinoServerName);
   }
   if (selection.ticketRef) pushField(lines, 'X-INDIAFOSS-TICKET', profile.ticketRef);
+  if (selection.photo !== false) {
+    // A link, never the bytes: a QR cannot carry an image, and the address is
+    // one the network already serves publicly.
+    const photo = avatarUrlFor(profile, {
+      shareGithub: Boolean(selection.socials.github),
+      gravatarUrl: selection.email ? (options?.gravatarUrl ?? null) : null,
+    });
+    if (photo) lines.push(`PHOTO;VALUE=URI:${escapeVCard(photo)}`);
+  }
 
   for (const [network, enabled] of Object.entries(selection.socials)) {
     if (!enabled) continue;
@@ -134,6 +201,7 @@ export interface ContactLink {
     | 'whatsapp'
     | 'signal'
     | 'website'
+    | 'fossunited'
     | AttendeeSocial;
   label: string;
   href: string;
@@ -170,6 +238,7 @@ export function contactDeepLinks(profile: {
   email?: string;
   website?: string;
   matrixId?: string;
+  fossUnitedProfileUrl?: string;
   socials?: Partial<Record<AttendeeSocial, string>>;
 }): ContactLink[] {
   const links: ContactLink[] = [];
@@ -224,6 +293,14 @@ export function contactDeepLinks(profile: {
   if (profile.website && /^https?:\/\//i.test(profile.website)) {
     links.push({ kind: 'website', label: 'Website', href: profile.website.trim() });
   }
+  // The FOSS United profile is one more public profile, shown like the others (#96).
+  if (profile.fossUnitedProfileUrl && /^https?:\/\//i.test(profile.fossUnitedProfileUrl)) {
+    links.push({
+      kind: 'fossunited',
+      label: 'FOSS United',
+      href: profile.fossUnitedProfileUrl.trim(),
+    });
+  }
   for (const [network, url] of Object.entries(socials) as [AttendeeSocial, string][]) {
     if (['telegram', 'whatsapp', 'signal', 'xmpp', 'deltachat'].includes(network)) continue;
     // Fediverse handles (@user@instance) are how people actually say their Mastodon.
@@ -248,6 +325,7 @@ export type LinkKind = ContactLink['kind'];
 /** Display order: what people look for first at a FOSS conference. */
 const LINK_ORDER: LinkKind[] = [
   'website',
+  'fossunited',
   'github',
   'gitlab',
   'linkedin',
@@ -271,6 +349,7 @@ const LINK_ORDER: LinkKind[] = [
 
 export const LINK_LABELS: Record<LinkKind, string> = {
   website: 'Website',
+  fossunited: 'FOSS United',
   github: 'GitHub',
   gitlab: 'GitLab',
   linkedin: 'LinkedIn',
@@ -314,6 +393,7 @@ export function classifyLink(url: string): LinkKind | null {
     return null;
   }
   const is = (...domains: string[]) => domains.some((d) => host === d || host.endsWith(`.${d}`));
+  if (is('fossunited.org') && /^\/u\/[^/]+\/?$/.test(path)) return 'fossunited';
   if (is('github.com')) return 'github';
   if (is('gitlab.com')) return 'gitlab';
   if (is('linkedin.com')) return 'linkedin';

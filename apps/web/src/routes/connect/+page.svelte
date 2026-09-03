@@ -1,10 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { SvelteSet } from 'svelte/reactivity';
   import { resolve } from '$app/paths';
   import {
+    avatarUrlFor,
     contactBookToJson,
     contactBookToVCards,
     contactDeepLinks,
+    gravatarUrl,
     groupByDayMet,
     identiconSvg,
     isMatrixUserId,
@@ -28,12 +31,9 @@
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
   import { features, hydrateFeatures } from '$lib/features.svelte';
   import { meshStatus } from '$lib/neutrino';
-  import {
-    applyImportedProfile,
-    importFossUnitedProfile,
-    IMPORT_MESSAGES,
-    type ImportedChange,
-  } from '$lib/fossunited';
+  import { applyImportedProfile, type ImportedChange } from '$lib/fossunited';
+  import { importLinkedProfiles } from '$lib/profile-import';
+  import { hasContactPicker, pickContact, profileFromContactFile } from '$lib/contact-import';
   import { profileUrlForUsername, usernameFromProfileUrl } from '@indiafoss/sources';
   import {
     hydrateProfile,
@@ -109,6 +109,39 @@
   const fieldCount = $derived(sharedFieldCount(profileState.profile, profileState.selection));
   const signed = $derived(!!identityState.pair);
 
+  // ---------- Picture (#95) ----------
+  // Gravatar needs a hash of the email; computed once per email, off the render path.
+  let gravatar = $state<string | null>(null);
+  $effect(() => {
+    const email = profileState.profile.email;
+    void gravatarUrl(email).then((url) => (gravatar = url));
+  });
+  /** What the card would carry: only pictures that reveal nothing the card does not already share. */
+  const cardAvatar = $derived(
+    avatarUrlFor(profileState.profile, {
+      shareGithub: Boolean(profileState.selection.socials.github),
+      gravatarUrl: profileState.selection.email ? gravatar : null,
+    }),
+  );
+  /** What the attendee sees on their own card, whatever is shared. */
+  const ownAvatar = $derived(avatarUrlFor(profileState.profile, { gravatarUrl: gravatar }));
+  const avatarSource = $derived(
+    profileState.profile.avatarUrl
+      ? 'from your profile'
+      : ownAvatar?.includes('github.com')
+        ? 'from GitHub'
+        : ownAvatar
+          ? 'from Gravatar'
+          : null,
+  );
+  const photoOn = $derived(profileState.selection.photo !== false);
+  function togglePhoto(): void {
+    profileState.selection.photo = !photoOn;
+    scheduleCard();
+  }
+  /** Broken picture links, so a dead URL falls back to the badge instead of a broken image. */
+  const avatarFailed = new SvelteSet<string>();
+
   /** Re-encode the card a beat after the last edit; saves the profile at the same time. */
   function scheduleCard(): void {
     if (qrTimer) clearTimeout(qrTimer);
@@ -133,6 +166,7 @@
       profileState.profile,
       profileState.selection,
       identityState.pair,
+      { gravatarUrl: profileState.selection.email ? gravatar : null },
     );
     vcard = value;
     if (byteLength(value) > MAX_QR_BYTES) {
@@ -152,6 +186,7 @@
 
   // First render once the profile and key are in; afterwards every edit reschedules.
   $effect(() => {
+    void gravatar;
     if (profileState.loaded && identityState.ready) scheduleCard();
   });
 
@@ -222,39 +257,101 @@
     scheduleCard();
   }
 
-  // ---------- FOSS United import ----------
+  // ---------- Imports: linked profiles (#96) and the phone's contacts (#94) ----------
   let importing = $state(false);
   let importMessage = $state('');
   let importChanges = $state<ImportedChange[]>([]);
+  /** The profile as it was before the last import, so it can be taken back in one tap. */
+  let importSnapshot = $state<string | null>(null);
+  let contactFileInput = $state<HTMLInputElement | null>(null);
+  let importingContact = $state(false);
+  let contactMessage = $state('');
 
-  async function importProfile(): Promise<void> {
-    const url = profileState.profile.fossUnitedProfileUrl?.trim();
-    if (!url) {
-      importMessage = IMPORT_MESSAGES['invalid-url'];
-      return;
+  function acceptChanges(changes: ImportedChange[], source: string): void {
+    for (const change of changes) {
+      const key = change.field as AttendeeSocial;
+      // A freshly imported public link is shared unless switched off.
+      if (SOCIALS.includes(key)) profileState.selection.socials[key] = true;
     }
+    importChanges = changes;
+    importMessage =
+      changes.length === 0
+        ? `Nothing new from ${source}: your card already has these fields.`
+        : `Filled ${changes.length} field${changes.length === 1 ? '' : 's'} from ${source}.`;
+    scheduleCard();
+  }
+
+  async function importProfiles(): Promise<void> {
     importing = true;
     importMessage = '';
     importChanges = [];
+    const before = JSON.stringify(profileState.profile);
     try {
-      const result = await importFossUnitedProfile(url);
-      if (!result.ok || !result.profile) {
-        importMessage = IMPORT_MESSAGES[result.failure ?? 'network'];
-        return;
+      const outcome = await importLinkedProfiles(profileState.profile);
+      if (outcome.sources.length > 0) {
+        importSnapshot = before;
+        acceptChanges(outcome.changes, outcome.sources.join(' and '));
       }
-      const changes = applyImportedProfile(profileState.profile, result.profile);
-      for (const change of changes) {
-        const key = change.field as AttendeeSocial;
-        if (SOCIALS.includes(key)) profileState.selection.socials[key] = true;
+      if (outcome.problems.length > 0) {
+        importMessage = [importMessage, ...outcome.problems].filter(Boolean).join(' ');
       }
-      importChanges = changes;
-      importMessage =
-        changes.length === 0
-          ? 'Nothing new: your card already has these fields.'
-          : `Filled ${changes.length} field${changes.length === 1 ? '' : 's'} from your public profile.`;
-      scheduleCard();
     } finally {
       importing = false;
+    }
+  }
+
+  function undoImport(): void {
+    if (!importSnapshot) return;
+    const restored = JSON.parse(importSnapshot) as typeof profileState.profile;
+    profileState.profile = { ...restored, socials: { ...restored.socials } };
+    importSnapshot = null;
+    importChanges = [];
+    importMessage = 'Import taken back.';
+    scheduleCard();
+  }
+
+  async function importFromContacts(): Promise<void> {
+    contactMessage = '';
+    if (hasContactPicker()) {
+      importingContact = true;
+      try {
+        const picked = await pickContact();
+        if (!picked) {
+          contactMessage = 'Nothing picked.';
+          return;
+        }
+        const before = JSON.stringify(profileState.profile);
+        const changes = applyImportedProfile(profileState.profile, picked);
+        if (changes.length > 0) importSnapshot = before;
+        acceptChanges(changes, 'your contacts');
+        contactMessage = importMessage;
+      } finally {
+        importingContact = false;
+      }
+      return;
+    }
+    contactFileInput?.click();
+  }
+
+  async function importContactFile(event: Event): Promise<void> {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    importingContact = true;
+    try {
+      const imported = profileFromContactFile(await file.text());
+      if (!imported) {
+        contactMessage = 'That file is not a contact card (.vcf).';
+        return;
+      }
+      const before = JSON.stringify(profileState.profile);
+      const changes = applyImportedProfile(profileState.profile, imported);
+      if (changes.length > 0) importSnapshot = before;
+      acceptChanges(changes, 'your contact card');
+      contactMessage = importMessage;
+    } finally {
+      importingContact = false;
+      input.value = '';
     }
   }
 
@@ -387,6 +484,19 @@
       {/if}
     </div>
     <div class="who">
+      {#if ownAvatar && !avatarFailed.has(ownAvatar)}
+        <!-- A public picture the card links to, never uploaded by the app. -->
+        <img
+          class="avatar"
+          src={ownAvatar}
+          alt=""
+          width="48"
+          height="48"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+          onerror={() => ownAvatar && avatarFailed.add(ownAvatar)}
+        />
+      {/if}
       <div class="names">
         <strong>{profileState.profile.fullName || 'Your name'}</strong>
         <span class="muted">{profileState.profile.organization || 'Add an organisation below'}</span
@@ -431,14 +541,63 @@
       <div class="grouphead">
         <span class="eyebrow" id={`g-${group}`}>{info.title.toUpperCase()}</span>
         {#if group === 'identity'}
-          <button class="linkbtn" onclick={importProfile} disabled={importing}>
-            {importing ? 'Filling…' : 'Fill from FOSS United ↗'}
+          <button class="linkbtn" onclick={importFromContacts} disabled={importingContact}>
+            {importingContact ? 'Reading…' : 'From my contacts'}
+          </button>
+          <input
+            bind:this={contactFileInput}
+            type="file"
+            accept=".vcf,text/vcard,text/x-vcard"
+            onchange={importContactFile}
+            hidden
+          />
+        {:else if group === 'links'}
+          <button class="linkbtn" onclick={importProfiles} disabled={importing}>
+            {importing ? 'Filling…' : 'Fill from my profiles ↗'}
           </button>
         {:else}
           <span class="muted small">{info.note}</span>
         {/if}
       </div>
-      {#if group === 'identity' && importMessage}
+      {#if group === 'identity'}
+        {#if contactMessage}<p class="muted small" role="status">{contactMessage}</p>{/if}
+        <p class="muted small hintline">
+          {hasContactPicker()
+            ? 'Picks your own entry from the phone\u2019s contacts; nothing is uploaded.'
+            : 'Share your own entry from the Contacts app as a .vcf and pick it here; nothing is uploaded.'}
+        </p>
+        <!-- The picture row: not a text field, so it sits above the rows. -->
+        <div class="row photo">
+          <div class="field">
+            <span class="label">Photo</span>
+            {#if ownAvatar && !avatarFailed.has(ownAvatar)}
+              <span class="photovalue">
+                <img src={ownAvatar} alt="" width="28" height="28" referrerpolicy="no-referrer" />
+                <span class="hint"
+                  >{avatarSource}{photoOn && !cardAvatar
+                    ? ' · only with the field it comes from'
+                    : ''}</span
+                >
+              </span>
+            {:else}
+              <span class="hint"
+                >Add a GitHub link, or fill from your profiles, and it appears.</span
+              >
+            {/if}
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={photoOn && !!cardAvatar}
+            aria-label="Share photo"
+            class="switch tap-target"
+            class:on={photoOn && !!cardAvatar}
+            disabled={!ownAvatar}
+            onclick={togglePhoto}><span class="knob"></span></button
+          >
+        </div>
+      {/if}
+      {#if group === 'links' && importMessage}
         <p class="muted small" role="status">{importMessage}</p>
         {#if importChanges.length > 0}
           <ul class="imported">
@@ -447,9 +606,42 @@
             {/each}
           </ul>
         {/if}
+        {#if importSnapshot}
+          <button class="linkbtn small" onclick={undoImport}>Take the import back</button>
+        {/if}
       {/if}
       <div class="rows">
         {#if group === 'links'}
+          <!-- The FOSS United profile is one profile among the others (#96). -->
+          {#each rowsFor('links') as spec (spec.key)}
+            {@const on = isOn(spec)}
+            <div class="row">
+              <div class="field">
+                <span class="label">{spec.label}</span>
+                <input
+                  aria-label={spec.label}
+                  type={spec.inputType}
+                  autocomplete="off"
+                  spellcheck="false"
+                  placeholder={spec.placeholder}
+                  value={shownValue(spec)}
+                  oninput={(e) => setValue(spec, e.currentTarget.value)}
+                />
+                {#if spec.hint}<span class="hint">{spec.hint}</span>{/if}
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={on && !!valueOf(spec).trim()}
+                aria-label={`Share ${spec.label}`}
+                class="switch tap-target"
+                class:on={on && !!valueOf(spec).trim()}
+                disabled={!valueOf(spec).trim()}
+                title={valueOf(spec).trim() ? undefined : 'Fill in the field first'}
+                onclick={() => toggle(spec)}><span class="knob"></span></button
+              >
+            </div>
+          {/each}
           {#each shownNetworks as n (n)}
             {@const on = Boolean(profileState.selection.socials[n])}
             <div class="row">
@@ -605,7 +797,19 @@
                   onclick={() => (openContact = openContact === c.id ? null : c.id)}
                   aria-expanded={openContact === c.id}
                 >
-                  {#if c.fingerprint}
+                  {#if avatarUrlFor(c) && !avatarFailed.has(avatarUrlFor(c) ?? '')}
+                    <!-- Their public picture, from the PHOTO link on the card they showed. -->
+                    <img
+                      class="avatar small"
+                      src={avatarUrlFor(c)}
+                      alt=""
+                      width="43"
+                      height="43"
+                      loading="lazy"
+                      referrerpolicy="no-referrer"
+                      onerror={() => avatarFailed.add(avatarUrlFor(c) ?? '')}
+                    />
+                  {:else if c.fingerprint}
                     <!-- eslint-disable svelte/no-at-html-tags -- SVG generated locally from a hex fingerprint -->
                     <span class="identicon small-badge"
                       >{@html identiconSvg(c.fingerprint, 43)}</span
@@ -734,6 +938,35 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
+  }
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+    flex: none;
+    background: var(--surface);
+  }
+  .avatar.small {
+    width: 43px;
+    height: 43px;
+  }
+  .who .names {
+    flex: 1;
+  }
+  .row.photo .photovalue {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .row.photo img {
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border);
+  }
+  .hintline {
+    margin: -0.2rem 0 0.5rem;
   }
   .names {
     display: flex;

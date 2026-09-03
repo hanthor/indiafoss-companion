@@ -24,6 +24,36 @@ export class FixedClock implements Clock {
   }
 }
 
+/**
+ * A clock that starts at one instant and runs at a multiple of real time: the
+ * conference-day simulator. `now()` keeps the offset of the start instant, so
+ * formatting (`formatTime`, `dayKey`) reads in the event's time zone exactly
+ * as it would on the day. `speed` 0 pauses it.
+ */
+export class RunningClock implements Clock {
+  private readonly startMs: number;
+  private readonly offsetMinutes: number;
+
+  constructor(
+    readonly start: string,
+    readonly speed: number,
+    private readonly anchorMs: number = Date.now(),
+    private readonly realNow: () => number = () => Date.now(),
+  ) {
+    this.startMs = parseInstant(start);
+    this.offsetMinutes = offsetMinutesOf(start);
+  }
+
+  /** Simulated instant as epoch milliseconds. */
+  nowMs(): number {
+    return this.startMs + Math.max(0, this.realNow() - this.anchorMs) * this.speed;
+  }
+
+  now(): string {
+    return formatInstant(this.nowMs(), this.offsetMinutes);
+  }
+}
+
 export function parseInstant(iso: string): number {
   const ms = Date.parse(iso);
   if (Number.isNaN(ms)) throw new Error(`Invalid ISO instant: ${iso}`);

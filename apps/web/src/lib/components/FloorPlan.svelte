@@ -3,6 +3,7 @@
   import type { Activity } from '@indiafoss/model';
   import { activityProgress, formatTime, parseInstant } from '@indiafoss/schedule';
   import { clockFromParams, isFixedClock } from '$lib/clock';
+  import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
   import { bookmarked } from '$lib/prefs.svelte';
   import {
@@ -22,13 +23,16 @@
 
   const BUFFER_SECONDS = 300;
 
-  const clock = clockFromParams(page.url.searchParams.get('now'));
+  const clock = clockFromParams(
+    page.url.searchParams.get('now'),
+    page.url.searchParams.get('speed'),
+  );
   let now = $state(clock.now());
   $effect(() => {
     if (isFixedClock(clock)) return;
     const timer = setInterval(() => {
       now = clock.now();
-    }, 15_000);
+    }, tickInterval(15_000));
     return () => clearInterval(timer);
   });
 

@@ -14,6 +14,12 @@ export interface ActivityPreference {
   comparisons: number;
   disposition: Disposition;
   bookmarked: boolean;
+  /**
+   * Quick-pass answer (#90): a first yes/no sweep down the day's list. `no`
+   * goes with `disposition: 'not-interested'`; `yes` keeps the session in the
+   * running and is what the head-to-head round is then limited to.
+   */
+  triage?: 'yes' | 'no';
 }
 
 export interface ComparisonRecord {
@@ -117,6 +123,8 @@ export interface ContactRecord {
   phone?: string;
   website?: string;
   fossUnitedProfileUrl?: string;
+  /** Public picture link from the card's `PHOTO` (#95). */
+  avatarUrl?: string;
   matrixId?: string;
   /** Neutrino P2P node identity, kept separately from the Matrix id. */
   neutrinoServerName?: string;

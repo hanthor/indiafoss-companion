@@ -9,6 +9,7 @@
     formatTime,
   } from '@indiafoss/schedule';
   import { clockFromParams, isFixedClock } from '$lib/clock';
+  import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
   import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
   import {
@@ -21,14 +22,17 @@
   import TypeBadge from '$lib/components/TypeBadge.svelte';
   import { conferenceChatQuery } from '$lib/matrix.svelte';
 
-  const clock = clockFromParams(page.url.searchParams.get('now'));
+  const clock = clockFromParams(
+    page.url.searchParams.get('now'),
+    page.url.searchParams.get('speed'),
+  );
   let now: string = $state(clock.now());
 
   $effect(() => {
     if (isFixedClock(clock)) return;
     const timer = setInterval(() => {
       now = clock.now();
-    }, 1000);
+    }, tickInterval(1000));
     return () => clearInterval(timer);
   });
 

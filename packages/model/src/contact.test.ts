@@ -2,8 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_ATTENDEE_SHARE_SELECTION,
   attendeeProfileToVCard,
+  avatarUrlFor,
   classifyLink,
   contactDeepLinks,
+  githubAvatarUrl,
+  githubUsername,
+  gravatarUrl,
   type AttendeeProfile,
   type AttendeeShareSelection,
 } from './contact.js';
@@ -139,5 +143,83 @@ describe('attendeeProfileToVCard', () => {
     expect(contactDeepLinks({ socials: { mastodon: 'https://fosstodon.org/@alice' } })).toEqual([
       { kind: 'mastodon', label: 'Mastodon', href: 'https://fosstodon.org/@alice' },
     ]);
+  });
+});
+
+describe('profile pictures (#95)', () => {
+  it('reads a GitHub username from a URL or a handle', () => {
+    expect(githubUsername('https://github.com/aarav')).toBe('aarav');
+    expect(githubUsername('github.com/aarav/')).toBe('aarav');
+    expect(githubUsername('@aarav')).toBe('aarav');
+    expect(githubUsername('https://github.com/orgs/fossunited')).toBeNull();
+    expect(githubUsername('https://github.com/aarav/repo')).toBeNull();
+    expect(githubAvatarUrl('https://github.com/aarav')).toBe(
+      'https://github.com/aarav.png?size=160',
+    );
+  });
+
+  it('prefers a stated picture, then GitHub, then a Gravatar the caller hashed', () => {
+    expect(
+      avatarUrlFor({
+        avatarUrl: 'https://fossunited.org/files/aarav.jpg',
+        socials: profile.socials,
+      }),
+    ).toBe('https://fossunited.org/files/aarav.jpg');
+    expect(avatarUrlFor({ socials: profile.socials })).toBe(
+      'https://github.com/aarav.png?size=160',
+    );
+    expect(avatarUrlFor({ socials: profile.socials }, { shareGithub: false })).toBeNull();
+    expect(
+      avatarUrlFor({ socials: {} }, { gravatarUrl: 'https://gravatar.com/avatar/abc?d=404' }),
+    ).toBe('https://gravatar.com/avatar/abc?d=404');
+    expect(avatarUrlFor({ avatarUrl: 'http://insecure.example/x.png', socials: {} })).toBeNull();
+  });
+
+  it('hashes the email for Gravatar with SHA-256 and asks for a blank on a miss', async () => {
+    const url = await gravatarUrl('  Aarav@Example.org ');
+    expect(url).toMatch(/^https:\/\/gravatar\.com\/avatar\/[0-9a-f]{64}\?s=160&d=404$/);
+    expect(await gravatarUrl('not-an-email')).toBeNull();
+  });
+
+  it('puts a PHOTO link on the card only when it reveals nothing new', () => {
+    // GitHub shared: the GitHub avatar rides along.
+    const withGithub = attendeeProfileToVCard(profile);
+    expect(withGithub).toContain('PHOTO;VALUE=URI:https://github.com/aarav.png?size=160');
+    // GitHub switched off and nothing stated: no photo, even with a Gravatar at hand
+    // while the email stays private.
+    const noGithub: AttendeeShareSelection = {
+      ...DEFAULT_ATTENDEE_SHARE_SELECTION,
+      socials: { linkedin: true },
+    };
+    expect(
+      attendeeProfileToVCard(profile, noGithub, { gravatarUrl: 'https://gravatar.com/avatar/x' }),
+    ).not.toContain('PHOTO');
+    // Email shared: the Gravatar is fine to carry.
+    expect(
+      attendeeProfileToVCard(
+        profile,
+        { ...noGithub, email: true },
+        { gravatarUrl: 'https://gravatar.com/avatar/x' },
+      ),
+    ).toContain('PHOTO;VALUE=URI:https://gravatar.com/avatar/x');
+    // The photo switch turns it off outright.
+    expect(
+      attendeeProfileToVCard(profile, { ...DEFAULT_ATTENDEE_SHARE_SELECTION, photo: false }),
+    ).not.toContain('PHOTO');
+  });
+});
+
+describe('FOSS United as a link (#96)', () => {
+  it('classifies a profile URL and lists it with the other profiles', () => {
+    expect(classifyLink('https://fossunited.org/u/aarav')).toBe('fossunited');
+    expect(classifyLink('https://fossunited.org/indiafoss/2025')).toBe('website');
+    const links = contactDeepLinks(profile);
+    const fossu = links.find((l) => l.kind === 'fossunited');
+    expect(fossu?.href).toBe('https://fossunited.org/u/aarav');
+    expect(fossu?.label).toBe('FOSS United');
+    // Ordered right after the personal site.
+    expect(links.map((l) => l.kind).indexOf('fossunited')).toBeLessThan(
+      links.map((l) => l.kind).indexOf('github'),
+    );
   });
 });

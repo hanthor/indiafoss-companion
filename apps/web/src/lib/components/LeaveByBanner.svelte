@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { formatTime } from '@indiafoss/schedule';
@@ -6,19 +7,25 @@
   import { eventState } from '$lib/event.svelte';
   import { bookmarked, dispositionOf } from '$lib/prefs.svelte';
   import { computeNextUp } from '$lib/nextup';
+  import { logSimEvent, simState, tickInterval } from '$lib/simulator.svelte';
 
   const BUFFER_SECONDS = 300;
 
   // The `?now=` time-travel parameter works here as on the Now screen.
-  const clock = $derived(clockFromParams(page.url.searchParams.get('now')));
+  const clock = $derived(
+    clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
+  );
   let now = $state('');
 
   $effect(() => {
     now = clock.now();
     if (isFixedClock(clock)) return;
-    const timer = setInterval(() => {
-      now = clock.now();
-    }, 30_000);
+    const timer = setInterval(
+      () => {
+        now = clock.now();
+      },
+      simState.run ? tickInterval(30_000) : 30_000,
+    );
     return () => clearInterval(timer);
   });
 
@@ -52,6 +59,17 @@
     if (!next) return '';
     if (next.startsInMinutes <= 0) return 'STARTING NOW';
     return `STARTS IN ${next.startsInMinutes} MIN`;
+  });
+
+  // Under the simulator, every change of what the banner says is logged: it is
+  // the prompt an attendee would see on the day.
+  let lastBanner = '';
+  $effect(() => {
+    const line = next ? `${kicker} · ${next.activity.title}` : '';
+    if (!simState.run || line === lastBanner) return;
+    lastBanner = line;
+    const room = roomName ?? undefined;
+    if (line) untrack(() => logSimEvent('banner', line, room));
   });
 
   const href = $derived(

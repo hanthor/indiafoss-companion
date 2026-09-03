@@ -30,7 +30,7 @@ const SHOTS = [
   ['now', `/now?${q}`, 'light'],
   ['home', `/?${q}`, 'light'],
   ['schedule', `/schedule?${q}`, 'light'],
-  ['rank', `/plan/rank?${q}`, 'light'],
+  ['rank', `/plan/rank?mode=pairs&${q}`, 'light'],
   ['plan', `/plan?${q}`, 'dark'],
   ['map', `/map?${q}`, 'dark'],
   ['connect', `/connect?${q}`, 'dark', fillCard],

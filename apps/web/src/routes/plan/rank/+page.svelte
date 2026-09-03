@@ -1,5 +1,6 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import { page } from '$app/state';
   import type { Activity } from '@indiafoss/model';
   import {
     activitiesForDay,
@@ -11,16 +12,31 @@
   } from '@indiafoss/schedule';
   import {
     applyComparison,
-    pairKey,
+    applyPriors,
+    conflictProgress,
     scheduleStability,
     selectNextComparison,
+    type AffinityModel,
     type ComparisonCandidate,
     type ComparisonChoice,
     type RankedActivity,
   } from '@indiafoss/elo';
-  import { CompanionStorage } from '@indiafoss/storage';
-  import { SvelteSet } from 'svelte/reactivity';
-  import { comparisonsOf, dispositionOf, ratingOf, setRating } from '$lib/prefs.svelte';
+  import type { Disposition } from '@indiafoss/storage';
+  import {
+    comparedPairs,
+    comparisonsOf,
+    dispositionOf,
+    forgetComparison,
+    hydrateComparisons,
+    hydratePreferences,
+    ratingOf,
+    recordComparison,
+    setDisposition,
+    setRating,
+    setTriage,
+    triageOf,
+  } from '$lib/prefs.svelte';
+  import { affinityModel } from '$lib/priors.svelte';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -28,18 +44,22 @@
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
+  type Mode = 'quick' | 'pairs';
+
   let selectedDay = $state<string | null>(null);
   let busy = $state(false);
   let entering = $state(false);
   /** Which card's abstract is open; collapses when the next pair loads. */
   let openMore = $state<'a' | 'b' | null>(null);
+  let ready = $state(false);
+  /** Answered quick-pass rows are folded away; this unfolds them to change an answer. */
+  let showAnswered = $state(false);
 
   /** One reversible comparison, captured before the Elo update is applied. */
   interface UndoEntry {
     comparisonId: string;
-    pairKey: string;
-    a: { id: string; rating: number; comparisons: number };
-    b: { id: string; rating: number; comparisons: number };
+    a: { id: string; rating: number; comparisons: number; disposition: Disposition };
+    b: { id: string; rating: number; comparisons: number; disposition: Disposition };
   }
   const undoStack = $state<UndoEntry[]>([]);
   const canUndo = $derived(undoStack.length > 0);
@@ -48,27 +68,91 @@
     if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
   });
 
-  const storage = new CompanionStorage();
-  const comparedPairs = new SvelteSet<string>();
+  $effect(() => {
+    void Promise.all([hydratePreferences(), hydrateComparisons()]).then(() => (ready = true));
+  });
 
-  const pool = $derived<RankedActivity[]>(
-    (selectedDay ? activitiesForDay(bundle, selectedDay) : [])
-      .filter((a) => !a.cancelled && a.type !== 'meal')
-      .map((a) => ({
-        activity: a,
-        rating: ratingOf(a.id),
-        comparisons: comparisonsOf(a.id),
-        disposition: dispositionOf(a.id),
-      })),
+  // ---------- The day's sessions ----------
+  const daySessions = $derived<Activity[]>(
+    (selectedDay ? activitiesForDay(bundle, selectedDay) : []).filter(
+      (a) => !a.cancelled && a.type !== 'meal',
+    ),
   );
+
+  /** Stored ratings, the source of truth for updates. */
+  const stored = $derived<RankedActivity[]>(
+    daySessions.map((a) => ({
+      activity: a,
+      rating: ratingOf(a.id),
+      comparisons: comparisonsOf(a.id),
+      disposition: dispositionOf(a.id),
+    })),
+  );
+
+  /** What the attendee keeps picking, learnt from every answer so far (#90). */
+  const model = $derived<AffinityModel>(affinityModel(bundle));
+
+  /** The pool the questions are chosen from: stored ratings with the taste prior blended in. */
+  const pool = $derived<RankedActivity[]>(applyPriors(stored, model));
+
+  const answered = $derived(comparedPairs());
 
   const candidate = $derived<ComparisonCandidate | null>(
-    selectNextComparison({ activities: pool, alreadyCompared: comparedPairs }),
+    ready ? selectNextComparison({ activities: pool, alreadyCompared: answered }) : null,
   );
 
+  const progress = $derived(conflictProgress({ activities: pool, alreadyCompared: answered }));
   const stability = $derived(
-    pool.length >= 2 ? scheduleStability({ activities: pool, alreadyCompared: comparedPairs }) : 1,
+    pool.length >= 2 ? scheduleStability({ activities: pool, alreadyCompared: answered }) : 1,
   );
+
+  /** Choices made on this day's sessions, for the readout. */
+  const choicesMade = $derived.by(() => {
+    const ids = new Set(daySessions.map((a) => a.id));
+    let n = 0;
+    for (const key of answered) {
+      const [x, y] = key.split('|');
+      if (x && y && ids.has(x) && ids.has(y)) n++;
+    }
+    return n;
+  });
+
+  // ---------- Quick pass ----------
+  const untriaged = $derived(daySessions.filter((a) => !triageOf(a.id)));
+  const triaged = $derived(daySessions.filter((a) => !!triageOf(a.id)));
+  const keptCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'yes').length);
+  const droppedCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'no').length);
+
+  /**
+   * Which round to show. A day nobody has touched starts with the quick pass;
+   * once it is done, or the attendee has started answering pairs, head to head.
+   * `?mode=` forces either, for links and tests.
+   */
+  const forcedMode = $derived<Mode | null>(
+    page.url.searchParams.get('mode') === 'pairs'
+      ? 'pairs'
+      : page.url.searchParams.get('mode') === 'quick'
+        ? 'quick'
+        : null,
+  );
+  let chosenMode = $state<Mode | null>(null);
+  // Decided once the stored answers are in, then only by the attendee: the
+  // first quick-pass answer must not flip the screen to head to head.
+  $effect(() => {
+    if (!ready || chosenMode !== null || daySessions.length === 0) return;
+    // Keep sorting while there is a list left to sort and no pair answered yet.
+    chosenMode = forcedMode ?? (untriaged.length > 0 && choicesMade === 0 ? 'quick' : 'pairs');
+  });
+  const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'pairs');
+
+  async function answerQuick(activity: Activity, answer: 'yes' | 'no'): Promise<void> {
+    chosenMode = 'quick';
+    await setTriage(activity.id, answer);
+  }
+  async function clearQuick(activity: Activity): Promise<void> {
+    chosenMode = 'quick';
+    await setTriage(activity.id, undefined);
+  }
 
   const overlaps = (a: Activity, b: Activity): boolean =>
     !!a.start &&
@@ -78,53 +162,55 @@
     Date.parse(a.start) < Date.parse(b.end) &&
     Date.parse(b.start) < Date.parse(a.end);
 
-  /** Choices made today, out of the overlapping pairs that need a winner plus any extras answered. */
-  const progress = $derived.by(() => {
-    const live = pool.filter((r) => r.disposition !== 'not-interested');
-    let conflicts = 0;
-    for (let i = 0; i < live.length; i++) {
-      for (let j = i + 1; j < live.length; j++) {
-        if (overlaps(live[i]!.activity, live[j]!.activity)) conflicts++;
-      }
-    }
-    const done = comparedPairs.size;
-    return { done, total: Math.max(conflicts, done) };
-  });
+  /** Sessions that clash with a given one, for the quick-pass hint. */
+  const clashCount = (a: Activity): number =>
+    daySessions.filter(
+      (b) => b.id !== a.id && dispositionOf(b.id) !== 'not-interested' && overlaps(a, b),
+    ).length;
 
   // ---------- Choosing ----------
   async function choose(choice: ComparisonChoice): Promise<void> {
     if (!candidate || busy) return;
     busy = true;
-    const { activityA, activityB } = candidate;
-    const result = applyComparison(activityA.rating, activityB.rating, choice);
+    const idA = candidate.activityA.activity.id;
+    const idB = candidate.activityB.activity.id;
+    const before = {
+      a: {
+        id: idA,
+        rating: ratingOf(idA),
+        comparisons: comparisonsOf(idA),
+        disposition: dispositionOf(idA),
+      },
+      b: {
+        id: idB,
+        rating: ratingOf(idB),
+        comparisons: comparisonsOf(idB),
+        disposition: dispositionOf(idB),
+      },
+    };
+    // The Elo update works on the stored ratings, never the prior-adjusted view.
+    const result = applyComparison(before.a.rating, before.b.rating, choice);
     await Promise.all([
-      setRating(activityA.activity.id, result.ratingA, activityA.comparisons + 1),
-      setRating(activityB.activity.id, result.ratingB, activityB.comparisons + 1),
+      setRating(idA, result.ratingA, before.a.comparisons + 1),
+      setRating(idB, result.ratingB, before.b.comparisons + 1),
     ]);
+    if (choice === 'neither') {
+      // "Neither" means neither: both drop out of the running, which is what
+      // makes the day converge instead of asking about them again.
+      await Promise.all([
+        setDisposition(idA, 'not-interested'),
+        setDisposition(idB, 'not-interested'),
+      ]);
+    }
     const comparisonId = `cmp-${Date.now()}`;
-    await storage.saveComparison({
+    await recordComparison({
       id: comparisonId,
-      activityA: activityA.activity.id,
-      activityB: activityB.activity.id,
+      activityA: idA,
+      activityB: idB,
       scoreA: choice === 'neither' || choice === 'tie' ? 0.5 : choice.startsWith('a') ? 1 : 0,
       createdAt: new Date().toISOString(),
     });
-    const key = pairKey(activityA.activity.id, activityB.activity.id);
-    comparedPairs.add(key);
-    undoStack.push({
-      comparisonId,
-      pairKey: key,
-      a: {
-        id: activityA.activity.id,
-        rating: activityA.rating,
-        comparisons: activityA.comparisons,
-      },
-      b: {
-        id: activityB.activity.id,
-        rating: activityB.rating,
-        comparisons: activityB.comparisons,
-      },
-    });
+    undoStack.push({ comparisonId, ...before });
     openMore = null;
     busy = false;
     entering = true;
@@ -138,9 +224,10 @@
     await Promise.all([
       setRating(last.a.id, last.a.rating, last.a.comparisons),
       setRating(last.b.id, last.b.rating, last.b.comparisons),
+      setDisposition(last.a.id, last.a.disposition),
+      setDisposition(last.b.id, last.b.disposition),
     ]);
-    await storage.deleteComparison(last.comparisonId);
-    comparedPairs.delete(last.pairKey);
+    await forgetComparison(last.comparisonId);
     openMore = null;
   }
 
@@ -148,7 +235,7 @@
   function onKeydown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
     if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
-    if (busy) return;
+    if (busy || mode !== 'pairs') return;
     switch (event.key) {
       case '1':
       case 'ArrowUp':
@@ -241,8 +328,24 @@
           text: clash ? `Both at ${clash}` : 'Rated almost the same',
         };
       default:
-        return { tone: 'grey', pill: 'NEW TO YOU', text: 'Not ranked yet' };
+        return {
+          tone: 'grey',
+          pill: `NEW TO YOU${clash ? ` · ${clash}` : ''}`,
+          text: 'Neither ranked yet',
+        };
     }
+  });
+
+  /** The learnt taste, as a short line: the tracks pulling up or down. */
+  const tasteLine = $derived.by(() => {
+    const names = new Map(bundle.tracks.map((t) => [`track:${t.id}`, t.name]));
+    const rows = [...model.affinity.entries()]
+      .filter(([key]) => names.has(key) && (model.evidence.get(key) ?? 0) >= 2)
+      .map(([key, value]) => ({ name: names.get(key)!, value }))
+      .filter((r) => Math.abs(r.value) >= 0.2)
+      .sort((x, y) => Math.abs(y.value) - Math.abs(x.value))
+      .slice(0, 3);
+    return rows.map((r) => `${r.name} ${r.value > 0 ? '↑' : '↓'}`).join(' · ');
   });
 
   const leaderboard = $derived(
@@ -275,124 +378,407 @@
     </div>
   </div>
 
-  <div class="progress" role="status">
-    <div class="progresstext">
-      <span class="ok">{Math.round(stability * 100)}% RESOLVED</span>
-      <span>{progress.done} / {progress.total} CHOICES</span>
-    </div>
-    <div class="track"><div class="fill" style="width:{Math.round(stability * 100)}%"></div></div>
+  <!-- Two rounds: a quick yes/no sweep, then only the overlaps that are still open. -->
+  <div class="modes" role="tablist" aria-label="Round">
+    <button
+      role="tab"
+      aria-selected={mode === 'quick'}
+      class:active={mode === 'quick'}
+      onclick={() => (chosenMode = 'quick')}
+    >
+      1 · Quick pass
+      {#if untriaged.length > 0}<span class="count">{untriaged.length}</span>{/if}
+    </button>
+    <button
+      role="tab"
+      aria-selected={mode === 'pairs'}
+      class:active={mode === 'pairs'}
+      onclick={() => (chosenMode = 'pairs')}
+    >
+      2 · Head to head
+      {#if progress.open > 0}<span class="count">{progress.open}</span>{/if}
+    </button>
   </div>
 
-  {#if !candidate}
-    <section class="done" aria-live="polite">
-      <div class="donetitle">ALL SETTLED</div>
-      <p>Every overlap for this day has a winner. Your plan is built around them.</p>
-      <a class="button dark" href={resolve('/plan')}>See my plan</a>
-    </section>
-  {:else}
-    {@const A = candidate.activityA.activity}
-    {@const B = candidate.activityB.activity}
-    {@const barA = bar(A)}
-    {@const barB = bar(B)}
-    <section class="pair" class:entering aria-label="Which session would you rather be in?">
-      {#if reason}
-        <div class="reason">
-          <span class="pill {reason.tone}">{reason.pill}</span>
-          <span class="reasontext">{reason.text}</span>
-        </div>
-      {/if}
+  {#if mode === 'quick'}
+    <p class="muted small lead">
+      Tap <b>Yes</b> for anything you might go to and <b>No</b> for what you would not. Only the Yeses
+      that overlap need settling afterwards, so this is the fast way through a long day.
+    </p>
+    <div class="progress" role="status">
+      <div class="progresstext">
+        <span class="ok">{keptCount} IN · {droppedCount} OUT</span>
+        <span>{untriaged.length} TO GO</span>
+      </div>
+      <div class="track">
+        <div
+          class="fill"
+          style="width:{daySessions.length
+            ? Math.round((triaged.length / daySessions.length) * 100)
+            : 0}%"
+        ></div>
+      </div>
+    </div>
 
-      {#each [['a', A, barA], ['b', B, barB]] as const as [which, act, b] (which)}
-        {#if which === 'b'}
-          <div class="vs" aria-hidden="true"><span></span>VS<span></span></div>
-        {/if}
-        <article class="talk" class:open={openMore === which}>
-          <button
-            class="pick"
-            data-testid={`candidate-${which}`}
-            onclick={() => choose(which === 'a' ? 'definitely-a' : 'definitely-b')}
-            disabled={busy}
-            aria-label={`Pick ${act.title}`}
-          >
-            <span class="talkhead">
-              <TypeBadge type={act.type} />
-              <span class="when"
-                >{timeRange(act)}{locationName(act) ? ` · ${locationName(act)}` : ''}</span
-              >
-            </span>
-            <span class="title">{act.title}</span>
-            {#if speakerNames(act)}<span class="speaker">{speakerNames(act)}</span>{/if}
-          </button>
-          {#if act.description || act.sourceUrl}
-            <button
-              class="more"
-              type="button"
-              aria-expanded={openMore === which}
-              onclick={(e) => toggleMore(which, e)}
-            >
-              {openMore === which ? 'Less ▴' : 'More info ▾'}
-            </button>
+    {#if untriaged.length === 0}
+      <section class="done" aria-live="polite">
+        <div class="donetitle">QUICK PASS DONE</div>
+        <p>
+          {keptCount} in, {droppedCount} out.
+          {#if progress.open > 0}
+            {progress.open} overlap{progress.open === 1 ? '' : 's'} among your Yeses still need a winner.
+          {:else}
+            Nothing you kept overlaps — your plan is ready.
           {/if}
-          {#if openMore === which}
-            <div class="abstract">
-              {#if act.description}<p>{act.description}</p>{/if}
-              {#if act.sourceUrl}
-                <!-- eslint-disable svelte/no-navigation-without-resolve -- external talk page -->
-                <a href={act.sourceUrl} target="_blank" rel="noreferrer"
-                  >Full talk page on fossunited.org ↗</a
+        </p>
+        {#if progress.open > 0}
+          <button class="button dark" onclick={() => (chosenMode = 'pairs')}
+            >Settle {progress.open} overlap{progress.open === 1 ? '' : 's'} →</button
+          >
+        {:else}
+          <a class="button dark" href={resolve('/plan')}>See my plan</a>
+        {/if}
+      </section>
+    {:else}
+      <ul class="quicklist" aria-label="Sessions to sort">
+        {#each untriaged as act (act.id)}
+          {@const clashes = clashCount(act)}
+          <li class="quickrow" data-testid="quick-row">
+            <div class="quicktext">
+              <span class="talkhead">
+                <TypeBadge type={act.type} />
+                <span class="when"
+                  >{timeRange(act)}{locationName(act) ? ` · ${locationName(act)}` : ''}</span
                 >
-                <!-- eslint-enable svelte/no-navigation-without-resolve -->
+              </span>
+              <a class="quicktitle" href={resolve(`/activity/${act.id}`)}>{act.title}</a>
+              {#if speakerNames(act)}<span class="speaker">{speakerNames(act)}</span>{/if}
+              {#if clashes > 0}
+                <span class="clash">Overlaps {clashes} other{clashes === 1 ? '' : 's'}</span>
               {/if}
             </div>
-          {/if}
-          {#if b}
-            <div class="timebar" aria-hidden="true">
-              <div class="span" style="left:{b.left}%;width:{b.width}%"></div>
-            </div>
-          {/if}
-        </article>
-      {/each}
-
-      <div class="secondary">
-        <button class="button secondary" onclick={() => choose('tie')} disabled={busy}
-          >Either is fine</button
-        >
-        <button class="button secondary muted" onclick={() => choose('neither')} disabled={busy}
-          >Skip both</button
-        >
-      </div>
-    </section>
-  {/if}
-
-  <div class="controls">
-    <button class="button secondary" onclick={undoLast} disabled={!canUndo}>↶ Undo last</button>
-    <p class="muted small">Your picks update a local Elo rating. Nothing is sent anywhere.</p>
-  </div>
-
-  {#if leaderboard.length > 0}
-    <section class="top" aria-labelledby="top-title">
-      <div class="eyebrow" id="top-title">TOP OF YOUR LIST</div>
-      <ol class="board">
-        {#each leaderboard as r, i (r.activity.id)}
-          <li>
-            <span class="rank">{i + 1}</span>
-            <span class="boardtext">
-              <a href={resolve(`/activity/${r.activity.id}`)}>{r.activity.title}</a>
-              <span class="when"
-                >{timeRange(r.activity)}{locationName(r.activity)
-                  ? ` · ${locationName(r.activity)}`
-                  : ''}</span
+            <div class="quickbtns">
+              <button
+                class="yes tap-target"
+                aria-label={`Yes to ${act.title}`}
+                onclick={() => answerQuick(act, 'yes')}>Yes</button
               >
-            </span>
-            <span class="rating">{Math.round(r.rating)}</span>
+              <button
+                class="no tap-target"
+                aria-label={`No to ${act.title}`}
+                onclick={() => answerQuick(act, 'no')}>No</button
+              >
+            </div>
           </li>
         {/each}
-      </ol>
-    </section>
+      </ul>
+    {/if}
+
+    {#if triaged.length > 0}
+      <button class="linkbtn answered" onclick={() => (showAnswered = !showAnswered)}>
+        {showAnswered ? 'Hide' : 'Change'} answered ({triaged.length})
+      </button>
+      {#if showAnswered}
+        <ul class="quicklist compact" aria-label="Answered">
+          {#each triaged as act (act.id)}
+            <li class="quickrow">
+              <div class="quicktext">
+                <span class="quicktitle plain">{act.title}</span>
+                <span class="when">{timeRange(act)}</span>
+              </div>
+              <div class="quickbtns">
+                <span class="answer" class:out={triageOf(act.id) === 'no'}
+                  >{triageOf(act.id) === 'no' ? 'OUT' : 'IN'}</span
+                >
+                <button class="linkbtn small" onclick={() => clearQuick(act)}>Undo</button>
+              </div>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    {/if}
+  {:else}
+    <div class="progress" role="status">
+      <div class="progresstext">
+        <span class="ok">{Math.round(stability * 100)}% RESOLVED</span>
+        <span>{choicesMade} {choicesMade === 1 ? 'CHOICE' : 'CHOICES'} · {progress.open} TO GO</span
+        >
+      </div>
+      <div class="track"><div class="fill" style="width:{Math.round(stability * 100)}%"></div></div>
+    </div>
+
+    {#if !ready}
+      <p class="muted" role="status">Loading your picks…</p>
+    {:else if !candidate}
+      <section class="done" aria-live="polite">
+        <div class="donetitle">ALL SETTLED</div>
+        <p>
+          {#if progress.conflicts === 0 && untriaged.length > 0}
+            Nothing overlaps yet. A quick pass first tells the app what you would skip.
+          {:else}
+            Every overlap for this day has a winner. Your plan is built around them.
+          {/if}
+        </p>
+        {#if progress.conflicts === 0 && untriaged.length > 0}
+          <button class="button dark" onclick={() => (chosenMode = 'quick')}
+            >Do the quick pass</button
+          >
+        {:else}
+          <a class="button dark" href={resolve('/plan')}>See my plan</a>
+        {/if}
+      </section>
+    {:else}
+      {@const A = candidate.activityA.activity}
+      {@const B = candidate.activityB.activity}
+      {@const barA = bar(A)}
+      {@const barB = bar(B)}
+      <section class="pair" class:entering aria-label="Which session would you rather be in?">
+        {#if reason}
+          <div class="reason">
+            <span class="pill {reason.tone}">{reason.pill}</span>
+            <span class="reasontext">{reason.text}</span>
+          </div>
+        {/if}
+
+        {#each [['a', A, barA], ['b', B, barB]] as const as [which, act, b] (which)}
+          {#if which === 'b'}
+            <div class="vs" aria-hidden="true"><span></span>VS<span></span></div>
+          {/if}
+          <article class="talk" class:open={openMore === which}>
+            <button
+              class="pick"
+              data-testid={`candidate-${which}`}
+              onclick={() => choose(which === 'a' ? 'definitely-a' : 'definitely-b')}
+              disabled={busy}
+              aria-label={`Pick ${act.title}`}
+            >
+              <span class="talkhead">
+                <TypeBadge type={act.type} />
+                <span class="when"
+                  >{timeRange(act)}{locationName(act) ? ` · ${locationName(act)}` : ''}</span
+                >
+              </span>
+              <span class="title">{act.title}</span>
+              {#if speakerNames(act)}<span class="speaker">{speakerNames(act)}</span>{/if}
+            </button>
+            {#if act.description || act.sourceUrl}
+              <button
+                class="more"
+                type="button"
+                aria-expanded={openMore === which}
+                onclick={(e) => toggleMore(which, e)}
+              >
+                {openMore === which ? 'Less ▴' : 'More info ▾'}
+              </button>
+            {/if}
+            {#if openMore === which}
+              <div class="abstract">
+                {#if act.description}<p>{act.description}</p>{/if}
+                {#if act.sourceUrl}
+                  <!-- eslint-disable svelte/no-navigation-without-resolve -- external talk page -->
+                  <a href={act.sourceUrl} target="_blank" rel="noreferrer"
+                    >Full talk page on fossunited.org ↗</a
+                  >
+                  <!-- eslint-enable svelte/no-navigation-without-resolve -->
+                {/if}
+              </div>
+            {/if}
+            {#if b}
+              <div class="timebar" aria-hidden="true">
+                <div class="span" style="left:{b.left}%;width:{b.width}%"></div>
+              </div>
+            {/if}
+          </article>
+        {/each}
+
+        <div class="secondary">
+          <button class="button secondary" onclick={() => choose('tie')} disabled={busy}
+            >Either is fine</button
+          >
+          <button
+            class="button secondary muted"
+            onclick={() => choose('neither')}
+            disabled={busy}
+            title="Drops both from your day">Neither, skip both</button
+          >
+        </div>
+      </section>
+    {/if}
+
+    <div class="controls">
+      <button class="button secondary" onclick={undoLast} disabled={!canUndo}>↶ Undo last</button>
+      <p class="muted small">
+        {#if tasteLine}
+          Learning your taste: {tasteLine}. Unranked sessions borrow it.
+        {:else}
+          Your picks update a local Elo rating. Nothing is sent anywhere.
+        {/if}
+      </p>
+    </div>
+
+    {#if leaderboard.length > 0}
+      <section class="top" aria-labelledby="top-title">
+        <div class="eyebrow" id="top-title">TOP OF YOUR LIST</div>
+        <ol class="board">
+          {#each leaderboard as r, i (r.activity.id)}
+            <li>
+              <span class="rank">{i + 1}</span>
+              <span class="boardtext">
+                <a href={resolve(`/activity/${r.activity.id}`)}>{r.activity.title}</a>
+                <span class="when"
+                  >{timeRange(r.activity)}{locationName(r.activity)
+                    ? ` · ${locationName(r.activity)}`
+                    : ''}</span
+                >
+              </span>
+              <span class="rating">{Math.round(r.rating)}</span>
+            </li>
+          {/each}
+        </ol>
+      </section>
+    {/if}
   {/if}
 </EventGate>
 
 <style>
+  /* Rounds */
+  .modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+    margin-bottom: 0.8rem;
+  }
+  .modes button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.55rem 0.6rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: var(--surface-raised);
+    color: var(--text-muted);
+    cursor: pointer;
+    min-height: 0;
+  }
+  .modes button.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .modes .count {
+    background: var(--amber);
+    color: var(--ink);
+    border-radius: 999px;
+    padding: 0 0.45rem;
+    font-size: 0.62rem;
+    line-height: 1.1rem;
+  }
+  .lead {
+    margin: 0 0 0.8rem;
+    line-height: 1.5;
+    text-wrap: pretty;
+  }
+
+  /* Quick pass */
+  .quicklist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .quickrow {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.7rem 0.8rem;
+  }
+  .quicklist.compact .quickrow {
+    padding: 0.45rem 0.8rem;
+    align-items: center;
+  }
+  .quicktext {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .quicktitle {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text);
+    text-decoration: none;
+    text-wrap: pretty;
+  }
+  .quicktitle.plain {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .clash {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    color: var(--amber-ink);
+  }
+  .quickbtns {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    flex: none;
+  }
+  .quicklist.compact .quickbtns {
+    flex-direction: row;
+    align-items: center;
+  }
+  .quickbtns .yes,
+  .quickbtns .no {
+    min-width: 3.6rem;
+    min-height: 2.4rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    background: var(--surface);
+    color: var(--text);
+  }
+  .quickbtns .yes {
+    background: var(--mint);
+    border-color: var(--mint);
+    color: var(--ink);
+  }
+  .quickbtns .no:hover,
+  .quickbtns .no:focus-visible {
+    background: var(--amber-soft);
+    color: var(--amber-ink);
+  }
+  .answer {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--mint-ink);
+  }
+  .answer.out {
+    color: var(--text-muted);
+  }
+  .answered {
+    margin-top: 0.7rem;
+  }
+
   .head {
     display: flex;
     align-items: flex-end;

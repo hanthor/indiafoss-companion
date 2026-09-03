@@ -14,6 +14,7 @@ const CORE_SCREENS: [string, string][] = [
   ['explore', '/explore'],
   ['plan', '/plan'],
   ['ranking', '/plan/rank'],
+  ['ranking (head to head)', '/plan/rank?mode=pairs'],
   ['connect', '/connect'],
   ['scan', '/scan'],
   ['settings', '/settings'],
@@ -68,7 +69,7 @@ test('a11y: ranking is fully operable with the keyboard only', async ({ browser 
   const page = await context.newPage();
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
-  await page.goto(appUrl('/plan/rank'));
+  await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible({ timeout: 10_000 });
   // A keyboard choice registers and is undoable using only key presses.
   // Focus the page through its heading: a click on <body> lands wherever the

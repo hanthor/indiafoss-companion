@@ -48,9 +48,9 @@ The clock is honest about time zones: everything renders in the event's offset, 
 <td width="40%"><img src="docs/screenshots/rank.png" alt="Ranking two overlapping sessions" /></td>
 <td width="60%">
 
-A programme with 130 talks has more conflicts than anyone wants to resolve by reading abstracts. Instead the app shows you **two sessions at a time** and asks which you would rather attend.
+A programme with 130 talks has more conflicts than anyone wants to resolve by reading abstracts. So the app takes two quick rounds: a **quick pass** down the day's list (Yes or No per talk), then only the Yeses that **overlap** are shown **two at a time** — which would you rather be in?
 
-Each pick updates a local [Elo](https://en.wikipedia.org/wiki/Elo_rating_system) rating, and the next pair is chosen for information gain: real conflicts first, then close calls, then sessions it knows nothing about. The pill tells you why this pair — `OVERLAP`, `CLOSE CALL` or `NEW TO YOU`.
+Each pick updates a local [Elo](https://en.wikipedia.org/wiki/Elo_rating_system) rating. Only questions that change the plan are asked: never two talks you could attend both of, never a clash a wide rating gap has already settled. The pill tells you why this pair — `OVERLAP`, `CLOSE CALL` or `NEW TO YOU` — and the app learns your taste by track and topic, so talks you have not ranked borrow it ([docs/ranking.md](docs/ranking.md)).
 
 Your ratings never leave the phone.
 
@@ -218,7 +218,8 @@ pnpm --filter @indiafoss/web screenshots
 | ----------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
 | [Event onboarding](docs/event-onboarding.md)                                                                                                          | bring a new event into the app                                              |
 | [Venue map](docs/venue-map.md) · [route checklist](docs/venue-route-review-checklist.md)                                                              | floor plans and the routing graph                                           |
-| [Reminders](docs/reminders.md)                                                                                                                        | the notification tiers                                                      |
+| [Reminders](docs/reminders.md) · [Day simulator](docs/simulator.md)                                                                                   | the notification tiers, and running a whole day in minutes                  |
+| [Ranking](docs/ranking.md)                                                                                                                            | the quick pass, head to head, and the learnt taste                          |
 | [Contact sharing](docs/contact-sharing.md)                                                                                                            | signed cards, QR scanning, key continuity                                   |
 | [Calendar export](docs/calendar-export.md)                                                                                                            | ICS for a plan or the whole programme                                       |
 | [Messaging](docs/messaging.md) · [Neutrino capabilities](docs/neutrino-capabilities.md) · [P2P state of the art](docs/p2p-matrix-state-of-the-art.md) | Matrix rooms, P2P mesh, threat model, and what the mesh measurably supports |

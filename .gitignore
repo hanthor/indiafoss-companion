@@ -39,3 +39,4 @@ apps/android/capacitor/ios/
 npm-debug.log*
 pnpm-debug.log*
 sbom.cdx.json
+apps/web/simulation-report.json

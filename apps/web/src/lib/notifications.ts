@@ -21,12 +21,30 @@ export interface NotificationTransport {
   cancel(id: string): Promise<void>;
 }
 
+/** How the web transport tells time: real by default, the simulator's when a run is on. */
+export interface TransportClock {
+  /** Current app time as epoch milliseconds. */
+  nowMs(): number;
+  /** App milliseconds per real millisecond (1 on the real clock). */
+  speed(): number;
+}
+
+export const RealTransportClock: TransportClock = { nowMs: () => Date.now(), speed: () => 1 };
+
 /**
  * Web implementation: uses the Notification API and a short-lived timer for
  * delivery. Pending notifications are re-armed on load (kept in settings).
+ * Under the day simulator the timers run on the simulated clock, so a
+ * reminder due in 15 simulated minutes fires in 15 real seconds at 60×.
  */
 export class WebLocalNotificationTransport implements NotificationTransport {
   private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
+
+  constructor(
+    private readonly clock: TransportClock = RealTransportClock,
+    /** Called when a notification fires, before the system notification. */
+    private readonly onFire: (notification: AppNotification) => void = () => {},
+  ) {}
 
   async requestPermission(): Promise<boolean> {
     if (typeof Notification === 'undefined') return false;
@@ -37,14 +55,17 @@ export class WebLocalNotificationTransport implements NotificationTransport {
   }
 
   async schedule(notification: AppNotification): Promise<void> {
-    const delay = Date.parse(notification.at) - Date.now();
+    const speed = this.clock.speed();
+    if (speed <= 0) return; // paused: re-armed on resume
+    const delay = (Date.parse(notification.at) - this.clock.nowMs()) / speed;
     this.cancel(notification.id);
     const timer = setTimeout(
       () => {
+        this.timers.delete(notification.id);
+        this.onFire(notification);
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           new Notification(notification.title, { body: notification.body });
         }
-        this.timers.delete(notification.id);
       },
       Math.max(0, delay),
     );

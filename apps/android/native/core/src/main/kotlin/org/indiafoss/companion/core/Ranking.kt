@@ -35,8 +35,16 @@ object Ranking {
         if (idA < idB) "$idA|$idB" else "$idB|$idA"
 
     /**
-     * The most useful next pair: clashing sessions first, closest ratings
-     * among those, then anything under-ranked. Null when nothing is left.
+     * A clash whose ratings differ by at least this much is settled: one
+     * ordinary result cannot flip it, so asking is a wasted tap.
+     */
+    const val SETTLED_GAP = 2 * K_FACTOR
+
+    /**
+     * The next pair worth asking about, mirroring `@indiafoss/elo` (#90): only
+     * sessions that overlap in time, not already answered, and not settled by
+     * a wide rating gap. Closest calls first; a pair neither side of which has
+     * been ranked yet counts as new. Null when nothing is left to decide.
      */
     fun selectNext(
         pool: List<RankedActivity>,
@@ -50,23 +58,19 @@ object Ranking {
             for (j in i + 1 until eligible.size) {
                 val a = eligible[i]
                 val b = eligible[j]
+                if (!overlaps(a.activity, b.activity)) continue
                 if (pairKey(a.activity.id, b.activity.id) in alreadyCompared) continue
-                val conflict = overlaps(a.activity, b.activity)
                 val gap = abs(a.rating - b.rating)
-                var score = 0.0
-                var reason = Reason.UNDER_RANKED
-                if (conflict) {
-                    score += 100
-                    if (gap <= 150) {
-                        score += 50 - gap / 3
-                        reason = Reason.CLOSE_RATINGS
-                    } else {
-                        reason = Reason.CONFLICT
-                    }
+                if (gap >= SETTLED_GAP) continue
+                val lowInfo = a.comparisons < 3 || b.comparisons < 3
+                val fresh = a.comparisons == 0 && b.comparisons == 0
+                val score = 100 + (SETTLED_GAP - gap) + (if (lowInfo) 20 else 0) + (if (fresh) 5 else 0)
+                val reason = when {
+                    fresh -> Reason.NEW
+                    gap <= SETTLED_GAP / 2 -> Reason.CLOSE_RATINGS
+                    else -> Reason.CONFLICT
                 }
-                if (a.comparisons < 3 || b.comparisons < 3) score += 20
-                if (score <= 0) continue
-                if (score > bestScore) {
+                if (best == null || score > bestScore) {
                     bestScore = score
                     best = ComparisonCandidate(a, b, reason)
                 }
@@ -75,17 +79,36 @@ object Ranking {
         return best
     }
 
-    /** Share of clashing pairs whose winner is settled, 0..1. */
-    fun stability(pool: List<RankedActivity>): Double {
-        val clashes = mutableListOf<Pair<RankedActivity, RankedActivity>>()
-        for (i in pool.indices) {
-            for (j in i + 1 until pool.size) {
-                if (overlaps(pool[i].activity, pool[j].activity)) clashes += pool[i] to pool[j]
+    /** Overlapping pairs still needing an answer, and those already settled. */
+    data class Progress(val conflicts: Int, val settled: Int) {
+        val open: Int get() = conflicts - settled
+    }
+
+    fun progress(pool: List<RankedActivity>, alreadyCompared: Set<String>): Progress {
+        val eligible = pool.filter { it.disposition != Disposition.NOT_INTERESTED && !it.activity.cancelled }
+        var conflicts = 0
+        var settled = 0
+        for (i in eligible.indices) {
+            for (j in i + 1 until eligible.size) {
+                val a = eligible[i]
+                val b = eligible[j]
+                if (!overlaps(a.activity, b.activity)) continue
+                conflicts++
+                if (pairKey(a.activity.id, b.activity.id) in alreadyCompared ||
+                    abs(a.rating - b.rating) >= SETTLED_GAP
+                ) {
+                    settled++
+                }
             }
         }
-        if (clashes.isEmpty()) return 1.0
-        val settled = clashes.count { (a, b) -> abs(a.rating - b.rating) >= 2 * K_FACTOR }
-        return settled.toDouble() / clashes.size
+        return Progress(conflicts, settled)
+    }
+
+    /** Share of clashing pairs whose winner is settled, 0..1. */
+    fun stability(pool: List<RankedActivity>, alreadyCompared: Set<String> = emptySet()): Double {
+        val p = progress(pool, alreadyCompared)
+        if (p.conflicts == 0) return 1.0
+        return p.settled.toDouble() / p.conflicts
     }
 
     private fun overlaps(a: Activity, b: Activity): Boolean {

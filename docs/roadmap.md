@@ -51,6 +51,25 @@ alignment, #3 CI packages token, #4 fork roadmap.
 
 ## Decisions log
 
+- 2026-09-03: **Ranking asks only what matters** (#90). A quick yes/no pass
+  first, then head to head only for overlapping pairs not already settled by
+  a direct answer or a wide rating gap; answered pairs are hydrated so a
+  reload never re-asks; a taste per track, type and tag is learnt from the
+  answers and blended into unranked sessions as a fading prior
+  (`docs/ranking.md`).
+- 2026-09-03: **Day simulator** (#93, dup #92). The app runs on a
+  `RunningClock` at 10–600× from Settings or `?now=&speed=`, reminders fire
+  on the simulated clock, everything is logged for the strip and for
+  `window.__indiafossSim`; `scripts/simulate.mjs` walks a whole day and
+  `tests/simulate.spec.ts` is a CI gate (`docs/simulator.md`).
+- 2026-09-03: **Card: contacts import, photo, FOSS United as a link**
+  (#94, #95, #96). The card fills from the phone's own contact (Contact
+  Picker API or a `.vcf`), from every linked public profile at once (FOSS
+  United page, GitHub API), carries a `PHOTO` link only when it reveals
+  nothing new (stated picture, GitHub avatar with the GitHub link, Gravatar
+  with the email), and lists the FOSS United profile among the other
+  profiles rather than as identity.
+
 - 2026-09-01: Matrix chat is optional and lives in the companion
   (`packages/matrix`). Superseded on 2026-09-02 for Android, see below.
 - 2026-09-02: **One Android app, companion first.** The Android release is
