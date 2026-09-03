@@ -43,4 +43,27 @@ class ItineraryTest {
         )
         assertEquals(listOf("b", "d"), plan.map { it.activity.id })
     }
+
+    @Test
+    fun `a fixed block displaces sessions and a flexible one takes the largest gap`() {
+        val fixed = Itinerary.CustomBlock("blk-1", "Coffee with Priya", "2025-09-20T10:00:00+05:30", "2025-09-20T10:45:00+05:30")
+        val booth = Itinerary.CustomBlock("blk-2", "Visit the Zulip booth", durationMinutes = 30, locationId = "booths")
+        val plan = Itinerary.forDay(
+            bundle, "2025-09-20",
+            ratingOf = { 1200.0 }, dispositionOf = { Disposition.NORMAL }, bookmarked = { false },
+            blocks = listOf(fixed, booth),
+        )
+        assertEquals(listOf("blk-1", "blk-2", "d"), plan.map { it.activity.id })
+        // The largest gap runs from the block's end to lunch; the visit starts there.
+        assertEquals("2025-09-20T10:45:00+05:30", plan[1].activity.start)
+        assertEquals("2025-09-20T11:15:00+05:30", plan[1].activity.end)
+        assertEquals(Itinerary.Reason.BLOCK, plan[1].reason)
+    }
+
+    @Test
+    fun `instants round-trip through formatInstant`() {
+        val iso = "2025-09-20T10:45:00+05:30"
+        assertEquals(iso, Schedule.formatInstant(Schedule.parseInstant(iso), Schedule.offsetMinutes(iso)))
+        assertEquals(330, Schedule.offsetMinutes(iso))
+    }
 }

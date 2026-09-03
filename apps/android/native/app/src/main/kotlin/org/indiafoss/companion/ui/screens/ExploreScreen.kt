@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
+import org.indiafoss.companion.ui.Avatar
 import org.indiafoss.companion.core.Search
 
 /** Search across sessions, speakers and booths; booths and speakers browsable without a query. */
@@ -37,6 +38,7 @@ fun ExploreScreen(
     actions: @Composable () -> Unit,
     onOpenActivity: (String) -> Unit,
     onOpenSpeaker: (String) -> Unit,
+    onOpenBooth: (String) -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val bundle = state.bundle
@@ -74,7 +76,7 @@ fun ExploreScreen(
                                 when (hit.kind) {
                                     Search.Kind.ACTIVITY -> onOpenActivity(hit.id)
                                     Search.Kind.PERSON -> onOpenSpeaker(hit.id)
-                                    Search.Kind.BOOTH -> bundle?.booths?.firstOrNull { it.id == hit.id }?.website?.let(uriHandler::openUri)
+                                    Search.Kind.BOOTH -> onOpenBooth(hit.id)
                                 }
                             },
                         )
@@ -90,7 +92,7 @@ fun ExploreScreen(
                                 supportingContent = {
                                     Text(listOfNotNull(booth.category, bundle?.location(booth.locationId)?.name).joinToString(" · "))
                                 },
-                                modifier = Modifier.clickable { booth.website?.let(uriHandler::openUri) },
+                                modifier = Modifier.clickable { onOpenBooth(booth.id) },
                             )
                             HorizontalDivider()
                         }
@@ -100,6 +102,7 @@ fun ExploreScreen(
                         item { SectionHeader("Speakers") }
                         items(speakers, key = { "p-" + it.id }) { person ->
                             ListItem(
+                                leadingContent = { Avatar(person.name, person.avatarUrl, size = 36.dp) },
                                 headlineContent = { Text(person.name) },
                                 supportingContent = {
                                     val line = listOfNotNull(person.designation, person.organization).joinToString(" · ")

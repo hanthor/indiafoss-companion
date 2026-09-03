@@ -132,6 +132,7 @@ Neither is on unless you switch it on.
 
 - **Web / PWA** — <https://hanthor.github.io/indiafoss-companion/>, deployed from `main`. Installable; works offline after the first load.
 - **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the latest debug APK and its SHA-256. P2P chat is compiled in when the Neutrino bindings are published; they are built from source by a workflow, so no contributor needs a token ([docs](docs/messaging.md#building-the-p2p-variant)).
+- **Android via Accrescent** — the channel we are heading for: install [Accrescent](https://accrescent.app), install the Companion from it, and it stays up to date on its own, in the background, with the signing key verified against signed store metadata. Accrescent's developer sign-up is closed at the moment, so this is not live yet — [what it needs, and what attendees will do](docs/accrescent.md).
 - **iOS** — the PWA is iOS-ready: **Share → Add to Home Screen**. Apple touch icon and standalone metadata are in the build; no App Store account needed.
 
 ## Repository layout
@@ -224,7 +225,7 @@ pnpm --filter @indiafoss/web screenshots
 | [Calendar export](docs/calendar-export.md)                                                                                                            | ICS for a plan or the whole programme                                       |
 | [Messaging](docs/messaging.md) · [Neutrino capabilities](docs/neutrino-capabilities.md) · [P2P state of the art](docs/p2p-matrix-state-of-the-art.md) | Matrix rooms, P2P mesh, threat model, and what the mesh measurably supports |
 | [Native client](docs/native-client.md) · [Android shell](apps/android/capacitor/README.md)                                                            | the Compose app and its Kotlin core; the Material look of the Android app   |
-| [Privacy](docs/privacy.md) · [Release](docs/release.md)                                                                                               | what is stored, and how a release is cut                                    |
+| [Privacy](docs/privacy.md) · [Release](docs/release.md) · [Accrescent](docs/accrescent.md)                                                            | what is stored, how a release is cut, and the Accrescent channel            |
 | [ADRs](docs/adr/README.md) · [Phases](docs/phases.md) · [Roadmap](docs/roadmap.md)                                                                    | decisions and where the project is going                                    |
 
 ## Status

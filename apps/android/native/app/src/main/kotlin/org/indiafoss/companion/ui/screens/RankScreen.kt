@@ -2,10 +2,8 @@ package org.indiafoss.companion.ui.screens
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Undo
@@ -64,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.indiafoss.companion.CompanionViewModel
 import org.indiafoss.companion.UiState
+import org.indiafoss.companion.ui.Avatar
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.Disposition
 import org.indiafoss.companion.core.Person
@@ -475,16 +473,7 @@ private fun SwipeCard(
 @Composable
 private fun SpeakerRow(person: Person, onClick: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier.size(36.dp).background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                person.name.split(Regex("\\s+")).take(2).mapNotNull { it.firstOrNull() }.joinToString(""),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-            )
-        }
+        Avatar(person.name, person.avatarUrl, size = 36.dp)
         Column(Modifier.padding(start = 10.dp).weight(1f)) {
             TextButton(onClick = onClick, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                 Text(person.name, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
