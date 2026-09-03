@@ -408,20 +408,138 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     },
   );
 
-  it('issues the same identity to everyone, so two users cannot be told apart', async () => {
-    // Until this fails, no multi-user behaviour can be tested against the dev
-    // binary: every registration is the same person.
-    const a = await call('POST', '/_matrix/client/v3/register', {
-      username: `alpha-${Date.now()}`,
+  it.skipIf(fork)(
+    'issues the same identity to everyone, so two users cannot be told apart',
+    async () => {
+      // Until this fails, no multi-user behaviour can be tested against the dev
+      // binary: every registration is the same person.
+      const a = await call('POST', '/_matrix/client/v3/register', {
+        username: `alpha-${Date.now()}`,
+        password: 'x',
+        auth: { type: 'm.login.dummy' },
+      });
+      const b = await call('POST', '/_matrix/client/v3/register', {
+        username: `beta-${Date.now()}`,
+        password: 'x',
+        auth: { type: 'm.login.dummy' },
+      });
+      expect(a.body.user_id).toBe(b.body.user_id);
+      expect(a.body.access_token).toBe(b.body.access_token);
+    },
+  );
+
+  // ---- fork: identity, whoami, account data, per-device inbox ---------------
+
+  async function callAs(tok: string, method: string, path: string, body?: unknown): Promise<Call> {
+    const response = await fetch(`${BASE}${path}`, {
+      method,
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${tok}` },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    const text = await response.text();
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = { raw: text };
+    }
+    return { status: response.status, body: parsed as Record<string, unknown> };
+  }
+
+  async function registerAs(localpart: string, deviceId?: string) {
+    const r = await call('POST', '/_matrix/client/v3/register', {
+      username: localpart,
       password: 'x',
       auth: { type: 'm.login.dummy' },
+      ...(deviceId ? { device_id: deviceId } : {}),
     });
-    const b = await call('POST', '/_matrix/client/v3/register', {
-      username: `beta-${Date.now()}`,
+    expect(r.status).toBe(200);
+    return {
+      token: String(r.body.access_token),
+      userId: String(r.body.user_id),
+      deviceId: String(r.body.device_id),
+    };
+  }
+
+  it.skipIf(!fork)('fork: two registrations are two users, and whoami says which', async () => {
+    const stamp = Date.now();
+    const a = await registerAs(`alpha-${stamp}`, 'PHONE-A');
+    const b = await registerAs(`beta-${stamp}`);
+    expect(a.userId).not.toBe(b.userId);
+    expect(a.token).not.toBe(b.token);
+    expect(a.deviceId).toBe('PHONE-A');
+    expect(b.deviceId).not.toBe('');
+
+    const who = await callAs(a.token, 'GET', '/_matrix/client/v3/account/whoami');
+    expect(who.status).toBe(200);
+    expect(who.body).toMatchObject({ user_id: a.userId, device_id: 'PHONE-A' });
+  });
+
+  it.skipIf(!fork)('fork: account data round-trips, is private, and rides sync', async () => {
+    const me = encodeURIComponent(userId);
+    const direct = { '@someone:example.org': [roomId] };
+    const put = await call('PUT', `/_matrix/client/v3/user/${me}/account_data/m.direct`, direct);
+    expect(put.status).toBe(200);
+    const got = await call('GET', `/_matrix/client/v3/user/${me}/account_data/m.direct`);
+    expect(got.status).toBe(200);
+    expect(got.body).toEqual(direct);
+
+    const tagged = await call(
+      'PUT',
+      `/_matrix/client/v3/user/${me}/rooms/${room()}/account_data/m.tag`,
+      { tags: { 'm.favourite': {} } },
+    );
+    expect(tagged.status).toBe(200);
+
+    // Someone else cannot read or write it.
+    const other = await registerAs(`nosy-${Date.now()}`);
+    const nosy = await callAs(
+      other.token,
+      'GET',
+      `/_matrix/client/v3/user/${me}/account_data/m.direct`,
+    );
+    expect(nosy.status).toBe(403);
+
+    // A sync carries it: the DM list is there before the client asks.
+    const sync = await call('GET', '/_matrix/client/v3/sync?timeout=0');
+    expect(sync.status).toBe(200);
+    const global = (sync.body.account_data as { events: { type: string; content: unknown }[] })
+      .events;
+    expect(global.some((e) => e.type === 'm.direct')).toBe(true);
+  });
+
+  it.skipIf(!fork)('fork: each device of a user gets only its own to-device messages', async () => {
+    const stamp = Date.now();
+    const phone = await registerAs(`dev-${stamp}`, 'PHONE');
+    const laptop = await callAs('', 'POST', '/_matrix/client/v3/login', {
+      type: 'm.login.password',
+      user: `dev-${stamp}`,
       password: 'x',
-      auth: { type: 'm.login.dummy' },
+      device_id: 'LAPTOP',
     });
-    expect(a.body.user_id).toBe(b.body.user_id);
-    expect(a.body.access_token).toBe(b.body.access_token);
+    expect(laptop.status).toBe(200);
+    const laptopToken = String(laptop.body.access_token);
+    // Both devices sync once so their inboxes start empty.
+    await callAs(phone.token, 'GET', '/_matrix/client/v3/sync?timeout=0');
+    await callAs(laptopToken, 'GET', '/_matrix/client/v3/sync?timeout=0');
+
+    const sent = await call('PUT', `/_matrix/client/v3/sendToDevice/probe.test/${stamp}`, {
+      messages: {
+        [phone.userId]: {
+          PHONE: { for: 'phone' },
+          LAPTOP: { for: 'laptop' },
+        },
+      },
+    });
+    expect(sent.status).toBe(200);
+
+    const events = (sync: Call) =>
+      ((sync.body.to_device as { events: { content: { for: string } }[] })?.events ?? []).map(
+        (e) => e.content.for,
+      );
+    const onPhone = await callAs(phone.token, 'GET', '/_matrix/client/v3/sync?timeout=0');
+    expect(events(onPhone)).toEqual(['phone']);
+    const onLaptop = await callAs(laptopToken, 'GET', '/_matrix/client/v3/sync?timeout=0');
+    expect(events(onLaptop)).toEqual(['laptop']);
   });
 });

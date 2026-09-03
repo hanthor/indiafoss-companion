@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Nine patches that give Neutrino enough of the Matrix key surface for the
+Ten patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -217,6 +217,36 @@ The client side needed one thing: a fresh device id on each password
 sign-in, so a reinstalled client is a new device rather than one claiming
 the old id with keys that no longer match. `packages/matrix` already fed
 `device_lists.changed` to the crypto machine.
+
+## 0010 — identity, whoami and account data
+
+The dev binary's identity was a stub: every login was Alice with device
+`DEVICEID` and the same token, so the to-device inbox could only be keyed by
+user and no multi-user behaviour could be tested against it. Patch `0010`:
+
+- **The dev binary carries the multi-user shim by default.** Every
+  registration or login is its own user, token and device; the embedded
+  build (`neutrino-ffi`) does not go through that crate and stays
+  single-user. The single-user build now honours the device a login names.
+- **The to-device inbox is keyed per device.** `/sendToDevice` and the
+  `m.direct_to_device` EDU address `(user, device)`; `*` fans out to every
+  device the directory knows for the user, and stays a wildcard row for
+  whichever device turns up first when it knows none. Each device's sync
+  drains only what is addressed to it (`AuthDevice`, the companion of
+  `AuthUser`), so two devices of one user no longer read each other's room
+  keys. The inbox table gained a `device` column.
+- **`GET /account/whoami`**: user, device, `is_guest: false`.
+- **Account data**, global and per room: `GET`/`PUT` on
+  `/user/{user}/account_data/{type}` and
+  `/user/{user}/rooms/{room}/account_data/{type}`, the caller's own only
+  (`403` otherwise), written through to the store before the write is
+  acknowledged, rebuilt at startup, and served by the sliding-sync
+  `account_data` extension (everything held on a connection's first look,
+  changes since on later ones, waking a long-poll) and by legacy `/sync`
+  (top-level `account_data.events` and per-room). This is where the client's
+  DM list (`m.direct`) lives, so it survives a reinstall.
+
+Complement: `TestAddAccountData` joins the allowlist. Schema v7.
 
 ## What is still missing
 

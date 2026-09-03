@@ -59,8 +59,8 @@ a stub, because it is a partial implementation rather than a complete one.
 | E2EE: claim one-time keys | `POST /keys/claim`                     | missing (404)                                                                          |
 | E2EE: to-device           | `PUT /sendToDevice/{}/{}`              | missing (404)                                                                          |
 | Public room directory     | `GET /publicRooms`                     | missing (404)                                                                          |
-| Whoami                    | `GET /account/whoami`                  | missing (404)                                                                          |
-| Account data (DM list)    | `PUT /user/{}/account_data/{}`         | missing (405)                                                                          |
+| Whoami                    | `GET /account/whoami`                  | missing (404) — with the patches: works, reports user and device                       |
+| Account data (DM list)    | `PUT /user/{}/account_data/{}`         | missing (405) — with the patches: works, persisted, served by sync                     |
 
 Two things the probe found that the README does not say:
 
@@ -71,6 +71,11 @@ embedded FFI build identity comes from the node's ed25519 key, so this may be
 the dev binary only — but it means the dev binary cannot be used for
 multi-user testing as-is, which is the first thing anyone adding features will
 want.
+_With the patches_ (`0010`) the dev binary carries Neutrino's multi-user shim
+by default: every registration or login is its own user, token and device,
+sessions survive a restart, and `whoami` says which is which. The probe's
+"same identity" tripwire skips against the fork and a contract takes its
+place.
 
 **E2EE is closer than "no E2EE" suggests, and the gap is precise.** The device
 key directory is real: upload a device and `/keys/query` returns it intact,
@@ -135,7 +140,10 @@ not by spec completeness.
 
 1. **Real identity in the dev binary.** Nothing else can be tested with two
    users until register/login stop returning Alice. Prerequisite for all of
-   the below.
+   the below. **Written** as patch `0010`: the dev binary carries the
+   multi-user shim by default, so every registration or login is its own
+   user, token and device; with it `whoami`, persisted account data, and a
+   to-device inbox keyed per device.
 2. **Redaction.** One core primitive that unblocks un-reacting and deleting a
    message you regret. Small, and the event type already exists. **Written**
    as patch `0006`: an `m.room.redaction` is an ordinary event through the
