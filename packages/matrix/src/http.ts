@@ -596,6 +596,25 @@ export class MatrixClient {
 
   // ---- media ---------------------------------------------------------------
 
+  /**
+   * The server's upload cap in bytes (`m.upload.size`), or `null` when it
+   * does not say — the authenticated config first, the legacy path as the
+   * fallback older servers still answer.
+   */
+  async mediaUploadLimit(): Promise<number | null> {
+    for (const path of ['/_matrix/client/v1/media/config', '/_matrix/media/v3/config']) {
+      try {
+        const config = await this.request<{ 'm.upload.size'?: number }>('GET', path);
+        const size = config['m.upload.size'];
+        return typeof size === 'number' && size > 0 ? size : null;
+      } catch (error) {
+        if (error instanceof MatrixError && error.status === 404) continue;
+        return null;
+      }
+    }
+    return null;
+  }
+
   /** Upload bytes to the content repository; returns the `mxc://` URI. */
   async uploadMedia(bytes: Uint8Array, mime: string, filename?: string): Promise<string> {
     const params = filename ? `?filename=${encodeURIComponent(filename)}` : '';

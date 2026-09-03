@@ -162,6 +162,15 @@ alignment, #3 CI packages token, #4 fork roadmap.
   drift (`phases.md`).
 - 2026-09-02: Display font decided: Press Start 2P (OFL) ships as the display
   face, FFF Forward is referenced but never bundled (#33).
+- 2026-09-03: **P2P step 9 (#82): media over the mesh with a size cap.**
+  Patch `0011`: a content repository capped at 256 KiB, the authenticated
+  and legacy download paths, `m.upload.size` advertised, and a federation
+  download so a photo uploaded on one node opens on the next (fetched
+  once, cached). The client learns the cap and refuses an oversized file
+  before a byte leaves the phone, shrinking images first when the host can.
+  Proofs: the two-node photo proof (encrypted attachment sent on A, opened
+  on B), the cap refused client-side and server-side, Complement
+  `TestMediaConfig`. The roadmap's last step: nothing stopped us.
 - 2026-09-03: **P2P step 8 (#81): identity, whoami and account data.**
   Patch `0010`: the dev binary is multi-user by default (every login its
   own user, token and device), the to-device inbox is keyed per device so
