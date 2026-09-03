@@ -28,21 +28,23 @@ changes, update the issue first, then this file, so neither drifts.
   manual entry behind a disclosure; map pinch/drag/wheel zoom with compact
   labels; XMPP (Prav) and Delta Chat on cards; FOSS United by username.
 
-## Open, ordered by conference impact
+## Queue, in order (2026-09-03)
 
-| Rank | Issue                                                                                 | Why it matters                                                                                                                                                    |
-| ---- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0    | [#35](https://github.com/hanthor/indiafoss-companion/issues/35) One Android app       | Device verification of the Neutrino plugin, foreground service, working Packages token                                                                            |
-| 1    | [#28](https://github.com/hanthor/indiafoss-companion/issues/28) P2P chat at the venue | Architecture decided and shipped; two-phone verification is the only step left                                                                                    |
-| 2    | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2          | Remaining: NFC (needs a native plugin), end-of-conference summary image                                                                                           |
-| 3    | [#30](https://github.com/hanthor/indiafoss-companion/issues/30) Chat UX               | Remaining: device verification, which waits on #27                                                                                                                |
-| 4    | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish         | Remaining: visual regression snapshots, empty states                                                                                                              |
-| 5    | [#12](https://github.com/hanthor/indiafoss-companion/issues/12) Notifications         | Remaining: a push while the _web_ app is closed, which the no-push policy rules out                                                                               |
-| 6    | [#27](https://github.com/hanthor/indiafoss-companion/issues/27) Neutrino mesh E2EE    | Written: `patches/neutrino/` carries the client-server and federation halves, verified on loopback; carried on the `hanthor/neutrino` fork, not offered upstream. |
-| 7    | [#10](https://github.com/hanthor/indiafoss-companion/issues/10) Native M3 client      | In progress: `apps/android/native` builds in CI; Now/Schedule/Plan/Map render natively                                                                            |
+| #   | Issue                                                                                                                                     | What                                                                                                                                                                                                             |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | [#108](https://github.com/hanthor/indiafoss-companion/issues/108) Ranker step one simpler                                                 | Not interested / Interested / Must go per devroom with devroom info, nothing but devrooms in that step; step two rich swipe cards (speaker, abstract, title); step three overlaps within a slot only. Both apps. |
+| 2   | [#107](https://github.com/hanthor/indiafoss-companion/issues/107) Onboarding wizard                                                       | Notifications, ticket, socials, then rank. Both apps.                                                                                                                                                            |
+| 3   | [#110](https://github.com/hanthor/indiafoss-companion/issues/110) Native app parity leftovers                                             | Device verification first; custom blocks and booth goals, contact and profile imports, simulator, update banner; then retire the Capacitor build.                                                                |
+| 4   | [#105](https://github.com/hanthor/indiafoss-companion/issues/105) Social links take a handle or a URL                                     |                                                                                                                                                                                                                  |
+| 5   | [#106](https://github.com/hanthor/indiafoss-companion/issues/106) First-class Prav                                                        | XMPP on cards and contacts.                                                                                                                                                                                      |
+| 6   | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                             | Dark audit, font decision, empty states, visual snapshots.                                                                                                                                                       |
+| 7   | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2 leftovers                                                    | End-of-conference summary image.                                                                                                                                                                                 |
+| 8   | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Production event revision handling                                          | Confirm against the live 2026 programme.                                                                                                                                                                         |
+| 9   | [#35](https://github.com/hanthor/indiafoss-companion/issues/35), [#74](https://github.com/hanthor/indiafoss-companion/issues/74) P2P chat | Worked separately.                                                                                                                                                                                               |
 
-Closed as done: #2 (2025 data), #7 (revision handling), #29 (organiser rooms),
-#32 (socials), #52–#55 and #60 (device and UX feedback).
+Closed as done: #2, #10 (native client), #12 (notifications), #29, #32 (socials), #52–#55,
+#60, #90 (ranking speed), #92 (dup of #93), #93 (simulator), #94 (contacts
+import), #95 (photo), #96 (FOSS United as a link).
 
 ## Sibling repository
 
