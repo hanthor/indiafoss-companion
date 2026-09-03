@@ -2,12 +2,16 @@
 
 Three patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
-`element-hq/neutrino` at `90bc1b1` (2026-09-02) and are kept here because the
-work is upstream's to accept — this repository is where it was written and
-measured, not where it will live. The same commits are on the
+`element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
-branch of the `hanthor/neutrino` fork, which is where an upstream PR is raised
-from.
+branch of the `hanthor/neutrino` fork, which is what our own builds come from.
+
+**These are not offered upstream, and should not be.** Element's policy on
+AI-assisted contributions is not known to us, and a pre-alpha research
+project does not need a conference app's experiments landing in its review
+queue. The patches exist so our builds can carry them; if they are ever
+proposed upstream, that is a decision for a person, made in the open, not a
+side effect of this repository.
 
 Why they exist: Matrix keeps the cryptography in the client, so a homeserver's
 only job in E2EE is to remember which devices exist, hand out one one-time key
