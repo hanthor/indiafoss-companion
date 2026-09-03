@@ -6,6 +6,7 @@ import {
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
+  announcementsRoom,
 } from './messaging.js';
 
 describe('matrix identifier checks', () => {
@@ -106,5 +107,22 @@ describe('conferenceChatAlias', () => {
     expect(bad).toEqual([
       'messaging room #x-room-audi-9:reilly.asia names an unknown location: audi-9',
     ]);
+  });
+});
+
+describe('announcementsRoom (#113)', () => {
+  it('derives the pinned room from the prefix and server, and can be turned off', () => {
+    const base = { homeserver: 'https://matrix.example.org', rooms: [] };
+    expect(announcementsRoom(base, 'IndiaFOSS-2026')).toMatchObject({
+      alias: '#indiafoss-2026-announcements:matrix.example.org',
+      name: 'Announcements',
+    });
+    expect(
+      announcementsRoom({ ...base, aliasPrefix: 'if26', aliasServer: 'reilly.asia' }, 'x')?.alias,
+    ).toBe('#if26-announcements:reilly.asia');
+    expect(
+      announcementsRoom({ ...base, announcementsAlias: '#news:reilly.asia' }, 'x')?.alias,
+    ).toBe('#news:reilly.asia');
+    expect(announcementsRoom({ ...base, announcementsAlias: false }, 'x')).toBeNull();
   });
 });

@@ -5,7 +5,7 @@
   import { goto } from '$app/navigation';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { localpart, matrixToUrl, meshLinkLabel } from '@indiafoss/matrix';
+  import { localpart, matrixToUrl, meshLinkLabel, canPost } from '@indiafoss/matrix';
   import { formatTime } from '@indiafoss/schedule';
   import { getMatrix, hydrateMatrix, matrixState, roomById, statusLabel } from '$lib/matrix.svelte';
   import MediaAttachment from '$lib/components/MediaAttachment.svelte';
@@ -15,6 +15,8 @@
   const timeline = $derived(matrixState.timelines[roomId] ?? []);
   const queued = $derived(new Set(matrixState.outbox.map((o) => o.txnId)));
   const selfId = $derived(matrixState.userId);
+  /** Issue #113: the announcements room is read-only for everyone below moderator. */
+  const mayPost = $derived(!room || !selfId || canPost(room, selfId));
   /** Issue #111: the saved card behind a mesh DM peer, with its claimed Matrix id. */
   const peerContact = $derived.by(() => {
     if (!room?.isDirect) return undefined;
@@ -323,35 +325,43 @@
       <button class="act" onclick={() => (replyTo = null)} aria-label="Cancel reply">×</button>
     </p>
   {/if}
-  <form class="composer" onsubmit={send}>
-    <input
-      type="file"
-      class="hidden-input"
-      bind:this={fileInput}
-      onchange={attach}
-      accept="image/*,application/pdf,.txt,.md,.zip"
-      aria-label="Attach a file"
-    />
-    <button
-      class="button secondary attach"
-      type="button"
-      aria-label="Attach a file or photo"
-      disabled={attaching || !canEncrypt || matrixState.status !== 'online'}
-      onclick={() => fileInput?.click()}>{attaching ? '…' : '📎'}</button
-    >
-    <input
-      aria-label="Message"
-      bind:value={draft}
-      oninput={onInput}
-      placeholder={canEncrypt ? 'Message…' : 'Encryption unavailable — open in Element to send'}
-      disabled={!canEncrypt || room.membership !== 'join'}
-      autocomplete="off"
-      enterkeyhint="send"
-    />
-    <button class="button primary" type="submit" disabled={sending || !canEncrypt || !draft.trim()}
-      >Send</button
-    >
-  </form>
+  {#if mayPost}
+    <form class="composer" onsubmit={send}>
+      <input
+        type="file"
+        class="hidden-input"
+        bind:this={fileInput}
+        onchange={attach}
+        accept="image/*,application/pdf,.txt,.md,.zip"
+        aria-label="Attach a file"
+      />
+      <button
+        class="button secondary attach"
+        type="button"
+        aria-label="Attach a file or photo"
+        disabled={attaching || !canEncrypt || matrixState.status !== 'online'}
+        onclick={() => fileInput?.click()}>{attaching ? '…' : '📎'}</button
+      >
+      <input
+        aria-label="Message"
+        bind:value={draft}
+        oninput={onInput}
+        placeholder={canEncrypt ? 'Message…' : 'Encryption unavailable — open in Element to send'}
+        disabled={!canEncrypt || room.membership !== 'join'}
+        autocomplete="off"
+        enterkeyhint="send"
+      />
+      <button
+        class="button primary"
+        type="submit"
+        disabled={sending || !canEncrypt || !draft.trim()}>Send</button
+      >
+    </form>
+  {:else}
+    <p class="muted small readonly" role="note">
+      Only the organisers post in this room; you can read along.
+    </p>
+  {/if}
   {#if matrixState.status !== 'online'}
     <p class="muted small">You're offline: messages are queued and delivered when you reconnect.</p>
   {/if}

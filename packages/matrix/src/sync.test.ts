@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applySyncResponse, deriveRoomName, describeEvent } from './sync.js';
+import { applySyncResponse, canPost, deriveRoomName, describeEvent } from './sync.js';
 import { slidingSyncToSyncResponse } from './http.js';
 import type { MatrixRoomRecord, SyncResponse } from './types.js';
 
@@ -389,5 +389,50 @@ describe('sliding sync typing extension', () => {
     ]);
     const delta = applySyncResponse(new Map(), folded, '@a:hs', {});
     expect(delta.typing['!r:hs']).toEqual(['@bob:hs']);
+  });
+});
+
+describe('power levels (announcements, #113)', () => {
+  it('records who may post and answers canPost', () => {
+    const rooms = new Map<string, MatrixRoomRecord>();
+    const response: SyncResponse = {
+      next_batch: 'n1',
+      rooms: {
+        join: {
+          '!ann:hs': {
+            state: {
+              events: [
+                {
+                  type: 'm.room.power_levels',
+                  state_key: '',
+                  sender: '@org:hs',
+                  event_id: '$pl',
+                  origin_server_ts: 1,
+                  content: { users_default: 0, events_default: 50, users: { '@org:hs': 100 } },
+                },
+              ],
+            },
+            timeline: { events: [], limited: false },
+          },
+        },
+      },
+    };
+    const delta = applySyncResponse(rooms, response, '@me:hs');
+    const room = delta.rooms.find((r) => r.roomId === '!ann:hs')!;
+    expect(room.powerLevels).toEqual({
+      usersDefault: 0,
+      eventsDefault: 50,
+      message: undefined,
+      users: { '@org:hs': 100 },
+    });
+    expect(canPost(room, '@org:hs')).toBe(true);
+    expect(canPost(room, '@me:hs')).toBe(false);
+    expect(canPost({ powerLevels: undefined }, '@me:hs')).toBe(true);
+    expect(
+      canPost(
+        { powerLevels: { usersDefault: 0, eventsDefault: 0, message: 50, users: {} } },
+        '@me:hs',
+      ),
+    ).toBe(false);
   });
 });

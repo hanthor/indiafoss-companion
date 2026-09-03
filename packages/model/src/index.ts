@@ -243,6 +243,7 @@ export {
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
+  announcementsRoom,
 } from './messaging.js';
 export type {
   ConferenceChatKind,

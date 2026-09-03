@@ -36,6 +36,12 @@ export interface MessagingConfig {
   aliasServer?: string;
   /** Offer auto-created chats for sessions, booths and venue rooms (default true). */
   sessionChats?: boolean;
+  /**
+   * Alias of the organiser-owned announcements room, pinned first in chat
+   * (issue #113). Defaults to `#<prefix>-announcements:<server>`; `false`
+   * turns the pinned entry off.
+   */
+  announcementsAlias?: string | false;
 }
 
 export type ConferenceChatKind = 'session' | 'booth' | 'room';
@@ -144,4 +150,20 @@ export function collectMessagingIssues(
     }
   }
   return issues;
+}
+
+/** The organiser-owned announcements room to pin, or `null` when turned off. */
+export function announcementsRoom(
+  config: MessagingConfig,
+  eventId: string,
+): { alias: string; name: string; topic: string } | null {
+  if (config.announcementsAlias === false) return null;
+  const prefix = (config.aliasPrefix ?? eventId).toLowerCase();
+  const server = config.aliasServer ?? homeserverName(config.homeserver);
+  const alias = config.announcementsAlias ?? `#${prefix}-announcements:${server}`;
+  return {
+    alias,
+    name: 'Announcements',
+    topic: 'Schedule changes and room moves from the organisers. Read-only for attendees.',
+  };
 }

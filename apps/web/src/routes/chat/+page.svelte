@@ -9,7 +9,7 @@
     matrixToUrl,
     localpart,
   } from '@indiafoss/matrix';
-  import { neutrinoMatrixId } from '@indiafoss/model';
+  import { announcementsRoom, neutrinoMatrixId } from '@indiafoss/model';
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { getMatrix, hydrateMatrix, matrixState, statusLabel } from '$lib/matrix.svelte';
   import { hydrateProfile, profileState, saveProfile } from '$lib/profile.svelte';
@@ -73,7 +73,29 @@
     const prefix = `#${(config.aliasPrefix ?? eventState.bundle?.id ?? '').toLowerCase()}-`;
     return joinedRooms.filter((r) => r.alias?.startsWith(prefix));
   });
-  const otherRooms = $derived(joinedRooms.filter((r) => !sessionRooms.includes(r)));
+  /** Issue #113: the organiser-owned room, pinned first. */
+  const announcements = $derived(announcementsRoom(config, eventState.bundle?.id ?? ''));
+  const announcementsJoined = $derived(
+    announcements ? joinedRooms.find((r) => r.alias === announcements.alias) : undefined,
+  );
+  const otherRooms = $derived(
+    joinedRooms.filter((r) => !sessionRooms.includes(r) && r !== announcementsJoined),
+  );
+  let joiningAnnouncements = $state(false);
+
+  async function joinAnnouncements() {
+    if (!announcements) return;
+    joiningAnnouncements = true;
+    actionError = null;
+    try {
+      const roomId = await getMatrix().joinOrCreateRoom({ ...announcements, announcements: true });
+      await goto(resolve(`/chat/${encodeURIComponent(roomId)}`));
+    } catch (error) {
+      actionError = error instanceof Error ? error.message : String(error);
+    } finally {
+      joiningAnnouncements = false;
+    }
+  }
 
   async function refreshPeers() {
     peers = await meshPeers();
@@ -438,6 +460,40 @@
             </div>
           </li>
         {/each}
+      </ul>
+    </section>
+  {/if}
+
+  {#if announcements}
+    <section class="pinned" aria-label="Announcements">
+      <ul class="rooms">
+        <li>
+          {#if announcementsJoined}
+            <a
+              class="roomlink"
+              href={resolve(`/chat/${encodeURIComponent(announcementsJoined.roomId)}`)}
+            >
+              <strong>📣 {announcementsJoined.name || announcements.name}</strong>
+              <span class="muted small">From the organisers · read-only</span>
+            </a>
+            {#if announcementsJoined.unread > 0}<span
+                class="badge"
+                aria-label="{announcementsJoined.unread} unread">{announcementsJoined.unread}</span
+              >{/if}
+          {:else}
+            <span class="roomlink">
+              <strong>📣 {announcements.name}</strong>
+              <span class="muted small">Schedule changes and room moves, from the organisers</span>
+            </span>
+            <button
+              class="button small"
+              onclick={joinAnnouncements}
+              disabled={busy || joiningAnnouncements}
+            >
+              {joiningAnnouncements ? 'Joining…' : 'Join'}
+            </button>
+          {/if}
+        </li>
       </ul>
     </section>
   {/if}

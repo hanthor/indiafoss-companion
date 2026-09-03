@@ -118,7 +118,16 @@ export interface RoomSpec {
   alias: string;
   name: string;
   topic?: string;
+  /**
+   * A read-mostly room: whoever creates it (the organiser, on the conference
+   * homeserver) is its owner and only moderators (level 50+) may post;
+   * everyone else reads. Issue #113.
+   */
+  announcements?: boolean;
 }
+
+/** `power_level_content_override` for an announcements room. */
+export const ANNOUNCEMENTS_POWER_LEVELS = { events_default: 50 } as const;
 
 export interface MatrixSessionOptions {
   fetch?: FetchLike;
@@ -805,6 +814,7 @@ export class MatrixSessionManager {
         topic: spec.topic,
         preset: 'public_chat',
         visibility: 'public',
+        powerLevelOverride: spec.announcements ? { ...ANNOUNCEMENTS_POWER_LEVELS } : undefined,
       });
       const room: MatrixRoomRecord = {
         roomId,

@@ -67,6 +67,17 @@ export interface MatrixRoomRecord {
   unread: number;
   /** Pagination token for backfilling older history. */
   prevBatch?: string;
+  /**
+   * The parts of `m.room.power_levels` that decide who may post (issue #113):
+   * absent until the room has sent its power levels.
+   */
+  powerLevels?: {
+    usersDefault: number;
+    eventsDefault: number;
+    /** Level required for `m.room.message`, when the room sets one. */
+    message?: number;
+    users: Record<string, number>;
+  };
 }
 
 export interface MatrixEventRecord {
