@@ -14,6 +14,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        org.indiafoss.companion.reminders.ReminderScheduler.ensureChannel(this)
         setContent {
             CompanionTheme {
                 CompanionApp(viewModel)

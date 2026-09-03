@@ -1,6 +1,7 @@
 package org.indiafoss.companion.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -23,6 +24,15 @@ class PreferencesStore(private val context: Context) {
 
     val mustAttend: Flow<Set<String>> =
         context.dataStore.data.map { it[mustAttendKey] ?: emptySet() }
+
+    private val remindersKey = booleanPreferencesKey("reminders-enabled")
+
+    /** Off until switched on in Settings; nothing is scheduled before that. */
+    val remindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[remindersKey] ?: false }
+
+    suspend fun setRemindersEnabled(on: Boolean) {
+        context.dataStore.edit { it[remindersKey] = on }
+    }
 
     suspend fun toggleBookmark(id: String) = toggle(bookmarkKey, id)
 

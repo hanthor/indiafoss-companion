@@ -1,11 +1,33 @@
 # Native Compose client
 
 `apps/android/native` is a standalone Jetpack Compose / Material 3 Android app
-that reads the same published `EventBundle` as the web client. It is separate
-from the Capacitor build in `apps/android/capacitor`, which remains the
-shipping Android app; see
-[ADR 0002](adr/0002-native-compose-client-rendered-natively.md) for why both
-exist.
+that reads the same published `EventBundle` as the web client. Since
+2026-09-03 it is the Android app being built towards release: the owner's
+direction is a fully native-feeling Compose app, and the Capacitor build in
+`apps/android/capacitor` stays only until this one reaches parity (see
+[ADR 0002](adr/0002-native-compose-client-rendered-natively.md) and the
+roadmap's decisions log).
+
+## Screens
+
+| Tab / route | State                                                                                                                                        |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Now         | live sessions with progress, up next                                                                                                         |
+| Schedule    | per day, bookmark from the list                                                                                                              |
+| My plan     | the day planned from must-attend, bookmarks and ratings (`Itinerary`); "Rank this day"                                                       |
+| Rank        | rooms (Skip / OK / Love) → quick pass (Yes / No) → head to head, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
+| Map         | rooms and what is on in each (the floor plan is not drawn natively yet)                                                                      |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                        |
+| Session     | detail, bookmark, must attend                                                                                                                |
+
+Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
+plan whenever bookmarks, must-attend marks or the bundle change, so a change
+of plan cancels alarms that no longer apply; `ReminderReceiver` posts the
+notification. Ratings, answered pairs and room preferences live in
+`RatingsStore` as one JSON document in DataStore.
+
+Not native yet: Explore/search, speaker pages, booths, Connect (card and QR),
+Scan, the drawn floor plan with routing.
 
 ## Layout
 

@@ -3,6 +3,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Local reminders: alarms that fire with the app closed, no push service. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -27,5 +31,8 @@
                 <data android:scheme="indiafoss" />
             </intent-filter>
         </activity>
+        <receiver
+            android:name=".reminders.ReminderReceiver"
+            android:exported="false" />
     </application>
 </manifest>

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -30,7 +31,9 @@ import org.indiafoss.companion.ui.screens.ActivityScreen
 import org.indiafoss.companion.ui.screens.MapScreen
 import org.indiafoss.companion.ui.screens.NowScreen
 import org.indiafoss.companion.ui.screens.PlanScreen
+import org.indiafoss.companion.ui.screens.RankScreen
 import org.indiafoss.companion.ui.screens.ScheduleScreen
+import org.indiafoss.companion.ui.screens.SettingsScreen
 
 private data class Destination(val route: String, val label: String, val icon: ImageVector)
 
@@ -39,6 +42,7 @@ private val destinations = listOf(
     Destination("schedule", "Schedule", Icons.Filled.CalendarMonth),
     Destination("plan", "My plan", Icons.Filled.Star),
     Destination("map", "Map", Icons.Filled.Map),
+    Destination("settings", "Settings", Icons.Filled.Settings),
 )
 
 @Composable
@@ -93,9 +97,24 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 }
             }
             composable("plan") {
-                PlanScreen(state) { navController.navigate("activity/$it") }
+                PlanScreen(state, onRank = { navController.navigate("rank") }) {
+                    navController.navigate("activity/$it")
+                }
+            }
+            composable("rank") {
+                RankScreen(
+                    state = state,
+                    onAnswerQuick = viewModel::answerQuick,
+                    onRoom = viewModel::setRoom,
+                    onRoomsDecided = viewModel::roomsDecided,
+                    onChoose = viewModel::choose,
+                    onUndo = viewModel::undoLast,
+                    onOpen = { navController.navigate("activity/$it") },
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable("map") { MapScreen(state) }
+            composable("settings") { SettingsScreen(state, viewModel::setRemindersEnabled) }
             composable("activity/{id}") { entry ->
                 ActivityScreen(
                     state = state,
