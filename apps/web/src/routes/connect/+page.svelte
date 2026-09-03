@@ -263,22 +263,22 @@
   let importChanges = $state<ImportedChange[]>([]);
   /** The profile as it was before the last import, so it can be taken back in one tap. */
   let importSnapshot = $state<string | null>(null);
+  /** Which group's import made the snapshot, so "take it back" shows in the right place. */
+  let snapshotFrom = $state<'links' | 'identity' | null>(null);
   let contactFileInput = $state<HTMLInputElement | null>(null);
   let importingContact = $state(false);
   let contactMessage = $state('');
 
-  function acceptChanges(changes: ImportedChange[], source: string): void {
+  function acceptChanges(changes: ImportedChange[], source: string): string {
     for (const change of changes) {
       const key = change.field as AttendeeSocial;
       // A freshly imported public link is shared unless switched off.
       if (SOCIALS.includes(key)) profileState.selection.socials[key] = true;
     }
-    importChanges = changes;
-    importMessage =
-      changes.length === 0
-        ? `Nothing new from ${source}: your card already has these fields.`
-        : `Filled ${changes.length} field${changes.length === 1 ? '' : 's'} from ${source}.`;
     scheduleCard();
+    return changes.length === 0
+      ? `Nothing new from ${source}: your card already has these fields.`
+      : `Filled ${changes.length} field${changes.length === 1 ? '' : 's'} from ${source}: ${changes.map((c) => c.field).join(', ')}.`;
   }
 
   async function importProfiles(): Promise<void> {
@@ -290,7 +290,9 @@
       const outcome = await importLinkedProfiles(profileState.profile);
       if (outcome.sources.length > 0) {
         importSnapshot = before;
-        acceptChanges(outcome.changes, outcome.sources.join(' and '));
+        snapshotFrom = 'links';
+        importChanges = outcome.changes;
+        importMessage = acceptChanges(outcome.changes, outcome.sources.join(' and '));
       }
       if (outcome.problems.length > 0) {
         importMessage = [importMessage, ...outcome.problems].filter(Boolean).join(' ');
@@ -305,8 +307,10 @@
     const restored = JSON.parse(importSnapshot) as typeof profileState.profile;
     profileState.profile = { ...restored, socials: { ...restored.socials } };
     importSnapshot = null;
+    snapshotFrom = null;
     importChanges = [];
-    importMessage = 'Import taken back.';
+    importMessage = importMessage ? 'Import taken back.' : '';
+    contactMessage = contactMessage ? 'Import taken back.' : '';
     scheduleCard();
   }
 
@@ -322,9 +326,11 @@
         }
         const before = JSON.stringify(profileState.profile);
         const changes = applyImportedProfile(profileState.profile, picked);
-        if (changes.length > 0) importSnapshot = before;
-        acceptChanges(changes, 'your contacts');
-        contactMessage = importMessage;
+        if (changes.length > 0) {
+          importSnapshot = before;
+          snapshotFrom = 'identity';
+        }
+        contactMessage = acceptChanges(changes, 'your contacts');
       } finally {
         importingContact = false;
       }
@@ -346,9 +352,11 @@
       }
       const before = JSON.stringify(profileState.profile);
       const changes = applyImportedProfile(profileState.profile, imported);
-      if (changes.length > 0) importSnapshot = before;
-      acceptChanges(changes, 'your contact card');
-      contactMessage = importMessage;
+      if (changes.length > 0) {
+        importSnapshot = before;
+        snapshotFrom = 'identity';
+      }
+      contactMessage = acceptChanges(changes, 'your contact card');
     } finally {
       importingContact = false;
       input.value = '';
@@ -560,7 +568,14 @@
         {/if}
       </div>
       {#if group === 'identity'}
-        {#if contactMessage}<p class="muted small" role="status">{contactMessage}</p>{/if}
+        {#if contactMessage}
+          <p class="muted small" role="status">
+            {contactMessage}
+            {#if importSnapshot && snapshotFrom === 'identity'}
+              <button class="linkbtn small" onclick={undoImport}>Take it back</button>
+            {/if}
+          </p>
+        {/if}
         <p class="muted small hintline">
           {hasContactPicker()
             ? 'Picks your own entry from the phone\u2019s contacts; nothing is uploaded.'
@@ -579,6 +594,8 @@
                     : ''}</span
                 >
               </span>
+            {:else if ownAvatar}
+              <span class="hint">{avatarSource} · could not load it right now (offline?)</span>
             {:else}
               <span class="hint"
                 >Add a GitHub link, or fill from your profiles, and it appears.</span
@@ -606,7 +623,7 @@
             {/each}
           </ul>
         {/if}
-        {#if importSnapshot}
+        {#if importSnapshot && snapshotFrom === 'links'}
           <button class="linkbtn small" onclick={undoImport}>Take the import back</button>
         {/if}
       {/if}

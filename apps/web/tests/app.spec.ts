@@ -95,12 +95,12 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
 test('ranking supports keyboard choices and undo', async ({ page }) => {
   await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await expect(page.getByText(/0 CHOICES · \d+ TO GO/)).toBeVisible();
+  await expect(page.getByText(/0 CHOICES · \d+ OVERLAPS? OPEN/)).toBeVisible();
 
   // Keyboard choice via number key advances the choice count.
   await page.keyboard.press('1');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
 
   // Undo becomes enabled after a choice and reverses the last comparison.
   const undo = page.getByRole('button', { name: /Undo last/ });
@@ -112,7 +112,7 @@ test('ranking supports keyboard choices and undo', async ({ page }) => {
   // Arrow keys pick the top or bottom card without a pointer.
   await page.keyboard.press('ArrowUp');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
 });
 
 test('ranking starts with a quick pass that narrows the overlaps to settle', async ({ page }) => {
@@ -152,9 +152,9 @@ test('answered pairs are not asked again after a reload', async ({ page }) => {
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   const first = await page.getByTestId('candidate-a').textContent();
   await page.getByTestId('candidate-a').click();
-  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
   await page.reload();
-  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
   // The winner now leads its clash, so the same pair does not come back.
   const again = await page.getByTestId('candidate-a').textContent();
   expect(again).not.toBe(first);
@@ -169,7 +169,7 @@ test('ranking respects reduced motion while still recording choices', async ({ b
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await page.getByTestId('candidate-a').click();
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 CHOICE · \d+ TO GO/)).toBeVisible();
+  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
   await context.close();
 });
 

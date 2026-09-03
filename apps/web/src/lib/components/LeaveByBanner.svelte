@@ -63,11 +63,16 @@
 
   // Under the simulator, every change of what the banner says is logged: it is
   // the prompt an attendee would see on the day.
+  // One entry per session and state (upcoming, leave now, starting), not one
+  // per minute of countdown.
   let lastBanner = '';
   $effect(() => {
+    const key = next
+      ? `${next.activity.id}|${urgent}|${next.startsInMinutes <= 0 ? 'now' : 'soon'}`
+      : '';
+    if (!simState.run || key === lastBanner) return;
+    lastBanner = key;
     const line = next ? `${kicker} · ${next.activity.title}` : '';
-    if (!simState.run || line === lastBanner) return;
-    lastBanner = line;
     const room = roomName ?? undefined;
     if (line) untrack(() => logSimEvent('banner', line, room));
   });

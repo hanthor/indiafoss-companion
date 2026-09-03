@@ -51,13 +51,29 @@ export interface RatingUpdate {
   neither: boolean;
 }
 
-/** Apply one comparison, returning the updated ratings. */
+/**
+ * Provisional ratings (#90): a session nobody has answered about yet moves
+ * twice as far on its first result, one and a half times on its second, so
+ * one clear pick opens a settled gap (2 * K_FACTOR) at once instead of after
+ * two. Applied to the pair's K as the mean of both sides' scales.
+ */
+export function provisionalScale(comparisons: number): number {
+  return comparisons <= 0 ? 2 : comparisons === 1 ? 1.5 : 1;
+}
+
+export function pairKScale(comparisonsA: number, comparisonsB: number): number {
+  return (provisionalScale(comparisonsA) + provisionalScale(comparisonsB)) / 2;
+}
+
+/** Apply one comparison, returning the updated ratings; `kScale` stretches K (see `pairKScale`). */
 export function applyComparison(
   ratingA: number,
   ratingB: number,
   choice: ComparisonChoice,
+  kScale = 1,
 ): RatingUpdate {
-  const { scoreA, k } = CHOICE_OUTCOMES[choice];
+  const { scoreA, k: baseK } = CHOICE_OUTCOMES[choice];
+  const k = baseK * kScale;
   if (choice === 'neither' || k === 0) {
     return { ratingA, ratingB, neither: true };
   }

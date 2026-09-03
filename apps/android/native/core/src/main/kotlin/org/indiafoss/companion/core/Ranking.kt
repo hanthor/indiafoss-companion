@@ -18,9 +18,19 @@ object Ranking {
     fun expectedScore(ratingA: Double, ratingB: Double): Double =
         1.0 / (1.0 + 10.0.pow((ratingB - ratingA) / 400.0))
 
-    /** Apply one comparison and return the updated pair. */
-    fun applyComparison(ratingA: Double, ratingB: Double, choice: Choice): RatingUpdate {
-        val k = choice.k
+    /** A session answered about for the first time moves twice as far, the second time one and a half. */
+    fun provisionalScale(comparisons: Int): Double = when {
+        comparisons <= 0 -> 2.0
+        comparisons == 1 -> 1.5
+        else -> 1.0
+    }
+
+    fun pairKScale(comparisonsA: Int, comparisonsB: Int): Double =
+        (provisionalScale(comparisonsA) + provisionalScale(comparisonsB)) / 2
+
+    /** Apply one comparison and return the updated pair; `kScale` stretches K (see `pairKScale`). */
+    fun applyComparison(ratingA: Double, ratingB: Double, choice: Choice, kScale: Double = 1.0): RatingUpdate {
+        val k = choice.k * kScale
         if (k == 0.0) return RatingUpdate(ratingA, ratingB, neither = true)
         val expectedA = expectedScore(ratingA, ratingB)
         return RatingUpdate(

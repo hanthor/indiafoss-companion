@@ -54,6 +54,13 @@ class RankingTest {
     }
 
     @Test
+    fun `a first answer between fresh sessions opens a settled gap at once`() {
+        val r = Ranking.applyComparison(1200.0, 1200.0, Choice.A, Ranking.pairKScale(0, 0))
+        assertTrue(r.ratingA - r.ratingB >= Ranking.SETTLED_GAP)
+        assertEquals(1.0, Ranking.pairKScale(3, 3), 1e-9)
+    }
+
+    @Test
     fun `sessions that do not overlap are never offered`() {
         val pool = listOf(
             ranked("a", "2025-09-20T10:00:00+05:30", "2025-09-20T11:00:00+05:30"),
