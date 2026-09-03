@@ -4,7 +4,9 @@ Five patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
-branch of the `hanthor/neutrino` fork, which is what our own builds come from.
+branch of the `hanthor/neutrino` fork, which is what our own builds come from:
+`.github/workflows/neutrino-bindings.yml` compiles the phone bindings against
+the fork rev pinned in `apps/android/capacitor/neutrino/version.json`.
 
 **These are not offered upstream, and should not be.** Element's policy on
 AI-assisted contributions is not known to us, and a pre-alpha research

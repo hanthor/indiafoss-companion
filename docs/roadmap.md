@@ -69,6 +69,14 @@ alignment, #3 CI packages token, #4 fork roadmap.
   sessions decrypts on the other node. It also caught a real client bug: our
   sliding-sync `conn_id` was 19 characters against MSC4186's cap of 16, and
   Neutrino rejects that, so every mesh sync had been failing silently.
+- 2026-09-03: **P2P step 3** (#83): the phone bindings build against the fork.
+  `neutrino-iroh v0.8.2` pins upstream Neutrino at `v0.7.1`, which is commit
+  `90bc1b1` — exactly the base of our fork branch — so a cargo `[patch]` in
+  the bindings workflow swaps in `hanthor/neutrino` at the rev pinned in
+  `version.json` and the seam is identical by construction; `cargo check` of
+  `neutrino-ffi-ble` against the fork passes. The `.aar` is published under a
+  version that names both pins (`0.8.2-e2ee.<rev>`) so it cannot be mistaken
+  for upstream's.
 - 2026-09-03: **P2P step 2 done** (#76): device keys, one-time keys and the
   to-device inbox persist in sqlite, written through in order and reloaded
   at start. Proven by a test that kills node B mid-conversation, restarts it
