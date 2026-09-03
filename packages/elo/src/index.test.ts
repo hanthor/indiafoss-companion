@@ -6,6 +6,7 @@ import {
   applyPriors,
   CHOICE_OUTCOMES,
   conflictProgress,
+  conflictSlots,
   expectedScore,
   learnAffinity,
   MAX_PRIOR_OFFSET,
@@ -362,5 +363,84 @@ describe('affinity priors', () => {
     const applied = applyPriors(pool, model);
     expect(applied[0]!.rating).toBeGreaterThan(1200);
     expect(pool[0]!.rating).toBe(1200);
+  });
+});
+
+describe('conflictSlots', () => {
+  const at = (id: string, start: string, end: string, extra: Partial<RankedActivity> = {}) =>
+    ({
+      activity: {
+        id,
+        type: 'talk',
+        title: id,
+        start: `2025-09-20T${start}:00+05:30`,
+        end: `2025-09-20T${end}:00+05:30`,
+        flexible: false,
+        speakerIds: [],
+        tags: [],
+        source: 'test',
+      },
+      rating: 1200,
+      comparisons: 0,
+      disposition: 'normal',
+      ...extra,
+    }) as RankedActivity;
+
+  it('anchors a slot on each session with an open pair, in time order, and skips singletons', () => {
+    const slots = conflictSlots({
+      activities: [
+        at('c', '14:00', '14:30'),
+        at('a', '11:00', '11:30'),
+        at('b', '11:00', '11:30'),
+        at('d', '15:00', '15:30'),
+        at('e', '15:15', '15:45'),
+      ],
+      alreadyCompared: new Set(),
+    });
+    expect(slots.map((s) => [s.key, s.members.map((m) => m.activity.id)])).toEqual([
+      ['a', ['a', 'b']],
+      ['b', ['a', 'b']],
+      ['d', ['d', 'e']],
+      ['e', ['d', 'e']],
+    ]);
+    expect(slots[0]!.open).toBe(1);
+    expect(slots[2]!.end).toContain('15:30');
+  });
+
+  it('keeps a slot to the anchor window instead of chaining through a long session', () => {
+    const slots = conflictSlots({
+      activities: [at('w', '11:00', '13:00'), at('x', '11:00', '11:30'), at('y', '12:30', '13:00')],
+      alreadyCompared: new Set(),
+    });
+    // The workshop's own slot spans both talks; x's slot is just x and w.
+    expect(slots[0]!.key).toBe('w');
+    expect(slots[0]!.members.map((m) => m.activity.id)).toEqual(['w', 'x', 'y']);
+    expect(slots[1]!.members.map((m) => m.activity.id)).toEqual(['w', 'x']);
+    expect(slots[2]!.members.map((m) => m.activity.id)).toEqual(['w', 'y']);
+  });
+
+  it('leaves out not-interested sessions and closes a slot once its pairs are answered', () => {
+    const slots = conflictSlots({
+      activities: [
+        at('a', '11:00', '11:30'),
+        at('b', '11:00', '11:30'),
+        at('c', '11:00', '11:30', { disposition: 'not-interested' }),
+      ],
+      alreadyCompared: new Set([pairKey('a', 'b')]),
+    });
+    expect(slots).toEqual([]);
+  });
+
+  it('drops a settled member from the slot but keeps the open pair among the rest', () => {
+    const slots = conflictSlots({
+      activities: [
+        at('a', '11:00', '11:30', { rating: 1300, comparisons: 2 }),
+        at('b', '11:00', '11:30'),
+        at('c', '11:00', '11:30'),
+      ],
+      alreadyCompared: new Set([pairKey('a', 'b'), pairKey('a', 'c')]),
+    });
+    expect(slots.map((s) => s.key)).toEqual(['b', 'c']);
+    expect(slots[0]!.members.map((m) => m.activity.id)).toEqual(['b', 'c']);
   });
 });

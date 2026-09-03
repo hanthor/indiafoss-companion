@@ -215,9 +215,70 @@ export function conflictProgress(input: ComparisonSelectionInput): ConflictProgr
   return { conflicts, settled, open: conflicts - settled };
 }
 
-function overlaps(a: Activity, b: Activity): boolean {
+export function overlaps(a: Activity, b: Activity): boolean {
   if (!a.start || !a.end || !b.start || !b.end) return false;
   return Date.parse(a.start) < Date.parse(b.end) && Date.parse(b.start) < Date.parse(a.end);
+}
+
+/**
+ * A slot (#108): one session and everything running against it, so the
+ * attendee decides "which one at 11:00?" rather than ranking the day. Slots
+ * are anchored on the earliest live session that still has an open pair, in
+ * time order; a slot's members are the sessions in an open pair with the
+ * anchor or with one another inside the anchor's window. Anchoring keeps a
+ * slot the size of one time band even when a long workshop overlaps half
+ * the morning: the chain is never followed further than the anchor.
+ */
+export interface ConflictSlot {
+  /** Stable key: the anchor's id. */
+  key: string;
+  /** Members in start order; the anchor is among them. */
+  members: RankedActivity[];
+  /** The anchor's start and end, ISO. */
+  start: string;
+  end: string;
+  /** Pairs within the slot that still need an answer. */
+  open: number;
+}
+
+/** A pair needs an answer when it overlaps, is unanswered and not settled by a wide gap. */
+export function pairOpen(
+  a: RankedActivity,
+  b: RankedActivity,
+  alreadyCompared: Set<string>,
+): boolean {
+  return (
+    overlaps(a.activity, b.activity) &&
+    !alreadyCompared.has(pairKey(a.activity.id, b.activity.id)) &&
+    Math.abs(a.rating - b.rating) < SETTLED_GAP
+  );
+}
+
+export function conflictSlots(input: ComparisonSelectionInput): ConflictSlot[] {
+  const pool = input.activities
+    .filter((a) => a.disposition !== 'not-interested' && !a.activity.cancelled)
+    .filter((a) => a.activity.start && a.activity.end)
+    .sort(
+      (x, y) =>
+        x.activity.start!.localeCompare(y.activity.start!) ||
+        x.activity.id.localeCompare(y.activity.id),
+    );
+  const slots: ConflictSlot[] = [];
+  for (const anchor of pool) {
+    const around = pool.filter((o) => o === anchor || overlaps(anchor.activity, o.activity));
+    const members = around.filter((m) =>
+      around.some((o) => o !== m && pairOpen(m, o, input.alreadyCompared)),
+    );
+    if (members.length < 2 || !members.includes(anchor)) continue;
+    slots.push({
+      key: anchor.activity.id,
+      members,
+      start: anchor.activity.start!,
+      end: anchor.activity.end!,
+      open: conflictProgress({ activities: members, alreadyCompared: input.alreadyCompared }).open,
+    });
+  }
+  return slots;
 }
 
 /**

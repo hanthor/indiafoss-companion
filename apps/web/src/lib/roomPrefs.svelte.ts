@@ -91,6 +91,13 @@ export function rankableRooms(
     .sort((x, y) => Number(y.main) - Number(x.main) || y.sessions.length - x.sessions.length);
 }
 
+/** The devrooms alone: what step one of ranking asks about (#108). The main halls are always in. */
+export function devrooms(
+  bundle: EventBundle,
+): { track: Track; sessions: Activity[]; main: boolean }[] {
+  return rankableRooms(bundle).filter((r) => !r.main);
+}
+
 /**
  * Set a room's preference. Skipping answers "no" for every talk in the room
  * the attendee has not answered themselves; leaving "skip" restores exactly
