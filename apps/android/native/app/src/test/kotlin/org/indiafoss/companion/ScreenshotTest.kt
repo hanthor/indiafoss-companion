@@ -76,8 +76,47 @@ class ScreenshotTest {
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
     @Test fun explore() = shoot("explore") { ExploreScreen(state(), {}, {}) {} }
     @Test fun connect() = shoot("connect") {
-        ConnectScreen(ContactCard(fullName = "Asha Menon", organization = "FOSS United", socials = mapOf("github" to "https://github.com/asha")), emptyList(), {}, {}, {}) {}
+        ConnectScreen(
+            ContactCard(fullName = "Asha Menon", organization = "FOSS United", socials = mapOf("github" to "https://github.com/asha")),
+            emptyList(), fingerprint = "8a79ebf182010f3a91c20d4e", onSave = {}, onScan = {}, onRemoveContact = {},
+        ) {}
     }
     @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}) {} }
     @Test fun banner() = shoot("banner") { LeaveByBanner(state("2025-09-20T09:58:00+05:30")) {} }
+}
+
+/** The same screens in the dark scheme. */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], qualifiers = "w411dp-h891dp-night-xxhdpi")
+class DarkScreenshotTest {
+    @get:Rule
+    val compose = createAndroidComposeRule<ComponentActivity>()
+
+    private val bundle: EventBundle by lazy {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.assets.open("event-bundle.json").bufferedReader().use { bundleJson.decodeFromString(it.readText()) }
+    }
+
+    private fun shoot(name: String, content: @androidx.compose.runtime.Composable () -> Unit) {
+        compose.setContent { CompanionTheme(darkTheme = true, dynamicColor = false) { content() } }
+        compose.waitForIdle()
+        val view = compose.activity.window.decorView
+        view.measure(
+            android.view.View.MeasureSpec.makeMeasureSpec(1233, android.view.View.MeasureSpec.EXACTLY),
+            android.view.View.MeasureSpec.makeMeasureSpec(2673, android.view.View.MeasureSpec.EXACTLY),
+        )
+        view.layout(0, 0, 1233, 2673)
+        compose.waitForIdle()
+        val bitmap = Bitmap.createBitmap(1233, 2673, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(bitmap))
+        File("build/screenshots").apply { mkdirs() }
+        File("build/screenshots/$name-dark.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
+    }
+
+    private fun state() = UiState(loading = false, bundle = bundle, now = "2025-09-20T10:20:00+05:30", mustAttend = setOf("act-c8ak0iov2l"), currentLocation = "audi-1")
+
+    @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
+    @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
+    @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, { _, _ -> }, {}, { _, _, _ -> }, { _, _ -> }, {}) {} }
 }

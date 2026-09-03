@@ -80,13 +80,15 @@ private val PRIVATE = listOf(
 fun ConnectScreen(
     profile: ContactCard,
     contacts: List<MetContact>,
+    signedCard: String = "",
+    fingerprint: String? = null,
     onSave: (ContactCard) -> Unit,
     onScan: () -> Unit,
     onRemoveContact: (String) -> Unit,
     onBack: () -> Unit,
 ) {
     val context = LocalContext.current
-    val vcard = remember(profile) { VCard.encode(profile) }
+    val vcard = remember(profile, signedCard) { signedCard.ifBlank { VCard.encode(profile) } }
     val bytes = vcard.toByteArray(Charsets.UTF_8).size
     val qr = remember(vcard) { if (profile.fullName.isBlank() || bytes > MAX_QR_BYTES) null else qrBitmap(vcard) }
 
@@ -117,7 +119,19 @@ fun ConnectScreen(
                         }
                         Text(profile.fullName.ifBlank { "Your name" }, style = MaterialTheme.typography.titleLarge)
                         Text(profile.organization.ifBlank { "Add an organisation below" }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("vCard 3.0 · $bytes bytes", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                        Text(
+                            "vCard 3.0 · $bytes bytes" + if (fingerprint != null && signedCard.isNotBlank()) " · signed" else "",
+                            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp),
+                        )
+                        if (fingerprint != null) {
+                            Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                KeyBadge(fingerprint, size = 40.dp)
+                                Column(Modifier.padding(start = 10.dp)) {
+                                    Text("KEY BADGE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(org.indiafoss.companion.core.Handshake.shortFingerprint(fingerprint), style = MaterialTheme.typography.labelLarge)
+                                }
+                            }
+                        }
                         Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = {
                                 val send = Intent(Intent.ACTION_SEND).apply {
@@ -150,10 +164,23 @@ fun ConnectScreen(
             }
             items(contacts, key = { it.id }) { met ->
                 ListItem(
+                    leadingContent = { met.fingerprint?.let { KeyBadge(it, size = 40.dp) } },
                     headlineContent = { Text(met.card.fullName.ifBlank { "Unnamed contact" }) },
                     supportingContent = {
                         val line = listOf(met.card.organization, met.card.socials["github"].orEmpty(), met.card.email).filter { it.isNotBlank() }.joinToString(" · ")
-                        if (line.isNotBlank()) Text(line, maxLines = 2)
+                        Column {
+                            if (line.isNotBlank()) Text(line, maxLines = 2)
+                            Text(
+                                when (met.signature) {
+                                    "valid" -> "Signed by their phone · ${met.fingerprint?.let(org.indiafoss.companion.core.Handshake::shortFingerprint)}"
+                                    "invalid" -> "Signature does not match"
+                                    "unchecked" -> "Signed, not checked on this phone"
+                                    else -> "Unsigned card"
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (met.signature == "invalid") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     },
                     trailingContent = {
                         Row {
@@ -205,3 +232,22 @@ fun qrBitmap(text: String, size: Int = 640): Bitmap? = runCatching {
     bitmap.setPixels(pixels, 0, size, 0, 0, size, size)
     bitmap
 }.getOrNull()
+
+/** The PWA's 5×5 mirrored pixel identicon from a key fingerprint: the same key, the same badge on both apps. */
+@Composable
+fun KeyBadge(fingerprint: String, size: androidx.compose.ui.unit.Dp) {
+    val bytes = fingerprint.chunked(2).mapNotNull { it.toIntOrNull(16) }
+    val palette = listOf(0xFF08B74F, 0xFFECAC4B, 0xFFDF5447, 0xFF04C7BD, 0xFF5F84FF, 0xFFCF2797)
+    val fg = androidx.compose.ui.graphics.Color(palette[(bytes.getOrNull(0) ?: 0) % palette.size])
+    val bg = androidx.compose.ui.graphics.Color(0xFF18222A)
+    androidx.compose.foundation.Canvas(Modifier.size(size)) {
+        val cell = this.size.width / 5f
+        drawRect(bg)
+        for (y in 0 until 5) for (x in 0 until 3) {
+            val bit = ((bytes.getOrNull(1 + y) ?: 0) shr x) and 1
+            if (bit == 0) continue
+            drawRect(fg, topLeft = androidx.compose.ui.geometry.Offset(x * cell, y * cell), size = androidx.compose.ui.geometry.Size(cell, cell))
+            if (x != 2) drawRect(fg, topLeft = androidx.compose.ui.geometry.Offset((4 - x) * cell, y * cell), size = androidx.compose.ui.geometry.Size(cell, cell))
+        }
+    }
+}

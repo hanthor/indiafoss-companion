@@ -13,7 +13,9 @@ import org.indiafoss.companion.core.AffinityModel
 import org.indiafoss.companion.core.Calendar
 import org.indiafoss.companion.core.RoutingProfile
 import org.indiafoss.companion.core.ContactCard
+import org.indiafoss.companion.core.Handshake
 import org.indiafoss.companion.core.VCard
+import org.indiafoss.companion.data.DeviceKey
 import org.indiafoss.companion.data.MetContact
 import org.indiafoss.companion.data.ProfileStore
 import org.indiafoss.companion.core.Choice
@@ -45,6 +47,11 @@ data class UiState(
     val remindersEnabled: Boolean = false,
     val profile: ContactCard = ContactCard(),
     val contacts: List<MetContact> = emptyList(),
+    /** This device's handshake key (`p256:…`) and its fingerprint; null where the keystore is unavailable. */
+    val deviceKey: String? = null,
+    val deviceFingerprint: String? = null,
+    /** The card as shared: signed by this device. */
+    val signedCard: String = "",
     /** Where the attendee is, as a bundle location id: set on the map or by a room's code. */
     val currentLocation: String? = null,
     /** Seconds of walking from where the attendee is to a location, when both are on the plan. */
@@ -125,7 +132,14 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             preferences.remindersEnabled.collect { on -> _state.update { it.copy(remindersEnabled = on) } }
         }
-        viewModelScope.launch { profiles.profile.collect { card -> _state.update { it.copy(profile = card) } } }
+        viewModelScope.launch {
+            val key = DeviceKey.publicKey()
+            _state.update { it.copy(deviceKey = key, deviceFingerprint = key?.let(Handshake::fingerprint)) }
+            profiles.profile.collect { card ->
+                val signed = DeviceKey.sign(VCard.encode(card))
+                _state.update { it.copy(profile = card, signedCard = signed) }
+            }
+        }
         viewModelScope.launch { profiles.contacts.collect { met -> _state.update { it.copy(contacts = met) } } }
         viewModelScope.launch {
             preferences.location.collect { at -> _state.update { it.copy(currentLocation = at, walkSecondsTo = walker(at)) } }
@@ -192,14 +206,22 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         val running = state.value.nowState?.current?.firstOrNull()?.id
+        val identity = Handshake.verify(text)
         viewModelScope.launch {
             profiles.addContact(
                 MetContact(
                     id = "contact-${System.currentTimeMillis()}", card = card, vcard = text,
                     savedAt = System.currentTimeMillis(), metActivityId = running,
+                    signature = identity.verdict.name.lowercase(), fingerprint = identity.fingerprint,
                 ),
             )
-            _state.update { it.copy(message = "Saved ${card.fullName}") }
+            val note = when (identity.verdict) {
+                Handshake.Verdict.VALID -> " · signed by their phone"
+                Handshake.Verdict.INVALID -> " · signature does not match!"
+                Handshake.Verdict.UNCHECKED -> " · signed, not checked"
+                Handshake.Verdict.UNSIGNED -> ""
+            }
+            _state.update { it.copy(message = "Saved ${card.fullName}$note") }
         }
     }
 

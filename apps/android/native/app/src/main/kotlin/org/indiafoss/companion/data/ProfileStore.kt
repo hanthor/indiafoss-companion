@@ -23,6 +23,9 @@ data class MetContact(
     val vcard: String,
     val savedAt: Long,
     val metActivityId: String? = null,
+    /** valid | invalid | unsigned | unchecked, from the card's signature at scan time. */
+    val signature: String = "unsigned",
+    val fingerprint: String? = null,
 )
 
 /** The attendee's own card and the people they met, on device only. */

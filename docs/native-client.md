@@ -40,10 +40,11 @@ tapped room on the map says how far it is. `indiafoss://activity/<id>`,
 `indiafoss://location/<id>` and `indiafoss://speaker/<id>` open the right
 screen from a launch or a running app.
 
-Not native yet: signed cards (the PWA signs its QR with a per-device
-WebCrypto key; the native card is unsigned and the scanner treats every card
-as unsigned), custom plan blocks, booth-visit goals, the day simulator, the
-optional P2P chat.
+Native feel: edge-to-edge, predictive back, pull-to-refresh on Now, the
+system share sheet for cards and calendars, Material You colour.
+
+Not native yet: custom plan blocks, booth-visit goals, the day simulator,
+the optional P2P chat.
 
 ## Layout
 
@@ -67,8 +68,8 @@ are what keeps the two in step.
 ## Looking at it without a device
 
 `./gradlew :app:testDebugUnitTest` renders every screen with the seed bundle
-under Robolectric (`ScreenshotTest`) and writes PNGs to
-`app/build/screenshots`; CI uploads them as `native-screenshots` on every
+under Robolectric (`ScreenshotTest`, plus `DarkScreenshotTest` for the dark
+scheme) and writes PNGs to `app/build/screenshots`; CI uploads them as `native-screenshots` on every
 PR, so a change to a screen can be looked at from the Actions page.
 
 ## Building
