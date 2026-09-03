@@ -111,6 +111,8 @@ function writeMainActivity({ neutrino }) {
     // Material You: seed the window from the wallpaper before the WebView
     // exists, so the splash and system bars follow it too. No-op below API 31.
     '        com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this);',
+    // The web layer reads the same scheme for its Material look.
+    '        registerPlugin(MaterialYouPlugin.class);',
     ...(neutrino ? ['        registerPlugin(NeutrinoPlugin.class);'] : []),
     '        super.onCreate(savedInstanceState);',
     '    }',
@@ -121,6 +123,18 @@ function writeMainActivity({ neutrino }) {
     console.log(`material3: wrote ${mainActivity.replace(root + '/', '')}`);
   }
 }
+
+// 3d. Material You colours for the web layer's Material look (plain Java: the
+//     Kotlin plugin is only applied when the Neutrino bindings are present).
+mkdirSync(pluginDir, { recursive: true });
+cpSync(
+  join(root, 'materialyou', 'MaterialYouPlugin.java'),
+  join(pluginDir, 'MaterialYouPlugin.java'),
+  {
+    force: true,
+  },
+);
+console.log('material3: installed MaterialYouPlugin.java');
 
 if (bindingsAvailable) {
   patch(join(android, 'build.gradle'), (s) =>
