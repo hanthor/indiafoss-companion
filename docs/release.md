@@ -71,6 +71,25 @@ The PWA is iOS-installable via Safari **Share → Add to Home Screen** (Apple
 touch icon + standalone metadata are in the build). No App Store account or
 separate iOS UI is required for the initial distribution.
 
+## What a published revision guarantees
+
+Publishing a change mid-conference is safe because the client's update path is
+network-first with a short timeout, downloads the new asset in full before
+replacing anything, and keys the attendee's own data by stable activity id.
+`tests/updates.spec.ts` holds that to account:
+
+- an applied revision keeps bookmarks, must-attend marks and ratings attached
+  to the sessions they were made on, and the plan still pins them;
+- a revision that changes nothing is never offered and is not downloaded
+  again on the next visit;
+- an unreachable manifest leaves the cached programme fully usable, and the
+  update is picked up once the network returns.
+
+Each of those carries a positive control, so the assertions cannot pass
+because the banner is broken. The change types the banner reports (added,
+cancelled, time, room, title, speaker, recording) are unit-tested in
+`packages/schedule`.
+
 ## Supply chain
 
 - `just sbom` / the CI `sbom` artifact produce a CycloneDX SBOM of the pnpm
