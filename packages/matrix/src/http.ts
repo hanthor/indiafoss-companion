@@ -346,6 +346,14 @@ export class MatrixClient {
       try {
         return await this.slidingSync(options);
       } catch (error) {
+        if (error instanceof MatrixError && error.errcode === 'M_UNKNOWN_POS' && this.slidingPos) {
+          // The server no longer knows our connection — it restarted, or
+          // expired it. MSC4186 says to start a fresh connection, not to
+          // retry the same `pos`; on a mesh node that restarts whenever the
+          // phone kills the app, retrying forever meant never syncing again.
+          this.slidingPos = undefined;
+          return await this.slidingSync(options);
+        }
         // A server can advertise the flag and still refuse the call. Fall back
         // once and stay on the legacy path rather than failing every sync.
         if (error instanceof MatrixError && error.status === 404) {

@@ -69,6 +69,13 @@ alignment, #3 CI packages token, #4 fork roadmap.
   sessions decrypts on the other node. It also caught a real client bug: our
   sliding-sync `conn_id` was 19 characters against MSC4186's cap of 16, and
   Neutrino rejects that, so every mesh sync had been failing silently.
+- 2026-09-03: **P2P step 2 done** (#76): device keys, one-time keys and the
+  to-device inbox persist in sqlite, written through in order and reloaded
+  at start. Proven by a test that kills node B mid-conversation, restarts it
+  on the same data, and still decrypts both ways. That test caught a second
+  real client bug: on `M_UNKNOWN_POS` our client retried the same stale
+  sliding-sync `pos` forever instead of starting a fresh connection, so a
+  restarted mesh node was never synced again.
 - 2026-09-02: Neutrino mesh E2EE is **written but not upstream**. Both halves —
   the client-server key surface and the federation one — live in
   `patches/neutrino/`, verified against two servers on loopback. Mesh rooms stay

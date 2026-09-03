@@ -1,0 +1,1080 @@
+From e0d4ed0f624ef9c650dfb294ca849ba7a00d47aa Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 04:12:29 +0000
+Subject: [PATCH] Persist device keys, one-time keys and the to-device inbox
+
+On a phone the app is killed routinely, and a restart that forgets every
+device key and every undelivered room key silently breaks every peer's
+Olm session. Four tables now hold the server's share of E2EE as
+wire-verbatim JSON: device_keys, one_time_keys, cross_signing_keys and
+to_device_inbox. A one-time key is a row, so a claim is a delete rather
+than a rewrite of a blob.
+
+Memory stays the runtime copy. Every mutation of the directory or inbox
+is journaled to a task that writes it through to the E2eeStore in order;
+the whole set is reloaded before serving (serve and router both do it).
+Inbox rows carry a caller-assigned id seeded past the loaded maximum, so
+memory and disk agree on which rows a drain removes. The cross-signing
+and signature-merge paths, which used to poke the maps directly, go
+through journaling methods now. Schema version 4.
+
+Tests: the store's round-trip and conflict rules (a device upload
+replaces, a one-time key is never replaced, a claim removes exactly its
+row, the inbox keeps order and ignores a repeated id), and an HTTP-level
+restart: upload, claim one key, receive a room key over federation, then
+a fresh application state over the same store finds the device, exactly
+the unclaimed key, and the waiting room key, delivered once, with the
+drain reaching the store.
+---
+ crates/neutrino-http/src/e2ee.rs              | 242 +++++++++++++-
+ crates/neutrino-http/src/federation/tests.rs  | 104 ++++++
+ crates/neutrino-http/src/lib.rs               |  42 +--
+ crates/neutrino-store-sqlite/src/schema.rs    |   2 +-
+ crates/neutrino-store-sqlite/src/schema.sql   |  38 +++
+ .../neutrino-store-sqlite/src/store/e2ee.rs   | 299 ++++++++++++++++++
+ crates/neutrino-store-sqlite/src/store/mod.rs |   1 +
+ crates/neutrino-store/src/lib.rs              |  83 +++++
+ 8 files changed, 779 insertions(+), 32 deletions(-)
+ create mode 100644 crates/neutrino-store-sqlite/src/store/e2ee.rs
+
+diff --git a/crates/neutrino-http/src/e2ee.rs b/crates/neutrino-http/src/e2ee.rs
+index ed4be85..9249337 100644
+--- a/crates/neutrino-http/src/e2ee.rs
++++ b/crates/neutrino-http/src/e2ee.rs
+@@ -1,6 +1,6 @@
+ //! The server's share of end-to-end encryption: a device-key directory and a
+ //! to-device inbox, shared between the HTTP handlers and the sliding-sync
+-//! long-poll.
++//! long-poll, written through to the store and reloaded at start.
+ //!
+ //! Matrix keeps the cryptography in the client. What a homeserver holds is
+ //! public key material and ciphertext addressed to devices, and what it has
+@@ -9,16 +9,62 @@
+ //! until then. So this state carries its own watch, advanced on every inbox
+ //! write, and the sync handlers select on it alongside the event stream.
+ //!
++//! Memory is authoritative at runtime; every mutation is journaled to a task
++//! that writes it to the [`E2eeStore`] in order. On a phone the app is killed
++//! routinely, and a restart that forgot every device key and every
++//! undelivered room key would silently break every peer's Olm session.
++//!
+ //! Held once per server behind an `Arc`, locked independently of `App`: the
+ //! sync path must reach it without taking the whole application lock, and
+ //! nothing here ever needs `App`. Lock order, where both are taken, is `App`
+ //! then this — never the reverse.
+ 
+ use std::collections::BTreeMap;
+-use std::sync::{Mutex, MutexGuard};
++use std::sync::{Arc, Mutex, MutexGuard};
+ 
++use neutrino_store::{E2eeSnapshot, E2eeStore};
++use serde_json::value::RawValue as RawJsonValue;
+ use serde_json::{Value, json};
+-use tokio::sync::watch;
++use tokio::sync::{mpsc, watch};
++use tracing::error;
++
++/// One write-through, applied to the store in the order it was journaled.
++/// Memory has already changed by the time an `Op` is sent; the store is
++/// catching up, never consulted.
++#[derive(Debug)]
++pub(crate) enum Op {
++    PutDevice {
++        user: String,
++        device: String,
++        keys: Box<RawJsonValue>,
++    },
++    PutOneTimeKeys {
++        user: String,
++        device: String,
++        keys: Vec<(String, Box<RawJsonValue>)>,
++    },
++    RemoveOneTimeKey {
++        user: String,
++        device: String,
++        key_id: String,
++    },
++    PutCrossSigning {
++        name: String,
++        value: Box<RawJsonValue>,
++    },
++    PushToDevice {
++        id: i64,
++        user: String,
++        event: Box<RawJsonValue>,
++    },
++    RemoveToDevice {
++        ids: Vec<i64>,
++    },
++}
++
++fn raw(value: &Value) -> Box<RawJsonValue> {
++    serde_json::value::to_raw_value(value).expect("a serde_json::Value always serializes")
++}
+ 
+ /// The end-to-end encryption key directory.
+ ///
+@@ -34,18 +80,69 @@ pub(crate) struct KeyStore {
+     pub(crate) one_time_keys: BTreeMap<String, BTreeMap<String, BTreeMap<String, Value>>>,
+     /// Cross-signing keys, merged as uploaded and echoed back on query.
+     pub(crate) cross_signing: serde_json::Map<String, Value>,
++    /// Where every mutation is written through to, when persistence is
++    /// attached. `None` in unit tests that want memory only.
++    journal: Option<mpsc::UnboundedSender<Op>>,
+ }
+ 
+ impl KeyStore {
++    fn journal(&self, op: Op) {
++        if let Some(journal) = &self.journal {
++            // A closed journal means the persistence task is gone, which only
++            // happens at shutdown; memory stays correct either way.
++            let _ = journal.send(op);
++        }
++    }
++
+     /// Store a device's keys under the id the device actually claims, not a
+     /// fixed one: two devices of the same user must not overwrite each other.
+     pub(crate) fn put_device(&mut self, user: &str, device: &str, keys: Value) {
++        self.journal(Op::PutDevice {
++            user: user.to_owned(),
++            device: device.to_owned(),
++            keys: raw(&keys),
++        });
+         self.devices
+             .entry(user.to_owned())
+             .or_default()
+             .insert(device.to_owned(), keys);
+     }
+ 
++    /// Store a cross-signing section as uploaded; echoed back on query.
++    pub(crate) fn put_cross_signing(&mut self, name: &str, value: Value) {
++        self.journal(Op::PutCrossSigning {
++            name: name.to_owned(),
++            value: raw(&value),
++        });
++        self.cross_signing.insert(name.to_owned(), value);
++    }
++
++    /// Merge a `/keys/signatures/upload` block into the stored device it
++    /// signs. An absent device is skipped rather than created, since a
++    /// signature over nothing means nothing.
++    pub(crate) fn merge_device_signatures(
++        &mut self,
++        user: &str,
++        device: &str,
++        signatures: serde_json::Map<String, Value>,
++    ) {
++        let Some(stored) = self.devices.get_mut(user).and_then(|d| d.get_mut(device)) else {
++            return;
++        };
++        if let Some(target) = stored
++            .pointer_mut(&format!("/signatures/{user}"))
++            .and_then(Value::as_object_mut)
++        {
++            target.extend(signatures);
++        }
++        let keys = raw(stored);
++        self.journal(Op::PutDevice {
++            user: user.to_owned(),
++            device: device.to_owned(),
++            keys,
++        });
++    }
++
+     /// Merge uploaded one-time keys, keeping any already held.
+     pub(crate) fn put_one_time_keys(
+         &mut self,
+@@ -59,9 +156,18 @@ impl KeyStore {
+             .or_default()
+             .entry(device.to_owned())
+             .or_default();
++        let mut fresh = Vec::new();
+         for (key_id, key) in keys {
++            if !slot.contains_key(key_id) {
++                fresh.push((key_id.clone(), raw(key)));
++            }
+             slot.insert(key_id.clone(), key.clone());
+         }
++        self.journal(Op::PutOneTimeKeys {
++            user: user.to_owned(),
++            device: device.to_owned(),
++            keys: fresh,
++        });
+     }
+ 
+     /// Counts by algorithm, which is what `/keys/upload` answers with. The
+@@ -158,6 +264,11 @@ impl KeyStore {
+             .find(|id| id.split_once(':').is_some_and(|(a, _)| a == algorithm))
+             .cloned()?;
+         let key = keys.remove(&key_id)?;
++        self.journal(Op::RemoveOneTimeKey {
++            user: user.to_owned(),
++            device: device.to_owned(),
++            key_id: key_id.clone(),
++        });
+         Some((key_id, key))
+     }
+ }
+@@ -168,14 +279,18 @@ impl KeyStore {
+ pub(crate) struct Inner {
+     /// Device keys, one-time keys and cross-signing blobs, per user and device.
+     pub(crate) keys: KeyStore,
+-    /// Undelivered to-device messages, per recipient user. Drained by sync.
++    /// Undelivered to-device messages, per recipient user, each under the id
++    /// its store row carries. Drained by sync.
+     ///
+     /// Keyed by user rather than by device because login issues one device id
+     /// for everyone, so the server cannot yet tell two of a user's devices
+     /// apart. On a mesh node — one user, one phone — the two are the same
+     /// thing; on a multi-device account they are not, and this needs
+     /// revisiting when login stops handing out a fixed device id.
+-    pub(crate) to_device: BTreeMap<String, Vec<Value>>,
++    pub(crate) to_device: BTreeMap<String, Vec<(i64, Value)>>,
++    /// Next inbox id. Process-lifetime, seeded past the loaded snapshot's
++    /// maximum so memory and disk name the same rows.
++    next_inbox_id: i64,
+ }
+ 
+ pub(crate) struct E2eeState {
+@@ -208,6 +323,92 @@ impl E2eeState {
+         self.inner.lock().unwrap_or_else(|e| e.into_inner())
+     }
+ 
++    /// Rebuild memory from what the store holds. Called once before serving;
++    /// rows loaded here are not journaled again.
++    pub(crate) fn load(&self, snapshot: E2eeSnapshot) {
++        let parse = |r: &RawJsonValue| serde_json::from_str::<Value>(r.get()).ok();
++        let mut inner = self.lock();
++        for (user, device, keys) in &snapshot.devices {
++            if let Some(keys) = parse(keys) {
++                inner
++                    .keys
++                    .devices
++                    .entry(user.clone())
++                    .or_default()
++                    .insert(device.clone(), keys);
++            }
++        }
++        for (user, device, key_id, key) in &snapshot.one_time_keys {
++            if let Some(key) = parse(key) {
++                inner
++                    .keys
++                    .one_time_keys
++                    .entry(user.clone())
++                    .or_default()
++                    .entry(device.clone())
++                    .or_default()
++                    .insert(key_id.clone(), key);
++            }
++        }
++        for (name, value) in &snapshot.cross_signing {
++            if let Some(value) = parse(value) {
++                inner.keys.cross_signing.insert(name.clone(), value);
++            }
++        }
++        let mut max_id = inner.next_inbox_id - 1;
++        for (id, user, event) in &snapshot.to_device {
++            if let Some(event) = parse(event) {
++                inner
++                    .to_device
++                    .entry(user.clone())
++                    .or_default()
++                    .push((*id, event));
++                max_id = max_id.max(*id);
++            }
++        }
++        inner.next_inbox_id = max_id + 1;
++        drop(inner);
++        if !snapshot.to_device.is_empty() {
++            self.changed.send_modify(|n| *n += 1);
++        }
++    }
++
++    /// Write every later mutation through to `store`, in order, on a task
++    /// that lives as long as this state does. Memory stays authoritative; a
++    /// write that fails is logged, and the next restart simply loads less
++    /// than it might have.
++    pub(crate) fn attach_persistence<S: E2eeStore + 'static>(&self, store: Arc<S>) {
++        let (tx, mut rx) = mpsc::unbounded_channel::<Op>();
++        self.lock().keys.journal = Some(tx);
++        tokio::spawn(async move {
++            while let Some(op) = rx.recv().await {
++                let result = match &op {
++                    Op::PutDevice { user, device, keys } => {
++                        store.put_device_keys(user, device, keys).await
++                    }
++                    Op::PutOneTimeKeys { user, device, keys } => {
++                        store.put_one_time_keys(user, device, keys).await
++                    }
++                    Op::RemoveOneTimeKey {
++                        user,
++                        device,
++                        key_id,
++                    } => store.remove_one_time_key(user, device, key_id).await,
++                    Op::PutCrossSigning { name, value } => {
++                        store.put_cross_signing(name, value).await
++                    }
++                    Op::PushToDevice { id, user, event } => {
++                        store.push_to_device(*id, user, event).await
++                    }
++                    Op::RemoveToDevice { ids } => store.remove_to_device(ids).await,
++                };
++                if let Err(e) = result {
++                    error!(error = %e, ?op, "persisting E2EE state");
++                }
++            }
++        });
++    }
++
+     /// Queue one to-device event for `user` and wake anyone syncing as them.
+     pub(crate) fn push_to_device(
+         &self,
+@@ -216,15 +417,25 @@ impl E2eeState {
+         sender: &str,
+         content: Value,
+     ) {
+-        self.lock()
++        let event = json!({
++            "type": event_type,
++            "sender": sender,
++            "content": content,
++        });
++        let mut inner = self.lock();
++        let id = inner.next_inbox_id;
++        inner.next_inbox_id += 1;
++        inner.keys.journal(Op::PushToDevice {
++            id,
++            user: user.to_owned(),
++            event: raw(&event),
++        });
++        inner
+             .to_device
+             .entry(user.to_owned())
+             .or_default()
+-            .push(json!({
+-                "type": event_type,
+-                "sender": sender,
+-                "content": content,
+-            }));
++            .push((id, event));
++        drop(inner);
+         self.changed.send_modify(|n| *n += 1);
+     }
+ 
+@@ -232,7 +443,14 @@ impl E2eeState {
+     /// expects a to-device message to be delivered once; the client
+     /// acknowledges by syncing again with the returned token.
+     pub(crate) fn drain_to_device(&self, user: &str) -> Vec<Value> {
+-        self.lock().to_device.remove(user).unwrap_or_default()
++        let mut inner = self.lock();
++        let drained = inner.to_device.remove(user).unwrap_or_default();
++        if drained.is_empty() {
++            return Vec::new();
++        }
++        let ids: Vec<i64> = drained.iter().map(|(id, _)| *id).collect();
++        inner.keys.journal(Op::RemoveToDevice { ids });
++        drained.into_iter().map(|(_, event)| event).collect()
+     }
+ 
+     /// How many to-device events wait for `user` — what a long-poll checks to
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index f4a8d2e..3ed2920 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -6084,3 +6084,107 @@ async fn unimplemented_edu_types_are_ignored() {
+     assert_eq!(status, StatusCode::OK);
+     assert_eq!(sync_to_device(&app).await.len(), 1);
+ }
++
++// === E2EE state survives a restart ==========================================
++
++/// Poll the store until `pred` holds over the loaded E2EE snapshot, or panic
++/// after ~5s. Writes are journaled asynchronously, so a test that reopens the
++/// store right after an HTTP call has to wait for the journal to catch up.
++async fn wait_for_persisted(
++    store: &SqliteStore,
++    pred: impl Fn(&neutrino_store::E2eeSnapshot) -> bool,
++) {
++    use neutrino_store::E2eeStore;
++    for _ in 0..250 {
++        let snapshot = store.load_e2ee().await.unwrap();
++        if pred(&snapshot) {
++            return;
++        }
++        tokio::time::sleep(std::time::Duration::from_millis(20)).await;
++    }
++    panic!("E2EE state was not persisted within timeout");
++}
++
++#[tokio::test]
++async fn device_keys_one_time_keys_and_inbox_survive_a_restart() {
++    // A phone kills the app routinely. Everything a peer's Olm session
++    // depends on — our device keys, the one-time keys not yet claimed, and
++    // any room key still waiting in the inbox — must come back after a
++    // restart, and a key claimed before the restart must stay claimed.
++    let (store, _tmp) = fresh_store().await;
++    let first = crate::AppState::from_store(config(), store.clone());
++    let app = crate::build_router(&first);
++
++    upload_device(
++        &app,
++        alice().as_str(),
++        "PHONE",
++        json!({ "signed_curve25519:k1": { "key": "one" }, "signed_curve25519:k2": { "key": "two" } }),
++    )
++    .await;
++    let (status, body) = post_json(
++        &app,
++        FED_KEYS_CLAIM,
++        &json!({ "one_time_keys": { alice().as_str(): { "PHONE": "signed_curve25519" } } }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    assert!(body["one_time_keys"][alice().as_str()]["PHONE"]["signed_curve25519:k1"].is_object());
++    assert_eq!(
++        send_edus(
++            &app,
++            "restart-edu",
++            json!([{
++                "edu_type": "m.direct_to_device",
++                "content": {
++                    "sender": peer_user().as_str(),
++                    "type": "m.room_key",
++                    "messages": { alice().as_str(): { "*": { "session_id": "S1" } } },
++                },
++            }]),
++        )
++        .await,
++        StatusCode::OK
++    );
++    wait_for_persisted(&store, |s| {
++        s.devices.len() == 1 && s.one_time_keys.len() == 1 && s.to_device.len() == 1
++    })
++    .await;
++
++    // "Restart": a fresh application state over the same store, loaded the
++    // way `serve` loads it.
++    let second = crate::AppState::from_store(config(), store.clone());
++    second.load_e2ee().await.unwrap();
++    let app = crate::build_router(&second);
++
++    let (_, body) = post_json(
++        &app,
++        FED_KEYS_QUERY,
++        &json!({ "device_keys": { alice().as_str(): [] } }),
++    )
++    .await;
++    assert_eq!(
++        body["device_keys"][alice().as_str()]["PHONE"]["device_id"],
++        "PHONE"
++    );
++
++    // Exactly the unclaimed key is left, and claiming it works once.
++    let ask = json!({ "one_time_keys": { alice().as_str(): { "PHONE": "signed_curve25519" } } });
++    let (_, body) = post_json(&app, FED_KEYS_CLAIM, &ask).await;
++    assert!(body["one_time_keys"][alice().as_str()]["PHONE"]["signed_curve25519:k2"].is_object());
++    let (_, body) = post_json(&app, FED_KEYS_CLAIM, &ask).await;
++    assert_eq!(body["one_time_keys"], json!({}));
++
++    // The room key that was waiting is delivered, once.
++    let events = sync_to_device(&app).await;
++    assert_eq!(events.len(), 1);
++    assert_eq!(events[0]["content"]["session_id"], "S1");
++    assert!(sync_to_device(&app).await.is_empty());
++
++    // And the drain reached the store: a third start finds the inbox empty
++    // and the claimed key gone.
++    wait_for_persisted(&store, |s| {
++        s.to_device.is_empty() && s.one_time_keys.is_empty()
++    })
++    .await;
++}
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 46cd3af..f68f710 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -18,7 +18,9 @@ use neutrino_event::{Event, EventPolicy, FormatError};
+ use neutrino_room::CoreError;
+ use neutrino_room::provider::InMemoryStateProvider;
+ use neutrino_room::room_core::{Effect, RoomCore};
+-use neutrino_store::{FederationOutbox, IdentityStore, RoomStore, StateStore, StorageError};
++use neutrino_store::{
++    E2eeStore, FederationOutbox, IdentityStore, RoomStore, StateStore, StorageError,
++};
+ use neutrino_store_sqlite::SqliteStore;
+ use ruma::api::client::sync::sync_events::v5;
+ use ruma::events::AnyTimelineEvent;
+@@ -273,6 +275,7 @@ impl AppState {
+     ) -> Self {
+         let shutdown = CancellationToken::new();
+         let e2ee = Arc::new(E2eeState::new());
++        e2ee.attach_persistence(store.clone());
+         let mut sync_state = SyncState::new(store.clone(), shutdown.clone());
+         sync_state.delivery_receipts = config.delivery_receipts;
+         sync_state.e2ee = e2ee.clone();
+@@ -329,6 +332,19 @@ impl AppState {
+         lock_app(self).store.clone()
+     }
+ 
++    /// Rebuild the E2EE directory and inbox from the store. Must run before
++    /// the router serves: a request answered from an empty directory would
++    /// tell a peer a device does not exist.
++    pub(crate) async fn load_e2ee(&self) -> Result<(), StorageError> {
++        let (store, e2ee) = {
++            let app = lock_app(self);
++            (app.store.clone(), app.e2ee.clone())
++        };
++        let snapshot = store.load_e2ee().await?;
++        e2ee.load(snapshot);
++        Ok(())
++    }
++
+     /// This homeserver's name, sent as the `origin` on outbound transactions.
+     fn server_name(&self) -> String {
+         lock_app(self).config.server_name.clone()
+@@ -445,6 +461,7 @@ pub async fn serve(
+     AppState::validate_config(&config)?;
+     let state = AppState::from_store_with_discovery(config, store, discovery, policy);
+     lock_app(&state).display_name_tx = display_name_tx;
++    state.load_e2ee().await?;
+     // Start draining the federation outbox before serving. Outbox rows survive
+     // restarts, so this is also the "retry on restart" path — startup
+     // enumeration resumes delivery of anything left undelivered.
+@@ -519,6 +536,7 @@ fn handle(command: Command, state: &AppState) -> ControlFlow<()> {
+ 
+ pub async fn router(config: Config) -> Result<Router, StartupError> {
+     let state = AppState::new(config).await?;
++    state.load_e2ee().await?;
+     Ok(build_router(&state))
+ }
+ 
+@@ -1549,7 +1567,7 @@ async fn device_signing_upload(state: State<AppState>, body: Json<Value>) -> Jso
+     if let Some(body_obj) = body.as_object() {
+         let mut inner = e2ee.lock();
+         for (key, value) in body_obj {
+-            inner.keys.cross_signing.insert(key.clone(), value.clone());
++            inner.keys.put_cross_signing(key, value.clone());
+         }
+     }
+ 
+@@ -1561,9 +1579,8 @@ async fn signatures_upload(state: State<AppState>, body: Json<Value>) -> Json<Va
+     let e2ee = lock_app(&state.0).e2ee.clone();
+     let mut inner = e2ee.lock();
+ 
+-    // The body is `{user: {device: {signatures...}}}`. Merge each signature
+-    // block into the stored device it signs; an absent device is skipped
+-    // rather than created, since a signature over nothing means nothing.
++    // The body is `{user: {device: {signatures...}}}`; each block is merged
++    // into the stored device it signs.
+     let uploaded = body.0.as_object().cloned().unwrap_or_default();
+     for (user, devices) in uploaded {
+         let Some(devices) = devices.as_object() else {
+@@ -1577,20 +1594,7 @@ async fn signatures_upload(state: State<AppState>, body: Json<Value>) -> Json<Va
+             else {
+                 continue;
+             };
+-            let Some(stored) = inner
+-                .keys
+-                .devices
+-                .get_mut(&user)
+-                .and_then(|d| d.get_mut(device))
+-            else {
+-                continue;
+-            };
+-            if let Some(target) = stored
+-                .pointer_mut(&format!("/signatures/{}", user))
+-                .and_then(Value::as_object_mut)
+-            {
+-                target.extend(sigs);
+-            }
++            inner.keys.merge_device_signatures(&user, device, sigs);
+         }
+     }
+ 
+diff --git a/crates/neutrino-store-sqlite/src/schema.rs b/crates/neutrino-store-sqlite/src/schema.rs
+index 25710cc..fa803ae 100644
+--- a/crates/neutrino-store-sqlite/src/schema.rs
++++ b/crates/neutrino-store-sqlite/src/schema.rs
+@@ -8,7 +8,7 @@ const SCHEMA_SQL: &str = include_str!("schema.sql");
+ /// shape, so a store written by an older build is refused at open (loudly, and
+ /// before any query hits a column that does not exist) rather than breaking
+ /// mid-request. One constant so the stamp and the gate cannot drift.
+-pub(crate) const SCHEMA_VERSION: i64 = 3;
++pub(crate) const SCHEMA_VERSION: i64 = 4;
+ 
+ /// Version-gate the database against the bundled schema. Authoritative
+ /// open-time check per design doc §2 "Open path: version gate & schema bundle".
+diff --git a/crates/neutrino-store-sqlite/src/schema.sql b/crates/neutrino-store-sqlite/src/schema.sql
+index dc37cb7..8299228 100644
+--- a/crates/neutrino-store-sqlite/src/schema.sql
++++ b/crates/neutrino-store-sqlite/src/schema.sql
+@@ -469,3 +469,41 @@ CREATE TABLE server_identity (
+     value ANY  NOT NULL,
+     CHECK (key <> 'secret' OR (typeof(value) = 'blob' AND length(value) = 32))
+ ) STRICT;
++
++-- ----------------------------------------------------------------------------
++-- E2EE — E2eeStore
++-- The server's share of end-to-end encryption: public key material and
++-- ciphertext addressed to devices, all wire-verbatim JSON text. Memory is the
++-- authoritative copy at runtime (see neutrino-http's E2eeState); these rows
++-- are written through and reloaded at start so a restart forgets nothing.
++-- One-time keys are rows so a claim is a DELETE, never a rewrite of a blob.
++-- The inbox id is caller-assigned (a process-lifetime counter seeded from
++-- MAX(inbox_id)) so memory and disk agree on which rows a drain removes.
++-- ----------------------------------------------------------------------------
++CREATE TABLE device_keys (
++    user    TEXT NOT NULL,
++    device  TEXT NOT NULL,
++    keys    TEXT NOT NULL,
++    PRIMARY KEY (user, device)
++) STRICT, WITHOUT ROWID;
++
++CREATE TABLE one_time_keys (
++    user    TEXT NOT NULL,
++    device  TEXT NOT NULL,
++    key_id  TEXT NOT NULL,
++    key     TEXT NOT NULL,
++    PRIMARY KEY (user, device, key_id)
++) STRICT, WITHOUT ROWID;
++
++CREATE TABLE cross_signing_keys (
++    name   TEXT NOT NULL PRIMARY KEY,
++    value  TEXT NOT NULL
++) STRICT, WITHOUT ROWID;
++
++CREATE TABLE to_device_inbox (
++    inbox_id  INTEGER NOT NULL PRIMARY KEY,
++    user      TEXT NOT NULL,
++    event     TEXT NOT NULL
++) STRICT;
++
++CREATE INDEX ix_to_device_inbox_user ON to_device_inbox(user, inbox_id);
+diff --git a/crates/neutrino-store-sqlite/src/store/e2ee.rs b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+new file mode 100644
+index 0000000..cd7fe55
+--- /dev/null
++++ b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+@@ -0,0 +1,299 @@
++//! `E2eeStore` impl on [`crate::SqliteStore`].
++//!
++//! Four small tables of wire-verbatim JSON text (`device_keys`,
++//! `one_time_keys`, `cross_signing_keys`, `to_device_inbox`). Nothing here is
++//! interpreted; the in-memory directory in `neutrino-http` is the runtime
++//! copy and these rows are what it is rebuilt from after a restart.
++
++use async_trait::async_trait;
++use deadpool_sqlite::rusqlite::params;
++use neutrino_store::{E2eeSnapshot, E2eeStore, StorageError};
++use serde_json::value::RawValue as RawJsonValue;
++
++use crate::{SqliteStore, error::Error};
++
++fn raw(text: String) -> Result<Box<RawJsonValue>, Error> {
++    RawJsonValue::from_string(text)
++        .map_err(|e| Error::Internal(format!("malformed JSON in DB: {e}")))
++}
++
++#[async_trait]
++impl E2eeStore for SqliteStore {
++    async fn load_e2ee(&self) -> Result<E2eeSnapshot, StorageError> {
++        self.run_read(move |conn| -> Result<E2eeSnapshot, Error> {
++            let mut snapshot = E2eeSnapshot::default();
++
++            let mut stmt = conn.prepare("SELECT user, device, keys FROM device_keys")?;
++            let rows = stmt.query_map([], |row| {
++                Ok((
++                    row.get::<_, String>(0)?,
++                    row.get::<_, String>(1)?,
++                    row.get::<_, String>(2)?,
++                ))
++            })?;
++            for r in rows {
++                let (user, device, keys) = r?;
++                snapshot.devices.push((user, device, raw(keys)?));
++            }
++
++            let mut stmt = conn.prepare(
++                "SELECT user, device, key_id, key FROM one_time_keys ORDER BY user, device, key_id",
++            )?;
++            let rows = stmt.query_map([], |row| {
++                Ok((
++                    row.get::<_, String>(0)?,
++                    row.get::<_, String>(1)?,
++                    row.get::<_, String>(2)?,
++                    row.get::<_, String>(3)?,
++                ))
++            })?;
++            for r in rows {
++                let (user, device, key_id, key) = r?;
++                snapshot
++                    .one_time_keys
++                    .push((user, device, key_id, raw(key)?));
++            }
++
++            let mut stmt = conn.prepare("SELECT name, value FROM cross_signing_keys")?;
++            let rows = stmt.query_map([], |row| {
++                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
++            })?;
++            for r in rows {
++                let (name, value) = r?;
++                snapshot.cross_signing.push((name, raw(value)?));
++            }
++
++            let mut stmt = conn.prepare(
++                "SELECT inbox_id, user, event FROM to_device_inbox ORDER BY inbox_id ASC",
++            )?;
++            let rows = stmt.query_map([], |row| {
++                Ok((
++                    row.get::<_, i64>(0)?,
++                    row.get::<_, String>(1)?,
++                    row.get::<_, String>(2)?,
++                ))
++            })?;
++            for r in rows {
++                let (id, user, event) = r?;
++                snapshot.to_device.push((id, user, raw(event)?));
++            }
++
++            Ok(snapshot)
++        })
++        .await
++    }
++
++    async fn put_device_keys(
++        &self,
++        user: &str,
++        device: &str,
++        keys: &RawJsonValue,
++    ) -> Result<(), StorageError> {
++        let (user, device, keys) = (user.to_owned(), device.to_owned(), keys.get().to_owned());
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "INSERT INTO device_keys (user, device, keys) VALUES (?, ?, ?) \
++                 ON CONFLICT (user, device) DO UPDATE SET keys = excluded.keys",
++                params![user, device, keys],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++
++    async fn put_one_time_keys(
++        &self,
++        user: &str,
++        device: &str,
++        keys: &[(String, Box<RawJsonValue>)],
++    ) -> Result<(), StorageError> {
++        if keys.is_empty() {
++            return Ok(());
++        }
++        let (user, device) = (user.to_owned(), device.to_owned());
++        let keys: Vec<(String, String)> = keys
++            .iter()
++            .map(|(id, key)| (id.clone(), key.get().to_owned()))
++            .collect();
++        self.run_write(move |conn| -> Result<(), Error> {
++            let tx = conn.transaction()?;
++            {
++                let mut stmt = tx.prepare(
++                    "INSERT OR IGNORE INTO one_time_keys (user, device, key_id, key) \
++                     VALUES (?, ?, ?, ?)",
++                )?;
++                for (key_id, key) in &keys {
++                    stmt.execute(params![user, device, key_id, key])?;
++                }
++            }
++            tx.commit()?;
++            Ok(())
++        })
++        .await
++    }
++
++    async fn remove_one_time_key(
++        &self,
++        user: &str,
++        device: &str,
++        key_id: &str,
++    ) -> Result<(), StorageError> {
++        let (user, device, key_id) = (user.to_owned(), device.to_owned(), key_id.to_owned());
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "DELETE FROM one_time_keys WHERE user = ? AND device = ? AND key_id = ?",
++                params![user, device, key_id],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++
++    async fn put_cross_signing(
++        &self,
++        name: &str,
++        value: &RawJsonValue,
++    ) -> Result<(), StorageError> {
++        let (name, value) = (name.to_owned(), value.get().to_owned());
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "INSERT INTO cross_signing_keys (name, value) VALUES (?, ?) \
++                 ON CONFLICT (name) DO UPDATE SET value = excluded.value",
++                params![name, value],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++
++    async fn push_to_device(
++        &self,
++        id: i64,
++        user: &str,
++        event: &RawJsonValue,
++    ) -> Result<(), StorageError> {
++        let (user, event) = (user.to_owned(), event.get().to_owned());
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "INSERT OR IGNORE INTO to_device_inbox (inbox_id, user, event) VALUES (?, ?, ?)",
++                params![id, user, event],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++
++    async fn remove_to_device(&self, ids: &[i64]) -> Result<(), StorageError> {
++        if ids.is_empty() {
++            return Ok(());
++        }
++        let ids = ids.to_vec();
++        self.run_write(move |conn| -> Result<(), Error> {
++            let tx = conn.transaction()?;
++            {
++                let mut stmt = tx.prepare("DELETE FROM to_device_inbox WHERE inbox_id = ?")?;
++                for id in &ids {
++                    stmt.execute(params![id])?;
++                }
++            }
++            tx.commit()?;
++            Ok(())
++        })
++        .await
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use neutrino_store::E2eeStore;
++    use serde_json::json;
++
++    use crate::tests::store;
++
++    fn raw(v: serde_json::Value) -> Box<serde_json::value::RawValue> {
++        serde_json::value::to_raw_value(&v).unwrap()
++    }
++
++    #[tokio::test]
++    async fn empty_store_loads_an_empty_snapshot() {
++        let s = store().await;
++        let snap = s.load_e2ee().await.unwrap();
++        assert!(snap.devices.is_empty());
++        assert!(snap.one_time_keys.is_empty());
++        assert!(snap.cross_signing.is_empty());
++        assert!(snap.to_device.is_empty());
++    }
++
++    // Every table round-trips; a device upload replaces, a one-time key is
++    // never replaced, a claim removes exactly its row.
++    #[tokio::test]
++    async fn keys_round_trip_with_the_right_conflict_rules() {
++        let s = store().await;
++        s.put_device_keys("@a:x", "D1", &raw(json!({ "v": 1 })))
++            .await
++            .unwrap();
++        s.put_device_keys("@a:x", "D1", &raw(json!({ "v": 2 })))
++            .await
++            .unwrap();
++        s.put_one_time_keys(
++            "@a:x",
++            "D1",
++            &[
++                ("k1".to_owned(), raw(json!("one"))),
++                ("k2".to_owned(), raw(json!("two"))),
++            ],
++        )
++        .await
++        .unwrap();
++        s.put_one_time_keys("@a:x", "D1", &[("k1".to_owned(), raw(json!("changed")))])
++            .await
++            .unwrap();
++        s.put_cross_signing("master_key", &raw(json!({ "m": true })))
++            .await
++            .unwrap();
++        s.remove_one_time_key("@a:x", "D1", "k2").await.unwrap();
++        s.remove_one_time_key("@a:x", "D1", "k2").await.unwrap();
++
++        let snap = s.load_e2ee().await.unwrap();
++        assert_eq!(snap.devices.len(), 1);
++        assert_eq!(snap.devices[0].2.get(), r#"{"v":2}"#);
++        assert_eq!(snap.one_time_keys.len(), 1);
++        assert_eq!(snap.one_time_keys[0].2, "k1");
++        assert_eq!(
++            snap.one_time_keys[0].3.get(),
++            r#""one""#,
++            "first upload wins"
++        );
++        assert_eq!(snap.cross_signing[0].0, "master_key");
++    }
++
++    // The inbox keeps caller-assigned ids in order, ignores a repeated id,
++    // and a drain removes exactly the named rows.
++    #[tokio::test]
++    async fn inbox_keeps_order_and_ids() {
++        let s = store().await;
++        s.push_to_device(7, "@a:x", &raw(json!({ "n": 7 })))
++            .await
++            .unwrap();
++        s.push_to_device(3, "@a:x", &raw(json!({ "n": 3 })))
++            .await
++            .unwrap();
++        s.push_to_device(7, "@a:x", &raw(json!({ "n": 70 })))
++            .await
++            .unwrap();
++        s.push_to_device(9, "@b:x", &raw(json!({ "n": 9 })))
++            .await
++            .unwrap();
++
++        let snap = s.load_e2ee().await.unwrap();
++        let ids: Vec<i64> = snap.to_device.iter().map(|(id, _, _)| *id).collect();
++        assert_eq!(ids, [3, 7, 9]);
++        assert_eq!(snap.to_device[1].2.get(), r#"{"n":7}"#, "repeat id ignored");
++
++        s.remove_to_device(&[3, 7]).await.unwrap();
++        s.remove_to_device(&[]).await.unwrap();
++        let snap = s.load_e2ee().await.unwrap();
++        assert_eq!(snap.to_device.len(), 1);
++        assert_eq!(snap.to_device[0].1, "@b:x");
++    }
++}
+diff --git a/crates/neutrino-store-sqlite/src/store/mod.rs b/crates/neutrino-store-sqlite/src/store/mod.rs
+index 759c43c..69ad540 100644
+--- a/crates/neutrino-store-sqlite/src/store/mod.rs
++++ b/crates/neutrino-store-sqlite/src/store/mod.rs
+@@ -3,6 +3,7 @@
+ 
+ mod dag;
+ mod deliveries;
++mod e2ee;
+ mod events;
+ mod identity;
+ mod inbox;
+diff --git a/crates/neutrino-store/src/lib.rs b/crates/neutrino-store/src/lib.rs
+index 40b0449..51b1c97 100644
+--- a/crates/neutrino-store/src/lib.rs
++++ b/crates/neutrino-store/src/lib.rs
+@@ -815,6 +815,87 @@ pub trait IdentityStore: Send + Sync {
+     async fn get_or_create_server_name(&self, current: &str) -> Result<String, StorageError>;
+ }
+ 
++/// Everything the server holds for end-to-end encryption, as loaded at
++/// startup: the device-key directory, the one-time keys not yet handed out,
++/// cross-signing blobs, and to-device messages not yet delivered. Rows are
++/// wire-verbatim JSON; the store interprets none of it.
++#[derive(Debug, Default)]
++pub struct E2eeSnapshot {
++    /// `(user, device, device_keys object)`.
++    pub devices: Vec<(String, String, Box<RawJsonValue>)>,
++    /// `(user, device, key id, key object)`.
++    pub one_time_keys: Vec<(String, String, String, Box<RawJsonValue>)>,
++    /// `(name, value)` — the sections of a `/keys/device_signing/upload` body.
++    pub cross_signing: Vec<(String, Box<RawJsonValue>)>,
++    /// `(inbox id, recipient user, event)`, in delivery order.
++    pub to_device: Vec<(i64, String, Box<RawJsonValue>)>,
++}
++
++/// Durable home for the server's share of E2EE. On a phone the app is killed
++/// routinely, and a restart that forgets every device key and every
++/// undelivered room key silently breaks every peer's Olm session — so the
++/// in-memory directory is a cache over these rows, written through and
++/// reloaded at start.
++///
++/// Every write is idempotent on its key so a journal replay after a fault
++/// converges; none returns what it wrote, since memory is authoritative.
++#[async_trait]
++pub trait E2eeStore: Send + Sync {
++    /// Pre:  none.
++    /// Post: everything held, in insertion order per table.
++    async fn load_e2ee(&self) -> Result<E2eeSnapshot, StorageError>;
++
++    /// Pre:  `keys` is a device_keys object.
++    /// Post: the `(user, device)` row holds `keys`, replacing any previous.
++    async fn put_device_keys(
++        &self,
++        user: &str,
++        device: &str,
++        keys: &RawJsonValue,
++    ) -> Result<(), StorageError>;
++
++    /// Pre:  none.
++    /// Post: one row per `(user, device, key id)`; an existing id keeps its
++    ///       earlier value (a one-time key is never silently replaced).
++    async fn put_one_time_keys(
++        &self,
++        user: &str,
++        device: &str,
++        keys: &[(String, Box<RawJsonValue>)],
++    ) -> Result<(), StorageError>;
++
++    /// Pre:  none.
++    /// Post: the row is gone; idempotent. Called when the key is claimed.
++    async fn remove_one_time_key(
++        &self,
++        user: &str,
++        device: &str,
++        key_id: &str,
++    ) -> Result<(), StorageError>;
++
++    /// Pre:  none.
++    /// Post: the named cross-signing section holds `value`, replacing any
++    ///       previous.
++    async fn put_cross_signing(&self, name: &str, value: &RawJsonValue)
++    -> Result<(), StorageError>;
++
++    /// Pre:  `id` is unique per process lifetime and increasing (the caller
++    ///       seeds its counter from the loaded snapshot's maximum).
++    /// Post: the event waits for `user` under `id`; a repeat of the same id is
++    ///       ignored.
++    async fn push_to_device(
++        &self,
++        id: i64,
++        user: &str,
++        event: &RawJsonValue,
++    ) -> Result<(), StorageError>;
++
++    /// Pre:  none.
++    /// Post: the named rows are gone; idempotent. Called once the events have
++    ///       been handed to a sync response.
++    async fn remove_to_device(&self, ids: &[i64]) -> Result<(), StorageError>;
++}
++
+ /// Combined storage interface. Use as a generic bound: `S: StorageBackend`.
+ pub trait StorageBackend:
+     RoomStore
+@@ -827,6 +908,7 @@ pub trait StorageBackend:
+     + StagingStore
+     + InviteStore
+     + IdentityStore
++    + E2eeStore
+ {
+ }
+ 
+@@ -841,6 +923,7 @@ impl<T> StorageBackend for T where
+         + StagingStore
+         + InviteStore
+         + IdentityStore
++        + E2eeStore
+ {
+ }
+ 
+-- 
+2.43.0
+

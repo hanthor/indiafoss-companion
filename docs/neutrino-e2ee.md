@@ -52,7 +52,7 @@ the above.
 
 ## What we implemented, and what is left
 
-Items 2, 3 and 4 above are done, as four patches kept in
+Items 1 to 4 above are done, as five patches kept in
 [`patches/neutrino/`](../patches/neutrino/README.md) — see that README for how
 to apply them and exactly what each one covers.
 
@@ -86,9 +86,13 @@ encrypted room on one, invites and joins over federation, and decrypts on the
 other — in both directions. It skips without two servers and fails against
 stock Neutrino, which is the point.
 
-Still open: keys live in memory rather than sqlite, `m.device_list_update` is
-not sent, and item 5 — signing — is unchanged and is what still makes this
-"private, not authenticated".
+- **Persistence** (`0005`, item 1): device keys, one-time keys, cross-signing
+  blobs and the to-device inbox live in sqlite. Memory stays the runtime copy;
+  every mutation is journaled through to the store in order and reloaded at
+  start, so a phone killing the app forgets no device and drops no room key.
+
+Still open: `m.device_list_update` is not sent, and item 5 — signing — is
+unchanged and is what still makes this "private, not authenticated".
 
 ## What the IndiaFOSS fork does meanwhile
 
