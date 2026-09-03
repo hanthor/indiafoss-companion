@@ -8,6 +8,8 @@ import androidx.test.core.app.ApplicationProvider
 import org.indiafoss.companion.core.ContactCard
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.bundleJson
+import org.indiafoss.companion.data.RankingState
+import org.indiafoss.companion.data.StoredComparison
 import org.indiafoss.companion.ui.LeaveByBanner
 import org.indiafoss.companion.ui.screens.ConnectScreen
 import org.indiafoss.companion.ui.screens.ExploreScreen
@@ -35,6 +37,7 @@ import java.io.File
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
 class ScreenshotTest {
+    private val noUndo = CompanionViewModel.Undo(emptyMap(), emptyList())
     @get:Rule
     val compose = createAndroidComposeRule<ComponentActivity>()
 
@@ -72,7 +75,14 @@ class ScreenshotTest {
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
     @Test fun schedule() = shoot("schedule") { ScheduleScreen(state(), {}, {}) {} }
     @Test fun plan() = shoot("plan") { PlanScreen(state(), {}, {}, { null }, {}) {} }
-    @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, { _, _ -> }, {}, { _, _, _ -> }, { _, _ -> }, {}) {} }
+    @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
+    @Test fun rankTalks() = shoot("rank-talks") {
+        RankScreen(state().copy(ranking = RankingState(roomsDecided = true)), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
+    }
+    @Test fun rankSlots() = shoot("rank-slots") {
+        val one = StoredComparison("cmp-1", "act-01sogi4649", "act-2i81tb75s8", 1.0, 0L)
+        RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
+    }
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
     @Test fun explore() = shoot("explore") { ExploreScreen(state(), {}, {}) {} }
     @Test fun connect() = shoot("connect") {
@@ -90,6 +100,7 @@ class ScreenshotTest {
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], qualifiers = "w411dp-h891dp-night-xxhdpi")
 class DarkScreenshotTest {
+    private val noUndo = CompanionViewModel.Undo(emptyMap(), emptyList())
     @get:Rule
     val compose = createAndroidComposeRule<ComponentActivity>()
 
@@ -118,5 +129,5 @@ class DarkScreenshotTest {
 
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
-    @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, { _, _ -> }, {}, { _, _, _ -> }, { _, _ -> }, {}) {} }
+    @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
 }

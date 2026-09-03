@@ -56,6 +56,13 @@ class PreferencesStore(private val context: Context) {
 
     suspend fun toggleMustAttend(id: String) = toggle(mustAttendKey, id)
 
+    suspend fun setMustAttend(id: String, on: Boolean) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[mustAttendKey] ?: emptySet()
+            preferences[mustAttendKey] = if (on) current + id else current - id
+        }
+    }
+
     private suspend fun toggle(
         key: androidx.datastore.preferences.core.Preferences.Key<Set<String>>,
         id: String,

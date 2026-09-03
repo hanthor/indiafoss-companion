@@ -92,89 +92,113 @@ test('elo ranking compares two sessions and advances', async ({ page }) => {
   expect(stillGoing || done).toBe(true);
 });
 
+/** The readout once at least one pair has an answer. */
+const SOME_CHOICES = /[1-9]\d* CHOICES? · \d+ OVERLAPS? OPEN/;
+
 test('ranking supports keyboard choices and undo', async ({ page }) => {
   await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await expect(page.getByText(/0 CHOICES · \d+ OVERLAPS? OPEN/)).toBeVisible();
 
-  // Keyboard choice via number key advances the choice count.
+  // Keyboard choice via number key: the first session beats the rest of its slot.
   await page.keyboard.press('1');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
+  await expect(page.getByText(SOME_CHOICES)).toBeVisible();
 
-  // Undo becomes enabled after a choice and reverses the last comparison.
+  // Undo becomes enabled after a choice and reverses the whole pick.
   const undo = page.getByRole('button', { name: /Undo last/ });
   await expect(undo).toBeEnabled();
   await undo.click();
   await page.waitForTimeout(100);
   await expect(undo).toBeDisabled();
+  await expect(page.getByText(/0 CHOICES · \d+ OVERLAPS? OPEN/)).toBeVisible();
 
-  // Arrow keys pick the top or bottom card without a pointer.
+  // Arrow keys pick the top or second card without a pointer.
   await page.keyboard.press('ArrowUp');
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
+  await expect(page.getByText(SOME_CHOICES)).toBeVisible();
 });
 
-test('ranking starts by asking about rooms; skipping one hides its talks', async ({ page }) => {
+test('ranking starts with the devrooms; not interested takes their talks out', async ({ page }) => {
   await page.goto(appUrl('/plan/rank'));
-  await expect(page.getByRole('tab', { name: /Rooms/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('tab', { name: /Devrooms/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
   const rows = page.getByTestId('room-row');
   expect(await rows.count()).toBeGreaterThan(3);
-  // Main halls cannot be skipped.
-  await expect(rows.first()).toContainText('main hall');
-  await expect(rows.first().getByRole('button', { name: 'Skip' })).toHaveCount(0);
-  // Skip the AOSP devroom, love the last one.
+  // Only devrooms are asked about; the main halls never appear here.
+  await expect(rows.filter({ hasText: /^Audi/ })).toHaveCount(0);
+  await expect(rows.filter({ hasText: 'main hall' })).toHaveCount(0);
+  // Each devroom says what it is about and can unfold its programme.
+  await expect(rows.first()).toContainText(/\d+ talks? · /);
+  await rows
+    .first()
+    .getByRole('button', { name: /What's on/ })
+    .click();
+  await expect(rows.first().getByRole('link').first()).toBeVisible();
+  // Not interested in AOSP, must go to the last one.
   const aosp = rows.filter({ hasText: 'AOSP' });
-  await aosp.getByRole('button', { name: 'Skip' }).click();
-  await rows.last().getByRole('button', { name: 'Love' }).click();
-  await page.getByRole('button', { name: /Done · 1 skipped, 1 loved/ }).click();
-  // The quick pass follows, without the skipped room's talks.
-  await expect(page.getByRole('tab', { name: /Quick pass/ })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
-  await expect(page.getByTestId('quick-row').filter({ hasText: 'Devroom 1 (AOSP)' })).toHaveCount(
-    0,
-  );
-  // Un-skipping brings them back.
-  await page.getByRole('tab', { name: /Rooms/ }).click();
-  await aosp.getByRole('button', { name: 'OK' }).click();
-  await page.getByRole('tab', { name: /Quick pass/ }).click();
-  expect(
-    await page.getByTestId('quick-row').filter({ hasText: 'Devroom 1 (AOSP)' }).count(),
-  ).toBeGreaterThan(0);
+  await aosp.getByRole('button', { name: 'Not interested' }).click();
+  await rows.last().getByRole('button', { name: 'Must go' }).click();
+  await page.getByRole('button', { name: /Done · 1 out, 1 must go/ }).click();
+  // The talks follow, without the room's talks.
+  await expect(page.getByRole('tab', { name: /Talks/ })).toHaveAttribute('aria-selected', 'true');
+  const toGo = async () =>
+    Number((await page.getByText(/\d+ TO GO/).textContent())?.match(/\d+/)?.[0]);
+  const without = await toGo();
+  // Interested again brings them back.
+  await page.getByRole('tab', { name: /Devrooms/ }).click();
+  await aosp.getByRole('button', { name: 'Interested', exact: true }).click();
+  await page.getByRole('tab', { name: /Talks/ }).click();
+  expect(await toGo()).toBeGreaterThan(without);
 });
 
-test('ranking starts with a quick pass that narrows the overlaps to settle', async ({ page }) => {
+test('the talks step deals one rich card at a time and remembers the answers', async ({ page }) => {
   await page.goto(appUrl('/plan/rank?mode=quick'));
-  // A fresh day opens on the quick pass.
-  await expect(page.getByRole('tab', { name: /Quick pass/ })).toHaveAttribute(
-    'aria-selected',
-    'true',
-  );
-  const rows = page.getByTestId('quick-row');
-  const before = await rows.count();
+  await expect(page.getByRole('tab', { name: /Talks/ })).toHaveAttribute('aria-selected', 'true');
+  const card = page.getByTestId('talk-card');
+  await expect(card).toBeVisible();
+  const toGo = async () =>
+    Number((await page.getByText(/\d+ TO GO/).textContent())?.match(/\d+/)?.[0]);
+  const before = await toGo();
   expect(before).toBeGreaterThan(5);
-  // "No" removes a session from the running; "Yes" keeps it.
-  await rows
-    .first()
-    .getByRole('button', { name: /^No to/ })
-    .click();
-  await rows
-    .first()
-    .getByRole('button', { name: /^Yes to/ })
-    .click();
-  await expect(rows).toHaveCount(before - 2);
-  await expect(page.getByText(/1 IN · 1 OUT/)).toBeVisible();
+  // "Not for me" deals the next card; the opening notes go until a talk with a speaker is up.
+  let dropped = 0;
+  while (!/First Step into Open Source/.test((await card.getAttribute('aria-label')) ?? '')) {
+    await page.getByRole('button', { name: /^Not for me/ }).click();
+    dropped++;
+    expect(dropped).toBeLessThan(8);
+    await page.waitForTimeout(250);
+  }
+  // The card carries the speaker and the abstract, not just a title.
+  await expect(card.getByRole('link').first()).toBeVisible();
+  await expect(card.getByRole('button', { name: /Read more/ })).toBeVisible();
+  // "Interested" keeps it.
+  await page.getByRole('button', { name: /^Interested/ }).click();
+  await expect(page.getByText(new RegExp(`1 IN · ${dropped} OUT`))).toBeVisible();
+  expect(await toGo()).toBe(before - dropped - 1);
+  // A swipe to the right is an "Interested" too.
+  const box = (await card.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + 40);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + 120, box.y + 40, { steps: 6 });
+  await page.mouse.move(box.x + box.width / 2 + 220, box.y + 40, { steps: 6 });
+  await page.mouse.up();
+  await expect(page.getByText(new RegExp(`2 IN · ${dropped} OUT`))).toBeVisible();
   // Answers survive a reload and can be changed.
   await page.reload();
-  await expect(page.getByText(/1 IN · 1 OUT/)).toBeVisible();
+  await expect(page.getByText(new RegExp(`2 IN · ${dropped} OUT`))).toBeVisible();
   await page.getByRole('button', { name: /Change answered/ }).click();
   await page.getByRole('button', { name: 'Undo' }).first().click();
-  await expect(page.getByText(/1 IN · 0 OUT|0 IN · 1 OUT/)).toBeVisible();
-  // Head to head is one tap away and shows only open overlaps.
-  await page.getByRole('tab', { name: /Head to head/ }).click();
+  await expect(
+    page.getByText(new RegExp(`(2 IN · ${dropped - 1} OUT|1 IN · ${dropped} OUT)`)),
+  ).toBeVisible();
+  // The overlaps step is one tap away and shows a slot's sessions.
+  await page.getByRole('tab', { name: /Overlaps/ }).click();
+  await expect(page.getByText(/SLOT 1 OF \d+/)).toBeVisible();
   await expect(page.getByTestId('candidate-a')).toBeVisible();
+  await expect(page.getByTestId('candidate-b')).toBeVisible();
 });
 
 test('answered pairs are not asked again after a reload', async ({ page }) => {
@@ -182,10 +206,10 @@ test('answered pairs are not asked again after a reload', async ({ page }) => {
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   const first = await page.getByTestId('candidate-a').textContent();
   await page.getByTestId('candidate-a').click();
-  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
+  await expect(page.getByText(SOME_CHOICES)).toBeVisible();
   await page.reload();
-  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
-  // The winner now leads its clash, so the same pair does not come back.
+  await expect(page.getByText(SOME_CHOICES)).toBeVisible();
+  // The winner now leads its slot, so it is not offered again.
   const again = await page.getByTestId('candidate-a').textContent();
   expect(again).not.toBe(first);
 });
@@ -199,7 +223,7 @@ test('ranking respects reduced motion while still recording choices', async ({ b
   await expect(page.getByTestId('candidate-a')).toBeVisible();
   await page.getByTestId('candidate-a').click();
   await page.waitForTimeout(200);
-  await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
+  await expect(page.getByText(SOME_CHOICES)).toBeVisible();
   await context.close();
 });
 

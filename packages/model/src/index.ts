@@ -127,6 +127,8 @@ export interface Booth {
 export interface Track {
   id: string;
   name: string;
+  /** What the room is about, shown when asking whether it is for the attendee (#108). */
+  description?: string;
 }
 
 export interface SourceMetadata {
