@@ -1,7 +1,9 @@
 package org.indiafoss.companion.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -23,6 +25,32 @@ class PreferencesStore(private val context: Context) {
 
     val mustAttend: Flow<Set<String>> =
         context.dataStore.data.map { it[mustAttendKey] ?: emptySet() }
+
+    private val remindersKey = booleanPreferencesKey("reminders-enabled")
+
+    /** Off until switched on in Settings; nothing is scheduled before that. */
+    val remindersEnabled: Flow<Boolean> = context.dataStore.data.map { it[remindersKey] ?: false }
+
+    suspend fun setRemindersEnabled(on: Boolean) {
+        context.dataStore.edit { it[remindersKey] = on }
+    }
+
+    private val profileKey = stringPreferencesKey("routing-profile")
+
+    /** fastest | avoid-stairs | accessible, as the web's routing preference. */
+    val routingProfile: Flow<String> = context.dataStore.data.map { it[profileKey] ?: "fastest" }
+
+    suspend fun setRoutingProfile(profile: String) {
+        context.dataStore.edit { it[profileKey] = profile }
+    }
+
+    private val locationKey = stringPreferencesKey("current-location")
+
+    val location: Flow<String?> = context.dataStore.data.map { it[locationKey] }
+
+    suspend fun setLocation(locationId: String?) {
+        context.dataStore.edit { if (locationId == null) it.remove(locationKey) else it[locationKey] = locationId }
+    }
 
     suspend fun toggleBookmark(id: String) = toggle(bookmarkKey, id)
 

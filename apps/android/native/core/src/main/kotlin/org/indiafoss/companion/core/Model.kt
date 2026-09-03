@@ -82,6 +82,7 @@ data class Booth(
     val description: String? = null,
     val website: String? = null,
     val locationId: String? = null,
+    val tags: List<String> = emptyList(),
 )
 
 @Serializable

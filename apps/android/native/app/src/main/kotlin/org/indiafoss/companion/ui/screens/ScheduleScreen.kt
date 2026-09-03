@@ -21,11 +21,11 @@ import org.indiafoss.companion.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleScreen(state: UiState, onBookmark: (String) -> Unit, onOpen: (String) -> Unit) {
+fun ScheduleScreen(state: UiState, actions: @Composable () -> Unit, onBookmark: (String) -> Unit, onOpen: (String) -> Unit) {
     val days = state.days
     var selected by remember(days) { mutableIntStateOf(0) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Schedule") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text("Schedule") }, actions = { actions() }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (days.isEmpty()) {
                 EmptyState("No programme yet", "The schedule appears once it has been downloaded.")

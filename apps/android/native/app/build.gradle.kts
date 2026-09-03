@@ -12,6 +12,11 @@ val seedAssets = layout.buildDirectory.dir("generated/seed-assets")
 
 val copySeedBundle by tasks.registering(Copy::class) {
     from(rootProject.file("../../web/static/events/indiafoss-2025/event-bundle.json"))
+    // The floor plans the web map draws, exported to JSON (`pnpm --filter @indiafoss/web floors`).
+    from(rootProject.file("../../web/static/venues/indiafoss-2026/floors.json"))
+    // The routing graph and room entrances behind the web map's walk times.
+    from(rootProject.file("../../web/static/venues/indiafoss-2026/venue.graph.json"))
+    from(rootProject.file("../../web/static/venues/indiafoss-2026/venue.metadata.json"))
     into(seedAssets)
 }
 
@@ -48,6 +53,10 @@ android {
         compose = true
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
@@ -72,7 +81,19 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons)
+    // QR codes: zxing draws the card; the embedded scanner (Apache-2.0, no
+    // Google services) reads a friend's — F-Droid friendly.
+    implementation(libs.zxing.core)
+    implementation(libs.zxing.embedded)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Screenshots of every screen on the JVM (Robolectric), for a look at the
+    // UI without a device: `./gradlew :app:testDebugUnitTest`, PNGs under
+    // app/build/screenshots.
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.compose.ui.test.junit4)
+    testImplementation(libs.kotlin.test)
 }
 
 tasks.named("preBuild") { dependsOn(copySeedBundle) }

@@ -13,3 +13,4 @@ apps/android/capacitor/android/
 
 # Captured upstream HTML fixtures are byte-for-byte records, not source.
 packages/sources/src/fossunited/fixtures/
+apps/web/static/venues/indiafoss-2026/floors.json

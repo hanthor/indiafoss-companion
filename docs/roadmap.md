@@ -51,6 +51,13 @@ alignment, #3 CI packages token, #4 fork roadmap.
 
 ## Decisions log
 
+- 2026-09-03: **The Android app is the native Compose app.** Owner's
+  direction: Material, Jetpack Compose, fully native feeling. `apps/android/native`
+  is built out towards parity screen by screen (Rank, Plan itinerary,
+  Settings and alarm reminders landed first); the Capacitor build keeps
+  shipping only until then. Supersedes the 2026-09-02 "one Android app,
+  companion first" decision's choice of the Capacitor build.
+
 - 2026-09-03: **Ranking asks only what matters** (#90). A quick yes/no pass
   first, then head to head only for overlapping pairs not already settled by
   a direct answer or a wide rating gap; answered pairs are hydrated so a
