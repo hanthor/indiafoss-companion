@@ -1,4 +1,4 @@
-From dfb3a8413e9bae97efa1c27482a54ac489c55c02 Mon Sep 17 00:00:00 2001
+From 38414af8e998e630ffcc0884c3f528ac94231277 Mon Sep 17 00:00:00 2001
 From: James Reilly <jreilly1821@gmail.com>
 Date: Thu, 3 Sep 2026 07:03:36 +0000
 Subject: [PATCH] Identity, whoami and account data: a dev binary you can test
@@ -46,14 +46,14 @@ Claude-Session: https://claude.ai/code/session_01BpiYvGvwkJUSJAXCXAkai1
  crates/neutrino-http/src/federation/tests.rs  |  64 +++
  crates/neutrino-http/src/legacy_sync/mod.rs   |   7 +-
  .../src/legacy_sync/translate.rs              |  29 +-
- crates/neutrino-http/src/lib.rs               | 384 +++++++++++++++---
+ crates/neutrino-http/src/lib.rs               | 394 +++++++++++++++---
  crates/neutrino-http/src/multi_user.rs        |   7 +-
  crates/neutrino-http/src/sliding_sync/conn.rs |   4 +
- crates/neutrino-http/src/sliding_sync/mod.rs  |  69 +++-
+ crates/neutrino-http/src/sliding_sync/mod.rs  |  69 ++-
  .../neutrino-http/src/sliding_sync/tests.rs   |   5 +-
  crates/neutrino-http/tests/e2e_keys.rs        |  42 ++
  crates/neutrino-http/tests/e2e_legacy_sync.rs |  35 ++
- crates/neutrino-http/tests/e2e_multi_user.rs  |  37 ++
+ crates/neutrino-http/tests/e2e_multi_user.rs  |  82 ++++
  crates/neutrino-http/tests/e2e_persistence.rs | 102 +++++
  crates/neutrino-store-sqlite/src/schema.rs    |   2 +-
  crates/neutrino-store-sqlite/src/schema.sql   |  22 +
@@ -63,7 +63,7 @@ Claude-Session: https://claude.ai/code/session_01BpiYvGvwkJUSJAXCXAkai1
  .../src/store/sessions.rs                     |  67 +++
  crates/neutrino-store/src/lib.rs              |  51 ++-
  crates/neutrino/Cargo.toml                    |   5 +
- 24 files changed, 1299 insertions(+), 114 deletions(-)
+ 24 files changed, 1350 insertions(+), 118 deletions(-)
  create mode 100644 crates/neutrino-http/src/account_data.rs
  create mode 100644 crates/neutrino-store-sqlite/src/store/account_data.rs
  create mode 100644 crates/neutrino-store-sqlite/src/store/sessions.rs
@@ -692,7 +692,7 @@ index e205618..feb762e 100644
          "device_lists": {
              "changed": resp.extensions.e2ee.device_lists.changed,
 diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
-index 1f6948e..2beec20 100644
+index 1f6948e..10012d3 100644
 --- a/crates/neutrino-http/src/lib.rs
 +++ b/crates/neutrino-http/src/lib.rs
 @@ -35,6 +35,7 @@ use tower_http::classify::ServerErrorsFailureClass;
@@ -892,11 +892,11 @@ index 1f6948e..2beec20 100644
              "/_matrix/client/v3/user/{user_id}/account_data/{account_data_type}",
 -            get(get_account_data),
 +            get(get_account_data).put(put_account_data),
-+        )
+         )
 +        .route(
 +            "/_matrix/client/v3/user/{user_id}/rooms/{room_id}/account_data/{account_data_type}",
 +            get(get_room_account_data).put(put_room_account_data),
-         )
++        )
 +        .route("/_matrix/client/v3/account/whoami", get(whoami))
          .route("/_matrix/client/v3/room_keys/version", get(get_room_keys))
          .route("/_matrix/client/v3/createRoom", post(create_room))
@@ -1092,7 +1092,35 @@ index 1f6948e..2beec20 100644
      }
  
      // One EDU per destination server, carrying only that server's recipients.
-@@ -1934,18 +2072,158 @@ async fn user_directory_search(
+@@ -1590,6 +1728,7 @@ async fn keys_claim(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+ async fn keys_upload(
+     state: State<AppState>,
+     AuthUser(caller): AuthUser,
++    AuthDevice(caller_device): AuthDevice,
+     body: Json<Value>,
+ ) -> axum::response::Response {
+     info!("Received keys upload: {:?}", body.0);
+@@ -1620,14 +1759,15 @@ async fn keys_upload(
+             }
+         }
+     }
+-    // One-time keys without device keys belong to the caller; the device id
+-    // falls back to the conventional one only when nothing names it.
++    // One-time keys without device keys belong to the caller's own device —
++    // the one its token was minted for — not to a conventional id that no
++    // longer matches anything once every login is a device of its own.
+     let user = caller.to_string();
+     let device = device_keys
+         .and_then(|k| k.get("device_id"))
+         .and_then(Value::as_str)
+-        .unwrap_or("DEVICEID")
+-        .to_owned();
++        .map(str::to_owned)
++        .unwrap_or(caller_device);
+ 
+     let counts = {
+         let mut inner = e2ee.lock();
+@@ -1934,18 +2074,158 @@ async fn user_directory_search(
      Json(json!({ "results": results, "limited": limited }))
  }
  
@@ -1608,10 +1636,10 @@ index 7a0d12b..84d858c 100644
 +    );
 +}
 diff --git a/crates/neutrino-http/tests/e2e_multi_user.rs b/crates/neutrino-http/tests/e2e_multi_user.rs
-index 89e0099..9d4d8e2 100644
+index 89e0099..f668269 100644
 --- a/crates/neutrino-http/tests/e2e_multi_user.rs
 +++ b/crates/neutrino-http/tests/e2e_multi_user.rs
-@@ -1284,3 +1284,40 @@ async fn messages_requires_membership() {
+@@ -1284,3 +1284,85 @@ async fn messages_requires_membership() {
      assert_eq!(s, StatusCode::BAD_REQUEST, "{body}");
      assert_eq!(body["errcode"], json!("M_INVALID_PARAM"), "{body}");
  }
@@ -1651,6 +1679,51 @@ index 89e0099..9d4d8e2 100644
 +    assert_eq!(status, StatusCode::OK, "{who}");
 +    assert_eq!(who["user_id"], "@bob:example.org");
 +    assert_eq!(who["device_id"], "PHONE");
++}
++
++/// A one-time-key upload that names no device keys lands on the caller's own
++/// device — the one its token was minted for — so a later claim for that
++/// device finds it. (Every login is its own device now; a conventional
++/// fallback id would match nothing.)
++#[tokio::test]
++async fn key_only_uploads_land_on_the_callers_device() {
++    let (app, _tmp) = test_router().await;
++    let (user, token) = register(&app, "otk-owner").await;
++    let (_, who) = send(
++        &app,
++        "GET",
++        "/_matrix/client/v3/account/whoami",
++        Some(&token),
++        &json!({}),
++    )
++    .await;
++    let device = who["device_id"].as_str().unwrap().to_owned();
++    assert_ne!(device, "DEVICEID");
++
++    let (status, counts) = send(
++        &app,
++        "POST",
++        "/_matrix/client/v3/keys/upload",
++        Some(&token),
++        &json!({ "one_time_keys": { "signed_curve25519:k1": { "key": "k1" } } }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "{counts}");
++    assert_eq!(counts["one_time_key_counts"]["signed_curve25519"], 1);
++
++    let (status, claimed) = send(
++        &app,
++        "POST",
++        "/_matrix/client/v3/keys/claim",
++        Some(&token),
++        &json!({ "one_time_keys": { user.clone(): { device.clone(): "signed_curve25519" } } }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(
++        claimed["one_time_keys"][&user][&device]["signed_curve25519:k1"]["key"], "k1",
++        "{claimed}"
++    );
 +}
 diff --git a/crates/neutrino-http/tests/e2e_persistence.rs b/crates/neutrino-http/tests/e2e_persistence.rs
 index aa6840b..2732eb4 100644
