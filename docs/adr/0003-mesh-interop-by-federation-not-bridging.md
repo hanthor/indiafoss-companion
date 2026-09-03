@@ -55,10 +55,10 @@ Measured from Spindle's `SPEC.md` and by probing a locally built Neutrino:
 | Federation `/user/keys/query`, `/user/keys/claim`, `/user/devices` | full (§740) | none registered                    |
 | `m.direct_to_device` / `m.device_list_update` EDUs                 | full (§743) | none                               |
 
-Every Neutrino row above is now written, as two patches in
+Every Neutrino row above is now written, as three patches in
 [`patches/neutrino/`](../../patches/neutrino/README.md) — `m.device_list_update`
 excepted — and verified against two servers on loopback. The table describes
-stock Neutrino, which is what a peer meets until upstream takes the work.
+stock Neutrino, which is what a peer meets until a build carries the patches.
 | Event signatures | signed and verified | neither |
 | Room versions | 6–12, plus `org.matrix.msc3995.v1` | `org.matrix.msc4242.12` only |
 
@@ -110,7 +110,10 @@ who are not in BLE range, so nobody is left with nothing.
   instead (`patches/neutrino/`): the device directory keyed on the real
   `device_id`, one-time key storage with `/keys/claim`, `/sendToDevice` with
   `to_device` delivery in sync, and the federation key + to-device surface.
-  Offering them upstream still needs a fork to push from — a patch series is
-  where the work waits, not where it lands.
-- Report Neutrino's `/capabilities` mismatch upstream (it claims plain room
-  version 12 while creating `org.matrix.msc4242.12`).
+  They are carried on the `hanthor/neutrino` fork for our own builds and
+  deliberately **not** offered upstream: Element's policy on AI-assisted
+  contributions is unknown, and a research project should not have to field a
+  conference app's experiments.
+- Neutrino's `/capabilities` mismatch (it claims plain room version 12 while
+  creating `org.matrix.msc4242.12`) is recorded in `neutrino-capabilities.md`
+  and, for the same reason, not reported upstream.

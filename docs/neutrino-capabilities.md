@@ -100,7 +100,7 @@ version 12:
 creates carries `{"room_version": "org.matrix.msc4242.12"}` — the experimental
 MSC4242 state-DAG version from Hydra phase 2, not room version 12. A client or
 server trusting `/capabilities` would conclude it was talking to an ordinary
-v12 homeserver. Worth reporting upstream.
+v12 homeserver. Recorded here; not reported upstream (see below).
 
 The server also reports `room versions supported=["org.matrix.msc4242.12"]` and
 `federation security: authenticate_connections: false, sign_messages: false` at
@@ -160,22 +160,22 @@ not by spec completeness.
    The first three are ordinary storage-and-routing work. The fourth is the
    real design question, and the one to put to upstream before writing code.
 
-   **All four are now written**, as two patches in
-   [`patches/neutrino/`](../patches/neutrino/README.md), verified against two
-   servers on loopback. The results table above still describes _stock_
-   Neutrino, which is what the probe measures; run the probe again with the
-   patches applied and the four E2EE rows move to "works". What is still
-   missing there is durability, not protocol: outbound to-device EDUs bypass
-   the PDU outbox, so a peer out of range when a room key is shared does not
-   get it later.
+   **All four are now written**, as three patches in
+   [`patches/neutrino/`](../patches/neutrino/README.md), verified against two servers on loopback, with to-device EDUs riding the
+   durable federation outbox so a peer out of range when a room key is shared
+   gets it when the link heals. The results table above still describes
+   _stock_ Neutrino, which is what the probe measures; run the probe again
+   with the patches applied and the four E2EE rows move to "works".
 
-Everything above 3 needs upstream work in `element-hq/neutrino`. Two notes on
-how:
+Everything above 3 is Rust in `element-hq/neutrino`. Two notes on how:
 
-- **Upstream, do not fork.** Neutrino is moving fast and is pre-alpha; a
-  long-lived fork of it would be a maintenance trap for a conference app. The
-  patches in `patches/neutrino/` are kept as patches for exactly this reason:
-  they rebase, a fork drifts.
+- **Patches, not proposals.** Neutrino is moving fast and is pre-alpha; a
+  long-lived fork of it would be a maintenance trap for a conference app, so
+  the work is kept as patches in `patches/neutrino/` — they rebase, a fork
+  drifts. They are **not** offered upstream: Element's policy on AI-assisted
+  contributions is not known to us, and their research project should not
+  have to field our experiments. The `hanthor/neutrino` fork exists to build
+  from, nothing more.
 - **`neutrino-testkit` is the test rig.** It is a multi-federation harness and
   its loopback tests drive iroh over UDP, so features can be developed and
   tested in CI without a pair of phones. BLE hardware is only needed for the

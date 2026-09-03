@@ -1,0 +1,1211 @@
+From b3682a2c90afe3e89bf67eacde9b59257fc9f4ff Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 03:35:57 +0000
+Subject: [PATCH] Deliver to-device messages through the durable outbox
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The previous commit fired an m.direct_to_device EDU at the peer and forgot
+it. On a Bluetooth mesh that is the wrong shape: the peer you are sharing
+a Megolm room key with is a phone that walks in and out of range, and a
+key dropped because it was out of range for a second is a conversation
+that cannot be read.
+
+EDUs now get a row in the federation outbox — a new `outbox_edus` table,
+stored verbatim because an EDU has no event id to reference — and the
+per-destination sender carries them in the same transaction as any
+pending PDUs, or one of their own when nothing else is queued. A
+destination owed only a room key gets a sender task; an unreachable peer
+is retried with the usual backoff and kicked when connectivity returns;
+the rows go only on the peer's terminal status. The row is keyed on the
+client's /sendToDevice transaction id, so a client retry queues nothing
+new, and the same id travels as `message_id` for the peer's own dedup.
+
+FederationTransport::send_transaction gains an `edus` argument; the
+best-effort `send_edu` path is gone. Schema version bumps to 3.
+
+Tests: EDU-only delivery and drain, EDUs riding along with PDUs, and the
+one that is the point — a key queued while the peer is unreachable is
+delivered when the peer comes back. Plus the store's round-trip,
+idempotency and watch-wake tests, and an HTTP test that /sendToDevice to a
+remote user lands in the outbox once however many times it is retried.
+
+CLAUDE.md and docs/federation-memberships.md now say what is implemented:
+the server's half of E2EE, and m.direct_to_device among the EDUs.
+---
+ CLAUDE.md                                     |   4 +-
+ crates/neutrino-engine/src/lib.rs             |   3 +-
+ crates/neutrino-engine/src/ports.rs           |   6 +-
+ crates/neutrino-engine/src/sender.rs          | 253 ++++++++++++++++--
+ crates/neutrino-engine/src/util.rs            |   4 +
+ crates/neutrino-http/src/federation/client.rs |  78 ++----
+ crates/neutrino-http/src/federation/tests.rs  |  40 +++
+ crates/neutrino-http/src/lib.rs               |  44 +--
+ crates/neutrino-store-sqlite/src/schema.rs    |   2 +-
+ crates/neutrino-store-sqlite/src/schema.sql   |  19 ++
+ .../neutrino-store-sqlite/src/store/outbox.rs | 208 +++++++++++++-
+ crates/neutrino-store/src/lib.rs              |  57 +++-
+ docs/federation-memberships.md                |   4 +-
+ 13 files changed, 619 insertions(+), 103 deletions(-)
+
+diff --git a/CLAUDE.md b/CLAUDE.md
+index a780f4f..c0ea54d 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -2,7 +2,7 @@
+ 
+ The project is a minimal rust-based Matrix homeserver which will be embedded into an Android device using UniFFI. The server is only capable of sending and receiving message / state events, meaning this project only implements a subset of the Matrix specification. The specification targeted is https://spec.matrix.org/v1.18/ - strictly only the Client-Server API and Server-Server API.
+ 
+-The server only targets room version 12, along with MSC4242: State DAGs https://github.com/matrix-org/matrix-spec-proposals/pull/4242 . This means the Server-Server API does not need to implement /event_auth, /state or /state_ids. EDUs and End-to-End encryption are NOT implemented, but MUST be stubbed out at the HTTP handler layer to ensure the client application functions correctly. Ruma https://github.com/ruma/ruma MUST be used. The homeserver will be running in either a trusted or untrusted network. The Client-Server API is never exposed on the network, it’s entirely embedded in the mobile device. As such, there is no need to make the Client-Server API performant or have any kind of access control. Registration and Login should be stubbed out.
++The server only targets room version 12, along with MSC4242: State DAGs https://github.com/matrix-org/matrix-spec-proposals/pull/4242 . This means the Server-Server API does not need to implement /event_auth, /state or /state_ids. End-to-End encryption is implemented only as far as the server's role in it goes — a device-key directory, one-time key claims and to-device messages, over both the Client-Server and Server-Server APIs — because the cryptography itself lives in the client. Of the EDUs only `m.direct_to_device` is implemented (it is how a Megolm room key crosses federation, and rides the durable outbox like a PDU); presence, typing and receipts are NOT implemented and MUST be stubbed out at the HTTP handler layer to ensure the client application functions correctly. Ruma https://github.com/ruma/ruma MUST be used. The homeserver will be running in either a trusted or untrusted network. The Client-Server API is never exposed on the network, it’s entirely embedded in the mobile device. As such, there is no need to make the Client-Server API performant or have any kind of access control. Registration and Login should be stubbed out.
+ 
+ ## stack
+ - axum (routing + handlers)
+@@ -164,7 +164,7 @@ Procedure:
+        rules, event auth rules, wire/PDU format, redaction algorithm, state-res
+        steps, M_* error codes. Flag behaviour that is plausible but not what the
+        spec mandates, AND anything implemented that the spec doesn't require
+-       (over-implementation). Out-of-scope per this file (signatures, EDUs, E2EE,
++       (over-implementation). Out-of-scope per this file (signatures, non-to-device EDUs,
+        pagination, auth): note if the diff touches them, don't review them.
+        Prefix findings SPEC*.
+ 
+diff --git a/crates/neutrino-engine/src/lib.rs b/crates/neutrino-engine/src/lib.rs
+index 0c6b170..1ae3e8b 100644
+--- a/crates/neutrino-engine/src/lib.rs
++++ b/crates/neutrino-engine/src/lib.rs
+@@ -25,5 +25,6 @@ pub use ports::{
+ };
+ pub use room_actor::{RoomActorError, RoomRegistry};
+ pub use util::{
+-    MAX_PDUS_PER_TXN, TxnIdGen, VersionError, room_version, room_version_for_wire, stage_and_poke,
++    MAX_EDUS_PER_TXN, MAX_PDUS_PER_TXN, TxnIdGen, VersionError, room_version,
++    room_version_for_wire, stage_and_poke,
+ };
+diff --git a/crates/neutrino-engine/src/ports.rs b/crates/neutrino-engine/src/ports.rs
+index 31285ad..f948f70 100644
+--- a/crates/neutrino-engine/src/ports.rs
++++ b/crates/neutrino-engine/src/ports.rs
+@@ -61,13 +61,15 @@ pub struct MissingEventsQuery<'a> {
+ /// engine is oblivious to it.
+ #[async_trait::async_trait]
+ pub trait FederationTransport: Send + Sync {
+-    /// `PUT /_matrix/federation/v1/send/{txn_id}`. Returns each room's
+-    /// post-transaction forward extremities as reported by the peer.
++    /// `PUT /_matrix/federation/v1/send/{txn_id}` carrying `pdus` and `edus`.
++    /// Returns each room's post-transaction forward extremities as reported by
++    /// the peer.
+     async fn send_transaction(
+         &self,
+         dest: &ServerName,
+         txn_id: &str,
+         pdus: &[Box<RawJsonValue>],
++        edus: &[Box<RawJsonValue>],
+         forward_extremities: &BTreeMap<OwnedRoomId, ForwardExtremities>,
+     ) -> Result<BTreeMap<OwnedRoomId, ForwardExtremities>, TransportError>;
+ }
+diff --git a/crates/neutrino-engine/src/sender.rs b/crates/neutrino-engine/src/sender.rs
+index 14301a9..a3d7b3d 100644
+--- a/crates/neutrino-engine/src/sender.rs
++++ b/crates/neutrino-engine/src/sender.rs
+@@ -63,7 +63,9 @@ use neutrino_event::{EventPolicy, now_ms};
+ 
+ use crate::ports::{FederationTransport, ForwardExtremities, MissingEventsFetcher, TransportError};
+ use crate::reconcile;
+-use crate::util::{BACKOFF_BASE, MAX_PDUS_PER_TXN, TxnIdGen, jitter, next_backoff};
++use crate::util::{
++    BACKOFF_BASE, MAX_EDUS_PER_TXN, MAX_PDUS_PER_TXN, TxnIdGen, jitter, next_backoff,
++};
+ 
+ /// Shared, cheaply-cloneable handles every sender task needs. Bundled so the
+ /// per-destination signatures stay readable as the pool grows (mirrors
+@@ -258,9 +260,23 @@ async fn run_destination<S: StorageBackend + 'static>(
+                 continue;
+             }
+         };
++        // EDUs ride the same transaction as whatever PDUs are pending — or one
++        // of their own when nothing else is. A to-device message is how a room
++        // key reaches the peer, so it is queued and retried exactly like an
++        // event, not fired and forgotten.
++        let edus = match ctx.store.pending_edus(&dest, MAX_EDUS_PER_TXN).await {
++            Ok(e) => e,
++            Err(e) => {
++                error!(%dest, error = %e, "reading pending EDUs");
++                if sleep_backoff(&mut backoff, &mut kick_rx).await {
++                    backoff = BACKOFF_BASE;
++                }
++                continue;
++            }
++        };
+ 
+-        if !batch.is_empty() {
+-            if deliver_batch(&ctx, &dest, &batch, &mut backoff, &mut kick_rx).await {
++        if !batch.is_empty() || !edus.is_empty() {
++            if deliver_batch(&ctx, &dest, &batch, &edus, &mut backoff, &mut kick_rx).await {
+                 backoff = BACKOFF_BASE;
+                 continue;
+             }
+@@ -318,11 +334,15 @@ enum SendOutcome {
+ /// array. The caller owns `txn_id` (so a post-success durable-write fault can
+ /// re-call this under the *same* id, which the peer dedups on `(origin, txnId)`)
+ /// and decides what `Delivered` / `Rejected` mean for its durable state.
++// The argument list is the transaction envelope plus the retry state; the same
++// allowance the outbound client makes for `get_missing_events`.
++#[allow(clippy::too_many_arguments)]
+ async fn send_transaction_with_retry<S: StorageBackend + 'static>(
+     ctx: &SenderCtx<S>,
+     dest: &ServerName,
+     txn_id: &str,
+     pdus: &[Box<RawJsonValue>],
++    edus: &[Box<RawJsonValue>],
+     our_fes: &BTreeMap<OwnedRoomId, ForwardExtremities>,
+     backoff: &mut Duration,
+     kick_rx: &mut watch::Receiver<()>,
+@@ -340,6 +360,7 @@ async fn send_transaction_with_retry<S: StorageBackend + 'static>(
+             %dest,
+             txn = %txn_id,
+             pdus = pdus.len(),
++            edus = edus.len(),
+             rooms = our_fes.len(),
+             attempt,
+             "outbound PUT /_matrix/federation/v1/send",
+@@ -349,7 +370,7 @@ async fn send_transaction_with_retry<S: StorageBackend + 'static>(
+         let send_result = match ctx.send_slots.acquire().await {
+             Ok(_permit) => {
+                 ctx.transport
+-                    .send_transaction(dest, txn_id, pdus, our_fes)
++                    .send_transaction(dest, txn_id, pdus, edus, our_fes)
+                     .await
+             }
+             // The semaphore is never closed in normal operation; an error here
+@@ -390,22 +411,27 @@ fn covered_by(batch: &[neutrino_event::Event]) -> BTreeSet<OwnedEventId> {
+         .collect()
+ }
+ 
+-/// Deliver one outbox batch to `dest`: a transaction carrying the batch's PDUs
+-/// and our forward extremities. On a 2xx the batch is removed from the outbox
+-/// and — because the transaction carried our heads — any standing advertisement
+-/// obligation for the rooms it covered is cleared (the piggyback IS the
+-/// advertisement). A 4xx drops the batch but leaves the obligation (our heads
+-/// never landed, so the duty stands). A post-2xx `remove_pdus` fault re-sends
+-/// under the same txn id (the peer dedups). Returns `false` only on shutdown.
++/// Deliver one outbox batch to `dest`: a transaction carrying the batch's PDUs,
++/// any pending EDUs, and our forward extremities. On a 2xx the batch is removed
++/// from the outbox and — because the transaction carried our heads — any
++/// standing advertisement obligation for the rooms it covered is cleared (the
++/// piggyback IS the advertisement). A 4xx drops the batch but leaves the
++/// obligation (our heads never landed, so the duty stands). A post-2xx removal
++/// fault re-sends under the same txn id (the peer dedups). EDUs follow the
++/// PDUs' fate in both directions: they were in the same envelope, so the peer
++/// accepted or rejected them together. Returns `false` only on shutdown.
+ async fn deliver_batch<S: StorageBackend + 'static>(
+     ctx: &SenderCtx<S>,
+     dest: &ServerName,
+     batch: &[neutrino_event::Event],
++    edus: &[neutrino_store::OutboxEdu],
+     backoff: &mut Duration,
+     kick_rx: &mut watch::Receiver<()>,
+ ) -> bool {
+     let pdus: Vec<Box<RawJsonValue>> = batch.iter().map(|e| e.raw.clone()).collect();
+     let ids: Vec<&EventId> = batch.iter().map(|e| &*e.event_id).collect();
++    let edu_bodies: Vec<Box<RawJsonValue>> = edus.iter().map(|e| e.raw.clone()).collect();
++    let edu_ids: Vec<&str> = edus.iter().map(|e| e.edu_id.as_str()).collect();
+ 
+     // Our forward extremities for every room in the batch, so the peer can
+     // reconcile against us. Computed once (reused across retries — it's a hint).
+@@ -428,17 +454,26 @@ async fn deliver_batch<S: StorageBackend + 'static>(
+ 
+     let txn_id = ctx.idgen.next_id();
+     loop {
+-        match send_transaction_with_retry(ctx, dest, &txn_id, &pdus, &advert, backoff, kick_rx)
+-            .await
++        match send_transaction_with_retry(
++            ctx,
++            dest,
++            &txn_id,
++            &pdus,
++            &edu_bodies,
++            &advert,
++            backoff,
++            kick_rx,
++        )
++        .await
+         {
+             SendOutcome::Shutdown => return false,
+             // 4xx: drop the batch (retrying won't help), but DO NOT clear the
+             // advertisement obligation — our heads never landed, so it stands. A
+             // removal fault re-sends (and re-4xxs) under the same txn id.
+-            SendOutcome::Rejected => match ctx.store.remove_pdus(dest, &ids).await {
++            SendOutcome::Rejected => match remove_batch(ctx, dest, &ids, &edu_ids).await {
+                 Ok(()) => return true,
+                 Err(e) => {
+-                    error!(%dest, error = %e, "removing rejected PDUs from outbox");
++                    error!(%dest, error = %e, "removing rejected batch from outbox");
+                     if sleep_backoff(backoff, kick_rx).await {
+                         *backoff = BACKOFF_BASE;
+                     }
+@@ -451,7 +486,7 @@ async fn deliver_batch<S: StorageBackend + 'static>(
+                 // can only ever duplicate (the re-send re-marks the same event,
+                 // which the store's max-guard absorbs).
+                 record_deliveries(ctx, dest, batch).await;
+-                match ctx.store.remove_pdus(dest, &ids).await {
++                match remove_batch(ctx, dest, &ids, &edu_ids).await {
+                     Ok(()) => {
+                         // The transaction carried `our_fes`, so this 2xx satisfied any
+                         // standing advertisement obligation for the rooms it covered.
+@@ -471,7 +506,7 @@ async fn deliver_batch<S: StorageBackend + 'static>(
+                     Err(e) => {
+                         // Rows survive a removal fault; back off and re-send under the
+                         // same txn id (the peer dedups) rather than hot-looping.
+-                        error!(%dest, error = %e, "removing delivered PDUs from outbox");
++                        error!(%dest, error = %e, "removing delivered batch from outbox");
+                         if sleep_backoff(backoff, kick_rx).await {
+                             *backoff = BACKOFF_BASE;
+                         }
+@@ -482,6 +517,20 @@ async fn deliver_batch<S: StorageBackend + 'static>(
+     }
+ }
+ 
++/// Drop a delivered (or rejected) batch's rows — PDUs first, then EDUs. Two
++/// writes rather than one transaction: a fault between them leaves the EDUs
++/// queued for the next send, which the peer dedups on `message_id`, so the
++/// worst case is a duplicate the recipient already discards.
++async fn remove_batch<S: StorageBackend + 'static>(
++    ctx: &SenderCtx<S>,
++    dest: &ServerName,
++    ids: &[&EventId],
++    edu_ids: &[&str],
++) -> Result<(), neutrino_store::StorageError> {
++    ctx.store.remove_pdus(dest, ids).await?;
++    ctx.store.remove_edus(dest, edu_ids).await
++}
++
+ /// Mark, per room in the delivered batch, the newest event `dest` has now
+ /// acknowledged holding — the raw material sync turns into delivery receipts.
+ ///
+@@ -562,6 +611,7 @@ async fn send_advertisement<S: StorageBackend + 'static>(
+             dest,
+             &txn_id,
+             &empty_pdus,
++            &[],
+             &our_fes,
+             backoff,
+             kick_rx,
+@@ -721,6 +771,9 @@ mod tests {
+     struct Stub {
+         /// Decoded PDUs of every accepted transaction (one `Vec` per txn).
+         accepted: Mutex<Vec<Vec<Value>>>,
++        /// Decoded EDUs of every accepted transaction (one `Vec` per txn,
++        /// parallel to `accepted`).
++        accepted_edus: Mutex<Vec<Vec<Value>>>,
+         /// The advertised `forward_extremities` of every accepted transaction,
+         /// as JSON — lets anti-entropy tests assert an advertisement carried our
+         /// heads (`fes[0].get(room).is_some()`).
+@@ -740,6 +793,7 @@ mod tests {
+             dest: &ServerName,
+             txn_id: &str,
+             pdus: &[Box<RawJsonValue>],
++            edus: &[Box<RawJsonValue>],
+             forward_extremities: &BTreeMap<OwnedRoomId, ForwardExtremities>,
+         ) -> Result<BTreeMap<OwnedRoomId, ForwardExtremities>, TransportError> {
+             if self.dead.lock().unwrap().contains(dest) {
+@@ -759,6 +813,11 @@ mod tests {
+                 .unwrap()
+                 .push(serde_json::to_value(forward_extremities).unwrap());
+             self.accepted.lock().unwrap().push(decoded);
++            let decoded_edus: Vec<Value> = edus
++                .iter()
++                .map(|e| serde_json::from_str(e.get()).expect("stub edu is valid JSON"))
++                .collect();
++            self.accepted_edus.lock().unwrap().push(decoded_edus);
+             // The peer reports no forward extremities, so reconciliation never fires.
+             Ok(BTreeMap::new())
+         }
+@@ -977,6 +1036,154 @@ mod tests {
+             .to_owned()
+     }
+ 
++    /// Poll until `dest`'s EDU outbox is empty, or panic after ~10s.
++    async fn wait_edus_drained(store: &SqliteStore, dest: &ServerName) {
++        for _ in 0..500 {
++            if store
++                .pending_edus(dest, usize::MAX)
++                .await
++                .unwrap()
++                .is_empty()
++            {
++                return;
++            }
++            tokio::time::sleep(Duration::from_millis(20)).await;
++        }
++        panic!("EDU outbox for {dest} not drained within timeout");
++    }
++
++    fn room_key_edu(session: &str) -> Box<RawJsonValue> {
++        serde_json::value::to_raw_value(&json!({
++            "edu_type": "m.direct_to_device",
++            "content": {
++                "sender": "@alice:local.test",
++                "type": "m.room_key",
++                "message_id": session,
++                "messages": { "@bob:peer.test": { "*": { "session_id": session } } },
++            },
++        }))
++        .unwrap()
++    }
++
++    // A destination owed only an EDU — no PDUs at all — still gets a sender
++    // task, and the EDU goes out in a transaction of its own and is removed on
++    // the peer's 2xx. This is the room-key path on a mesh: the peer is idle
++    // from the event stream's point of view, and the key must still reach it.
++    #[tokio::test]
++    async fn delivers_an_edu_only_outbox_and_drains_it() {
++        let stub = Arc::new(Stub::default());
++        let dest = peer();
++        let tempfile = TempDir::new().unwrap();
++        let store = Arc::new(SqliteStore::open_in_dir(tempfile.path()).await.unwrap());
++        store
++            .enqueue_edu(&[dest.clone()], "k1", &room_key_edu("S1"))
++            .await
++            .unwrap();
++
++        drop(spawn(
++            store.clone(),
++            stub.clone(),
++            2,
++            NO_JITTER,
++            no_shutdown(),
++            no_kick(),
++            null_fetcher(),
++            EventPolicy::trusted_network(),
++            null_poke(),
++        ));
++        wait_edus_drained(&store, &dest).await;
++
++        let delivered = stub.accepted_edus.lock().unwrap().clone();
++        let edus: Vec<&Value> = delivered.iter().flatten().collect();
++        assert_eq!(edus.len(), 1);
++        assert_eq!(edus[0]["edu_type"], "m.direct_to_device");
++        assert_eq!(
++            edus[0]["content"]["messages"]["@bob:peer.test"]["*"]["session_id"],
++            "S1"
++        );
++        // The envelope carried no PDUs: an EDU-only transaction.
++        assert!(stub.accepted.lock().unwrap().iter().all(Vec::is_empty));
++        assert!(store.pending_destinations().await.unwrap().is_empty());
++    }
++
++    // The point of durability: a room key shared while the peer is out of
++    // range is delivered when the peer comes back, not dropped.
++    #[tokio::test]
++    async fn edu_queued_while_peer_is_unreachable_is_delivered_when_it_returns() {
++        let stub = Arc::new(Stub::default());
++        let dest = peer();
++        stub.dead.lock().unwrap().insert(dest.clone());
++        let tempfile = TempDir::new().unwrap();
++        let store = Arc::new(SqliteStore::open_in_dir(tempfile.path()).await.unwrap());
++
++        let (kick_tx, kick_rx) = watch::channel(());
++        drop(spawn(
++            store.clone(),
++            stub.clone(),
++            2,
++            NO_JITTER,
++            no_shutdown(),
++            kick_rx,
++            null_fetcher(),
++            EventPolicy::trusted_network(),
++            null_poke(),
++        ));
++
++        // Share the key while the peer cannot be reached; give the sender a
++        // moment to fail and back off, and check nothing was lost.
++        store
++            .enqueue_edu(&[dest.clone()], "k1", &room_key_edu("S1"))
++            .await
++            .unwrap();
++        tokio::time::sleep(Duration::from_millis(300)).await;
++        assert!(stub.accepted_edus.lock().unwrap().is_empty());
++        assert_eq!(
++            store.pending_edus(&dest, usize::MAX).await.unwrap().len(),
++            1
++        );
++
++        // The peer walks back into range: connectivity restored, backoff kicked.
++        stub.dead.lock().unwrap().remove(&dest);
++        kick_tx.send(()).unwrap();
++        wait_edus_drained(&store, &dest).await;
++
++        let delivered = stub.accepted_edus.lock().unwrap().clone();
++        assert_eq!(delivered.iter().flatten().count(), 1);
++    }
++
++    // EDUs ride the same transaction as pending PDUs when both are queued, and
++    // both halves are cleared by the one 2xx.
++    #[tokio::test]
++    async fn edus_ride_along_with_pending_pdus() {
++        let stub = Arc::new(Stub::default());
++        let dest = peer();
++        let (store, _tmp, _room, _ids) = store_with_outbox(&dest, 2).await;
++        store
++            .enqueue_edu(&[dest.clone()], "k1", &room_key_edu("S1"))
++            .await
++            .unwrap();
++
++        drop(spawn(
++            store.clone(),
++            stub.clone(),
++            2,
++            NO_JITTER,
++            no_shutdown(),
++            no_kick(),
++            null_fetcher(),
++            EventPolicy::trusted_network(),
++            null_poke(),
++        ));
++        wait_drained(&store, &dest).await;
++        wait_edus_drained(&store, &dest).await;
++
++        let txns = stub.accepted.lock().unwrap().clone();
++        let edu_txns = stub.accepted_edus.lock().unwrap().clone();
++        assert_eq!(txns.len(), 1, "one transaction carried everything");
++        assert_eq!(txns[0].len(), 2);
++        assert_eq!(edu_txns[0].len(), 1);
++    }
++
+     #[tokio::test]
+     async fn delivers_pending_and_drains_outbox() {
+         let stub = Arc::new(Stub::default());
+@@ -1290,7 +1497,7 @@ mod tests {
+         let batch = store.pending_pdus(&dest, MAX_PDUS_PER_TXN).await.unwrap();
+         let mut backoff = BACKOFF_BASE;
+         let mut kick_rx = test_backoff();
+-        assert!(deliver_batch(&ctx, &dest, &batch, &mut backoff, &mut kick_rx).await);
++        assert!(deliver_batch(&ctx, &dest, &batch, &[], &mut backoff, &mut kick_rx).await);
+ 
+         // Checked before the stub locks are taken, so no guard is held across it.
+         assert!(
+@@ -1336,7 +1543,7 @@ mod tests {
+         let batch = store.pending_pdus(&dest, MAX_PDUS_PER_TXN).await.unwrap();
+         let mut backoff = BACKOFF_BASE;
+         let mut kick_rx = test_backoff();
+-        assert!(deliver_batch(&ctx, &dest, &batch, &mut backoff, &mut kick_rx).await);
++        assert!(deliver_batch(&ctx, &dest, &batch, &[], &mut backoff, &mut kick_rx).await);
+ 
+         assert_eq!(
+             batch.iter().map(|e| e.event_id.clone()).collect::<Vec<_>>(),
+@@ -1413,7 +1620,7 @@ mod tests {
+         let batch = store.pending_pdus(&dest, MAX_PDUS_PER_TXN).await.unwrap();
+         let mut backoff = BACKOFF_BASE;
+         let mut kick_rx = test_backoff();
+-        let delivered = deliver_batch(&ctx, &dest, &batch, &mut backoff, &mut kick_rx).await;
++        let delivered = deliver_batch(&ctx, &dest, &batch, &[], &mut backoff, &mut kick_rx).await;
+ 
+         assert!(delivered, "a 4xx drops the batch (returns true)");
+         assert!(
+@@ -1462,7 +1669,7 @@ mod tests {
+         let batch = store.pending_pdus(&dest, MAX_PDUS_PER_TXN).await.unwrap();
+         let mut backoff = BACKOFF_BASE;
+         let mut kick_rx = test_backoff();
+-        assert!(deliver_batch(&ctx, &dest, &batch, &mut backoff, &mut kick_rx).await);
++        assert!(deliver_batch(&ctx, &dest, &batch, &[], &mut backoff, &mut kick_rx).await);
+ 
+         assert_eq!(
+             marks(&store).await,
+@@ -1491,7 +1698,7 @@ mod tests {
+         let batch = store.pending_pdus(&dest, MAX_PDUS_PER_TXN).await.unwrap();
+         let mut backoff = BACKOFF_BASE;
+         let mut kick_rx = test_backoff();
+-        assert!(deliver_batch(&ctx, &dest, &batch, &mut backoff, &mut kick_rx).await);
++        assert!(deliver_batch(&ctx, &dest, &batch, &[], &mut backoff, &mut kick_rx).await);
+ 
+         assert!(
+             marks(&store).await.is_empty(),
+@@ -1543,7 +1750,7 @@ mod tests {
+         let mut kick_rx = test_backoff();
+         for dest in [&one, &two] {
+             let batch = store.pending_pdus(dest, MAX_PDUS_PER_TXN).await.unwrap();
+-            assert!(deliver_batch(&ctx, dest, &batch, &mut backoff, &mut kick_rx).await);
++            assert!(deliver_batch(&ctx, dest, &batch, &[], &mut backoff, &mut kick_rx).await);
+         }
+ 
+         let mut got = marks(&store).await;
+diff --git a/crates/neutrino-engine/src/util.rs b/crates/neutrino-engine/src/util.rs
+index 3647b74..a3d8504 100644
+--- a/crates/neutrino-engine/src/util.rs
++++ b/crates/neutrino-engine/src/util.rs
+@@ -17,6 +17,10 @@ use tokio::sync::mpsc;
+ /// transaction carrying more than this; the outbound sender chunks to it. One
+ /// constant so the two halves can't drift.
+ pub const MAX_PDUS_PER_TXN: usize = 50;
++/// Spec cap on `edus` per transaction. A to-device batch is small anyway — a
++/// room-key share is one EDU per recipient server — so this is a ceiling, not
++/// a target.
++pub const MAX_EDUS_PER_TXN: usize = 100;
+ 
+ /// Backoff floor after a transient failure (outbound delivery, inbound
+ /// staging). Shared so the two retry loops can't drift.
+diff --git a/crates/neutrino-http/src/federation/client.rs b/crates/neutrino-http/src/federation/client.rs
+index 9988569..3f8d989 100644
+--- a/crates/neutrino-http/src/federation/client.rs
++++ b/crates/neutrino-http/src/federation/client.rs
+@@ -172,9 +172,9 @@ impl FederationClient {
+     }
+ 
+     /// `PUT http://{dest}/_matrix/federation/v1/send/{txn_id}` carrying `pdus`
+-    /// plus our `forward_extremities` advertisement (`edus` is omitted — EDUs
+-    /// are out of scope; `origin`/`origin_server_ts` too — see
+-    /// [`TransactionRequest`]). The per-PDU result map in the response
++    /// and `edus` plus our `forward_extremities` advertisement
++    /// (`origin`/`origin_server_ts` are omitted — see [`TransactionRequest`]).
++    /// The per-PDU result map in the response
+     /// is ignored (the spec marks `error` advisory, and our durable retry lives in
+     /// the outbox), but the response's `forward_extremities` (the peer's heads) is
+     /// returned so the sender can reconcile against them. A response that omits or
+@@ -185,6 +185,7 @@ impl FederationClient {
+         dest: &ServerName,
+         txn_id: &str,
+         pdus: &[Box<RawJsonValue>],
++        edus: &[Box<RawJsonValue>],
+         forward_extremities: &BTreeMap<OwnedRoomId, ForwardExtremities>,
+     ) -> Result<BTreeMap<OwnedRoomId, ForwardExtremities>, FederationClientError> {
+         // `txn_id` is locally generated (`{u64}-{u64}`) and `dest` is a
+@@ -195,7 +196,7 @@ impl FederationClient {
+         );
+         let body = TransactionRequest {
+             pdus,
+-            edus: &[],
++            edus,
+             forward_extremities,
+         };
+         let resp = self
+@@ -276,48 +277,6 @@ impl FederationClient {
+             .unwrap_or_else(|| Value::Object(serde_json::Map::new())))
+     }
+ 
+-    /// `PUT http://{dest}/_matrix/federation/v1/send/{txn_id}` carrying one EDU
+-    /// and no PDUs — the transport for `m.direct_to_device`.
+-    ///
+-    /// This bypasses the durable outbox (which stores PDUs, not EDUs), so
+-    /// delivery is best-effort: a 4xx or an unreachable peer is logged and
+-    /// dropped. That is a deliberate first step, not the end state — see the
+-    /// caller in `lib.rs::send_to_device`.
+-    pub(crate) async fn send_edu(
+-        &self,
+-        dest: &ServerName,
+-        txn_id: &str,
+-        edu: &Value,
+-    ) -> Result<(), FederationClientError> {
+-        let url = format!(
+-            "http://{}/_matrix/federation/v1/send/{txn_id}",
+-            self.url_authority(dest)
+-        );
+-        let edu = serde_json::value::to_raw_value(edu).map_err(|_| {
+-            // An EDU we built ourselves from `serde_json::json!` always
+-            // serializes; this arm is unreachable in practice.
+-            FederationClientError::InvalidUrl
+-        })?;
+-        let edus = [edu];
+-        let body = TransactionRequest {
+-            pdus: &[],
+-            edus: &edus,
+-            forward_extremities: &BTreeMap::new(),
+-        };
+-        info!(target: "neutrino_http", %dest, txn = %txn_id, "outbound PUT /_matrix/federation/v1/send (edu)");
+-        let resp = self
+-            .http
+-            .put(&url)
+-            .header(reqwest::header::AUTHORIZATION, self.x_matrix(dest))
+-            .json(&body)
+-            .send()
+-            .await?;
+-        if !resp.status().is_success() {
+-            return Err(non_2xx_error(resp, dest, "PUT /send (edu)").await);
+-        }
+-        Ok(())
+-    }
+-
+     /// `POST http://{dest}/_matrix/federation/v1/get_missing_events/{room_id}`
+     /// to fetch ancestry between `earliest` (boundary already held) and
+     /// `latest` (heads to walk back from), up to `limit` events. Returns the
+@@ -730,9 +689,10 @@ impl FederationTransport for FederationClient {
+         dest: &ServerName,
+         txn_id: &str,
+         pdus: &[Box<RawJsonValue>],
++        edus: &[Box<RawJsonValue>],
+         forward_extremities: &BTreeMap<OwnedRoomId, ForwardExtremities>,
+     ) -> Result<BTreeMap<OwnedRoomId, ForwardExtremities>, TransportError> {
+-        FederationClient::send_transaction(self, dest, txn_id, pdus, forward_extremities)
++        FederationClient::send_transaction(self, dest, txn_id, pdus, edus, forward_extremities)
+             .await
+             .map_err(TransportError::from)
+     }
+@@ -787,9 +747,9 @@ impl MissingEventsFetcher for ReqwestFetcher {
+ #[derive(Serialize)]
+ struct TransactionRequest<'a> {
+     pdus: &'a [Box<RawJsonValue>],
+-    /// EDUs are out of scope (see the crate root), so this is always empty in
+-    /// practice — kept as a field so a future EDU sender has the plumbing.
+-    /// Omitted when empty rather than sent as a `[]` nobody reads.
++    /// Ephemeral events queued for this destination — today only
++    /// `m.direct_to_device`. Omitted when empty rather than sent as a `[]`
++    /// nobody reads.
+     #[serde(skip_serializing_if = "<[_]>::is_empty")]
+     edus: &'a [Box<RawJsonValue>],
+     /// Anti-entropy: our per-room forward extremities. Omitted when empty so a
+@@ -906,7 +866,7 @@ mod tests {
+         let client = FederationClient::new("local.test".to_owned(), None);
+         let pdus = [raw(r#"{"n":1}"#), raw(r#"{"n":2}"#)];
+         client
+-            .send_transaction(&dest, "txn-1", &pdus, &BTreeMap::new())
++            .send_transaction(&dest, "txn-1", &pdus, &[], &BTreeMap::new())
+             .await
+             .unwrap();
+ 
+@@ -937,7 +897,13 @@ mod tests {
+         let client = FederationClient::new("local.test".to_owned(), None);
+         let pdu = raw("{}");
+         let err = client
+-            .send_transaction(&dest, "t", std::slice::from_ref(&pdu), &BTreeMap::new())
++            .send_transaction(
++                &dest,
++                "t",
++                std::slice::from_ref(&pdu),
++                &[],
++                &BTreeMap::new(),
++            )
+             .await
+             .unwrap_err();
+         assert!(
+@@ -1120,7 +1086,13 @@ mod tests {
+         let client = FederationClient::new("local.test".to_owned(), None);
+         let pdu = raw("{}");
+         let err = client
+-            .send_transaction(&dest, "t", std::slice::from_ref(&pdu), &BTreeMap::new())
++            .send_transaction(
++                &dest,
++                "t",
++                std::slice::from_ref(&pdu),
++                &[],
++                &BTreeMap::new(),
++            )
+             .await
+             .unwrap_err();
+         assert!(
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index 0b96cf4..f4a8d2e 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -5940,6 +5940,46 @@ async fn federation_user_devices_rejects_a_user_we_do_not_own() {
+     assert_eq!(body["errcode"], "M_INVALID_PARAM");
+ }
+ 
++#[tokio::test]
++async fn send_to_device_for_a_remote_user_is_queued_durably() {
++    // The room key for a peer on another server goes into the federation
++    // outbox, keyed on the client's txn id, rather than being fired at the
++    // peer and forgotten: a phone out of BLE range at that second still gets
++    // it when the link heals. A client retry under the same txn id queues
++    // nothing new.
++    let (store, _tmp) = fresh_store().await;
++    let app = router_with_store(config(), store.clone());
++    let body = json!({ "messages": { peer_user().as_str(): { "*": { "session_id": "S1" } } } });
++    for _ in 0..2 {
++        let req = Request::builder()
++            .method("PUT")
++            .uri("/_matrix/client/v3/sendToDevice/m.room_key/txn-1")
++            .header("content-type", "application/json")
++            .body(Body::from(serde_json::to_vec(&body).unwrap()))
++            .unwrap();
++        let (status, _) = drive(&app, req).await;
++        assert_eq!(status, StatusCode::OK);
++    }
++
++    let dest: &ServerName = TEST_PEER.try_into().unwrap();
++    let queued = store.pending_edus(dest, usize::MAX).await.unwrap();
++    assert_eq!(
++        queued.len(),
++        1,
++        "one EDU per destination, retries coalesced"
++    );
++    let edu: Value = serde_json::from_str(queued[0].raw.get()).unwrap();
++    assert_eq!(edu["edu_type"], "m.direct_to_device");
++    assert_eq!(edu["content"]["type"], "m.room_key");
++    assert_eq!(edu["content"]["sender"], alice().as_str());
++    assert_eq!(
++        edu["content"]["messages"][peer_user().as_str()]["*"]["session_id"],
++        "S1"
++    );
++    // Nothing for the local inbox: the recipient is not ours.
++    assert!(sync_to_device(&app).await.is_empty());
++}
++
+ #[tokio::test]
+ async fn direct_to_device_edu_reaches_the_local_inbox() {
+     let (app, _tmp) = test_router().await;
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 4bdbc89..289cd8b 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -18,7 +18,7 @@ use neutrino_event::{Event, EventPolicy, FormatError};
+ use neutrino_room::CoreError;
+ use neutrino_room::provider::InMemoryStateProvider;
+ use neutrino_room::room_core::{Effect, RoomCore};
+-use neutrino_store::{IdentityStore, RoomStore, StateStore, StorageError};
++use neutrino_store::{FederationOutbox, IdentityStore, RoomStore, StateStore, StorageError};
+ use neutrino_store_sqlite::SqliteStore;
+ use ruma::api::client::sync::sync_events::v5;
+ use ruma::events::AnyTimelineEvent;
+@@ -1510,18 +1510,20 @@ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+ /// one-time key and still have nowhere to send the session it just built.
+ ///
+ /// Recipients on other servers get the message as an `m.direct_to_device` EDU
+-/// in a federation transaction. On a mesh that is the normal case, not the
+-/// exception — the peer you are sharing a room key with is a different phone,
+-/// which is a different homeserver.
++/// through the durable federation outbox, so a peer that is out of range when
++/// a key is shared receives it when the link heals. On a mesh that is the
++/// normal case, not the exception — the peer you are sharing a room key with is
++/// a different phone, which is a different homeserver, and BLE range comes and
++/// goes.
+ async fn send_to_device(
+     state: State<AppState>,
+     AuthUser(sender): AuthUser,
+     axum::extract::Path((event_type, txn_id)): axum::extract::Path<(String, String)>,
+     body: Json<Value>,
+-) -> Json<Value> {
+-    let (our_name, fed_client) = {
++) -> axum::response::Response {
++    let (our_name, store) = {
+         let app = lock_app(&state.0);
+-        (app.config.server_name.clone(), app.fed_client.clone())
++        (app.config.server_name.clone(), app.store.clone())
+     };
+     let messages = body
+         .pointer("/messages")
+@@ -1549,28 +1551,36 @@ async fn send_to_device(
+     }
+ 
+     // One EDU per destination server, carrying only that server's recipients.
+-    // Fire-and-forget: the transaction is not queued in the durable outbox, so
+-    // a peer that is out of range when a key is shared does not get it later.
+-    // The client re-shares room keys on the next send to a device it has no
+-    // session with, which is the recovery path for a dropped EDU — but this is
+-    // the weakest link in the mesh E2EE story and the obvious next thing to
+-    // make durable.
++    // The outbox row is keyed on the client's transaction id, so a client that
++    // retries this request after a lost response does not queue the key twice;
++    // `message_id` carries the same id to the peer for its own dedup.
+     for (dest, recipients) in theirs {
++        let edu_id = format!("{sender}/{txn_id}");
+         let edu = json!({
+             "edu_type": "m.direct_to_device",
+             "content": {
+                 "sender": sender,
+                 "type": event_type,
+-                "message_id": txn_id,
++                "message_id": edu_id,
+                 "messages": Value::Object(recipients),
+             },
+         });
+-        if let Err(e) = fed_client.send_edu(&dest, &txn_id, &edu).await {
+-            warn!(%dest, error = %e, "to-device EDU delivery failed");
++        let raw = serde_json::value::to_raw_value(&edu)
++            .expect("an EDU built from json! always serializes");
++        if let Err(e) = store
++            .enqueue_edu(std::slice::from_ref(&dest), &edu_id, &raw)
++            .await
++        {
++            warn!(%dest, error = %e, "queueing to-device EDU");
++            return error_response(
++                StatusCode::INTERNAL_SERVER_ERROR,
++                "M_UNKNOWN",
++                "could not queue the message for federation",
++            );
+         }
+     }
+ 
+-    Json(json!({}))
++    Json(json!({})).into_response()
+ }
+ 
+ /// Take everything queued for a user, leaving the inbox empty. Matrix expects
+diff --git a/crates/neutrino-store-sqlite/src/schema.rs b/crates/neutrino-store-sqlite/src/schema.rs
+index 8c19e24..25710cc 100644
+--- a/crates/neutrino-store-sqlite/src/schema.rs
++++ b/crates/neutrino-store-sqlite/src/schema.rs
+@@ -8,7 +8,7 @@ const SCHEMA_SQL: &str = include_str!("schema.sql");
+ /// shape, so a store written by an older build is refused at open (loudly, and
+ /// before any query hits a column that does not exist) rather than breaking
+ /// mid-request. One constant so the stamp and the gate cannot drift.
+-pub(crate) const SCHEMA_VERSION: i64 = 2;
++pub(crate) const SCHEMA_VERSION: i64 = 3;
+ 
+ /// Version-gate the database against the bundled schema. Authoritative
+ /// open-time check per design doc §2 "Open path: version gate & schema bundle".
+diff --git a/crates/neutrino-store-sqlite/src/schema.sql b/crates/neutrino-store-sqlite/src/schema.sql
+index 663b0f1..dc37cb7 100644
+--- a/crates/neutrino-store-sqlite/src/schema.sql
++++ b/crates/neutrino-store-sqlite/src/schema.sql
+@@ -289,6 +289,25 @@ CREATE TABLE outbox (
+ 
+ CREATE INDEX ix_outbox_dest_order ON outbox(destination, outbox_id);
+ 
++-- ----------------------------------------------------------------------------
++-- outbox_edus — FederationOutbox (EDU half)
++-- Ephemeral events queued for a destination, stored verbatim: an EDU has no
++-- event_id and no row in `events` to reference, so unlike `outbox` this table
++-- carries the body. outbox_edu_id is insertion order (pending_edus). UNIQUE
++-- (destination, edu_id) makes a retried enqueue a no-op — the caller's id is
++-- the client's /sendToDevice transaction id, so a client retry is idempotent.
++-- AUTOINCREMENT requires a rowid alias → no WITHOUT ROWID.
++-- ----------------------------------------------------------------------------
++CREATE TABLE outbox_edus (
++    outbox_edu_id  INTEGER PRIMARY KEY AUTOINCREMENT,
++    destination    TEXT NOT NULL,
++    edu_id         TEXT NOT NULL,
++    edu            TEXT NOT NULL,
++    UNIQUE (destination, edu_id)
++) STRICT;
++
++CREATE INDEX ix_outbox_edus_dest_order ON outbox_edus(destination, outbox_edu_id);
++
+ -- ----------------------------------------------------------------------------
+ -- deliveries — DeliveryStore
+ -- The newest event of a room a destination has acknowledged receiving (2xx'd
+diff --git a/crates/neutrino-store-sqlite/src/store/outbox.rs b/crates/neutrino-store-sqlite/src/store/outbox.rs
+index 267a108..8089b34 100644
+--- a/crates/neutrino-store-sqlite/src/store/outbox.rs
++++ b/crates/neutrino-store-sqlite/src/store/outbox.rs
+@@ -2,8 +2,9 @@
+ 
+ use async_trait::async_trait;
+ use deadpool_sqlite::rusqlite::{params, params_from_iter};
+-use neutrino_store::{Event, FederationOutbox, StorageError};
++use neutrino_store::{Event, FederationOutbox, OutboxEdu, StorageError};
+ use ruma::{EventId, OwnedRoomId, OwnedServerName, RoomId, ServerName};
++use serde_json::value::RawValue as RawJsonValue;
+ 
+ use crate::{
+     SqliteStore,
+@@ -15,7 +16,12 @@ use crate::{
+ impl FederationOutbox for SqliteStore {
+     async fn pending_destinations(&self) -> Result<Vec<OwnedServerName>, StorageError> {
+         self.run_read(move |conn| -> Result<Vec<OwnedServerName>, Error> {
+-            let mut stmt = conn.prepare("SELECT DISTINCT destination FROM outbox")?;
++            // PDUs and EDUs share one sender task per destination, so a peer
++            // owed only a to-device message must be enumerated too.
++            let mut stmt = conn.prepare(
++                "SELECT destination FROM outbox \
++                 UNION SELECT destination FROM outbox_edus",
++            )?;
+             let rows = stmt.query_map([], |row| row.get::<_, String>(0))?;
+ 
+             let mut out = Vec::new();
+@@ -30,6 +36,100 @@ impl FederationOutbox for SqliteStore {
+         .await
+     }
+ 
++    async fn enqueue_edu(
++        &self,
++        destinations: &[OwnedServerName],
++        edu_id: &str,
++        edu: &RawJsonValue,
++    ) -> Result<(), StorageError> {
++        if destinations.is_empty() {
++            return Ok(());
++        }
++        let destinations: Vec<String> =
++            destinations.iter().map(|d| d.as_str().to_owned()).collect();
++        let edu_id = edu_id.to_owned();
++        let edu = edu.get().to_owned();
++        let watch_tx = self.watch_tx.clone();
++
++        self.run_write(move |conn| -> Result<(), Error> {
++            let tx = conn.transaction()?;
++            {
++                let mut stmt = tx.prepare(
++                    "INSERT OR IGNORE INTO outbox_edus (destination, edu_id, edu) \
++                     VALUES (?, ?, ?)",
++                )?;
++                for dest in &destinations {
++                    stmt.execute(params![dest, edu_id, edu])?;
++                }
++            }
++            tx.commit()?;
++            // Not a room event, so the stream position stands; but the outbound
++            // supervisor idles on this watch and has to learn the destination
++            // has work.
++            SqliteStore::notify_watch_changed(&watch_tx);
++            Ok(())
++        })
++        .await
++    }
++
++    async fn pending_edus(
++        &self,
++        destination: &ServerName,
++        limit: usize,
++    ) -> Result<Vec<OutboxEdu>, StorageError> {
++        let destination = destination.to_owned();
++        let limit = i64::try_from(limit).unwrap_or(i64::MAX);
++
++        self.run_read(move |conn| -> Result<Vec<OutboxEdu>, Error> {
++            let mut stmt = conn.prepare(
++                "SELECT edu_id, edu FROM outbox_edus \
++                 WHERE destination = ? \
++                 ORDER BY outbox_edu_id ASC \
++                 LIMIT ?",
++            )?;
++            let rows = stmt.query_map(params![destination.as_str(), limit], |row| {
++                Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
++            })?;
++
++            let mut out = Vec::new();
++            for r in rows {
++                let (edu_id, edu) = r?;
++                let raw = RawJsonValue::from_string(edu)
++                    .map_err(|e| Error::Internal(format!("malformed EDU in DB: {e}")))?;
++                out.push(OutboxEdu { edu_id, raw });
++            }
++            Ok(out)
++        })
++        .await
++    }
++
++    async fn remove_edus(
++        &self,
++        destination: &ServerName,
++        edu_ids: &[&str],
++    ) -> Result<(), StorageError> {
++        if edu_ids.is_empty() {
++            return Ok(());
++        }
++        let destination = destination.to_owned();
++        let edu_ids: Vec<String> = edu_ids.iter().map(|id| (*id).to_owned()).collect();
++
++        self.run_write(move |conn| -> Result<(), Error> {
++            let placeholders = vec!["?"; edu_ids.len()].join(",");
++            let query = format!(
++                "DELETE FROM outbox_edus WHERE destination = ? AND edu_id IN ({placeholders})"
++            );
++            let mut binds: Vec<&str> = Vec::with_capacity(edu_ids.len() + 1);
++            binds.push(destination.as_str());
++            for id in &edu_ids {
++                binds.push(id.as_str());
++            }
++            conn.execute(&query, params_from_iter(binds.iter()))?;
++            Ok(())
++        })
++        .await
++    }
++
+     async fn pending_pdus(
+         &self,
+         destination: &ServerName,
+@@ -311,6 +411,110 @@ mod tests {
+         .unwrap();
+     }
+ 
++    fn to_device_edu(session: &str) -> Box<serde_json::value::RawValue> {
++        serde_json::value::to_raw_value(&serde_json::json!({
++            "edu_type": "m.direct_to_device",
++            "content": { "type": "m.room_key", "messages": { "@bob:b.example": { "*": { "session_id": session } } } },
++        }))
++        .unwrap()
++    }
++
++    // An EDU is queued once per destination, comes back in insertion order,
++    // and a destination owed only an EDU is enumerated by pending_destinations
++    // — otherwise a room key for an idle peer would sit in the table forever
++    // with no sender task to carry it.
++    #[tokio::test]
++    async fn edus_round_trip_per_destination() {
++        let s = store().await;
++        let dest_a = server_name!("a.example.com");
++        let dest_b = server_name!("b.example.com");
++
++        s.enqueue_edu(
++            &[dest_a.to_owned(), dest_b.to_owned()],
++            "k1",
++            &to_device_edu("S1"),
++        )
++        .await
++        .unwrap();
++        s.enqueue_edu(&[dest_a.to_owned()], "k2", &to_device_edu("S2"))
++            .await
++            .unwrap();
++
++        let mut dests = s.pending_destinations().await.unwrap();
++        dests.sort();
++        assert_eq!(
++            dests.iter().map(|d| d.as_str()).collect::<Vec<_>>(),
++            ["a.example.com", "b.example.com"]
++        );
++
++        let a = s.pending_edus(dest_a, usize::MAX).await.unwrap();
++        assert_eq!(
++            a.iter().map(|e| e.edu_id.as_str()).collect::<Vec<_>>(),
++            ["k1", "k2"]
++        );
++        assert!(a[0].raw.get().contains("\"S1\""));
++        assert_eq!(s.pending_edus(dest_a, 1).await.unwrap().len(), 1);
++        assert_eq!(s.pending_edus(dest_b, usize::MAX).await.unwrap().len(), 1);
++    }
++
++    // A retried enqueue under the same id is a no-op: the client's retry of
++    // /sendToDevice must not deliver the room key twice.
++    #[tokio::test]
++    async fn enqueue_edu_is_idempotent_per_id() {
++        let s = store().await;
++        let dest = server_name!("a.example.com");
++        s.enqueue_edu(&[dest.to_owned()], "k1", &to_device_edu("S1"))
++            .await
++            .unwrap();
++        s.enqueue_edu(&[dest.to_owned()], "k1", &to_device_edu("S1"))
++            .await
++            .unwrap();
++        assert_eq!(s.pending_edus(dest, usize::MAX).await.unwrap().len(), 1);
++    }
++
++    // remove_edus clears the named ids only, is idempotent, and once a
++    // destination has nothing left it drops out of pending_destinations.
++    #[tokio::test]
++    async fn remove_edus_clears_and_is_idempotent() {
++        let s = store().await;
++        let dest = server_name!("a.example.com");
++        s.enqueue_edu(&[dest.to_owned()], "k1", &to_device_edu("S1"))
++            .await
++            .unwrap();
++        s.enqueue_edu(&[dest.to_owned()], "k2", &to_device_edu("S2"))
++            .await
++            .unwrap();
++
++        s.remove_edus(dest, &["k1"]).await.unwrap();
++        let left = s.pending_edus(dest, usize::MAX).await.unwrap();
++        assert_eq!(left.len(), 1);
++        assert_eq!(left[0].edu_id, "k2");
++
++        s.remove_edus(dest, &["k1", "k2"]).await.unwrap();
++        s.remove_edus(dest, &["k2"]).await.unwrap();
++        s.remove_edus(dest, &[]).await.unwrap();
++        assert!(s.pending_edus(dest, usize::MAX).await.unwrap().is_empty());
++        assert!(s.pending_destinations().await.unwrap().is_empty());
++    }
++
++    // Enqueueing an EDU wakes the store watch (so the idle sender task and
++    // supervisor notice) without moving the event stream position.
++    #[tokio::test]
++    async fn enqueue_edu_wakes_the_watch_without_advancing_it() {
++        let s = store().await;
++        let mut rx = s.subscribe();
++        let before = *rx.borrow_and_update();
++        s.enqueue_edu(
++            &[server_name!("a.example.com").to_owned()],
++            "k1",
++            &to_device_edu("S1"),
++        )
++        .await
++        .unwrap();
++        assert!(rx.has_changed().unwrap(), "watch was not woken");
++        assert_eq!(*rx.borrow_and_update(), before, "stream position moved");
++    }
++
+     // Anti-entropy: persist_resolved_event with `advertise_to` writes one
+     // pending_advertisements row per destination for the event's room;
+     // advertisement_destinations enumerates them, pending_advertisements lists
+diff --git a/crates/neutrino-store/src/lib.rs b/crates/neutrino-store/src/lib.rs
+index a6f1fe6..40b0449 100644
+--- a/crates/neutrino-store/src/lib.rs
++++ b/crates/neutrino-store/src/lib.rs
+@@ -486,15 +486,70 @@ pub trait StagingStore: Send + Sync {
+     async fn unstage_events(&self, event_ids: &[&EventId]) -> Result<(), StorageError>;
+ }
+ 
++/// An ephemeral event queued for federation delivery: the whole EDU object
++/// (`{edu_type, content}`) as it will appear in a transaction's `edus` array,
++/// and the id the sender removes it under once the peer has 2xx'd it.
++///
++/// EDUs carry no room, no DAG position and no event id, so they cannot ride
++/// the `events` table the way PDUs do; they are stored verbatim instead. The
++/// only EDU this server queues today is `m.direct_to_device`, which is how a
++/// Megolm room key crosses the mesh — and a room key that is dropped because
++/// the recipient was out of range for a second is a conversation that cannot
++/// be read, which is why these are durable and not fire-and-forget.
++#[derive(Debug, Clone)]
++pub struct OutboxEdu {
++    /// Caller-chosen id, unique per destination; a repeat enqueue under the
++    /// same id is a no-op, which is what makes a client's retried
++    /// `/sendToDevice` idempotent.
++    pub edu_id: String,
++    /// The EDU object, wire-verbatim.
++    pub raw: Box<RawJsonValue>,
++}
++
+ #[async_trait]
+ pub trait FederationOutbox: Send + Sync {
+     /// Pre:  none.
+     /// Post: returns the server names of every destination that has at least one outbox
+-    ///       entry not yet removed via `remove_pdus`; callers should call `subscribe()`
++    ///       entry — a PDU not yet removed via `remove_pdus`, or an EDU not yet removed
++    ///       via `remove_edus`; callers should call `subscribe()`
+     ///       *before* this on startup to avoid missing a destination added concurrently
+     ///       (see `EventStore::subscribe` for the subscribe-before-query pattern).
+     async fn pending_destinations(&self) -> Result<Vec<OwnedServerName>, StorageError>;
+ 
++    /// Pre:  `edu` is a complete EDU object (`{edu_type, content}`).
++    /// Post: one outbox row per destination in `destinations`, keyed
++    ///       `(destination, edu_id)`; a row that already exists is left alone
++    ///       (idempotent). Wakes `subscribe()` receivers without advancing the
++    ///       stream position — an EDU is not a room event — so the outbound
++    ///       sender notices a destination that was idle. An empty
++    ///       `destinations` slice writes nothing.
++    async fn enqueue_edu(
++        &self,
++        destinations: &[OwnedServerName],
++        edu_id: &str,
++        edu: &RawJsonValue,
++    ) -> Result<(), StorageError>;
++
++    /// Pre:  none (returns empty vec if `destination` has no pending EDUs).
++    /// Post: returns up to `limit` of the oldest undelivered EDUs for
++    ///       `destination` in insertion order; does not remove them — the
++    ///       caller must call `remove_edus` after a successful `/send`.
++    async fn pending_edus(
++        &self,
++        destination: &ServerName,
++        limit: usize,
++    ) -> Result<Vec<OutboxEdu>, StorageError>;
++
++    /// Pre:  each id should have been returned by `pending_edus` for this
++    ///       `destination`; must only be called after the remote server
++    ///       returned a terminal status for the `/send` transaction carrying it.
++    /// Post: removes the matching `(destination, edu_id)` rows; idempotent.
++    async fn remove_edus(
++        &self,
++        destination: &ServerName,
++        edu_ids: &[&str],
++    ) -> Result<(), StorageError>;
++
+     /// Pre:  none (returns empty vec if `destination` has no pending entries).
+     /// Post: returns up to `limit` of the oldest undelivered PDUs for `destination` in
+     ///       insertion (causal) order; does not remove them — the caller must call
+diff --git a/docs/federation-memberships.md b/docs/federation-memberships.md
+index 42b9066..e0cc552 100644
+--- a/docs/federation-memberships.md
++++ b/docs/federation-memberships.md
+@@ -25,7 +25,9 @@ Hard constraints from CLAUDE.md / project shape:
+ - **X-Matrix auth required** on inbound federation endpoints — network-attested
+   origin (no key/sig), matching `/send`, `/backfill`, `/get_missing_events`. See
+   `crates/neutrino-http/src/federation/auth.rs`.
+-- **No EDUs / E2EE / pagination / rate-limiting / access control.**
++- **No EDUs other than `m.direct_to_device` / no pagination / rate-limiting / access control.**
++  The E2EE key surface (`/user/keys/query`, `/user/keys/claim`, `/user/devices`)
++  lives in `crates/neutrino-http/src/federation/keys.rs`.
+ - **Restricted rooms are out of scope** (`join_authorised_via_users_server`,
+   `M_UNABLE_TO_AUTHORISE_JOIN`, `M_UNABLE_TO_GRANT_JOIN`). Public + invite join rules
+   only. Document the gap; do not implement.
+-- 
+2.43.0
+
