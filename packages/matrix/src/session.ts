@@ -794,7 +794,24 @@ export class MatrixSessionManager {
       (id) => this.rooms.get(id)?.membership === 'join',
     );
     if (existing) return existing;
-    const roomId = await client.createDirectRoom(userId);
+    // Ask for encryption from the first event where the server honours
+    // `initial_state`, then set it as a state event as well: Neutrino ignores
+    // `initial_state` on /createRoom but accepts the state event, and on a
+    // real homeserver the second write is a no-op. `encrypted` on the record
+    // is what actually happened, not what was asked for — the padlock must
+    // mean it.
+    const wantEncrypted = this.encryptionReady;
+    const roomId = await client.createDirectRoom(userId, wantEncrypted);
+    let encrypted = false;
+    if (wantEncrypted) {
+      try {
+        await client.enableEncryption(roomId);
+        encrypted = true;
+      } catch {
+        // A server that cannot store the state event cannot carry an
+        // encrypted room; the record stays honest and the notice explains.
+      }
+    }
     this.directMap = { ...this.directMap, [userId]: [...(this.directMap[userId] ?? []), roomId] };
     try {
       await client.setDirectRooms(selfId, this.directMap);
@@ -807,7 +824,7 @@ export class MatrixSessionManager {
       isDirect: true,
       memberIds: [selfId, userId],
       memberNames: {},
-      encrypted: this.crypto !== null,
+      encrypted,
       membership: 'join',
       lastActivityTs: this.opts.now(),
       unread: 0,

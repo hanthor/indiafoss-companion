@@ -69,6 +69,15 @@ alignment, #3 CI packages token, #4 fork roadmap.
   sessions decrypts on the other node. It also caught a real client bug: our
   sliding-sync `conn_id` was 19 characters against MSC4186's cap of 16, and
   Neutrino rejects that, so every mesh sync had been failing silently.
+- 2026-09-03: **P2P step 4** (#77): mesh direct messages are created
+  encrypted when the server carries key material — asked for at creation and
+  set as a state event, since Neutrino ignores `initial_state` — and the room
+  record says what actually happened, so the padlock means it. Conference
+  rooms stay unencrypted on purpose: Megolm history is unreadable to whoever
+  joins later, and a hall room at a conference is mostly people joining later.
+  The `Neutrino e2e` workflow now builds the fork at the pinned rev on every
+  PR touching the chat packages, starts two nodes, and runs the two-node
+  proofs; the stock upstream run stays weekly with the tripwires armed.
 - 2026-09-03: **P2P step 3** (#83): the phone bindings build against the fork.
   `neutrino-iroh v0.8.2` pins upstream Neutrino at `v0.7.1`, which is commit
   `90bc1b1` — exactly the base of our fork branch — so a cargo `[patch]` in

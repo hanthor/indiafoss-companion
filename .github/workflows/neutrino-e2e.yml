@@ -1,32 +1,47 @@
 name: Neutrino e2e
 
-# Builds a real Neutrino homeserver and runs the companion's chat contracts
-# against it. Two things this catches that unit tests cannot:
+# Builds the Neutrino homeserver we actually ship — our fork, at the rev pinned
+# in apps/android/capacitor/neutrino/version.json — and runs the companion's
+# chat contracts against it, including the two-node proofs: an encrypted
+# message from one of our client sessions decrypting on the other node, and
+# the same after node B is killed and restarted.
 #
-#   - a contract we depend on breaking upstream (mesh chat silently stops
-#     working), and
-#   - a gap upstream *closing* — the tripwire tests assert each missing
-#     feature is still missing, so implementing one turns this job red and we
-#     go and enable the feature instead of never noticing.
+# Three things this catches that unit tests cannot:
 #
-# It is not on the PR path: building Neutrino costs minutes and its result
-# depends on upstream, not on the pull request. Weekly, and on demand.
+#   - a contract we depend on breaking (mesh chat silently stops working),
+#   - a fork patch regressing against the client that uses it, and
+#   - a gap in stock Neutrino closing — the tripwire tests assert each missing
+#     feature is still missing, so implementing one turns the stock run red and
+#     we go and enable the feature instead of never noticing.
+#
+# The fork run is on the PR path for the packages that talk to it. The stock
+# run stays weekly: its result depends on upstream, not on the pull request.
 
 on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'element-hq/neutrino ref to test against (default: main)'
+        description: 'neutrino ref to test against (default: the pinned fork rev)'
         required: false
+      repo:
+        description: 'neutrino repository (default: the pinned fork)'
+        required: false
+  pull_request:
+    paths:
+      - 'packages/matrix/**'
+      - 'patches/neutrino/**'
+      - 'tools/neutrino-probe/**'
+      - 'apps/android/capacitor/neutrino/version.json'
+      - '.github/workflows/neutrino-e2e.yml'
   schedule:
-    # Mondays, 06:00 UTC.
+    # Mondays, 06:00 UTC — the stock upstream run.
     - cron: '0 6 * * 1'
 
 permissions:
   contents: read
 
 concurrency:
-  group: neutrino-e2e
+  group: neutrino-e2e-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -36,11 +51,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Decide which Neutrino to build
+        id: which
+        run: |
+          pin=./apps/android/capacitor/neutrino/version.json
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            # Weekly: stock upstream main, tripwires armed.
+            echo "repo=element-hq/neutrino" >> "$GITHUB_OUTPUT"
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+            echo "fork=0" >> "$GITHUB_OUTPUT"
+          else
+            repo="${{ inputs.repo }}"; ref="${{ inputs.ref }}"
+            [ -n "$repo" ] || repo=$(node -p "require('$pin').neutrino.repo")
+            [ -n "$ref" ] || ref=$(node -p "require('$pin').neutrino.rev")
+            echo "repo=$repo" >> "$GITHUB_OUTPUT"
+            echo "ref=$ref" >> "$GITHUB_OUTPUT"
+            if [ "$repo" = "element-hq/neutrino" ]; then echo "fork=0"; else echo "fork=1"; fi >> "$GITHUB_OUTPUT"
+          fi
+          cat "$GITHUB_OUTPUT"
+
       - name: Check out neutrino
         uses: actions/checkout@v4
         with:
-          repository: element-hq/neutrino
-          ref: ${{ inputs.ref || 'main' }}
+          repository: ${{ steps.which.outputs.repo }}
+          ref: ${{ steps.which.outputs.ref }}
           path: neutrino
 
       - name: Install the Rust toolchain
@@ -59,17 +93,28 @@ jobs:
         working-directory: neutrino
         run: cargo build --bin neutrino
 
-      - name: Start it
-        working-directory: neutrino
+      - name: Start two nodes
+        # Two servers that federate with each other over loopback HTTP: the
+        # two-node proofs need a peer to encrypt to. Distinct server names so
+        # the users differ (@alice:127.0.0.1:8008 vs :8009).
         run: |
-          ./target/debug/neutrino > /tmp/neutrino.log 2>&1 &
-          for _ in $(seq 1 30); do
-            if curl -fsS http://localhost:8008/_matrix/client/versions >/dev/null; then
-              echo "neutrino is up"; exit 0
-            fi
-            sleep 1
+          bin=./neutrino/target/debug/neutrino
+          for port in 8008 8009; do
+            mkdir -p /tmp/node-$port
+            NEUTRINO_SERVER_NAME=127.0.0.1:$port NEUTRINO_BIND_ADDR=127.0.0.1:$port \
+              NEUTRINO_STORAGE_DIR=/tmp/node-$port NEUTRINO_STARTUP_JITTER_MS=0 \
+              $bin > /tmp/node-$port/log 2>&1 &
           done
-          echo "neutrino did not start"; cat /tmp/neutrino.log; exit 1
+          for port in 8008 8009; do
+            for _ in $(seq 1 30); do
+              if curl -fsS http://127.0.0.1:$port/_matrix/client/versions >/dev/null; then
+                echo "node $port is up"; break
+              fi
+              sleep 1
+            done
+            curl -fsS http://127.0.0.1:$port/_matrix/client/versions >/dev/null \
+              || { echo "node $port did not start"; cat /tmp/node-$port/log; exit 1; }
+          done
 
       - uses: pnpm/action-setup@v4
         with:
@@ -83,7 +128,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run the chat contracts
+      - name: Run the chat contracts and the two-node proofs
+        env:
+          NEUTRINO_URL: http://127.0.0.1:8008
+          NEUTRINO_URL_B: http://127.0.0.1:8009
+          NEUTRINO_FORK: ${{ steps.which.outputs.fork }}
+          # The restart proof starts its own nodes on 8018/8019.
+          NEUTRINO_BIN: ${{ github.workspace }}/neutrino/target/debug/neutrino
         run: pnpm --filter @indiafoss/neutrino-probe test
 
       - name: Refresh the capability matrix
@@ -91,11 +142,12 @@ jobs:
         # the diff of docs/neutrino-capabilities.md.
         if: always()
         run: |
-          echo '## Neutrino capability probe' >> "$GITHUB_STEP_SUMMARY"
+          echo "## Neutrino capability probe (${{ steps.which.outputs.repo }}@${{ steps.which.outputs.ref }})" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           pnpm --filter @indiafoss/neutrino-probe start >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Server log
+      - name: Server logs
         if: failure()
-        run: tail -100 /tmp/neutrino.log
+        run: |
+          for port in 8008 8009; do echo "=== node $port ==="; tail -80 /tmp/node-$port/log; done

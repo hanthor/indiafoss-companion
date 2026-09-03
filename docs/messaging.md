@@ -40,7 +40,7 @@ fork, kept as the reference implementation of the node integration.
 | Direct messages       | Standard Matrix DMs (`m.direct`)                               | P2P DMs by Neutrino peer identity                         |
 | Room discovery        | Bundle list, public-room directory search, join by alias       | BLE peer discovery + bundle list                          |
 | Offline               | Cached rooms/timelines, outbox with idempotent retries         | Mesh delivery over BLE/Iroh                               |
-| E2EE                  | Not supported (encrypted rooms are read-only placeholders)     | Not yet supported by Neutrino either                      |
+| E2EE                  | Megolm via the WASM crypto backend                             | Direct messages, on a node carrying the fork's patches    |
 | Identity verification | Not in the companion; "unverified" until done in a full client | Matrix cross-signing (future)                             |
 
 The implementation lives in `packages/matrix` (protocol layer, no framework

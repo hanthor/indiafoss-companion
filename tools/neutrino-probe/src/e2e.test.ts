@@ -249,7 +249,12 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     expect(await missing('POST', '/_matrix/media/v3/upload', {})).toBe(404);
   });
 
-  it('stores device keys but files every device under one hardcoded id', async () => {
+  // Against our fork (patches/neutrino/), the E2EE gaps below are closed and
+  // the tripwires flip into contracts. NEUTRINO_FORK=1 says which server is
+  // under test; guessing from behaviour would defeat the point of a tripwire.
+  const fork = process.env.NEUTRINO_FORK === '1';
+
+  it.skipIf(fork)('stores device keys but files every device under one hardcoded id', async () => {
     // The device-key directory is real: an upload comes back from /keys/query
     // intact. Two flaws make it unusable for a mesh, and both are stable
     // regardless of what the server has seen before:
@@ -277,26 +282,74 @@ describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () 
     expect(Object.keys(devices ?? {})).not.toContain('E2E-SENT-ID');
   });
 
-  it('cannot establish an Olm session: no one-time key claim, no to-device', async () => {
-    // These two are what actually block E2EE. Encrypting to someone requires
-    // claiming one of their one-time keys and sending them an encrypted
-    // to-device message; neither endpoint exists, so no session can start
-    // however good the client's crypto is.
-    expect(await missing('POST', '/_matrix/client/v3/keys/claim', { one_time_keys: {} })).toBe(404);
-    expect(
-      await missing('PUT', '/_matrix/client/v3/sendToDevice/m.room.encrypted/e2e-td', {
-        messages: {},
-      }),
-    ).toBe(404);
+  it.skipIf(!fork)(
+    'fork: files each device under its own id and hands one-time keys out once',
+    async () => {
+      const upload = await call('POST', '/_matrix/client/v3/keys/upload', {
+        device_keys: {
+          user_id: userId,
+          device_id: 'E2E-FORK-ID',
+          algorithms: ['m.olm.v1.curve25519-aes-sha2'],
+          keys: { 'curve25519:E2E-FORK-ID': 'e2e-test-key' },
+          signatures: {},
+        },
+        one_time_keys: { 'signed_curve25519:E2E-1': { key: 'one' } },
+      });
+      expect(upload.status).toBe(200);
+      expect(upload.body.one_time_key_counts).toEqual({ signed_curve25519: 1 });
 
-    // One-time keys are accepted and answered with a canned count of 100,
-    // which no claim endpoint can ever hand out.
-    const otk = await call('POST', '/_matrix/client/v3/keys/upload', {
-      one_time_keys: { 'signed_curve25519:E2E': { key: 'e2e-otk' } },
-    });
-    expect(otk.status).toBe(200);
-    expect(otk.body.one_time_key_counts).toEqual({ signed_curve25519: 100 });
-  });
+      const query = await call('POST', '/_matrix/client/v3/keys/query', {
+        device_keys: { [userId]: [] },
+      });
+      const devices = (query.body.device_keys as Record<string, Record<string, unknown>>)[userId];
+      expect(Object.keys(devices ?? {})).toContain('E2E-FORK-ID');
+
+      const claim = () =>
+        call('POST', '/_matrix/client/v3/keys/claim', {
+          one_time_keys: { [userId]: { 'E2E-FORK-ID': 'signed_curve25519' } },
+        });
+      const first = await claim();
+      expect(first.status).toBe(200);
+      expect(
+        (first.body.one_time_keys as Record<string, Record<string, unknown>>)[userId]?.[
+          'E2E-FORK-ID'
+        ],
+      ).toEqual({ 'signed_curve25519:E2E-1': { key: 'one' } });
+      const second = await claim();
+      expect(second.body.one_time_keys).toEqual({});
+
+      const td = await call('PUT', '/_matrix/client/v3/sendToDevice/m.room_key/e2e-fork-td', {
+        messages: { [userId]: { '*': { session_id: 'S1' } } },
+      });
+      expect(td.status).toBe(200);
+    },
+  );
+
+  it.skipIf(fork)(
+    'cannot establish an Olm session: no one-time key claim, no to-device',
+    async () => {
+      // These two are what actually block E2EE. Encrypting to someone requires
+      // claiming one of their one-time keys and sending them an encrypted
+      // to-device message; neither endpoint exists, so no session can start
+      // however good the client's crypto is.
+      expect(await missing('POST', '/_matrix/client/v3/keys/claim', { one_time_keys: {} })).toBe(
+        404,
+      );
+      expect(
+        await missing('PUT', '/_matrix/client/v3/sendToDevice/m.room.encrypted/e2e-td', {
+          messages: {},
+        }),
+      ).toBe(404);
+
+      // One-time keys are accepted and answered with a canned count of 100,
+      // which no claim endpoint can ever hand out.
+      const otk = await call('POST', '/_matrix/client/v3/keys/upload', {
+        one_time_keys: { 'signed_curve25519:E2E': { key: 'e2e-otk' } },
+      });
+      expect(otk.status).toBe(200);
+      expect(otk.body.one_time_key_counts).toEqual({ signed_curve25519: 100 });
+    },
+  );
 
   it('issues the same identity to everyone, so two users cannot be told apart', async () => {
     // Until this fails, no multi-user behaviour can be tested against the dev

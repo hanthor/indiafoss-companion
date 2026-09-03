@@ -18,6 +18,9 @@ class KeyServer {
   timeline: RawMatrixEvent[] = [];
   media: Record<string, Uint8Array> = {};
   typing: Record<string, string[]> = {};
+  /** Bodies of every /createRoom, and the rooms encryption was switched on for. */
+  created: Record<string, unknown>[] = [];
+  encryptionEnabled: string[] = [];
   /** Users whose to-device messages are withheld from /sync (simulates key arriving late). */
   holdToDevice = new Set<string>();
   syncCursor: Record<string, number> = {};
@@ -177,6 +180,14 @@ class KeyServer {
           },
         });
       }
+      if (path.endsWith('/createRoom')) {
+        this.created.push(body());
+        return json({ room_id: '!dm:hs' });
+      }
+      if (path.endsWith('/state/m.room.encryption/')) {
+        this.encryptionEnabled.push(decodeURIComponent(path.split('/rooms/')[1]!.split('/')[0]!));
+        return json({ event_id: `$state${++this.counter}` });
+      }
       if (path.endsWith('/logout')) return json({});
       if (path.includes('/receipt/')) return json({});
       return json({ errcode: 'M_UNRECOGNIZED', error: path }, 404);
@@ -302,6 +313,52 @@ describe('end-to-end encryption', () => {
     await bob.manager.stop();
     await carol.manager.stop();
   }, 30_000);
+});
+
+describe('direct messages on an encrypting server', () => {
+  it('asks for encryption at creation and sets the state event, and the record says so', async () => {
+    // Neutrino ignores `initial_state` on /createRoom but accepts the state
+    // event; a real homeserver honours both. Ask both ways, and let the
+    // record reflect what happened rather than what was asked.
+    const server = new KeyServer();
+    const alice = client(server, '@alice:hs', 'ALICE1');
+    await alice.manager.signInWithPassword('https://hs', 'alice', 'pw');
+    await settle(150);
+    expect(alice.manager.snapshot().encryptionReady).toBe(true);
+
+    const roomId = await alice.manager.openDirectMessage('@bob:hs');
+    expect(roomId).toBe('!dm:hs');
+    expect(server.created[0]!.initial_state).toEqual([
+      { type: 'm.room.encryption', state_key: '', content: { algorithm: 'm.megolm.v1.aes-sha2' } },
+    ]);
+    expect(server.encryptionEnabled).toEqual(['!dm:hs']);
+    expect(alice.manager.snapshot().rooms.find((r) => r.roomId === roomId)?.encrypted).toBe(true);
+    await alice.manager.stop();
+  });
+
+  it('leaves the record unencrypted when the server refuses the state event', async () => {
+    const server = new KeyServer();
+    const refusing = {
+      fetchFor(userId: string, deviceId: string): FetchLike {
+        const inner = server.fetchFor(userId, deviceId);
+        return async (input, init) => {
+          if (new URL(input).pathname.endsWith('/state/m.room.encryption/')) {
+            return new Response(JSON.stringify({ errcode: 'M_UNRECOGNIZED', error: 'no' }), {
+              status: 404,
+              headers: { 'content-type': 'application/json' },
+            });
+          }
+          return inner(input, init);
+        };
+      },
+    } as KeyServer;
+    const alice = client(refusing, '@alice:hs', 'ALICE1');
+    await alice.manager.signInWithPassword('https://hs', 'alice', 'pw');
+    await settle(150);
+    const roomId = await alice.manager.openDirectMessage('@bob:hs');
+    expect(alice.manager.snapshot().rooms.find((r) => r.roomId === roomId)?.encrypted).toBe(false);
+    await alice.manager.stop();
+  });
 });
 
 describe('a homeserver that cannot carry key material', () => {
