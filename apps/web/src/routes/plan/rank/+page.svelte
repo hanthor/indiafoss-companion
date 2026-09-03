@@ -136,16 +136,21 @@
         : null,
   );
   let chosenMode = $state<Mode | null>(null);
-  const mode = $derived<Mode>(
-    chosenMode ??
-      forcedMode ??
-      (untriaged.length > 0 && triaged.length === 0 && choicesMade === 0 ? 'quick' : 'pairs'),
-  );
+  // Decided once the stored answers are in, then only by the attendee: the
+  // first quick-pass answer must not flip the screen to head to head.
+  $effect(() => {
+    if (!ready || chosenMode !== null || daySessions.length === 0) return;
+    // Keep sorting while there is a list left to sort and no pair answered yet.
+    chosenMode = forcedMode ?? (untriaged.length > 0 && choicesMade === 0 ? 'quick' : 'pairs');
+  });
+  const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'pairs');
 
   async function answerQuick(activity: Activity, answer: 'yes' | 'no'): Promise<void> {
+    chosenMode = 'quick';
     await setTriage(activity.id, answer);
   }
   async function clearQuick(activity: Activity): Promise<void> {
+    chosenMode = 'quick';
     await setTriage(activity.id, undefined);
   }
 

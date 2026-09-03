@@ -331,7 +331,7 @@ test('connect keeps a live QR card and downloads a vCard', async ({ page }) => {
   await expect(page.getByText(/Add your name below/)).toBeVisible();
   await page.getByLabel('Name', { exact: true }).fill('Test Attendee');
   // A bare username is enough; the card carries the profile URL.
-  await page.getByLabel('FOSS United username', { exact: true }).fill('test_attendee');
+  await page.getByLabel('FOSS United', { exact: true }).fill('test_attendee');
   // No generate step: the QR re-encodes on its own from the local vCard payload.
   const qr = page.getByRole('img', { name: /contact details as a QR code/ });
   await expect(qr).toBeVisible();
