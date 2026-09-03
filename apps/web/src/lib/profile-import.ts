@@ -46,15 +46,13 @@ export async function importLinkedProfiles(profile: AttendeeProfile): Promise<Li
       outcome.sources.push('GitHub');
       outcome.changes.push(...applyImportedProfile(profile, githubResult.profile));
     } else {
-      outcome.problems.push(
-        `GitHub: ${
-          githubResult.failure === 'rate-limited'
-            ? 'too many requests from this network right now; try again in a while.'
-            : githubResult.failure === 'not-found'
-              ? 'no such user.'
-              : IMPORT_MESSAGES[githubResult.failure ?? 'network']
-        }`,
-      );
+      const why: Record<string, string> = {
+        'rate-limited': 'too many requests from this network right now; try again in a while.',
+        'not-found': 'no such user.',
+        'invalid-url': 'that is not a GitHub profile link.',
+        network: 'could not reach api.github.com. Check your connection and try again.',
+      };
+      outcome.problems.push(`GitHub: ${why[githubResult.failure ?? 'network']}`);
     }
   }
   return outcome;
