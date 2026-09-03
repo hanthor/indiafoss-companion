@@ -24,6 +24,20 @@ committed). `scripts/material3.mjs` is applied by `pnpm --filter @indiafoss/andr
 Edit the overlay under `res/` — it is copied over the generated project on
 every build.
 
+## Material look inside the WebView
+
+The screens are the web app, and on Android they render in a **Material 3
+look** by default (`apps/web/src/lib/material.css`, switched by
+`apps/web/src/lib/look.svelte.ts`): Roboto, tonal surfaces, pill buttons, an
+M3 navigation bar with the active-tab indicator, outlined text fields. The
+palette is the phone's own Material You scheme, read by
+`materialyou/MaterialYouPlugin.java` (installed by `material3.mjs`, registered
+in `MainActivity`) from the dynamic-colour theme overlays and handed to the
+page as `--md-*` custom properties; below Android 12, or on the web, a tonal
+palette seeded from the brand mint is used. Settings → Look switches between
+Material and the IndiaFOSS 2026 design on any platform, and `?look=material`
+forces it for one load (the a11y suite runs the main screens in both looks).
+
 ## Deep links (§57)
 
 ```text

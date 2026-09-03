@@ -78,11 +78,13 @@
   });
 
   $effect(() => {
-    void Promise.all([
-      hydratePreferences(),
-      hydrateComparisons(),
-      hydrateRoomPrefs(bundle.id),
-    ]).then(() => (ready = true));
+    // The page mounts before the bundle is in on a direct visit; the gate
+    // renders nothing until then, but this effect still runs.
+    const eventId = eventState.bundle?.id;
+    if (!eventId) return;
+    void Promise.all([hydratePreferences(), hydrateComparisons(), hydrateRoomPrefs(eventId)]).then(
+      () => (ready = true),
+    );
   });
 
   // ---------- Rooms ----------

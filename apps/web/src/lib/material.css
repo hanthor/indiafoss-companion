@@ -1,0 +1,346 @@
+/* ---------------------------------------------------------------------------
+   Material look (Android). `html[data-look='material']` re-maps the design
+   tokens to Material 3 and restyles the shared components so the Capacitor
+   app reads as a Material app: dynamic colour from the phone (through the
+   MaterialYou plugin, written into --md-* below), Roboto, tonal surfaces,
+   pill buttons, an M3 navigation bar. The IndiaFOSS look stays the web
+   default; Settings → Look switches either way.
+   Fallback palette: Material 3 tonal-spot scheme from the mint seed #12b85b.
+   --------------------------------------------------------------------------- */
+
+html[data-look='material'] {
+  --md-primary: #336940;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #b5f1bc;
+  --md-on-primary-container: #19512a;
+  --md-secondary: #506352;
+  --md-on-secondary: #ffffff;
+  --md-secondary-container: #d3e8d2;
+  --md-on-secondary-container: #394b3b;
+  --md-tertiary: #39656d;
+  --md-on-tertiary: #ffffff;
+  --md-tertiary-container: #bdeaf4;
+  --md-on-tertiary-container: #204d55;
+  --md-error: #ba1a1a;
+  --md-on-error: #ffffff;
+  --md-error-container: #ffdad6;
+  --md-on-error-container: #93000a;
+  --md-surface: #f6fbf2;
+  --md-on-surface: #181d18;
+  --md-surface-variant: #dde5da;
+  --md-on-surface-variant: #414941;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low: #f1f5ed;
+  --md-surface-container: #ebefe7;
+  --md-surface-container-high: #e5eae1;
+  --md-surface-container-highest: #dfe4dc;
+  --md-outline: #717970;
+  --md-outline-variant: #c1c9be;
+  --md-inverse-surface: #2d322c;
+  --md-inverse-on-surface: #eef2ea;
+  --md-inverse-primary: #9ad4a2;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-look='material'] {
+    --md-primary: #9ad4a2;
+    --md-on-primary: #003917;
+    --md-primary-container: #19512a;
+    --md-on-primary-container: #b5f1bc;
+    --md-secondary: #b7ccb7;
+    --md-on-secondary: #233425;
+    --md-secondary-container: #394b3b;
+    --md-on-secondary-container: #d3e8d2;
+    --md-tertiary: #a1ced8;
+    --md-on-tertiary: #00363e;
+    --md-tertiary-container: #204d55;
+    --md-on-tertiary-container: #bdeaf4;
+    --md-error: #ffb4ab;
+    --md-on-error: #690005;
+    --md-error-container: #93000a;
+    --md-on-error-container: #ffdad6;
+    --md-surface: #101510;
+    --md-on-surface: #dfe4dc;
+    --md-surface-variant: #414941;
+    --md-on-surface-variant: #c1c9be;
+    --md-surface-container-lowest: #0b0f0b;
+    --md-surface-container-low: #181d18;
+    --md-surface-container: #1c211c;
+    --md-surface-container-high: #262b26;
+    --md-surface-container-highest: #313631;
+    --md-outline: #8b9389;
+    --md-outline-variant: #414941;
+    --md-inverse-surface: #dfe4dc;
+    --md-inverse-on-surface: #2d322c;
+    --md-inverse-primary: #336940;
+  }
+}
+
+/* Token re-map: everything built on the brand tokens follows. `--ink` is
+   left alone on purpose: it is used as "dark ink under white text" in both
+   colour schemes, and Material's on-surface would be light in dark mode. */
+html[data-look='material'] {
+  --font-display: var(--font-body);
+  --font-body: Roboto, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --mint: var(--md-primary);
+  --mint-ink: var(--md-primary);
+  --mint-dark: var(--md-on-primary-container);
+  --mint-soft: var(--md-primary-container);
+  --amber: var(--md-tertiary-container);
+  --amber-ink: var(--md-on-tertiary-container);
+  --amber-soft: var(--md-tertiary-container);
+  --event-primary: var(--md-primary);
+  --event-primary-dark: var(--md-primary);
+  --event-primary-text: var(--md-primary);
+  --event-accent: var(--md-tertiary-container);
+  --event-accent-text: var(--md-on-tertiary-container);
+
+  --paper: var(--md-surface);
+  --surface: var(--md-surface-container-low);
+  --surface-raised: var(--md-surface-container-lowest);
+  --surface-dark: var(--md-inverse-surface);
+  --text: var(--md-on-surface);
+  --text-muted: var(--md-on-surface-variant);
+  --text-faint: var(--md-outline);
+  --line: var(--md-outline-variant);
+  --line-soft: var(--md-outline-variant);
+  --line-strong: var(--md-outline);
+  --border: var(--md-outline-variant);
+  --danger: var(--md-error);
+  --warning: var(--md-on-tertiary-container);
+  --success: var(--md-primary);
+  --on-strong: var(--md-on-primary);
+
+  --radius: 1.25rem;
+  --radius-lg: 0.75rem;
+  --shadow-hard: none;
+  --shadow-hard-sm: none;
+  --shadow-soft: none;
+  --tabbar-height: 80px;
+}
+
+/* --- Type ------------------------------------------------------------------ */
+html[data-look='material'] body {
+  letter-spacing: 0;
+}
+html[data-look='material'] h1 {
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.33;
+}
+html[data-look='material'] h2 {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+html[data-look='material'] .eyebrow {
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--md-on-surface-variant);
+}
+html[data-look='material'] .chip,
+html[data-look='material'] .pill {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  border-radius: 0.5rem;
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+html[data-look='material'] .pill.amber {
+  background: var(--md-tertiary-container);
+  color: var(--md-on-tertiary-container);
+}
+html[data-look='material'] .pill.ink {
+  background: var(--md-inverse-surface);
+  color: var(--md-inverse-on-surface);
+}
+
+/* --- Surfaces -------------------------------------------------------------- */
+html[data-look='material'] .card {
+  border: 0;
+  box-shadow: none;
+  background: var(--md-surface-container-low);
+}
+html[data-look='material'] .card.accent {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  box-shadow: none;
+}
+html[data-look='material'] .card.dark {
+  background: var(--md-inverse-surface);
+  color: var(--md-inverse-on-surface);
+}
+
+/* --- Controls -------------------------------------------------------------- */
+html[data-look='material'] .button,
+html[data-look='material'] .btn {
+  min-height: 40px;
+  padding: 0 1.25rem;
+  border: 0;
+  border-radius: 1.25rem;
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+  font-weight: 500;
+  font-size: 0.875rem;
+  letter-spacing: 0.01em;
+}
+html[data-look='material'] .button:hover,
+html[data-look='material'] .btn:hover {
+  background: var(--md-secondary-container);
+  filter: brightness(0.96);
+}
+html[data-look='material'] .button.primary,
+html[data-look='material'] .btn.primary,
+html[data-look='material'] .button.dark,
+html[data-look='material'] .btn.dark {
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+  border: 0;
+}
+html[data-look='material'] .button.secondary,
+html[data-look='material'] .btn.secondary {
+  background: transparent;
+  color: var(--md-primary);
+  border: 1px solid var(--md-outline);
+}
+html[data-look='material'] .button.ghost,
+html[data-look='material'] .btn.ghost {
+  background: transparent;
+  color: var(--md-primary);
+}
+html[data-look='material'] .button.danger,
+html[data-look='material'] .btn.danger {
+  color: var(--md-error);
+}
+html[data-look='material'] input:not([type='checkbox']):not([type='radio']):not([type='range']),
+html[data-look='material'] select,
+html[data-look='material'] textarea {
+  border: 1px solid var(--md-outline);
+  border-radius: 0.25rem;
+  background: transparent;
+  min-height: 48px;
+}
+html[data-look='material'] input:focus-visible,
+html[data-look='material'] select:focus-visible,
+html[data-look='material'] textarea:focus-visible {
+  border-color: var(--md-primary);
+  box-shadow: inset 0 0 0 1px var(--md-primary);
+}
+html[data-look='material'] input[type='checkbox'],
+html[data-look='material'] input[type='radio'] {
+  accent-color: var(--md-primary);
+}
+html[data-look='material'] :focus-visible {
+  outline-color: var(--md-primary);
+}
+
+/* --- Shell: top app bar, navigation bar ----------------------------------- */
+html[data-look='material'] body .app-bar {
+  background: var(--md-surface-container);
+  color: var(--md-on-surface);
+}
+html[data-look='material'] body .app-bar .brand img {
+  display: none;
+}
+html[data-look='material'] body .app-bar .brand-text {
+  display: inline;
+  font-size: 1.375rem;
+  font-weight: 400;
+  color: var(--md-on-surface);
+}
+html[data-look='material'] body .app-bar .brand-sub {
+  display: none;
+}
+html[data-look='material'] body .toplinks a {
+  color: var(--md-on-surface-variant);
+  font-family: var(--font-body);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  border-radius: 1.25rem;
+}
+html[data-look='material'] body .toplinks a:hover,
+html[data-look='material'] body .toplinks a[aria-current='page'] {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+html[data-look='material'] body .toplinks a.scancta,
+html[data-look='material'] body .toplinks a.scancta:hover,
+html[data-look='material'] body .toplinks a.scancta[aria-current='page'] {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  font-weight: 500;
+}
+html[data-look='material'] body .pixelstripe {
+  display: none;
+}
+html[data-look='material'] body .tabbar {
+  background: var(--md-surface-container);
+  border-top: 0;
+}
+html[data-look='material'] body .tabbar a {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--md-on-surface-variant);
+  gap: 0.25rem;
+  padding-top: 0.75rem;
+}
+html[data-look='material'] body .tabbar svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  box-sizing: content-box;
+  padding: 0.25rem 1.25rem;
+  border-radius: 1rem;
+}
+html[data-look='material'] body .tabbar a[aria-current='page'] {
+  color: var(--md-on-surface);
+}
+html[data-look='material'] body .tabbar a[aria-current='page'] svg {
+  background: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+html[data-look='material'] body .tabbar a[aria-current='page']::before {
+  display: none;
+}
+
+/* --- Banners --------------------------------------------------------------- */
+html[data-look='material'] body .leaveby {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  border-bottom: 0;
+}
+html[data-look='material'] body .leaveby.urgent {
+  background: var(--md-tertiary-container);
+  color: var(--md-on-tertiary-container);
+}
+html[data-look='material'] body .leaveby .kicker,
+html[data-look='material'] body .leaveby .musttag {
+  font-family: var(--font-body);
+  letter-spacing: 0.03em;
+}
+
+/* --- Segmented controls (day tabs, ranking rounds) ------------------------ */
+html[data-look='material'] body .days button.active,
+html[data-look='material'] body .modes button.active {
+  background: var(--md-secondary-container);
+  border-color: var(--md-secondary-container);
+  color: var(--md-on-secondary-container);
+}
+html[data-look='material'] body .days {
+  background: var(--md-surface-container-high);
+}
+html[data-look='material'] body .modes .count {
+  background: var(--md-primary);
+  color: var(--md-on-primary);
+}
