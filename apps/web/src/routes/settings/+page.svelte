@@ -203,6 +203,14 @@
     {/if}
   </section>
   <section class="card">
+    <h2>Setup</h2>
+    <p class="muted">
+      The welcome steps from the first run: reminders, ticket, your card, ranking. Nothing is reset
+      by running them again.
+    </p>
+    <a class="button secondary" href={resolve('/welcome')}>Run setup again</a>
+  </section>
+  <section class="card">
     <h2>Privacy</h2>
     <ul>
       {#each privacyRules as rule (rule)}<li>{rule}</li>{/each}

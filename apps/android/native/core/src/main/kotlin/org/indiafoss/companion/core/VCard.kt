@@ -18,12 +18,14 @@ data class ContactCard(
     val fossUnitedUsername: String = "",
     val matrixId: String = "",
     val avatarUrl: String = "",
+    /** The ticket QR's reference (`ticket::…`): a correlation key for organisers, never an identity. */
+    val ticketRef: String = "",
     /** Network → URL or handle: github, linkedin, mastodon, x, telegram, … */
     val socials: Map<String, String> = emptyMap(),
     /** Which fields the card encodes; email and phone are off unless switched on. */
     val share: Map<String, Boolean> = emptyMap(),
 ) {
-    fun shares(field: String): Boolean = share[field] ?: (field != "email" && field != "phone")
+    fun shares(field: String): Boolean = share[field] ?: (field != "email" && field != "phone" && field != "ticketRef")
 }
 
 object VCard {
@@ -53,6 +55,7 @@ object VCard {
             push("X-INDIAFOSS-MATRIX", card.matrixId)
             push("IMPP", "matrix:${card.matrixId.trim()}")
         }
+        if (card.shares("ticketRef") && card.ticketRef.isNotBlank()) push("X-INDIAFOSS-TICKET", card.ticketRef)
         if (card.shares("photo")) {
             val photo = card.avatarUrl.ifBlank { githubAvatar(card.socials["github"]) ?: "" }
             if (photo.startsWith("https://") && (card.avatarUrl.isNotBlank() || card.shares("github"))) {
@@ -101,6 +104,7 @@ object VCard {
                 } else if (card.website.isEmpty()) card = card.copy(website = value)
                 "X-FOSSUNITED-PROFILE" -> card = card.copy(fossUnitedUsername = value.substringAfter("/u/").trimEnd('/'))
                 "X-INDIAFOSS-MATRIX", "X-MATRIX-ID" -> card = card.copy(matrixId = value)
+                "X-INDIAFOSS-TICKET" -> card = card.copy(ticketRef = value)
                 "PHOTO" -> if (value.startsWith("https://")) card = card.copy(avatarUrl = value)
                 "X-SOCIALPROFILE" -> {
                     val type = Regex("TYPE=([A-Z0-9_-]+)").find(params)?.groupValues?.get(1)?.lowercase()

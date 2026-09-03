@@ -12,8 +12,35 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('home shows event facts', async ({ page }) => {
+  await page.goto(appUrl('/?setup=done'));
   await expect(page.getByText(/131 sessions/)).toBeVisible();
   await expect(page.getByText(/117 speakers/)).toBeVisible();
+});
+
+test('first run opens the welcome wizard once: reminders, ticket, you, then rank', async ({
+  page,
+}) => {
+  // beforeEach landed on `/`, which hands over to the wizard on a fresh device.
+  await expect(page).toHaveURL(/\/welcome$/);
+  await expect(page.getByRole('heading', { name: /Welcome to IndiaFOSS 2025/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Not now' }).click();
+  // A ticket must look like ticket::…
+  const ticket = page.getByLabel('Ticket reference');
+  await ticket.fill('nope');
+  await expect(page.getByRole('button', { name: /Save ticket/ })).toBeDisabled();
+  await ticket.fill('ticket::abc123');
+  await page.getByRole('button', { name: /Save ticket/ }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Asha Menon');
+  await page.getByLabel('GitHub').fill('https://github.com/asha');
+  await page.getByRole('button', { name: /Save →/ }).click();
+  await page.getByRole('button', { name: /Rank my sessions/ }).click();
+  await expect(page).toHaveURL(/\/plan\/rank$/);
+  // What was entered is on the card; the wizard does not come back.
+  await page.goto(appUrl('/connect'));
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Asha Menon');
+  await page.goto(appUrl('/'));
+  await expect(page.getByText(/131 sessions/)).toBeVisible();
+  await expect(page).not.toHaveURL(/welcome/);
 });
 
 test('schedule lists sessions grouped by time', async ({ page }) => {
@@ -483,7 +510,7 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
   page,
 }) => {
   // Load once so the current revision is recorded locally.
-  await page.goto(appUrl('/'));
+  await page.goto(appUrl('/?setup=done'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
   const current = await page.evaluate(async () => {
     const res = await fetch(

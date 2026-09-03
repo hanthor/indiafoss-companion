@@ -35,6 +35,15 @@ class PreferencesStore(private val context: Context) {
         context.dataStore.edit { it[remindersKey] = on }
     }
 
+    private val onboardingKey = booleanPreferencesKey("onboarding-done")
+
+    /** Null until the store has been read; false brings up the welcome screen once (#107). */
+    val onboardingDone: Flow<Boolean> = context.dataStore.data.map { it[onboardingKey] ?: false }
+
+    suspend fun setOnboardingDone(done: Boolean) {
+        context.dataStore.edit { it[onboardingKey] = done }
+    }
+
     private val profileKey = stringPreferencesKey("routing-profile")
 
     /** fastest | avoid-stairs | accessible, as the web's routing preference. */

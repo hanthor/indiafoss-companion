@@ -33,7 +33,7 @@ import org.indiafoss.companion.UiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit, onRoutingProfile: (String) -> Unit) {
+fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit, onRoutingProfile: (String) -> Unit, onSetup: () -> Unit = {}) {
     val context = LocalContext.current
     // Android 13+ asks for the notification permission; below that it is granted by install.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -90,6 +90,18 @@ fun SettingsScreen(state: UiState, onReminders: (Boolean) -> Unit, onRoutingProf
                             )
                         }
                     }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Setup", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "The welcome steps from the first run: reminders, ticket, your card, ranking. Nothing is reset by running them again.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    TextButton(onClick = onSetup) { Text("Run setup again") }
                 }
             }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {

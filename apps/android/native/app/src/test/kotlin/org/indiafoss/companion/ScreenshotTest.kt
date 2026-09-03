@@ -19,6 +19,7 @@ import org.indiafoss.companion.ui.screens.PlanScreen
 import org.indiafoss.companion.ui.screens.RankScreen
 import org.indiafoss.companion.ui.screens.ScheduleScreen
 import org.indiafoss.companion.ui.screens.SettingsScreen
+import org.indiafoss.companion.ui.screens.WelcomeScreen
 import org.indiafoss.companion.ui.theme.CompanionTheme
 import org.junit.Rule
 import org.junit.Test
@@ -91,7 +92,8 @@ class ScreenshotTest {
             emptyList(), fingerprint = "8a79ebf182010f3a91c20d4e", onSave = {}, onScan = {}, onRemoveContact = {},
         ) {}
     }
-    @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}) {} }
+    @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}, {}) {} }
+    @Test fun welcome() = shoot("welcome") { WelcomeScreen(state(), {}, {}, {}) {} }
     @Test fun banner() = shoot("banner") { LeaveByBanner(state("2025-09-20T09:58:00+05:30")) {} }
 }
 
