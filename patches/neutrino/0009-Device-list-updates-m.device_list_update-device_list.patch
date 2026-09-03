@@ -1,0 +1,1124 @@
+From 33320b424aebd349ef84c03f7f05998ac6d11f1a Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 06:05:49 +0000
+Subject: [PATCH] Device-list updates: m.device_list_update,
+ device_lists.changed, /keys/changes
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+A peer who reinstalls the app is a new device with new keys. Until now
+nothing told the other phones, so they kept encrypting to the device
+that was gone.
+
+- Every `/keys/upload` carrying device keys is a device-list change: the
+  user's `stream_id` advances — persisted in a new `device_streams` table
+  (schema v6), so a restart cannot replay an old one — and an
+  `m.device_list_update` EDU goes through the durable outbox to every
+  server sharing a room with the user, the same path as room keys.
+- Inbound updates for a peer's user land in a change log; one naming a
+  user we own is dropped. Each sliding-sync connection remembers where it
+  last read the log and reports the users after that under
+  `extensions.e2ee.device_lists.changed`, filtered to those sharing a
+  room with the caller, and a change wakes a waiting long-poll. Legacy
+  `/sync` carries the same under the top-level `device_lists`, and its
+  real one-time key counts.
+- `GET /keys/changes` answers with every user sharing a room whose
+  devices have changed at all: a superset of the exact answer, since
+  legacy tokens carry no device-log coordinate, and safe, because the
+  only thing a client does with the list is fetch keys again.
+- The federation `GET /user/devices/{user}` reports the real stream id.
+- A login that names a device gets that device; one that names none
+  gets a fresh id under the multi-user shim and the conventional id in
+  the single-user build.
+
+Complement: `TestKeyChangesLocal` added to the allowlist.
+`TestDeviceListUpdates` is left out — its local subtests want
+`device_lists.changed`/`left` to follow room membership, which this
+server does not derive.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BpiYvGvwkJUSJAXCXAkai1
+---
+ complement/VIABLE-TESTS.md                    |   2 +-
+ complement/allowlist.txt                      |  10 ++
+ crates/neutrino-http/src/e2ee.rs              |  80 +++++++++
+ crates/neutrino-http/src/federation/keys.rs   |   9 +-
+ crates/neutrino-http/src/federation/send.rs   |  26 +++
+ crates/neutrino-http/src/federation/tests.rs  | 148 ++++++++++++++++
+ .../src/legacy_sync/translate.rs              |   8 +-
+ crates/neutrino-http/src/lib.rs               | 165 ++++++++++++++++--
+ crates/neutrino-http/src/sliding_sync/conn.rs |   5 +
+ crates/neutrino-http/src/sliding_sync/mod.rs  |  37 +++-
+ .../neutrino-http/src/sliding_sync/tests.rs   | 111 ++++++++++++
+ crates/neutrino-http/tests/e2e_keys.rs        |  35 ++++
+ crates/neutrino-http/tests/e2e_legacy_sync.rs |  35 ++++
+ .../neutrino-http/tests/e2e_sliding_sync.rs   |   8 +-
+ crates/neutrino-store-sqlite/src/schema.rs    |   2 +-
+ crates/neutrino-store-sqlite/src/schema.sql   |  10 ++
+ .../neutrino-store-sqlite/src/store/e2ee.rs   |  25 +++
+ crates/neutrino-store/src/lib.rs              |   7 +
+ 18 files changed, 698 insertions(+), 25 deletions(-)
+
+diff --git a/complement/VIABLE-TESTS.md b/complement/VIABLE-TESTS.md
+index fecf197..7bcad0e 100644
+--- a/complement/VIABLE-TESTS.md
++++ b/complement/VIABLE-TESTS.md
+@@ -34,7 +34,7 @@ From `crates/neutrino-http/src/lib.rs:201-277`. The Complement image is built wi
+ - No `POST /user/{uid}/filter` (+ `GET …/filter/{id}`) — blocks the large filtered-`/sync` tranche.
+ - No `/joined_members`, `/joined_rooms`, `/publicRooms`, `/directory/room/{alias}` (no room directory).
+ - No `/forget`, `/upgrade`, profile/displayname/avatar writes, account_data writes (so no `/read_markers`).
+-- No `/devices` management, no `m.device_list_update` (so no `device_lists.changed` in sync).
++- No `/devices` management. (`m.device_list_update` and `device_lists.changed` landed 2026-09-03 for device changes; membership-driven `changed`/`left` are not derived — see the allowlist's last block.)
+ - 404 fallback returns plain text, not `{"errcode":"M_UNRECOGNIZED"}`.
+ - No presence / push rules; no working cross-server federation join.
+ 
+diff --git a/complement/allowlist.txt b/complement/allowlist.txt
+index 715a089..24f93b2 100644
+--- a/complement/allowlist.txt
++++ b/complement/allowlist.txt
+@@ -130,3 +130,13 @@ TestUploadKeyIdempotency$
+ TestUploadKeyIdempotencyOverlap$
+ TestKeyClaimOrdering$
+ TestKeysQueryWithDeviceIDAsObjectFails$
++
++# Device-list updates (2026-09-03): a device change is announced to peers as
++# `m.device_list_update` and to clients under `device_lists.changed`, and a
++# login that names no device gets a fresh one under the shim. Not viable:
++# `TestDeviceListUpdates` — its local subtests expect `device_lists.changed`
++# and `.left` to follow room membership (a user newly sharing, or no longer
++# sharing, an encrypted room), which this server does not derive; clients
++# built on matrix-sdk-crypto track room members themselves, so nothing we
++# ship depends on it.
++TestKeyChangesLocal$
+diff --git a/crates/neutrino-http/src/e2ee.rs b/crates/neutrino-http/src/e2ee.rs
+index 32e622d..7203df5 100644
+--- a/crates/neutrino-http/src/e2ee.rs
++++ b/crates/neutrino-http/src/e2ee.rs
+@@ -61,6 +61,10 @@ pub(crate) enum Op {
+     RemoveToDevice {
+         ids: Vec<i64>,
+     },
++    SetDeviceStream {
++        user: String,
++        stream_id: u64,
++    },
+ }
+ 
+ fn raw(value: &Value) -> Box<RawJsonValue> {
+@@ -83,6 +87,17 @@ pub(crate) struct KeyStore {
+     pub(crate) one_time_keys: BTreeMap<String, BTreeMap<String, IndexMap<String, Value>>>,
+     /// Cross-signing keys, merged as uploaded and echoed back on query.
+     pub(crate) cross_signing: serde_json::Map<String, Value>,
++    /// `device_streams[user] -> stream_id`: how many times a local user's
++    /// device list has changed. Carried in `m.device_list_update` so a peer
++    /// can order our updates and notice a gap; persisted for that reason.
++    pub(crate) device_streams: BTreeMap<String, u64>,
++    /// Every device-list change this node has learnt of, local or remote, as
++    /// `(seq, user)` in the order it happened. A sync connection remembers
++    /// the `seq` it last served and reports the users after it under
++    /// `device_lists.changed` — the cue for a client to fetch keys again.
++    pub(crate) device_changes: Vec<(u64, String)>,
++    /// The last `seq` handed out.
++    pub(crate) device_seq: u64,
+     /// Where every mutation is written through to, when persistence is
+     /// attached. `None` in unit tests that want memory only.
+     journal: Option<mpsc::UnboundedSender<Op>>,
+@@ -111,6 +126,44 @@ impl KeyStore {
+             .insert(device.to_owned(), keys);
+     }
+ 
++    /// Note that `user`'s device list changed. For one of our own users the
++    /// stream advances and is journaled, and the new `stream_id` is returned
++    /// for the `m.device_list_update` that announces it; for a peer's user
++    /// (`local = false`) only the change log moves, since their server owns
++    /// their stream.
++    pub(crate) fn note_device_change(&mut self, user: &str, local: bool) -> u64 {
++        self.device_seq += 1;
++        self.device_changes.push((self.device_seq, user.to_owned()));
++        if !local {
++            return 0;
++        }
++        let stream = self.device_streams.entry(user.to_owned()).or_default();
++        *stream += 1;
++        let stream_id = *stream;
++        self.journal(Op::SetDeviceStream {
++            user: user.to_owned(),
++            stream_id,
++        });
++        stream_id
++    }
++
++    /// A local user's device-list `stream_id`; `0` before any change.
++    pub(crate) fn device_stream(&self, user: &str) -> u64 {
++        self.device_streams.get(user).copied().unwrap_or(0)
++    }
++
++    /// Users whose device list changed after `since`, oldest first, each
++    /// once.
++    pub(crate) fn device_changes_since(&self, since: u64) -> Vec<String> {
++        let mut out: Vec<String> = Vec::new();
++        for (seq, user) in &self.device_changes {
++            if *seq > since && !out.contains(user) {
++                out.push(user.clone());
++            }
++        }
++        out
++    }
++
+     /// Store a cross-signing section as uploaded; echoed back on query.
+     pub(crate) fn put_cross_signing(&mut self, name: &str, value: Value) {
+         self.journal(Op::PutCrossSigning {
+@@ -345,6 +398,9 @@ impl E2eeState {
+                     .insert(device.clone(), keys);
+             }
+         }
++        for (user, stream_id) in &snapshot.device_streams {
++            inner.keys.device_streams.insert(user.clone(), *stream_id);
++        }
+         for (user, device, key_id, key) in &snapshot.one_time_keys {
+             if let Some(key) = parse(key) {
+                 inner
+@@ -408,6 +464,9 @@ impl E2eeState {
+                         store.push_to_device(*id, user, event).await
+                     }
+                     Op::RemoveToDevice { ids } => store.remove_to_device(ids).await,
++                    Op::SetDeviceStream { user, stream_id } => {
++                        store.put_device_stream(user, *stream_id).await
++                    }
+                 };
+                 if let Err(e) = result {
+                     error!(error = %e, ?op, "persisting E2EE state");
+@@ -460,6 +519,27 @@ impl E2eeState {
+         drained.into_iter().map(|(_, event)| event).collect()
+     }
+ 
++    /// Record a device-list change and wake every sync waiting on this
++    /// state: a client that learns of it now can fetch the new keys before
++    /// its next message, not after. Returns the user's new `stream_id`
++    /// (`0` for a peer's user).
++    pub(crate) fn note_device_change(&self, user: &str, local: bool) -> u64 {
++        let stream_id = self.lock().keys.note_device_change(user, local);
++        self.changed.send_modify(|n| *n += 1);
++        stream_id
++    }
++
++    /// The change-log position now; a sync remembers it and asks for what
++    /// came after.
++    pub(crate) fn device_seq(&self) -> u64 {
++        self.lock().keys.device_seq
++    }
++
++    /// Users whose device list changed after `since`.
++    pub(crate) fn device_changes_since(&self, since: u64) -> Vec<String> {
++        self.lock().keys.device_changes_since(since)
++    }
++
+     /// How many to-device events wait for `user` — what a long-poll checks to
+     /// decide whether it has something to return.
+     pub(crate) fn pending_to_device(&self, user: &str) -> usize {
+diff --git a/crates/neutrino-http/src/federation/keys.rs b/crates/neutrino-http/src/federation/keys.rs
+index a704261..88ac781 100644
+--- a/crates/neutrino-http/src/federation/keys.rs
++++ b/crates/neutrino-http/src/federation/keys.rs
+@@ -103,10 +103,9 @@ pub(crate) async fn claim(
+ /// for one of our users, which is how a peer discovers devices it was never
+ /// told about rather than having to guess device ids.
+ ///
+-/// `stream_id` is required by the spec and is meant to order device-list
+-/// updates. We have no device-list stream (nothing here ever revokes a device),
+-/// so it is a constant: a peer using it to detect staleness will conclude our
+-/// list never changes, which is true of this implementation.
++/// `stream_id` is the user's device-list stream: bumped on every change and
++/// carried in `m.device_list_update`, so a peer comparing the two knows
++/// whether it has missed an update.
+ pub(crate) async fn devices(
+     State(state): State<AppState>,
+     headers: HeaderMap,
+@@ -133,7 +132,7 @@ pub(crate) async fn devices(
+         .collect::<Vec<_>>();
+     let mut response = json!({
+         "user_id": user.as_str(),
+-        "stream_id": 1,
++        "stream_id": inner.keys.device_stream(user.as_str()),
+         "devices": devices,
+     });
+     // Cross-signing keys ride along under the names the spec gives them here,
+diff --git a/crates/neutrino-http/src/federation/send.rs b/crates/neutrino-http/src/federation/send.rs
+index f9a1718..2b34de4 100644
+--- a/crates/neutrino-http/src/federation/send.rs
++++ b/crates/neutrino-http/src/federation/send.rs
+@@ -391,6 +391,10 @@ fn deliver_edus(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>]) {
+                 apply_receipts(state, edu.get("content"));
+                 continue;
+             }
++            Some("m.device_list_update") => {
++                apply_device_list_update(state, our_name, edu.get("content"));
++                continue;
++            }
+             _ => continue,
+         }
+         let content = edu.get("content");
+@@ -433,6 +437,28 @@ fn deliver_edus(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>]) {
+     }
+ }
+ 
++/// `m.device_list_update` content: `{ user_id, device_id, stream_id, ... }`.
++/// A peer's user changed a device, so every client here that shares a room
++/// with them is told under `device_lists.changed` and fetches keys again —
++/// which goes to the peer over federation, so nothing is cached to refresh.
++/// An update naming one of our own users is a peer's mistake, and dropped.
++fn apply_device_list_update(state: &AppState, our_name: &str, content: Option<&serde_json::Value>) {
++    let Some(user) = content
++        .and_then(|c| c.get("user_id"))
++        .and_then(serde_json::Value::as_str)
++    else {
++        return;
++    };
++    let ours =
++        ruma::OwnedUserId::try_from(user).is_ok_and(|u| u.server_name().as_str() == our_name);
++    if ours {
++        warn!(%user, "dropping a device-list update for a user we own");
++        return;
++    }
++    let e2ee = lock_app(state).e2ee.clone();
++    e2ee.note_device_change(user, false);
++}
++
+ /// `m.typing` content: `{ room_id, user_id, typing }`. The notice is kept only
+ /// for a user on the origin's side of the wire — a peer cannot make one of our
+ /// users look like they are typing.
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index 3e57115..b4efeb7 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -6511,3 +6511,151 @@ async fn inbound_typing_and_receipt_edus_are_applied() {
+     assert_eq!(receipt.event_id, join_id);
+     assert_eq!(receipt.ts, 77);
+ }
++
++// === Device-list updates ==================================================
++
++/// A room alice created that `peer_user()` has joined, straight into the
++/// store: the shape every device-list audience question starts from.
++async fn room_shared_with_peer(store: &SqliteStore) -> OwnedRoomId {
++    let create = EventBuilder::new(
++        alice(),
++        "m.room.create".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .state_key(String::new())
++    .content(json!({ "room_version": ROOM_VERSION_ID }))
++    .build()
++    .unwrap();
++    let room_id = create.room_id.clone();
++    let join = EventBuilder::new(
++        alice(),
++        "m.room.member".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .room_id(room_id.clone())
++    .state_key(alice().as_str().to_owned())
++    .content(json!({ "membership": "join" }))
++    .prev_events(vec![create.event_id.clone()])
++    .prev_state_events(vec![create.event_id.clone()])
++    .build()
++    .unwrap();
++    let peer_join = EventBuilder::new(
++        peer_user(),
++        "m.room.member".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .room_id(room_id.clone())
++    .state_key(peer_user().as_str().to_owned())
++    .content(json!({ "membership": "join" }))
++    .prev_events(vec![join.event_id.clone()])
++    .prev_state_events(vec![join.event_id.clone()])
++    .build()
++    .unwrap();
++    store
++        .create_room(&create, &[join, peer_join])
++        .await
++        .unwrap();
++    room_id
++}
++
++#[tokio::test]
++async fn key_upload_announces_a_device_list_update_to_peers() {
++    // A new device is a device-list change: every server sharing a room
++    // with the user is told through the durable outbox, with a stream id
++    // that counts the user's changes, and the federation device list
++    // reports the same id so a peer can tell whether it missed one.
++    let (store, _tmp) = fresh_store().await;
++    room_shared_with_peer(&store).await;
++    let app = router_with_store(config(), store.clone());
++
++    upload_device(&app, alice().as_str(), "PHONE", json!({})).await;
++    upload_device(&app, alice().as_str(), "LAPTOP", json!({})).await;
++
++    let dest: &ServerName = TEST_PEER.try_into().unwrap();
++    let queued = store.pending_edus(dest, usize::MAX).await.unwrap();
++    let updates: Vec<Value> = queued
++        .iter()
++        .map(|e| serde_json::from_str(e.raw.get()).unwrap())
++        .filter(|e: &Value| e["edu_type"] == "m.device_list_update")
++        .collect();
++    assert_eq!(updates.len(), 2, "one update per device change");
++    assert_eq!(updates[0]["content"]["user_id"], alice().as_str());
++    assert_eq!(updates[0]["content"]["device_id"], "PHONE");
++    assert_eq!(updates[0]["content"]["stream_id"], 1);
++    assert_eq!(updates[0]["content"]["deleted"], false);
++    assert!(
++        updates[0]["content"]["keys"]["keys"].is_object(),
++        "keys ride along"
++    );
++    assert_eq!(updates[1]["content"]["stream_id"], 2);
++
++    let req = Request::builder()
++        .method("GET")
++        .uri(format!("/_matrix/federation/v1/user/devices/{}", alice()))
++        .body(Body::empty())
++        .unwrap();
++    let (_, body) = drive(&app, req).await;
++    assert_eq!(body["stream_id"], 2);
++}
++
++#[tokio::test]
++async fn inbound_device_list_update_marks_the_peer_changed() {
++    // A peer's update is the cue for our clients to fetch their keys again:
++    // it lands in the change log and `/keys/changes` reports it to anyone
++    // sharing a room. An update naming one of our own users is dropped.
++    let (store, _tmp) = fresh_store().await;
++    room_shared_with_peer(&store).await;
++    let state = crate::AppState::from_store(config(), store.clone());
++    let app = crate::build_router(&state);
++
++    let status = send_edus(
++        &app,
++        "dlu-1",
++        json!([
++            {
++                "edu_type": "m.device_list_update",
++                "content": { "user_id": peer_user().as_str(), "device_id": "P1", "stream_id": 7, "deleted": false },
++            },
++            {
++                "edu_type": "m.device_list_update",
++                "content": { "user_id": alice().as_str(), "device_id": "X", "stream_id": 1, "deleted": false },
++            },
++        ]),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++
++    let e2ee = crate::lock_app(&state).e2ee.clone();
++    assert_eq!(e2ee.device_changes_since(0), vec![peer_user().to_string()]);
++
++    let (status, body) = get(&app, "/_matrix/client/v3/keys/changes?from=a&to=b").await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(body["changed"], json!([peer_user().as_str()]));
++    assert_eq!(body["left"], json!([]));
++}
++
++#[tokio::test]
++async fn device_stream_survives_a_restart() {
++    // A restart that reset the stream would look, to a peer, like updates
++    // from the past: the counter is persisted with the keys.
++    let (store, _tmp) = fresh_store().await;
++    let first = crate::AppState::from_store(config(), store.clone());
++    let app = crate::build_router(&first);
++    upload_device(&app, alice().as_str(), "PHONE", json!({})).await;
++    upload_device(&app, alice().as_str(), "LAPTOP", json!({})).await;
++    wait_for_persisted(&store, |s| {
++        s.device_streams == vec![(alice().to_string(), 2)]
++    })
++    .await;
++
++    let second = crate::AppState::from_store(config(), store.clone());
++    second.load_e2ee().await.unwrap();
++    let app = crate::build_router(&second);
++    let req = Request::builder()
++        .method("GET")
++        .uri(format!("/_matrix/federation/v1/user/devices/{}", alice()))
++        .body(Body::empty())
++        .unwrap();
++    let (_, body) = drive(&app, req).await;
++    assert_eq!(body["stream_id"], 2, "stream continues where it left off");
++}
+diff --git a/crates/neutrino-http/src/legacy_sync/translate.rs b/crates/neutrino-http/src/legacy_sync/translate.rs
+index fe00fa6..e205618 100644
+--- a/crates/neutrino-http/src/legacy_sync/translate.rs
++++ b/crates/neutrino-http/src/legacy_sync/translate.rs
+@@ -122,6 +122,7 @@ pub fn synthesize_v5_request(query: &LegacyQuery) -> v5::Request {
+     let mut extensions = v5::request::Extensions::default();
+     extensions.typing.enabled = Some(true);
+     extensions.receipts.enabled = Some(true);
++    extensions.e2ee.enabled = Some(true);
+     req.extensions = extensions;
+ 
+     req
+@@ -266,8 +267,11 @@ pub fn translate_response(
+         "presence": {"events": []},
+         "account_data": {"events": []},
+         "to_device": {"events": []},
+-        "device_lists": {"changed": [], "left": []},
+-        "device_one_time_keys_count": {},
++        "device_lists": {
++            "changed": resp.extensions.e2ee.device_lists.changed,
++            "left": resp.extensions.e2ee.device_lists.left,
++        },
++        "device_one_time_keys_count": resp.extensions.e2ee.device_one_time_keys_count,
+     })
+ }
+ 
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 13ca4e9..1f6948e 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -598,6 +598,7 @@ fn build_router(state: &AppState) -> Router {
+         .route("/_matrix/client/v3/keys/query", post(keys_query))
+         .route("/_matrix/client/v3/keys/upload", post(keys_upload))
+         .route("/_matrix/client/v3/keys/claim", post(keys_claim))
++        .route("/_matrix/client/v3/keys/changes", get(keys_changes))
+         .route(
+             "/_matrix/client/v3/sendToDevice/{event_type}/{txn_id}",
+             put(send_to_device),
+@@ -909,6 +910,28 @@ async fn get_login() -> Json<Value> {
+     }))
+ }
+ 
++/// The device id a register or login gets when the request names none.
++/// Under the multi-user shim every login is a distinct device, as on a real
++/// homeserver, so device-list changes and multi-device key queries can be
++/// exercised; the single-user build keeps the one conventional id, which is
++/// what the embedded node's own client expects.
++#[cfg(feature = "multi-user-shim")]
++fn fresh_device_id() -> String {
++    use rand::Rng;
++    use rand::distr::Alphanumeric;
++    let suffix: String = rand::rng()
++        .sample_iter(Alphanumeric)
++        .take(10)
++        .map(|c| char::from(c).to_ascii_uppercase())
++        .collect();
++    format!("DEV{suffix}")
++}
++
++#[cfg(not(feature = "multi-user-shim"))]
++fn fresh_device_id() -> String {
++    "DEVICEID".to_owned()
++}
++
+ async fn post_register(state: State<AppState>, body: Json<Value>) -> (StatusCode, Json<Value>) {
+     // No `auth` block — initiate UIA so the client knows which flows to attempt.
+     if body.0.get("auth").is_none() {
+@@ -926,8 +949,9 @@ async fn post_register(state: State<AppState>, body: Json<Value>) -> (StatusCode
+         .0
+         .pointer("/device_id")
+         .and_then(|v| v.as_str())
+-        .unwrap_or("DEVICEID")
+-        .to_string();
++        .filter(|d| !d.is_empty())
++        .map(str::to_owned)
++        .unwrap_or_else(fresh_device_id);
+ 
+     #[cfg(feature = "multi-user-shim")]
+     {
+@@ -985,10 +1009,7 @@ async fn post_register(state: State<AppState>, body: Json<Value>) -> (StatusCode
+     }
+ }
+ 
+-async fn post_login(
+-    state: State<AppState>,
+-    #[cfg(feature = "multi-user-shim")] body: Json<Value>,
+-) -> (StatusCode, Json<Value>) {
++async fn post_login(state: State<AppState>, body: Json<Value>) -> (StatusCode, Json<Value>) {
+     info!("Logged in");
+ 
+     #[cfg(feature = "multi-user-shim")]
+@@ -1019,7 +1040,13 @@ async fn post_login(
+                     "user_id": user_id,
+                     "access_token": token,
+                     "home_server": server_name,
+-                    "device_id": "DEVICEID",
++                    "device_id": body
++                        .0
++                        .pointer("/device_id")
++                        .and_then(|v| v.as_str())
++                        .filter(|d| !d.is_empty())
++                        .map(str::to_owned)
++                        .unwrap_or_else(fresh_device_id),
+                 })),
+             ),
+             // Mirror `/register`: a malformed identifier is a 400, not a 200
+@@ -1041,7 +1068,16 @@ async fn post_login(
+                 "user_id": app.config.user_id(),
+                 "access_token": "syt_1234567890abcdef",
+                 "home_server": app.config.server_name,
+-                "device_id": "DEVICEID",
++                // The device the client names is the device it gets — a
++                // reinstalled client picks a new id so it is a new device,
++                // not the old one with keys that no longer match.
++                "device_id": body
++                    .0
++                    .pointer("/device_id")
++                    .and_then(|v| v.as_str())
++                    .filter(|d| !d.is_empty())
++                    .map(str::to_owned)
++                    .unwrap_or_else(fresh_device_id),
+             })),
+         )
+     }
+@@ -1593,18 +1629,119 @@ async fn keys_upload(
+         .unwrap_or("DEVICEID")
+         .to_owned();
+ 
+-    let mut inner = e2ee.lock();
++    let counts = {
++        let mut inner = e2ee.lock();
++        if let Some(keys) = device_keys {
++            inner.keys.put_device(&user, &device, keys.clone());
++        }
++        if let Some(one_time) = body.pointer("/one_time_keys").and_then(Value::as_object) {
++            inner.keys.put_one_time_keys(&user, &device, one_time);
++        }
++        inner.keys.one_time_key_counts(&user, &device)
++    };
++
++    // A new or changed device is a device-list change: local clients hear
++    // of it under `device_lists.changed`, and every server sharing a room
++    // with this user gets an `m.device_list_update` through the durable
++    // outbox, so a peer that is out of range encrypts to the new device the
++    // moment the link heals rather than to a device that is gone.
+     if let Some(keys) = device_keys {
+-        inner.keys.put_device(&user, &device, keys.clone());
+-    }
+-    if let Some(one_time) = body.pointer("/one_time_keys").and_then(Value::as_object) {
+-        inner.keys.put_one_time_keys(&user, &device, one_time);
++        let stream_id = e2ee.note_device_change(&user, true);
++        let (our_name, store) = {
++            let app = lock_app(&state.0);
++            (app.config.server_name.clone(), app.store.clone())
++        };
++        let edu = json!({
++            "edu_type": "m.device_list_update",
++            "content": {
++                "user_id": user,
++                "device_id": device,
++                "stream_id": stream_id,
++                "prev_id": [],
++                "deleted": false,
++                "keys": keys,
++            },
++        });
++        if let Err(e) = fan_out_edu_to_peers(
++            &store,
++            &caller,
++            &our_name,
++            &format!("dlu-{user}-{stream_id}"),
++            &edu,
++        )
++        .await
++        {
++            warn!(error = %e, "queueing m.device_list_update");
++        }
+     }
+ 
+-    let counts = inner.keys.one_time_key_counts(&user, &device);
+     Json(json!({ "one_time_key_counts": counts })).into_response()
+ }
+ 
++/// `GET /keys/changes?from&to` — users whose device list changed between two
++/// sync tokens. Legacy tokens here are per-connection positions with no
++/// device-log coordinate behind them, so this answers with every user sharing
++/// a room with the caller whose devices have changed at all: a superset of
++/// the exact answer, and safe, since the only thing a client does with the
++/// list is fetch those users' keys again.
++async fn keys_changes(
++    state: State<AppState>,
++    AuthUser(caller): AuthUser,
++) -> axum::response::Response {
++    let (store, e2ee) = {
++        let app = lock_app(&state.0);
++        (app.store.clone(), app.e2ee.clone())
++    };
++    let mut shared = std::collections::BTreeSet::new();
++    let rooms = match store.joined_rooms(&caller).await {
++        Ok(rooms) => rooms,
++        Err(e) => return storage_error(e),
++    };
++    for room in rooms {
++        match store.joined_members(&room).await {
++            Ok(members) => shared.extend(members.into_keys()),
++            Err(e) => return storage_error(e),
++        }
++    }
++    let changed: Vec<String> = e2ee
++        .device_changes_since(0)
++        .into_iter()
++        .filter(|u| ruma::OwnedUserId::try_from(u.as_str()).is_ok_and(|id| shared.contains(&id)))
++        .collect();
++    Json(json!({ "changed": changed, "left": [] })).into_response()
++}
++
++fn storage_error(e: StorageError) -> axum::response::Response {
++    error_response(
++        StatusCode::INTERNAL_SERVER_ERROR,
++        "M_UNKNOWN",
++        &e.to_string(),
++    )
++}
++
++/// Queue one EDU for every server that shares a room with `user` — the
++/// audience of a device-list update, which is not room-scoped.
++async fn fan_out_edu_to_peers(
++    store: &SqliteStore,
++    user: &ruma::UserId,
++    our_name: &str,
++    edu_id: &str,
++    edu: &Value,
++) -> Result<(), StorageError> {
++    let mut servers: Vec<ruma::OwnedServerName> = Vec::new();
++    for room in store.joined_rooms(user).await? {
++        servers.extend(member_servers(store, &room, our_name).await?);
++    }
++    servers.sort();
++    servers.dedup();
++    if servers.is_empty() {
++        return Ok(());
++    }
++    let raw =
++        serde_json::value::to_raw_value(edu).expect("an EDU built from json! always serializes");
++    store.enqueue_edu(&servers, edu_id, &raw).await
++}
++
+ async fn device_signing_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     let e2ee = lock_app(&state.0).e2ee.clone();
+ 
+diff --git a/crates/neutrino-http/src/sliding_sync/conn.rs b/crates/neutrino-http/src/sliding_sync/conn.rs
+index 146cbbb..d290876 100644
+--- a/crates/neutrino-http/src/sliding_sync/conn.rs
++++ b/crates/neutrino-http/src/sliding_sync/conn.rs
+@@ -106,6 +106,11 @@ pub struct Conn {
+     /// as an empty notice rather than by omission. `0` on a fresh connection:
+     /// every room that has ever had a notice is reported once.
+     pub ephemeral_version: u64,
++    /// The device-change log position this connection last rendered into
++    /// `device_lists.changed`. Users who changed after it are reported on the
++    /// next e2ee extension; `0` on a fresh connection reports everyone who
++    /// has ever changed, which is the initial sync a client expects.
++    pub device_list_pos: u64,
+     pub lists: BTreeMap<String, ListCfg>,
+     pub subs: BTreeMap<OwnedRoomId, SubCfg>,
+     pub sent: HashMap<OwnedRoomId, RoomSent>,
+diff --git a/crates/neutrino-http/src/sliding_sync/mod.rs b/crates/neutrino-http/src/sliding_sync/mod.rs
+index da10100..b37ecb1 100644
+--- a/crates/neutrino-http/src/sliding_sync/mod.rs
++++ b/crates/neutrino-http/src/sliding_sync/mod.rs
+@@ -27,6 +27,7 @@ use crate::e2ee::E2eeState;
+ use crate::ephemeral::EphemeralState;
+ use neutrino_store::{StorageBackend, StorageError};
+ use ruma::OneTimeKeyAlgorithm;
++use ruma::OwnedUserId;
+ use ruma::UInt;
+ use ruma::UserId;
+ use ruma::api::client::sync::sync_events::v5;
+@@ -235,6 +236,10 @@ pub async fn handle<S: StorageBackend>(
+     let ephemeral_at_start = state.ephemeral.version();
+     let wants_ephemeral = req.extensions.typing.enabled == Some(true)
+         || req.extensions.receipts.enabled == Some(true);
++    // Device-list changes: a peer's new device is data for a client that
++    // opted into e2ee, with no room event behind it.
++    let wants_e2ee = req.extensions.e2ee.enabled == Some(true);
++    let device_seq_at_start = state.e2ee.device_seq();
+ 
+     // Short wait while the prior holder (if any) observes the cancel above
+     // and unwinds.
+@@ -287,6 +292,7 @@ pub async fn handle<S: StorageBackend>(
+             || has_data(&resp)
+             || has_to_device(state, user_id, &extensions_req)
+             || (wants_ephemeral && state.ephemeral.version() != ephemeral_at_start)
++            || (wants_e2ee && state.e2ee.device_seq() != device_seq_at_start)
+         {
+             break resp;
+         }
+@@ -318,7 +324,7 @@ pub async fn handle<S: StorageBackend>(
+             tokio::select! {
+                 _ = rx.changed() => {}
+                 _ = delivery_rx.changed(), if state.delivery_receipts => {}
+-                _ = e2ee_rx.changed(), if extensions_req.to_device.enabled == Some(true) => {}
++                _ = e2ee_rx.changed(), if extensions_req.to_device.enabled == Some(true) || wants_e2ee => {}
+                 _ = ephemeral_rx.changed(), if wants_ephemeral => {}
+             }
+         };
+@@ -479,6 +485,18 @@ fn has_to_device<S>(
+     req_ext.to_device.enabled == Some(true) && state.e2ee.pending_to_device(user_id.as_str()) > 0
+ }
+ 
++/// Everyone who shares a joined room with `user_id`, the caller included.
++async fn shared_room_members<S: StorageBackend>(
++    state: &SyncState<S>,
++    user_id: &UserId,
++) -> Result<std::collections::BTreeSet<OwnedUserId>, SyncError> {
++    let mut members = std::collections::BTreeSet::new();
++    for room in state.store.joined_rooms(user_id).await? {
++        members.extend(state.store.joined_members(&room).await?.into_keys());
++    }
++    Ok(members)
++}
++
+ /// Fill the e2ee / to_device extensions the client opted into.
+ ///
+ /// `to_device` **drains** the inbox: Matrix delivers a to-device message once,
+@@ -509,6 +527,23 @@ async fn populate_extensions<S: StorageBackend>(
+             );
+         }
+         e2ee.device_unused_fallback_key_types = Some(Vec::new());
++        // Users whose device list changed since this connection last looked,
++        // among those sharing a room with the caller: the cue to fetch their
++        // keys again before the next message is encrypted to a device that
++        // no longer exists.
++        let now = state.e2ee.device_seq();
++        let changed = state.e2ee.device_changes_since(conn.device_list_pos);
++        if !changed.is_empty() {
++            let shared = shared_room_members(state, user_id).await?;
++            for user in changed {
++                if let Ok(id) = OwnedUserId::try_from(user.as_str())
++                    && shared.contains(&id)
++                {
++                    e2ee.device_lists.changed.push(id);
++                }
++            }
++        }
++        conn.device_list_pos = now;
+         resp.extensions.e2ee = e2ee;
+     }
+     if req_ext.typing.enabled == Some(true) {
+diff --git a/crates/neutrino-http/src/sliding_sync/tests.rs b/crates/neutrino-http/src/sliding_sync/tests.rs
+index 8a561c4..d3a78ad 100644
+--- a/crates/neutrino-http/src/sliding_sync/tests.rs
++++ b/crates/neutrino-http/src/sliding_sync/tests.rs
+@@ -3540,3 +3540,114 @@ async fn receipts_extension_carries_real_read_receipts() {
+         serde_json::json!(1234)
+     );
+ }
++
++/// A room `user` created that `peer` has joined.
++async fn room_shared_with(store: &Arc<SqliteStore>, user: &UserId, peer: &UserId) -> OwnedRoomId {
++    let create = neutrino_event::event_builder::EventBuilder::new(
++        user.to_owned(),
++        "m.room.create".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .state_key(String::new())
++    .content(serde_json::json!({ "room_version": ROOM_VERSION_ID }))
++    .build()
++    .unwrap();
++    let room_id = create.room_id.clone();
++    let join = neutrino_event::event_builder::EventBuilder::new(
++        user.to_owned(),
++        "m.room.member".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .room_id(room_id.clone())
++    .state_key(user.as_str().to_owned())
++    .content(serde_json::json!({ "membership": "join" }))
++    .prev_events(vec![create.event_id.clone()])
++    .prev_state_events(vec![create.event_id.clone()])
++    .build()
++    .unwrap();
++    let peer_join = neutrino_event::event_builder::EventBuilder::new(
++        peer.to_owned(),
++        "m.room.member".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .room_id(room_id.clone())
++    .state_key(peer.as_str().to_owned())
++    .content(serde_json::json!({ "membership": "join" }))
++    .prev_events(vec![join.event_id.clone()])
++    .prev_state_events(vec![join.event_id.clone()])
++    .build()
++    .unwrap();
++    store
++        .create_room(&create, &[join, peer_join])
++        .await
++        .unwrap();
++    room_id
++}
++
++fn e2ee_request() -> Request {
++    let mut req = Request::new();
++    let mut list = request::List::default();
++    list.ranges = vec![(UInt::from(0u32), UInt::from(9u32))];
++    list.room_details.timeline_limit = UInt::from(5u32);
++    req.lists.insert("all".to_owned(), list);
++    req.extensions.e2ee.enabled = Some(true);
++    req
++}
++
++#[tokio::test]
++async fn e2ee_extension_reports_a_device_list_change_once() {
++    let (store, _tmp) = fresh_store().await;
++    let state = SyncState::new(store.clone(), no_shutdown());
++    let me = user_id!("@alice:example.org");
++    let peer = user_id!("@peer:remote.example.org");
++    let stranger = user_id!("@nobody:remote.example.org");
++    room_shared_with(&store, me, peer).await;
++
++    state.e2ee.note_device_change(peer.as_str(), false);
++    state.e2ee.note_device_change(stranger.as_str(), false);
++
++    let resp = handle(&state, me, e2ee_request()).await.unwrap();
++    assert_eq!(
++        resp.extensions.e2ee.device_lists.changed,
++        vec![peer.to_owned()],
++        "only users sharing a room are reported"
++    );
++
++    let mut next = e2ee_request();
++    next.pos = Some(resp.pos.clone());
++    let resp = handle(&state, me, next).await.unwrap();
++    assert!(
++        resp.extensions.e2ee.device_lists.changed.is_empty(),
++        "reported once, not on every sync"
++    );
++}
++
++#[tokio::test]
++async fn a_device_list_change_wakes_a_long_poll() {
++    let (store, _tmp) = fresh_store().await;
++    let state = Arc::new(SyncState::new(store.clone(), no_shutdown()));
++    let me = user_id!("@alice:example.org");
++    let peer = user_id!("@peer:remote.example.org");
++    room_shared_with(&store, me, peer).await;
++
++    let initial = handle(&state, me, e2ee_request()).await.unwrap();
++    let mut req = e2ee_request();
++    req.pos = Some(initial.pos.clone());
++    req.timeout = Some(std::time::Duration::from_secs(10));
++    let poll = {
++        let state = state.clone();
++        tokio::spawn(async move { handle(&state, me, req).await })
++    };
++    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
++    state.e2ee.note_device_change(peer.as_str(), false);
++
++    let resp = tokio::time::timeout(std::time::Duration::from_secs(3), poll)
++        .await
++        .expect("long-poll woke on the device-list change")
++        .unwrap()
++        .unwrap();
++    assert_eq!(
++        resp.extensions.e2ee.device_lists.changed,
++        vec![peer.to_owned()]
++    );
++}
+diff --git a/crates/neutrino-http/tests/e2e_keys.rs b/crates/neutrino-http/tests/e2e_keys.rs
+index e5e4f1e..82f26dc 100644
+--- a/crates/neutrino-http/tests/e2e_keys.rs
++++ b/crates/neutrino-http/tests/e2e_keys.rs
+@@ -132,3 +132,38 @@ async fn well_formed_upload_round_trips_through_query() {
+         "stored device_keys should be echoed back, got {body}"
+     );
+ }
++
++/// The device id a client names at login is the one it gets, so a
++/// reinstalled client — new store, new id — is a new device rather than the
++/// old one with keys that no longer match; a login naming none keeps the
++/// single-user build's conventional id.
++#[tokio::test]
++async fn login_honours_the_device_id_the_client_names() {
++    async fn login(app: &axum::Router, body: &Value) -> Value {
++        let req = Request::builder()
++            .method("POST")
++            .uri("/_matrix/client/v3/login")
++            .header("content-type", "application/json")
++            .body(Body::from(serde_json::to_vec(body).unwrap()))
++            .unwrap();
++        let resp = app.clone().oneshot(req).await.unwrap();
++        assert!(resp.status().is_success(), "login: {}", resp.status());
++        let bytes = axum::body::to_bytes(resp.into_body(), 1 << 20)
++            .await
++            .unwrap();
++        serde_json::from_slice(&bytes).unwrap()
++    }
++    let (app, _tmp) = test_router().await;
++    let named = login(
++        &app,
++        &json!({ "type": "m.login.password", "user": "alice", "password": "x", "device_id": "IFNEWPHONE" }),
++    )
++    .await;
++    let unnamed = login(
++        &app,
++        &json!({ "type": "m.login.password", "user": "alice", "password": "x" }),
++    )
++    .await;
++    assert_eq!(named["device_id"], "IFNEWPHONE");
++    assert_eq!(unnamed["device_id"], "DEVICEID");
++}
+diff --git a/crates/neutrino-http/tests/e2e_legacy_sync.rs b/crates/neutrino-http/tests/e2e_legacy_sync.rs
+index e427661..7a0d12b 100644
+--- a/crates/neutrino-http/tests/e2e_legacy_sync.rs
++++ b/crates/neutrino-http/tests/e2e_legacy_sync.rs
+@@ -535,3 +535,38 @@ async fn legacy_sync_carries_typing_and_receipts_as_ephemeral_events() {
+         "own read receipt: {receipt}"
+     );
+ }
++
++/// A device change reaches a legacy client under the top-level
++/// `device_lists.changed`, alongside its own one-time key counts.
++#[tokio::test]
++async fn legacy_sync_carries_device_list_changes_and_key_counts() {
++    let (app, _tmp) = test_router().await;
++    let (status, body) = post(&app, "/_matrix/client/v3/createRoom", &json!({})).await;
++    assert_eq!(status, StatusCode::OK);
++    assert!(body["room_id"].is_string());
++    let (status, _) = post(
++        &app,
++        "/_matrix/client/v3/keys/upload",
++        &json!({
++            "device_keys": {
++                "user_id": "@alice:example.org",
++                "device_id": "DEVICEID",
++                "algorithms": ["m.olm.v1.curve25519-aes-sha2"],
++                "keys": { "curve25519:DEVICEID": "c", "ed25519:DEVICEID": "e" },
++                "signatures": { "@alice:example.org": { "ed25519:DEVICEID": "sig" } },
++            },
++            "one_time_keys": { "signed_curve25519:a": { "key": "k" } },
++        }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "upload");
++
++    let (status, body) = get(&app, LEGACY_SYNC_PATH, None).await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(
++        body["device_lists"]["changed"],
++        json!(["@alice:example.org"])
++    );
++    assert_eq!(body["device_lists"]["left"], json!([]));
++    assert_eq!(body["device_one_time_keys_count"]["signed_curve25519"], 1);
++}
+diff --git a/crates/neutrino-http/tests/e2e_sliding_sync.rs b/crates/neutrino-http/tests/e2e_sliding_sync.rs
+index 242620f..20d3bb7 100644
+--- a/crates/neutrino-http/tests/e2e_sliding_sync.rs
++++ b/crates/neutrino-http/tests/e2e_sliding_sync.rs
+@@ -466,7 +466,13 @@ async fn extension_e2ee_reports_the_real_one_time_key_count() {
+ 
+     // Upload two one-time keys for the local user's device; the count follows.
+     let upload = json!({
+-        "device_keys": { "device_id": "PHONE", "keys": {} },
++        "device_keys": {
++            "user_id": "@alice:example.org",
++            "device_id": "PHONE",
++            "algorithms": ["m.olm.v1.curve25519-aes-sha2"],
++            "keys": {},
++            "signatures": {},
++        },
+         "one_time_keys": {
+             "signed_curve25519:k1": { "key": "one" },
+             "signed_curve25519:k2": { "key": "two" },
+diff --git a/crates/neutrino-store-sqlite/src/schema.rs b/crates/neutrino-store-sqlite/src/schema.rs
+index 8474a54..988e466 100644
+--- a/crates/neutrino-store-sqlite/src/schema.rs
++++ b/crates/neutrino-store-sqlite/src/schema.rs
+@@ -8,7 +8,7 @@ const SCHEMA_SQL: &str = include_str!("schema.sql");
+ /// shape, so a store written by an older build is refused at open (loudly, and
+ /// before any query hits a column that does not exist) rather than breaking
+ /// mid-request. One constant so the stamp and the gate cannot drift.
+-pub(crate) const SCHEMA_VERSION: i64 = 5;
++pub(crate) const SCHEMA_VERSION: i64 = 6;
+ 
+ /// Version-gate the database against the bundled schema. Authoritative
+ /// open-time check per design doc §2 "Open path: version gate & schema bundle".
+diff --git a/crates/neutrino-store-sqlite/src/schema.sql b/crates/neutrino-store-sqlite/src/schema.sql
+index bf5a94a..e69829d 100644
+--- a/crates/neutrino-store-sqlite/src/schema.sql
++++ b/crates/neutrino-store-sqlite/src/schema.sql
+@@ -498,6 +498,16 @@ CREATE TABLE one_time_keys (
+     PRIMARY KEY (user, device, key_id)
+ ) STRICT, WITHOUT ROWID;
+ 
++-- A local user's device-list stream: bumped on every device change and sent
++-- in `m.device_list_update`, so a peer can order our updates and notice a
++-- gap. Persisted because a restart that reset it would look, to a peer, like
++-- an update from the past.
++CREATE TABLE device_streams (
++    user      TEXT NOT NULL,
++    stream_id INTEGER NOT NULL,
++    PRIMARY KEY (user)
++) STRICT, WITHOUT ROWID;
++
+ CREATE TABLE cross_signing_keys (
+     name   TEXT NOT NULL PRIMARY KEY,
+     value  TEXT NOT NULL
+diff --git a/crates/neutrino-store-sqlite/src/store/e2ee.rs b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+index 6c24898..acce367 100644
+--- a/crates/neutrino-store-sqlite/src/store/e2ee.rs
++++ b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+@@ -78,6 +78,17 @@ impl E2eeStore for SqliteStore {
+                 snapshot.to_device.push((id, user, raw(event)?));
+             }
+ 
++            let mut stmt = conn.prepare("SELECT user, stream_id FROM device_streams")?;
++            let rows = stmt.query_map([], |row| {
++                Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
++            })?;
++            for r in rows {
++                let (user, stream_id) = r?;
++                snapshot
++                    .device_streams
++                    .push((user, u64::try_from(stream_id).unwrap_or(0)));
++            }
++
+             Ok(snapshot)
+         })
+         .await
+@@ -166,6 +177,20 @@ impl E2eeStore for SqliteStore {
+         .await
+     }
+ 
++    async fn put_device_stream(&self, user: &str, stream_id: u64) -> Result<(), StorageError> {
++        let user = user.to_owned();
++        let stream_id = i64::try_from(stream_id).unwrap_or(i64::MAX);
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "INSERT INTO device_streams (user, stream_id) VALUES (?, ?) \
++                 ON CONFLICT (user) DO UPDATE SET stream_id = excluded.stream_id",
++                params![user, stream_id],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++
+     async fn push_to_device(
+         &self,
+         id: i64,
+diff --git a/crates/neutrino-store/src/lib.rs b/crates/neutrino-store/src/lib.rs
+index 5e50b53..aa2c100 100644
+--- a/crates/neutrino-store/src/lib.rs
++++ b/crates/neutrino-store/src/lib.rs
+@@ -841,6 +841,10 @@ pub struct E2eeSnapshot {
+     pub cross_signing: Vec<(String, Box<RawJsonValue>)>,
+     /// `(inbox id, recipient user, event)`, in delivery order.
+     pub to_device: Vec<(i64, String, Box<RawJsonValue>)>,
++    /// `(user, stream_id)`: how many times each local user's device list has
++    /// changed, the counter `m.device_list_update` carries so a peer can
++    /// order updates and notice a gap.
++    pub device_streams: Vec<(String, u64)>,
+ }
+ 
+ /// Durable home for the server's share of E2EE. On a phone the app is killed
+@@ -891,6 +895,9 @@ pub trait E2eeStore: Send + Sync {
+     async fn put_cross_signing(&self, name: &str, value: &RawJsonValue)
+     -> Result<(), StorageError>;
+ 
++    /// Record a local user's device-list `stream_id` after a change.
++    async fn put_device_stream(&self, user: &str, stream_id: u64) -> Result<(), StorageError>;
++
+     /// Pre:  `id` is unique per process lifetime and increasing (the caller
+     ///       seeds its counter from the loaded snapshot's maximum).
+     /// Post: the event waits for `user` under `id`; a repeat of the same id is
+-- 
+2.43.0
+

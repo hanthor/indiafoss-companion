@@ -272,7 +272,12 @@ export class MatrixSessionManager {
   async signInWithPassword(homeserverInput: string, user: string, password: string): Promise<void> {
     const base = await MatrixClient.discover(homeserverInput, this.opts.fetch);
     const client = new MatrixClient(base, null, this.opts.fetch);
-    const session = await client.loginWithPassword(user, password, this.opts.deviceName);
+    const session = await client.loginWithPassword(
+      user,
+      password,
+      this.opts.deviceName,
+      freshDeviceId(),
+    );
     await this.adopt(client, session);
   }
 
@@ -1026,4 +1031,16 @@ export class MatrixSessionManager {
       this.flushing = false;
     }
   }
+}
+
+/**
+ * A device id for a new sign-in. Ten characters from the alphabet real
+ * homeservers use, so it reads like theirs; the prefix says which app made
+ * it when it shows up in a device list.
+ */
+function freshDeviceId(): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const bytes = new Uint8Array(10);
+  crypto.getRandomValues(bytes);
+  return 'IF' + Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
 }

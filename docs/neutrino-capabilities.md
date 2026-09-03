@@ -189,6 +189,16 @@ Everything above 3 is Rust in `element-hq/neutrino`. Two notes on how:
   tested in CI without a pair of phones. BLE hardware is only needed for the
   transport itself, which we are not changing.
 
+## Device-list updates (patch `0009`)
+
+A reinstalled app is a new device. The fork now announces a device change
+to every server sharing a room with the user (`m.device_list_update`
+through the durable outbox) and to local clients (`device_lists.changed` in
+sync, which wakes a waiting long-poll), and a fresh sign-in gets a new
+device id. The two-node reinstall proof in `tools/neutrino-probe` throws
+Bob's client away, signs a fresh one in on the same node, and checks that
+Alice's next message decrypts on it.
+
 ## Conformance: Complement
 
 Neutrino carries a harness for matrix-org/complement, the Matrix conformance
