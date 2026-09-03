@@ -1,0 +1,717 @@
+From 55803cb786b1cb26881e35d0ce7ec3f6fce7c5fb Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 04:35:08 +0000
+Subject: [PATCH] Redaction: m.room.redaction through the room actor, applied
+ on read
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+PUT /rooms/{room}/redact/{eventId}/{txnId} builds an m.room.redaction
+(room v11+ carries `redacts` in content) and sends it through the room
+actor like any other event, so it is persisted, DAG-linked and federated
+with no special path.
+
+What makes it a redaction is what the read paths do with it. Sliding sync
+and /messages ask the store which accepted redactions target the events
+they are about to return (json_extract on the stored row; no new table),
+decide whether each is allowed — the redaction's sender is the target's
+sender, or holds at least the room's `redact` power level — and prune the
+target per the room version's redaction rules, carrying the redaction as
+unsigned.redacted_because. A redaction that is not allowed is served as
+an event and changes nothing, which is what a real homeserver does with
+it. Applying on read rather than rewriting the row keeps the DAG's bytes
+intact for hashing, and copes with a redaction that arrives before or
+after its target over federation.
+
+Tests: the author redacts a message (with a reason) and a reaction and
+both come back pruned from /messages; a peer's redaction of someone
+else's message changes nothing; sliding sync prunes too.
+---
+ crates/neutrino-event/src/event_view.rs       |  87 +++++++-
+ crates/neutrino-http/src/federation/tests.rs  | 205 ++++++++++++++++++
+ crates/neutrino-http/src/lib.rs               |  41 ++++
+ crates/neutrino-http/src/messages.rs          |  13 +-
+ crates/neutrino-http/src/redactions.rs        | 143 ++++++++++++
+ .../neutrino-http/src/sliding_sync/build.rs   |  10 +-
+ .../neutrino-store-sqlite/src/store/events.rs |  40 ++++
+ crates/neutrino-store/src/lib.rs              |  12 +
+ 8 files changed, 542 insertions(+), 9 deletions(-)
+ create mode 100644 crates/neutrino-http/src/redactions.rs
+
+diff --git a/crates/neutrino-event/src/event_view.rs b/crates/neutrino-event/src/event_view.rs
+index f714699..8448083 100644
+--- a/crates/neutrino-event/src/event_view.rs
++++ b/crates/neutrino-event/src/event_view.rs
+@@ -15,6 +15,7 @@
+ //! See `docs/event-view-conversions.md` for the rationale and the call-site
+ //! migration plan.
+ 
++use ruma::canonical_json::CanonicalJsonObject;
+ use ruma::events::{
+     AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, AnyTimelineEvent,
+ };
+@@ -24,6 +25,7 @@ use serde_json::{Map, Value};
+ use thiserror::Error;
+ 
+ use crate::Event;
++use crate::RoomVersion;
+ 
+ /// Failure mode for the `TryFrom<&Event>` impls into state-shaped client
+ /// views: an `Event` whose `state_key` is `None` cannot be represented as a
+@@ -43,7 +45,7 @@ pub enum StateEventConversionError {
+ /// `rooms.join.<id>.…`. `Always` is for the full-event endpoints where the
+ /// event is delivered standalone (`/_matrix/client/v3/rooms/{}/event/{id}`).
+ #[derive(Copy, Clone)]
+-enum IncludeRoomId {
++pub enum IncludeRoomId {
+     OnlyOnCreate,
+     Always,
+ }
+@@ -72,6 +74,89 @@ fn enrich_for_client(ev: &Event, policy: IncludeRoomId) -> Box<RawValue> {
+     to_raw_value(&Value::Object(obj)).expect("JSON object → RawValue is infallible")
+ }
+ 
++/// A client view of `ev` after `because` (an `m.room.redaction`) has been
++/// applied: the room version's redaction rules prune everything but the keys
++/// the version keeps, and `unsigned.redacted_because` carries the redaction
++/// event so a client can show who deleted it and why. The event's own id,
++/// sender, type and timestamp survive, which is what lets a timeline keep its
++/// shape while the words are gone.
++///
++/// Redaction is applied on read rather than by rewriting the stored row: the
++/// DAG needs the original bytes for its hashes, and a redaction is itself an
++/// event that can arrive before or after its target over federation.
++pub fn redacted_for_client(
++    ev: &Event,
++    because: &Event,
++    version: &RoomVersion,
++    policy: IncludeRoomId,
++) -> Box<RawValue> {
++    let mut obj: CanonicalJsonObject = serde_json::from_str(ev.raw.get())
++        .expect("Event.raw is a JSON object by parse_event invariant");
++    // A failure here means the row violates the parse invariant (non-object
++    // content); fall back to the unredacted enrichment rather than panic a
++    // read path, since the alternative is a sync that never returns.
++    if crate::event_id::redact_for_hash(&mut obj, version).is_err() {
++        return enrich_for_client(ev, policy);
++    }
++    let mut obj: Map<String, Value> = serde_json::to_value(obj)
++        .ok()
++        .and_then(|v| v.as_object().cloned())
++        .unwrap_or_default();
++    obj.insert("event_id".into(), Value::String(ev.event_id.to_string()));
++    let is_create = ev.event_type == "m.room.create";
++    match (policy, is_create) {
++        (IncludeRoomId::Always, _) | (IncludeRoomId::OnlyOnCreate, true) => {
++            obj.insert("room_id".into(), Value::String(ev.room_id.to_string()));
++        }
++        (IncludeRoomId::OnlyOnCreate, false) => {
++            obj.remove("room_id");
++        }
++    }
++    let because_json: Value =
++        serde_json::from_str(enrich_for_client(because, IncludeRoomId::Always).get())
++            .expect("enriched event is a JSON object");
++    let mut unsigned = Map::new();
++    unsigned.insert("redacted_because".into(), because_json);
++    obj.insert("unsigned".into(), Value::Object(unsigned));
++    to_raw_value(&Value::Object(obj)).expect("JSON object → RawValue is infallible")
++}
++
++/// The `/sync` timeline view of `ev`, redacted when `because` names the
++/// redaction that applies to it.
++pub fn sync_timeline_view(
++    ev: &Event,
++    because: Option<&Event>,
++    version: &RoomVersion,
++) -> Raw<AnySyncTimelineEvent> {
++    match because {
++        Some(because) => Raw::from_json(redacted_for_client(
++            ev,
++            because,
++            version,
++            IncludeRoomId::OnlyOnCreate,
++        )),
++        None => Raw::from(ev),
++    }
++}
++
++/// The standalone (`/messages`, `/event`) view of `ev`, redacted when
++/// `because` names the redaction that applies to it.
++pub fn timeline_view(
++    ev: &Event,
++    because: Option<&Event>,
++    version: &RoomVersion,
++) -> Raw<AnyTimelineEvent> {
++    match because {
++        Some(because) => Raw::from_json(redacted_for_client(
++            ev,
++            because,
++            version,
++            IncludeRoomId::Always,
++        )),
++        None => Raw::from(ev),
++    }
++}
++
+ /// `/sync` `timeline.events` (v3) and v5 timeline. Both message and state
+ /// events are accepted (the umbrella type covers both); the conversion is
+ /// infallible by construction.
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index 3ed2920..eed17f9 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -6188,3 +6188,208 @@ async fn device_keys_one_time_keys_and_inbox_survive_a_restart() {
+     })
+     .await;
+ }
++
++// === Redaction ===============================================================
++
++/// `GET /messages` newest-first, as the client sees it.
++async fn messages_of(app: &axum::Router, room_id: &str) -> Vec<Value> {
++    let req = Request::builder()
++        .method("GET")
++        .uri(format!(
++            "/_matrix/client/v3/rooms/{}/messages?dir=b&limit=50",
++            urlencoding(room_id)
++        ))
++        .body(Body::empty())
++        .unwrap();
++    let (status, body) = drive(app, req).await;
++    assert_eq!(status, StatusCode::OK, "messages: {body}");
++    body["chunk"].as_array().cloned().unwrap_or_default()
++}
++
++fn urlencoding(s: &str) -> String {
++    s.replace('!', "%21")
++        .replace(':', "%3A")
++        .replace('$', "%24")
++}
++
++async fn cs_put(app: &axum::Router, path: &str, body: &Value) -> (StatusCode, Value) {
++    let req = Request::builder()
++        .method("PUT")
++        .uri(path)
++        .header("content-type", "application/json")
++        .body(Body::from(serde_json::to_vec(body).unwrap()))
++        .unwrap();
++    drive(app, req).await
++}
++
++#[tokio::test]
++async fn author_can_redact_a_message_and_a_reaction() {
++    let (app, _tmp) = test_router().await;
++    let (_, created) = post_json(&app, "/_matrix/client/v3/createRoom", &json!({})).await;
++    let room_id = created["room_id"].as_str().unwrap().to_owned();
++    let (_, sent) = cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/send/m.room.message/t1",
++            urlencoding(&room_id)
++        ),
++        &json!({ "msgtype": "m.text", "body": "regrettable" }),
++    )
++    .await;
++    let message_id = sent["event_id"].as_str().unwrap().to_owned();
++    let (_, reacted) = cs_put(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{}/send/m.reaction/t2", urlencoding(&room_id)),
++        &json!({ "m.relates_to": { "rel_type": "m.annotation", "event_id": message_id, "key": "👍" } }),
++    )
++    .await;
++    let reaction_id = reacted["event_id"].as_str().unwrap().to_owned();
++
++    // Un-react, then delete the message, with a reason.
++    let (status, _) = cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/redact/{}/t3",
++            urlencoding(&room_id),
++            urlencoding(&reaction_id)
++        ),
++        &json!({}),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let (status, redaction) = cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/redact/{}/t4",
++            urlencoding(&room_id),
++            urlencoding(&message_id)
++        ),
++        &json!({ "reason": "typo" }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let redaction_id = redaction["event_id"].as_str().unwrap().to_owned();
++
++    let chunk = messages_of(&app, &room_id).await;
++    let by_id = |id: &str| chunk.iter().find(|e| e["event_id"] == id).cloned().unwrap();
++
++    // The message keeps its identity and loses its words; the client can see
++    // who deleted it and why.
++    let message = by_id(&message_id);
++    assert_eq!(message["type"], "m.room.message");
++    assert_eq!(message["content"], json!({}));
++    assert_eq!(
++        message["unsigned"]["redacted_because"]["event_id"],
++        redaction_id
++    );
++    assert_eq!(
++        message["unsigned"]["redacted_because"]["content"]["reason"],
++        "typo"
++    );
++    // The reaction's relation is gone with its content, which is what
++    // un-reacting means to a client aggregating annotations.
++    let reaction = by_id(&reaction_id);
++    assert_eq!(reaction["content"], json!({}));
++    // The redaction events themselves are ordinary timeline events.
++    let redaction = by_id(&redaction_id);
++    assert_eq!(redaction["type"], "m.room.redaction");
++    assert_eq!(redaction["content"]["redacts"], message_id);
++}
++
++#[tokio::test]
++async fn redaction_by_someone_without_power_changes_nothing() {
++    // A peer's redaction of Alice's message is stored and served as an
++    // event, and Alice's message stays intact: neither the author nor
++    // holding the room's redact level.
++    let (store, _tmp) = fresh_store().await;
++    let (room_id, join_id) = create_joined_room_in(&store, &alice(), 1).await;
++    let message = EventBuilder::new(
++        alice(),
++        "m.room.message".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .room_id(room_id.clone())
++    .content(json!({ "msgtype": "m.text", "body": "mine" }))
++    .prev_events(vec![join_id.clone()])
++    .prev_state_events(vec![join_id.clone()])
++    .origin_server_ts(2)
++    .build()
++    .unwrap();
++    store.persist_event(&message, &[]).await.unwrap();
++    let redaction = EventBuilder::new(
++        peer_user(),
++        "m.room.redaction".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .room_id(room_id.clone())
++    .content(json!({ "redacts": message.event_id, "reason": "no" }))
++    .prev_events(vec![message.event_id.clone()])
++    .prev_state_events(vec![join_id.clone()])
++    .origin_server_ts(3)
++    .build()
++    .unwrap();
++    store.persist_event(&redaction, &[]).await.unwrap();
++
++    let app = router_with_store(config(), store.clone());
++    let chunk = messages_of(&app, room_id.as_str()).await;
++    let mine = chunk
++        .iter()
++        .find(|e| e["event_id"] == message.event_id.as_str())
++        .unwrap();
++    assert_eq!(mine["content"]["body"], "mine");
++    assert!(
++        mine.get("unsigned")
++            .and_then(|u| u.get("redacted_because"))
++            .is_none()
++    );
++    assert!(
++        chunk
++            .iter()
++            .any(|e| e["event_id"] == redaction.event_id.as_str())
++    );
++}
++
++#[tokio::test]
++async fn redacted_events_are_pruned_in_sliding_sync_too() {
++    let (app, _tmp) = test_router().await;
++    let (_, created) = post_json(&app, "/_matrix/client/v3/createRoom", &json!({})).await;
++    let room_id = created["room_id"].as_str().unwrap().to_owned();
++    let (_, sent) = cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/send/m.room.message/s1",
++            urlencoding(&room_id)
++        ),
++        &json!({ "msgtype": "m.text", "body": "gone soon" }),
++    )
++    .await;
++    let message_id = sent["event_id"].as_str().unwrap().to_owned();
++    cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/redact/{}/s2",
++            urlencoding(&room_id),
++            urlencoding(&message_id)
++        ),
++        &json!({}),
++    )
++    .await;
++
++    let (status, body) = post_json(
++        &app,
++        "/_matrix/client/unstable/org.matrix.simplified_msc3575/sync",
++        &json!({ "lists": { "all": { "ranges": [[0, 9]], "timeline_limit": 10, "required_state": [] } } }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let timeline = body["rooms"][&room_id]["timeline"]
++        .as_array()
++        .cloned()
++        .unwrap_or_default();
++    let message = timeline
++        .iter()
++        .find(|e| e["event_id"] == message_id)
++        .expect("message in timeline");
++    assert_eq!(message["content"], json!({}));
++    assert!(message["unsigned"]["redacted_because"]["event_id"].is_string());
++}
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index f68f710..985d49e 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -40,6 +40,7 @@ mod federation;
+ mod legacy_sync;
+ mod membership;
+ mod messages;
++mod redactions;
+ mod sliding_sync;
+ 
+ #[cfg(feature = "multi-user-shim")]
+@@ -675,6 +676,10 @@ fn build_router(state: &AppState) -> Router {
+             "/_matrix/client/v3/rooms/{room_id}/unban",
+             post(membership::unban),
+         )
++        .route(
++            "/_matrix/client/v3/rooms/{room_id}/redact/{event_id}/{txn_id}",
++            put(redact_event),
++        )
+         .route("/_matrix/client/v3/pushers/set", post(pushers_set))
+         .route("/_matrix/client/v3/capabilities", get(get_capabilities))
+         .route(
+@@ -2079,6 +2084,42 @@ async fn put_event(
+     send_via_actor(&state.0, sender, room_id, event_type, None, body.0).await
+ }
+ 
++/// `PUT /rooms/{room}/redact/{eventId}/{txnId}` — delete a message, or take
++/// back a reaction. An `m.room.redaction` is an ordinary event through the
++/// room actor; what it does to its target happens on read (see
++/// [`redactions`]). Room v11+ carries `redacts` in content.
++async fn redact_event(
++    state: State<AppState>,
++    AuthUser(sender): AuthUser,
++    axum::extract::Path((room_id, event_id, _txn_id)): axum::extract::Path<(
++        String,
++        String,
++        String,
++    )>,
++    body: Json<Value>,
++) -> axum::response::Response {
++    if ruma::OwnedEventId::try_from(event_id.as_str()).is_err() {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_INVALID_PARAM",
++            "invalid event id",
++        );
++    }
++    let mut content = json!({ "redacts": event_id });
++    if let Some(reason) = body.0.get("reason").and_then(Value::as_str) {
++        content["reason"] = Value::String(reason.to_owned());
++    }
++    send_via_actor(
++        &state.0,
++        sender,
++        room_id,
++        "m.room.redaction".to_owned(),
++        None,
++        content,
++    )
++    .await
++}
++
+ /// `PUT /rooms/{room}/state/{type}/{stateKey}` — a state event.
+ async fn put_state(
+     state: State<AppState>,
+diff --git a/crates/neutrino-http/src/messages.rs b/crates/neutrino-http/src/messages.rs
+index 28f1f95..601c3c2 100644
+--- a/crates/neutrino-http/src/messages.rs
++++ b/crates/neutrino-http/src/messages.rs
+@@ -272,8 +272,17 @@ pub(crate) async fn get_messages(
+ 
+     // Order is exactly as room_messages returns it: `b` newest-first,
+     // `f` oldest-first. No reversal (unlike sliding-sync).
+-    let chunk: Vec<Raw<AnyTimelineEvent>> =
+-        events.iter().map(Raw::<AnyTimelineEvent>::from).collect();
++    let redacted = match crate::redactions::applicable(&*store, &rid, &events).await {
++        Ok(map) => map,
++        Err(e) => {
++            return error_response(
++                StatusCode::INTERNAL_SERVER_ERROR,
++                "M_UNKNOWN",
++                &e.to_string(),
++            );
++        }
++    };
++    let chunk: Vec<Raw<AnyTimelineEvent>> = crate::redactions::timeline_views(&events, &redacted);
+ 
+     let mut body: Map<String, Value> = Map::new();
+     body.insert("chunk".to_string(), json!(chunk));
+diff --git a/crates/neutrino-http/src/redactions.rs b/crates/neutrino-http/src/redactions.rs
+new file mode 100644
+index 0000000..6e71f42
+--- /dev/null
++++ b/crates/neutrino-http/src/redactions.rs
+@@ -0,0 +1,143 @@
++//! Redaction, applied on read.
++//!
++//! An `m.room.redaction` is an ordinary timeline event: it is sent through the
++//! room actor, persisted, and federated like any other. What makes it a
++//! redaction is what the read paths do with it — every client-facing view of a
++//! timeline asks the store which accepted redactions target the events it is
++//! about to return, decides whether each is *allowed* to apply, and prunes the
++//! target's content per the room version's redaction rules, carrying the
++//! redaction along as `unsigned.redacted_because`.
++//!
++//! Allowed means what the spec's apply-time check means: the redaction's
++//! sender is the target's sender, or holds at least the room's `redact` power
++//! level. A redaction that is not allowed is stored and served as an event,
++//! and changes nothing — exactly what a real homeserver does with it.
++
++use std::collections::BTreeMap;
++
++use neutrino_event::{Event, RoomVersion, base_version};
++use neutrino_store::{EventStore, StateStore, StorageError};
++use ruma::events::{AnySyncTimelineEvent, AnyTimelineEvent};
++use ruma::serde::Raw;
++use ruma::{EventId, OwnedEventId, RoomId, UserId};
++use serde_json::Value;
++
++/// Spec default for the `redact` power level when the room's power levels
++/// leave it unset.
++const DEFAULT_REDACT_LEVEL: i64 = 50;
++
++/// The redactions that apply to `events`, keyed by target id. At most one per
++/// target — the earliest allowed one wins, which is stable across peers since
++/// stream order on a mesh node is arrival order and the content is the same
++/// whichever redaction pruned it.
++pub(crate) async fn applicable<S: EventStore + StateStore>(
++    store: &S,
++    room_id: &RoomId,
++    events: &[Event],
++) -> Result<BTreeMap<OwnedEventId, Event>, StorageError> {
++    let ids: Vec<&EventId> = events.iter().map(|e| &*e.event_id).collect();
++    let redactions = store.redactions_of(room_id, &ids).await?;
++    if redactions.is_empty() {
++        return Ok(BTreeMap::new());
++    }
++    let by_id: BTreeMap<&EventId, &Event> = events.iter().map(|e| (&*e.event_id, e)).collect();
++    let levels = power_levels(store, room_id).await?;
++
++    let mut out = BTreeMap::new();
++    for redaction in redactions {
++        let Some(target_id) = redacts(&redaction) else {
++            continue;
++        };
++        let Some(target) = by_id.get(&*target_id) else {
++            continue;
++        };
++        if out.contains_key(&target_id) {
++            continue;
++        }
++        let same_sender = redaction.sender == target.sender;
++        if same_sender || levels.user_level(&redaction.sender) >= levels.redact {
++            out.insert(target_id, redaction);
++        }
++    }
++    Ok(out)
++}
++
++/// The `/sync` timeline view of `events`, redacted where a redaction applies.
++pub(crate) fn sync_views(
++    events: &[Event],
++    applicable: &BTreeMap<OwnedEventId, Event>,
++) -> Vec<Raw<AnySyncTimelineEvent>> {
++    let version = rules();
++    events
++        .iter()
++        .map(|e| {
++            neutrino_event::event_view::sync_timeline_view(e, applicable.get(&e.event_id), version)
++        })
++        .collect()
++}
++
++/// The `/messages` view of `events`, redacted where a redaction applies.
++pub(crate) fn timeline_views(
++    events: &[Event],
++    applicable: &BTreeMap<OwnedEventId, Event>,
++) -> Vec<Raw<AnyTimelineEvent>> {
++    let version = rules();
++    events
++        .iter()
++        .map(|e| neutrino_event::event_view::timeline_view(e, applicable.get(&e.event_id), version))
++        .collect()
++}
++
++/// The redaction rules to prune with. This server speaks one room version,
++/// whose keep-list is the base version's; a second version would make this a
++/// lookup against the room.
++fn rules() -> &'static RoomVersion {
++    base_version()
++}
++
++/// `content.redacts` of a redaction event (room v11+ carries it in content).
++fn redacts(redaction: &Event) -> Option<OwnedEventId> {
++    let content: Value = serde_json::from_str(redaction.content.get()).ok()?;
++    let id = content.get("redacts")?.as_str()?;
++    OwnedEventId::try_from(id).ok()
++}
++
++/// What the room's `m.room.power_levels` says about who may redact.
++struct Levels {
++    users: BTreeMap<String, i64>,
++    users_default: i64,
++    redact: i64,
++}
++
++impl Levels {
++    fn user_level(&self, user: &UserId) -> i64 {
++        self.users
++            .get(user.as_str())
++            .copied()
++            .unwrap_or(self.users_default)
++    }
++}
++
++async fn power_levels<S: StateStore>(store: &S, room_id: &RoomId) -> Result<Levels, StorageError> {
++    let event = store
++        .current_state_event(room_id, "m.room.power_levels", "")
++        .await?;
++    let content: Value = event
++        .and_then(|e| serde_json::from_str(e.content.get()).ok())
++        .unwrap_or(Value::Null);
++    let as_i64 = |v: Option<&Value>| v.and_then(Value::as_i64);
++    let users = content
++        .get("users")
++        .and_then(Value::as_object)
++        .map(|m| {
++            m.iter()
++                .filter_map(|(u, l)| l.as_i64().map(|l| (u.clone(), l)))
++                .collect()
++        })
++        .unwrap_or_default();
++    Ok(Levels {
++        users,
++        users_default: as_i64(content.get("users_default")).unwrap_or(0),
++        redact: as_i64(content.get("redact")).unwrap_or(DEFAULT_REDACT_LEVEL),
++    })
++}
+diff --git a/crates/neutrino-http/src/sliding_sync/build.rs b/crates/neutrino-http/src/sliding_sync/build.rs
+index d90e254..4652274 100644
+--- a/crates/neutrino-http/src/sliding_sync/build.rs
++++ b/crates/neutrino-http/src/sliding_sync/build.rs
+@@ -4,9 +4,7 @@ use neutrino_store::{Direction, Event, Membership, StorageBackend, StreamPos};
+ use ruma::UInt;
+ use ruma::api::client::sync::sync_events::v5::response;
+ use ruma::api::client::sync::sync_events::v5::{Request, Response};
+-use ruma::events::{
+-    AnyStrippedStateEvent, AnySyncStateEvent, AnySyncTimelineEvent, StateEventType,
+-};
++use ruma::events::{AnyStrippedStateEvent, AnySyncStateEvent, StateEventType};
+ use ruma::serde::Raw;
+ use ruma::{OwnedRoomId, RoomId, UserId};
+ use serde_json::value::RawValue;
+@@ -633,9 +631,9 @@ async fn build_room<S: StorageBackend>(
+         (events, None, limited)
+     };
+ 
+-    let timeline_raw: Vec<Raw<AnySyncTimelineEvent>> =
+-        timeline_events.iter().map(Into::into).collect();
+-    room.timeline = timeline_raw;
++    // Redactions apply on read: prune whatever an allowed redaction targets.
++    let redacted = crate::redactions::applicable(&*state.store, room_id, &timeline_events).await?;
++    room.timeline = crate::redactions::sync_views(&timeline_events, &redacted);
+     room.prev_batch = prev_batch_str;
+     room.limited = limited;
+     // `num_live`: MSC4186 = recent live events. Initial sync events are
+diff --git a/crates/neutrino-store-sqlite/src/store/events.rs b/crates/neutrino-store-sqlite/src/store/events.rs
+index 4891b41..fc3e677 100644
+--- a/crates/neutrino-store-sqlite/src/store/events.rs
++++ b/crates/neutrino-store-sqlite/src/store/events.rs
+@@ -51,6 +51,46 @@ impl EventStore for SqliteStore {
+         .await
+     }
+ 
++    async fn redactions_of(
++        &self,
++        room_id: &RoomId,
++        ids: &[&EventId],
++    ) -> Result<Vec<Event>, StorageError> {
++        if ids.is_empty() {
++            return Ok(Vec::new());
++        }
++        let room_id = room_id.to_owned();
++        let ids: Vec<String> = ids.iter().map(|id| id.as_str().to_owned()).collect();
++        self.run_read(move |conn| -> Result<Vec<Event>, Error> {
++            // `redacts` lives in content from room version 11 on, which is
++            // every version this server speaks; json_extract reads it straight
++            // off the stored row, so a redaction needs no table of its own.
++            let placeholders = vec!["?"; ids.len()].join(",");
++            let query = format!(
++                "SELECT {EVENT_COLUMNS} FROM events \
++                 WHERE room_id = ? AND event_type = 'm.room.redaction' \
++                   AND rejected = 0 AND soft_failed = 0 \
++                   AND json_extract(json, '$.content.redacts') IN ({placeholders}) \
++                 ORDER BY stream_pos ASC"
++            );
++            let mut binds: Vec<&str> = Vec::with_capacity(ids.len() + 1);
++            binds.push(room_id.as_str());
++            for id in &ids {
++                binds.push(id.as_str());
++            }
++            let mut stmt = conn.prepare(&query)?;
++            let rows = stmt.query_map(params_from_iter(binds.iter()), |row| {
++                Ok(EventRow::try_from(row))
++            })?;
++            let mut out = Vec::new();
++            for r in rows {
++                out.push(r??.into_event());
++            }
++            Ok(out)
++        })
++        .await
++    }
++
+     async fn persist_historical_event(&self, event: &Event) -> Result<(), StorageError> {
+         // event_id <-> raw consistency asserted inside `EventRow::from`.
+         let event = EventRow::from(event).to_owned();
+diff --git a/crates/neutrino-store/src/lib.rs b/crates/neutrino-store/src/lib.rs
+index 51b1c97..5e50b53 100644
+--- a/crates/neutrino-store/src/lib.rs
++++ b/crates/neutrino-store/src/lib.rs
+@@ -205,6 +205,18 @@ pub trait EventStore: Send + Sync {
+     ///       matching event are silently omitted (result length may be < `ids.len()`).
+     async fn get_events(&self, ids: &[&EventId]) -> Result<Vec<Event>, StorageError>;
+ 
++    /// Pre:  none.
++    /// Post: every accepted (not rejected, not soft-failed) `m.room.redaction`
++    ///       event in `room_id` whose `content.redacts` names one of `ids`, in
++    ///       stream order. The caller decides whether each redaction is
++    ///       *allowed* to apply (sender or power level); the store only finds
++    ///       them. Empty `ids` returns empty without a query.
++    async fn redactions_of(
++        &self,
++        room_id: &RoomId,
++        ids: &[&EventId],
++    ) -> Result<Vec<Event>, StorageError>;
++
+     /// Pre:  none (`StreamPos(0)` is valid for an initial full query).
+     /// Post: returns all **client-visible** events with `stream_pos > pos` in
+     ///       ascending stream order; returns an empty vec if no new events exist
+-- 
+2.43.0
+

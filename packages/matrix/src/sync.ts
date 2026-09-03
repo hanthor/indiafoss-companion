@@ -11,6 +11,8 @@ export interface SyncDelta {
   directMap?: Record<string, string[]>;
   /** Users currently typing, per room (ephemeral; only rooms mentioned in the response). */
   typing: Record<string, string[]>;
+  /** Events an `m.room.redaction` in this response targets; cached copies must be blanked. */
+  redactedIds: string[];
   nextBatch: string;
 }
 
@@ -153,8 +155,29 @@ function applyStateEvent(room: MatrixRoomRecord, event: RawMatrixEvent): void {
   }
 }
 
+/**
+ * The record a redacted event leaves behind: same identity and place in the
+ * timeline, a placeholder body, and no relation — a redacted reaction must
+ * stop counting, and a redacted reply must stop quoting.
+ */
+export function redactedRecord(roomId: string, event: RawMatrixEvent): MatrixEventRecord | null {
+  if (!event.event_id || !event.sender) return null;
+  const isReaction = event.type === 'm.reaction';
+  return {
+    eventId: event.event_id,
+    roomId,
+    sender: event.sender,
+    ts: event.origin_server_ts ?? 0,
+    type: event.type,
+    body: isReaction ? '' : 'Message deleted',
+    msgtype: isReaction ? 'm.reaction' : 'm.redacted',
+    redacted: true,
+  };
+}
+
 function toRecord(roomId: string, event: RawMatrixEvent): MatrixEventRecord | null {
   if (!event.event_id || !event.sender) return null;
+  if (event.unsigned?.redacted_because) return redactedRecord(roomId, event);
   const described = describeEvent(event);
   if (!described) return null;
   const encrypted = event.unsigned?.encrypted === true || event.type === 'm.room.encrypted';
@@ -199,6 +222,7 @@ export function applySyncResponse(
     leftRoomIds: [],
     events: [],
     typing: {},
+    redactedIds: [],
     nextBatch: response.next_batch,
   };
 
@@ -226,6 +250,11 @@ export function applySyncResponse(
     let newFromOthers = 0;
     for (const event of timeline) {
       if (event.state_key !== undefined) applyStateEvent(room, event);
+      if (event.type === 'm.room.redaction') {
+        const target = str(event.content?.redacts);
+        if (target) delta.redactedIds.push(target);
+        continue;
+      }
       const record = toRecord(roomId, event);
       if (!record) continue;
       delta.events.push(record);
