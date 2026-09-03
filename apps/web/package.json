@@ -16,7 +16,8 @@
     "postbuild": "node scripts/patch-sw.mjs",
     "screenshots": "node scripts/screenshots.mjs",
     "simulate": "node scripts/simulate.mjs",
-    "test:simulate": "playwright test tests/simulate.spec.ts"
+    "test:simulate": "playwright test tests/simulate.spec.ts",
+    "floors": "node --experimental-strip-types scripts/export-floors.mjs"
   },
   "dependencies": {
     "@capacitor/app": "^8.0.0",

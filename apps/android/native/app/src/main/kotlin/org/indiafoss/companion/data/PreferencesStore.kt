@@ -3,6 +3,7 @@ package org.indiafoss.companion.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,14 @@ class PreferencesStore(private val context: Context) {
 
     suspend fun setRemindersEnabled(on: Boolean) {
         context.dataStore.edit { it[remindersKey] = on }
+    }
+
+    private val locationKey = stringPreferencesKey("current-location")
+
+    val location: Flow<String?> = context.dataStore.data.map { it[locationKey] }
+
+    suspend fun setLocation(locationId: String?) {
+        context.dataStore.edit { if (locationId == null) it.remove(locationKey) else it[locationKey] = locationId }
     }
 
     suspend fun toggleBookmark(id: String) = toggle(bookmarkKey, id)

@@ -1,6 +1,7 @@
 package org.indiafoss.companion.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -116,10 +117,15 @@ fun CompanionApp(viewModel: CompanionViewModel) {
             }
         },
     ) { padding ->
+        Column(Modifier.padding(padding)) {
+        val route = backStack?.destination?.route
+        // The countdown strip sits under every tab's app bar, not over detail screens.
+        if (route != null && destinations.any { it.route == route }) {
+            LeaveByBanner(state) { navController.navigate("activity/$it") }
+        }
         NavHost(
             navController = navController,
             startDestination = "now",
-            modifier = Modifier.padding(padding),
         ) {
             composable("now") {
                 NowScreen(state, topActions, viewModel::refresh) { navController.navigate("activity/$it") }
@@ -172,7 +178,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable("map") { MapScreen(state, topActions) }
+            composable("map") { MapScreen(state, topActions, viewModel::setLocation) }
             composable("settings") { SettingsScreen(state, viewModel::setRemindersEnabled) }
             composable("activity/{id}") { entry ->
                 ActivityScreen(
@@ -183,6 +189,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onBack = { navController.popBackStack() },
                 )
             }
+        }
         }
     }
 }

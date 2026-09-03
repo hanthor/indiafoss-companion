@@ -40,6 +40,8 @@ data class UiState(
     val remindersEnabled: Boolean = false,
     val profile: ContactCard = ContactCard(),
     val contacts: List<MetContact> = emptyList(),
+    /** Where the attendee is, as a bundle location id: set on the map or by a room's code. */
+    val currentLocation: String? = null,
     val message: String? = null,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
@@ -113,6 +115,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch { profiles.profile.collect { card -> _state.update { it.copy(profile = card) } } }
         viewModelScope.launch { profiles.contacts.collect { met -> _state.update { it.copy(contacts = met) } } }
+        viewModelScope.launch { preferences.location.collect { at -> _state.update { it.copy(currentLocation = at) } } }
         // Whatever changes the plan re-arms the alarms: bookmarks, must-attend, the bundle.
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
@@ -158,6 +161,14 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     /** A scanned QR: a vCard becomes a saved contact, tagged with the session running now. */
     fun addScanned(text: String) {
+        // A room's code: indiafoss://location/<id>, or a bare location id.
+        Regex("^indiafoss://location/([A-Za-z0-9-]+)").find(text.trim())?.groupValues?.get(1)?.let { id ->
+            if (state.value.bundle?.locations?.any { it.id == id } == true) {
+                setLocation(id)
+                _state.update { it.copy(message = "You are at ${it.bundle?.location(id)?.name ?: id}") }
+                return
+            }
+        }
         val card = VCard.parse(text)
         if (card == null || card.fullName.isBlank()) {
             _state.update { it.copy(message = "That code is not a contact card.") }
@@ -173,6 +184,11 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             )
             _state.update { it.copy(message = "Saved ${card.fullName}") }
         }
+    }
+
+    fun setLocation(locationId: String?) {
+        _state.update { it.copy(currentLocation = locationId) }
+        viewModelScope.launch { preferences.setLocation(locationId) }
     }
 
     fun removeContact(id: String) {

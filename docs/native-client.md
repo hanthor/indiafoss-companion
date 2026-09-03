@@ -26,9 +26,15 @@ of plan cancels alarms that no longer apply; `ReminderReceiver` posts the
 notification. Ratings, answered pairs and room preferences live in
 `RatingsStore` as one JSON document in DataStore.
 
-Not native yet: the drawn floor plan with routing, signed cards (the PWA
-signs its QR with a per-device WebCrypto key; the native card is unsigned
-and the scanner treats every card as unsigned), the leave-by banner.
+Every tab carries the leave-by banner under its app bar: the next session
+that matters (must attend, then the earliest bookmark, then the programme's
+next talk, never a break) counting down, tertiary-coloured within five
+minutes.
+
+Not native yet: routing between rooms (walk times and the leave-by offset
+that depends on them), signed cards (the PWA signs its QR with a per-device
+WebCrypto key; the native card is unsigned and the scanner treats every card
+as unsigned), calendar export, itinerary edits.
 
 ## Layout
 
