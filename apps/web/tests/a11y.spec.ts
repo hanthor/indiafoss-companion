@@ -14,6 +14,7 @@ const CORE_SCREENS: [string, string][] = [
   ['explore', '/explore'],
   ['plan', '/plan'],
   ['ranking', '/plan/rank'],
+  ['ranking (quick pass)', '/plan/rank?mode=quick'],
   ['ranking (head to head)', '/plan/rank?mode=pairs'],
   ['connect', '/connect'],
   ['scan', '/scan'],

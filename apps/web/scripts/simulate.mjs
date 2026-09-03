@@ -52,7 +52,8 @@ const context = await browser.newContext({
 const page = await context.newPage();
 
 try {
-  await page.goto(`${origin}/`, { waitUntil: 'networkidle' });
+  // Not 'networkidle': blocked third-party requests can keep a page from ever settling.
+  await page.goto(`${origin}/`);
   await page.getByRole('heading', { name: /IndiaFOSS/ }).waitFor();
 
   for (const id of MUST) {
