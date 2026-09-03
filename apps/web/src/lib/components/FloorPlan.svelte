@@ -737,7 +737,7 @@
     height: 0.9rem;
     border-radius: 999px;
     background: var(--mint);
-    border: 2px solid #fff;
+    border: 2px solid var(--on-ink);
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 35%, transparent);
   }
 
@@ -767,7 +767,7 @@
   }
   .chip.active {
     background: var(--ink);
-    color: #fff;
+    color: var(--on-ink);
     border-color: var(--ink);
   }
   .dot {

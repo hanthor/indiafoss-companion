@@ -17,6 +17,8 @@ const DAY_START = '2025-09-20T09:40:00+05:30';
 const SPEED = 600;
 /** "First Step into Open Source", 10:15–10:30 on day one. */
 const SESSION = 'act-c8ak0iov2l';
+/** The reminder-quality run starts here, far enough back to survive a slow load. */
+const EARLY_START = '2025-09-20T09:00:00+05:30';
 
 test.use({ permissions: ['notifications'] });
 
@@ -136,13 +138,21 @@ test('every reminder names the session, the room and the walk, and opens it when
   await page.goto(appUrl('/settings'));
   await page.getByRole('switch', { name: /Enable reminders/ }).check();
 
-  await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}`));
+  // Start well before the first alert. Reminders in the past are never fired
+  // retroactively, so at 600x a slow load would otherwise eat the window
+  // under test: from 09:00 the 09:45 heads-up is 45 simulated minutes away,
+  // which is four and a half real seconds of slack rather than none.
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(EARLY_START)}&speed=${SPEED}`));
   await expect(page.getByTestId('sim-strip')).toBeVisible();
-  await page.waitForFunction(
-    () => (window.__indiafossSim?.state().now ?? '') >= '2025-09-20T10:16:00+05:30',
-    null,
-    { timeout: 30_000 },
-  );
+
+  // Wait for the alerts themselves, not for a clock reading.
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => (window as unknown as { __fired: { title: string }[] }).__fired.length),
+      { timeout: 30_000 },
+    )
+    .toBeGreaterThanOrEqual(3);
 
   const fired = await page.evaluate(
     () =>
@@ -152,7 +162,6 @@ test('every reminder names the session, the room and the walk, and opens it when
         }
       ).__fired,
   );
-  expect(fired.length).toBeGreaterThanOrEqual(3);
 
   for (const shown of fired) {
     // The session is in the title, so a shade full of reminders is readable.

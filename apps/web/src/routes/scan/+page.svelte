@@ -627,7 +627,7 @@
     right: 0;
     bottom: 0.5rem;
     margin: 0;
-    color: #fff;
+    color: var(--on-ink);
     font-family: var(--font-mono);
     font-size: 0.66rem;
     letter-spacing: 0.08em;
