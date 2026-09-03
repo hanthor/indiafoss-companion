@@ -1,0 +1,2278 @@
+From 38414af8e998e630ffcc0884c3f528ac94231277 Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 07:03:36 +0000
+Subject: [PATCH] Identity, whoami and account data: a dev binary you can test
+ with two of anything
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The dev binary's identity was a stub — every login was Alice with device
+DEVICEID and the same token — so the to-device inbox could only be keyed
+by user and no multi-user behaviour could be tested against it.
+
+- The dev binary carries the multi-user shim by default. Every register
+  or login is its own user, token and device; the embedded build
+  (neutrino-ffi) does not go through that crate and stays single-user,
+  though it now honours the device a login names. Sessions are persisted
+  (`sessions` table) and reloaded at startup, so a restart does not sign
+  every client out — the mesh test rig restarts nodes on purpose.
+- The to-device inbox is keyed per device. `/sendToDevice` and the
+  `m.direct_to_device` EDU address `(user, device)`; `*` fans out to every
+  device the directory knows for the user, and stays a wildcard row for
+  whichever device turns up first when it knows none. Each device's sync
+  drains only what is addressed to it (`AuthDevice`, the companion of
+  `AuthUser`), so two devices of one user no longer read each other's
+  room keys. The inbox table gained a `device` column.
+- `GET /account/whoami`: user, device, `is_guest: false`.
+- Account data, global and per room: GET/PUT on
+  `/user/{user}/account_data/{type}` and
+  `/user/{user}/rooms/{room}/account_data/{type}`, the caller's own only,
+  written through to the store before the write is acknowledged, rebuilt
+  at startup, and served by the sliding-sync `account_data` extension
+  (everything held on a connection's first look, changes since on later
+  ones, waking a long-poll) and by legacy `/sync` (top level and per
+  room). Where a client's DM list lives, so it survives a reinstall.
+
+Schema v7. Complement: TestAddAccountData joins the allowlist.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BpiYvGvwkJUSJAXCXAkai1
+---
+ complement/allowlist.txt                      |   6 +
+ crates/neutrino-http/src/account_data.rs      | 232 +++++++++++
+ crates/neutrino-http/src/e2ee.rs              | 105 +++--
+ crates/neutrino-http/src/federation/send.rs   |   8 +-
+ crates/neutrino-http/src/federation/tests.rs  |  64 +++
+ crates/neutrino-http/src/legacy_sync/mod.rs   |   7 +-
+ .../src/legacy_sync/translate.rs              |  29 +-
+ crates/neutrino-http/src/lib.rs               | 394 +++++++++++++++---
+ crates/neutrino-http/src/multi_user.rs        |   7 +-
+ crates/neutrino-http/src/sliding_sync/conn.rs |   4 +
+ crates/neutrino-http/src/sliding_sync/mod.rs  |  69 ++-
+ .../neutrino-http/src/sliding_sync/tests.rs   |   5 +-
+ crates/neutrino-http/tests/e2e_keys.rs        |  42 ++
+ crates/neutrino-http/tests/e2e_legacy_sync.rs |  35 ++
+ crates/neutrino-http/tests/e2e_multi_user.rs  |  82 ++++
+ crates/neutrino-http/tests/e2e_persistence.rs | 102 +++++
+ crates/neutrino-store-sqlite/src/schema.rs    |   2 +-
+ crates/neutrino-store-sqlite/src/schema.sql   |  22 +
+ .../src/store/account_data.rs                 | 100 +++++
+ .../neutrino-store-sqlite/src/store/e2ee.rs   |  28 +-
+ crates/neutrino-store-sqlite/src/store/mod.rs |   2 +
+ .../src/store/sessions.rs                     |  67 +++
+ crates/neutrino-store/src/lib.rs              |  51 ++-
+ crates/neutrino/Cargo.toml                    |   5 +
+ 24 files changed, 1350 insertions(+), 118 deletions(-)
+ create mode 100644 crates/neutrino-http/src/account_data.rs
+ create mode 100644 crates/neutrino-store-sqlite/src/store/account_data.rs
+ create mode 100644 crates/neutrino-store-sqlite/src/store/sessions.rs
+
+diff --git a/complement/allowlist.txt b/complement/allowlist.txt
+index 24f93b2..0a47daa 100644
+--- a/complement/allowlist.txt
++++ b/complement/allowlist.txt
+@@ -140,3 +140,9 @@ TestKeysQueryWithDeviceIDAsObjectFails$
+ # built on matrix-sdk-crypto track room members themselves, so nothing we
+ # ship depends on it.
+ TestKeyChangesLocal$
++
++# Identity and account data (2026-09-03): `/account/whoami`, global and
++# per-room account data persisted and served by sync, a to-device inbox
++# keyed per device. `TestRoomReadMarkers` stays out: `/read_markers` is not
++# wired.
++TestAddAccountData$
+diff --git a/crates/neutrino-http/src/account_data.rs b/crates/neutrino-http/src/account_data.rs
+new file mode 100644
+index 0000000..649473a
+--- /dev/null
++++ b/crates/neutrino-http/src/account_data.rs
+@@ -0,0 +1,232 @@
++//! Account data: the small per-user key/value store a client keeps on its
++//! homeserver — the DM list (`m.direct`), room tags, push rules it wrote,
++//! anything a client wants to find again on another device or after a
++//! reinstall.
++//!
++//! Global entries are keyed by type; room entries by room and type. Every
++//! write replaces the previous value, is written through to the store before
++//! it is acknowledged, and stamps the change so a sync connection that
++//! remembers the counter it last served can ask for what changed since —
++//! the same shape as typing notices in [`crate::ephemeral`].
++
++use std::collections::BTreeMap;
++use std::sync::{Mutex, MutexGuard};
++
++use serde_json::Value;
++use tokio::sync::watch;
++
++/// One entry as sync reports it: `(type, content)`.
++pub(crate) type Entry = (String, Value);
++
++#[derive(Default)]
++struct Inner {
++    /// `global[user][type] -> content`.
++    global: BTreeMap<String, BTreeMap<String, Value>>,
++    /// `rooms[user][room][type] -> content`.
++    rooms: BTreeMap<String, BTreeMap<String, BTreeMap<String, Value>>>,
++    /// `(stamp, user, room, type)` for every write since startup, newest
++    /// last. A sync asks for the entries stamped after the counter it last
++    /// served and gets their current content.
++    changes: Vec<(u64, String, Option<String>, String)>,
++}
++
++pub(crate) struct AccountDataState {
++    inner: Mutex<Inner>,
++    /// Bumped on every write. Sync long-polls watch it.
++    changed: watch::Sender<u64>,
++}
++
++impl Default for AccountDataState {
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
++impl AccountDataState {
++    pub(crate) fn new() -> Self {
++        let (changed, _) = watch::channel(0);
++        Self {
++            inner: Mutex::new(Inner::default()),
++            changed,
++        }
++    }
++
++    fn lock(&self) -> MutexGuard<'_, Inner> {
++        self.inner.lock().unwrap_or_else(|e| e.into_inner())
++    }
++
++    pub(crate) fn version(&self) -> u64 {
++        *self.changed.borrow()
++    }
++
++    pub(crate) fn subscribe(&self) -> watch::Receiver<u64> {
++        self.changed.subscribe()
++    }
++
++    /// Rebuild from the store at startup. Nothing is stamped: a connection
++    /// that has never synced is sent everything anyway.
++    pub(crate) fn load(&self, rows: Vec<(String, Option<String>, String, Value)>) {
++        let mut inner = self.lock();
++        for (user, room, event_type, content) in rows {
++            match room {
++                None => {
++                    inner
++                        .global
++                        .entry(user)
++                        .or_default()
++                        .insert(event_type, content);
++                }
++                Some(room) => {
++                    inner
++                        .rooms
++                        .entry(user)
++                        .or_default()
++                        .entry(room)
++                        .or_default()
++                        .insert(event_type, content);
++                }
++            }
++        }
++    }
++
++    fn stamp(&self, inner: &mut Inner, user: &str, room: Option<&str>, event_type: &str) {
++        let next = *self.changed.borrow() + 1;
++        inner.changes.push((
++            next,
++            user.to_owned(),
++            room.map(str::to_owned),
++            event_type.to_owned(),
++        ));
++        self.changed.send_modify(|n| *n = next);
++    }
++
++    pub(crate) fn set_global(&self, user: &str, event_type: &str, content: Value) {
++        let mut inner = self.lock();
++        inner
++            .global
++            .entry(user.to_owned())
++            .or_default()
++            .insert(event_type.to_owned(), content);
++        self.stamp(&mut inner, user, None, event_type);
++    }
++
++    pub(crate) fn set_room(&self, user: &str, room: &str, event_type: &str, content: Value) {
++        let mut inner = self.lock();
++        inner
++            .rooms
++            .entry(user.to_owned())
++            .or_default()
++            .entry(room.to_owned())
++            .or_default()
++            .insert(event_type.to_owned(), content);
++        self.stamp(&mut inner, user, Some(room), event_type);
++    }
++
++    pub(crate) fn get_global(&self, user: &str, event_type: &str) -> Option<Value> {
++        self.lock().global.get(user)?.get(event_type).cloned()
++    }
++
++    pub(crate) fn get_room(&self, user: &str, room: &str, event_type: &str) -> Option<Value> {
++        self.lock()
++            .rooms
++            .get(user)?
++            .get(room)?
++            .get(event_type)
++            .cloned()
++    }
++
++    /// What a sync for `user` should carry: everything held when `since` is
++    /// `0` (a connection that has seen nothing), otherwise the entries
++    /// written after the counter stood at `since`, each with its current
++    /// content. Returns `(global, per room)`.
++    pub(crate) fn changed_since(
++        &self,
++        user: &str,
++        since: u64,
++    ) -> (Vec<Entry>, BTreeMap<String, Vec<Entry>>) {
++        let inner = self.lock();
++        let mut global = Vec::new();
++        let mut rooms: BTreeMap<String, Vec<Entry>> = BTreeMap::new();
++        if since == 0 {
++            if let Some(held) = inner.global.get(user) {
++                global.extend(held.iter().map(|(t, c)| (t.clone(), c.clone())));
++            }
++            if let Some(held) = inner.rooms.get(user) {
++                for (room, entries) in held {
++                    rooms.insert(
++                        room.clone(),
++                        entries
++                            .iter()
++                            .map(|(t, c)| (t.clone(), c.clone()))
++                            .collect(),
++                    );
++                }
++            }
++            return (global, rooms);
++        }
++        let mut seen = std::collections::BTreeSet::new();
++        for (stamp, who, room, event_type) in inner.changes.iter().rev() {
++            if *stamp <= since {
++                break;
++            }
++            if who != user || !seen.insert((room.clone(), event_type.clone())) {
++                continue;
++            }
++            match room {
++                None => {
++                    if let Some(content) = inner.global.get(user).and_then(|g| g.get(event_type)) {
++                        global.push((event_type.clone(), content.clone()));
++                    }
++                }
++                Some(room) => {
++                    if let Some(content) = inner
++                        .rooms
++                        .get(user)
++                        .and_then(|r| r.get(room))
++                        .and_then(|e| e.get(event_type))
++                    {
++                        rooms
++                            .entry(room.clone())
++                            .or_default()
++                            .push((event_type.clone(), content.clone()));
++                    }
++                }
++            }
++        }
++        (global, rooms)
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use serde_json::json;
++
++    #[test]
++    fn writes_replace_and_are_reported_once_since_a_version() {
++        let s = AccountDataState::new();
++        s.set_global("@a:x", "m.direct", json!({"@b:x": ["!r:x"]}));
++        let v1 = s.version();
++        s.set_room("@a:x", "!r:x", "m.tag", json!({"tags": {}}));
++        s.set_global("@a:x", "m.direct", json!({"@b:x": ["!r:x", "!s:x"]}));
++        s.set_global("@other:x", "m.direct", json!({}));
++
++        let (global, rooms) = s.changed_since("@a:x", 0);
++        assert_eq!(global.len(), 1, "everything held, once");
++        assert_eq!(global[0].1["@b:x"], json!(["!r:x", "!s:x"]));
++        assert_eq!(rooms["!r:x"][0].0, "m.tag");
++
++        let (global, rooms) = s.changed_since("@a:x", v1);
++        assert_eq!(global.len(), 1, "the later m.direct write, current content");
++        assert_eq!(global[0].1["@b:x"], json!(["!r:x", "!s:x"]));
++        assert_eq!(rooms.len(), 1);
++
++        let (global, rooms) = s.changed_since("@a:x", s.version());
++        assert!(global.is_empty() && rooms.is_empty(), "nothing since now");
++        assert_eq!(
++            s.get_room("@a:x", "!r:x", "m.tag").unwrap()["tags"],
++            json!({})
++        );
++        assert!(s.get_global("@nobody:x", "m.direct").is_none());
++    }
++}
+diff --git a/crates/neutrino-http/src/e2ee.rs b/crates/neutrino-http/src/e2ee.rs
+index 7203df5..c0e5a5b 100644
+--- a/crates/neutrino-http/src/e2ee.rs
++++ b/crates/neutrino-http/src/e2ee.rs
+@@ -56,6 +56,7 @@ pub(crate) enum Op {
+     PushToDevice {
+         id: i64,
+         user: String,
++        device: String,
+         event: Box<RawJsonValue>,
+     },
+     RemoveToDevice {
+@@ -340,14 +341,10 @@ pub(crate) struct Inner {
+     /// Device keys, one-time keys and cross-signing blobs, per user and device.
+     pub(crate) keys: KeyStore,
+     /// Undelivered to-device messages, per recipient user, each under the id
+-    /// its store row carries. Drained by sync.
+-    ///
+-    /// Keyed by user rather than by device because login issues one device id
+-    /// for everyone, so the server cannot yet tell two of a user's devices
+-    /// apart. On a mesh node — one user, one phone — the two are the same
+-    /// thing; on a multi-device account they are not, and this needs
+-    /// revisiting when login stops handing out a fixed device id.
+-    pub(crate) to_device: BTreeMap<String, Vec<(i64, Value)>>,
++    /// its store row carries and the device it is for. Drained by the sync of
++    /// that device. `*` as the device is a message for whichever device of
++    /// the user syncs first — what a sender uses when it knows none of them.
++    pub(crate) to_device: BTreeMap<String, Vec<(i64, String, Value)>>,
+     /// Next inbox id. Process-lifetime, seeded past the loaded snapshot's
+     /// maximum so memory and disk name the same rows.
+     next_inbox_id: i64,
+@@ -419,13 +416,13 @@ impl E2eeState {
+             }
+         }
+         let mut max_id = inner.next_inbox_id - 1;
+-        for (id, user, event) in &snapshot.to_device {
++        for (id, user, device, event) in &snapshot.to_device {
+             if let Some(event) = parse(event) {
+                 inner
+                     .to_device
+                     .entry(user.clone())
+                     .or_default()
+-                    .push((*id, event));
++                    .push((*id, device.clone(), event));
+                 max_id = max_id.max(*id);
+             }
+         }
+@@ -460,9 +457,12 @@ impl E2eeState {
+                     Op::PutCrossSigning { name, value } => {
+                         store.put_cross_signing(name, value).await
+                     }
+-                    Op::PushToDevice { id, user, event } => {
+-                        store.push_to_device(*id, user, event).await
+-                    }
++                    Op::PushToDevice {
++                        id,
++                        user,
++                        device,
++                        event,
++                    } => store.push_to_device(*id, user, device, event).await,
+                     Op::RemoveToDevice { ids } => store.remove_to_device(ids).await,
+                     Op::SetDeviceStream { user, stream_id } => {
+                         store.put_device_stream(user, *stream_id).await
+@@ -475,10 +475,12 @@ impl E2eeState {
+         });
+     }
+ 
+-    /// Queue one to-device event for `user` and wake anyone syncing as them.
++    /// Queue one to-device event for a device of `user` and wake anyone
++    /// syncing as them. `device` may be `*`: whichever device syncs first.
+     pub(crate) fn push_to_device(
+         &self,
+         user: &str,
++        device: &str,
+         event_type: &str,
+         sender: &str,
+         content: Value,
+@@ -494,29 +496,76 @@ impl E2eeState {
+         inner.keys.journal(Op::PushToDevice {
+             id,
+             user: user.to_owned(),
++            device: device.to_owned(),
+             event: raw(&event),
+         });
+         inner
+             .to_device
+             .entry(user.to_owned())
+             .or_default()
+-            .push((id, event));
++            .push((id, device.to_owned(), event));
+         drop(inner);
+         self.changed.send_modify(|n| *n += 1);
+     }
+ 
+-    /// Take everything queued for a user, leaving the inbox empty. Matrix
+-    /// expects a to-device message to be delivered once; the client
+-    /// acknowledges by syncing again with the returned token.
+-    pub(crate) fn drain_to_device(&self, user: &str) -> Vec<Value> {
++    /// Queue a `{device: content}` map as `/sendToDevice` and the
++    /// `m.direct_to_device` EDU carry it. `*` fans out to every device the
++    /// directory knows for the user — which is what a room-key share to a
++    /// freshly-seen peer uses — and, when it knows none, stays a wildcard
++    /// row for whichever device turns up first.
++    pub(crate) fn push_to_devices(
++        &self,
++        user: &str,
++        targets: &serde_json::Map<String, Value>,
++        event_type: &str,
++        sender: &str,
++    ) {
++        for (device, content) in targets {
++            if device == "*" {
++                let known: Vec<String> = self
++                    .lock()
++                    .keys
++                    .devices
++                    .get(user)
++                    .map(|d| d.keys().cloned().collect())
++                    .unwrap_or_default();
++                if known.is_empty() {
++                    self.push_to_device(user, "*", event_type, sender, content.clone());
++                }
++                for device in known {
++                    self.push_to_device(user, &device, event_type, sender, content.clone());
++                }
++            } else {
++                self.push_to_device(user, device, event_type, sender, content.clone());
++            }
++        }
++    }
++
++    /// Whether an inbox row addressed to `row_device` is for the device
++    /// syncing as `device`. A wildcard on either side matches.
++    fn addressed_to(row_device: &str, device: &str) -> bool {
++        row_device == "*" || device == "*" || row_device == device
++    }
++
++    /// Take everything queued for `device` of `user` (or every device, for
++    /// `*`), leaving the rest. Matrix expects a to-device message to be
++    /// delivered once; the client acknowledges by syncing again with the
++    /// returned token.
++    pub(crate) fn drain_to_device(&self, user: &str, device: &str) -> Vec<Value> {
+         let mut inner = self.lock();
+-        let drained = inner.to_device.remove(user).unwrap_or_default();
++        let Some(rows) = inner.to_device.get_mut(user) else {
++            return Vec::new();
++        };
++        let (drained, kept): (Vec<_>, Vec<_>) = std::mem::take(rows)
++            .into_iter()
++            .partition(|(_, row_device, _)| Self::addressed_to(row_device, device));
++        *rows = kept;
+         if drained.is_empty() {
+             return Vec::new();
+         }
+-        let ids: Vec<i64> = drained.iter().map(|(id, _)| *id).collect();
++        let ids: Vec<i64> = drained.iter().map(|(id, _, _)| *id).collect();
+         inner.keys.journal(Op::RemoveToDevice { ids });
+-        drained.into_iter().map(|(_, event)| event).collect()
++        drained.into_iter().map(|(_, _, event)| event).collect()
+     }
+ 
+     /// Record a device-list change and wake every sync waiting on this
+@@ -540,10 +589,14 @@ impl E2eeState {
+         self.lock().keys.device_changes_since(since)
+     }
+ 
+-    /// How many to-device events wait for `user` — what a long-poll checks to
+-    /// decide whether it has something to return.
+-    pub(crate) fn pending_to_device(&self, user: &str) -> usize {
+-        self.lock().to_device.get(user).map_or(0, Vec::len)
++    /// How many to-device events wait for `device` of `user` — what a
++    /// long-poll checks to decide whether it has something to return.
++    pub(crate) fn pending_to_device(&self, user: &str, device: &str) -> usize {
++        self.lock().to_device.get(user).map_or(0, |rows| {
++            rows.iter()
++                .filter(|(_, row_device, _)| Self::addressed_to(row_device, device))
++                .count()
++        })
+     }
+ 
+     /// A receiver that changes whenever the inbox is written to. Subscribe
+diff --git a/crates/neutrino-http/src/federation/send.rs b/crates/neutrino-http/src/federation/send.rs
+index 2b34de4..10d4698 100644
+--- a/crates/neutrino-http/src/federation/send.rs
++++ b/crates/neutrino-http/src/federation/send.rs
+@@ -426,13 +426,7 @@ fn deliver_edus(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>]) {
+             let Some(devices) = devices.as_object() else {
+                 continue;
+             };
+-            // Device targeting collapses to the user, matching the local inbox:
+-            // login hands every device the same id, so the server cannot tell
+-            // two of a user's devices apart yet. `*` (every device) and a named
+-            // device therefore behave identically here.
+-            for message in devices.values() {
+-                e2ee.push_to_device(user, &event_type, &sender, message.clone());
+-            }
++            e2ee.push_to_devices(user, devices, &event_type, &sender);
+         }
+     }
+ }
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index b4efeb7..25b25f8 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -5799,6 +5799,19 @@ async fn send_edus(app: &axum::Router, txn_id: &str, edus: Value) -> StatusCode
+ /// Everything currently sitting in the local to-device inbox, as a client sees
+ /// it. `/sync` drains, so a second call returns nothing.
+ async fn sync_to_device(app: &axum::Router) -> Vec<Value> {
++    sync_to_device_as(app, "PHONE").await
++}
++
++/// Become `device` (the single-user build's device is whatever the last
++/// login named) and take what the to-device inbox holds for it.
++async fn sync_to_device_as(app: &axum::Router, device: &str) -> Vec<Value> {
++    let (status, _) = post_json(
++        app,
++        "/_matrix/client/v3/login",
++        &json!({ "type": "m.login.password", "user": "alice", "password": "x", "device_id": device }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "login as {device}");
+     let req = Request::builder()
+         .method("GET")
+         .uri("/_matrix/client/v3/sync?timeout=0")
+@@ -5812,6 +5825,57 @@ async fn sync_to_device(app: &axum::Router) -> Vec<Value> {
+         .unwrap_or_default()
+ }
+ 
++/// Two devices of one user each get their own to-device messages and not
++/// each other's; a `*` message reaches both, once each.
++#[tokio::test]
++async fn each_device_gets_only_its_own_to_device_messages() {
++    let (app, _tmp) = test_router().await;
++    upload_device(&app, alice().as_str(), "PHONE", json!({})).await;
++    upload_device(&app, alice().as_str(), "LAPTOP", json!({})).await;
++
++    let status = send_edus(
++        &app,
++        "edu-devices",
++        json!([{
++            "edu_type": "m.direct_to_device",
++            "content": {
++                "sender": peer_user().as_str(),
++                "type": "m.room_key",
++                "message_id": "m-devices",
++                "messages": { alice().as_str(): {
++                    "PHONE": { "session_id": "for-phone" },
++                    "LAPTOP": { "session_id": "for-laptop" },
++                    "*": { "session_id": "for-everyone" },
++                } },
++            },
++        }]),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++
++    let session_ids = |events: &[Value]| -> Vec<String> {
++        let mut ids: Vec<String> = events
++            .iter()
++            .map(|e| e["content"]["session_id"].as_str().unwrap().to_owned())
++            .collect();
++        ids.sort();
++        ids
++    };
++    let phone = sync_to_device_as(&app, "PHONE").await;
++    assert_eq!(session_ids(&phone), ["for-everyone", "for-phone"]);
++    assert!(
++        sync_to_device_as(&app, "PHONE").await.is_empty(),
++        "delivered once"
++    );
++
++    let laptop = sync_to_device_as(&app, "LAPTOP").await;
++    assert_eq!(session_ids(&laptop), ["for-everyone", "for-laptop"]);
++
++    // A device the directory has never heard of has nothing waiting, and a
++    // `*` for a user with no known device waits for whoever turns up.
++    assert!(sync_to_device_as(&app, "TABLET").await.is_empty());
++}
++
+ #[tokio::test]
+ async fn federation_keys_query_returns_a_local_users_devices() {
+     let (app, _tmp) = test_router().await;
+diff --git a/crates/neutrino-http/src/legacy_sync/mod.rs b/crates/neutrino-http/src/legacy_sync/mod.rs
+index c3f8888..1642cbc 100644
+--- a/crates/neutrino-http/src/legacy_sync/mod.rs
++++ b/crates/neutrino-http/src/legacy_sync/mod.rs
+@@ -38,6 +38,7 @@ pub mod translate;
+ pub(crate) async fn handle(
+     state: State<AppState>,
+     crate::AuthUser(user_id): crate::AuthUser,
++    crate::AuthDevice(device): crate::AuthDevice,
+     query: Query<HashMap<String, String>>,
+ ) -> axum::response::Response {
+     let sync_state = lock_app(&state.0).sync_state.clone();
+@@ -66,11 +67,11 @@ pub(crate) async fn handle(
+     // unknown/stale token we don't 400; we fall back to a full initial sync,
+     // which returns current state under a fresh token. (Stale tokens collapse to
+     // "state now" rather than a true cumulative delta — see docs/legacy-sync-stub.md.)
+-    let resp = match sliding_sync::handle(&sync_state, &user_id, req).await {
++    let resp = match sliding_sync::handle_as(&sync_state, &user_id, &device, req).await {
+         Err(SyncError::UnknownPos) => {
+             let mut initial = synthesize_v5_request(&legacy_query);
+             initial.pos = None;
+-            sliding_sync::handle(&sync_state, &user_id, initial).await
++            sliding_sync::handle_as(&sync_state, &user_id, &device, initial).await
+         }
+         other => other,
+     };
+@@ -83,7 +84,7 @@ pub(crate) async fn handle(
+             let pending = lock_app(&state.0)
+                 .e2ee
+                 .clone()
+-                .drain_to_device(user_id.as_str());
++                .drain_to_device(user_id.as_str(), &device);
+             if !pending.is_empty()
+                 && let Some(slot) = body.pointer_mut("/to_device/events")
+             {
+diff --git a/crates/neutrino-http/src/legacy_sync/translate.rs b/crates/neutrino-http/src/legacy_sync/translate.rs
+index e205618..feb762e 100644
+--- a/crates/neutrino-http/src/legacy_sync/translate.rs
++++ b/crates/neutrino-http/src/legacy_sync/translate.rs
+@@ -122,6 +122,7 @@ pub fn synthesize_v5_request(query: &LegacyQuery) -> v5::Request {
+     let mut extensions = v5::request::Extensions::default();
+     extensions.typing.enabled = Some(true);
+     extensions.receipts.enabled = Some(true);
++    extensions.account_data.enabled = Some(true);
+     extensions.e2ee.enabled = Some(true);
+     req.extensions = extensions;
+ 
+@@ -256,6 +257,32 @@ pub fn translate_response(
+         }
+     }
+ 
++    // Account data: global entries at the top level, room entries in the
++    // joined room's `account_data.events` (a bare room entry when the
++    // response carried no event for it).
++    let account_data_events: Vec<Value> = resp
++        .extensions
++        .account_data
++        .global
++        .iter()
++        .filter_map(|raw| serde_json::from_str(raw.json().get()).ok())
++        .collect();
++    for (room_id, entries) in &resp.extensions.account_data.rooms {
++        if !matches!(memberships.get(room_id), Some(Membership::Join)) {
++            continue;
++        }
++        let entry = join
++            .entry(room_id.to_string())
++            .or_insert_with(empty_joined_room_shape);
++        if let Some(Value::Array(events)) = entry.pointer_mut("/account_data/events") {
++            events.extend(
++                entries
++                    .iter()
++                    .filter_map(|raw| serde_json::from_str::<Value>(raw.json().get()).ok()),
++            );
++        }
++    }
++
+     json!({
+         "next_batch": resp.pos,
+         "rooms": {
+@@ -265,7 +292,7 @@ pub fn translate_response(
+             "knock": Value::Object(knock),
+         },
+         "presence": {"events": []},
+-        "account_data": {"events": []},
++        "account_data": {"events": account_data_events},
+         "to_device": {"events": []},
+         "device_lists": {
+             "changed": resp.extensions.e2ee.device_lists.changed,
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 1f6948e..10012d3 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -35,6 +35,7 @@ use tower_http::classify::ServerErrorsFailureClass;
+ use tower_http::trace::TraceLayer;
+ use tracing::{Span, error, info, info_span, warn};
+ 
++mod account_data;
+ mod e2ee;
+ mod ephemeral;
+ mod federation;
+@@ -47,10 +48,12 @@ mod sliding_sync;
+ #[cfg(feature = "multi-user-shim")]
+ mod multi_user;
+ 
++use account_data::AccountDataState;
+ use e2ee::E2eeState;
+ use ephemeral::{EphemeralState, ReadReceipt};
+ use federation::client::{FederationClient, ReqwestFetcher};
+ use neutrino_engine::{MissingEventsFetcher, RoomActorError, RoomRegistry};
++use neutrino_store::AccountDataStore;
+ use sliding_sync::{SyncError, SyncState};
+ 
+ struct App {
+@@ -86,6 +89,13 @@ struct App {
+     e2ee: Arc<E2eeState>,
+     /// Typing notices and read receipts, shared the same way. See [`ephemeral`].
+     ephemeral: Arc<EphemeralState>,
++    /// Per-user account data, written through to the store and served by
++    /// sync. See [`account_data`].
++    account_data: Arc<AccountDataState>,
++    #[cfg_attr(feature = "multi-user-shim", allow(dead_code))]
++    /// The single-user build's device: whatever the last `/login` named. The
++    /// multi-user shim keeps a device per token instead (see [`AuthDevice`]).
++    current_device: String,
+     /// Out-of-band peer discovery (BLE mesh): the host pushes the set of
+     /// currently-visible peers here and the user-directory search handler reads
+     /// it. Shared (`Arc`) so the host can hold a write handle while the router
+@@ -166,7 +176,7 @@ impl axum::extract::FromRequestParts<AppState> for AuthUser {
+     ) -> Result<Self, Self::Rejection> {
+         let tokens = lock_app(state).user_tokens.clone();
+         match multi_user::resolve(&parts.headers, &tokens) {
+-            Ok(user) => Ok(AuthUser(user)),
++            Ok((user, _device)) => Ok(AuthUser(user)),
+             Err(multi_user::TokenError::Missing) => Err(error_response(
+                 StatusCode::UNAUTHORIZED,
+                 "M_MISSING_TOKEN",
+@@ -197,6 +207,48 @@ impl axum::extract::FromRequestParts<AppState> for AuthUser {
+     }
+ }
+ 
++/// Per-request caller device, the companion of [`AuthUser`]. What the
++/// to-device inbox is keyed on and what `/account/whoami` reports.
++///
++/// - feature `multi-user-shim` ON: the device the token was minted for at
++///   `/register` or `/login`.
++/// - feature OFF: the device named at the most recent `/login` (or the
++///   conventional id when none was) — one phone, one device.
++pub struct AuthDevice(pub String);
++
++impl axum::extract::FromRequestParts<AppState> for AuthDevice {
++    type Rejection = axum::response::Response;
++
++    #[cfg(feature = "multi-user-shim")]
++    async fn from_request_parts(
++        parts: &mut axum::http::request::Parts,
++        state: &AppState,
++    ) -> Result<Self, Self::Rejection> {
++        let tokens = lock_app(state).user_tokens.clone();
++        match multi_user::resolve(&parts.headers, &tokens) {
++            Ok((_user, device)) => Ok(AuthDevice(device)),
++            Err(multi_user::TokenError::Missing) => Err(error_response(
++                StatusCode::UNAUTHORIZED,
++                "M_MISSING_TOKEN",
++                "Missing access token",
++            )),
++            Err(multi_user::TokenError::Unknown) => Err(error_response(
++                StatusCode::UNAUTHORIZED,
++                "M_UNKNOWN_TOKEN",
++                "Unrecognised access token",
++            )),
++        }
++    }
++
++    #[cfg(not(feature = "multi-user-shim"))]
++    async fn from_request_parts(
++        _parts: &mut axum::http::request::Parts,
++        state: &AppState,
++    ) -> Result<Self, Self::Rejection> {
++        Ok(AuthDevice(lock_app(state).current_device.clone()))
++    }
++}
++
+ /// Errors `AppState::new` (and therefore `router` / `serve`) can surface.
+ #[derive(Debug, thiserror::Error)]
+ pub enum StartupError {
+@@ -282,10 +334,12 @@ impl AppState {
+         let e2ee = Arc::new(E2eeState::new());
+         e2ee.attach_persistence(store.clone());
+         let ephemeral = Arc::new(EphemeralState::new());
++        let account_data = Arc::new(AccountDataState::new());
+         let mut sync_state = SyncState::new(store.clone(), shutdown.clone());
+         sync_state.delivery_receipts = config.delivery_receipts;
+         sync_state.e2ee = e2ee.clone();
+         sync_state.ephemeral = ephemeral.clone();
++        sync_state.account_data = account_data.clone();
+         let sync_state = Arc::new(sync_state);
+         let room_registry = Arc::new(RoomRegistry::new(
+             store.clone(),
+@@ -321,6 +375,7 @@ impl AppState {
+             sync_state,
+             e2ee,
+             ephemeral,
++            account_data,
+             discovery,
+             display_name_tx: None,
+             policy,
+@@ -330,6 +385,7 @@ impl AppState {
+             joins: HashMap::new(),
+             #[cfg(feature = "multi-user-shim")]
+             user_tokens: Arc::new(Mutex::new(multi_user::UserTokens::new())),
++            current_device: "DEVICEID".to_owned(),
+         };
+         AppState(Arc::new(Mutex::new(app)))
+     }
+@@ -353,6 +409,50 @@ impl AppState {
+         Ok(())
+     }
+ 
++    /// Reload the multi-user shim's sessions so a restart does not sign
++    /// every client out. Nothing to do in the single-user build.
++    #[cfg(feature = "multi-user-shim")]
++    pub(crate) async fn load_sessions(&self) -> Result<(), StorageError> {
++        let (store, tokens) = {
++            let app = lock_app(self);
++            (app.store.clone(), app.user_tokens.clone())
++        };
++        let rows = neutrino_store::SessionStore::load_sessions(store.as_ref()).await?;
++        let mut map = tokens.lock().unwrap_or_else(|e| e.into_inner());
++        for (token, user, device) in rows {
++            if let Ok(user) = OwnedUserId::try_from(user) {
++                map.insert(token, (user, device));
++            }
++        }
++        Ok(())
++    }
++
++    #[cfg(not(feature = "multi-user-shim"))]
++    pub(crate) async fn load_sessions(&self) -> Result<(), StorageError> {
++        Ok(())
++    }
++
++    /// Rebuild account data from the store. Must run before the router
++    /// serves, or a client's first sync would say it has no DM list.
++    pub(crate) async fn load_account_data(&self) -> Result<(), StorageError> {
++        let (store, account_data) = {
++            let app = lock_app(self);
++            (app.store.clone(), app.account_data.clone())
++        };
++        let rows = store
++            .load_account_data()
++            .await?
++            .into_iter()
++            .filter_map(|(user, room, event_type, content)| {
++                serde_json::from_str::<Value>(content.get())
++                    .ok()
++                    .map(|content| (user, room, event_type, content))
++            })
++            .collect();
++        account_data.load(rows);
++        Ok(())
++    }
++
+     /// This homeserver's name, sent as the `origin` on outbound transactions.
+     fn server_name(&self) -> String {
+         lock_app(self).config.server_name.clone()
+@@ -470,6 +570,8 @@ pub async fn serve(
+     let state = AppState::from_store_with_discovery(config, store, discovery, policy);
+     lock_app(&state).display_name_tx = display_name_tx;
+     state.load_e2ee().await?;
++    state.load_account_data().await?;
++    state.load_sessions().await?;
+     // Start draining the federation outbox before serving. Outbox rows survive
+     // restarts, so this is also the "retry on restart" path — startup
+     // enumeration resumes delivery of anything left undelivered.
+@@ -545,6 +647,8 @@ fn handle(command: Command, state: &AppState) -> ControlFlow<()> {
+ pub async fn router(config: Config) -> Result<Router, StartupError> {
+     let state = AppState::new(config).await?;
+     state.load_e2ee().await?;
++    state.load_account_data().await?;
++    state.load_sessions().await?;
+     Ok(build_router(&state))
+ }
+ 
+@@ -622,8 +726,13 @@ fn build_router(state: &AppState) -> Router {
+         )
+         .route(
+             "/_matrix/client/v3/user/{user_id}/account_data/{account_data_type}",
+-            get(get_account_data),
++            get(get_account_data).put(put_account_data),
+         )
++        .route(
++            "/_matrix/client/v3/user/{user_id}/rooms/{room_id}/account_data/{account_data_type}",
++            get(get_room_account_data).put(put_room_account_data),
++        )
++        .route("/_matrix/client/v3/account/whoami", get(whoami))
+         .route("/_matrix/client/v3/room_keys/version", get(get_room_keys))
+         .route("/_matrix/client/v3/createRoom", post(create_room))
+         .route("/_matrix/client/v3/rooms/{room_id}/members", get(members))
+@@ -955,12 +1064,13 @@ async fn post_register(state: State<AppState>, body: Json<Value>) -> (StatusCode
+ 
+     #[cfg(feature = "multi-user-shim")]
+     {
+-        let (tokens, server_name, default_user_id) = {
++        let (tokens, server_name, default_user_id, store) = {
+             let app = lock_app(&state.0);
+             (
+                 app.user_tokens.clone(),
+                 app.config.server_name.clone(),
+                 app.config.user_id(),
++                app.store.clone(),
+             )
+         };
+         // The UIA flow is stateless — this shim stores no per-session state, so
+@@ -977,16 +1087,31 @@ async fn post_register(state: State<AppState>, body: Json<Value>) -> (StatusCode
+             &server_name,
+             &default_user_id,
+             requested.as_deref(),
++            &device_id,
+         ) {
+-            Ok((user_id, token)) => (
+-                StatusCode::OK,
+-                Json(json!({
+-                    "user_id": user_id,
+-                    "access_token": token,
+-                    "home_server": server_name,
+-                    "device_id": device_id,
+-                })),
+-            ),
++            Ok((user_id, token)) => {
++                // A token that only lives in memory signs everyone out on a
++                // restart, and the mesh test rig restarts nodes on purpose.
++                if let Err(e) = neutrino_store::SessionStore::put_session(
++                    store.as_ref(),
++                    &token,
++                    user_id.as_str(),
++                    &device_id,
++                )
++                .await
++                {
++                    warn!(error = %e, "persisting the session");
++                }
++                (
++                    StatusCode::OK,
++                    Json(json!({
++                        "user_id": user_id,
++                        "access_token": token,
++                        "home_server": server_name,
++                        "device_id": device_id,
++                    })),
++                )
++            }
+             Err(e) => (
+                 StatusCode::BAD_REQUEST,
+                 Json(json!({ "errcode": "M_INVALID_USERNAME", "error": e })),
+@@ -1012,14 +1137,28 @@ async fn post_register(state: State<AppState>, body: Json<Value>) -> (StatusCode
+ async fn post_login(state: State<AppState>, body: Json<Value>) -> (StatusCode, Json<Value>) {
+     info!("Logged in");
+ 
++    // The device the client names is the device it gets — a reinstalled
++    // client picks a new id so it is a new device, not the old one with keys
++    // that no longer match. A login naming none gets a fresh id under the
++    // shim (every login is a device) and the conventional one in the
++    // single-user build (one phone, one device).
++    let named = body
++        .0
++        .pointer("/device_id")
++        .and_then(|v| v.as_str())
++        .filter(|d| !d.is_empty())
++        .map(str::to_owned);
++
+     #[cfg(feature = "multi-user-shim")]
+     {
+-        let (tokens, server_name, default_user_id) = {
++        let device_id = named.unwrap_or_else(fresh_device_id);
++        let (tokens, server_name, default_user_id, store) = {
+             let app = lock_app(&state.0);
+             (
+                 app.user_tokens.clone(),
+                 app.config.server_name.clone(),
+                 app.config.user_id(),
++                app.store.clone(),
+             )
+         };
+         let requested = body
+@@ -1033,22 +1172,31 @@ async fn post_login(state: State<AppState>, body: Json<Value>) -> (StatusCode, J
+             &server_name,
+             &default_user_id,
+             requested.as_deref(),
++            &device_id,
+         ) {
+-            Ok((user_id, token)) => (
+-                StatusCode::OK,
+-                Json(json!({
+-                    "user_id": user_id,
+-                    "access_token": token,
+-                    "home_server": server_name,
+-                    "device_id": body
+-                        .0
+-                        .pointer("/device_id")
+-                        .and_then(|v| v.as_str())
+-                        .filter(|d| !d.is_empty())
+-                        .map(str::to_owned)
+-                        .unwrap_or_else(fresh_device_id),
+-                })),
+-            ),
++            Ok((user_id, token)) => {
++                // A token that only lives in memory signs everyone out on a
++                // restart, and the mesh test rig restarts nodes on purpose.
++                if let Err(e) = neutrino_store::SessionStore::put_session(
++                    store.as_ref(),
++                    &token,
++                    user_id.as_str(),
++                    &device_id,
++                )
++                .await
++                {
++                    warn!(error = %e, "persisting the session");
++                }
++                (
++                    StatusCode::OK,
++                    Json(json!({
++                        "user_id": user_id,
++                        "access_token": token,
++                        "home_server": server_name,
++                        "device_id": device_id,
++                    })),
++                )
++            }
+             // Mirror `/register`: a malformed identifier is a 400, not a 200
+             // carrying a token that was never inserted into the map (which would
+             // then 401 on the very next authenticated request).
+@@ -1061,23 +1209,16 @@ async fn post_login(state: State<AppState>, body: Json<Value>) -> (StatusCode, J
+ 
+     #[cfg(not(feature = "multi-user-shim"))]
+     {
+-        let app = lock_app(&state.0);
++        let device_id = named.unwrap_or_else(|| "DEVICEID".to_owned());
++        let mut app = lock_app(&state.0);
++        app.current_device = device_id.clone();
+         (
+             StatusCode::OK,
+             Json(json!({
+                 "user_id": app.config.user_id(),
+                 "access_token": "syt_1234567890abcdef",
+                 "home_server": app.config.server_name,
+-                // The device the client names is the device it gets — a
+-                // reinstalled client picks a new id so it is a new device,
+-                // not the old one with keys that no longer match.
+-                "device_id": body
+-                    .0
+-                    .pointer("/device_id")
+-                    .and_then(|v| v.as_str())
+-                    .filter(|d| !d.is_empty())
+-                    .map(str::to_owned)
+-                    .unwrap_or_else(fresh_device_id),
++                "device_id": device_id,
+             })),
+         )
+     }
+@@ -1093,6 +1234,7 @@ async fn post_login(state: State<AppState>, body: Json<Value>) -> (StatusCode, J
+ async fn sync(
+     state: State<AppState>,
+     AuthUser(user_id): AuthUser,
++    AuthDevice(device): AuthDevice,
+     query: Query<HashMap<String, String>>,
+     body: Json<Value>,
+ ) -> axum::response::Response {
+@@ -1125,7 +1267,7 @@ async fn sync(
+     // than hang the client's serial sync loop forever.
+     let handled = tokio::time::timeout(
+         sliding_sync::BACKSTOP_TIMEOUT,
+-        sliding_sync::handle(&sync_state, &user_id, req),
++        sliding_sync::handle_as(&sync_state, &user_id, &device, req),
+     )
+     .await;
+ 
+@@ -1496,11 +1638,7 @@ async fn send_to_device(
+         let Some(devices) = devices.as_object() else {
+             continue;
+         };
+-        // `*` means every device of that user, which is what a room-key
+-        // share to a freshly-seen peer uses.
+-        for content in devices.values() {
+-            e2ee.push_to_device(user, &event_type, sender.as_str(), content.clone());
+-        }
++        e2ee.push_to_devices(user, devices, &event_type, sender.as_str());
+     }
+ 
+     // One EDU per destination server, carrying only that server's recipients.
+@@ -1590,6 +1728,7 @@ async fn keys_claim(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+ async fn keys_upload(
+     state: State<AppState>,
+     AuthUser(caller): AuthUser,
++    AuthDevice(caller_device): AuthDevice,
+     body: Json<Value>,
+ ) -> axum::response::Response {
+     info!("Received keys upload: {:?}", body.0);
+@@ -1620,14 +1759,15 @@ async fn keys_upload(
+             }
+         }
+     }
+-    // One-time keys without device keys belong to the caller; the device id
+-    // falls back to the conventional one only when nothing names it.
++    // One-time keys without device keys belong to the caller's own device —
++    // the one its token was minted for — not to a conventional id that no
++    // longer matches anything once every login is a device of its own.
+     let user = caller.to_string();
+     let device = device_keys
+         .and_then(|k| k.get("device_id"))
+         .and_then(Value::as_str)
+-        .unwrap_or("DEVICEID")
+-        .to_owned();
++        .map(str::to_owned)
++        .unwrap_or(caller_device);
+ 
+     let counts = {
+         let mut inner = e2ee.lock();
+@@ -1934,18 +2074,158 @@ async fn user_directory_search(
+     Json(json!({ "results": results, "limited": limited }))
+ }
+ 
+-async fn get_account_data(
+-    axum::extract::Path((_user_id, _account_data_type)): axum::extract::Path<(String, String)>,
+-) -> (StatusCode, Json<Value>) {
+-    (
++/// The account-data routes are the caller's own: `{user_id}` must be the
++/// authenticated user, or the answer is `403 M_FORBIDDEN` whatever exists.
++fn not_your_account(caller: &ruma::UserId, user_id: &str) -> Option<axum::response::Response> {
++    (caller.as_str() != user_id).then(|| {
++        error_response(
++            StatusCode::FORBIDDEN,
++            "M_FORBIDDEN",
++            "Account data belongs to the user who wrote it",
++        )
++    })
++}
++
++// The built `Response` is the deliberate error payload, as in `messages.rs`.
++#[allow(clippy::result_large_err)]
++fn account_data_body(body: Value) -> Result<Value, axum::response::Response> {
++    if body.is_object() {
++        Ok(body)
++    } else {
++        Err(error_response(
++            StatusCode::BAD_REQUEST,
++            "M_BAD_JSON",
++            "Account data content must be a JSON object",
++        ))
++    }
++}
++
++fn account_data_missing() -> axum::response::Response {
++    error_response(
+         StatusCode::NOT_FOUND,
+-        Json(json!({
+-             "errcode": "M_NOT_FOUND",
+-              "error": "No current backup version"
+-        })),
++        "M_NOT_FOUND",
++        "Account data not found",
+     )
+ }
+ 
++async fn get_account_data(
++    state: State<AppState>,
++    AuthUser(caller): AuthUser,
++    axum::extract::Path((user_id, event_type)): axum::extract::Path<(String, String)>,
++) -> axum::response::Response {
++    if let Some(denied) = not_your_account(&caller, &user_id) {
++        return denied;
++    }
++    let held = lock_app(&state.0).account_data.clone();
++    match held.get_global(&user_id, &event_type) {
++        Some(content) => Json(content).into_response(),
++        None => account_data_missing(),
++    }
++}
++
++/// `PUT /user/{user}/account_data/{type}`: written through to the store
++/// before it is acknowledged, then served by every sync from here on.
++async fn put_account_data(
++    state: State<AppState>,
++    AuthUser(caller): AuthUser,
++    axum::extract::Path((user_id, event_type)): axum::extract::Path<(String, String)>,
++    body: Json<Value>,
++) -> axum::response::Response {
++    if let Some(denied) = not_your_account(&caller, &user_id) {
++        return denied;
++    }
++    let content = match account_data_body(body.0) {
++        Ok(c) => c,
++        Err(resp) => return resp,
++    };
++    let (store, held) = {
++        let app = lock_app(&state.0);
++        (app.store.clone(), app.account_data.clone())
++    };
++    let raw = serde_json::value::to_raw_value(&content).expect("a Value always serializes");
++    if let Err(e) = store
++        .put_account_data(&user_id, None, &event_type, &raw)
++        .await
++    {
++        return error_response(
++            StatusCode::INTERNAL_SERVER_ERROR,
++            "M_UNKNOWN",
++            &e.to_string(),
++        );
++    }
++    held.set_global(&user_id, &event_type, content);
++    Json(json!({})).into_response()
++}
++
++async fn get_room_account_data(
++    state: State<AppState>,
++    AuthUser(caller): AuthUser,
++    axum::extract::Path((user_id, room_id, event_type)): axum::extract::Path<(
++        String,
++        String,
++        String,
++    )>,
++) -> axum::response::Response {
++    if let Some(denied) = not_your_account(&caller, &user_id) {
++        return denied;
++    }
++    let held = lock_app(&state.0).account_data.clone();
++    match held.get_room(&user_id, &room_id, &event_type) {
++        Some(content) => Json(content).into_response(),
++        None => account_data_missing(),
++    }
++}
++
++async fn put_room_account_data(
++    state: State<AppState>,
++    AuthUser(caller): AuthUser,
++    axum::extract::Path((user_id, room_id, event_type)): axum::extract::Path<(
++        String,
++        String,
++        String,
++    )>,
++    body: Json<Value>,
++) -> axum::response::Response {
++    if let Some(denied) = not_your_account(&caller, &user_id) {
++        return denied;
++    }
++    if OwnedRoomId::try_from(room_id.as_str()).is_err() {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_INVALID_PARAM",
++            "invalid room id",
++        );
++    }
++    let content = match account_data_body(body.0) {
++        Ok(c) => c,
++        Err(resp) => return resp,
++    };
++    let (store, held) = {
++        let app = lock_app(&state.0);
++        (app.store.clone(), app.account_data.clone())
++    };
++    let raw = serde_json::value::to_raw_value(&content).expect("a Value always serializes");
++    if let Err(e) = store
++        .put_account_data(&user_id, Some(&room_id), &event_type, &raw)
++        .await
++    {
++        return error_response(
++            StatusCode::INTERNAL_SERVER_ERROR,
++            "M_UNKNOWN",
++            &e.to_string(),
++        );
++    }
++    held.set_room(&user_id, &room_id, &event_type, content);
++    Json(json!({})).into_response()
++}
++
++/// `GET /account/whoami`: who the token belongs to, and which device. The
++/// one call a client can make to check a stored session still means what it
++/// thinks it means.
++async fn whoami(AuthUser(user): AuthUser, AuthDevice(device): AuthDevice) -> Json<Value> {
++    Json(json!({ "user_id": user, "device_id": device, "is_guest": false }))
++}
++
+ async fn get_room_keys() -> (StatusCode, Json<Value>) {
+     (
+         StatusCode::NOT_FOUND,
+diff --git a/crates/neutrino-http/src/multi_user.rs b/crates/neutrino-http/src/multi_user.rs
+index f5a2ae2..79f2eab 100644
+--- a/crates/neutrino-http/src/multi_user.rs
++++ b/crates/neutrino-http/src/multi_user.rs
+@@ -11,7 +11,7 @@ use ruma::OwnedUserId;
+ 
+ /// In-memory map of opaque access token → the user it authenticates.
+ /// Ephemeral: lives in `App`, lost on restart (acceptable for tests).
+-pub(crate) type UserTokens = HashMap<String, OwnedUserId>;
++pub(crate) type UserTokens = HashMap<String, (OwnedUserId, String)>;
+ 
+ /// Mint a fresh, unique access token of the Synapse-ish `syt_<random>`
+ /// shape. 32 random alphanumerics give ample collision resistance for a
+@@ -42,7 +42,7 @@ pub(crate) enum TokenError {
+ pub(crate) fn resolve(
+     headers: &HeaderMap,
+     tokens: &std::sync::Mutex<UserTokens>,
+-) -> Result<OwnedUserId, TokenError> {
++) -> Result<(OwnedUserId, String), TokenError> {
+     let header = headers
+         .get(axum::http::header::AUTHORIZATION)
+         .ok_or(TokenError::Missing)?;
+@@ -62,6 +62,7 @@ pub(crate) fn provision(
+     server_name: &str,
+     default_user_id: &str,
+     requested_localpart: Option<&str>,
++    device_id: &str,
+ ) -> Result<(OwnedUserId, String), String> {
+     let user_id: OwnedUserId = match requested_localpart {
+         Some(lp) if !lp.is_empty() => format!("@{lp}:{server_name}")
+@@ -76,7 +77,7 @@ pub(crate) fn provision(
+     tokens
+         .lock()
+         .unwrap_or_else(|e| e.into_inner())
+-        .insert(token.clone(), user_id.clone());
++        .insert(token.clone(), (user_id.clone(), device_id.to_owned()));
+     Ok((user_id, token))
+ }
+ 
+diff --git a/crates/neutrino-http/src/sliding_sync/conn.rs b/crates/neutrino-http/src/sliding_sync/conn.rs
+index d290876..976fef1 100644
+--- a/crates/neutrino-http/src/sliding_sync/conn.rs
++++ b/crates/neutrino-http/src/sliding_sync/conn.rs
+@@ -106,6 +106,10 @@ pub struct Conn {
+     /// as an empty notice rather than by omission. `0` on a fresh connection:
+     /// every room that has ever had a notice is reported once.
+     pub ephemeral_version: u64,
++    /// The account-data change counter as it stood when this connection last
++    /// rendered the `account_data` extension; `0` means everything held is
++    /// sent next time.
++    pub account_data_version: u64,
+     /// The device-change log position this connection last rendered into
+     /// `device_lists.changed`. Users who changed after it are reported on the
+     /// next e2ee extension; `0` on a fresh connection reports everyone who
+diff --git a/crates/neutrino-http/src/sliding_sync/mod.rs b/crates/neutrino-http/src/sliding_sync/mod.rs
+index b37ecb1..dfce850 100644
+--- a/crates/neutrino-http/src/sliding_sync/mod.rs
++++ b/crates/neutrino-http/src/sliding_sync/mod.rs
+@@ -23,6 +23,7 @@ use std::time::Duration;
+ 
+ use neutrino_event::event_view::StateEventConversionError;
+ 
++use crate::account_data::AccountDataState;
+ use crate::e2ee::E2eeState;
+ use crate::ephemeral::EphemeralState;
+ use neutrino_store::{StorageBackend, StorageError};
+@@ -113,6 +114,9 @@ pub struct SyncState<S> {
+     pub e2ee: Arc<E2eeState>,
+     /// Typing notices and read receipts, shared and watched the same way.
+     pub ephemeral: Arc<EphemeralState>,
++    /// Account data, shared with the handlers that write it and watched so
++    /// a write reaches a waiting sync now.
++    pub account_data: Arc<AccountDataState>,
+     /// Whether to synthesise delivery receipts from federation delivery marks
+     /// (`Config::delivery_receipts`, off by default — see [`receipts`]). Set by
+     /// the composition root; a client must *also* opt into the receipts
+@@ -131,6 +135,7 @@ impl<S> SyncState<S> {
+             registry: ConnRegistry::new(),
+             e2ee: Arc::new(E2eeState::new()),
+             ephemeral: Arc::new(EphemeralState::new()),
++            account_data: Arc::new(AccountDataState::new()),
+             delivery_receipts: false,
+             shutdown,
+         }
+@@ -157,10 +162,26 @@ impl<S> SyncState<S> {
+ ///    then snapshot the final response into `Conn::last_response` so any
+ ///    retry returns the same bytes — including the to-device events, which
+ ///    is what makes a drain safe against a lost response.
++///
++/// [`handle_as`] for a caller whose device is not known: the to-device
++/// inbox is drained for every device of the user. Tests and the single-user
++/// paths that predate per-device inboxes.
+ pub async fn handle<S: StorageBackend>(
+     state: &SyncState<S>,
+     user_id: &UserId,
+     req: v5::Request,
++) -> Result<v5::Response, SyncError> {
++    handle_as(state, user_id, "*", req).await
++}
++
++/// Serve one sliding-sync request for `device` of `user_id`. The device
++/// decides which to-device messages this response carries; everything else
++/// is per user.
++pub async fn handle_as<S: StorageBackend>(
++    state: &SyncState<S>,
++    user_id: &UserId,
++    device: &str,
++    req: v5::Request,
+ ) -> Result<v5::Response, SyncError> {
+     validate_request(&req)?;
+ 
+@@ -234,6 +255,9 @@ pub async fn handle<S: StorageBackend>(
+     // so a change during the wait is returned by the build that follows it.
+     let mut ephemeral_rx = state.ephemeral.subscribe();
+     let ephemeral_at_start = state.ephemeral.version();
++    let mut account_data_rx = state.account_data.subscribe();
++    let account_data_at_start = state.account_data.version();
++    let wants_account_data = req.extensions.account_data.enabled == Some(true);
+     let wants_ephemeral = req.extensions.typing.enabled == Some(true)
+         || req.extensions.receipts.enabled == Some(true);
+     // Device-list changes: a peer's new device is data for a client that
+@@ -290,8 +314,9 @@ pub async fn handle<S: StorageBackend>(
+         let resp = build::build_response(state, user_id, &req, &mut conn_guard).await?;
+         if !wait_for_data
+             || has_data(&resp)
+-            || has_to_device(state, user_id, &extensions_req)
++            || has_to_device(state, user_id, device, &extensions_req)
+             || (wants_ephemeral && state.ephemeral.version() != ephemeral_at_start)
++            || (wants_account_data && state.account_data.version() != account_data_at_start)
+             || (wants_e2ee && state.e2ee.device_seq() != device_seq_at_start)
+         {
+             break resp;
+@@ -326,6 +351,7 @@ pub async fn handle<S: StorageBackend>(
+                 _ = delivery_rx.changed(), if state.delivery_receipts => {}
+                 _ = e2ee_rx.changed(), if extensions_req.to_device.enabled == Some(true) || wants_e2ee => {}
+                 _ = ephemeral_rx.changed(), if wants_ephemeral => {}
++                _ = account_data_rx.changed(), if wants_account_data => {}
+             }
+         };
+         tokio::select! {
+@@ -342,6 +368,7 @@ pub async fn handle<S: StorageBackend>(
+     populate_extensions(
+         state,
+         user_id,
++        device,
+         &extensions_req,
+         &mut conn_guard,
+         &mut final_resp,
+@@ -480,9 +507,11 @@ fn has_data(resp: &v5::Response) -> bool {
+ fn has_to_device<S>(
+     state: &SyncState<S>,
+     user_id: &UserId,
++    device: &str,
+     req_ext: &v5::request::Extensions,
+ ) -> bool {
+-    req_ext.to_device.enabled == Some(true) && state.e2ee.pending_to_device(user_id.as_str()) > 0
++    req_ext.to_device.enabled == Some(true)
++        && state.e2ee.pending_to_device(user_id.as_str(), device) > 0
+ }
+ 
+ /// Everyone who shares a joined room with `user_id`, the caller included.
+@@ -513,6 +542,7 @@ async fn shared_room_members<S: StorageBackend>(
+ async fn populate_extensions<S: StorageBackend>(
+     state: &SyncState<S>,
+     user_id: &UserId,
++    device: &str,
+     req_ext: &v5::request::Extensions,
+     conn: &mut Conn,
+     resp: &mut v5::Response,
+@@ -611,6 +641,39 @@ async fn populate_extensions<S: StorageBackend>(
+             }
+         }
+     }
++    if req_ext.account_data.enabled == Some(true) {
++        // Everything held on a connection's first look, what changed since
++        // on the later ones; each entry is `{type, content}`.
++        let now = state.account_data.version();
++        let (global, rooms) = state
++            .account_data
++            .changed_since(user_id.as_str(), conn.account_data_version);
++        let mut account_data = v5::response::AccountData::default();
++        let to_raw = |(event_type, content): (String, serde_json::Value)| {
++            serde_json::value::to_raw_value(
++                &serde_json::json!({ "type": event_type, "content": content }),
++            )
++            .ok()
++        };
++        account_data.global = global
++            .into_iter()
++            .filter_map(to_raw)
++            .map(Raw::from_json)
++            .collect();
++        for (room, entries) in rooms {
++            let Ok(room_id) = ruma::OwnedRoomId::try_from(room) else {
++                continue;
++            };
++            let events: Vec<_> = entries
++                .into_iter()
++                .filter_map(to_raw)
++                .map(Raw::from_json)
++                .collect();
++            account_data.rooms.insert(room_id, events);
++        }
++        conn.account_data_version = now;
++        resp.extensions.account_data = account_data;
++    }
+     if req_ext.to_device.enabled == Some(true) {
+         // ruma v5's response types are `#[non_exhaustive]`; build via Default
+         // and field assignment rather than struct literal.
+@@ -618,7 +681,7 @@ async fn populate_extensions<S: StorageBackend>(
+         to_device.next_batch = resp.pos.clone();
+         to_device.events = state
+             .e2ee
+-            .drain_to_device(user_id.as_str())
++            .drain_to_device(user_id.as_str(), device)
+             .into_iter()
+             .filter_map(|event| {
+                 serde_json::value::to_raw_value(&event)
+diff --git a/crates/neutrino-http/src/sliding_sync/tests.rs b/crates/neutrino-http/src/sliding_sync/tests.rs
+index d3a78ad..eb8ed29 100644
+--- a/crates/neutrino-http/src/sliding_sync/tests.rs
++++ b/crates/neutrino-http/src/sliding_sync/tests.rs
+@@ -1643,6 +1643,7 @@ async fn to_device_extension_delivers_and_drains_the_inbox() {
+ 
+     state.e2ee.push_to_device(
+         user.as_str(),
++        "*",
+         "m.room_key",
+         "@bob:peer.example",
+         serde_json::json!({ "session_id": "S1" }),
+@@ -1696,6 +1697,7 @@ async fn to_device_message_wakes_a_long_poll() {
+     tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+     state.e2ee.push_to_device(
+         user.as_str(),
++        "*",
+         "m.room_key",
+         "@bob:peer.example",
+         serde_json::json!({ "session_id": "S1" }),
+@@ -1718,6 +1720,7 @@ async fn to_device_not_drained_when_extension_is_off() {
+     let user = user_id!("@alice:example.org");
+     state.e2ee.push_to_device(
+         user.as_str(),
++        "*",
+         "m.room_key",
+         "@bob:peer.example",
+         serde_json::json!({ "session_id": "S1" }),
+@@ -1725,7 +1728,7 @@ async fn to_device_not_drained_when_extension_is_off() {
+ 
+     let resp = handle(&state, user, Request::new()).await.unwrap();
+     assert!(resp.extensions.to_device.is_none());
+-    assert_eq!(state.e2ee.pending_to_device(user.as_str()), 1);
++    assert_eq!(state.e2ee.pending_to_device(user.as_str(), "*"), 1);
+ }
+ 
+ #[tokio::test]
+diff --git a/crates/neutrino-http/tests/e2e_keys.rs b/crates/neutrino-http/tests/e2e_keys.rs
+index 82f26dc..02d49d5 100644
+--- a/crates/neutrino-http/tests/e2e_keys.rs
++++ b/crates/neutrino-http/tests/e2e_keys.rs
+@@ -167,3 +167,45 @@ async fn login_honours_the_device_id_the_client_names() {
+     assert_eq!(named["device_id"], "IFNEWPHONE");
+     assert_eq!(unnamed["device_id"], "DEVICEID");
+ }
++
++/// `/account/whoami` reports the user and the device the session is for.
++#[tokio::test]
++async fn whoami_reports_user_and_device() {
++    async fn get_json(app: &axum::Router, path: &str) -> Value {
++        let req = Request::builder()
++            .method("GET")
++            .uri(path)
++            .body(Body::empty())
++            .unwrap();
++        let resp = app.clone().oneshot(req).await.unwrap();
++        assert!(resp.status().is_success(), "{path}: {}", resp.status());
++        let bytes = axum::body::to_bytes(resp.into_body(), 1 << 20)
++            .await
++            .unwrap();
++        serde_json::from_slice(&bytes).unwrap()
++    }
++    let (app, _tmp) = test_router().await;
++    let who = get_json(&app, "/_matrix/client/v3/account/whoami").await;
++    assert_eq!(who["user_id"], "@alice:example.org");
++    assert_eq!(who["device_id"], "DEVICEID");
++    assert_eq!(who["is_guest"], false);
++
++    let req = Request::builder()
++        .method("POST")
++        .uri("/_matrix/client/v3/login")
++        .header("content-type", "application/json")
++        .body(Body::from(
++            serde_json::to_vec(&json!({ "type": "m.login.password", "user": "alice", "password": "x", "device_id": "IFNEWPHONE" })).unwrap(),
++        ))
++        .unwrap();
++    assert!(
++        app.clone()
++            .oneshot(req)
++            .await
++            .unwrap()
++            .status()
++            .is_success()
++    );
++    let who = get_json(&app, "/_matrix/client/v3/account/whoami").await;
++    assert_eq!(who["device_id"], "IFNEWPHONE");
++}
+diff --git a/crates/neutrino-http/tests/e2e_legacy_sync.rs b/crates/neutrino-http/tests/e2e_legacy_sync.rs
+index 7a0d12b..84d858c 100644
+--- a/crates/neutrino-http/tests/e2e_legacy_sync.rs
++++ b/crates/neutrino-http/tests/e2e_legacy_sync.rs
+@@ -570,3 +570,38 @@ async fn legacy_sync_carries_device_list_changes_and_key_counts() {
+     assert_eq!(body["device_lists"]["left"], json!([]));
+     assert_eq!(body["device_one_time_keys_count"]["signed_curve25519"], 1);
+ }
++
++/// A write to account data reaches a legacy `/sync` that is already waiting
++/// on it, and a later sync carries only what changed since.
++#[tokio::test]
++async fn legacy_sync_carries_account_data_and_only_changes_after_the_first() {
++    let (app, _tmp) = test_router().await;
++    let me = "@alice:example.org";
++    let (status, first) = get(&app, LEGACY_SYNC_PATH, None).await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(first["account_data"]["events"], json!([]));
++    let since = first["next_batch"].as_str().unwrap().to_string();
++
++    let (status, _) = put(
++        &app,
++        &format!("/_matrix/client/v3/user/{me}/account_data/m.direct"),
++        &json!({ "@bob:example.org": ["!r:example.org"] }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++
++    let (status, body) = get(&app, LEGACY_SYNC_PATH, Some(&format!("since={since}"))).await;
++    assert_eq!(status, StatusCode::OK);
++    let events = body["account_data"]["events"].as_array().unwrap();
++    assert_eq!(events.len(), 1, "{body}");
++    assert_eq!(events[0]["type"], "m.direct");
++    let since = body["next_batch"].as_str().unwrap().to_string();
++
++    let (status, body) = get(&app, LEGACY_SYNC_PATH, Some(&format!("since={since}"))).await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(
++        body["account_data"]["events"],
++        json!([]),
++        "nothing new: {body}"
++    );
++}
+diff --git a/crates/neutrino-http/tests/e2e_multi_user.rs b/crates/neutrino-http/tests/e2e_multi_user.rs
+index 89e0099..f668269 100644
+--- a/crates/neutrino-http/tests/e2e_multi_user.rs
++++ b/crates/neutrino-http/tests/e2e_multi_user.rs
+@@ -1284,3 +1284,85 @@ async fn messages_requires_membership() {
+     assert_eq!(s, StatusCode::BAD_REQUEST, "{body}");
+     assert_eq!(body["errcode"], json!("M_INVALID_PARAM"), "{body}");
+ }
++
++/// A session survives a restart on the same storage directory: the token a
++/// client holds still resolves, to the same user and device. The mesh test
++/// rig restarts nodes on purpose; a restart that signed everyone out would
++/// make every restart proof fail for the wrong reason.
++#[tokio::test]
++async fn sessions_survive_a_restart_on_the_same_storage_dir() {
++    let tmp = tempfile::TempDir::new().expect("tempdir");
++    let mut cfg = config();
++    cfg.storage_dir = tmp.path().to_path_buf();
++
++    let app1 = router(cfg.clone()).await.expect("router boot 1");
++    let (status, body) = send(
++        &app1,
++        "POST",
++        "/_matrix/client/v3/login",
++        None,
++        &json!({ "type": "m.login.password", "user": "bob", "password": "x", "device_id": "PHONE" }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "{body}");
++    let token = body["access_token"].as_str().unwrap().to_owned();
++    drop(app1);
++
++    let app2 = router(cfg).await.expect("router boot 2");
++    let (status, who) = send(
++        &app2,
++        "GET",
++        "/_matrix/client/v3/account/whoami",
++        Some(&token),
++        &json!({}),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "{who}");
++    assert_eq!(who["user_id"], "@bob:example.org");
++    assert_eq!(who["device_id"], "PHONE");
++}
++
++/// A one-time-key upload that names no device keys lands on the caller's own
++/// device — the one its token was minted for — so a later claim for that
++/// device finds it. (Every login is its own device now; a conventional
++/// fallback id would match nothing.)
++#[tokio::test]
++async fn key_only_uploads_land_on_the_callers_device() {
++    let (app, _tmp) = test_router().await;
++    let (user, token) = register(&app, "otk-owner").await;
++    let (_, who) = send(
++        &app,
++        "GET",
++        "/_matrix/client/v3/account/whoami",
++        Some(&token),
++        &json!({}),
++    )
++    .await;
++    let device = who["device_id"].as_str().unwrap().to_owned();
++    assert_ne!(device, "DEVICEID");
++
++    let (status, counts) = send(
++        &app,
++        "POST",
++        "/_matrix/client/v3/keys/upload",
++        Some(&token),
++        &json!({ "one_time_keys": { "signed_curve25519:k1": { "key": "k1" } } }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "{counts}");
++    assert_eq!(counts["one_time_key_counts"]["signed_curve25519"], 1);
++
++    let (status, claimed) = send(
++        &app,
++        "POST",
++        "/_matrix/client/v3/keys/claim",
++        Some(&token),
++        &json!({ "one_time_keys": { user.clone(): { device.clone(): "signed_curve25519" } } }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(
++        claimed["one_time_keys"][&user][&device]["signed_curve25519:k1"]["key"], "k1",
++        "{claimed}"
++    );
++}
+diff --git a/crates/neutrino-http/tests/e2e_persistence.rs b/crates/neutrino-http/tests/e2e_persistence.rs
+index aa6840b..2732eb4 100644
+--- a/crates/neutrino-http/tests/e2e_persistence.rs
++++ b/crates/neutrino-http/tests/e2e_persistence.rs
+@@ -81,3 +81,105 @@ async fn room_survives_restart_on_same_storage_dir() {
+         .any(|e| e["type"] == "m.room.create");
+     assert!(has_create, "m.room.create missing after restart: {state}");
+ }
++
++/// Account data — the DM list, room tags — is written through to the store
++/// and comes back after a restart on the same directory, global and per
++/// room; another user's entries are not readable, and a missing one is 404.
++#[tokio::test]
++async fn account_data_survives_restart_on_same_storage_dir() {
++    let tmp = tempfile::TempDir::new().expect("tempdir");
++    let cfg = config_in(tmp.path());
++    let me = "@alice:example.org";
++
++    let app1 = router(cfg.clone()).await.expect("router boot 1");
++    let (status, body) = send(
++        &app1,
++        "POST",
++        "/_matrix/client/v3/createRoom",
++        Some(&json!({})),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let room_id = body["room_id"].as_str().unwrap().to_string();
++
++    let direct = json!({ "@bob:example.org": [room_id] });
++    let (status, _) = send(
++        &app1,
++        "PUT",
++        &format!("/_matrix/client/v3/user/{me}/account_data/m.direct"),
++        Some(&direct),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let (status, _) = send(
++        &app1,
++        "PUT",
++        &format!("/_matrix/client/v3/user/{me}/rooms/{room_id}/account_data/m.tag"),
++        Some(&json!({ "tags": { "m.favourite": {} } })),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let (status, body) = send(
++        &app1,
++        "GET",
++        &format!("/_matrix/client/v3/user/{me}/account_data/m.direct"),
++        None,
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(body, direct);
++    let (status, body) = send(
++        &app1,
++        "PUT",
++        "/_matrix/client/v3/user/@bob:example.org/account_data/m.direct",
++        Some(&json!({})),
++    )
++    .await;
++    assert_eq!(status, StatusCode::FORBIDDEN, "{body}");
++    let (status, body) = send(
++        &app1,
++        "GET",
++        &format!("/_matrix/client/v3/user/{me}/account_data/nothing.here"),
++        None,
++    )
++    .await;
++    assert_eq!(status, StatusCode::NOT_FOUND);
++    assert_eq!(body["errcode"], "M_NOT_FOUND");
++    drop(app1);
++
++    let app2 = router(cfg).await.expect("router boot 2");
++    let (status, body) = send(
++        &app2,
++        "GET",
++        &format!("/_matrix/client/v3/user/{me}/account_data/m.direct"),
++        None,
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "global account data after restart");
++    assert_eq!(body, direct);
++    let (status, body) = send(
++        &app2,
++        "GET",
++        &format!("/_matrix/client/v3/user/{me}/rooms/{room_id}/account_data/m.tag"),
++        None,
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "room account data after restart");
++    assert_eq!(body["tags"]["m.favourite"], json!({}));
++
++    // And a restarted server's first sync carries it: the client's DM list
++    // is there before it asks.
++    let (status, body) = send(&app2, "GET", "/_matrix/client/v3/sync?timeout=0", None).await;
++    assert_eq!(status, StatusCode::OK);
++    let global = body["account_data"]["events"].as_array().unwrap();
++    assert!(
++        global
++            .iter()
++            .any(|e| e["type"] == "m.direct" && e["content"] == direct),
++        "{body}"
++    );
++    let room_events = body["rooms"]["join"][&room_id]["account_data"]["events"]
++        .as_array()
++        .unwrap();
++    assert!(room_events.iter().any(|e| e["type"] == "m.tag"), "{body}");
++}
+diff --git a/crates/neutrino-store-sqlite/src/schema.rs b/crates/neutrino-store-sqlite/src/schema.rs
+index 988e466..5b90193 100644
+--- a/crates/neutrino-store-sqlite/src/schema.rs
++++ b/crates/neutrino-store-sqlite/src/schema.rs
+@@ -8,7 +8,7 @@ const SCHEMA_SQL: &str = include_str!("schema.sql");
+ /// shape, so a store written by an older build is refused at open (loudly, and
+ /// before any query hits a column that does not exist) rather than breaking
+ /// mid-request. One constant so the stamp and the gate cannot drift.
+-pub(crate) const SCHEMA_VERSION: i64 = 6;
++pub(crate) const SCHEMA_VERSION: i64 = 7;
+ 
+ /// Version-gate the database against the bundled schema. Authoritative
+ /// open-time check per design doc §2 "Open path: version gate & schema bundle".
+diff --git a/crates/neutrino-store-sqlite/src/schema.sql b/crates/neutrino-store-sqlite/src/schema.sql
+index e69829d..571760d 100644
+--- a/crates/neutrino-store-sqlite/src/schema.sql
++++ b/crates/neutrino-store-sqlite/src/schema.sql
+@@ -516,7 +516,29 @@ CREATE TABLE cross_signing_keys (
+ CREATE TABLE to_device_inbox (
+     inbox_id  INTEGER NOT NULL PRIMARY KEY,
+     user      TEXT NOT NULL,
++    -- The device the message is for; '*' for whichever of the user's devices
++    -- syncs first.
++    device    TEXT NOT NULL,
+     event     TEXT NOT NULL
+ ) STRICT;
+ 
+ CREATE INDEX ix_to_device_inbox_user ON to_device_inbox(user, inbox_id);
++
++-- Per-user account data: global entries (room = '') and per-room entries,
++-- wire-verbatim JSON, replaced on write. What a client's DM list and room
++-- tags are, and what it finds again after a reinstall.
++CREATE TABLE account_data (
++    user        TEXT NOT NULL,
++    room        TEXT NOT NULL,
++    event_type  TEXT NOT NULL,
++    content     TEXT NOT NULL,
++    PRIMARY KEY (user, room, event_type)
++) STRICT, WITHOUT ROWID;
++
++-- The multi-user shim's client sessions: access token -> user and device.
++-- Kept so a restart does not sign every client out.
++CREATE TABLE sessions (
++    token   TEXT NOT NULL PRIMARY KEY,
++    user    TEXT NOT NULL,
++    device  TEXT NOT NULL
++) STRICT, WITHOUT ROWID;
+diff --git a/crates/neutrino-store-sqlite/src/store/account_data.rs b/crates/neutrino-store-sqlite/src/store/account_data.rs
+new file mode 100644
+index 0000000..9dc7ad5
+--- /dev/null
++++ b/crates/neutrino-store-sqlite/src/store/account_data.rs
+@@ -0,0 +1,100 @@
++//! `AccountDataStore` impl on [`crate::SqliteStore`]: one table of
++//! wire-verbatim JSON, `room = ''` for a global entry.
++
++use async_trait::async_trait;
++use deadpool_sqlite::rusqlite::params;
++use neutrino_store::{AccountDataStore, StorageError};
++use serde_json::value::RawValue as RawJsonValue;
++
++use crate::{SqliteStore, error::Error};
++
++fn raw(text: String) -> Result<Box<RawJsonValue>, Error> {
++    RawJsonValue::from_string(text)
++        .map_err(|e| Error::Internal(format!("malformed JSON in DB: {e}")))
++}
++
++#[async_trait]
++impl AccountDataStore for SqliteStore {
++    async fn load_account_data(
++        &self,
++    ) -> Result<Vec<(String, Option<String>, String, Box<RawJsonValue>)>, StorageError> {
++        self.run_read(move |conn| -> Result<Vec<_>, Error> {
++            let mut stmt =
++                conn.prepare("SELECT user, room, event_type, content FROM account_data")?;
++            let rows = stmt.query_map([], |row| {
++                Ok((
++                    row.get::<_, String>(0)?,
++                    row.get::<_, String>(1)?,
++                    row.get::<_, String>(2)?,
++                    row.get::<_, String>(3)?,
++                ))
++            })?;
++            let mut out = Vec::new();
++            for r in rows {
++                let (user, room, event_type, content) = r?;
++                let room = if room.is_empty() { None } else { Some(room) };
++                out.push((user, room, event_type, raw(content)?));
++            }
++            Ok(out)
++        })
++        .await
++    }
++
++    async fn put_account_data(
++        &self,
++        user: &str,
++        room: Option<&str>,
++        event_type: &str,
++        content: &RawJsonValue,
++    ) -> Result<(), StorageError> {
++        let (user, room, event_type, content) = (
++            user.to_owned(),
++            room.unwrap_or_default().to_owned(),
++            event_type.to_owned(),
++            content.get().to_owned(),
++        );
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "INSERT INTO account_data (user, room, event_type, content) VALUES (?, ?, ?, ?) \
++                 ON CONFLICT(user, room, event_type) DO UPDATE SET content = excluded.content",
++                params![user, room, event_type, content],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use serde_json::json;
++
++    fn raw(v: Value) -> Box<RawJsonValue> {
++        serde_json::value::to_raw_value(&v).unwrap()
++    }
++    use serde_json::Value;
++
++    #[tokio::test]
++    async fn account_data_round_trips_and_replaces() {
++        let tmp = tempfile::TempDir::new().unwrap();
++        let s = SqliteStore::open(tmp.path().join("store.sqlite"))
++            .await
++            .unwrap();
++        s.put_account_data("@a:x", None, "m.direct", &raw(json!({"v": 1})))
++            .await
++            .unwrap();
++        s.put_account_data("@a:x", None, "m.direct", &raw(json!({"v": 2})))
++            .await
++            .unwrap();
++        s.put_account_data("@a:x", Some("!r:x"), "m.tag", &raw(json!({"t": 1})))
++            .await
++            .unwrap();
++        let mut rows = s.load_account_data().await.unwrap();
++        rows.sort_by(|a, b| a.1.cmp(&b.1));
++        assert_eq!(rows.len(), 2, "the second global write replaced the first");
++        assert_eq!(rows[0].1, None);
++        assert_eq!(rows[0].3.get(), r#"{"v":2}"#);
++        assert_eq!(rows[1].1.as_deref(), Some("!r:x"));
++    }
++}
+diff --git a/crates/neutrino-store-sqlite/src/store/e2ee.rs b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+index acce367..a82578c 100644
+--- a/crates/neutrino-store-sqlite/src/store/e2ee.rs
++++ b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+@@ -64,18 +64,19 @@ impl E2eeStore for SqliteStore {
+             }
+ 
+             let mut stmt = conn.prepare(
+-                "SELECT inbox_id, user, event FROM to_device_inbox ORDER BY inbox_id ASC",
++                "SELECT inbox_id, user, device, event FROM to_device_inbox ORDER BY inbox_id ASC",
+             )?;
+             let rows = stmt.query_map([], |row| {
+                 Ok((
+                     row.get::<_, i64>(0)?,
+                     row.get::<_, String>(1)?,
+                     row.get::<_, String>(2)?,
++                    row.get::<_, String>(3)?,
+                 ))
+             })?;
+             for r in rows {
+-                let (id, user, event) = r?;
+-                snapshot.to_device.push((id, user, raw(event)?));
++                let (id, user, device, event) = r?;
++                snapshot.to_device.push((id, user, device, raw(event)?));
+             }
+ 
+             let mut stmt = conn.prepare("SELECT user, stream_id FROM device_streams")?;
+@@ -195,13 +196,15 @@ impl E2eeStore for SqliteStore {
+         &self,
+         id: i64,
+         user: &str,
++        device: &str,
+         event: &RawJsonValue,
+     ) -> Result<(), StorageError> {
+-        let (user, event) = (user.to_owned(), event.get().to_owned());
++        let (user, device, event) = (user.to_owned(), device.to_owned(), event.get().to_owned());
+         self.run_write(move |conn| -> Result<(), Error> {
+             conn.execute(
+-                "INSERT OR IGNORE INTO to_device_inbox (inbox_id, user, event) VALUES (?, ?, ?)",
+-                params![id, user, event],
++                "INSERT OR IGNORE INTO to_device_inbox (inbox_id, user, device, event) \
++                 VALUES (?, ?, ?, ?)",
++                params![id, user, device, event],
+             )?;
+             Ok(())
+         })
+@@ -297,28 +300,29 @@ mod tests {
+     #[tokio::test]
+     async fn inbox_keeps_order_and_ids() {
+         let s = store().await;
+-        s.push_to_device(7, "@a:x", &raw(json!({ "n": 7 })))
++        s.push_to_device(7, "@a:x", "D1", &raw(json!({ "n": 7 })))
+             .await
+             .unwrap();
+-        s.push_to_device(3, "@a:x", &raw(json!({ "n": 3 })))
++        s.push_to_device(3, "@a:x", "D1", &raw(json!({ "n": 3 })))
+             .await
+             .unwrap();
+-        s.push_to_device(7, "@a:x", &raw(json!({ "n": 70 })))
++        s.push_to_device(7, "@a:x", "D1", &raw(json!({ "n": 70 })))
+             .await
+             .unwrap();
+-        s.push_to_device(9, "@b:x", &raw(json!({ "n": 9 })))
++        s.push_to_device(9, "@b:x", "*", &raw(json!({ "n": 9 })))
+             .await
+             .unwrap();
+ 
+         let snap = s.load_e2ee().await.unwrap();
+-        let ids: Vec<i64> = snap.to_device.iter().map(|(id, _, _)| *id).collect();
++        let ids: Vec<i64> = snap.to_device.iter().map(|(id, _, _, _)| *id).collect();
+         assert_eq!(ids, [3, 7, 9]);
+-        assert_eq!(snap.to_device[1].2.get(), r#"{"n":7}"#, "repeat id ignored");
++        assert_eq!(snap.to_device[1].3.get(), r#"{"n":7}"#, "repeat id ignored");
+ 
+         s.remove_to_device(&[3, 7]).await.unwrap();
+         s.remove_to_device(&[]).await.unwrap();
+         let snap = s.load_e2ee().await.unwrap();
+         assert_eq!(snap.to_device.len(), 1);
+         assert_eq!(snap.to_device[0].1, "@b:x");
++        assert_eq!(snap.to_device[0].2, "*");
+     }
+ }
+diff --git a/crates/neutrino-store-sqlite/src/store/mod.rs b/crates/neutrino-store-sqlite/src/store/mod.rs
+index 69ad540..2166d8b 100644
+--- a/crates/neutrino-store-sqlite/src/store/mod.rs
++++ b/crates/neutrino-store-sqlite/src/store/mod.rs
+@@ -1,6 +1,7 @@
+ //! Trait implementations on [`crate::SqliteStore`]. One file per sub-trait
+ //! so each method's pre/post conditions map 1:1 to a file boundary.
+ 
++mod account_data;
+ mod dag;
+ mod deliveries;
+ mod e2ee;
+@@ -10,6 +11,7 @@ mod inbox;
+ mod invites;
+ mod outbox;
+ mod rooms;
++mod sessions;
+ mod staging;
+ mod state;
+ mod state_provider;
+diff --git a/crates/neutrino-store-sqlite/src/store/sessions.rs b/crates/neutrino-store-sqlite/src/store/sessions.rs
+new file mode 100644
+index 0000000..9e90321
+--- /dev/null
++++ b/crates/neutrino-store-sqlite/src/store/sessions.rs
+@@ -0,0 +1,67 @@
++//! `SessionStore` impl on [`crate::SqliteStore`]: the multi-user shim's
++//! access tokens, so a restart does not sign every client out.
++
++use async_trait::async_trait;
++use deadpool_sqlite::rusqlite::params;
++use neutrino_store::{SessionStore, StorageError};
++
++use crate::{SqliteStore, error::Error};
++
++#[async_trait]
++impl SessionStore for SqliteStore {
++    async fn load_sessions(&self) -> Result<Vec<(String, String, String)>, StorageError> {
++        self.run_read(move |conn| -> Result<Vec<_>, Error> {
++            let mut stmt = conn.prepare("SELECT token, user, device FROM sessions")?;
++            let rows = stmt.query_map([], |row| {
++                Ok((
++                    row.get::<_, String>(0)?,
++                    row.get::<_, String>(1)?,
++                    row.get::<_, String>(2)?,
++                ))
++            })?;
++            let mut out = Vec::new();
++            for r in rows {
++                out.push(r?);
++            }
++            Ok(out)
++        })
++        .await
++    }
++
++    async fn put_session(&self, token: &str, user: &str, device: &str) -> Result<(), StorageError> {
++        let (token, user, device) = (token.to_owned(), user.to_owned(), device.to_owned());
++        self.run_write(move |conn| -> Result<(), Error> {
++            conn.execute(
++                "INSERT OR IGNORE INTO sessions (token, user, device) VALUES (?, ?, ?)",
++                params![token, user, device],
++            )?;
++            Ok(())
++        })
++        .await
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[tokio::test]
++    async fn sessions_round_trip_and_keep_the_first() {
++        let tmp = tempfile::TempDir::new().unwrap();
++        let s = SqliteStore::open(tmp.path().join("store.sqlite"))
++            .await
++            .unwrap();
++        s.put_session("syt_a", "@a:x", "PHONE").await.unwrap();
++        s.put_session("syt_a", "@a:x", "LAPTOP").await.unwrap();
++        s.put_session("syt_b", "@b:x", "*").await.unwrap();
++        let mut rows = s.load_sessions().await.unwrap();
++        rows.sort();
++        assert_eq!(
++            rows,
++            vec![
++                ("syt_a".to_owned(), "@a:x".to_owned(), "PHONE".to_owned()),
++                ("syt_b".to_owned(), "@b:x".to_owned(), "*".to_owned()),
++            ]
++        );
++    }
++}
+diff --git a/crates/neutrino-store/src/lib.rs b/crates/neutrino-store/src/lib.rs
+index aa2c100..03a385a 100644
+--- a/crates/neutrino-store/src/lib.rs
++++ b/crates/neutrino-store/src/lib.rs
+@@ -839,8 +839,9 @@ pub struct E2eeSnapshot {
+     pub one_time_keys: Vec<(String, String, String, Box<RawJsonValue>)>,
+     /// `(name, value)` — the sections of a `/keys/device_signing/upload` body.
+     pub cross_signing: Vec<(String, Box<RawJsonValue>)>,
+-    /// `(inbox id, recipient user, event)`, in delivery order.
+-    pub to_device: Vec<(i64, String, Box<RawJsonValue>)>,
++    /// `(inbox id, recipient user, recipient device or `*`, event)`, in
++    /// delivery order.
++    pub to_device: Vec<(i64, String, String, Box<RawJsonValue>)>,
+     /// `(user, stream_id)`: how many times each local user's device list has
+     /// changed, the counter `m.device_list_update` carries so a peer can
+     /// order updates and notice a gap.
+@@ -900,12 +901,13 @@ pub trait E2eeStore: Send + Sync {
+ 
+     /// Pre:  `id` is unique per process lifetime and increasing (the caller
+     ///       seeds its counter from the loaded snapshot's maximum).
+-    /// Post: the event waits for `user` under `id`; a repeat of the same id is
+-    ///       ignored.
++    /// Post: the event waits for `device` of `user` (`*`: any device) under
++    ///       `id`; a repeat of the same id is ignored.
+     async fn push_to_device(
+         &self,
+         id: i64,
+         user: &str,
++        device: &str,
+         event: &RawJsonValue,
+     ) -> Result<(), StorageError>;
+ 
+@@ -915,6 +917,43 @@ pub trait E2eeStore: Send + Sync {
+     async fn remove_to_device(&self, ids: &[i64]) -> Result<(), StorageError>;
+ }
+ 
++/// Per-user account data: global entries keyed by type, room entries by room
++/// and type. Wire-verbatim JSON; the in-memory copy in `neutrino-http` is the
++/// runtime one and these rows are what it is rebuilt from.
++#[async_trait]
++pub trait AccountDataStore: Send + Sync {
++    /// Pre:  none.
++    /// Post: every `(user, room, type, content)` row; `room` is `None` for a
++    ///       global entry.
++    async fn load_account_data(
++        &self,
++    ) -> Result<Vec<(String, Option<String>, String, Box<RawJsonValue>)>, StorageError>;
++
++    /// Pre:  `content` is a JSON object.
++    /// Post: the `(user, room, type)` row holds `content`, replacing any
++    ///       previous.
++    async fn put_account_data(
++        &self,
++        user: &str,
++        room: Option<&str>,
++        event_type: &str,
++        content: &RawJsonValue,
++    ) -> Result<(), StorageError>;
++}
++
++/// Client sessions of the multi-user shim: access token → user and device.
++/// Persisted so a restart does not sign every client out — the mesh test rig
++/// restarts nodes on purpose.
++#[async_trait]
++pub trait SessionStore: Send + Sync {
++    /// Post: every `(token, user, device)` row.
++    async fn load_sessions(&self) -> Result<Vec<(String, String, String)>, StorageError>;
++
++    /// Post: `token` resolves to `(user, device)`; a repeat of the same token
++    ///       keeps the first.
++    async fn put_session(&self, token: &str, user: &str, device: &str) -> Result<(), StorageError>;
++}
++
+ /// Combined storage interface. Use as a generic bound: `S: StorageBackend`.
+ pub trait StorageBackend:
+     RoomStore
+@@ -928,6 +967,8 @@ pub trait StorageBackend:
+     + InviteStore
+     + IdentityStore
+     + E2eeStore
++    + AccountDataStore
++    + SessionStore
+ {
+ }
+ 
+@@ -943,6 +984,8 @@ impl<T> StorageBackend for T where
+         + InviteStore
+         + IdentityStore
+         + E2eeStore
++        + AccountDataStore
++        + SessionStore
+ {
+ }
+ 
+diff --git a/crates/neutrino/Cargo.toml b/crates/neutrino/Cargo.toml
+index 82935d0..7ab0e99 100644
+--- a/crates/neutrino/Cargo.toml
++++ b/crates/neutrino/Cargo.toml
+@@ -9,6 +9,11 @@ name = "neutrino"
+ path = "src/main.rs"
+ 
+ [features]
++# The dev binary is what tests and CI talk to, and a server that hands every
++# login the same identity cannot be tested with two users or two devices. The
++# embedded build (neutrino-ffi) does not go through this crate and stays
++# single-user.
++default = ["multi-user-shim"]
+ multi-user-shim = ["neutrino-main/multi-user-shim"]
+ 
+ [dependencies]
+-- 
+2.43.0
+

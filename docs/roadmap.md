@@ -162,6 +162,15 @@ alignment, #3 CI packages token, #4 fork roadmap.
   drift (`phases.md`).
 - 2026-09-02: Display font decided: Press Start 2P (OFL) ships as the display
   face, FFF Forward is referenced but never bundled (#33).
+- 2026-09-03: **P2P step 8 (#81): identity, whoami and account data.**
+  Patch `0010`: the dev binary is multi-user by default (every login its
+  own user, token and device), the to-device inbox is keyed per device so
+  two devices of one user each get only their own room keys, `/account/whoami`,
+  and persisted global and per-room account data served by both syncs —
+  where the client's DM list lives, so it survives a reinstall. Proofs: two
+  devices of one user each receive only their own to-device messages (fork
+  test and probe contract); account data survives a node restart; Complement
+  `TestAddAccountData`.
 - 2026-09-03: **P2P step 7, device-list updates (#80).** Patch `0009`:
   `m.device_list_update` over the outbox on every device change, a
   persisted per-user stream, `device_lists.changed` through sliding and
