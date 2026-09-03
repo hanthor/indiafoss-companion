@@ -439,3 +439,48 @@ export function sortLinks(links: ContactLink[]): ContactLink[] {
   };
   return [...links].sort((a, b) => rank(a.kind) - rank(b.kind));
 }
+
+/** Networks a pasted link can land on; the rest of `LinkKind` are contact fields. */
+const SOCIAL_KINDS: ReadonlySet<string> = new Set<AttendeeSocial>([
+  'github',
+  'gitlab',
+  'linkedin',
+  'mastodon',
+  'bluesky',
+  'x',
+  'instagram',
+  'youtube',
+  'medium',
+  'devto',
+  'telegram',
+  'whatsapp',
+  'signal',
+  'xmpp',
+]);
+
+/**
+ * Where a pasted link or handle belongs on the card, so one box can take
+ * anything (the pattern GitHub's "social accounts" and every link-in-bio
+ * page use: paste, we sort it). Understands full profile links, fediverse
+ * handles (`@alice@fosstodon.org`), Bluesky handles (`alice.bsky.social`),
+ * and bare `@user` for nothing — that is ambiguous, so it is left to the
+ * per-network fields. Returns the network and the value to store.
+ */
+export function socialFromLink(
+  input: string,
+): { network: AttendeeSocial; value: string } | { network: 'website'; value: string } | null {
+  const raw = input.trim();
+  if (!raw) return null;
+  const fedi = raw.match(/^@?([A-Za-z0-9_.-]+)@([A-Za-z0-9.-]+\.[A-Za-z]{2,})$/);
+  if (fedi) return { network: 'mastodon', value: `https://${fedi[2]}/@${fedi[1]}` };
+  const bsky = raw.match(/^@?([A-Za-z0-9-]+\.bsky\.social)$/i);
+  if (bsky) return { network: 'bluesky', value: `https://bsky.app/profile/${bsky[1]}` };
+  // A bare handle names no site; a host needs a dot to be one.
+  if (!/^[a-z]+:/i.test(raw) && !/^[^/]*\.[^/]*/.test(raw)) return null;
+  const withScheme = /^[a-z]+:/i.test(raw) ? raw : `https://${raw}`;
+  const kind = classifyLink(withScheme);
+  if (!kind) return null;
+  if (SOCIAL_KINDS.has(kind)) return { network: kind as AttendeeSocial, value: withScheme };
+  if (kind === 'website') return { network: 'website', value: withScheme };
+  return null;
+}

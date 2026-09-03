@@ -186,6 +186,7 @@ export {
   DEFAULT_ATTENDEE_SHARE_SELECTION,
   messengerHandle,
   normalizePhone,
+  socialFromLink,
 } from './contact.js';
 export type {
   AttendeeProfile,

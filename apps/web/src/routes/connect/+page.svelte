@@ -20,6 +20,7 @@
     shortFingerprint,
     signedAttendeeVCard,
     type AttendeeSocial,
+    socialFromLink,
   } from '@indiafoss/model';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
@@ -247,6 +248,27 @@
   function addNetwork(n: AttendeeSocial): void {
     extraNetworks = [...extraNetworks, n];
     showAddMenu = false;
+  }
+  /** One box for any link or handle; it lands on the right network. */
+  let pasteLink = $state('');
+  let pasteError = $state<string | null>(null);
+  function addPastedLink(event: SubmitEvent): void {
+    event.preventDefault();
+    pasteError = null;
+    const sorted = socialFromLink(pasteLink);
+    if (!sorted) {
+      pasteError = 'Paste a full profile link, or a handle like @you@fosstodon.org.';
+      return;
+    }
+    if (sorted.network === 'website') {
+      profileState.profile.website = sorted.value;
+      profileState.selection.website = true;
+      scheduleCard();
+    } else {
+      if (!shownNetworks.includes(sorted.network)) addNetwork(sorted.network);
+      setLink(sorted.network, sorted.value);
+    }
+    pasteLink = '';
   }
   function setLink(n: AttendeeSocial, value: string): void {
     setSocial(n, value);
@@ -701,6 +723,19 @@
               >
             </div>
           {/each}
+          <form class="pastebox" onsubmit={addPastedLink}>
+            <input
+              aria-label="Paste a profile link or handle"
+              bind:value={pasteLink}
+              placeholder="Paste any profile link or @you@fosstodon.org"
+              inputmode="url"
+              autocomplete="off"
+            />
+            <button class="button secondary small" type="submit" disabled={!pasteLink.trim()}>
+              Add
+            </button>
+          </form>
+          {#if pasteError}<p class="error small" role="alert">{pasteError}</p>{/if}
           {#if addableNetworks.length > 0}
             {#if showAddMenu}
               <div class="addmenu" role="group" aria-label="Add a network">
@@ -1368,5 +1403,14 @@
   }
   .danger {
     color: var(--danger);
+  }
+  .pastebox {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.5rem 0 0.25rem;
+  }
+  .pastebox input {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 </style>
