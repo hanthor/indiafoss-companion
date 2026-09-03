@@ -274,3 +274,41 @@ describe('slidingSyncToSyncResponse (MSC4186)', () => {
     expect(folded.to_device).toBeUndefined();
   });
 });
+
+describe('sliding sync request', () => {
+  it('keeps conn_id within the 16-character cap MSC4186 imposes', async () => {
+    const { SLIDING_SYNC_CONN_ID } = await import('./http.js');
+    expect(SLIDING_SYNC_CONN_ID.length).toBeLessThanOrEqual(16);
+  });
+});
+
+describe('sliding sync connection loss', () => {
+  it('starts a fresh connection on M_UNKNOWN_POS instead of retrying the stale pos', async () => {
+    const { MatrixClient, SLIDING_SYNC_FLAG } = await import('./http.js');
+    const bodies: { pos: string | null }[] = [];
+    let knownPos = 'p1';
+    const fetch: import('./http.js').FetchLike = async (input) => {
+      const url = new URL(input);
+      const json = (body: unknown, status = 200) =>
+        new Response(JSON.stringify(body), {
+          status,
+          headers: { 'content-type': 'application/json' },
+        });
+      if (url.pathname.endsWith('/versions'))
+        return json({ versions: ['v1.11'], unstable_features: { [SLIDING_SYNC_FLAG]: true } });
+      const pos = url.searchParams.get('pos');
+      bodies.push({ pos });
+      // The server "restarted": the pos the client remembers is unknown.
+      if (pos !== null && pos !== knownPos)
+        return json({ errcode: 'M_UNKNOWN_POS', error: 'unknown pos' }, 400);
+      knownPos = pos === null ? 'p1' : String(Number(pos.slice(1)) + 1).replace(/^/, 'p');
+      return json({ pos: knownPos, lists: {}, rooms: {} });
+    };
+    const client = new MatrixClient('https://hs', 'tok', fetch);
+    await client.sync({ timeoutMs: 0 }); // initial: pos null → p1
+    await client.sync({ timeoutMs: 0 }); // pos p1 → p2
+    knownPos = 'p99'; // restart: p2 is now unknown
+    await client.sync({ timeoutMs: 0 });
+    expect(bodies.map((b) => b.pos)).toEqual([null, 'p1', 'p2', null]);
+  });
+});

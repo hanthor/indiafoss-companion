@@ -1,6 +1,6 @@
 # E2EE patches for `element-hq/neutrino`
 
-Three patches that give Neutrino enough of the Matrix key surface for the
+Five patches that give Neutrino enough of the Matrix key surface for the
 companion's mesh rooms to be end-to-end encrypted. They apply to
 `element-hq/neutrino` at `90bc1b1` (2026-09-02). The same commits are on the
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
@@ -93,10 +93,43 @@ Tests: EDU-only delivery and drain, EDUs riding along with PDUs, and the one
 that is the point — a key queued while the peer is unreachable is delivered
 when the peer comes back.
 
+## 0004 — sliding sync carries E2EE
+
+The sliding-sync `e2ee` and `to_device` extensions were echo stubs: an
+empty events array, a one-time key count hard-coded at 100, and a long-poll
+that deliberately ignored both. For a client on sliding sync — Element X, and
+ours — a Megolm room key therefore never arrived, however complete the rest of
+the transport was.
+
+The key directory and inbox move into a shared `E2eeState` with its own watch.
+Sliding sync drains the inbox into `extensions.to_device.events` for a client
+that opted in (the drained events are part of the cached response, so a retried
+request gets them again), reports real one-time key counts, and wakes a waiting
+long-poll when a room key lands.
+
+Proven from outside the tree by
+`tools/neutrino-probe/src/two-nodes.e2e.test.ts`: two nodes on loopback, one
+of our client sessions on each, an encrypted message decrypting on the far
+side, in both directions.
+
+## 0005 — keys and the inbox survive a restart
+
+On a phone the app is killed routinely, and a restart that forgets every
+device key and every undelivered room key silently breaks every peer's Olm
+session. Four tables (`device_keys`, `one_time_keys`, `cross_signing_keys`,
+`to_device_inbox`) hold the server's share of E2EE as wire-verbatim JSON.
+Memory stays the runtime copy; every mutation is journaled to a task that
+writes it through in order, and the whole set is reloaded before serving. A
+one-time key is a row, so a claim is a delete rather than a rewrite. Schema
+version 4.
+
+Tests: the store's round-trip and conflict rules, and an HTTP-level restart —
+upload, claim one key, receive a room key, then a fresh application state over
+the same store finds the device, exactly the unclaimed key, and the waiting
+room key, delivered once.
+
 ## What is still missing
 
-- **Keys live in memory**, so they do not survive a restart. Persisting them is
-  storage work, not protocol work.
 - **`m.device_list_update` EDUs** are not sent; `stream_id` is a constant.
 - **Identity is a stub in the default dev binary** — register and login return
   the same `@alice:localhost` / `DEVICEID` whatever you send — which is why the
