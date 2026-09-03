@@ -6,6 +6,7 @@ import {
   type RankedActivity,
 } from '@indiafoss/elo';
 import { comparisonHistory, comparisonsOf, dispositionOf, ratingOf } from '$lib/prefs.svelte';
+import { roomPreferences } from '$lib/roomPrefs.svelte';
 
 /**
  * Affinity prior (#90): what the attendee keeps picking, by track, session
@@ -16,7 +17,7 @@ export function affinityModel(bundle: EventBundle): AffinityModel {
   const pool: RankedActivity[] = bundle.activities
     .filter((a) => !a.cancelled && a.type !== 'meal')
     .map((a) => rankedOf(a));
-  return learnAffinity(pool, comparisonHistory());
+  return learnAffinity(pool, comparisonHistory(), roomPreferences());
 }
 
 export function rankedOf(activity: Activity): RankedActivity {

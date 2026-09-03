@@ -5,6 +5,19 @@ app never asks a question whose answer changes nothing. Issue #90 ("ranking
 takes too long") was fixed by making that the rule, in the Elo package and on
 the Rank screen.
 
+## Round 0: rooms
+
+Before anything else, once per event, the Rank screen asks about the rooms
+(tracks): each devroom is **Skip / OK / Love**; the main halls (where the
+keynotes are) can only be OK or Love, since that programme is shared by
+everyone. Skip answers "no" for every talk in the room the attendee has not
+answered themselves and remembers which ones, so leaving Skip later restores
+exactly those. Love gives the room a head of votes in the taste prior
+(`LOVED_ROOM_VOTES`), lifting its unranked talks by roughly 40 points, well
+under a settled gap, so a loved room wins close calls but never silences a
+direct answer. Stored under `room-prefs-<eventId>`
+(`apps/web/src/lib/roomPrefs.svelte.ts`).
+
 ## Round 1: the quick pass
 
 `/plan/rank` opens on a list of the day's sessions with **Yes** and **No** on

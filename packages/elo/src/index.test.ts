@@ -315,6 +315,18 @@ describe('affinity priors', () => {
     expect(ratingWithPrior(pool[2]!, model)).toBeGreaterThan(ratingWithPrior(pool[3]!, model));
   });
 
+  it('a loved room lifts its unranked talks, well under a settled gap', () => {
+    const pool = [
+      ranked(aosp('a1', `${D}10:00:00+05:30`, `${D}10:30:00+05:30`)),
+      ranked(science('s1', `${D}10:00:00+05:30`, `${D}10:30:00+05:30`)),
+    ];
+    const model = learnAffinity(pool, [], { aosp: 'love' });
+    const lift = ratingWithPrior(pool[0]!, model) - 1200;
+    expect(lift).toBeGreaterThan(20);
+    expect(lift).toBeLessThan(SETTLED_GAP);
+    expect(ratingWithPrior(pool[1]!, model)).toBe(1200);
+  });
+
   it('treats not-interested as a vote against and a tie as no vote', () => {
     const pool = [
       ranked(aosp('a1', `${D}10:00:00+05:30`, `${D}10:30:00+05:30`), 1200, 0, 'not-interested'),

@@ -38,6 +38,14 @@
     triageOf,
   } from '$lib/prefs.svelte';
   import { affinityModel } from '$lib/priors.svelte';
+  import {
+    hydrateRoomPrefs,
+    markRoomsDecided,
+    rankableRooms,
+    roomPreference,
+    roomPrefsState,
+    setRoomPreference,
+  } from '$lib/roomPrefs.svelte';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -45,7 +53,7 @@
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
-  type Mode = 'quick' | 'pairs';
+  type Mode = 'rooms' | 'quick' | 'pairs';
 
   let selectedDay = $state<string | null>(null);
   let busy = $state(false);
@@ -70,8 +78,21 @@
   });
 
   $effect(() => {
-    void Promise.all([hydratePreferences(), hydrateComparisons()]).then(() => (ready = true));
+    void Promise.all([
+      hydratePreferences(),
+      hydrateComparisons(),
+      hydrateRoomPrefs(bundle.id),
+    ]).then(() => (ready = true));
   });
+
+  // ---------- Rooms ----------
+  const rooms = $derived(rankableRooms(bundle));
+  const roomsSkipped = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'skip').length);
+  const roomsLoved = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'love').length);
+  async function roomsDone(): Promise<void> {
+    await markRoomsDecided(bundle.id);
+    chosenMode = 'quick';
+  }
 
   // ---------- The day's sessions ----------
   const daySessions = $derived<Activity[]>(
@@ -134,15 +155,24 @@
       ? 'pairs'
       : page.url.searchParams.get('mode') === 'quick'
         ? 'quick'
-        : null,
+        : page.url.searchParams.get('mode') === 'rooms'
+          ? 'rooms'
+          : null,
   );
   let chosenMode = $state<Mode | null>(null);
   // Decided once the stored answers are in, then only by the attendee: the
   // first quick-pass answer must not flip the screen to head to head.
   $effect(() => {
     if (!ready || chosenMode !== null || daySessions.length === 0) return;
-    // Keep sorting while there is a list left to sort and no pair answered yet.
-    chosenMode = forcedMode ?? (untriaged.length > 0 && choicesMade === 0 ? 'quick' : 'pairs');
+    // Rooms first, once per event; then keep sorting while there is a list
+    // left to sort and no pair answered yet.
+    chosenMode =
+      forcedMode ??
+      (!roomPrefsState.decided && rooms.length > 1
+        ? 'rooms'
+        : untriaged.length > 0 && choicesMade === 0
+          ? 'quick'
+          : 'pairs');
   });
   const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'pairs');
 
@@ -389,11 +419,20 @@
   <div class="modes" role="tablist" aria-label="Round">
     <button
       role="tab"
+      aria-selected={mode === 'rooms'}
+      class:active={mode === 'rooms'}
+      onclick={() => (chosenMode = 'rooms')}
+    >
+      1 · Rooms
+      {#if roomsSkipped + roomsLoved > 0}<span class="count">{roomsSkipped + roomsLoved}</span>{/if}
+    </button>
+    <button
+      role="tab"
       aria-selected={mode === 'quick'}
       class:active={mode === 'quick'}
       onclick={() => (chosenMode = 'quick')}
     >
-      1 · Quick pass
+      2 · Quick pass
       {#if untriaged.length > 0}<span class="count">{untriaged.length}</span>{/if}
     </button>
     <button
@@ -402,7 +441,7 @@
       class:active={mode === 'pairs'}
       onclick={() => (chosenMode = 'pairs')}
     >
-      2 · Head to head
+      3 · Head to head
       <!-- The count means little before the quick pass has thinned the day. -->
       {#if progress.open > 0 && (untriaged.length === 0 || choicesMade > 0)}
         <span class="count">{progress.open}</span>
@@ -410,7 +449,59 @@
     </button>
   </div>
 
-  {#if mode === 'quick'}
+  {#if mode === 'rooms'}
+    <p class="muted small lead">
+      Which rooms are for you? <b>Skip</b> a room and none of its talks are shown again;
+      <b>Love</b> one and its talks start a little higher. The main halls are always in.
+    </p>
+    <ul class="roomlist" aria-label="Rooms">
+      {#each rooms as r (r.track.id)}
+        {@const pref = roomPreference(r.track.id)}
+        <li class="roomrow" data-testid="room-row">
+          <div class="roomtext">
+            <span class="roomname">{r.track.name}</span>
+            <span class="muted small"
+              >{r.sessions.length} session{r.sessions.length === 1 ? '' : 's'}{r.main
+                ? ' · main hall'
+                : ''}</span
+            >
+          </div>
+          <div class="roomchoice" role="group" aria-label={`${r.track.name} preference`}>
+            {#if !r.main}
+              <button
+                class:on={pref === 'skip'}
+                class="skip"
+                aria-pressed={pref === 'skip'}
+                onclick={() =>
+                  setRoomPreference(bundle, r.track.id, pref === 'skip' ? undefined : 'skip')}
+                >Skip</button
+              >
+            {/if}
+            <button
+              class:on={!pref}
+              aria-pressed={!pref}
+              onclick={() => setRoomPreference(bundle, r.track.id, undefined)}>OK</button
+            >
+            <button
+              class:on={pref === 'love'}
+              class="love"
+              aria-pressed={pref === 'love'}
+              onclick={() =>
+                setRoomPreference(bundle, r.track.id, pref === 'love' ? undefined : 'love')}
+              >Love</button
+            >
+          </div>
+        </li>
+      {/each}
+    </ul>
+    <div class="roomsdone">
+      <button class="button dark" onclick={roomsDone}>
+        {roomsSkipped > 0 || roomsLoved > 0
+          ? `Done · ${roomsSkipped} skipped, ${roomsLoved} loved →`
+          : 'All rooms are fine →'}
+      </button>
+    </div>
+  {:else if mode === 'quick'}
     <p class="muted small lead">
       Tap <b>Yes</b> for anything you might go to and <b>No</b> for what you would not. Only the Yeses
       that overlap need settling afterwards, so this is the fast way through a long day.
@@ -655,7 +746,7 @@
   /* Rounds */
   .modes {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 0.35rem;
     margin-bottom: 0.8rem;
   }
@@ -663,12 +754,12 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.3rem;
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 0.55rem 0.6rem;
+    padding: 0.5rem 0.3rem;
     font-family: var(--font-mono);
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
@@ -689,6 +780,70 @@
     padding: 0 0.45rem;
     font-size: 0.62rem;
     line-height: 1.1rem;
+  }
+  /* Rooms */
+  .roomlist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .roomrow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.6rem 0.8rem;
+  }
+  .roomtext {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .roomname {
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .roomchoice {
+    display: flex;
+    gap: 0.25rem;
+    flex: none;
+  }
+  .roomchoice button {
+    min-height: 2.2rem;
+    padding: 0 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .roomchoice button.on {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+  .roomchoice button.love.on {
+    background: var(--mint);
+    border-color: var(--mint);
+    color: var(--ink);
+  }
+  .roomchoice button.skip.on {
+    background: var(--amber-soft);
+    border-color: var(--amber-ink);
+    color: var(--amber-ink);
+  }
+  .roomsdone {
+    margin-top: 0.9rem;
+    display: flex;
+    justify-content: center;
   }
   .lead {
     margin: 0 0 0.8rem;

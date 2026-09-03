@@ -275,9 +275,16 @@ const AFFINITY_SHRINKAGE = 3;
  * neither); "not interested" is a vote against. Votes are shrunk towards zero
  * so one pick cannot demote a whole track.
  */
+/** What the attendee said about a room (track) before ranking: skip it, or love it. */
+export type RoomPreference = 'skip' | 'love';
+
+/** Votes a loved room is given up front: enough to lift its talks by ~40 points, well under a settled gap. */
+export const LOVED_ROOM_VOTES = 6;
+
 export function learnAffinity(
   activities: Iterable<RankedActivity>,
   history: Iterable<ComparisonHistoryEntry>,
+  rooms: Record<string, RoomPreference | undefined> = {},
 ): AffinityModel {
   const byId = new Map<string, RankedActivity>();
   for (const r of activities) byId.set(r.activity.id, r);
@@ -299,6 +306,15 @@ export function learnAffinity(
   }
   for (const r of byId.values()) {
     if (r.disposition === 'not-interested') vote(r.activity.id, -1);
+  }
+  // A loved room starts with a head of votes; a skipped one is already out of
+  // the pool, and gets the same weight against for anything that slips in.
+  for (const [trackId, pref] of Object.entries(rooms)) {
+    if (!pref) continue;
+    const key = `track:${trackId}`;
+    const weight = pref === 'love' ? LOVED_ROOM_VOTES : -LOVED_ROOM_VOTES;
+    votes.set(key, (votes.get(key) ?? 0) + weight);
+    evidence.set(key, (evidence.get(key) ?? 0) + LOVED_ROOM_VOTES);
   }
   const affinity = new Map<AffinityKey, number>();
   for (const [key, total] of votes) {

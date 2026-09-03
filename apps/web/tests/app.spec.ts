@@ -115,8 +115,38 @@ test('ranking supports keyboard choices and undo', async ({ page }) => {
   await expect(page.getByText(/1 CHOICE · \d+ OVERLAPS? OPEN/)).toBeVisible();
 });
 
-test('ranking starts with a quick pass that narrows the overlaps to settle', async ({ page }) => {
+test('ranking starts by asking about rooms; skipping one hides its talks', async ({ page }) => {
   await page.goto(appUrl('/plan/rank'));
+  await expect(page.getByRole('tab', { name: /Rooms/ })).toHaveAttribute('aria-selected', 'true');
+  const rows = page.getByTestId('room-row');
+  expect(await rows.count()).toBeGreaterThan(3);
+  // Main halls cannot be skipped.
+  await expect(rows.first()).toContainText('main hall');
+  await expect(rows.first().getByRole('button', { name: 'Skip' })).toHaveCount(0);
+  // Skip the AOSP devroom, love the last one.
+  const aosp = rows.filter({ hasText: 'AOSP' });
+  await aosp.getByRole('button', { name: 'Skip' }).click();
+  await rows.last().getByRole('button', { name: 'Love' }).click();
+  await page.getByRole('button', { name: /Done · 1 skipped, 1 loved/ }).click();
+  // The quick pass follows, without the skipped room's talks.
+  await expect(page.getByRole('tab', { name: /Quick pass/ })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.getByTestId('quick-row').filter({ hasText: 'Devroom 1 (AOSP)' })).toHaveCount(
+    0,
+  );
+  // Un-skipping brings them back.
+  await page.getByRole('tab', { name: /Rooms/ }).click();
+  await aosp.getByRole('button', { name: 'OK' }).click();
+  await page.getByRole('tab', { name: /Quick pass/ }).click();
+  expect(
+    await page.getByTestId('quick-row').filter({ hasText: 'Devroom 1 (AOSP)' }).count(),
+  ).toBeGreaterThan(0);
+});
+
+test('ranking starts with a quick pass that narrows the overlaps to settle', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank?mode=quick'));
   // A fresh day opens on the quick pass.
   await expect(page.getByRole('tab', { name: /Quick pass/ })).toHaveAttribute(
     'aria-selected',
