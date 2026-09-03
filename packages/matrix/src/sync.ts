@@ -45,9 +45,13 @@ function emptyRoom(roomId: string): MatrixRoomRecord {
   };
 }
 
+/** Content key marking a message as a session question (issue #114). */
+export const QUESTION_CONTENT_KEY = 'in.indiafoss.question';
+
 export interface DescribedEvent {
   body: string;
   msgtype?: string;
+  question?: boolean;
   mediaUrl?: string;
   mediaFile?: string;
   mediaMime?: string;
@@ -92,7 +96,9 @@ export function describeEvent(event: RawMatrixEvent): DescribedEvent | null {
       const relation = relationOf(content);
       const body = relation.replyTo ? rawBody.replace(/^(> .*\n)+\n?/, '') : rawBody;
       if (msgtype === 'm.text' || msgtype === 'm.notice' || msgtype === 'm.emote') {
-        return body ? { body, msgtype, ...relation } : null;
+        if (!body) return null;
+        const question = content[QUESTION_CONTENT_KEY] === true;
+        return { body, msgtype, ...relation, ...(question ? { question } : {}) };
       }
       if (MEDIA_TYPES.has(msgtype)) {
         const file = content.file as { url?: string } | undefined;
@@ -218,6 +224,7 @@ function toRecord(roomId: string, event: RawMatrixEvent): MatrixEventRecord | nu
     ...(described.replyTo ? { replyTo: described.replyTo } : {}),
     ...(described.reactsTo ? { reactsTo: described.reactsTo } : {}),
     ...(described.reactionKey ? { reactionKey: described.reactionKey } : {}),
+    ...(described.question ? { question: true } : {}),
   };
 }
 

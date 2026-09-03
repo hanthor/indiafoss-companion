@@ -110,6 +110,8 @@ export interface MatrixEventRecord {
   reactionKey?: string;
   /** Redacted by its author or a moderator: the body is a placeholder and any relation is gone. */
   redacted?: boolean;
+  /** Asked as a question in a session room (`in.indiafoss.question`, issue #114). */
+  question?: boolean;
 }
 
 export interface MatrixOutboxRecord {
@@ -118,6 +120,8 @@ export interface MatrixOutboxRecord {
   body: string;
   /** Event this queued message replies to. */
   replyTo?: string;
+  /** Send as a session question (issue #114). */
+  question?: boolean;
   createdAt: string;
   attempts: number;
   lastError?: string;

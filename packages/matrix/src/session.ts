@@ -8,7 +8,13 @@ import type {
 } from './types.js';
 import { MatrixClient, MatrixError, type FetchLike } from './http.js';
 import { publishMeshLink } from './mesh-link.js';
-import { applySyncResponse, deriveRoomName, describeEvent, eventToRecord } from './sync.js';
+import {
+  applySyncResponse,
+  deriveRoomName,
+  describeEvent,
+  eventToRecord,
+  QUESTION_CONTENT_KEY,
+} from './sync.js';
 import type { CryptoBackend } from './crypto.js';
 import type { RawMatrixEvent, SyncJoinedRoom } from './types.js';
 
@@ -1027,6 +1033,7 @@ export class MatrixSessionManager {
       type: 'm.room.message',
       body: item.body,
       msgtype: 'm.text',
+      ...(item.question ? { question: true } : {}),
       txnId: item.txnId,
       ...(this.rooms.get(item.roomId)?.encrypted ? { encrypted: true } : {}),
     };
@@ -1037,7 +1044,12 @@ export class MatrixSessionManager {
    * so it survives reloads, and is delivered as soon as the homeserver is
    * reachable. The transaction id keeps retries idempotent.
    */
-  async sendMessage(roomId: string, body: string, replyTo?: string): Promise<void> {
+  async sendMessage(
+    roomId: string,
+    body: string,
+    replyTo?: string,
+    options: { question?: boolean } = {},
+  ): Promise<void> {
     if (!this.session) throw new Error('Sign in to Matrix first.');
     const text = body.trim();
     if (!text) return;
@@ -1046,6 +1058,7 @@ export class MatrixSessionManager {
       roomId,
       body: text,
       ...(replyTo ? { replyTo } : {}),
+      ...(options.question ? { question: true } : {}),
       createdAt: new Date(this.opts.now()).toISOString(),
       attempts: 0,
     };
@@ -1071,6 +1084,7 @@ export class MatrixSessionManager {
       for (const item of [...this.outbox]) {
         try {
           const content: Record<string, unknown> = { msgtype: 'm.text', body: item.body };
+          if (item.question) content[QUESTION_CONTENT_KEY] = true;
           if (item.replyTo) {
             content['m.relates_to'] = { 'm.in_reply_to': { event_id: item.replyTo } };
           }

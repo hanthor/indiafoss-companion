@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { applySyncResponse, canPost, deriveRoomName, describeEvent } from './sync.js';
+import {
+  QUESTION_CONTENT_KEY,
+  applySyncResponse,
+  canPost,
+  deriveRoomName,
+  describeEvent,
+} from './sync.js';
 import { slidingSyncToSyncResponse } from './http.js';
 import type { MatrixRoomRecord, SyncResponse } from './types.js';
 
@@ -434,5 +440,26 @@ describe('power levels (announcements, #113)', () => {
         '@me:hs',
       ),
     ).toBe(false);
+  });
+});
+
+describe('session questions (#114)', () => {
+  it('flags a message carrying the question key, and only that', () => {
+    const base = { event_id: '$q', sender: '@a:hs', origin_server_ts: 1, type: 'm.room.message' };
+    expect(
+      describeEvent({
+        ...base,
+        content: { msgtype: 'm.text', body: 'Why?', [QUESTION_CONTENT_KEY]: true },
+      }),
+    ).toMatchObject({ body: 'Why?', question: true });
+    expect(
+      describeEvent({ ...base, content: { msgtype: 'm.text', body: 'Because.' } }),
+    ).not.toHaveProperty('question');
+    expect(
+      describeEvent({
+        ...base,
+        content: { msgtype: 'm.text', body: 'x', [QUESTION_CONTENT_KEY]: 'yes' },
+      }),
+    ).not.toHaveProperty('question');
   });
 });

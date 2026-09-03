@@ -2,7 +2,13 @@ export { MatrixClient, MatrixError, SYNC_FILTER, isLoopbackHomeserver } from './
 export type { CreateRoomOptions, FetchLike } from './http.js';
 export { WasmCryptoBackend, cryptoStoreName, deleteCryptoStore, loadCryptoWasm } from './crypto.js';
 export type { CryptoBackend } from './crypto.js';
-export { applySyncResponse, canPost, deriveRoomName, describeEvent } from './sync.js';
+export {
+  QUESTION_CONTENT_KEY,
+  applySyncResponse,
+  canPost,
+  deriveRoomName,
+  describeEvent,
+} from './sync.js';
 export type { SyncDelta } from './sync.js';
 export { ANNOUNCEMENTS_POWER_LEVELS, MatrixSessionManager, MemoryMatrixStore } from './session.js';
 export type { MatrixSessionOptions, MatrixSnapshot, MatrixStore, RoomSpec } from './session.js';
