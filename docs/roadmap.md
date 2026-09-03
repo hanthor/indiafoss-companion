@@ -143,5 +143,14 @@ alignment, #3 CI packages token, #4 fork roadmap.
   drift (`phases.md`).
 - 2026-09-02: Display font decided: Press Start 2P (OFL) ships as the display
   face, FFF Forward is referenced but never bundled (#33).
+- 2026-09-03: **Complement for P2P** (owner ask). The fork now runs
+  matrix-org/complement's client-server suite through Neutrino's own
+  harness, in the companion's CI against the pinned rev
+  (`neutrino-complement.yml`). Stock allowlist green; ten upstream tests
+  added for the surface our patches built (typing, receipts, redaction,
+  to-device, key upload/query/claim). Getting there took patch `0008`: a
+  typing stop reported as an empty notice, ephemeral events in legacy
+  `/sync`, `GET /rooms/{room}/event/{id}`, and a stricter, upload-ordered
+  key directory. Left out and why is recorded in the fork's allowlist.
 - 2026-09-02: The a11y suite runs every core screen in light **and** dark; a
   `--on-strong` token keeps text readable on mint and danger fills.

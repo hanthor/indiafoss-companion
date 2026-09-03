@@ -1,0 +1,1023 @@
+From 8e32f0ad4ce2caf26da1eca486fc5bf063a05aad Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 05:15:38 +0000
+Subject: [PATCH] What Complement asked for: typing stops, legacy ephemeral,
+ /event, keys
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Running matrix-org/complement's client-server suite against this branch
+turned four spec behaviours into server changes, and ten upstream tests
+into allowlist entries.
+
+- A typing stop is news. The sliding-sync `typing` extension reported
+  only rooms with someone typing, so a client learnt of a stop by the
+  room going missing — which a delta cannot express. `EphemeralState`
+  stamps each room's typing set with the change counter; a connection
+  remembers the counter it last served and is told every room that
+  changed since, empty ones included.
+- Legacy `/sync` carries ephemeral events. The MSC4186 translator
+  enables the `typing` and `receipts` extensions and folds them into
+  each joined room's `ephemeral.events`, creating the room entry when
+  the notice is the only news.
+- `GET /rooms/{room_id}/event/{event_id}`: the redaction-aware view
+  `/messages` gives, one event at a time; `404 M_NOT_FOUND` for a
+  non-member or an event of another room.
+- The key directory is stricter and ordered. `/keys/upload` rejects a
+  device key object that is malformed or names another user
+  (`M_BAD_JSON`); `/keys/query` answers an empty map for a user with no
+  devices and rejects a device list that is not a list; `/keys/claim`
+  hands one-time keys out in upload order (MSC4225), which needs a
+  sequence column on a WITHOUT ROWID table — schema v5, so an older
+  store is refused at open, as with every bump before it.
+
+Allowlist: TestTyping, TestLeakyTyping, TestRoomReceipts, TestRedact,
+TestToDeviceMessages, TestUploadKey (whole, including both rejection
+subtests), TestUploadKeyIdempotency(+Overlap), TestKeyClaimOrdering,
+TestKeysQueryWithDeviceIDAsObjectFails. What was tried and left out,
+and the endpoint each is waiting on, is recorded next to the entries.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BpiYvGvwkJUSJAXCXAkai1
+---
+ Cargo.lock                                    |   1 +
+ complement/VIABLE-TESTS.md                    |   8 +-
+ complement/allowlist.txt                      |  23 ++++
+ crates/neutrino-http/Cargo.toml               |   1 +
+ crates/neutrino-http/src/e2ee.rs              |  13 ++-
+ crates/neutrino-http/src/ephemeral.rs         | 105 ++++++++++++++----
+ crates/neutrino-http/src/federation/tests.rs  |  22 +++-
+ .../src/legacy_sync/translate.rs              |  57 +++++++++-
+ crates/neutrino-http/src/lib.rs               |  72 ++++++++----
+ crates/neutrino-http/src/messages.rs          |  75 ++++++++++++-
+ crates/neutrino-http/src/sliding_sync/conn.rs |   6 +
+ crates/neutrino-http/src/sliding_sync/mod.rs  |  28 +++--
+ .../neutrino-http/src/sliding_sync/tests.rs   |  25 ++++-
+ crates/neutrino-http/tests/e2e_keys.rs        |   3 +-
+ crates/neutrino-http/tests/e2e_legacy_sync.rs |  53 +++++++++
+ crates/neutrino-http/tests/e2e_messages.rs    |  65 +++++++++++
+ crates/neutrino-store-sqlite/src/schema.rs    |   2 +-
+ crates/neutrino-store-sqlite/src/schema.sql   |   3 +
+ .../neutrino-store-sqlite/src/store/e2ee.rs   |   6 +-
+ 19 files changed, 501 insertions(+), 67 deletions(-)
+
+diff --git a/Cargo.lock b/Cargo.lock
+index 2e9de88..d0d3de0 100644
+--- a/Cargo.lock
++++ b/Cargo.lock
+@@ -1789,6 +1789,7 @@ version = "0.1.0"
+ dependencies = [
+  "async-trait",
+  "axum",
++ "indexmap",
+  "neutrino-ctl",
+  "neutrino-engine",
+  "neutrino-event",
+diff --git a/complement/VIABLE-TESTS.md b/complement/VIABLE-TESTS.md
+index ceb9121..fecf197 100644
+--- a/complement/VIABLE-TESTS.md
++++ b/complement/VIABLE-TESTS.md
+@@ -28,13 +28,15 @@ From `crates/neutrino-http/src/lib.rs:201-277`. The Complement image is built wi
+ | POST | `/_matrix/client/v3/rooms/{room_id}/{leave,invite,kick,ban,unban}` | `m.room.member` via the room actor; real v12 auth (rule 5) + state-res |
+ | GET/POST | keys/*, profile (self), account_data (GET self), room_keys/version, pushers/set | stubs |
+ 
++**Update 2026-09-03 (this fork):** the E2EE and ephemeral surface is wired — `/keys/upload` (validated), `/keys/query`, `/keys/claim` (upload order), `/sendToDevice` → `to_device`, `/typing`, `/receipt` (through the sliding-sync extensions and legacy `/sync` `ephemeral.events`), `/redact` (applied on read), `GET /rooms/{room}/event/{id}`, and the federation key/EDU routes behind them. Ten allowlist entries added; see the allowlist's last block for what was tried and left out.
++
+ **Still NOT wired** (these gate tests below):
+-- No `GET /rooms/{room}/event/{eventId}`. (`GET /rooms/{room}/messages` landed 2026-06-04 — join-gated pagination.)
+ - No `POST /user/{uid}/filter` (+ `GET …/filter/{id}`) — blocks the large filtered-`/sync` tranche.
+ - No `/joined_members`, `/joined_rooms`, `/publicRooms`, `/directory/room/{alias}` (no room directory).
+-- No `/forget`, `/redact`, `/upgrade`, `/typing`, profile/displayname/avatar writes, account_data writes.
++- No `/forget`, `/upgrade`, profile/displayname/avatar writes, account_data writes (so no `/read_markers`).
++- No `/devices` management, no `m.device_list_update` (so no `device_lists.changed` in sync).
+ - 404 fallback returns plain text, not `{"errcode":"M_UNRECOGNIZED"}`.
+-- No EDUs / E2EE / receipts / presence / push rules; no working cross-server federation join.
++- No presence / push rules; no working cross-server federation join.
+ 
+ **Harness constraint:** `scripts/complement.sh` runs `go test … ./tests/csapi/...` only. Tests outside `csapi` — `tests/msc4222/*` (the MSC4222 dual-emission suite), `tests/v12_test.go`, all `tests/federation_*` — are **not executed by the allowlist loop**. Running them needs a harness change (extra package globs), not just an allowlist line. (2026-06-03: the CI `complement` job now builds the neutrino image with buildx + GitHub Actions layer cache, so the cargo-chef deps layer persists across runs; `scripts/complement.sh` reuses a pre-built image via `SKIP_IMAGE_BUILD`.)
+ 
+diff --git a/complement/allowlist.txt b/complement/allowlist.txt
+index a5e8dc9..715a089 100644
+--- a/complement/allowlist.txt
++++ b/complement/allowlist.txt
+@@ -107,3 +107,26 @@ TestRoomCreate/Parallel/Rooms_can_be_created_with_an_initial_invite_list_\(SYN-2
+ # TestSendAndFetchMessage is blocked on a durable stream-position legacy /sync
+ # token — see VIABLE-TESTS.md.
+ TestFetchMessagesFromNonExistentRoom$
++
++# The E2EE and ephemeral surface (2026-09-03). Unlocked by the key transport
++# and ephemeral-data work on this fork: real device/one-time key storage with
++# `/keys/claim`, `/sendToDevice` delivered under `to_device`, `/typing` and
++# `/receipt` surfaced through the sliding-sync extensions and folded into
++# legacy `/sync`'s `ephemeral.events`, `/redact` applied on read, and
++# `GET /rooms/{room}/event/{id}`. `TestUploadKey` runs whole: its query and
++# claim subtests depend on the sibling upload having run first, and the two
++# rejection subtests (malformed keys, another user's keys) pass here because
++# `/keys/upload` validates. Not viable, and why: `TestKeyChangesLocal` and
++# `TestDeviceListUpdates` need `device_lists.changed` (no
++# `m.device_list_update` yet); `TestDeviceManagement` needs `/devices`;
++# `TestRoomReadMarkers` needs room account data.
++TestTyping$
++TestLeakyTyping$
++TestRoomReceipts$
++TestRedact$
++TestToDeviceMessages$
++TestUploadKey$
++TestUploadKeyIdempotency$
++TestUploadKeyIdempotencyOverlap$
++TestKeyClaimOrdering$
++TestKeysQueryWithDeviceIDAsObjectFails$
+diff --git a/crates/neutrino-http/Cargo.toml b/crates/neutrino-http/Cargo.toml
+index 1a11d5d..6265149 100644
+--- a/crates/neutrino-http/Cargo.toml
++++ b/crates/neutrino-http/Cargo.toml
+@@ -27,6 +27,7 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tokio_unstable)'] }
+ 
+ [dependencies]
+ axum = "0.8.7"
++indexmap = "2"
+ tower-http = { version = "0.6.6", features = ["trace"] }
+ 
+ async-trait.workspace = true
+diff --git a/crates/neutrino-http/src/e2ee.rs b/crates/neutrino-http/src/e2ee.rs
+index 9249337..32e622d 100644
+--- a/crates/neutrino-http/src/e2ee.rs
++++ b/crates/neutrino-http/src/e2ee.rs
+@@ -19,6 +19,7 @@
+ //! nothing here ever needs `App`. Lock order, where both are taken, is `App`
+ //! then this — never the reverse.
+ 
++use indexmap::IndexMap;
+ use std::collections::BTreeMap;
+ use std::sync::{Arc, Mutex, MutexGuard};
+ 
+@@ -76,8 +77,10 @@ fn raw(value: &Value) -> Box<RawJsonValue> {
+ pub(crate) struct KeyStore {
+     /// `device_keys[user][device] -> the uploaded device key object`.
+     pub(crate) devices: BTreeMap<String, BTreeMap<String, Value>>,
+-    /// `one_time_keys[user][device][key_id] -> key`. Claiming removes.
+-    pub(crate) one_time_keys: BTreeMap<String, BTreeMap<String, BTreeMap<String, Value>>>,
++    /// `one_time_keys[user][device][key_id] -> key`, in upload order: a claim
++    /// hands out the oldest key first (MSC4225), so the inner map keeps the
++    /// order keys arrived in rather than sorting by id. Claiming removes.
++    pub(crate) one_time_keys: BTreeMap<String, BTreeMap<String, IndexMap<String, Value>>>,
+     /// Cross-signing keys, merged as uploaded and echoed back on query.
+     pub(crate) cross_signing: serde_json::Map<String, Value>,
+     /// Where every mutation is written through to, when persistence is
+@@ -205,7 +208,11 @@ impl KeyStore {
+     ) -> serde_json::Map<String, Value> {
+         let mut out = serde_json::Map::new();
+         for (user, wanted) in requested {
++            // A user we hold nothing for answers with an empty map: the
++            // caller asked about them and gets a definite "no devices", not
++            // an absence it would have to read as "not answered".
+             let Some(devices) = self.devices.get(user) else {
++                out.insert(user.clone(), Value::Object(serde_json::Map::new()));
+                 continue;
+             };
+             let filter = wanted.as_array().filter(|ids| !ids.is_empty());
+@@ -263,7 +270,7 @@ impl KeyStore {
+             .keys()
+             .find(|id| id.split_once(':').is_some_and(|(a, _)| a == algorithm))
+             .cloned()?;
+-        let key = keys.remove(&key_id)?;
++        let key = keys.shift_remove(&key_id)?;
+         self.journal(Op::RemoveOneTimeKey {
+             user: user.to_owned(),
+             device: device.to_owned(),
+diff --git a/crates/neutrino-http/src/ephemeral.rs b/crates/neutrino-http/src/ephemeral.rs
+index b0fa0dc..21c053d 100644
+--- a/crates/neutrino-http/src/ephemeral.rs
++++ b/crates/neutrino-http/src/ephemeral.rs
+@@ -34,8 +34,15 @@ pub(crate) struct ReadReceipt {
+ 
+ #[derive(Default)]
+ struct Inner {
+-    /// `typing[room][user] -> when the notice expires`.
++    /// `typing[room][user] -> when the notice expires`. A room stays in the
++    /// map once it has had a notice, empty or not, so a stop can be told
++    /// apart from never having started.
+     typing: BTreeMap<OwnedRoomId, BTreeMap<OwnedUserId, Instant>>,
++    /// The change counter's value when `typing[room]` last changed — a start,
++    /// a stop, or an expiry noticed on read. A sync that remembers the
++    /// counter it last served asks for the rooms stamped after it, which is
++    /// how "nobody is typing any more" reaches a client as an empty notice.
++    typing_changed: BTreeMap<OwnedRoomId, u64>,
+     /// `receipts[room][user] -> newest m.read`.
+     receipts: BTreeMap<OwnedRoomId, BTreeMap<OwnedUserId, ReadReceipt>>,
+ }
+@@ -71,6 +78,32 @@ impl EphemeralState {
+         self.changed.send_modify(|n| *n += 1);
+     }
+ 
++    /// Record that `room`'s typing set changed, stamped with the counter
++    /// value the bump produces. Called with the lock held so the stamp and
++    /// the counter cannot disagree.
++    fn stamp_typing(&self, inner: &mut Inner, room: &RoomId) {
++        let next = *self.changed.borrow() + 1;
++        inner.typing_changed.insert(room.to_owned(), next);
++        self.changed.send_modify(|n| *n = next);
++    }
++
++    /// Drop expired notices in every room, stamping the rooms that lost one.
++    fn expire_typing(&self, inner: &mut Inner) {
++        let now = Instant::now();
++        let expired: Vec<OwnedRoomId> = inner
++            .typing
++            .iter_mut()
++            .filter_map(|(room, users)| {
++                let before = users.len();
++                users.retain(|_, expiry| *expiry > now);
++                (users.len() != before).then(|| room.clone())
++            })
++            .collect();
++        for room in expired {
++            self.stamp_typing(inner, &room);
++        }
++    }
++
+     /// The change counter now; compare a later reading to know whether
+     /// anything moved in between.
+     pub(crate) fn version(&self) -> u64 {
+@@ -101,23 +134,36 @@ impl EphemeralState {
+         } else {
+             room_typing.remove(user);
+         }
+-        drop(inner);
+         // A refreshed notice is not a change worth waking for; a start or a
+         // stop is.
+         if before != typing {
+-            self.bump();
++            self.stamp_typing(&mut inner, room);
+         }
+     }
+ 
+     /// Users typing in `room` right now, expired notices dropped.
+     pub(crate) fn typing_in(&self, room: &RoomId) -> Vec<OwnedUserId> {
+-        let now = Instant::now();
+         let mut inner = self.lock();
+-        let Some(room_typing) = inner.typing.get_mut(room) else {
+-            return Vec::new();
+-        };
+-        room_typing.retain(|_, expiry| *expiry > now);
+-        room_typing.keys().cloned().collect()
++        self.expire_typing(&mut inner);
++        inner
++            .typing
++            .get(room)
++            .map(|users| users.keys().cloned().collect())
++            .unwrap_or_default()
++    }
++
++    /// Rooms whose typing set changed after the counter stood at `since` —
++    /// including rooms that emptied, which is the news a stop carries.
++    /// `since = 0` is every room that has ever had a notice.
++    pub(crate) fn typing_changed_since(&self, since: u64) -> Vec<OwnedRoomId> {
++        let mut inner = self.lock();
++        self.expire_typing(&mut inner);
++        inner
++            .typing_changed
++            .iter()
++            .filter(|(_, stamp)| **stamp > since)
++            .map(|(room, _)| room.clone())
++            .collect()
+     }
+ 
+     /// Move a user's read position in `room` forward to `event_id`. A receipt
+@@ -137,17 +183,6 @@ impl EphemeralState {
+         self.bump();
+     }
+ 
+-    /// Rooms with at least one live typing notice.
+-    pub(crate) fn rooms_with_typing(&self) -> Vec<OwnedRoomId> {
+-        let now = Instant::now();
+-        let mut inner = self.lock();
+-        inner.typing.retain(|_, users| {
+-            users.retain(|_, expiry| *expiry > now);
+-            !users.is_empty()
+-        });
+-        inner.typing.keys().cloned().collect()
+-    }
+-
+     /// Rooms with at least one read receipt.
+     pub(crate) fn rooms_with_receipts(&self) -> Vec<OwnedRoomId> {
+         self.lock()
+@@ -192,6 +227,36 @@ mod tests {
+         );
+     }
+ 
++    #[test]
++    fn a_stop_is_a_change_a_sync_can_ask_for() {
++        let s = EphemeralState::new();
++        let room = room_id!("!r:x");
++        let other = room_id!("!other:x");
++        let alice = user_id!("@alice:x");
++        assert!(s.typing_changed_since(0).is_empty(), "nothing yet");
++
++        s.set_typing(room, alice, true, None);
++        let served = s.version();
++        assert_eq!(s.typing_changed_since(0), vec![room.to_owned()]);
++        assert!(s.typing_changed_since(served).is_empty(), "already served");
++
++        s.set_typing(room, alice, false, None);
++        assert_eq!(
++            s.typing_changed_since(served),
++            vec![room.to_owned()],
++            "the stop is news even though the room is now empty"
++        );
++        assert!(s.typing_in(room).is_empty());
++
++        let served = s.version();
++        s.set_typing(other, alice, true, Some(Duration::ZERO));
++        assert_eq!(
++            s.typing_changed_since(served),
++            vec![other.to_owned()],
++            "an expiry noticed on read is a change too"
++        );
++    }
++
+     #[test]
+     fn receipts_only_move_forward() {
+         let s = EphemeralState::new();
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index eb497dc..3e57115 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -5774,6 +5774,7 @@ async fn upload_device(app: &axum::Router, user: &str, device: &str, one_time_ke
+                 "device_id": device,
+                 "algorithms": ["m.olm.v1.curve25519-aes-sha2"],
+                 "keys": { format!("curve25519:{device}"): "curve", format!("ed25519:{device}"): "ed" },
++                "signatures": { user: { format!("ed25519:{device}"): "sig" } },
+             },
+             "one_time_keys": one_time_keys,
+         }),
+@@ -5835,8 +5836,27 @@ async fn federation_keys_query_answers_only_for_our_own_users() {
+     // Answering for another server's user would let one node substitute keys
+     // for another's — the exact attack E2EE exists to stop.
+     let (app, _tmp) = test_router().await;
+-    upload_device(&app, peer_user().as_str(), "THEIRS", json!({})).await;
++    // The client-server upload refuses keys for anyone but the caller, so a
++    // peer's user can never enter this node's directory that way...
++    let (status, body) = post_json(
++        &app,
++        "/_matrix/client/v3/keys/upload",
++        &json!({
++            "device_keys": {
++                "user_id": peer_user().as_str(),
++                "device_id": "THEIRS",
++                "algorithms": [],
++                "keys": {},
++                "signatures": {},
++            },
++        }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::BAD_REQUEST);
++    assert_eq!(body["errcode"], "M_BAD_JSON");
+ 
++    // ...and a federation query for that user answers with nothing held —
++    // the peer's own server is the only authority for its keys.
+     let (status, body) = post_json(
+         &app,
+         FED_KEYS_QUERY,
+diff --git a/crates/neutrino-http/src/legacy_sync/translate.rs b/crates/neutrino-http/src/legacy_sync/translate.rs
+index 351f00b..fe00fa6 100644
+--- a/crates/neutrino-http/src/legacy_sync/translate.rs
++++ b/crates/neutrino-http/src/legacy_sync/translate.rs
+@@ -117,7 +117,12 @@ pub fn synthesize_v5_request(query: &LegacyQuery) -> v5::Request {
+     req.lists = lists;
+ 
+     req.room_subscriptions = BTreeMap::new();
+-    req.extensions = Default::default();
++    // Typing notices and read receipts ride as extensions; `translate_response`
++    // folds them into each joined room's `ephemeral.events`.
++    let mut extensions = v5::request::Extensions::default();
++    extensions.typing.enabled = Some(true);
++    extensions.receipts.enabled = Some(true);
++    req.extensions = extensions;
+ 
+     req
+ }
+@@ -217,6 +222,39 @@ pub fn translate_response(
+         }
+     }
+ 
++    // Typing notices and read receipts arrive as extensions keyed by room;
++    // legacy clients expect them in the joined room's `ephemeral.events`. A
++    // room can carry a notice without carrying an event — a delta whose only
++    // news is that someone started or stopped typing — so a missing room
++    // entry is created bare rather than the notice dropped.
++    let ephemeral = resp
++        .extensions
++        .typing
++        .rooms
++        .iter()
++        .map(|(room, raw)| (room, raw.json().get()))
++        .chain(
++            resp.extensions
++                .receipts
++                .rooms
++                .iter()
++                .map(|(room, raw)| (room, raw.json().get())),
++        );
++    for (room_id, raw_json) in ephemeral {
++        if !matches!(memberships.get(room_id), Some(Membership::Join)) {
++            continue;
++        }
++        let Ok(event) = serde_json::from_str::<Value>(raw_json) else {
++            continue;
++        };
++        let entry = join
++            .entry(room_id.to_string())
++            .or_insert_with(empty_joined_room_shape);
++        if let Some(Value::Array(events)) = entry.pointer_mut("/ephemeral/events") {
++            events.push(event);
++        }
++    }
++
+     json!({
+         "next_batch": resp.pos,
+         "rooms": {
+@@ -264,6 +302,23 @@ fn joined_room_shape(room: &v5::response::Room) -> Value {
+     })
+ }
+ 
++/// A joined room with nothing in it but the buckets: the shell a typing
++/// notice or receipt is folded into when the response carried no event for
++/// the room.
++fn empty_joined_room_shape() -> Value {
++    json!({
++        "timeline": {
++            "events": [],
++            "limited": false,
++            "prev_batch": "",
++        },
++        "state": {"events": []},
++        "org.matrix.msc4222.state_after": {"events": []},
++        "ephemeral": {"events": []},
++        "account_data": {"events": []},
++    })
++}
++
+ /// Shape for an invited room. v5's `invite_state` is already stripped state;
+ /// pass it through verbatim under `invite_state.events`.
+ fn invite_room_shape(room: &v5::response::Room) -> Value {
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 85f52a5..13ca4e9 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -630,6 +630,10 @@ fn build_router(state: &AppState) -> Router {
+             "/_matrix/client/v3/rooms/{room_id}/messages",
+             get(messages::get_messages),
+         )
++        .route(
++            "/_matrix/client/v3/rooms/{room_id}/event/{event_id}",
++            get(messages::get_event),
++        )
+         .route(
+             "/_matrix/client/v3/rooms/{room_id}/send/{type}/{msg_id}",
+             put(put_event),
+@@ -1345,7 +1349,7 @@ fn merge_key_answer(into: &mut serde_json::Map<String, Value>, answer: Value) {
+ /// purely local answer would always be empty. A peer we cannot reach lands in
+ /// `failures` rather than failing the whole query — the client can still
+ /// encrypt to everyone it did get keys for, and will retry the rest.
+-async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
++async fn keys_query(state: State<AppState>, body: Json<Value>) -> axum::response::Response {
+     info!("Received query: {:?}", body.0);
+     let (our_name, fed_client, e2ee) = {
+         let app = lock_app(&state.0);
+@@ -1362,6 +1366,19 @@ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+         .cloned()
+         .filter(|map| !map.is_empty());
+ 
++    // Each user maps to a list of device ids (empty for all of them). Any
++    // other shape is the client's mistake, and answering it with keys would
++    // hide that.
++    if let Some(map) = &requested
++        && map.values().any(|wanted| !wanted.is_array())
++    {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_BAD_JSON",
++            "device_keys must map each user to a list of device ids",
++        );
++    }
++
+     // An absent or empty request map means "everything this node holds" — the
+     // shape the single-user dev client sends. It has no federated meaning
+     // (there is no peer to ask for "everyone"), so that path stays local.
+@@ -1379,7 +1396,7 @@ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+         for (key, value) in inner.keys.cross_signing.iter() {
+             response.insert(key.clone(), value.clone());
+         }
+-        return Json(Value::Object(response));
++        return Json(Value::Object(response)).into_response();
+     };
+ 
+     let (mine, theirs) = split_by_server(&requested, &our_name);
+@@ -1405,13 +1422,9 @@ async fn keys_query(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+         }
+     }
+     response.insert("failures".to_owned(), Value::Object(failures));
+-    Json(Value::Object(response))
++    Json(Value::Object(response)).into_response()
+ }
+ 
+-/// Queue to-device messages for their recipients. This is how a Megolm room
+-/// key reaches the devices that need it: without it a client can claim a
+-/// one-time key and still have nowhere to send the session it just built.
+-///
+ /// Queue to-device messages for their recipients. This is how a Megolm room
+ /// key reaches the devices that need it: without it a client can claim a
+ /// one-time key and still have nowhere to send the session it just built.
+@@ -1538,23 +1551,42 @@ async fn keys_claim(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     Json(json!({ "one_time_keys": claimed, "failures": failures }))
+ }
+ 
+-async fn keys_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
++async fn keys_upload(
++    state: State<AppState>,
++    AuthUser(caller): AuthUser,
++    body: Json<Value>,
++) -> axum::response::Response {
+     info!("Received keys upload: {:?}", body.0);
+ 
+-    let (fallback_user, e2ee) = {
+-        let app = lock_app(&state.0);
+-        (app.config.user_id(), app.e2ee.clone())
+-    };
++    let e2ee = lock_app(&state.0).e2ee.clone();
+     let body = body.0;
+ 
+-    // Trust the ids the device names for itself, falling back to this node's
+-    // user and a conventional device id only when the upload omits them.
++    // The device keys, if any, must be well formed and the caller's own: a
++    // device key object names its user and device and carries the three
++    // fields a peer needs to use it. Anything else is `M_BAD_JSON`, including
++    // keys that claim another user — a device cannot publish keys for someone
++    // else, whatever it says in the body.
+     let device_keys = body.pointer("/device_keys");
+-    let user = device_keys
+-        .and_then(|k| k.get("user_id"))
+-        .and_then(Value::as_str)
+-        .unwrap_or(&fallback_user)
+-        .to_owned();
++    if let Some(keys) = device_keys {
++        let bad = |why: &str| error_response(StatusCode::BAD_REQUEST, "M_BAD_JSON", why);
++        let Some(obj) = keys.as_object() else {
++            return bad("device_keys must be an object");
++        };
++        if obj.get("user_id").and_then(Value::as_str) != Some(caller.as_str()) {
++            return bad("device_keys.user_id must be the requesting user");
++        }
++        if obj.get("device_id").and_then(Value::as_str).is_none() {
++            return bad("device_keys.device_id is required");
++        }
++        for field in ["algorithms", "keys", "signatures"] {
++            if obj.get(field).is_none() {
++                return bad(&format!("device_keys.{field} is required"));
++            }
++        }
++    }
++    // One-time keys without device keys belong to the caller; the device id
++    // falls back to the conventional one only when nothing names it.
++    let user = caller.to_string();
+     let device = device_keys
+         .and_then(|k| k.get("device_id"))
+         .and_then(Value::as_str)
+@@ -1570,7 +1602,7 @@ async fn keys_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+     }
+ 
+     let counts = inner.keys.one_time_key_counts(&user, &device);
+-    Json(json!({ "one_time_key_counts": counts }))
++    Json(json!({ "one_time_key_counts": counts })).into_response()
+ }
+ 
+ async fn device_signing_upload(state: State<AppState>, body: Json<Value>) -> Json<Value> {
+diff --git a/crates/neutrino-http/src/messages.rs b/crates/neutrino-http/src/messages.rs
+index 601c3c2..8d8c6e7 100644
+--- a/crates/neutrino-http/src/messages.rs
++++ b/crates/neutrino-http/src/messages.rs
+@@ -21,9 +21,9 @@ use std::str::FromStr;
+ use axum::extract::{Path, Query, State};
+ use axum::http::StatusCode;
+ use axum::response::IntoResponse;
+-use ruma::OwnedRoomId;
+ use ruma::events::AnyTimelineEvent;
+ use ruma::serde::Raw;
++use ruma::{OwnedEventId, OwnedRoomId};
+ use serde_json::{Map, Value, json};
+ 
+ use neutrino_store::{Direction, EventStore, PaginationToken};
+@@ -294,6 +294,79 @@ pub(crate) async fn get_messages(
+     (StatusCode::OK, axum::Json(Value::Object(body))).into_response()
+ }
+ 
++/// CSAPI `GET /_matrix/client/v3/rooms/{roomId}/event/{eventId}` — one event,
++/// as a current member sees it: pruned where an allowed redaction targets it,
++/// the redaction carried as `unsigned.redacted_because`, the same view
++/// `/messages` gives. Not a member, or an event that is not this room's, is
++/// `404 M_NOT_FOUND` — the spec's one answer for both, so a non-member cannot
++/// tell whether an id exists.
++pub(crate) async fn get_event(
++    state: State<AppState>,
++    AuthUser(user): AuthUser,
++    Path((room_id, event_id)): Path<(String, String)>,
++) -> axum::response::Response {
++    let rid = match OwnedRoomId::try_from(room_id) {
++        Ok(r) => r,
++        Err(e) => {
++            return error_response(
++                StatusCode::BAD_REQUEST,
++                "M_INVALID_PARAM",
++                &format!("invalid room id: {e}"),
++            );
++        }
++    };
++    let eid = match OwnedEventId::try_from(event_id) {
++        Ok(e) => e,
++        Err(e) => {
++            return error_response(
++                StatusCode::BAD_REQUEST,
++                "M_INVALID_PARAM",
++                &format!("invalid event id: {e}"),
++            );
++        }
++    };
++    let not_found = || error_response(StatusCode::NOT_FOUND, "M_NOT_FOUND", "Event not found.");
++
++    match current_membership(&state.0, &rid, &user).await {
++        Ok(Some(m)) if m == "join" => {}
++        Ok(_) => return not_found(),
++        Err(resp) => return resp,
++    }
++
++    let store = lock_app(&state.0).store.clone();
++    let events = match store.get_events(&[&eid]).await {
++        Ok(events) => events,
++        Err(e) => {
++            return error_response(
++                StatusCode::INTERNAL_SERVER_ERROR,
++                "M_UNKNOWN",
++                &e.to_string(),
++            );
++        }
++    };
++    // The id is global but the route is room-scoped: an event of another
++    // room is not found here, whatever the caller's membership there.
++    let Some(event) = events.into_iter().find(|e| e.room_id == rid) else {
++        return not_found();
++    };
++    let events = vec![event];
++    let redacted = match crate::redactions::applicable(&*store, &rid, &events).await {
++        Ok(map) => map,
++        Err(e) => {
++            return error_response(
++                StatusCode::INTERNAL_SERVER_ERROR,
++                "M_UNKNOWN",
++                &e.to_string(),
++            );
++        }
++    };
++    let mut views = crate::redactions::timeline_views(&events, &redacted);
++    let Some(view) = views.pop() else {
++        return not_found();
++    };
++    (StatusCode::OK, axum::Json(view)).into_response()
++}
++
+ #[cfg(test)]
+ mod tests {
+     use std::sync::Arc;
+diff --git a/crates/neutrino-http/src/sliding_sync/conn.rs b/crates/neutrino-http/src/sliding_sync/conn.rs
+index 9df7267..146cbbb 100644
+--- a/crates/neutrino-http/src/sliding_sync/conn.rs
++++ b/crates/neutrino-http/src/sliding_sync/conn.rs
+@@ -100,6 +100,12 @@ pub struct Conn {
+     /// does. Held as a plain `u64` for the same reason `last_event_stream_pos`
+     /// is — the newtype belongs to the store's API, not the cursor.
+     pub last_delivery_pos: u64,
++    /// The ephemeral change counter as it stood when this connection last
++    /// rendered a typing extension. The next render asks for the rooms whose
++    /// typing set changed after it — which is how a stop reaches the client
++    /// as an empty notice rather than by omission. `0` on a fresh connection:
++    /// every room that has ever had a notice is reported once.
++    pub ephemeral_version: u64,
+     pub lists: BTreeMap<String, ListCfg>,
+     pub subs: BTreeMap<OwnedRoomId, SubCfg>,
+     pub sent: HashMap<OwnedRoomId, RoomSent>,
+diff --git a/crates/neutrino-http/src/sliding_sync/mod.rs b/crates/neutrino-http/src/sliding_sync/mod.rs
+index da3bf10..da10100 100644
+--- a/crates/neutrino-http/src/sliding_sync/mod.rs
++++ b/crates/neutrino-http/src/sliding_sync/mod.rs
+@@ -43,7 +43,7 @@ mod receipts;
+ #[cfg(test)]
+ mod tests;
+ 
+-use conn::{ConnEntry, ConnKey, ConnRegistry};
++use conn::{Conn, ConnEntry, ConnKey, ConnRegistry};
+ 
+ /// MSC4186 §"Connection Identifier": `conn_id` is max 16 chars on the wire.
+ const MAX_CONN_ID_LEN: usize = 16;
+@@ -333,7 +333,14 @@ pub async fn handle<S: StorageBackend>(
+         }
+     };
+ 
+-    populate_extensions(state, user_id, &extensions_req, &mut final_resp).await?;
++    populate_extensions(
++        state,
++        user_id,
++        &extensions_req,
++        &mut conn_guard,
++        &mut final_resp,
++    )
++    .await?;
+ 
+     // `build_response` chose `conn.pos + 1` as the response's pos_token but
+     // didn't mutate `conn.pos` — commit the advance here, once per request,
+@@ -489,6 +496,7 @@ async fn populate_extensions<S: StorageBackend>(
+     state: &SyncState<S>,
+     user_id: &UserId,
+     req_ext: &v5::request::Extensions,
++    conn: &mut Conn,
+     resp: &mut v5::Response,
+ ) -> Result<(), SyncError> {
+     if req_ext.e2ee.enabled == Some(true) {
+@@ -504,11 +512,15 @@ async fn populate_extensions<S: StorageBackend>(
+         resp.extensions.e2ee = e2ee;
+     }
+     if req_ext.typing.enabled == Some(true) {
+-        // Every room with a live notice that this user is joined to — not
+-        // only the rooms the response happens to mention, since a delta with
+-        // no new events is exactly when a typing notice is the news.
++        // Every room whose typing set changed since this connection last
++        // looked, among the rooms this user is joined to — not only the rooms
++        // the response happens to mention, since a delta with no new events
++        // is exactly when a typing notice is the news. A room that emptied is
++        // reported with no users: that is what tells the client to take the
++        // indicator down.
++        let now = state.ephemeral.version();
+         let mut typing = v5::response::Typing::default();
+-        for room_id in state.ephemeral.rooms_with_typing() {
++        for room_id in state.ephemeral.typing_changed_since(conn.ephemeral_version) {
+             if !state
+                 .store
+                 .joined_members(&room_id)
+@@ -523,9 +535,6 @@ async fn populate_extensions<S: StorageBackend>(
+                 .into_iter()
+                 .filter(|u| u != user_id)
+                 .collect();
+-            if users.is_empty() {
+-                continue;
+-            }
+             // ruma's `SyncTypingEvent` is `#[non_exhaustive]`; build the wire
+             // shape directly, which is one object with two keys.
+             let event = serde_json::json!({ "type": "m.typing", "content": { "user_ids": users } });
+@@ -533,6 +542,7 @@ async fn populate_extensions<S: StorageBackend>(
+                 typing.rooms.insert(room_id.clone(), Raw::from_json(raw));
+             }
+         }
++        conn.ephemeral_version = now;
+         resp.extensions.typing = typing;
+     }
+     if req_ext.receipts.enabled == Some(true) {
+diff --git a/crates/neutrino-http/src/sliding_sync/tests.rs b/crates/neutrino-http/src/sliding_sync/tests.rs
+index 6d6fce8..8a561c4 100644
+--- a/crates/neutrino-http/src/sliding_sync/tests.rs
++++ b/crates/neutrino-http/src/sliding_sync/tests.rs
+@@ -3459,11 +3459,28 @@ async fn typing_extension_lists_other_people_typing_and_not_me() {
+         serde_json::json!([peer.as_str()])
+     );
+ 
+-    // Stopping empties it; an absent room carries no entry rather than an
+-    // empty list.
++    // Stopping is news: the room comes back once with nobody in it, which
++    // is what takes the indicator down — and then not again.
+     state.ephemeral.set_typing(&room_id, peer, false, None);
+-    let resp = handle(&state, me, ephemeral_request()).await.unwrap();
+-    assert!(resp.extensions.typing.rooms.is_empty());
++    let mut next = ephemeral_request();
++    next.pos = Some(resp.pos.clone());
++    let resp = handle(&state, me, next).await.unwrap();
++    let typing = resp
++        .extensions
++        .typing
++        .rooms
++        .get(&room_id)
++        .expect("the stop is reported");
++    let event: Value = serde_json::from_str(typing.json().get()).unwrap();
++    assert_eq!(event["content"]["user_ids"], serde_json::json!([]));
++
++    let mut next = ephemeral_request();
++    next.pos = Some(resp.pos.clone());
++    let resp = handle(&state, me, next).await.unwrap();
++    assert!(
++        resp.extensions.typing.rooms.is_empty(),
++        "nothing changed since, nothing reported"
++    );
+ }
+ 
+ #[tokio::test]
+diff --git a/crates/neutrino-http/tests/e2e_keys.rs b/crates/neutrino-http/tests/e2e_keys.rs
+index 8b2b60d..e5e4f1e 100644
+--- a/crates/neutrino-http/tests/e2e_keys.rs
++++ b/crates/neutrino-http/tests/e2e_keys.rs
+@@ -105,7 +105,8 @@ async fn well_formed_upload_round_trips_through_query() {
+             "user_id": user,
+             "device_id": "DEVICEID",
+             "algorithms": ["m.megolm.v1.aes-sha2"],
+-            "keys": { "ed25519:DEVICEID": "abc" }
++            "keys": { "ed25519:DEVICEID": "abc" },
++            "signatures": { user.clone(): { "ed25519:DEVICEID": "sig" } }
+         }
+     });
+     assert!(post(&app, UPLOAD, &upload).await.is_success());
+diff --git a/crates/neutrino-http/tests/e2e_legacy_sync.rs b/crates/neutrino-http/tests/e2e_legacy_sync.rs
+index 79dc074..e427661 100644
+--- a/crates/neutrino-http/tests/e2e_legacy_sync.rs
++++ b/crates/neutrino-http/tests/e2e_legacy_sync.rs
+@@ -482,3 +482,56 @@ async fn legacy_sync_create_event_carries_room_id_and_event_id() {
+         "create event carries injected room_id (wire bytes lack it for v12): {create}",
+     );
+ }
++
++/// Typing notices and read receipts reach a legacy client in the joined
++/// room's `ephemeral.events`, without a `room_id` on the event.
++#[tokio::test]
++async fn legacy_sync_carries_typing_and_receipts_as_ephemeral_events() {
++    let (app, _tmp) = test_router().await;
++    let (status, body) = post(&app, "/_matrix/client/v3/createRoom", &json!({})).await;
++    assert_eq!(status, StatusCode::OK);
++    let room_id = body["room_id"].as_str().expect("room_id").to_string();
++    let (status, sent) = put(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/send/m.room.message/txn1"),
++        &json!({"msgtype": "m.text", "body": "hi"}),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let event_id = sent["event_id"].as_str().expect("event_id").to_string();
++
++    let (status, _) = put(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/typing/@alice:example.org"),
++        &json!({"typing": true, "timeout": 10_000}),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "typing");
++    let (status, _) = post(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/receipt/m.read/{event_id}"),
++        &json!({}),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "receipt");
++
++    let (status, body) = get(&app, LEGACY_SYNC_PATH, None).await;
++    assert_eq!(status, StatusCode::OK);
++    let events = body["rooms"]["join"][&room_id]["ephemeral"]["events"]
++        .as_array()
++        .expect("ephemeral events");
++    let typing = events
++        .iter()
++        .find(|e| e["type"] == "m.typing")
++        .expect("m.typing");
++    assert!(typing.get("room_id").is_none(), "no room_id down /sync");
++    let receipt = events
++        .iter()
++        .find(|e| e["type"] == "m.receipt")
++        .expect("m.receipt");
++    assert!(receipt.get("room_id").is_none());
++    assert!(
++        receipt["content"][&event_id]["m.read"]["@alice:example.org"]["ts"].is_number(),
++        "own read receipt: {receipt}"
++    );
++}
+diff --git a/crates/neutrino-http/tests/e2e_messages.rs b/crates/neutrino-http/tests/e2e_messages.rs
+index 425ba1a..bceb488 100644
+--- a/crates/neutrino-http/tests/e2e_messages.rs
++++ b/crates/neutrino-http/tests/e2e_messages.rs
+@@ -435,3 +435,68 @@ async fn bad_params_are_rejected() {
+         assert_eq!(body["errcode"], "M_INVALID_PARAM", "query: {q}");
+     }
+ }
++
++/// `GET /rooms/{room}/event/{id}` returns the event as a member sees it, and
++/// a redacted one comes back pruned with the redaction attached — the same
++/// view `/messages` gives, one event at a time.
++#[tokio::test]
++async fn get_event_returns_the_event_and_prunes_a_redacted_one() {
++    let (app, _tmp) = test_router().await;
++    let room_id = room_with_messages(&app, 1).await;
++    let (status, page) = get(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/messages?dir=b&limit=1"),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let event_id = page["chunk"][0]["event_id"]
++        .as_str()
++        .expect("event id")
++        .to_string();
++
++    let (status, event) = get(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/event/{event_id}"),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(event["event_id"], event_id);
++    assert_eq!(event["room_id"], room_id);
++    assert_eq!(event["content"]["body"], "msg 0");
++
++    let (status, _) = put(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/redact/{event_id}/txn-redact"),
++        &json!({"reason": "typo"}),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK, "redact");
++
++    let (status, event) = get(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/event/{event_id}"),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    assert_eq!(event["content"], json!({}), "pruned");
++    assert_eq!(
++        event["unsigned"]["redacted_because"]["content"]["reason"],
++        "typo"
++    );
++
++    // An unknown id, and a real id under the wrong room, are both not found.
++    let (status, body) = get(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{room_id}/event/$nope"),
++    )
++    .await;
++    assert_eq!(status, StatusCode::NOT_FOUND);
++    assert_eq!(body["errcode"], "M_NOT_FOUND");
++    let other = room_with_messages(&app, 0).await;
++    let (status, _) = get(
++        &app,
++        &format!("/_matrix/client/v3/rooms/{other}/event/{event_id}"),
++    )
++    .await;
++    assert_eq!(status, StatusCode::NOT_FOUND);
++}
+diff --git a/crates/neutrino-store-sqlite/src/schema.rs b/crates/neutrino-store-sqlite/src/schema.rs
+index fa803ae..8474a54 100644
+--- a/crates/neutrino-store-sqlite/src/schema.rs
++++ b/crates/neutrino-store-sqlite/src/schema.rs
+@@ -8,7 +8,7 @@ const SCHEMA_SQL: &str = include_str!("schema.sql");
+ /// shape, so a store written by an older build is refused at open (loudly, and
+ /// before any query hits a column that does not exist) rather than breaking
+ /// mid-request. One constant so the stamp and the gate cannot drift.
+-pub(crate) const SCHEMA_VERSION: i64 = 4;
++pub(crate) const SCHEMA_VERSION: i64 = 5;
+ 
+ /// Version-gate the database against the bundled schema. Authoritative
+ /// open-time check per design doc §2 "Open path: version gate & schema bundle".
+diff --git a/crates/neutrino-store-sqlite/src/schema.sql b/crates/neutrino-store-sqlite/src/schema.sql
+index 8299228..bf5a94a 100644
+--- a/crates/neutrino-store-sqlite/src/schema.sql
++++ b/crates/neutrino-store-sqlite/src/schema.sql
+@@ -492,6 +492,9 @@ CREATE TABLE one_time_keys (
+     device  TEXT NOT NULL,
+     key_id  TEXT NOT NULL,
+     key     TEXT NOT NULL,
++    -- Upload order. A claim hands out the oldest key first (MSC4225), and a
++    -- WITHOUT ROWID table has no implicit order to lean on.
++    seq     INTEGER NOT NULL,
+     PRIMARY KEY (user, device, key_id)
+ ) STRICT, WITHOUT ROWID;
+ 
+diff --git a/crates/neutrino-store-sqlite/src/store/e2ee.rs b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+index cd7fe55..6c24898 100644
+--- a/crates/neutrino-store-sqlite/src/store/e2ee.rs
++++ b/crates/neutrino-store-sqlite/src/store/e2ee.rs
+@@ -37,7 +37,7 @@ impl E2eeStore for SqliteStore {
+             }
+ 
+             let mut stmt = conn.prepare(
+-                "SELECT user, device, key_id, key FROM one_time_keys ORDER BY user, device, key_id",
++                "SELECT user, device, key_id, key FROM one_time_keys ORDER BY user, device, seq",
+             )?;
+             let rows = stmt.query_map([], |row| {
+                 Ok((
+@@ -119,8 +119,8 @@ impl E2eeStore for SqliteStore {
+             let tx = conn.transaction()?;
+             {
+                 let mut stmt = tx.prepare(
+-                    "INSERT OR IGNORE INTO one_time_keys (user, device, key_id, key) \
+-                     VALUES (?, ?, ?, ?)",
++                    "INSERT OR IGNORE INTO one_time_keys (user, device, key_id, key, seq) \
++                     VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(seq), 0) + 1 FROM one_time_keys))",
+                 )?;
+                 for (key_id, key) in &keys {
+                     stmt.execute(params![user, device, key_id, key])?;
+-- 
+2.43.0
+

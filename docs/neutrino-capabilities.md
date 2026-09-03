@@ -189,6 +189,21 @@ Everything above 3 is Rust in `element-hq/neutrino`. Two notes on how:
   tested in CI without a pair of phones. BLE hardware is only needed for the
   transport itself, which we are not changing.
 
+## Conformance: Complement
+
+Neutrino carries a harness for matrix-org/complement, the Matrix conformance
+suite: `cargo xtask complement` runs a curated allowlist of client-server
+tests (federation is outside its scope, as is anything behind `/sync`
+filters). The companion runs that allowlist against the pinned fork rev on
+every PR that touches the patches or the pin (`neutrino-complement.yml`).
+The fork's allowlist adds the upstream tests our patches made viable —
+`TestTyping`, `TestLeakyTyping`, `TestRoomReceipts`, `TestRedact`,
+`TestToDeviceMessages`, `TestUploadKey` and its idempotency siblings,
+`TestKeyClaimOrdering`, `TestKeysQueryWithDeviceIDAsObjectFails` — and
+records, next to each one left out, the endpoint it is waiting on
+(`/devices`, `m.device_list_update`, room account data). Patch `0008` is what
+Complement asked for on the way: see `patches/neutrino/README.md`.
+
 ## The security caveat
 
 Neutrino is explicitly "**NOT SECURE** for use on the public internet" and does
