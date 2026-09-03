@@ -89,6 +89,7 @@ export interface SlidingSyncResponse {
       device_unused_fallback_key_types?: string[];
     };
     account_data?: { global?: RawMatrixEvent[] };
+    typing?: { rooms?: Record<string, RawMatrixEvent> };
   };
 }
 
@@ -104,6 +105,7 @@ export function slidingSyncToSyncResponse(response: SlidingSyncResponse): SyncRe
   const join: Record<string, SyncJoinedRoom> = {};
   const invite: Record<string, SyncInvitedRoom> = {};
 
+  const typing = response.extensions?.typing?.rooms ?? {};
   for (const [roomId, room] of Object.entries(response.rooms ?? {})) {
     if (room.invite_state) {
       invite[roomId] = { invite_state: { events: room.invite_state } };
@@ -116,6 +118,9 @@ export function slidingSyncToSyncResponse(response: SlidingSyncResponse): SyncRe
         prev_batch: room.prev_batch,
       },
       state: { events: room.required_state ?? [] },
+      // The typing extension is per room; legacy sync carries it as an
+      // ephemeral event, which is the shape the reducer reads.
+      ...(typing[roomId] ? { ephemeral: { events: [typing[roomId]] } } : {}),
     };
   }
 
@@ -423,6 +428,7 @@ export class MatrixClient {
           to_device: { enabled: true },
           e2ee: { enabled: true },
           account_data: { enabled: true },
+          typing: { enabled: true },
         },
       },
       { signal: options.signal },

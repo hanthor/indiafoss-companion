@@ -1,0 +1,1055 @@
+From 449128a65387b7dfb425450cc540b30d9579c6fc Mon Sep 17 00:00:00 2001
+From: James Reilly <jreilly1821@gmail.com>
+Date: Thu, 3 Sep 2026 04:46:17 +0000
+Subject: [PATCH] Typing notices and read receipts over federation
+
+Adds the two ephemeral data units a room needs to feel live: typing
+notices and read receipts. Both are accepted on the client-server API,
+fanned out to every member server as EDUs through the same durable
+outbox that carries to-device messages, applied on receipt, and served
+through the sliding-sync `typing` and `receipts` extensions, which wake
+a waiting long-poll when they change.
+
+- `PUT /rooms/{room_id}/typing/{user_id}` (403 for anyone but the
+  sender) and `POST /rooms/{room_id}/receipt/{receipt_type}/{event_id}`.
+  Only `m.read` is federated; private receipts stay local.
+- `EphemeralState`: per-room typing with a bounded expiry (30s default,
+  120s cap) and forward-only read receipts, versioned so sliding sync
+  can tell whether anything changed since it started waiting.
+- Inbound `m.typing` and `m.receipt` EDUs applied from `/send`.
+- Sliding sync fills `extensions.typing.rooms` (excluding the caller)
+  and merges real receipts into `extensions.receipts.rooms`, and treats
+  a change in either as data when the extension is enabled.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01BpiYvGvwkJUSJAXCXAkai1
+---
+ crates/neutrino-http/src/ephemeral.rs         | 216 ++++++++++++++++++
+ crates/neutrino-http/src/federation/send.rs   | 105 ++++++++-
+ crates/neutrino-http/src/federation/tests.rs  |  98 ++++++++
+ crates/neutrino-http/src/lib.rs               | 187 +++++++++++++++
+ crates/neutrino-http/src/sliding_sync/mod.rs  |  88 ++++++-
+ .../neutrino-http/src/sliding_sync/tests.rs   | 133 +++++++++++
+ 6 files changed, 812 insertions(+), 15 deletions(-)
+ create mode 100644 crates/neutrino-http/src/ephemeral.rs
+
+diff --git a/crates/neutrino-http/src/ephemeral.rs b/crates/neutrino-http/src/ephemeral.rs
+new file mode 100644
+index 0000000..b0fa0dc
+--- /dev/null
++++ b/crates/neutrino-http/src/ephemeral.rs
+@@ -0,0 +1,216 @@
++//! Ephemeral room data: who is typing, and who has read up to where.
++//!
++//! Neither is an event. Typing expires on its own and is never persisted;
++//! a read receipt is the newest position a user has acknowledged in a room,
++//! one per user, replaced rather than appended. Both arrive from local
++//! clients (`/typing`, `/receipt`) and from peers (`m.typing` / `m.receipt`
++//! EDUs), and both have to wake a sliding-sync long-poll the moment they
++//! change — a typing notice delivered on the next room event is a typing
++//! notice delivered after the message it announced.
++//!
++//! Same shape as [`crate::e2ee::E2eeState`]: one `Arc` per server, its own
++//! lock, its own watch, reachable from the handlers and the sync path without
++//! the application lock.
++
++use std::collections::BTreeMap;
++use std::sync::{Mutex, MutexGuard};
++use std::time::{Duration, Instant};
++
++use ruma::{OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, UserId};
++use tokio::sync::watch;
++
++/// Spec default for a typing notice with no `timeout`, and the ceiling for
++/// one that asks for more: a phone that stops sending stops being shown.
++const DEFAULT_TYPING_TIMEOUT: Duration = Duration::from_secs(30);
++const MAX_TYPING_TIMEOUT: Duration = Duration::from_secs(120);
++
++/// One user's read position in a room.
++#[derive(Debug, Clone, PartialEq, Eq)]
++pub(crate) struct ReadReceipt {
++    pub(crate) event_id: OwnedEventId,
++    /// Milliseconds since the epoch, as the client or peer reported it.
++    pub(crate) ts: u64,
++}
++
++#[derive(Default)]
++struct Inner {
++    /// `typing[room][user] -> when the notice expires`.
++    typing: BTreeMap<OwnedRoomId, BTreeMap<OwnedUserId, Instant>>,
++    /// `receipts[room][user] -> newest m.read`.
++    receipts: BTreeMap<OwnedRoomId, BTreeMap<OwnedUserId, ReadReceipt>>,
++}
++
++pub(crate) struct EphemeralState {
++    inner: Mutex<Inner>,
++    /// Bumped on every change. Sync long-polls watch it and compare against
++    /// the value they started with, so a notice that arrives mid-wait is
++    /// returned now.
++    changed: watch::Sender<u64>,
++}
++
++impl Default for EphemeralState {
++    fn default() -> Self {
++        Self::new()
++    }
++}
++
++impl EphemeralState {
++    pub(crate) fn new() -> Self {
++        let (changed, _) = watch::channel(0);
++        Self {
++            inner: Mutex::new(Inner::default()),
++            changed,
++        }
++    }
++
++    fn lock(&self) -> MutexGuard<'_, Inner> {
++        self.inner.lock().unwrap_or_else(|e| e.into_inner())
++    }
++
++    fn bump(&self) {
++        self.changed.send_modify(|n| *n += 1);
++    }
++
++    /// The change counter now; compare a later reading to know whether
++    /// anything moved in between.
++    pub(crate) fn version(&self) -> u64 {
++        *self.changed.borrow()
++    }
++
++    pub(crate) fn subscribe(&self) -> watch::Receiver<u64> {
++        self.changed.subscribe()
++    }
++
++    /// Start or stop a user's typing notice. `timeout` is the client's; the
++    /// default applies when absent and the ceiling when excessive.
++    pub(crate) fn set_typing(
++        &self,
++        room: &RoomId,
++        user: &UserId,
++        typing: bool,
++        timeout: Option<Duration>,
++    ) {
++        let mut inner = self.lock();
++        let room_typing = inner.typing.entry(room.to_owned()).or_default();
++        let before = room_typing.contains_key(user);
++        if typing {
++            let ttl = timeout
++                .unwrap_or(DEFAULT_TYPING_TIMEOUT)
++                .min(MAX_TYPING_TIMEOUT);
++            room_typing.insert(user.to_owned(), Instant::now() + ttl);
++        } else {
++            room_typing.remove(user);
++        }
++        drop(inner);
++        // A refreshed notice is not a change worth waking for; a start or a
++        // stop is.
++        if before != typing {
++            self.bump();
++        }
++    }
++
++    /// Users typing in `room` right now, expired notices dropped.
++    pub(crate) fn typing_in(&self, room: &RoomId) -> Vec<OwnedUserId> {
++        let now = Instant::now();
++        let mut inner = self.lock();
++        let Some(room_typing) = inner.typing.get_mut(room) else {
++            return Vec::new();
++        };
++        room_typing.retain(|_, expiry| *expiry > now);
++        room_typing.keys().cloned().collect()
++    }
++
++    /// Move a user's read position in `room` forward to `event_id`. A receipt
++    /// older than the one held (by timestamp) is ignored: receipts can arrive
++    /// out of order over federation and a read position never walks back.
++    pub(crate) fn set_receipt(&self, room: &RoomId, user: &UserId, receipt: ReadReceipt) {
++        let mut inner = self.lock();
++        let room_receipts = inner.receipts.entry(room.to_owned()).or_default();
++        if room_receipts
++            .get(user)
++            .is_some_and(|held| held.ts > receipt.ts || *held == receipt)
++        {
++            return;
++        }
++        room_receipts.insert(user.to_owned(), receipt);
++        drop(inner);
++        self.bump();
++    }
++
++    /// Rooms with at least one live typing notice.
++    pub(crate) fn rooms_with_typing(&self) -> Vec<OwnedRoomId> {
++        let now = Instant::now();
++        let mut inner = self.lock();
++        inner.typing.retain(|_, users| {
++            users.retain(|_, expiry| *expiry > now);
++            !users.is_empty()
++        });
++        inner.typing.keys().cloned().collect()
++    }
++
++    /// Rooms with at least one read receipt.
++    pub(crate) fn rooms_with_receipts(&self) -> Vec<OwnedRoomId> {
++        self.lock()
++            .receipts
++            .iter()
++            .filter(|(_, r)| !r.is_empty())
++            .map(|(room, _)| room.clone())
++            .collect()
++    }
++
++    /// Every user's read position in `room`.
++    pub(crate) fn receipts_in(&self, room: &RoomId) -> BTreeMap<OwnedUserId, ReadReceipt> {
++        self.lock().receipts.get(room).cloned().unwrap_or_default()
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use ruma::{room_id, user_id};
++
++    #[test]
++    fn typing_starts_stops_and_expires() {
++        let s = EphemeralState::new();
++        let room = room_id!("!r:x");
++        let alice = user_id!("@alice:x");
++        let v0 = s.version();
++        s.set_typing(room, alice, true, None);
++        assert_eq!(s.typing_in(room), vec![alice.to_owned()]);
++        assert!(s.version() > v0, "a start wakes");
++        let v1 = s.version();
++        s.set_typing(room, alice, true, None);
++        assert_eq!(s.version(), v1, "a refresh does not");
++        s.set_typing(room, alice, false, None);
++        assert!(s.typing_in(room).is_empty());
++        assert!(s.version() > v1, "a stop wakes");
++
++        s.set_typing(room, alice, true, Some(Duration::ZERO));
++        assert!(
++            s.typing_in(room).is_empty(),
++            "expired notices are dropped on read"
++        );
++    }
++
++    #[test]
++    fn receipts_only_move_forward() {
++        let s = EphemeralState::new();
++        let room = room_id!("!r:x");
++        let alice = user_id!("@alice:x");
++        let newer = ReadReceipt {
++            event_id: "$b:x".try_into().unwrap(),
++            ts: 20,
++        };
++        let older = ReadReceipt {
++            event_id: "$a:x".try_into().unwrap(),
++            ts: 10,
++        };
++        s.set_receipt(room, alice, newer.clone());
++        let v = s.version();
++        s.set_receipt(room, alice, older);
++        assert_eq!(s.receipts_in(room)[alice], newer);
++        assert_eq!(s.version(), v, "an older receipt changes nothing");
++        s.set_receipt(room, alice, newer);
++        assert_eq!(s.version(), v, "a repeat changes nothing");
++    }
++}
+diff --git a/crates/neutrino-http/src/federation/send.rs b/crates/neutrino-http/src/federation/send.rs
+index 2412c05..f9a1718 100644
+--- a/crates/neutrino-http/src/federation/send.rs
++++ b/crates/neutrino-http/src/federation/send.rs
+@@ -174,7 +174,7 @@ pub(crate) async fn handle(
+     // so a resent transaction does not deliver the same room key twice; an
+     // EDU-only transaction stages nothing, records itself as seen, and is
+     // therefore deduped by exactly the same path as one carrying events.
+-    deliver_to_device(&state, &our_name, &body.edus);
++    deliver_edus(&state, &our_name, &body.edus);
+ 
+     // Parse + dedup by event_id, then durably stage each PDU. A PDU that fails
+     // `from_wire` is unkeyable (no derivable id) and cannot appear in the
+@@ -363,23 +363,35 @@ pub(crate) async fn handle(
+     }))
+ }
+ 
+-/// Deposit the recipients of every `m.direct_to_device` EDU into the local
+-/// to-device inboxes, ignoring EDU types this server does not implement.
++/// Apply the EDUs this server implements, ignoring the rest.
+ ///
+-/// This is the receiving half of mesh E2EE: the sending phone's homeserver PUT
+-/// this transaction because the recipient is, from its point of view, a remote
+-/// user. Messages addressed to users we do not own are dropped rather than
+-/// relayed onward — we are not a router for someone else's devices, and
+-/// forwarding would let any peer inject to-device traffic under our origin.
+-fn deliver_to_device(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>]) {
++/// - `m.direct_to_device`: deposit each message into the local to-device
++///   inbox — the receiving half of mesh E2EE. Messages addressed to users we
++///   do not own are dropped rather than relayed onward: we are not a router
++///   for someone else's devices, and forwarding would let any peer inject
++///   to-device traffic under our origin.
++/// - `m.typing`: a peer's user started or stopped typing in a room.
++/// - `m.receipt`: a peer's user's read position moved.
++///
++/// Presence is not implemented and is dropped.
++fn deliver_edus(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>]) {
+     use serde_json::Value;
+ 
+     for raw in edus {
+         let Ok(edu) = serde_json::from_str::<Value>(raw.get()) else {
+             continue;
+         };
+-        if edu.get("edu_type").and_then(Value::as_str) != Some("m.direct_to_device") {
+-            continue;
++        match edu.get("edu_type").and_then(Value::as_str) {
++            Some("m.direct_to_device") => {}
++            Some("m.typing") => {
++                apply_typing(state, edu.get("content"));
++                continue;
++            }
++            Some("m.receipt") => {
++                apply_receipts(state, edu.get("content"));
++                continue;
++            }
++            _ => continue,
+         }
+         let content = edu.get("content");
+         let sender = content
+@@ -420,3 +432,74 @@ fn deliver_to_device(state: &AppState, our_name: &str, edus: &[Box<RawJsonValue>
+         }
+     }
+ }
++
++/// `m.typing` content: `{ room_id, user_id, typing }`. The notice is kept only
++/// for a user on the origin's side of the wire — a peer cannot make one of our
++/// users look like they are typing.
++fn apply_typing(state: &AppState, content: Option<&serde_json::Value>) {
++    use serde_json::Value;
++    let Some(content) = content else { return };
++    let (Some(room), Some(user)) = (
++        content.get("room_id").and_then(Value::as_str),
++        content.get("user_id").and_then(Value::as_str),
++    ) else {
++        return;
++    };
++    let (Ok(room), Ok(user)) = (
++        ruma::OwnedRoomId::try_from(room),
++        ruma::OwnedUserId::try_from(user),
++    ) else {
++        return;
++    };
++    let typing = content
++        .get("typing")
++        .and_then(Value::as_bool)
++        .unwrap_or(false);
++    let ephemeral = lock_app(state).ephemeral.clone();
++    ephemeral.set_typing(&room, &user, typing, None);
++}
++
++/// `m.receipt` content: `{ room_id: { "m.read": { user_id: { event_ids: [..],
++/// data: { ts } } } } }`. Only `m.read` is honoured; a user's position moves
++/// to the first listed event.
++fn apply_receipts(state: &AppState, content: Option<&serde_json::Value>) {
++    use serde_json::Value;
++    let Some(rooms) = content.and_then(Value::as_object) else {
++        return;
++    };
++    let ephemeral = lock_app(state).ephemeral.clone();
++    for (room, kinds) in rooms {
++        let Ok(room) = ruma::OwnedRoomId::try_from(room.as_str()) else {
++            continue;
++        };
++        let Some(readers) = kinds.get("m.read").and_then(Value::as_object) else {
++            continue;
++        };
++        for (user, receipt) in readers {
++            let Ok(user) = ruma::OwnedUserId::try_from(user.as_str()) else {
++                continue;
++            };
++            let Some(event) = receipt
++                .get("event_ids")
++                .and_then(Value::as_array)
++                .and_then(|ids| ids.first())
++                .and_then(Value::as_str)
++                .and_then(|id| ruma::OwnedEventId::try_from(id).ok())
++            else {
++                continue;
++            };
++            let ts = receipt
++                .pointer("/data/ts")
++                .and_then(Value::as_u64)
++                .unwrap_or_default();
++            ephemeral.set_receipt(
++                &room,
++                &user,
++                crate::ephemeral::ReadReceipt {
++                    event_id: event,
++                    ts,
++                },
++            );
++        }
++    }
++}
+diff --git a/crates/neutrino-http/src/federation/tests.rs b/crates/neutrino-http/src/federation/tests.rs
+index eed17f9..eb497dc 100644
+--- a/crates/neutrino-http/src/federation/tests.rs
++++ b/crates/neutrino-http/src/federation/tests.rs
+@@ -6393,3 +6393,101 @@ async fn redacted_events_are_pruned_in_sliding_sync_too() {
+     assert_eq!(message["content"], json!({}));
+     assert!(message["unsigned"]["redacted_because"]["event_id"].is_string());
+ }
++
++// === Typing and receipts over the wire ======================================
++
++#[tokio::test]
++async fn typing_and_receipt_endpoints_record_locally() {
++    let (store, _tmp) = fresh_store().await;
++    let state = crate::AppState::from_store(config(), store.clone());
++    let app = crate::build_router(&state);
++    let (_, created) = post_json(&app, "/_matrix/client/v3/createRoom", &json!({})).await;
++    let room_id = created["room_id"].as_str().unwrap().to_owned();
++    let room: OwnedRoomId = room_id.parse().unwrap();
++
++    let (status, _) = cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/typing/{}",
++            urlencoding(&room_id),
++            alice()
++        ),
++        &json!({ "typing": true, "timeout": 5000 }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let ephemeral = crate::lock_app(&state).ephemeral.clone();
++    assert_eq!(ephemeral.typing_in(&room), vec![alice()]);
++
++    // Another user's typing state is not ours to set.
++    let (status, _) = cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/typing/{}",
++            urlencoding(&room_id),
++            peer_user()
++        ),
++        &json!({ "typing": true }),
++    )
++    .await;
++    assert_eq!(status, StatusCode::FORBIDDEN);
++
++    let (_, sent) = cs_put(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/send/m.room.message/r1",
++            urlencoding(&room_id)
++        ),
++        &json!({ "msgtype": "m.text", "body": "seen" }),
++    )
++    .await;
++    let event_id = sent["event_id"].as_str().unwrap().to_owned();
++    let (status, _) = post_json(
++        &app,
++        &format!(
++            "/_matrix/client/v3/rooms/{}/receipt/m.read/{}",
++            urlencoding(&room_id),
++            urlencoding(&event_id)
++        ),
++        &json!({}),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++    let receipts = ephemeral.receipts_in(&room);
++    assert_eq!(receipts[&alice()].event_id.as_str(), event_id);
++}
++
++#[tokio::test]
++async fn inbound_typing_and_receipt_edus_are_applied() {
++    let (store, _tmp) = fresh_store().await;
++    let state = crate::AppState::from_store(config(), store.clone());
++    let app = crate::build_router(&state);
++    let (room_id, join_id) = create_joined_room_in(&store, &alice(), 1).await;
++
++    let status = send_edus(
++        &app,
++        "edu-ephemeral",
++        json!([
++            {
++                "edu_type": "m.typing",
++                "content": { "room_id": room_id, "user_id": peer_user(), "typing": true },
++            },
++            {
++                "edu_type": "m.receipt",
++                "content": {
++                    room_id.as_str(): {
++                        "m.read": { peer_user().as_str(): { "event_ids": [join_id], "data": { "ts": 77 } } }
++                    }
++                },
++            },
++        ]),
++    )
++    .await;
++    assert_eq!(status, StatusCode::OK);
++
++    let ephemeral = crate::lock_app(&state).ephemeral.clone();
++    assert_eq!(ephemeral.typing_in(&room_id), vec![peer_user()]);
++    let receipt = &ephemeral.receipts_in(&room_id)[&peer_user()];
++    assert_eq!(receipt.event_id, join_id);
++    assert_eq!(receipt.ts, 77);
++}
+diff --git a/crates/neutrino-http/src/lib.rs b/crates/neutrino-http/src/lib.rs
+index 985d49e..85f52a5 100644
+--- a/crates/neutrino-http/src/lib.rs
++++ b/crates/neutrino-http/src/lib.rs
+@@ -36,6 +36,7 @@ use tower_http::trace::TraceLayer;
+ use tracing::{Span, error, info, info_span, warn};
+ 
+ mod e2ee;
++mod ephemeral;
+ mod federation;
+ mod legacy_sync;
+ mod membership;
+@@ -47,6 +48,7 @@ mod sliding_sync;
+ mod multi_user;
+ 
+ use e2ee::E2eeState;
++use ephemeral::{EphemeralState, ReadReceipt};
+ use federation::client::{FederationClient, ReqwestFetcher};
+ use neutrino_engine::{MissingEventsFetcher, RoomActorError, RoomRegistry};
+ use sliding_sync::{SyncError, SyncState};
+@@ -82,6 +84,8 @@ struct App {
+     /// The device-key directory and to-device inbox, shared with the sliding
+     /// sync so a room key can wake a long-poll. See [`e2ee`].
+     e2ee: Arc<E2eeState>,
++    /// Typing notices and read receipts, shared the same way. See [`ephemeral`].
++    ephemeral: Arc<EphemeralState>,
+     /// Out-of-band peer discovery (BLE mesh): the host pushes the set of
+     /// currently-visible peers here and the user-directory search handler reads
+     /// it. Shared (`Arc`) so the host can hold a write handle while the router
+@@ -277,9 +281,11 @@ impl AppState {
+         let shutdown = CancellationToken::new();
+         let e2ee = Arc::new(E2eeState::new());
+         e2ee.attach_persistence(store.clone());
++        let ephemeral = Arc::new(EphemeralState::new());
+         let mut sync_state = SyncState::new(store.clone(), shutdown.clone());
+         sync_state.delivery_receipts = config.delivery_receipts;
+         sync_state.e2ee = e2ee.clone();
++        sync_state.ephemeral = ephemeral.clone();
+         let sync_state = Arc::new(sync_state);
+         let room_registry = Arc::new(RoomRegistry::new(
+             store.clone(),
+@@ -314,6 +320,7 @@ impl AppState {
+             fed_client,
+             sync_state,
+             e2ee,
++            ephemeral,
+             discovery,
+             display_name_tx: None,
+             policy,
+@@ -680,6 +687,14 @@ fn build_router(state: &AppState) -> Router {
+             "/_matrix/client/v3/rooms/{room_id}/redact/{event_id}/{txn_id}",
+             put(redact_event),
+         )
++        .route(
++            "/_matrix/client/v3/rooms/{room_id}/typing/{user_id}",
++            put(set_typing),
++        )
++        .route(
++            "/_matrix/client/v3/rooms/{room_id}/receipt/{receipt_type}/{event_id}",
++            post(send_receipt),
++        )
+         .route("/_matrix/client/v3/pushers/set", post(pushers_set))
+         .route("/_matrix/client/v3/capabilities", get(get_capabilities))
+         .route(
+@@ -2084,6 +2099,178 @@ async fn put_event(
+     send_via_actor(&state.0, sender, room_id, event_type, None, body.0).await
+ }
+ 
++/// The servers, other than ours, that have a joined member in `room`: where
++/// an ephemeral notice about the room has to go.
++async fn member_servers(
++    store: &SqliteStore,
++    room: &ruma::RoomId,
++    our_name: &str,
++) -> Result<Vec<ruma::OwnedServerName>, StorageError> {
++    let members = store.joined_members(room).await?;
++    let mut servers: Vec<ruma::OwnedServerName> = members
++        .keys()
++        .map(|u| u.server_name().to_owned())
++        .filter(|s| s.as_str() != our_name)
++        .collect();
++    servers.sort();
++    servers.dedup();
++    Ok(servers)
++}
++
++/// Queue one EDU for every server with a member in the room. Same durable
++/// outbox as to-device messages: a receipt that waits for the link to heal is
++/// still a receipt, and a stale typing notice expires on the receiving side.
++async fn fan_out_edu(
++    store: &SqliteStore,
++    room: &ruma::RoomId,
++    our_name: &str,
++    edu_id: &str,
++    edu: &Value,
++) -> Result<(), StorageError> {
++    let servers = member_servers(store, room, our_name).await?;
++    if servers.is_empty() {
++        return Ok(());
++    }
++    let raw =
++        serde_json::value::to_raw_value(edu).expect("an EDU built from json! always serializes");
++    store.enqueue_edu(&servers, edu_id, &raw).await
++}
++
++/// `PUT /rooms/{room}/typing/{userId}` — start or stop a typing notice. Kept
++/// locally for this node's own clients and sent to every server in the room
++/// as an `m.typing` EDU.
++async fn set_typing(
++    state: State<AppState>,
++    AuthUser(sender): AuthUser,
++    axum::extract::Path((room_id, user_id)): axum::extract::Path<(String, String)>,
++    body: Json<Value>,
++) -> axum::response::Response {
++    let (our_name, store, ephemeral) = {
++        let app = lock_app(&state.0);
++        (
++            app.config.server_name.clone(),
++            app.store.clone(),
++            app.ephemeral.clone(),
++        )
++    };
++    let Ok(room) = OwnedRoomId::try_from(room_id.as_str()) else {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_INVALID_PARAM",
++            "invalid room id",
++        );
++    };
++    if user_id != sender.as_str() {
++        return error_response(
++            StatusCode::FORBIDDEN,
++            "M_FORBIDDEN",
++            "cannot set another user's typing state",
++        );
++    }
++    let typing = body
++        .0
++        .get("typing")
++        .and_then(Value::as_bool)
++        .unwrap_or(false);
++    let timeout = body
++        .0
++        .get("timeout")
++        .and_then(Value::as_u64)
++        .map(std::time::Duration::from_millis);
++    ephemeral.set_typing(&room, &sender, typing, timeout);
++
++    // The id makes a client retrying the same notice a no-op per destination;
++    // successive notices differ by time so each goes out.
++    let edu_id = format!(
++        "typing/{sender}/{room}/{typing}/{}",
++        std::time::SystemTime::now()
++            .duration_since(std::time::UNIX_EPOCH)
++            .map(|d| d.as_millis())
++            .unwrap_or_default()
++    );
++    let edu = json!({
++        "edu_type": "m.typing",
++        "content": { "room_id": room, "user_id": sender, "typing": typing },
++    });
++    if let Err(e) = fan_out_edu(&store, &room, &our_name, &edu_id, &edu).await {
++        warn!(%room, error = %e, "queueing typing EDU");
++    }
++    Json(json!({})).into_response()
++}
++
++/// `POST /rooms/{room}/receipt/{receiptType}/{eventId}` — record where the
++/// user has read up to, and tell every server in the room. Only `m.read` is
++/// shared; a private receipt (`m.read.private`) stays on this node.
++async fn send_receipt(
++    state: State<AppState>,
++    AuthUser(sender): AuthUser,
++    axum::extract::Path((room_id, receipt_type, event_id)): axum::extract::Path<(
++        String,
++        String,
++        String,
++    )>,
++) -> axum::response::Response {
++    let (our_name, store, ephemeral) = {
++        let app = lock_app(&state.0);
++        (
++            app.config.server_name.clone(),
++            app.store.clone(),
++            app.ephemeral.clone(),
++        )
++    };
++    let Ok(room) = OwnedRoomId::try_from(room_id.as_str()) else {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_INVALID_PARAM",
++            "invalid room id",
++        );
++    };
++    let Ok(event) = ruma::OwnedEventId::try_from(event_id.as_str()) else {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_INVALID_PARAM",
++            "invalid event id",
++        );
++    };
++    if !matches!(
++        receipt_type.as_str(),
++        "m.read" | "m.read.private" | "m.fully_read"
++    ) {
++        return error_response(
++            StatusCode::BAD_REQUEST,
++            "M_INVALID_PARAM",
++            "unknown receipt type",
++        );
++    }
++    let ts = std::time::SystemTime::now()
++        .duration_since(std::time::UNIX_EPOCH)
++        .map(|d| d.as_millis() as u64)
++        .unwrap_or_default();
++    if receipt_type == "m.read" {
++        ephemeral.set_receipt(
++            &room,
++            &sender,
++            ReadReceipt {
++                event_id: event.clone(),
++                ts,
++            },
++        );
++        let edu_id = format!("receipt/{sender}/{room}/{event}");
++        let edu = json!({
++            "edu_type": "m.receipt",
++            "content": {
++                room.as_str(): {
++                    "m.read": { sender.as_str(): { "event_ids": [event], "data": { "ts": ts } } }
++                }
++            },
++        });
++        if let Err(e) = fan_out_edu(&store, &room, &our_name, &edu_id, &edu).await {
++            warn!(%room, error = %e, "queueing receipt EDU");
++        }
++    }
++    Json(json!({})).into_response()
++}
++
+ /// `PUT /rooms/{room}/redact/{eventId}/{txnId}` — delete a message, or take
+ /// back a reaction. An `m.room.redaction` is an ordinary event through the
+ /// room actor; what it does to its target happens on read (see
+diff --git a/crates/neutrino-http/src/sliding_sync/mod.rs b/crates/neutrino-http/src/sliding_sync/mod.rs
+index 18b120a..da3bf10 100644
+--- a/crates/neutrino-http/src/sliding_sync/mod.rs
++++ b/crates/neutrino-http/src/sliding_sync/mod.rs
+@@ -14,6 +14,7 @@
+ // lands.
+ #![allow(dead_code)]
+ 
++use std::collections::BTreeMap;
+ use std::collections::hash_map::RandomState;
+ use std::hash::BuildHasher;
+ use std::sync::Arc;
+@@ -23,6 +24,7 @@ use std::time::Duration;
+ use neutrino_event::event_view::StateEventConversionError;
+ 
+ use crate::e2ee::E2eeState;
++use crate::ephemeral::EphemeralState;
+ use neutrino_store::{StorageBackend, StorageError};
+ use ruma::OneTimeKeyAlgorithm;
+ use ruma::UInt;
+@@ -108,6 +110,8 @@ pub struct SyncState<S> {
+     /// handlers that fill it (`/keys/*`, `/sendToDevice`, inbound EDUs); the
+     /// long-poll watches it so a room key wakes the recipient.
+     pub e2ee: Arc<E2eeState>,
++    /// Typing notices and read receipts, shared and watched the same way.
++    pub ephemeral: Arc<EphemeralState>,
+     /// Whether to synthesise delivery receipts from federation delivery marks
+     /// (`Config::delivery_receipts`, off by default — see [`receipts`]). Set by
+     /// the composition root; a client must *also* opt into the receipts
+@@ -125,6 +129,7 @@ impl<S> SyncState<S> {
+             store,
+             registry: ConnRegistry::new(),
+             e2ee: Arc::new(E2eeState::new()),
++            ephemeral: Arc::new(EphemeralState::new()),
+             delivery_receipts: false,
+             shutdown,
+         }
+@@ -224,6 +229,12 @@ pub async fn handle<S: StorageBackend>(
+     // And the to-device inbox, which is neither: a room key arriving is new
+     // data for exactly this client and must not wait for a room event.
+     let mut e2ee_rx = state.e2ee.subscribe();
++    // Typing and receipts: remember where they stood when this request began,
++    // so a change during the wait is returned by the build that follows it.
++    let mut ephemeral_rx = state.ephemeral.subscribe();
++    let ephemeral_at_start = state.ephemeral.version();
++    let wants_ephemeral = req.extensions.typing.enabled == Some(true)
++        || req.extensions.receipts.enabled == Some(true);
+ 
+     // Short wait while the prior holder (if any) observes the cancel above
+     // and unwinds.
+@@ -272,7 +283,11 @@ pub async fn handle<S: StorageBackend>(
+ 
+     let mut final_resp = loop {
+         let resp = build::build_response(state, user_id, &req, &mut conn_guard).await?;
+-        if !wait_for_data || has_data(&resp) || has_to_device(state, user_id, &extensions_req) {
++        if !wait_for_data
++            || has_data(&resp)
++            || has_to_device(state, user_id, &extensions_req)
++            || (wants_ephemeral && state.ephemeral.version() != ephemeral_at_start)
++        {
+             break resp;
+         }
+         let remaining = deadline.saturating_duration_since(Instant::now());
+@@ -304,6 +319,7 @@ pub async fn handle<S: StorageBackend>(
+                 _ = rx.changed() => {}
+                 _ = delivery_rx.changed(), if state.delivery_receipts => {}
+                 _ = e2ee_rx.changed(), if extensions_req.to_device.enabled == Some(true) => {}
++                _ = ephemeral_rx.changed(), if wants_ephemeral => {}
+             }
+         };
+         tokio::select! {
+@@ -317,7 +333,7 @@ pub async fn handle<S: StorageBackend>(
+         }
+     };
+ 
+-    populate_extensions(state, user_id, &extensions_req, &mut final_resp);
++    populate_extensions(state, user_id, &extensions_req, &mut final_resp).await?;
+ 
+     // `build_response` chose `conn.pos + 1` as the response's pos_token but
+     // didn't mutate `conn.pos` — commit the advance here, once per request,
+@@ -469,12 +485,12 @@ fn has_to_device<S>(
+ /// [`E2eeState::one_time_key_counts_for_user`] for the multi-device caveat)
+ /// and, honestly, no unused fallback key types: fallback keys are not stored.
+ /// `device_lists` stays empty — device-list updates are not implemented.
+-fn populate_extensions<S>(
++async fn populate_extensions<S: StorageBackend>(
+     state: &SyncState<S>,
+     user_id: &UserId,
+     req_ext: &v5::request::Extensions,
+     resp: &mut v5::Response,
+-) {
++) -> Result<(), SyncError> {
+     if req_ext.e2ee.enabled == Some(true) {
+         let mut e2ee = v5::response::E2EE::default();
+         for (algorithm, count) in state.e2ee.one_time_key_counts_for_user(user_id.as_str()) {
+@@ -487,6 +503,69 @@ fn populate_extensions<S>(
+         e2ee.device_unused_fallback_key_types = Some(Vec::new());
+         resp.extensions.e2ee = e2ee;
+     }
++    if req_ext.typing.enabled == Some(true) {
++        // Every room with a live notice that this user is joined to — not
++        // only the rooms the response happens to mention, since a delta with
++        // no new events is exactly when a typing notice is the news.
++        let mut typing = v5::response::Typing::default();
++        for room_id in state.ephemeral.rooms_with_typing() {
++            if !state
++                .store
++                .joined_members(&room_id)
++                .await?
++                .contains_key(user_id)
++            {
++                continue;
++            }
++            let users: Vec<_> = state
++                .ephemeral
++                .typing_in(&room_id)
++                .into_iter()
++                .filter(|u| u != user_id)
++                .collect();
++            if users.is_empty() {
++                continue;
++            }
++            // ruma's `SyncTypingEvent` is `#[non_exhaustive]`; build the wire
++            // shape directly, which is one object with two keys.
++            let event = serde_json::json!({ "type": "m.typing", "content": { "user_ids": users } });
++            if let Ok(raw) = serde_json::value::to_raw_value(&event) {
++                typing.rooms.insert(room_id.clone(), Raw::from_json(raw));
++            }
++        }
++        resp.extensions.typing = typing;
++    }
++    if req_ext.receipts.enabled == Some(true) {
++        // Real read receipts, merged over whatever the delivery synthesis put
++        // there: a user's own m.read says more than their server's ack.
++        for room_id in state.ephemeral.rooms_with_receipts() {
++            if !state
++                .store
++                .joined_members(&room_id)
++                .await?
++                .contains_key(user_id)
++            {
++                continue;
++            }
++            let held = state.ephemeral.receipts_in(&room_id);
++            if held.is_empty() {
++                continue;
++            }
++            let mut content = ruma::events::receipt::ReceiptEventContent(BTreeMap::new());
++            for (user, receipt) in held {
++                let ts = ruma::MilliSecondsSinceUnixEpoch(UInt::new_saturating(receipt.ts));
++                content
++                    .entry(receipt.event_id)
++                    .or_default()
++                    .entry(ruma::events::receipt::ReceiptType::Read)
++                    .or_default()
++                    .insert(user, ruma::events::receipt::Receipt::new(ts));
++            }
++            if let Ok(raw) = Raw::new(&ruma::events::receipt::SyncReceiptEvent::new(content)) {
++                resp.extensions.receipts.rooms.insert(room_id.clone(), raw);
++            }
++        }
++    }
+     if req_ext.to_device.enabled == Some(true) {
+         // ruma v5's response types are `#[non_exhaustive]`; build via Default
+         // and field assignment rather than struct literal.
+@@ -504,4 +583,5 @@ fn populate_extensions<S>(
+             .collect();
+         resp.extensions.to_device = Some(to_device);
+     }
++    Ok(())
+ }
+diff --git a/crates/neutrino-http/src/sliding_sync/tests.rs b/crates/neutrino-http/src/sliding_sync/tests.rs
+index 51ad3f6..6d6fce8 100644
+--- a/crates/neutrino-http/src/sliding_sync/tests.rs
++++ b/crates/neutrino-http/src/sliding_sync/tests.rs
+@@ -3390,3 +3390,136 @@ async fn receipt_covers_every_user_of_the_acking_server_only() {
+         "both of peer.test's users, and nobody from a server that never acked"
+     );
+ }
++
++// -----------------------------------------------------------------------------
++// Typing and read receipts (ephemeral extensions).
++// -----------------------------------------------------------------------------
++
++/// A joined room for `user`, created through the store so the sync has
++/// something to list.
++async fn room_for(store: &Arc<SqliteStore>, user: &UserId) -> OwnedRoomId {
++    let create = neutrino_event::event_builder::EventBuilder::new(
++        user.to_owned(),
++        "m.room.create".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .state_key(String::new())
++    .content(serde_json::json!({ "room_version": ROOM_VERSION_ID }))
++    .build()
++    .unwrap();
++    let room_id = create.room_id.clone();
++    let join = neutrino_event::event_builder::EventBuilder::new(
++        user.to_owned(),
++        "m.room.member".to_owned(),
++        neutrino_event::base_version().clone(),
++    )
++    .room_id(room_id.clone())
++    .state_key(user.as_str().to_owned())
++    .content(serde_json::json!({ "membership": "join" }))
++    .prev_events(vec![create.event_id.clone()])
++    .prev_state_events(vec![create.event_id.clone()])
++    .build()
++    .unwrap();
++    store.create_room(&create, &[join]).await.unwrap();
++    room_id
++}
++
++fn ephemeral_request() -> Request {
++    let mut req = Request::new();
++    let mut list = request::List::default();
++    list.ranges = vec![(UInt::from(0u32), UInt::from(9u32))];
++    list.room_details.timeline_limit = UInt::from(5u32);
++    req.lists.insert("all".to_owned(), list);
++    req.extensions.typing.enabled = Some(true);
++    req.extensions.receipts.enabled = Some(true);
++    req
++}
++
++#[tokio::test]
++async fn typing_extension_lists_other_people_typing_and_not_me() {
++    let (store, _tmp) = fresh_store().await;
++    let state = SyncState::new(store.clone(), no_shutdown());
++    let me = user_id!("@alice:example.org");
++    let peer = user_id!("@peer:remote.example.org");
++    let room_id = room_for(&store, me).await;
++
++    state.ephemeral.set_typing(&room_id, peer, true, None);
++    state.ephemeral.set_typing(&room_id, me, true, None);
++
++    let resp = handle(&state, me, ephemeral_request()).await.unwrap();
++    let typing = resp
++        .extensions
++        .typing
++        .rooms
++        .get(&room_id)
++        .expect("typing for the room");
++    let event: Value = serde_json::from_str(typing.json().get()).unwrap();
++    assert_eq!(
++        event["content"]["user_ids"],
++        serde_json::json!([peer.as_str()])
++    );
++
++    // Stopping empties it; an absent room carries no entry rather than an
++    // empty list.
++    state.ephemeral.set_typing(&room_id, peer, false, None);
++    let resp = handle(&state, me, ephemeral_request()).await.unwrap();
++    assert!(resp.extensions.typing.rooms.is_empty());
++}
++
++#[tokio::test]
++async fn a_typing_notice_wakes_a_long_poll() {
++    let (store, _tmp) = fresh_store().await;
++    let state = Arc::new(SyncState::new(store.clone(), no_shutdown()));
++    let me = user_id!("@alice:example.org");
++    let peer = user_id!("@peer:remote.example.org");
++    let room_id = room_for(&store, me).await;
++
++    let initial = handle(&state, me, ephemeral_request()).await.unwrap();
++    let mut req = ephemeral_request();
++    req.pos = Some(initial.pos.clone());
++    req.timeout = Some(std::time::Duration::from_secs(10));
++    let poll = {
++        let state = state.clone();
++        tokio::spawn(async move { handle(&state, me, req).await })
++    };
++    tokio::time::sleep(std::time::Duration::from_millis(200)).await;
++    state.ephemeral.set_typing(&room_id, peer, true, None);
++
++    let resp = tokio::time::timeout(std::time::Duration::from_secs(3), poll)
++        .await
++        .expect("long-poll woke on the typing notice")
++        .unwrap()
++        .unwrap();
++    assert!(resp.extensions.typing.rooms.contains_key(&room_id));
++}
++
++#[tokio::test]
++async fn receipts_extension_carries_real_read_receipts() {
++    let (store, _tmp) = fresh_store().await;
++    let state = SyncState::new(store.clone(), no_shutdown());
++    let me = user_id!("@alice:example.org");
++    let peer = user_id!("@peer:remote.example.org");
++    let room_id = room_for(&store, me).await;
++    let event_id: ruma::OwnedEventId = "$read:remote.example.org".try_into().unwrap();
++    state.ephemeral.set_receipt(
++        &room_id,
++        peer,
++        crate::ephemeral::ReadReceipt {
++            event_id: event_id.clone(),
++            ts: 1234,
++        },
++    );
++
++    let resp = handle(&state, me, ephemeral_request()).await.unwrap();
++    let receipt = resp
++        .extensions
++        .receipts
++        .rooms
++        .get(&room_id)
++        .expect("receipt for the room");
++    let event: Value = serde_json::from_str(receipt.json().get()).unwrap();
++    assert_eq!(
++        event["content"][event_id.as_str()]["m.read"][peer.as_str()]["ts"],
++        serde_json::json!(1234)
++    );
++}
+-- 
+2.43.0
+
