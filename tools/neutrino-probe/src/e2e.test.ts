@@ -24,6 +24,12 @@ const BASE = process.env.NEUTRINO_URL ?? 'http://localhost:8008';
 // matching tripwires flip into contracts. NEUTRINO_FORK=1 says which server is
 // under test; guessing from behaviour would defeat the point of a tripwire.
 const fork = process.env.NEUTRINO_FORK === '1';
+/**
+ * `PROBE_GAPS=0` runs only the contracts block: for a server that is not
+ * Neutrino at all (the conference Spindle, #115), where the "gaps" are not
+ * gaps and the fork-only contracts do not apply.
+ */
+const gaps = process.env.PROBE_GAPS !== '0';
 
 let token = '';
 let userId = '';
@@ -210,7 +216,7 @@ describe.skipIf(!reachable)('neutrino contracts the companion depends on', () =>
   });
 });
 
-describe.skipIf(!reachable)('gaps — these fail when upstream closes them', () => {
+describe.skipIf(!reachable || !gaps)('gaps — these fail when upstream closes them', () => {
   const missing = async (method: string, path: string, body?: unknown) => {
     const response = await call(method, path, body);
     return response.status;

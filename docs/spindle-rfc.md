@@ -26,14 +26,14 @@ this RFC asks which way you would rather we close them.
 Measured from Spindle's `SPEC.md` and by probing Neutrino builds on loopback
 (stock, and with our patches):
 
-| Capability                                                         | Spindle (per `SPEC.md`)                              | Neutrino stock                              | Neutrino with our patches                 |
-| ------------------------------------------------------------------ | ---------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
-| Client-server E2EE endpoints                                       | full                                                 | `/keys/claim`, `/sendToDevice` are 404      | full, incl. per-device to-device delivery |
-| Federation `/user/keys/query`, `/user/keys/claim`, `/user/devices` | full                                                 | none                                        | full                                      |
-| `m.direct_to_device`, `m.device_list_update` EDUs                  | full                                                 | none                                        | full                                      |
-| Event signatures                                                   | signed and verified                                  | neither (`sign_messages: false` at startup) | neither                                   |
-| Room versions                                                      | 6–12, plus Linearized Matrix `org.matrix.msc3995.v1` | `org.matrix.msc4242.12` only (state DAGs)   | `org.matrix.msc4242.12` only              |
-| Media                                                              | full                                                 | none                                        | full, capped at 256 KiB, federated        |
+| Capability                                                         | Spindle (per `SPEC.md`)                                                                  | Neutrino stock                              | Neutrino with our patches                 |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
+| Client-server E2EE endpoints                                       | full                                                                                     | `/keys/claim`, `/sendToDevice` are 404      | full, incl. per-device to-device delivery |
+| Federation `/user/keys/query`, `/user/keys/claim`, `/user/devices` | full                                                                                     | none                                        | full                                      |
+| `m.direct_to_device`, `m.device_list_update` EDUs                  | full                                                                                     | none                                        | full                                      |
+| Event signatures                                                   | signed and verified                                                                      | neither (`sign_messages: false` at startup) | neither                                   |
+| Room versions                                                      | 11 and 12 per the README; `SPEC.md` also lists Linearized Matrix `org.matrix.msc3995.v1` | `org.matrix.msc4242.12` only (state DAGs)   | `org.matrix.msc4242.12` only              |
+| Media                                                              | full                                                                                     | none                                        | full, capped at 256 KiB, federated        |
 
 Our patches are eleven commits on a Neutrino fork
 (`patches/neutrino/` in our repository), each verified with two phones-worth
@@ -45,7 +45,7 @@ So two blockers remain, and both are structural rather than missing endpoints:
 
 1. **Room version.** Neutrino only creates and joins
    `org.matrix.msc4242.12` rooms (Project Hydra phase 2, state DAGs). Spindle
-   speaks 6–12 and Linearized Matrix. Nothing in common.
+   speaks 11 and 12, and its spec names Linearized Matrix. Nothing in common.
 2. **Signatures.** Neutrino neither signs nor verifies events or federation
    requests; trust on the mesh is transport-attested (the iroh connection is
    authenticated by the node key). Spindle rightly verifies everything.
@@ -55,8 +55,9 @@ So two blockers remain, and both are structural rather than missing endpoints:
 **Which convergence would you accept?** Three shapes we can see, in our order
 of preference:
 
-1. **Linearized Matrix (MSC3995) on the Neutrino side.** Spindle already speaks
-   it. A Neutrino room federated with a Spindle would be a linearized room
+1. **Linearized Matrix (MSC3995) on the Neutrino side.** Spindle's spec
+   names it, and its native rooms are already chains ("a chain is a valid
+   DAG", per the README), which is the same shape. A Neutrino room federated with a Spindle would be a linearized room
    whose hub is the Spindle; phone-to-phone rooms stay MSC4242. Neutrino would
    gain a second room version, signing of the events it originates, and
    verification of what it receives. This is the largest change on our side

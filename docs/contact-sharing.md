@@ -87,6 +87,12 @@ shows it, falling back to the key badge; a broken link falls back too.
 - **Honest threat model.** The UI states that a QR code can be photographed and
   re-shared by anyone who sees it, and that scanning is not identity
   verification. Email/phone stay off unless the attendee opts in.
+- **The Matrix-id-to-mesh link is checked, not trusted (#111).** When a card
+  carries both a Matrix id and a mesh node id, the app checks, once online,
+  that the Matrix account's own public profile names that mesh id, and shows
+  "verified", "claimed" or "does not match" next to it. The check is one read
+  of a public profile from the account's homeserver; it sends nothing about
+  the contact or the conversation anywhere.
 
 ## vCard compatibility decisions
 

@@ -162,6 +162,13 @@ alignment, #3 CI packages token, #4 fork roadmap.
   drift (`phases.md`).
 - 2026-09-02: Display font decided: Press Start 2P (OFL) ships as the display
   face, FFF Forward is referenced but never bundled (#33).
+- 2026-09-03: **Conference communications batch** (#111, #113, #114, #115).
+  Bring your own Matrix ID: a mesh identity link published on the attendee's
+  own account profile and verified by peers from the card, with "Continue on
+  Matrix" on mesh DMs; an organiser-owned announcements room pinned first;
+  session Q&A with upvotes in the per-session rooms; the RFC to the Spindle
+  maintainers written out (`docs/spindle-rfc.md`) and a hosting note for the
+  conference Spindle. Conversation export was dropped as clunky.
 - 2026-09-03: **P2P step 9 (#82): media over the mesh with a size cap.**
   Patch `0011`: a content repository capped at 256 KiB, the authenticated
   and legacy download paths, `m.upload.size` advertised, and a federation

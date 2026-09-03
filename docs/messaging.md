@@ -100,6 +100,22 @@ them under "Session, booth and venue chats". Because the alias is derived
 from stable ids, every node on the mesh converges on the same room name
 without any provisioning.
 
+**Announcements (#113).** One room per event, `#<prefix>-announcements:<server>`
+(`messaging.announcementsAlias` overrides it, `false` turns it off), pinned
+first in `/chat`. `joinOrCreateRoom({ announcements: true })` creates it with
+`events_default: 50`, so whoever seeds it first — the organiser, on the
+conference homeserver — owns it and only moderators post. The reducer keeps
+the parts of `m.room.power_levels` that decide who may post; `canPost()`
+swaps the composer for a one-line note when the viewer cannot. A mesh room
+that has sent no power levels stays open.
+
+**Session Q&A (#114).** In any room, the ❓ toggle on the composer sends the
+next message with `in.indiafoss.question: true`; a `👍` reaction is an
+upvote and a `✅` from someone who may moderate marks it answered. The
+Questions panel above the timeline lists them most wanted first, answered
+last. Other Matrix clients see ordinary messages and reactions; the flag
+survives encryption and the offline outbox.
+
 ### Connectivity at the venue (NIMHANS)
 
 Venue Wi-Fi and cellular are unreliable, so the design assumes no network:
@@ -277,6 +293,17 @@ When the homeserver advertises `m.profile_fields`, the attendee can publish
 profile from `/connect` (and remove them again). The check falls back silently
 to the standard `displayname`/`avatar_url` profile on servers without the
 capability. Association is a claim, not authentication.
+
+**Mesh identity link (#111).** The same mechanism carries
+`in.indiafoss.mesh`: from `/chat`, signed into an internet homeserver, the
+attendee publishes their mesh node id on that account's profile. A peer
+holding the attendee's card (which carries both the claimed Matrix id and the
+mesh id) verifies the claim when online with one unauthenticated read of the
+account's public profile from its own homeserver (`verifyMeshLink`); the
+result is kept on the contact (verified / claimed / does not match) and
+re-checked daily. A mesh DM header shows "Continue on Matrix" with that
+label. Nothing about the mesh conversation leaves the mesh. Copying
+conversation history across was considered and dropped.
 
 ## Consuming Neutrino from Android (evaluation for issue #11)
 

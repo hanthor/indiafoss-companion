@@ -13,7 +13,7 @@
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { getMatrix, hydrateMatrix, matrixState, statusLabel } from '$lib/matrix.svelte';
   import { hydrateProfile, profileState, saveProfile } from '$lib/profile.svelte';
-  import { messagingConfigFor } from '$lib/messaging-config';
+  import { homeserverLabel, messagingConfigFor } from '$lib/messaging-config';
   import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import { features, hydrateFeatures, setChatEnabled } from '$lib/features.svelte';
@@ -259,7 +259,75 @@
   }
 
   const peerLabel = (p: NeutrinoPeer) => p.displayName || shortServerName(p.serverName);
+
+  /** Issue #115: take part from anywhere with an ordinary Matrix account. */
+  let ownHomeserver = $state('');
+  let ownUser = $state('');
+  let ownPassword = $state('');
+  let ownSigningIn = $state(false);
+  let ownError = $state<string | null>(null);
+  const homeserverPlaceholder = $derived(homeserverLabel(config.homeserver));
+
+  async function signInWithOwnAccount(event: SubmitEvent) {
+    event.preventDefault();
+    ownError = null;
+    const user = ownUser.trim();
+    if (!user || !ownPassword) {
+      ownError = 'Enter your Matrix user name and password.';
+      return;
+    }
+    // A full id names its own server; otherwise the conference homeserver.
+    const idServer = user.match(/^@[^:]+:(.+)$/)?.[1];
+    const homeserver = ownHomeserver.trim() || idServer || config.homeserver;
+    ownSigningIn = true;
+    try {
+      await hydrateMatrix();
+      await getMatrix().signInWithPassword(homeserver, user, ownPassword);
+      ownPassword = '';
+    } catch (error) {
+      ownError = error instanceof Error ? error.message : String(error);
+    } finally {
+      ownSigningIn = false;
+    }
+  }
 </script>
+
+{#snippet ownAccountForm()}
+  <details class="own">
+    <summary>Join from anywhere with your own Matrix account</summary>
+    <p class="muted small">
+      The conference rooms live on {homeserverPlaceholder}. Sign in there, or with any Matrix
+      account you already have: rooms on the conference server join by alias from anywhere.
+    </p>
+    <form class="stack" onsubmit={signInWithOwnAccount}>
+      <label>
+        <span class="muted small">Homeserver</span>
+        <input
+          bind:value={ownHomeserver}
+          placeholder={homeserverPlaceholder}
+          autocomplete="url"
+          inputmode="url"
+        />
+      </label>
+      <label>
+        <span class="muted small">User</span>
+        <input
+          bind:value={ownUser}
+          placeholder="alice or @alice:matrix.org"
+          autocomplete="username"
+        />
+      </label>
+      <label>
+        <span class="muted small">Password</span>
+        <input bind:value={ownPassword} type="password" autocomplete="current-password" />
+      </label>
+      {#if ownError}<p class="error" role="alert">{ownError}</p>{/if}
+      <button class="button secondary" type="submit" disabled={ownSigningIn}>
+        {ownSigningIn ? 'Signing in…' : 'Sign in'}
+      </button>
+    </form>
+  </details>
+{/snippet}
 
 <h1>Chat</h1>
 <p class="muted">
@@ -301,6 +369,7 @@
       <div class="actions">
         <button class="button primary" onclick={connectMesh} disabled={busy}>Try again</button>
       </div>
+      {@render ownAccountForm()}
     {:else}
       <h2>No mesh node on this device</h2>
       <p class="muted small">
@@ -310,15 +379,16 @@
       {#if pendingOpen}
         <p class="pill amber">“{pendingOpen.name}” will open once the mesh is available.</p>
       {/if}
+      {@render ownAccountForm()}
       <ConferenceRooms bundle={eventState.bundle} />
       <div class="actions">
         <button class="button secondary small" onclick={connectMesh}>Look again</button>
       </div>
       <p class="muted small">
-        For regular Matrix rooms use
+        Prefer another client? Use
         <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-        <a href="https://element.io/download" rel="noreferrer">Element</a> with the Matrix ids on contact
-        cards.
+        <a href="https://element.io/download" rel="noreferrer">Element</a> with the same account; the
+        rooms are ordinary Matrix rooms.
       </p>
     {/if}
   </section>
@@ -338,8 +408,8 @@
   </section>
   {#if !onMesh}
     <p class="pill amber">
-      This session is on {matrixState.homeserver}, not the on-device mesh. Sign out to reconnect to
-      the mesh node.
+      Signed in on {matrixState.homeserver}: the conference rooms, from anywhere. Sign out to use
+      the on-device mesh instead.
     </p>
     {#if meshIdentity}
       <section class="linkbox" aria-label="Link this account to your mesh identity">
@@ -700,5 +770,21 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
+  }
+  .own {
+    margin: 0.75rem 0;
+  }
+  .own summary {
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .stack {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .stack label {
+    display: grid;
+    gap: 0.15rem;
   }
 </style>
