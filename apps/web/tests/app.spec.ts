@@ -542,3 +542,53 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
   await expect(banner).toBeHidden();
   await expect(page.getByText('Renamed by the organisers')).toBeVisible();
 });
+
+test('the who-I-met recap groups the people and makes a shareable card (#31)', async ({ page }) => {
+  // Two people scanned, so the recap has something to group.
+  for (const [name, org] of [
+    ['Riya Verma', 'KDE'],
+    ['Sanjay Rao', 'Zulip'],
+  ]) {
+    await page.goto(appUrl('/scan'));
+    await page
+      .getByLabel('Paste a vCard')
+      .fill(['BEGIN:VCARD', 'VERSION:3.0', `FN:${name}`, `ORG:${org}`, 'END:VCARD'].join('\r\n'));
+    await page.getByRole('button', { name: 'Preview contact' }).click();
+    await page.getByRole('button', { name: 'Save contact' }).click();
+    await expect(page.getByRole('status')).toContainText(new RegExp(`Saved ${name}`));
+  }
+
+  // Your card links to the recap once there is someone to recap.
+  await page.goto(appUrl('/connect'));
+  await page.getByRole('link', { name: /Who I met/ }).click();
+  await expect(page).toHaveURL(/\/connect\/recap$/);
+  await expect(page.getByRole('heading', { name: 'Who I met', level: 1 })).toBeVisible();
+
+  // Both people are listed, grouped under the day they were met.
+  await expect(page.getByText('Riya Verma')).toBeVisible();
+  await expect(page.getByText('Sanjay Rao')).toBeVisible();
+  await expect(page.getByText(/2 people/).first()).toBeVisible();
+
+  // The card is drawn on a canvas, and the preview is what gets saved.
+  const card = page.locator('canvas');
+  await expect(card).toBeVisible();
+  await expect(card).toHaveAttribute('aria-label', 'I met 2 people');
+  expect(await card.evaluate((el: HTMLCanvasElement) => el.width)).toBe(1080);
+  // It has actually been painted, not left blank.
+  const painted = await card.evaluate((el: HTMLCanvasElement) => {
+    const data = el.getContext('2d')!.getImageData(0, 0, el.width, el.height).data;
+    const seen = new Set<string>();
+    for (let i = 0; i < data.length; i += 4 * 997) {
+      seen.add(`${data[i]},${data[i + 1]},${data[i + 2]}`);
+    }
+    return seen.size;
+  });
+  expect(painted, 'the card should have more than one colour on it').toBeGreaterThan(1);
+
+  // Names can be left off, and the image still saves.
+  await page.getByRole('switch', { name: /Include everyone's names/ }).uncheck();
+  await expect(page.getByText('Only the count and the places are on the card.')).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save the image' }).click();
+  expect((await download).suggestedFilename()).toBe('indiafoss-who-i-met.png');
+});

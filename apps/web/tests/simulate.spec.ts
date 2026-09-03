@@ -19,6 +19,8 @@ const SPEED = 600;
 const SESSION = 'act-c8ak0iov2l';
 /** The reminder-quality run starts here, far enough back to survive a slow load. */
 const EARLY_START = '2025-09-20T09:00:00+05:30';
+/** Five simulated minutes a real second: slow enough that load jitter cannot skip an alert. */
+const SLOW_SPEED = 300;
 
 test.use({ permissions: ['notifications'] });
 
@@ -90,6 +92,8 @@ test('a run survives navigation and a reload, and Settings can start one', async
 test('every reminder names the session, the room and the walk, and opens it when tapped', async ({
   page,
 }) => {
+  // The run itself takes about fifteen real seconds at 300x.
+  test.setTimeout(90_000);
   // Record what the browser is actually asked to show, options and all.
   await page.addInitScript(() => {
     interface Shown {
@@ -138,11 +142,18 @@ test('every reminder names the session, the room and the walk, and opens it when
   await page.goto(appUrl('/settings'));
   await page.getByRole('switch', { name: /Enable reminders/ }).check();
 
-  // Start well before the first alert. Reminders in the past are never fired
-  // retroactively, so at 600x a slow load would otherwise eat the window
-  // under test: from 09:00 the 09:45 heads-up is 45 simulated minutes away,
-  // which is four and a half real seconds of slack rather than none.
-  await page.goto(appUrl(`/now?now=${encodeURIComponent(EARLY_START)}&speed=${SPEED}`));
+  // Reminders in the past are never fired retroactively, so this run must not
+  // lose simulated time to anything. Two things guard that: the clock is
+  // started from the page once it is ready, so no page load is inside the run,
+  // and it runs at 300x from 09:00, which leaves nine real seconds before the
+  // first alert instead of none. Starting it from the URL at 600x was flaky
+  // under parallel load, which is exactly the case this needs to survive.
+  await page.goto(appUrl('/now'));
+  await page.waitForFunction(() => !!window.__indiafossSim, null, { timeout: 15_000 });
+  await page.evaluate(
+    ([start, speed]) => window.__indiafossSim!.start(start as string, speed as number),
+    [EARLY_START, SLOW_SPEED] as const,
+  );
   await expect(page.getByTestId('sim-strip')).toBeVisible();
 
   // Wait for the alerts themselves, not for a clock reading.
@@ -150,7 +161,7 @@ test('every reminder names the session, the room and the walk, and opens it when
     .poll(
       () =>
         page.evaluate(() => (window as unknown as { __fired: { title: string }[] }).__fired.length),
-      { timeout: 30_000 },
+      { timeout: 60_000 },
     )
     .toBeGreaterThanOrEqual(3);
 
