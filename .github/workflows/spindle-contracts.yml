@@ -25,7 +25,7 @@ concurrency:
 
 env:
   # Bump deliberately: the commit the contracts were last proven against.
-  SPINDLE_REV: 70b56eb
+  SPINDLE_REV: 70b56ebe444400d58780f14701f18f41d7d0ce90 # 70b56eb
 
 jobs:
   contracts:
