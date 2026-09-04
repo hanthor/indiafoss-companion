@@ -128,7 +128,8 @@ Venue Wi-Fi and cellular are unreliable, so the design assumes no network:
 3. **QR exchange needs no network at all** — contact and friend cards, session
    handoff links and location markers are self-contained payloads.
 4. **P2P mesh when the native shell runs Neutrino** — the chat screen probes
-   `http://127.0.0.1:3000/_matrix/client/versions`; if an embedded Neutrino
+   `http://127.0.0.1:<port>/_matrix/client/versions` on ports 8008 then 3000
+   (`MESH_PORTS`, plugin default first); if an embedded Neutrino
    node answers, it offers "Use the on-device P2P homeserver". The same
    client code then talks to the mesh over loopback, with the deterministic
    session aliases so people in the same hall land in the same rooms over
