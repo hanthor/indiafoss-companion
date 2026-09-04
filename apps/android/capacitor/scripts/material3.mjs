@@ -252,7 +252,10 @@ const expected = [
   ['CAMERA permission', manifest.includes('android.permission.CAMERA')],
   ['POST_NOTIFICATIONS permission', manifest.includes('android.permission.POST_NOTIFICATIONS')],
   ['indiafoss:// deep link', manifest.includes('android:scheme="indiafoss"')],
-  ['cleartext loopback network security config', manifest.includes('android:networkSecurityConfig')],
+  [
+    'cleartext loopback network security config',
+    manifest.includes('android:networkSecurityConfig'),
+  ],
   ['Material You dynamic colour', activity.includes('DynamicColors')],
   [
     'Material Components dependency',
