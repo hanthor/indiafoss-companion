@@ -728,7 +728,7 @@
     text-transform: uppercase;
     white-space: nowrap;
   }
-  /* A devroom leads with its own name, larger than the talk under it (#117). */
+  /* A devroom leads with its own name, larger than the talk under it (issue 117). */
   .roomlabel .name.devroom {
     font-family: inherit;
     font-size: 0.82rem;
