@@ -1,18 +1,23 @@
 # Manual test checklist
 
 Everything a human needs to click through before a release, across all three
-apps: the web PWA / Capacitor companion (`org.indiafoss.companion`), the
-standalone native Compose event client (`apps/android/native`), and the
-dedicated P2P chat app (`hanthor/indiafoss-chat-android`). Grouped by feature
-area, not by app — most areas apply to more than one app; the app column
-notes which.
+apps ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)): the web PWA (Web
+and iOS via Safari "Add to Home Screen", no native wrapper), the standalone
+native Compose event client for Android (`apps/android/native`,
+`org.indiafoss.companion.nativeapp`), and the dedicated P2P chat app
+(`hanthor/indiafoss-chat-android`). Grouped by feature area, not by app —
+most areas apply to more than one app; the app column notes which. There is
+no Capacitor build any more — neither the PWA nor the native app embeds a
+chat UI; both deep-link out to the dedicated chat app or any Matrix client
+via `matrix.to` links (see `apps/web/src/lib/element-links.ts`,
+`packages/model/src/contact.ts`'s `contactDeepLinks`).
 
-Legend: **W** = web/PWA, **C** = Capacitor companion (Android/iOS), **N** =
-native Compose app, **X** = dedicated chat app (Element X / Neutrino fork).
+Legend: **W** = web/PWA, **N** = native Compose app, **X** = dedicated chat
+app (Element X / Neutrino fork).
 
 ## 1. Onboarding & first run
 
-- [ ] (W/C/N) Welcome wizard: skip vs complete all four steps (reminders,
+- [ ] (W/N) Welcome wizard: skip vs complete all four steps (reminders,
       ticket/QR, your card, rank).
 - [ ] `?setup=done` deep link / "Skip setup" both bypass the wizard.
 - [ ] Re-running setup from Settings works after it was already completed.
@@ -56,11 +61,16 @@ native Compose app, **X** = dedicated chat app (Element X / Neutrino fork).
 ## 5. Explore & booths
 
 - [ ] Explore list renders all booths/sponsors.
-- [ ] Booth detail page: description, location, and (if applicable) chat
-      button all work.
+- [ ] Booth detail page: description, location, and (if applicable) the
+      "Open … on Matrix ↗" chat handoff link all work.
 - [ ] Speaker detail page: bio, photo, linked sessions.
-- [ ] Activity detail page: description, speakers, room, time, chat button,
-      bookmark/rank action.
+- [ ] Activity detail page: description, speakers, room, time, "💬 Session
+      chat ↗" handoff link, bookmark/rank action.
+- [ ] (W) Activity detail Resources section: `livestreamUrl` renders a
+      "▶ Watch live" link when the bundle sets it (alongside recording/slides
+      when present); absent when it isn't.
+- [ ] (W) Now screen: a currently-live session with `livestreamUrl` shows a
+      "▶ watch live ↗" link next to its chat link.
 
 ## 6. Map & venue navigation
 
@@ -92,74 +102,55 @@ Payload kinds: `friend` (handshake/contact), `contact` (vCard), `location`
       `indiafoss://booth/<id>` open the right screen.
 - [ ] `indiafoss://location/<id>` → scan preview → sets location.
 - [ ] `indiafoss://friend?...` → scan preview → add contact.
-- [ ] `indiafoss://chat?dm=@user:server` / `?join=#alias:server` → confirmation
-      screen before DM/join (never auto-joins).
+- [ ] A scanned/pasted Matrix id or `matrix.to` link opens the "Open in
+      Element" handoff button (never auto-joins) — this replaces the old
+      `indiafoss://chat` in-app join flow, which no longer exists.
 - [ ] Camera permission prompt and denial-recovery path.
 - [ ] Scanning a code from a _different_ event/session than the one loaded
       degrades sensibly (not a crash).
 
-## 9. Chat — companion app (embedded P2P mesh + optional Matrix account)
+## 9. Chat handoff (web PWA & native companion apps)
 
-Core mesh (real hardware, two+ phones, see §13 for the full P2P protocol):
+Neither companion app embeds a chat UI any more (ADR 0004). Every "chat" or
+"message on mesh" affordance builds a `matrix.to` link and hands off to
+whatever Matrix client is installed. Test the link-building, not a live
+conversation (that's §10):
 
-- [ ] Settings → "Enable P2P chat" actually starts the mesh node (check via
-      the "Connected" indicator on `/chat`, not just the toggle).
-- [ ] Nearby peer discovery lists a real nearby device within ~1–2 minutes.
-- [ ] Start a DM with a nearby peer; invite propagates and can be accepted.
-- [ ] Messages sent **after** both sides have joined decrypt correctly
-      (Megolm/E2EE) — a message sent before the invite is accepted may show
-      "waiting for the key" and that's a separate, known rough edge, not a
-      regression.
-- [ ] Bidirectional messaging (both directions) confirmed on the timeline
-      with correct timestamps.
-- [ ] Turn off Wi-Fi on both phones — mesh messaging keeps working over BLE
-      alone (proves it's not silently using internet).
-
-Room types and features (`docs/messaging.md`):
-
-- [ ] Session/booth/venue room chat buttons on Activity, Booth and Now
-      pages join or create the deterministic-alias room.
-- [ ] Announcements room is pinned first in `/chat`, read-only for
-      non-moderators, and moderators can post.
-- [ ] Session Q&A: the ❓ composer toggle sends a question; 👍 upvotes;
-      ✅ (as a moderator) marks it answered; the Questions panel sorts
-      most-wanted-first, answered-last.
-- [ ] Replies quote correctly and strip the `> …` fallback body.
-- [ ] Reactions (🎉 👍 ❤️ 😀 etc.) attach to the right message and toggle
-      off when you tap your own again.
-- [ ] Read receipts update when a room is opened and stays updated while
-      it's open.
-- [ ] Room member list (display name + mesh id) opens from the room header.
-- [ ] Invites can be accepted or declined from `/chat`.
-
-Sign-in from anywhere / offline behaviour:
-
-- [ ] "Join from anywhere with your own Matrix account" sign-in works
-      against the conference Spindle (or any Matrix homeserver).
-- [ ] Reload while offline still shows cached rooms and message history.
-- [ ] A message sent while offline shows a local "Sending…" echo, then
-      delivers once reachable — no duplicates once the real event arrives.
-- [ ] Force a `M_FORBIDDEN` (e.g. send after being removed from a room) —
-      the message drops from the outbox with a clear explanation, not a
-      silent retry loop.
-- [ ] Airplane mode toggled on/off mid-session triggers reconnect without
-      a manual refresh.
+- [ ] Activity detail "💬 Session chat ↗" opens the session's room (listed →
+      location-derived → deterministic per-session alias, in that order —
+      see `sessionRoomLink` in `element-links.ts`) in an external app/tab.
+- [ ] Booth detail "Open … on Matrix ↗" resolves the same way
+      (`boothRoomLink`: listed → location-derived → deterministic per-booth
+      alias).
+- [ ] Now screen's "💬 chat ↗" next to each in-progress session resolves to
+      the same room as that session's own Activity detail page.
+- [ ] A bundle with no `messaging` block shows **no** chat link anywhere
+      (never a dead link to a nobody-administers `matrix.org` room).
+- [ ] Connect → a saved contact with a `neutrinoServerName` shows a "Mesh"
+      link (via `contactDeepLinks`) that opens `matrix.to/#/@n:<server>`.
+- [ ] Connect → a saved contact with a `matrixId` shows a "Matrix" link that
+      opens `matrix.to/#/@user:server`.
+- [ ] Scan → after scanning a friend card or vCard with a Matrix id or mesh
+      identity, the same links appear in the confirmation screen before
+      saving.
+- [ ] Every one of the above actually opens the OS "choose an app" prompt
+      (or the dedicated chat app directly, if it's set as the `matrix.to`
+      handler) rather than a blank/broken navigation.
 
 ## 10. Chat — dedicated app (`indiafoss-chat-android`)
 
 - [ ] App launches past onboarding (display name → Continue) without
       crashing.
-- [ ] Same mesh identity space as the companion app's embedded chat is
-      visible (shared Neutrino network) — confirm the "Neutrino" node/peer
-      shows up.
-- [ ] Opening a room the companion app already created against this
-      identity actually loads a working timeline (known rough edge as of
-      this session: it showed an empty-state placeholder instead — retest
-      after further chat-app work).
+- [ ] Registers as a handler for `matrix.to` links (or is offered as one) so
+      the handoff links in §9 land here when it's installed.
+- [ ] A `matrix.to/#/@n:<server>` link (mesh identity) opens a working DM
+      with that peer.
+- [ ] A `matrix.to/#/#alias:homeserver` link (session/booth/announcements
+      room) opens or joins that room.
+- [ ] Nearby peer discovery lists a real nearby device within ~1–2 minutes
+      (see §13 for the full P2P protocol pass).
 - [ ] Native Element X features: verification, device management, etc. —
       whatever's still wired up from upstream vs what this fork changed.
-- [ ] `indiafoss://chat` / `indiafoss://friend` handoff links from the
-      companion app open correctly in this app.
 - [ ] APK installs cleanly on a fresh device (no signature/version
       conflicts) — both `gplay` and `fdroid` flavours.
 
@@ -179,14 +170,10 @@ least once to catch OS-level throttling issues):
       permission being denied (no crash, and a way to grant later).
 - [ ] Reminders can be turned off entirely from Settings and stay off.
 - [ ] Reminders survive an app restart / device reboot.
-- [ ] (Chat) A new message notification (if implemented) doesn't fire when
-      P2P chat is disabled.
 
 ## 12. Settings
 
 - [ ] Contact sharing → opens the contact card editor.
-- [ ] Peer-to-peer chat toggle — on/off, and confirm it actually starts/stops
-      the mesh node (not just a stored preference).
 - [ ] Reminders toggle and any fine-grained controls.
 - [ ] Day simulator: pick a day, a start time, a speed multiplier; "Begin"
       jumps the whole app's clock; log shows fired events; stopping the
@@ -198,7 +185,10 @@ least once to catch OS-level throttling issues):
 - [ ] Settings is easy to find from the main nav (this was flagged mid-session
       as too buried — verify whatever fix landed, if any).
 
-## 13. Real-hardware P2P mesh protocol (two or more physical Android phones)
+## 13. Real-hardware P2P mesh protocol (dedicated chat app, two or more physical Android phones)
+
+The mesh node now lives only in `hanthor/indiafoss-chat-android` — neither
+companion app runs one.
 
 - [ ] `adb`-driven BLE peer discovery: both devices' real Bluetooth MAC/node
       IDs appear in the other's logs/UI.
@@ -216,17 +206,14 @@ least once to catch OS-level throttling issues):
 
 ## 14. Native feel / platform polish
 
-- [ ] (C) Long-press does **not** select page text or pop the OS callout
-      menu anywhere in normal navigation.
-- [ ] (C) Taps don't flash a grey/blue highlight.
-- [ ] (C) Scroll edges don't rubber-band/bounce.
-- [ ] (C) Form fields (message composer, search boxes, name/profile fields)
-      still allow normal text selection and editing.
 - [ ] (N) Material You dynamic colour matches the phone's wallpaper on
       Android 12+, and falls back sensibly below it.
 - [ ] (N) Back button/gesture behaves like a native app at every screen
       (no dead ends, no double-back-to-exit surprises).
-- [ ] Dark mode and light mode both look correct, on both the web/Capacitor
+- [ ] (W) Installed as a PWA (Android Chrome "Install app" / iOS Safari "Add
+      to Home Screen"), the app launches standalone (no browser chrome) and
+      the icon/splash screen look right.
+- [ ] Dark mode and light mode both look correct, on both the web PWA
       styling and the native Compose theming.
 
 ## 15. Platform/device compatibility
@@ -234,8 +221,8 @@ least once to catch OS-level throttling issues):
 - [ ] 16 KB page size: confirm on a real 16 KB-page device (or via `readelf`
       on the built `.so`s, see this session's method) that native libraries
       are aligned both internally (ELF `PT_LOAD` `p_align`) and in APK zip
-      packing — required for both the Capacitor P2P build and any future
-      native-app native code.
+      packing — for any native-app native code and for the dedicated chat
+      app's Neutrino bindings.
 - [ ] Fresh install and update-over-existing-install both work (watch for
       signature mismatches between differently-signed builds, e.g. CI vs
       nightly vs local debug keys — these will refuse to upgrade in place).
@@ -251,9 +238,9 @@ least once to catch OS-level throttling issues):
 - [ ] Airplane mode: schedule, ranking, map, connect all keep working.
 - [ ] App update: a new deployed version is picked up (service worker
       update flow) without the user losing local data.
-- [ ] Local storage (ranking, notes, itinerary, contacts, chat history)
-      survives a browser/WebView data-clear prompt scenario sensibly (or is
-      clearly explained if it doesn't).
+- [ ] Local storage (ranking, notes, itinerary, contacts) survives a
+      browser/WebView data-clear prompt scenario sensibly (or is clearly
+      explained if it doesn't).
 
 ## 17. Accessibility
 
@@ -262,7 +249,7 @@ least once to catch OS-level throttling issues):
       Material-look removal (the suite's Material-look test cases were
       deleted along with the feature; confirm nothing else regressed).
 - [ ] Keyboard-only completion of the ranking flow.
-- [ ] Screen reader pass on at least Now, Schedule, Chat, and Settings.
+- [ ] Screen reader pass on at least Now, Schedule, Connect, and Settings.
 - [ ] Text scales correctly at larger OS font sizes without clipping.
 
 ## 18. 2025 → 2026 switchover readiness

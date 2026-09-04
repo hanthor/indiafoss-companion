@@ -21,7 +21,6 @@ const CORE_SCREENS: [string, string][] = [
   ['scan', '/scan'],
   ['settings', '/settings'],
   ['map', '/map'],
-  ['chat (signed out)', '/chat'],
   ['now', '/now?now=2025-09-20T10%3A20%3A00%2B05%3A30'],
   ['activity', '/activity/act-c8ak0iov2l'],
   ['booths', '/explore/booths'],

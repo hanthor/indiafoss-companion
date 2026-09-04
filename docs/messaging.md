@@ -1,14 +1,19 @@
 # Optional Matrix messaging
 
 > **Superseded 2026-09-04** ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)):
-> chat is no longer embedded in this repo's apps at all. It lives entirely in
-> the dedicated `hanthor/indiafoss-chat-android` app; the companion apps only
-> deep-link to it (handoff, per ADR 0001), and gain livestream support as a
-> new surface. This document still describes the embedded-chat architecture
-> that shipped in the (now-retired) Capacitor build; it has not yet been
-> rewritten for the handoff-only model — treat the model and the Capacitor
-> specifics below as historical, everything else (room aliases, Q&A, the
-> mesh protocol itself) as still accurate for the dedicated chat app.
+> chat is no longer embedded in the web PWA or the native Android app at all.
+> It lives entirely in the dedicated `hanthor/indiafoss-chat-android` app; the
+> companion apps (`apps/web/src/lib/element-links.ts`,
+> `packages/model/src/contact.ts`'s `contactDeepLinks`) only build `matrix.to`
+> links and hand off to whatever Matrix client is installed — the dedicated
+> chat app for mesh identities, Element or similar for the organiser's public
+> homeserver. The web PWA also now renders `activity.livestreamUrl` where
+> present (activity page and the Now screen). This document still describes
+> the embedded-chat architecture that shipped in the (now-retired) Capacitor
+> build; it has not been rewritten for the handoff-only model — treat the
+> model and the Capacitor specifics below as historical, everything else
+> (room aliases, Q&A, the mesh protocol itself) as still accurate for the
+> dedicated chat app.
 
 ## The model (decided 2026-09-02)
 

@@ -41,32 +41,40 @@ describe('element links', () => {
   });
 
   it('points a session at its hall room, listed or derived', () => {
-    expect(sessionRoomLink(bundle, 'a', 'audi-1')?.alias).toBe(
+    expect(sessionRoomLink(bundle, 'a', 'audi-1', 'Talk A')?.alias).toBe(
       '#indiafoss-2025-room-audi-1:reilly.asia',
     );
-    expect(sessionRoomLink(bundle, 'a', 'audi-2')).toEqual({
+    expect(sessionRoomLink(bundle, 'a', 'audi-2', 'Talk A')).toEqual({
       alias: '#indiafoss-2025-room-audi-2:reilly.asia',
       name: 'Audi 2',
       href: matrixToRoom('#indiafoss-2025-room-audi-2:reilly.asia'),
       recommended: false,
     });
-    expect(sessionRoomLink(bundle, 'a', undefined)).toBeNull();
   });
 
-  it('gives nothing without an organiser messaging block', () => {
+  it('falls back to the deterministic per-session alias with no room and no location', () => {
+    expect(sessionRoomLink(bundle, 'a', undefined, 'Talk A')).toEqual({
+      alias: '#indiafoss-2025-session-a:reilly.asia',
+      name: 'Talk A',
+      href: matrixToRoom('#indiafoss-2025-session-a:reilly.asia'),
+      recommended: false,
+    });
+  });
+
+  it('gives nothing without an organiser messaging block — a link to nobody-s homeserver is worse than no link', () => {
     const plain = { ...bundle, messaging: undefined } as EventBundle;
     expect(spaceLink(plain)).toBeNull();
     expect(listedRooms(plain)).toEqual([]);
-    expect(sessionRoomLink(plain, 'a', 'audi-1')).toBeNull();
+    expect(sessionRoomLink(plain, 'a', 'audi-1', 'Talk A')).toBeNull();
     expect(boothRoomLink(plain, { id: 'b', name: 'B' } as never)).toBeNull();
   });
 
-  it('sends a booth to its location room or the space', () => {
+  it('sends a booth to its listed location room, else its own deterministic alias', () => {
     expect(boothRoomLink(bundle, { id: 'b', name: 'B', locationId: 'audi-1' } as never)?.name).toBe(
       'Audi 1',
     );
     expect(boothRoomLink(bundle, { id: 'b', name: 'B' } as never)?.alias).toBe(
-      '#indiafoss:reilly.asia',
+      '#indiafoss-2025-booth-b:reilly.asia',
     );
   });
 });

@@ -28,23 +28,23 @@ changes, update the issue first, then this file, so neither drifts.
   manual entry behind a disclosure; map pinch/drag/wheel zoom with compact
   labels; XMPP (Prav) and Delta Chat on cards; FOSS United by username.
 
-## Queue, as of 2026-09-03 (end of the batch)
+## Queue, as of 2026-09-04
 
 Everything queued in [#34](https://github.com/hanthor/indiafoss-companion/issues/34)
 that could be built and tested here is shipped. What is left is listed with the
 reason it is left, so nobody picks it up expecting it to be a small job.
 
-| #   | Issue                                                                                                                                     | State                                                                                                                                                                           |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | [#108](https://github.com/hanthor/indiafoss-companion/issues/108) Ranker step one simpler                                                 | Done, closed. Three steps: devrooms, swipe cards, then overlaps within a slot. Both apps.                                                                                       |
-| 2   | [#107](https://github.com/hanthor/indiafoss-companion/issues/107) Onboarding wizard                                                       | Done, closed. Notifications, ticket, socials, then rank. Both apps.                                                                                                             |
-| 3   | [#105](https://github.com/hanthor/indiafoss-companion/issues/105) Social links take a handle or a URL                                     | Done, closed.                                                                                                                                                                   |
-| 4   | [#106](https://github.com/hanthor/indiafoss-companion/issues/106) First-class Prav                                                        | Done, closed. XMPP on cards and contacts.                                                                                                                                       |
-| 5   | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                             | Tokens with one role each, a raw-colour guard, a real loading state, a dark-mode audit and a themed splash. Chat empty states belong with the messaging work and are left open. |
-| 6   | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Production event revision handling                                          | The client guarantees are tested end to end. Hash-addressing the venue, graph and change assets is a publishing-pipeline change, not a client one, and is left open.            |
-| 7   | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2 leftovers                                                    | "Who I met" and the shareable summary card shipped. NFC tap-to-share and the mutual "verified in person" badge need two real phones and are left open.                          |
-| 8   | [#110](https://github.com/hanthor/indiafoss-companion/issues/110) Native app parity leftovers                                             | Device verification needs a second real device to develop against and is left open. The rest of parity is tracked there.                                                        |
-| 9   | [#35](https://github.com/hanthor/indiafoss-companion/issues/35), [#74](https://github.com/hanthor/indiafoss-companion/issues/74) P2P chat | Worked separately.                                                                                                                                                              |
+| #   | Issue                                                                                                                                     | State                                                                                                                                                                                                                                                                                                          |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | [#108](https://github.com/hanthor/indiafoss-companion/issues/108) Ranker step one simpler                                                 | Done, closed. Three steps: devrooms, swipe cards, then overlaps within a slot. Both apps.                                                                                                                                                                                                                      |
+| 2   | [#107](https://github.com/hanthor/indiafoss-companion/issues/107) Onboarding wizard                                                       | Done, closed. Notifications, ticket, socials, then rank. Both apps.                                                                                                                                                                                                                                            |
+| 3   | [#105](https://github.com/hanthor/indiafoss-companion/issues/105) Social links take a handle or a URL                                     | Done, closed.                                                                                                                                                                                                                                                                                                  |
+| 4   | [#106](https://github.com/hanthor/indiafoss-companion/issues/106) First-class Prav                                                        | Done, closed. XMPP on cards and contacts.                                                                                                                                                                                                                                                                      |
+| 5   | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                             | Tokens with one role each, a raw-colour guard, a real loading state, a dark-mode audit and a themed splash. Chat empty states no longer apply — the PWA has no chat UI to have an empty state in (ADR 0004). Font-licence decision (Press Start 2P vs. FFF Forward) still needs a human call and is left open. |
+| 6   | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Production event revision handling                                          | The client guarantees are tested end to end. Hash-addressing the venue, graph and change assets is a publishing-pipeline change, not a client one, and is left open.                                                                                                                                           |
+| 7   | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2 leftovers                                                    | Mostly shipped: key continuity, Web Share Target, contact book export/import, "who I met" recap, search, fingerprint comparison. Left open: NFC tap-to-share (now Web NFC, not a Capacitor plugin, since Capacitor is retired) and the mutual "verified in person" badge — both need two real phones.          |
+| 8   | [#110](https://github.com/hanthor/indiafoss-companion/issues/110) Native app parity leftovers                                             | Superseded from "blocks Capacitor retirement" to a plain parity list — Capacitor retired 2026-09-04 regardless (ADR 0004). Still missing: custom plan blocks, contact import/profile-fill, schedule-update banner, speaker avatars/booth pages, scan/handshake.                                                |
+| 9   | [#35](https://github.com/hanthor/indiafoss-companion/issues/35), [#74](https://github.com/hanthor/indiafoss-companion/issues/74) P2P chat | Closed/superseded — P2P chat is the dedicated `hanthor/indiafoss-chat-android` app now, not an in-companion add-on.                                                                                                                                                                                            |
 
 Closed as done: #2, #10 (native client), #12 (notifications), #29, #32 (socials), #52–#55,
 #60, #90 (ranking speed), #92 (dup of #93), #93 (simulator), #94 (contacts
@@ -65,6 +65,15 @@ alignment, #3 CI packages token, #4 fork roadmap.
 
 ## Decisions log
 
+- 2026-09-04: **The chat-handoff and livestream follow-up from the Capacitor
+  retirement landed** (PR #140). The web PWA no longer embeds any chat UI:
+  `/chat`, the Matrix session manager, the mesh-node bridge and the
+  per-attendee "enable P2P chat" toggle are gone. Every chat affordance
+  (Activity, Booth, Now, Connect, Scan) now builds a `matrix.to` link
+  (`element-links.ts`, `contactDeepLinks`'s new `'mesh'` kind) and hands off
+  to whatever Matrix client is installed. `activity.livestreamUrl` — carried
+  by the model since earlier but never rendered — now shows a "Watch live"
+  link on the activity page and next to in-progress sessions on Now.
 - 2026-09-04: **Three apps, not four; the Capacitor shell is retired.** PWA
   (Web/iOS), native Compose (Android), P2P chat as its own dedicated app
   (`hanthor/indiafoss-chat-android`), carrying everything from the

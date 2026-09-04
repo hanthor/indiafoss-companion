@@ -13,8 +13,6 @@
   } from '$lib/notifications.svelte';
   import { untrack } from 'svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
-  import { hydrateMatrix, matrixState, unreadTotal } from '$lib/matrix.svelte';
-  import { features, hydrateFeatures } from '$lib/features.svelte';
   import { installNativeDeepLinks } from '$lib/native';
   import LeaveByBanner from '$lib/components/LeaveByBanner.svelte';
   import SimulatorStrip from '$lib/components/SimulatorStrip.svelte';
@@ -39,7 +37,6 @@
   onMount(() => {
     void hydratePreferences();
     void hydrateNotifications();
-    void hydrateFeatures();
     // Deep-link targets are validated in routeForDeepLink() before navigation.
     // eslint-disable-next-line svelte/no-navigation-without-resolve
     void installNativeDeepLinks(base, (path) => goto(path)).catch(() => {});
@@ -95,11 +92,6 @@
     }
   });
 
-  // The chat add-on only comes alive once the attendee has switched it on.
-  $effect(() => {
-    if (features.chat) void hydrateMatrix();
-  });
-
   // The map fills the screen edge to edge; every other route keeps the gutter.
   const fullbleed = $derived(isActive(resolve('/map')));
 
@@ -125,7 +117,6 @@
       '/scan': 'Scan',
       '/settings': 'Settings',
       '/welcome': 'Welcome',
-      '/chat': 'Chat',
     };
     const match =
       names[path] ??
@@ -164,21 +155,6 @@
         >
         <span>Scan</span>
       </a>
-      {#if features.chat}
-        <a
-          href={resolve('/chat')}
-          aria-current={isActive('/chat') ? 'page' : undefined}
-          title="Chat"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true"
-            ><path d="M4 4h16v11h-9l-4 4v-4H4V4zm2 2v7h3v2l2-2h7V6H6z" /></svg
-          >
-          <span>Chat</span>
-          {#if matrixState.status !== 'signed-out' && unreadTotal() > 0}
-            <span class="unread" aria-label="{unreadTotal()} unread messages">{unreadTotal()}</span>
-          {/if}
-        </a>
-      {/if}
       <a
         href={resolve('/connect')}
         aria-current={isActive('/connect') ? 'page' : undefined}
@@ -356,19 +332,6 @@
     background: color-mix(in srgb, var(--amber) 82%, var(--on-ink));
     color: var(--ink);
   }
-  .unread {
-    position: absolute;
-    top: 0.15rem;
-    right: 0.15rem;
-    background: var(--amber);
-    color: var(--ink);
-    border-radius: 999px;
-    padding: 0 0.35rem;
-    font-size: 0.6rem;
-    line-height: 1.1rem;
-    font-weight: 700;
-  }
-
   .pixelstripe {
     position: sticky;
     top: calc(60px + var(--safe-top));

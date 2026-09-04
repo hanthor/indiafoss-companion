@@ -323,21 +323,14 @@ test('plan explains an infeasible custom block instead of dropping it', async ({
   await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap B' })).toBeVisible();
 });
 
-test('sessions and the chat tab link the organiser rooms for Element', async ({ page }) => {
+test('sessions link the organiser room via a matrix.to handoff', async ({ page }) => {
   await page.goto(appUrl('/activity/act-c8ak0iov2l'));
-  const room = page.getByRole('link', { name: 'Open room in Element' });
+  const room = page.getByRole('link', { name: /Session chat/ });
   await expect(room).toHaveAttribute(
     'href',
     /matrix\.to\/#\/%23indiafoss-2025-room-devroom-1-aosp/,
   );
-  // With P2P chat off, /chat still lists the public rooms, space first.
-  await page.goto(appUrl('/chat'));
-  const rooms = page.getByRole('region', { name: 'Conference rooms on Matrix' });
-  await expect(rooms.getByRole('link').first()).toHaveAttribute(
-    'href',
-    /%23indiafoss%3Areilly\.asia/,
-  );
-  await expect(rooms.getByRole('link', { name: /IndiaFOSS 2025.*Announcements/ })).toBeVisible();
+  await expect(room).toHaveAttribute('target', '_blank');
 });
 
 test('must attend pins a talk in the plan and leads the leave-by banner', async ({ page }) => {
@@ -471,22 +464,13 @@ test('scan: pasting a vCard previews the shared fields and rejects junk', async 
   await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toHaveCount(0);
 });
 
-test('P2P chat is off by default and switches on from settings', async ({ page }) => {
-  // Off: no Chat entry anywhere, and /chat explains how to enable it.
+test('chat is never embedded: no Chat nav entry, no P2P toggle in settings', async ({ page }) => {
+  await page.goto(appUrl('/'));
   await expect(page.getByRole('link', { name: 'Chat', exact: true })).toHaveCount(0);
-  await page.goto(appUrl('/chat'));
-  await expect(page.getByRole('heading', { name: 'P2P chat is off' })).toBeVisible();
 
   await page.goto(appUrl('/settings'));
-  const toggle = page.getByRole('switch', { name: /Enable P2P chat/ });
-  await toggle.click();
-  await expect(toggle).toBeChecked();
-  await expect(page.getByRole('link', { name: /Open chat/ })).toBeVisible();
-
-  // On, in a browser: the tab appears and /chat reports there is no mesh node here.
-  await page.goto(appUrl('/chat'));
-  await expect(page.getByRole('heading', { name: 'No mesh node on this device' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Chat', exact: true })).toBeVisible();
+  await expect(page.getByRole('switch', { name: /Enable P2P chat/ })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Peer-to-peer chat' })).toHaveCount(0);
 });
 
 test('key badges can be compared side by side', async ({ page }) => {
