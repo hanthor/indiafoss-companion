@@ -85,6 +85,23 @@ patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
   );
 });
 
+// 3d. Cleartext loopback: API 28+ blocks all non-TLS traffic app-wide by
+//     default, regardless of the scheme the app's own pages load over.
+//     capacitor.config.ts serves the app over plain http://localhost so that
+//     fetching the embedded Neutrino node on http://127.0.0.1:8008 isn't a
+//     mixed-content problem — but that's a separate, browser-level rule from
+//     this one. Confirmed on real hardware: the WebView's fetch() to that URL
+//     failed even with `no-cors` mode, which only this OS-level block explains.
+//     res/xml/network_security_config.xml (copied above) scopes the exemption
+//     to loopback only, not app-wide.
+patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
+  if (s.includes('android:networkSecurityConfig')) return s;
+  return s.replace(
+    /<application\b/,
+    '<application\n        android:networkSecurityConfig="@xml/network_security_config"',
+  );
+});
+
 // 4. Optional P2P chat: the Neutrino plugin, compiled in only when the bindings
 //    .aar is present in neutrino/libs (scripts/fetch-neutrino.mjs downloads it
 //    from our own release; neutrino-bindings.yml builds it from source). No
@@ -235,6 +252,7 @@ const expected = [
   ['CAMERA permission', manifest.includes('android.permission.CAMERA')],
   ['POST_NOTIFICATIONS permission', manifest.includes('android.permission.POST_NOTIFICATIONS')],
   ['indiafoss:// deep link', manifest.includes('android:scheme="indiafoss"')],
+  ['cleartext loopback network security config', manifest.includes('android:networkSecurityConfig')],
   ['Material You dynamic colour', activity.includes('DynamicColors')],
   [
     'Material Components dependency',
