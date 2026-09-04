@@ -25,19 +25,60 @@ Two conformance levels are worth naming:
 
 ## 2. What this mesh is, in one paragraph
 
-There is no server. Each phone runs [Neutrino](https://github.com/element-hq/neutrino-iroh),
+There is no central server. Each phone runs [Neutrino](https://github.com/element-hq/neutrino-iroh),
 an embedded Rust homeserver that speaks the ordinary [Matrix](https://spec.matrix.org)
-client–server API on loopback and federates with other phones over Iroh (QUIC)
-and Bluetooth Low Energy. Your client is a **Matrix client talking to localhost**.
-Everything below is either standard Matrix — in which case use your favourite
-Matrix library and skip ahead — or one of the few conventions that make
-independent clients converge on the same rooms without an organiser
-provisioning anything.
+client–server API on loopback and federates with other phones over
+[iroh](https://iroh.computer) — QUIC over whatever network path exists. Your
+client is a **Matrix client talking to localhost**. Everything below is either
+standard Matrix — in which case use your favourite Matrix library and skip
+ahead — or one of the few conventions that make independent clients converge
+on the same rooms without an organiser provisioning anything.
 
 The mesh is not connected to public Matrix. A room on the mesh does not exist
 on matrix.org, and a matrix.org account cannot reach a mesh peer. See
 [ADR 0003](./adr/0003-mesh-interop-by-federation-not-bridging.md) for why that
 is federation's problem to solve and not a bridge's.
+
+### 2.1 Connectivity is variable, not absent
+
+**Do not build for a Bluetooth-only world, and do not build for a reliable
+one.** Both assumptions produce a client that behaves badly at a real
+conference.
+
+iroh carries federation over any IP path it can find, and the paths differ per
+peer and change during the day:
+
+- **Same Wi-Fi** — the common and best case. Two phones on the venue network
+  reach each other directly over the LAN, at LAN latency. This is what most of
+  the mesh runs on when the venue network is up.
+- **Over the internet** — there usually _is_ internet at the venue. It is
+  spotty rather than missing: it works, then it does not, then it works again.
+  When it is up, peers that are not on the same LAN can still reach each
+  other, and the venue gateways federate onward to an internet-facing
+  [Spindle](./conference-spindle.md).
+- **Bluetooth Low Energy** — the transport that survives when there is no
+  usable IP network at all. It is a genuine fallback, not the primary path,
+  and it is the slowest and shortest-range of the three.
+
+What a client author should take from this:
+
+- **Reachability is per-peer and asymmetric.** At any moment some members of
+  a room are reachable and some are not. A client **MUST NOT** treat an
+  unreachable peer as absent from the room, or a quiet room as empty.
+- **Partitions heal.** A message that cannot be delivered now very often can
+  be minutes later. Queue it with a local echo and drain it in order; do not
+  surface a delivery failure that time will fix.
+- **Do not gate features on an "online" flag.** There is no single answer to
+  "am I online" here — a client can be off the internet, on the LAN, and
+  federating fine. Test reachability of the thing you actually need.
+- **Latency varies by orders of magnitude** between the LAN case and the BLE
+  case. Timeouts tuned for one will be wrong for the other; prefer generous
+  timeouts plus the retry discipline in §5.3 over tight ones.
+
+The app's own design stance is offline-first — everything an attendee needs is
+already on the device, and the network is treated as an enhancement — which is
+the right posture for a venue where connectivity is unreliable. That is a
+statement about resilience, not a claim that the network is absent.
 
 ## 3. Finding the node
 
@@ -166,6 +207,12 @@ room in the same second, and simultaneous joins are quadratic work across the
 mesh. Measurements are in [neutrino-scale.md](./neutrino-scale.md); the summary
 is that 50 nodes joining at once lands 29 of 49 within 20 s, while the same 50
 spread over half a second each lands 49 of 49.
+
+Those numbers come from a **loopback swarm on one machine**, so they isolate
+the homeserver's own cost — applying and fanning out state — from the network
+entirely. That is the point: this failure mode is not a transport problem and
+you do not get to skip the backoff because the venue Wi-Fi is good. A faster
+link makes the storm arrive more punctually.
 
 A conformant client **MUST**:
 
@@ -337,9 +384,12 @@ Read this section before shipping anything to attendees.
   Treat the mesh as a demo transport until upstream says otherwise.
 - **There is no E2EE on the mesh**, notwithstanding the key endpoints
   answering `200` (§6.3).
-- **BLE advertising reveals presence.** A node broadcasts its identity and
-  display name to everyone in radio range. That is not revocable, and a client
-  **MUST** make it a deliberate choice rather than a default.
+- **Peer discovery reveals presence, on every transport.** Where BLE is in
+  use, a node broadcasts its identity and display name to everyone in radio
+  range; on a shared venue Wi-Fi, a node is reachable by everyone else on that
+  network, which at a conference means everyone in the building. Neither is
+  revocable once done, and a client **MUST** make advertising a deliberate
+  choice rather than a default.
 - **A QR code is a photograph.** Anything on a shared card can be copied and
   cannot be withdrawn. Identity fields **SHOULD** be off by default.
 - **Room membership is disclosure.** Joining reveals your identity to the

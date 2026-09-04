@@ -118,7 +118,9 @@ survives encryption and the offline outbox.
 
 ### Connectivity at the venue (NIMHANS)
 
-Venue Wi-Fi and cellular are unreliable, so the design assumes no network:
+Venue Wi-Fi and cellular cannot be relied on — there is usually connectivity,
+and often a shared venue network, but it comes and goes — so the design never
+_depends_ on it:
 
 1. **Everything you need is already on the device** — schedule, map, ranking,
    itinerary, contacts, and every chat you opened (rooms and timelines are
