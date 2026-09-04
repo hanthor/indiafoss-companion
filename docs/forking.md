@@ -141,7 +141,7 @@ derived.
 
 ```
 apps/web/            the SvelteKit PWA — every screen
-apps/android/        Capacitor shell, plus a native Compose client
+apps/android/native/ the native Compose Android client
 packages/
   model/             canonical types, scan grammar, friend/vCard payloads
   schedule/          the programme, days, conflicts
@@ -196,14 +196,13 @@ if you deploy under a subdirectory.
 Android (Android SDK + JDK 21):
 
 ```bash
-pnpm --filter @indiafoss/android exec cap add android   # once
-pnpm --filter @indiafoss/android build                  # patch + sync web assets
-cd apps/android/capacitor/android && ./gradlew assembleDebug
+cd apps/android/native && ./gradlew :core:test :app:assembleDebug
 ```
 
-The P2P variant additionally needs the Neutrino bindings `.aar`; with no
-`.aar` the build falls back to the plain companion automatically. The build,
-release and store channels are in [release.md](./release.md) and
+P2P chat is not part of this app — it's the dedicated
+`hanthor/indiafoss-chat-android` fork (see
+[ADR 0004](adr/0004-retire-the-capacitor-shell.md)). The build, release and
+store channels for this app are in [release.md](./release.md) and
 [accrescent.md](./accrescent.md).
 
 ## Things you can delete outright

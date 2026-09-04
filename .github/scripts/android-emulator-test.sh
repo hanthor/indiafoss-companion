@@ -10,13 +10,13 @@
 #      built, and it catches the regression that matters most — the app
 #      installs and dies, or never starts at all.
 #   2. Maestro flows, which drive the UI and so can tell an app that started
-#      from an app that started and rendered a blank WebView.
+#      from an app that started and rendered nothing.
 #
 # Layer 1 running first means a crash-on-launch is reported as a crash on
 # launch, rather than as five confusing selector timeouts.
 set -euo pipefail
 
-APP_ID=org.indiafoss.companion
+APP_ID=org.indiafoss.companion.nativeapp
 APK=apk/app-debug.apk
 ARTIFACTS=emulator-artifacts
 
@@ -61,8 +61,8 @@ echo "::group::Launch gate"
 adb logcat -c
 adb shell monkey -p "$APP_ID" -c android.intent.category.LAUNCHER 1
 
-# Give the WebView time to come up on a 2-vCPU runner, then ask whether the
-# process is still there. A Capacitor shell that fails to load its assets
+# Give Compose time to come up on a 2-vCPU runner, then ask whether the
+# process is still there. A ViewModel or bundle-load crash on first launch
 # usually dies here rather than rendering an error page.
 for _ in $(seq 1 30); do
   sleep 1

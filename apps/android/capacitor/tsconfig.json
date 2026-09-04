@@ -1,9 +1,0 @@
-{
-  "extends": "../../../tsconfig.base.json",
-  "include": ["capacitor.config.ts"],
-  "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "types": ["node"]
-  }
-}

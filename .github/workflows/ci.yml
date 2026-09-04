@@ -114,61 +114,6 @@ jobs:
           name: playwright-report
           path: apps/web/test-results
 
-  android:
-    name: Android build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.24.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build web app
-        run: pnpm --filter @indiafoss/web build
-
-      - name: Add Android platform
-        run: pnpm --filter @indiafoss/android exec cap add android
-
-      - name: Sync web assets
-        # PR CI builds the plain companion: fast, and it needs no bindings.
-        # The nightly fetches the .aar (built from source by
-        # neutrino-bindings.yml) and ships the P2P variant.
-        run: pnpm --filter @indiafoss/android build
-
-      - name: Assemble debug APK
-        run: cd apps/android/capacitor/android && ./gradlew assembleDebug
-
-      - name: Checksum the APK
-        run: |
-          cd apps/android/capacitor/android/app/build/outputs/apk/debug
-          sha256sum app-debug.apk > app-debug.apk.sha256
-          cat app-debug.apk.sha256
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: apk
-          path: |
-            apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk
-            apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk.sha256
-
   native:
     name: Native Compose client
     runs-on: ubuntu-latest
@@ -219,9 +164,9 @@ jobs:
   android-emulator:
     name: Android emulator (Maestro)
     runs-on: ubuntu-latest
-    # Reuses the debug APK the build job already produced and uploaded, so
+    # Reuses the debug APK the native job already produced and uploaded, so
     # this costs an emulator boot rather than a second Gradle run.
-    needs: android
+    needs: native
     steps:
       - uses: actions/checkout@v4
 
@@ -233,7 +178,7 @@ jobs:
       - name: Download the debug APK
         uses: actions/download-artifact@v4
         with:
-          name: apk
+          name: native-apk
           path: apk
 
       # Without this the emulator silently falls back to software rendering

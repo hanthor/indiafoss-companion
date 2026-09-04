@@ -21,7 +21,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Anthropic from '@anthropic-ai/sdk';
 
-const APP_ID = process.env.EXPLORER_APP_ID ?? 'org.indiafoss.companion';
+const APP_ID = process.env.EXPLORER_APP_ID ?? 'org.indiafoss.companion.nativeapp';
 const OUT_DIR = process.env.EXPLORER_OUT ?? 'emulator-artifacts';
 /** Hard ceiling on turns, so a confused run cannot bill indefinitely. */
 const MAX_STEPS = Number(process.env.EXPLORER_MAX_STEPS ?? 25);

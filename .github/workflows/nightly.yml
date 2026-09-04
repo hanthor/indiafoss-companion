@@ -1,7 +1,8 @@
 name: Nightly APK
 
-# Publishes the latest main as an installable debug APK on the rolling
-# "nightly" pre-release so testers never need a GitHub login for artifacts.
+# Publishes the latest main's native Android client as an installable debug
+# APK on the rolling "nightly" pre-release so testers never need a GitHub
+# login for artifacts.
 on:
   push:
     branches: [main]
@@ -21,15 +22,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 11.24.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -38,40 +30,15 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build web app
-        run: pnpm --filter @indiafoss/web build
-
-      - name: Add Android platform
-        run: pnpm --filter @indiafoss/android exec cap add android
-
-      - name: Fetch the Neutrino bindings
-        # Built from source by neutrino-bindings.yml and attached to a release,
-        # so this needs no credentials. Missing bindings are not an error: the
-        # nightly then ships the plain companion.
-        id: bindings
-        run: |
-          pnpm --filter @indiafoss/android neutrino
-          version=$(node -p "require('./apps/android/capacitor/neutrino/version.json').version")
-          if [ -f "apps/android/capacitor/neutrino/libs/neutrino-bindings-$version.aar" ]; then
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Neutrino bindings $version not published yet; building the plain companion. Run the \"Neutrino bindings\" workflow to build them from source."
-          fi
-
-      - name: Sync web assets
-        run: pnpm --filter @indiafoss/android build
+      - uses: gradle/actions/setup-gradle@v4
 
       - name: Assemble debug APK
-        run: cd apps/android/capacitor/android && ./gradlew assembleDebug
+        run: cd apps/android/native && ./gradlew :app:assembleDebug
 
       - name: Name and checksum the APK
         run: |
           mkdir -p dist
-          cp apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk dist/indiafoss-companion-nightly.apk
+          cp apps/android/native/app/build/outputs/apk/debug/app-debug.apk dist/indiafoss-companion-nightly.apk
           cd dist && sha256sum indiafoss-companion-nightly.apk > indiafoss-companion-nightly.apk.sha256
           cat indiafoss-companion-nightly.apk.sha256
 
@@ -88,7 +55,6 @@ jobs:
           prerelease: true
           body: |
             Latest `main` (${{ github.sha }}) as a debug APK. Install over the previous nightly.
-            P2P chat plugin included: ${{ steps.bindings.outputs.ok == 'true' }}.
           files: |
             dist/indiafoss-companion-nightly.apk
             dist/indiafoss-companion-nightly.apk.sha256

@@ -103,17 +103,13 @@ venue-validate event="synthetic":
 venue-report event="indiafoss-2026":
     pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" {{event}} --markdown > events/{{event}}/venue/validation-report.md
 
-# Add the native Android project once after installing the Android SDK.
-android-add:
-    pnpm --filter @indiafoss/android exec cap add android
-
-# Build the web app and sync its assets into Capacitor.
-android-sync: build
-    pnpm --filter @indiafoss/android build
+# Run the native Android app's Kotlin :core unit tests.
+android-test:
+    cd apps/android/native && ./gradlew :core:test
 
 # Assemble a debug APK (requires JDK 21 and Android SDK).
-android-apk: android-sync
-    cd apps/android/capacitor/android && ./gradlew assembleDebug
+android-apk:
+    cd apps/android/native && ./gradlew :app:assembleDebug
 
 # Build for GitHub Pages project-site hosting.
 # Example: just pages-build indiafoss-companion

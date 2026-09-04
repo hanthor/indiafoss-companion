@@ -1,8 +1,8 @@
 # Release procedures
 
-How the IndiaFOSS Companion is verified and distributed. The PWA is the primary
-Web/iOS/Android distribution; the Capacitor Android build is an optional native
-wrapper.
+How the IndiaFOSS Companion is verified and distributed. Three apps, per
+[ADR 0004](adr/0004-retire-the-capacitor-shell.md): the PWA (Web/iOS), the
+native Compose client (Android), and P2P chat as its own dedicated app.
 
 ## Quality gate (must be green before release)
 
@@ -16,8 +16,12 @@ verification, venue validation (synthetic + 2026), PWA build, dependency audit
 (`tests/a11y.spec.ts`, axe-core WCAG A/AA), and the release-blocking offline
 gate (`tests/offline.spec.ts`).
 
-**android** — builds the web app, syncs Capacitor, assembles a debug APK,
-checksums it (sha256), and uploads both.
+**native** — runs the Kotlin `:core` unit tests, Robolectric screen-render
+tests, assembles a debug APK, checksums it (sha256), and uploads both.
+
+**android-emulator** — boots an emulator, installs the native debug APK, and
+runs the Maestro flows in `.maestro/` against it (see
+[docs/android-testing.md](android-testing.md)).
 
 Run the full gate locally:
 

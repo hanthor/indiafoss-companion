@@ -155,9 +155,8 @@ where you work — a different conference should not mean touching a screen.
 
 ```text
 apps/
-  web/                 SvelteKit + Svelte 5 PWA — the primary client
-  android/capacitor/   Capacitor wrapper — the shipping Android app
-  android/native/      Jetpack Compose client (Material 3, dynamic colour)
+  web/                 SvelteKit + Svelte 5 PWA — the Web/iOS client
+  android/native/      Jetpack Compose client — the Android client (Material 3, dynamic colour)
 packages/
   model/               canonical domain model + validation
   schedule/            schedule engine (grouping, filtering, time math)
@@ -206,20 +205,17 @@ Build the PWA:
 pnpm --filter @indiafoss/web build     # → apps/web/build (PWA + service worker)
 ```
 
-Android (needs an Android SDK and JDK 21):
-
-```bash
-pnpm --filter @indiafoss/android exec cap add android   # once
-pnpm --filter @indiafoss/android build                  # patch + sync web assets
-cd apps/android/capacitor/android && ./gradlew assembleDebug
-```
-
-The parallel native Compose client builds on its own, with no Node step — see
-[docs/native-client.md](docs/native-client.md):
+Android (needs an Android SDK and JDK 21) is the native Compose client — no
+Node step, see [docs/native-client.md](docs/native-client.md):
 
 ```bash
 cd apps/android/native && ./gradlew :core:test :app:assembleDebug
 ```
+
+P2P chat, on any platform, is the dedicated
+[`hanthor/indiafoss-chat-android`](https://github.com/hanthor/indiafoss-chat-android)
+app — see [ADR 0004](docs/adr/0004-retire-the-capacitor-shell.md) for why
+messaging is not embedded here.
 
 Regenerate the screenshots in this README (they are time-travelled to day one
 so the screens have live data):
@@ -243,7 +239,7 @@ pnpm --filter @indiafoss/web screenshots
 | [**Mesh protocol**](docs/mesh-protocol.md)                                                                                                            | the interop spec — write your own client and join the mesh                  |
 | [Messaging](docs/messaging.md) · [Neutrino capabilities](docs/neutrino-capabilities.md) · [P2P state of the art](docs/p2p-matrix-state-of-the-art.md) | Matrix rooms, P2P mesh, threat model, and what the mesh measurably supports |
 | [Android testing](docs/android-testing.md)                                                                                                            | the emulator gate, the Maestro flows, and the exploratory pass              |
-| [Native client](docs/native-client.md) · [Android shell](apps/android/capacitor/README.md)                                                            | the Compose app and its Kotlin core; the Material look of the Android app   |
+| [Native client](docs/native-client.md)                                                                                                                | the Compose app and its Kotlin core                                         |
 | [Privacy](docs/privacy.md) · [Release](docs/release.md) · [Accrescent](docs/accrescent.md)                                                            | what is stored, how a release is cut, and the Accrescent channel            |
 | [ADRs](docs/adr/README.md) · [Phases](docs/phases.md) · [Roadmap](docs/roadmap.md)                                                                    | decisions and where the project is going                                    |
 
@@ -251,11 +247,16 @@ pnpm --filter @indiafoss/web screenshots
 
 Phases 0–8 of [docs/phases.md](docs/phases.md) have landed: canonical model and
 FOSS United adapter, schedule, Elo ranking, itinerary solver with manual edits,
-venue routing, booth directory, production sync, calendar export, contact
-sharing with QR scanning, and optional Matrix messaging. What is left is
-tracked in [#34](https://github.com/hanthor/indiafoss-companion/issues/34) and
-[docs/roadmap.md](docs/roadmap.md): the native client reaching parity
-([#10](https://github.com/hanthor/indiafoss-companion/issues/10)), the real
+venue routing, booth directory, production sync, calendar export, and contact
+sharing with QR scanning. As of
+[ADR 0004](docs/adr/0004-retire-the-capacitor-shell.md) there are three apps —
+the PWA (Web/iOS), the native Compose client (Android,
+[#10](https://github.com/hanthor/indiafoss-companion/issues/10)), and P2P chat
+as its own dedicated app — not a Capacitor shell embedding all three. What is
+left is tracked in
+[#34](https://github.com/hanthor/indiafoss-companion/issues/34) and
+[docs/roadmap.md](docs/roadmap.md): native parity leftovers
+([#110](https://github.com/hanthor/indiafoss-companion/issues/110)), the real
 2026 programme, and release hardening.
 
 ## Design
