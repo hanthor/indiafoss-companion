@@ -33,3 +33,19 @@ export function labelHeadingFor(
   const name = liveTrackId ? devroomNames.get(liveTrackId) : undefined;
   return name ? { text: name, devroom: true } : { text: roomName, devroom: false };
 }
+
+/**
+ * The FOSS United CFP tool names a devroom track "<room> (<topic>)" — e.g.
+ * "Devroom 1 (FOSS in Science)" — because one physical room hosts several
+ * named tracks across the day. That is a room booking, not the track's
+ * identity: an attendee deciding whether a devroom is for them wants the
+ * topic first and the room as a footnote, not the other way round.
+ *
+ * Splits on the trailing "(...)"; a track with no parenthesised topic (a
+ * main hall, or a devroom track that has none, like a bare "Devroom 2")
+ * returns just its name with no subtitle.
+ */
+export function splitTrackName(name: string): { title: string; subtitle?: string } {
+  const match = name.match(/^(.+?)\s*\(([^()]+)\)$/);
+  return match ? { title: match[2]!, subtitle: match[1] } : { title: name };
+}

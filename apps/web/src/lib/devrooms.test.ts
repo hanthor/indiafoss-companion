@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EventBundle } from '@indiafoss/model';
-import { devroomTrackNames, isMainRoom, labelHeadingFor } from './devrooms';
+import { devroomTrackNames, isMainRoom, labelHeadingFor, splitTrackName } from './devrooms';
 
 const bundle = {
   id: 'test',
@@ -35,5 +35,23 @@ describe('devrooms', () => {
       text: 'HALL 1',
       devroom: false,
     });
+  });
+
+  it('splits a CFP-style "<room> (<topic>)" name, topic first', () => {
+    // Real track names from the 2025 bundle: one physical devroom hosts
+    // several topics across the day, so the room is a booking, not an
+    // identity — the topic is what the attendee is choosing between.
+    expect(splitTrackName('Devroom 1 (FOSS in Science)')).toEqual({
+      title: 'FOSS in Science',
+      subtitle: 'Devroom 1',
+    });
+    expect(splitTrackName('Devroom 2 (Compilers)')).toEqual({
+      title: 'Compilers',
+      subtitle: 'Devroom 2',
+    });
+    // No parenthesised topic: the name stands alone, main hall or devroom.
+    expect(splitTrackName('Audi 1')).toEqual({ title: 'Audi 1' });
+    expect(splitTrackName('Devroom 2')).toEqual({ title: 'Devroom 2' });
+    expect(splitTrackName('BoF Room')).toEqual({ title: 'BoF Room' });
   });
 });
