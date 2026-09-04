@@ -23,7 +23,7 @@ export const CARD_GROUPS: Record<CardGroup, { title: string; note: string; tone?
 };
 
 /** Networks shown as rows before the attendee taps "+ Add". */
-export const DEFAULT_LINK_NETWORKS: AttendeeSocial[] = ['github', 'linkedin', 'mastodon'];
+export const DEFAULT_LINK_NETWORKS: AttendeeSocial[] = ['github', 'linkedin', 'mastodon', 'prav'];
 
 export const CARD_FIELDS: CardFieldSpec[] = [
   {
@@ -112,25 +112,27 @@ export const LINK_LABELS: Record<AttendeeSocial, string> = {
   telegram: 'Telegram',
   whatsapp: 'WhatsApp',
   signal: 'Signal',
-  xmpp: 'XMPP / Prav',
+  prav: 'Prav',
+  xmpp: 'XMPP',
   deltachat: 'Delta Chat',
 };
 
 export const LINK_PLACEHOLDERS: Record<AttendeeSocial, string> = {
-  github: 'https://github.com/you',
-  gitlab: 'https://gitlab.com/you',
-  linkedin: 'https://linkedin.com/in/you',
-  mastodon: 'https://fosstodon.org/@you',
-  bluesky: 'https://bsky.app/profile/you',
-  x: 'https://x.com/you',
-  instagram: 'https://instagram.com/you',
-  youtube: 'https://youtube.com/@you',
-  medium: 'https://medium.com/@you',
-  devto: 'https://dev.to/you',
+  github: 'you, or https://github.com/you',
+  gitlab: 'you, or https://gitlab.com/you',
+  linkedin: 'you, or https://linkedin.com/in/you',
+  mastodon: '@you@fosstodon.org, or the profile URL',
+  bluesky: 'you.bsky.social, or the profile URL',
+  x: 'you, or https://x.com/you',
+  instagram: 'you, or https://instagram.com/you',
+  youtube: 'you, or https://youtube.com/@you',
+  medium: 'you, or https://medium.com/@you',
+  devto: 'you, or https://dev.to/you',
   telegram: '@username',
   whatsapp: '+91 98765 43210',
   signal: '+91 98765 43210 or username.42',
-  xmpp: 'you@prav.app',
+  prav: '+91 98765 43210, or you@prav.app',
+  xmpp: 'you@example.org',
   deltachat: 'Invite link from Delta Chat, or your address',
 };
 

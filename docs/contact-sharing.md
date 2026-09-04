@@ -292,3 +292,44 @@ so a browser cannot read the page from the companion's origin. The Android app
 fetches it through `CapacitorHttp`, which performs the request natively and is
 not subject to that rule. On the web the import is attempted anyway and, when
 the browser blocks it, the UI says so and the fields stay manual.
+
+## Handles or URLs, and Prav
+
+A social link takes a handle or a full URL (#105): `alice`, `@alice`,
+`github.com/alice` and `https://github.com/alice` all mean the same GitHub
+profile, a fediverse handle (`@alice@fosstodon.org`) is a Mastodon profile,
+and a Bluesky handle is its domain. `socialProfileUrl()` in the model (and
+`VCard.socialUrl` natively) turns any of them into the canonical profile
+URL; the card, the deep links and the saved contact all carry that URL, so
+a handle typed on one phone reads as a link on any other.
+
+Prav (#106), the community's XMPP service, is its own network on the card:
+it takes the phone number the account was made with, a username, or a full
+JID, and `pravJid()` makes the JID on `prav.app` (`+919876543210@prav.app`).
+It is encoded as `X-SOCIALPROFILE;TYPE=prav` plus an `IMPP:xmpp:` line other
+address books understand, linked as `xmpp:` and shown as Prav; an XMPP
+address on any other server stays under XMPP.
+
+## Who I met, and the card you can share
+
+`/connect/recap` (#31) reads the conference back as the people you met. It
+groups them by day and by where you were standing when you scanned them: the
+session running at the time, otherwise the room, otherwise "Around the venue".
+Within a day the busiest place comes first. `buildRecap()` in
+`apps/web/src/lib/recap.ts` is pure and does the grouping; it works with no
+event bundle at all, which is what happens if the recap is opened after the
+programme has been cleared.
+
+The shareable card is drawn on a canvas from the same data
+(`recap-image.ts`), so the preview on screen is exactly the file that gets
+saved. It always wears the dark brand look rather than the viewer's theme,
+because it leaves the device and should look like IndiaFOSS wherever it lands.
+It carries the count, a line of stats (how many days, the busiest place, who
+you met more than once, how many cards were signed) and up to twelve names
+with an "and N more" tail so it cannot grow without bound.
+
+**Names are a switch.** They are on by default, since it is your own recap,
+and one toggle drops them so the card carries only the count and the places.
+Nothing is uploaded: the picture is drawn locally and handed either to the
+system share sheet as a real PNG file, or to a download when the browser
+cannot share files.

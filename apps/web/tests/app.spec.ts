@@ -12,8 +12,35 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('home shows event facts', async ({ page }) => {
+  await page.goto(appUrl('/?setup=done'));
   await expect(page.getByText(/131 sessions/)).toBeVisible();
   await expect(page.getByText(/117 speakers/)).toBeVisible();
+});
+
+test('first run opens the welcome wizard once: reminders, ticket, you, then rank', async ({
+  page,
+}) => {
+  // beforeEach landed on `/`, which hands over to the wizard on a fresh device.
+  await expect(page).toHaveURL(/\/welcome$/);
+  await expect(page.getByRole('heading', { name: /Welcome to IndiaFOSS 2025/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Not now' }).click();
+  // A ticket must look like ticket::…
+  const ticket = page.getByLabel('Ticket reference');
+  await ticket.fill('nope');
+  await expect(page.getByRole('button', { name: /Save ticket/ })).toBeDisabled();
+  await ticket.fill('ticket::abc123');
+  await page.getByRole('button', { name: /Save ticket/ }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Asha Menon');
+  await page.getByLabel('GitHub').fill('https://github.com/asha');
+  await page.getByRole('button', { name: /Save →/ }).click();
+  await page.getByRole('button', { name: /Rank my sessions/ }).click();
+  await expect(page).toHaveURL(/\/plan\/rank$/);
+  // What was entered is on the card; the wizard does not come back.
+  await page.goto(appUrl('/connect'));
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Asha Menon');
+  await page.goto(appUrl('/'));
+  await expect(page.getByText(/131 sessions/)).toBeVisible();
+  await expect(page).not.toHaveURL(/welcome/);
 });
 
 test('schedule lists sessions grouped by time', async ({ page }) => {
@@ -483,7 +510,7 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
   page,
 }) => {
   // Load once so the current revision is recorded locally.
-  await page.goto(appUrl('/'));
+  await page.goto(appUrl('/?setup=done'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
   const current = await page.evaluate(async () => {
     const res = await fetch(
@@ -514,4 +541,54 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
   await banner.getByRole('button', { name: 'Update' }).click();
   await expect(banner).toBeHidden();
   await expect(page.getByText('Renamed by the organisers')).toBeVisible();
+});
+
+test('the who-I-met recap groups the people and makes a shareable card (#31)', async ({ page }) => {
+  // Two people scanned, so the recap has something to group.
+  for (const [name, org] of [
+    ['Riya Verma', 'KDE'],
+    ['Sanjay Rao', 'Zulip'],
+  ]) {
+    await page.goto(appUrl('/scan'));
+    await page
+      .getByLabel('Paste a vCard')
+      .fill(['BEGIN:VCARD', 'VERSION:3.0', `FN:${name}`, `ORG:${org}`, 'END:VCARD'].join('\r\n'));
+    await page.getByRole('button', { name: 'Preview contact' }).click();
+    await page.getByRole('button', { name: 'Save contact' }).click();
+    await expect(page.getByRole('status')).toContainText(new RegExp(`Saved ${name}`));
+  }
+
+  // Your card links to the recap once there is someone to recap.
+  await page.goto(appUrl('/connect'));
+  await page.getByRole('link', { name: /Who I met/ }).click();
+  await expect(page).toHaveURL(/\/connect\/recap$/);
+  await expect(page.getByRole('heading', { name: 'Who I met', level: 1 })).toBeVisible();
+
+  // Both people are listed, grouped under the day they were met.
+  await expect(page.getByText('Riya Verma')).toBeVisible();
+  await expect(page.getByText('Sanjay Rao')).toBeVisible();
+  await expect(page.getByText(/2 people/).first()).toBeVisible();
+
+  // The card is drawn on a canvas, and the preview is what gets saved.
+  const card = page.locator('canvas');
+  await expect(card).toBeVisible();
+  await expect(card).toHaveAttribute('aria-label', 'I met 2 people');
+  expect(await card.evaluate((el: HTMLCanvasElement) => el.width)).toBe(1080);
+  // It has actually been painted, not left blank.
+  const painted = await card.evaluate((el: HTMLCanvasElement) => {
+    const data = el.getContext('2d')!.getImageData(0, 0, el.width, el.height).data;
+    const seen = new Set<string>();
+    for (let i = 0; i < data.length; i += 4 * 997) {
+      seen.add(`${data[i]},${data[i + 1]},${data[i + 2]}`);
+    }
+    return seen.size;
+  });
+  expect(painted, 'the card should have more than one colour on it').toBeGreaterThan(1);
+
+  // Names can be left off, and the image still saves.
+  await page.getByRole('switch', { name: /Include everyone's names/ }).uncheck();
+  await expect(page.getByText('Only the count and the places are on the card.')).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Save the image' }).click();
+  expect((await download).suggestedFilename()).toBe('indiafoss-who-i-met.png');
 });

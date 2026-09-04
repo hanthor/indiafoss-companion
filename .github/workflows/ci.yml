@@ -102,6 +102,11 @@ jobs:
       - name: Run the day-simulator gate
         run: pnpm --filter @indiafoss/web exec playwright test tests/simulate.spec.ts
 
+      # The design tokens and the revision-handling gates. `test:e2e` only runs
+      # app.spec.ts, so a spec that is not named here never runs in CI.
+      - name: Run the design and revision gates
+        run: pnpm --filter @indiafoss/web exec playwright test tests/design.spec.ts tests/updates.spec.ts
+
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4

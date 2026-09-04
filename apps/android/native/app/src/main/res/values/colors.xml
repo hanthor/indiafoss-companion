@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The window behind the first Compose frame. Without it the platform
+      default showed through, so launching on a dark-mode phone flashed white
+      before the app painted. These match the Compose surfaces (#33).
+    -->
+    <color name="window_background">#FBF8FC</color>
+    <color name="splash_background">#FBF8FC</color>
+</resources>

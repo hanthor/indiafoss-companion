@@ -27,7 +27,8 @@ class ReminderScheduler(private val context: Context) {
 
     fun arm(state: UiState) {
         val bundle = state.bundle ?: return
-        val wanted = if (!state.remindersEnabled) emptyList() else Reminders.compute(
+        // While the day simulator runs, the view model fires reminders on the simulated clock instead.
+        val wanted = if (!state.remindersEnabled || state.simulation != null) emptyList() else Reminders.compute(
             bundle, System.currentTimeMillis(),
             tierFor = { id ->
                 when {
@@ -36,25 +37,27 @@ class ReminderScheduler(private val context: Context) {
                     else -> Reminders.Tier.NONE
                 }
             },
+            walkSecondsTo = { locationId -> locationId?.let(state.walkSecondsTo) },
         )
         val previous = armed.getStringSet("ids", emptySet()).orEmpty()
         val next = wanted.map { it.id }.toSet()
-        for (id in previous - next) alarms.cancel(pendingIntent(id, null, null))
+        for (id in previous - next) alarms.cancel(pendingIntent(id, null, null, null))
         val exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarms.canScheduleExactAlarms()
         for (reminder in wanted) {
-            val intent = pendingIntent(reminder.id, reminder.title, reminder.body)
+            val intent = pendingIntent(reminder.id, reminder.title, reminder.body, reminder.activityId)
             if (exact) alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.atMs, intent)
             else alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.atMs, intent)
         }
         armed.edit().putStringSet("ids", next).apply()
     }
 
-    private fun pendingIntent(id: String, title: String?, body: String?): PendingIntent {
+    private fun pendingIntent(id: String, title: String?, body: String?, activityId: String?): PendingIntent {
         val intent = Intent(context, ReminderReceiver::class.java).apply {
             action = "org.indiafoss.companion.REMINDER"
             data = android.net.Uri.parse("reminder://$id")
             putExtra("title", title)
             putExtra("body", body)
+            putExtra("activity", activityId)
         }
         return PendingIntent.getBroadcast(
             context, Reminders.numericId(id), intent,
@@ -82,22 +85,7 @@ class ReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val title = intent.getStringExtra("title") ?: return
         val body = intent.getStringExtra("body") ?: ""
-        ReminderScheduler.ensureChannel(context)
-        val open = PendingIntent.getActivity(
-            context, 0, Intent(context, MainActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val notification = NotificationCompat.Builder(context, ReminderScheduler.CHANNEL)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(open)
-            .build()
-        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val id = intent.data?.host ?: intent.data?.toString() ?: title
-        manager.notify(Reminders.numericId(id), notification)
+        ReminderNotifier.post(context, id, title, body, intent.getStringExtra("activity"))
     }
 }

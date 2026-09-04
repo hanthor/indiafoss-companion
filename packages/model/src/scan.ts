@@ -170,6 +170,7 @@ const KNOWN_SOCIALS: readonly AttendeeSocial[] = [
   'whatsapp',
   'signal',
   'xmpp',
+  'prav',
   'deltachat',
 ];
 

@@ -1,6 +1,10 @@
 package org.indiafoss.companion.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.ui.Alignment
+import org.indiafoss.companion.ui.Avatar
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
@@ -45,8 +49,14 @@ fun SpeakerScreen(state: UiState, personId: String, onOpenActivity: (String) -> 
         }
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
             val line = listOfNotNull(person.designation, person.organization).joinToString(" · ")
-            if (line.isNotBlank()) item {
-                Text(line, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(20.dp, 4.dp))
+            item {
+                Row(Modifier.fillMaxWidth().padding(20.dp, 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Avatar(person.name, person.avatarUrl, size = 64.dp)
+                    Column(Modifier.padding(start = 14.dp)) {
+                        Text(person.name, style = MaterialTheme.typography.titleLarge)
+                        if (line.isNotBlank()) Text(line, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
             }
             person.bio?.takeIf { it.isNotBlank() }?.let { bio ->
                 item { Text(bio, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(20.dp, 8.dp)) }

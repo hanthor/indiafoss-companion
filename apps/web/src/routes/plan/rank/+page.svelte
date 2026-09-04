@@ -963,7 +963,7 @@
   .modes button.active {
     background: var(--ink);
     border-color: var(--ink);
-    color: #fff;
+    color: var(--on-ink);
   }
   .modes .count {
     background: var(--amber);
@@ -1063,7 +1063,7 @@
   .roomchoice button.on {
     background: var(--ink);
     border-color: var(--ink);
-    color: #fff;
+    color: var(--on-ink);
   }
   .roomchoice button.love.on {
     background: var(--mint);
@@ -1200,7 +1200,7 @@
     border-radius: 50%;
     object-fit: cover;
     flex: none;
-    background: var(--mint-soft, #bafcd5);
+    background: var(--mint-soft);
   }
   .avatar.initials {
     display: inline-flex;
@@ -1260,7 +1260,7 @@
   }
   .cardbtns .yes {
     border-color: var(--mint);
-    background: var(--mint-soft, #bafcd5);
+    background: var(--mint-soft);
     color: var(--mint-ink);
   }
   .cardbtns .no:hover,
@@ -1363,7 +1363,7 @@
   }
   .days button.active {
     background: var(--ink);
-    color: #fff;
+    color: var(--on-ink);
   }
 
   .progress {
@@ -1466,7 +1466,7 @@
   .talk:has(.pick:hover),
   .talk:has(.pick:focus-visible) {
     border-color: var(--mint);
-    box-shadow: 0 0 0 3px var(--mint-soft, #bafcd5);
+    box-shadow: 0 0 0 3px var(--mint-soft);
   }
   .talk:has(.pick:active) {
     transform: scale(0.985);
@@ -1545,7 +1545,7 @@
   }
   .more:hover,
   .more:focus-visible {
-    background: var(--mint-soft, #bafcd5);
+    background: var(--mint-soft);
     outline: none;
   }
   .abstract {
@@ -1588,7 +1588,7 @@
   }
 
   .done {
-    background: var(--mint-soft, #bafcd5);
+    background: var(--mint-soft);
     border-radius: 16px;
     padding: 1.6rem 1.2rem;
     display: flex;
@@ -1611,7 +1611,7 @@
   }
   .button.dark {
     background: var(--ink);
-    color: #fafafa;
+    color: var(--on-ink);
     border-color: var(--ink);
   }
 

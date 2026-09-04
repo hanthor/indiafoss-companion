@@ -48,4 +48,27 @@ class SearchAndVCardTest {
         assertEquals("https://github.com/asha.png?size=160", back.avatarUrl)
         assertNull(VCard.parse("hello"))
     }
+
+    @Test
+    fun `the ticket reference is off the card unless switched on, and round-trips`() {
+        val card = ContactCard(fullName = "Asha Menon", ticketRef = "ticket::abc123")
+        assertTrue("X-INDIAFOSS-TICKET" !in VCard.encode(card))
+        val shared = VCard.encode(card.copy(share = mapOf("ticketRef" to true)))
+        assertTrue("X-INDIAFOSS-TICKET:ticket::abc123" in shared)
+        assertEquals("ticket::abc123", VCard.parse(shared)?.ticketRef)
+    }
+
+    @Test
+    fun `a handle becomes the canonical profile URL on the card, and Prav becomes a JID`() {
+        assertEquals("https://github.com/alice", VCard.socialUrl("github", "@alice"))
+        assertEquals("https://github.com/alice", VCard.socialUrl("github", "github.com/alice"))
+        assertEquals("https://fosstodon.org/@alice", VCard.socialUrl("mastodon", "@alice@fosstodon.org"))
+        assertNull(VCard.socialUrl("github", "not a handle"))
+        assertEquals("+919876543210@prav.app", VCard.pravJid("+91 98765 43210"))
+        assertEquals("alice@prav.app", VCard.pravJid("alice"))
+        val card = VCard.encode(ContactCard(fullName = "Alice", socials = mapOf("github" to "alice", "prav" to "alice")))
+        assertTrue("X-SOCIALPROFILE;TYPE=github:https://github.com/alice" in card)
+        assertTrue("X-SOCIALPROFILE;TYPE=prav:alice@prav.app" in card)
+        assertTrue("IMPP:xmpp:alice@prav.app" in card)
+    }
 }

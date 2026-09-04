@@ -35,6 +35,7 @@ import org.indiafoss.companion.CompanionViewModel
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import org.indiafoss.companion.ui.screens.ActivityScreen
+import org.indiafoss.companion.ui.screens.BoothScreen
 import org.indiafoss.companion.ui.screens.ConnectScreen
 import org.indiafoss.companion.ui.screens.ExploreScreen
 import org.indiafoss.companion.ui.screens.MapScreen
@@ -44,6 +45,7 @@ import org.indiafoss.companion.ui.screens.RankScreen
 import org.indiafoss.companion.ui.screens.ScheduleScreen
 import org.indiafoss.companion.ui.screens.SettingsScreen
 import org.indiafoss.companion.ui.screens.SpeakerScreen
+import org.indiafoss.companion.ui.screens.WelcomeScreen
 
 private data class Destination(val route: String, val label: String, val icon: ImageVector)
 
@@ -86,6 +88,19 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         }
     }
 
+    // The clock: once a minute in real time, once a second while the day simulator runs.
+    LaunchedEffect(state.simulation != null) {
+        while (true) {
+            kotlinx.coroutines.delay(if (state.simulation != null) 1_000L else 60_000L)
+            viewModel.tick()
+        }
+    }
+
+    // First run (#107): the welcome steps come up once, over the Now tab.
+    LaunchedEffect(state.onboardingDone) {
+        if (state.onboardingDone == false && navController.currentDestination?.route != "welcome") navController.navigate("welcome")
+    }
+
     LaunchedEffect(state.pendingRoute) {
         state.pendingRoute?.let { route ->
             navController.navigate(route)
@@ -103,7 +118,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            NavigationBar {
+            if (backStack?.destination?.route != "welcome") NavigationBar {
                 val current = backStack?.destination?.route
                 destinations.forEach { destination ->
                     NavigationBarItem(
@@ -135,7 +150,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
             startDestination = "now",
         ) {
             composable("now") {
-                NowScreen(state, topActions, viewModel::refresh) { navController.navigate("activity/$it") }
+                NowScreen(state, topActions, viewModel::refresh, viewModel::dismissUpdate) { navController.navigate("activity/$it") }
             }
             composable("schedule") {
                 ScheduleScreen(state, topActions, viewModel::toggleBookmark) {
@@ -149,6 +164,8 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onRank = { navController.navigate("rank") },
                     onCalendar = viewModel::calendarFor,
                     onSkip = viewModel::skipSession,
+                    onAddBlock = viewModel::addBlock,
+                    onRemoveBlock = viewModel::removeBlock,
                 ) { navController.navigate("activity/$it") }
             }
             composable("explore") {
@@ -157,6 +174,16 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     actions = topActions,
                     onOpenActivity = { navController.navigate("activity/$it") },
                     onOpenSpeaker = { navController.navigate("speaker/$it") },
+                    onOpenBooth = { navController.navigate("booth/$it") },
+                )
+            }
+            composable("booth/{id}") { entry ->
+                BoothScreen(
+                    state = state,
+                    boothId = entry.arguments?.getString("id").orEmpty(),
+                    onPlanVisit = viewModel::planBoothVisit,
+                    onOpenMap = { navController.navigate("map") },
+                    onBack = { navController.popBackStack() },
                 )
             }
             composable("speaker/{id}") { entry ->
@@ -175,6 +202,9 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     fingerprint = state.deviceFingerprint,
                     onSave = viewModel::saveProfile,
                     onScan = scan,
+                    onImportGithub = viewModel::importFromGithub,
+                    onImportFossUnited = viewModel::importFromFossUnited,
+                    onImportVcard = viewModel::importOwnVcard,
                     onRemoveContact = viewModel::removeContact,
                     onBack = { navController.popBackStack() },
                 )
@@ -196,8 +226,23 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 )
             }
             composable("map") { MapScreen(state, topActions, viewModel::setLocation) }
+            composable("welcome") {
+                WelcomeScreen(
+                    state = state,
+                    onReminders = viewModel::setRemindersEnabled,
+                    onSave = viewModel::saveProfile,
+                    onScan = scan,
+                    onDone = { rank ->
+                        viewModel.setOnboardingDone()
+                        navController.navigate(if (rank) "rank" else "now") { popUpTo("welcome") { inclusive = true } }
+                    },
+                )
+            }
             composable("settings") {
-                SettingsScreen(state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile)
+                SettingsScreen(
+                    state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile,
+                    onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
+                ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->
                 ActivityScreen(

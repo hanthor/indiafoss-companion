@@ -819,7 +819,11 @@
   <section class="group people" aria-labelledby="g-people">
     <div class="grouphead">
       <span class="eyebrow" id="g-people">PEOPLE I MET · {contactsState.contacts.length}</span>
-      <a href={resolve('/scan')}>Scan a code →</a>
+      {#if contactsState.contacts.length > 0}
+        <a href={resolve('/connect/recap')}>Who I met →</a>
+      {:else}
+        <a href={resolve('/scan')}>Scan a code →</a>
+      {/if}
     </div>
     {#if contactsState.contacts.length === 0}
       <div class="empty">
@@ -1002,7 +1006,7 @@
     width: min(216px, 70vw);
     aspect-ratio: 1;
     height: auto;
-    background: #fff;
+    background: var(--qr-plate);
     padding: 10px;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -1016,7 +1020,7 @@
     /* The plate stays white in both themes because it stands in for the QR, so
        the text on it is dark in both themes too — --text-muted is light in
        dark mode and vanished here. */
-    color: color-mix(in srgb, var(--ink) 80%, #fff);
+    color: color-mix(in srgb, var(--ink) 80%, var(--qr-plate));
     font-size: 0.85rem;
     padding: 1rem;
   }
@@ -1078,7 +1082,7 @@
     border: 1px solid var(--border);
     border-radius: 5px;
     padding: 3px;
-    background: #fff;
+    background: var(--qr-plate);
     line-height: 0;
   }
   .identicon :global(svg) {
@@ -1197,7 +1201,7 @@
     border-radius: 999px;
     border: 0;
     padding: 2px;
-    background: #cfcfcf;
+    background: var(--line);
     position: relative;
     transition: background 0.15s;
     flex: none;
@@ -1209,7 +1213,7 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--on-ink);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     transform: translateX(0);
     transition: transform 0.15s;

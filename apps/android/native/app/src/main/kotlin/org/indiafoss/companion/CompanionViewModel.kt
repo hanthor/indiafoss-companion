@@ -27,7 +27,14 @@ import org.indiafoss.companion.core.RankedActivity
 import org.indiafoss.companion.core.Ranking
 import org.indiafoss.companion.core.Schedule
 import org.indiafoss.companion.data.EventRepository
+import org.indiafoss.companion.data.PlanEditsStore
+import org.indiafoss.companion.data.ProfileImporter
+import org.indiafoss.companion.core.ProfileImport
+import org.indiafoss.companion.core.Reminders
+import org.indiafoss.companion.reminders.ReminderNotifier
 import org.indiafoss.companion.data.PreferencesStore
+import org.indiafoss.companion.data.StoredBlock
+import org.indiafoss.companion.core.ScheduleDiff
 import org.indiafoss.companion.data.RankingState
 import org.indiafoss.companion.data.RatingsStore
 import org.indiafoss.companion.data.RefreshResult
@@ -45,6 +52,8 @@ data class UiState(
     val mustAttend: Set<String> = emptySet(),
     val ranking: RankingState = RankingState(),
     val remindersEnabled: Boolean = false,
+    /** Null until read from the store; false shows the welcome steps once (#107). */
+    val onboardingDone: Boolean? = null,
     val profile: ContactCard = ContactCard(),
     val contacts: List<MetContact> = emptyList(),
     /** This device's handshake key (`p256:…`) and its fingerprint; null where the keystore is unavailable. */
@@ -60,6 +69,12 @@ data class UiState(
     val pendingRoute: String? = null,
     val routingProfile: String = "fastest",
     val message: String? = null,
+    /** The attendee's own plan blocks and booth visits (#110). */
+    val blocks: List<StoredBlock> = emptyList(),
+    /** The last schedule update, with what changed, until dismissed. */
+    val update: ScheduleUpdate? = null,
+    /** The day simulator (#110, docs/simulator.md): null when the clock is real. */
+    val simulation: Simulation? = null,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
     fun dispositionOf(id: String): Disposition =
@@ -90,6 +105,7 @@ data class UiState(
             ratingOf = { id -> byId[id]?.let { model.ratingWithPrior(ranked(it)) } ?: Ranking.INITIAL_RATING },
             dispositionOf = ::dispositionOf,
             bookmarked = { it in bookmarks },
+            blocks = blocks.filter { it.day == day }.map { it.toBlock() },
         )
     }
 
@@ -104,12 +120,28 @@ data class UiState(
     fun activity(id: String): Activity? = bundle?.activities?.firstOrNull { it.id == id }
 }
 
+/**
+ * A clock that runs from a chosen instant at a chosen speed, anchored to the
+ * real time it started: the native `RunningClock`. Speed 0 pauses.
+ */
+data class Simulation(val startMs: Long, val speed: Int, val anchorRealMs: Long, val log: List<SimEvent> = emptyList()) {
+    fun nowMs(realMs: Long = System.currentTimeMillis()): Long = startMs + (realMs - anchorRealMs) * speed
+}
+
+data class SimEvent(val simAt: String, val kind: String, val title: String, val body: String = "")
+
+/** A schedule revision that arrived while the app was open, and the diff against the one before. */
+data class ScheduleUpdate(val revision: Int, val changes: List<ScheduleDiff.Change>) {
+    val summary: String get() = ScheduleDiff.summary(changes)
+}
+
 class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val repository = EventRepository(app)
     private val preferences = PreferencesStore(app)
     private val ratings = RatingsStore(app)
     private val reminders = ReminderScheduler(app)
     private val profiles = ProfileStore(app)
+    private val planEdits = PlanEditsStore(app)
     private val venue = VenueRepository(app)
     private val floors: List<Floor> = FloorPlans.load(app)
     private val _state = MutableStateFlow(UiState(now = nowIso(), walkSecondsTo = { null }))
@@ -133,6 +165,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             preferences.remindersEnabled.collect { on -> _state.update { it.copy(remindersEnabled = on) } }
         }
         viewModelScope.launch {
+            preferences.onboardingDone.collect { done -> _state.update { it.copy(onboardingDone = done) } }
+        }
+        viewModelScope.launch {
             val key = DeviceKey.publicKey()
             _state.update { it.copy(deviceKey = key, deviceFingerprint = key?.let(Handshake::fingerprint)) }
             profiles.profile.collect { card ->
@@ -141,6 +176,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         viewModelScope.launch { profiles.contacts.collect { met -> _state.update { it.copy(contacts = met) } } }
+        viewModelScope.launch { planEdits.edits.collect { e -> _state.update { it.copy(blocks = e.blocks) } } }
         viewModelScope.launch {
             preferences.location.collect { at -> _state.update { it.copy(currentLocation = at, walkSecondsTo = walker(at)) } }
         }
@@ -157,14 +193,18 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     fun refresh() {
         viewModelScope.launch {
             when (val result = repository.refresh()) {
-                is RefreshResult.Updated ->
+                is RefreshResult.Updated -> {
+                    val changes = result.previous?.let { ScheduleDiff.between(it, result.bundle) }.orEmpty()
                     _state.update {
                         it.copy(
                             bundle = result.bundle,
                             now = nowIso(),
-                            message = "Schedule updated to revision ${result.revision}",
+                            // The banner carries the diff; the snackbar only when there is nothing to list.
+                            update = if (changes.isEmpty()) null else ScheduleUpdate(result.revision, changes),
+                            message = if (changes.isEmpty()) "Schedule updated to revision ${result.revision}" else null,
                         )
                     }
+                }
                 is RefreshResult.Failed ->
                     _state.update { it.copy(message = null) } // offline is normal; stay quiet
                 RefreshResult.UpToDate -> _state.update { it.copy(now = nowIso()) }
@@ -172,7 +212,28 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun tick() = _state.update { it.copy(now = nowIso()) }
+    fun tick() {
+        _state.update { it.copy(now = nowIso()) }
+        fireSimulatedReminders()
+    }
+
+    fun dismissUpdate() = _state.update { it.copy(update = null) }
+
+    // ---------- The attendee's own plan items (#110) ----------
+
+    fun addBlock(block: StoredBlock) {
+        viewModelScope.launch { planEdits.addBlock(block) }
+    }
+
+    fun removeBlock(id: String) {
+        viewModelScope.launch { planEdits.removeBlock(id) }
+    }
+
+    /** "Plan a visit" on a booth: a flexible half hour at the booth's spot, on the given day. */
+    fun planBoothVisit(boothId: String, day: String) {
+        val booth = state.value.bundle?.booths?.firstOrNull { it.id == boothId } ?: return
+        addBlock(StoredBlock(id = "visit-$boothId", label = "Visit ${booth.name}", day = day, durationMinutes = 30, locationId = booth.locationId))
+    }
 
     fun dismissMessage() = _state.update { it.copy(message = null) }
 
@@ -270,6 +331,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     fun removeContact(id: String) {
         viewModelScope.launch { profiles.removeContact(id) }
+    }
+
+    fun setOnboardingDone(done: Boolean = true) {
+        viewModelScope.launch { preferences.setOnboardingDone(done) }
     }
 
     fun setRemindersEnabled(on: Boolean) {
@@ -379,7 +444,110 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    private fun nowIso(): String = IsoClock.now()
+    private fun nowIso(): String {
+        val sim = _state.value.simulation ?: return IsoClock.now()
+        return IsoClock.now(sim.nowMs())
+    }
+
+    // ---------- Day simulator (#110) ----------
+
+    private val firedInSimulation = HashSet<String>()
+
+    /** Run the app through a day from `day`T`time` at `speed`× real time; reminders fire on that clock. */
+    fun startSimulation(day: String, time: String, speed: Int) {
+        val startMs = Schedule.parseInstant("${day}T${time.padStart(5, '0')}:00+05:30")
+        firedInSimulation.clear()
+        _state.update {
+            it.copy(
+                simulation = Simulation(
+                    startMs, speed, System.currentTimeMillis(),
+                    listOf(SimEvent(IsoClock.now(startMs), "start", "Simulation started at ${speed}×")),
+                ),
+                now = IsoClock.now(startMs),
+            )
+        }
+    }
+
+    fun stopSimulation() {
+        _state.update { it.copy(simulation = null, now = IsoClock.now()) }
+    }
+
+    /** Called every tick while a run is on: any reminder whose time has come is posted and logged. */
+    private fun fireSimulatedReminders() {
+        val s = _state.value
+        val sim = s.simulation ?: return
+        val bundle = s.bundle ?: return
+        if (!s.remindersEnabled) return
+        val nowMs = sim.nowMs()
+        val due = Reminders.compute(
+            bundle, sim.startMs,
+            tierFor = { id ->
+                when {
+                    id in s.mustAttend -> Reminders.Tier.MUST_ATTEND
+                    id in s.bookmarks -> Reminders.Tier.PLANNED
+                    else -> Reminders.Tier.NONE
+                }
+            },
+            walkSecondsTo = { locationId -> locationId?.let(s.walkSecondsTo) },
+        ).filter { it.atMs <= nowMs && it.id !in firedInSimulation }
+        if (due.isEmpty()) return
+        for (r in due) {
+            firedInSimulation += r.id
+            ReminderNotifier.post(getApplication(), r.id, r.title, r.body, r.activityId)
+        }
+        _state.update { st ->
+            val log = st.simulation?.log.orEmpty() + due.map { SimEvent(IsoClock.now(it.atMs), "notification", it.title, it.body) }
+            st.copy(simulation = st.simulation?.copy(log = log.takeLast(200)))
+        }
+    }
+
+    // ---------- Imports for the card (#110) ----------
+
+    private fun applyImport(result: ProfileImporter.Result, source: String) {
+        when (result) {
+            is ProfileImporter.Result.Failed -> _state.update { it.copy(message = result.reason) }
+            is ProfileImporter.Result.Ok -> {
+                val card = state.value.profile
+                val n = result.imported.changes(card)
+                saveProfile(result.imported.mergeInto(card))
+                _state.update {
+                    it.copy(
+                        message = if (n == 0) "Nothing new on $source; your card already has it."
+                        else "Filled $n field${if (n == 1) "" else "s"} from $source.",
+                    )
+                }
+            }
+        }
+    }
+
+    fun importFromGithub() {
+        viewModelScope.launch { applyImport(ProfileImporter.github(state.value.profile.socials["github"].orEmpty()), "GitHub") }
+    }
+
+    fun importFromFossUnited() {
+        viewModelScope.launch { applyImport(ProfileImporter.fossUnited(state.value.profile.fossUnitedUsername), "FOSS United") }
+    }
+
+    /** A vCard from the phone's contacts or a .vcf file, as the attendee's own card. */
+    fun importOwnVcard(text: String) {
+        val card = VCard.parse(text)
+        if (card == null || card.fullName.isBlank()) {
+            _state.update { it.copy(message = "That is not a contact card.") }
+            return
+        }
+        val imported = ProfileImport.Imported(card.fullName, card.organization, card.website, card.avatarUrl, card.socials)
+        val current = state.value.profile
+        val merged = imported.mergeInto(current).copy(
+            email = current.email.ifBlank { card.email },
+            phone = current.phone.ifBlank { card.phone },
+        )
+        val n = imported.changes(current) +
+            listOf(current.email.isBlank() && card.email.isNotBlank(), current.phone.isBlank() && card.phone.isNotBlank()).count { it }
+        saveProfile(merged)
+        _state.update {
+            it.copy(message = if (n == 0) "Your card already has all of that." else "Filled $n field${if (n == 1) "" else "s"} from the contact.")
+        }
+    }
 }
 
 /** Current time as an ISO instant in the event's offset (+05:30). */

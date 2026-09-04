@@ -29,6 +29,7 @@
   } from '$lib/simulator.svelte';
   import { simulationSpeed } from '$lib/clock';
   import { hydrateLook } from '$lib/look.svelte';
+  import { hydrateOnboarding, markOnboardingDone, onboardingState } from '$lib/onboarding.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
@@ -46,6 +47,18 @@
     void installNativeDeepLinks(base, (path) => goto(path)).catch(() => {});
     hydrateSimulator();
     void hydrateLook(page.url.searchParams.get('look'));
+    // `?setup=done` skips the welcome wizard (links, automation).
+    if (page.url.searchParams.get('setup') === 'done') void markOnboardingDone();
+    else void hydrateOnboarding();
+  });
+
+  // First run (#107): the home screen hands over to the welcome wizard once.
+  // Only a plain visit to `/` does; deep links and parameterised URLs never.
+  $effect(() => {
+    const path = page.url.pathname.replace(base, '') || '/';
+    if (path !== '/' || page.url.search) return;
+    if (eventState.status !== 'ready' || !onboardingState.loaded || onboardingState.done) return;
+    void goto(resolve('/welcome'));
   });
 
   // Reminders are re-armed once a minute of app time: every real minute, or
@@ -111,8 +124,10 @@
       '/explore': 'Explore',
       '/connect': 'Share contact',
       '/connect/compare': 'Compare key badges',
+      '/connect/recap': 'Who I met',
       '/scan': 'Scan',
       '/settings': 'Settings',
+      '/welcome': 'Welcome',
       '/chat': 'Chat',
     };
     const match =
@@ -268,7 +283,7 @@
     gap: 0.5rem;
     padding: calc(0.55rem + var(--safe-top)) 0.9rem 0.55rem;
     background: var(--ink-2);
-    color: #fff;
+    color: var(--on-ink);
   }
 
   .brand {
@@ -315,7 +330,7 @@
     min-height: 44px;
     padding: 0.25rem 0.45rem;
     border-radius: var(--radius);
-    color: #fff;
+    color: var(--on-ink);
     text-decoration: none;
     font-family: var(--font-mono);
     font-size: 0.56rem;
@@ -332,7 +347,7 @@
   }
   .toplinks a[aria-current='page'] {
     background: hsl(0 0% 29%);
-    color: #fff;
+    color: var(--on-ink);
   }
   /* Scanning is the most frequent in-person action, so it gets the one
      high-contrast control in the bar rather than another grey icon. */
@@ -346,7 +361,7 @@
   }
   .toplinks a.scancta:hover,
   .toplinks a.scancta[aria-current='page'] {
-    background: color-mix(in srgb, var(--amber) 82%, #fff);
+    background: color-mix(in srgb, var(--amber) 82%, var(--on-ink));
     color: var(--ink);
   }
   .unread {
