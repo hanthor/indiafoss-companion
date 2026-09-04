@@ -23,13 +23,27 @@
 import { createServer, connect, type Server, type Socket } from 'node:net';
 import { once } from 'node:events';
 
-/** How a link behaves: latency, its variance, loss, and a bandwidth ceiling. */
+/** How a link behaves: latency, its variance, connection failure, and a bandwidth ceiling. */
 export interface LinkProfile {
   /** One-way delay in milliseconds, before jitter. */
   delayMs: number;
   /** Uniform +/- jitter applied to each chunk's delay; never pushes it below 0. */
   jitterMs: number;
-  /** Chance in [0, 1] that a chunk is dropped. TCP will retransmit; this models a lossy medium, not a lossy stream. */
+  /**
+   * Chance in [0, 1] that a *connection* fails, checked when it is opened.
+   *
+   * Deliberately not per-chunk. A userspace proxy sits above TCP: by the time a
+   * chunk reaches it the sender's kernel has already been ACKed, so silently
+   * discarding those bytes does not cause a retransmit — it strands the stream
+   * forever, and every request that hits it hangs until some outer timeout. That
+   * is not a lossy link, it is a broken proxy, and it quietly poisons any
+   * measurement taken through it.
+   *
+   * A severed connection is the honest analogue at this layer: the peer sees a
+   * reset, its federation retry/backoff does what it would really do, and
+   * nothing hangs. Packet-level loss needs the `tc netem` mode (see
+   * `docs/mesh-harness.md`).
+   */
   loss: number;
   /** Bandwidth ceiling in bytes per second. `Infinity` disables the ceiling. */
   bytesPerSecond: number;
@@ -116,6 +130,12 @@ export class ShapedLink {
       client.destroy();
       return;
     }
+    // Connection-level loss: the dial simply fails, as it would on a flaky
+    // medium. See {@link LinkProfile.loss} for why this is not per-chunk.
+    if (this.profile.loss > 0 && Math.random() < this.profile.loss) {
+      client.destroy();
+      return;
+    }
     const upstream = connect(this.upstreamPort, this.upstreamHost);
     this.track(client);
     this.track(upstream);
@@ -133,27 +153,36 @@ export class ShapedLink {
   }
 
   /**
-   * Delay, maybe drop, and rate-limit one chunk.
+   * Delay and rate-limit one chunk.
    *
-   * Backpressure matters here: without pausing the source, a fast writer on a
+   * Every byte accepted here is eventually written or the connection is torn
+   * down — a chunk is never silently discarded, because above TCP that strands
+   * the stream rather than provoking a retransmit (see {@link LinkProfile.loss}).
+   *
+   * Backpressure matters: without pausing the source, a fast writer on a
    * 20 KB/s link would queue the whole transaction in memory and the ceiling
    * would shape nothing but the timestamps.
    */
   private async forward(chunk: Buffer, to: Socket, from: Socket): Promise<void> {
-    const { delayMs, jitterMs, loss, bytesPerSecond } = this.profile;
+    const { delayMs, jitterMs, bytesPerSecond } = this.profile;
     from.pause();
     try {
       const jitter = jitterMs > 0 ? (Math.random() * 2 - 1) * jitterMs : 0;
       const wait = Math.max(0, delayMs + jitter);
       const transmit = bytesPerSecond === Infinity ? 0 : (chunk.length / bytesPerSecond) * 1000;
       if (wait + transmit > 0) await sleep(wait + transmit);
-      // Re-check: the link may have been cut while this chunk was in flight,
-      // which is exactly the case a partition test wants to exercise.
-      if (this.cut || to.destroyed) return;
-      if (loss > 0 && Math.random() < loss) return;
+      // A cut while this chunk was in flight severs the connection rather than
+      // swallowing the bytes — the peer sees a reset, which is what a partition
+      // looks like from the other end.
+      if (this.cut) {
+        to.destroy();
+        from.destroy();
+        return;
+      }
+      if (to.destroyed) return;
       to.write(chunk);
     } finally {
-      from.resume();
+      if (!from.destroyed) from.resume();
     }
   }
 
