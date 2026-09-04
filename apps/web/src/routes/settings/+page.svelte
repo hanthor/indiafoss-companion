@@ -4,7 +4,6 @@
   import { getMatrix } from '$lib/matrix.svelte';
   import { stopMeshNode } from '$lib/neutrino';
   import { notificationsEnabled, setNotificationsEnabled } from '$lib/notifications.svelte';
-  import { lookState, setLook } from '$lib/look.svelte';
   import { goto } from '$app/navigation';
   import { formatDayLabel, getEventDays } from '@indiafoss/schedule';
   import { eventState, loadEvent } from '$lib/event.svelte';
@@ -65,29 +64,6 @@
 <section>
   <div class="eyebrow">CONTROL YOUR DATA</div>
   <h1>Settings</h1>
-  <section class="card" aria-labelledby="look-title">
-    <h2 id="look-title">Look</h2>
-    <p class="muted">
-      The IndiaFOSS 2026 design, or Material 3 the way the phone's own apps look. On Android the
-      Material look follows your wallpaper's colours{lookState.dynamic ? ' (as it does now)' : ''}.
-    </p>
-    <div class="looks" role="radiogroup" aria-label="Look">
-      <button
-        role="radio"
-        aria-checked={lookState.look === 'indiafoss'}
-        class="button"
-        class:primary={lookState.look === 'indiafoss'}
-        onclick={() => setLook('indiafoss')}>IndiaFOSS</button
-      >
-      <button
-        role="radio"
-        aria-checked={lookState.look === 'material'}
-        class="button"
-        class:primary={lookState.look === 'material'}
-        onclick={() => setLook('material')}>Material</button
-      >
-    </div>
-  </section>
   <section class="card">
     <h2>Contact sharing</h2>
     <p class="muted">
@@ -221,11 +197,6 @@
 <style>
   li {
     margin: 0.45rem 0;
-  }
-  .looks {
-    display: flex;
-    gap: 0.5rem;
-    margin: 0.4rem 0 0.2rem;
   }
   .simform {
     display: grid;

@@ -125,11 +125,6 @@ function writeMainActivity({ neutrino }) {
   const body = [
     '    @Override',
     '    public void onCreate(android.os.Bundle savedInstanceState) {',
-    // Material You: seed the window from the wallpaper before the WebView
-    // exists, so the splash and system bars follow it too. No-op below API 31.
-    '        com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this);',
-    // The web layer reads the same scheme for its Material look.
-    '        registerPlugin(MaterialYouPlugin.class);',
     ...(neutrino ? ['        registerPlugin(NeutrinoPlugin.class);'] : []),
     '        super.onCreate(savedInstanceState);',
     '    }',
@@ -140,18 +135,6 @@ function writeMainActivity({ neutrino }) {
     console.log(`material3: wrote ${mainActivity.replace(root + '/', '')}`);
   }
 }
-
-// 3d. Material You colours for the web layer's Material look (plain Java: the
-//     Kotlin plugin is only applied when the Neutrino bindings are present).
-mkdirSync(pluginDir, { recursive: true });
-cpSync(
-  join(root, 'materialyou', 'MaterialYouPlugin.java'),
-  join(pluginDir, 'MaterialYouPlugin.java'),
-  {
-    force: true,
-  },
-);
-console.log('material3: installed MaterialYouPlugin.java');
 
 if (bindingsAvailable) {
   patch(join(android, 'build.gradle'), (s) =>
@@ -247,7 +230,6 @@ if (bindingsAvailable) {
 //    links, an app bar under the status bar), and this script once failed
 //    half-way through without failing the build. Now it fails loudly.
 const manifest = readFileSync(join(app, 'src', 'main', 'AndroidManifest.xml'), 'utf8');
-const activity = readFileSync(mainActivity, 'utf8');
 const expected = [
   ['CAMERA permission', manifest.includes('android.permission.CAMERA')],
   ['POST_NOTIFICATIONS permission', manifest.includes('android.permission.POST_NOTIFICATIONS')],
@@ -256,7 +238,6 @@ const expected = [
     'cleartext loopback network security config',
     manifest.includes('android:networkSecurityConfig'),
   ],
-  ['Material You dynamic colour', activity.includes('DynamicColors')],
   [
     'Material Components dependency',
     readFileSync(join(app, 'build.gradle'), 'utf8').includes('com.google.android.material'),

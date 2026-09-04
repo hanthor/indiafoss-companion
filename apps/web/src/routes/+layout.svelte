@@ -1,6 +1,5 @@
 <script lang="ts">
   import '../app.css';
-  import '$lib/material.css';
   import { onMount } from 'svelte';
   import { page } from '$app/state';
   import { base, resolve } from '$app/paths';
@@ -28,7 +27,6 @@
     tickInterval,
   } from '$lib/simulator.svelte';
   import { simulationSpeed } from '$lib/clock';
-  import { hydrateLook } from '$lib/look.svelte';
   import { hydrateOnboarding, markOnboardingDone, onboardingState } from '$lib/onboarding.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
@@ -46,7 +44,6 @@
     // eslint-disable-next-line svelte/no-navigation-without-resolve
     void installNativeDeepLinks(base, (path) => goto(path)).catch(() => {});
     hydrateSimulator();
-    void hydrateLook(page.url.searchParams.get('look'));
     // `?setup=done` skips the welcome wizard (links, automation).
     if (page.url.searchParams.get('setup') === 'done') void markOnboardingDone();
     else void hydrateOnboarding();
@@ -151,8 +148,6 @@
   <header class="app-bar">
     <a class="brand" href={brandHref} aria-label="IndiaFOSS Companion home">
       <img src={logoSrc} alt="IndiaFOSS 2026" />
-      <!-- Shown by the Material look in place of the wordmark. -->
-      <span class="brand-text">IndiaFOSS Companion</span>
       <span class="brand-sub">Companion</span>
     </a>
     <nav class="toplinks" aria-label="Account">
@@ -298,9 +293,6 @@
     display: block;
     width: min(7.5rem, 36vw);
     height: auto;
-  }
-  .brand-text {
-    display: none;
   }
   .brand-sub {
     font-family: var(--font-display);
