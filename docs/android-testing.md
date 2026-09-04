@@ -32,8 +32,8 @@ EXCEPTION` was logged. It needs nothing from the accessibility tree, so it
 | `smoke.yaml`      | the WebView loaded the app shell, not an error page              |
 | `navigation.yaml` | every primary tab reaches a screen that rendered its own content |
 
-Two rules govern what a flow may assert on, and both were learned by getting
-them wrong on the first run:
+Four rules govern what a flow may assert on, all of them learned by getting
+them wrong on a red run:
 
 1. **Real text nodes only.** A placeholder is an attribute on an `<input>`,
    not text, so it never reaches the accessibility tree and Maestro cannot see
@@ -51,9 +51,23 @@ them wrong on the first run:
    `Rank this day first` cannot match a link that ends in an arrow. When in
    doubt, wrap the selector in `.*`.
 
+4. **`clearState: true` means every run is a first run**, and a first run
+   opens the setup flow — "SET UP IN A MINUTE", reminders, ticket, name,
+   ranking. The tab bar renders _behind_ it, so the app looks navigable in
+   the hierarchy while the setup card still owns the screen. `navigation.yaml`
+   dismisses it with a conditional `runFlow` on `Skip setup` before asserting
+   on anything underneath. This one cost four red runs: every failure looked
+   like a bad selector, because the element really was absent — the screen it
+   belonged to was never reached.
+
 The `Now` screen is therefore asserted by screenshot alone: everything it
 renders depends on what is live at the moment the flow runs, so any content
 assertion there would really be an assertion about the clock.
+
+`smoke.yaml` deliberately does _not_ dismiss setup. It asserts only that the
+shell rendered, which is true with the setup card on top, and keeping it free
+of onboarding steps means it stays a check on the WebView rather than a check
+on the onboarding copy.
 
 ### Running it locally
 

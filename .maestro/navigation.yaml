@@ -5,7 +5,7 @@
 # route resolved, the data did not — looks fine in a screenshot of the tab
 # bar and is exactly what this catches.
 #
-# Four rules for the selectors, each learned from a red run:
+# Five rules, each learned from a red run:
 #
 #   1. Real text nodes only. A placeholder is an attribute on an <input>,
 #      not text, so it never reaches the accessibility tree and no timeout
@@ -29,6 +29,19 @@ appId: org.indiafoss.companion
 - extendedWaitUntil:
     visible: 'Now'
     timeout: 60000
+
+# `clearState: true` makes every run a first run, and a first run opens the
+# setup flow ("SET UP IN A MINUTE" — reminders, ticket, name, ranking). The
+# tab bar renders behind it, so the app looks navigable while the setup card
+# still owns the screen. Dismiss it before asserting on anything underneath.
+#
+# Conditional, so the flow keeps working if onboarding moves, changes its
+# wording, or stops appearing on a cleared install.
+- runFlow:
+    when:
+      visible: '.*Skip setup.*'
+    commands:
+      - tapOn: '.*Skip setup.*'
 
 # The view toggles and the filter disclosure are buttons, always drawn, and
 # they exist nowhere else in the app.
