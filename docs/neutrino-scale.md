@@ -78,10 +78,23 @@ comes from these numbers.
    phone: that gives bytes per second per BLE link and the hop latency, the
    two numbers this note cannot produce. The harness gives the server side;
    the phones give the rest.
-4. **Raise the join ingest deadline on the fork, or make the joiner retry.**
-   The 20 s deadline is fine for a phone joining one room; under a crowd it
-   turns a slow join into a failed one that the client then has to repeat.
-   A retry with backoff on `504` in `joinOrCreateRoom` costs nothing.
+4. ~~Raise the join ingest deadline on the fork, or make the joiner
+   retry.~~ **Done, and the deadline turned out not to be the lever
+   (#120).** Both halves were measured:
+
+   | 30 nodes at once, 60 s deadline | 28 of 29 joins returned; the one `504` came after the full 60 s — and node 0 ended with **30 of 30 members** |
+   | 50 at once | 26 of 49 at 60 s, 29 of 49 at 20 s |
+   | 50 spread 0.5 s apart | 49 of 49, message to every peer in ~160 ms |
+
+   The server's `504 timed out applying room state; the join is still
+being processed` is literally true: the drain keeps running and the
+   membership lands. So a longer deadline only makes the same join block
+   longer before reporting the same thing, and rescues nothing at 50.
+   What works is the client: spread the joins out, and repeat on `504`.
+   Both shipped in `joinOrCreateRoom`; the fork keeps the deadline at
+   20 s with `NEUTRINO_JOIN_INGEST_TIMEOUT_MS` to tune it, because with
+   the client repeating, a fast refusal beats holding a phone's request
+   open for a minute.
 
 ## The venue topology, confirmed from the other side
 
