@@ -453,10 +453,18 @@
       </p>
       <div class="actions">
         <button class="button primary" onclick={openConference} disabled={opening}>
-          {opening ? 'Opening…' : 'Open chat'}
+          {opening ? 'Joining…' : 'Open chat'}
         </button>
         <button class="button secondary small" onclick={() => (pendingOpen = null)}>Cancel</button>
       </div>
+      {#if opening}
+        <!-- The client waits a random moment first, so a room a whole talk opens
+             at once is not joined by everyone in the same second (#120). -->
+        <p class="muted small" role="status">
+          Taking a moment on purpose: when a talk starts everyone opens this room at once, and the
+          mesh lands the joins better spread out.
+        </p>
+      {/if}
     </section>
   {/if}
 

@@ -82,10 +82,15 @@ class NeutrinoPlugin : Plugin() {
     }
 
     @PermissionCallback
-    private fun startAfterPermission(call: PluginCall) {
+    private fun startAfterPermission(call: PluginCall?) {
         // Without BLE permission the node still runs (LAN only); federation just has no BLE path.
+        // Capacitor's permission-callback dispatch can invoke this with a null call — observed
+        // on a real device, where it crashed the whole request with a NullPointerException
+        // instead of the node just starting LAN-only, exactly the outcome this comment already
+        // promises. Start the node either way; only resolve back to JS if there is still a
+        // pending call to resolve.
         startNode()
-        call.resolve(statusObject())
+        call?.resolve(statusObject())
     }
 
     @PluginMethod

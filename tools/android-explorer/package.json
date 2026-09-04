@@ -1,0 +1,29 @@
+{
+  "name": "@indiafoss/android-explorer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Drive the installed companion on an emulator with Claude looking at screenshots, and report what it found",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit -p .",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run --passWithNoTests",
+    "lint": "eslint .",
+    "start": "tsx src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "eslint": "^10.9.1",
+    "tsx": "^4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "^4.1.11"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.123.0"
+  }
+}

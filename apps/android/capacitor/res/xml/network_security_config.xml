@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 9+ (API 28+) blocks all cleartext (non-TLS) network traffic by
+  default, app-wide, regardless of what scheme the app's own pages load
+  over. capacitor.config.ts already serves the app over plain
+  http://localhost (not https) specifically so that fetching the embedded
+  Neutrino node on http://127.0.0.1:8008 is not a *mixed-content* problem —
+  but that is a different browser-level rule from this one, an OS-level
+  rule, and it still applied: `fetch('http://127.0.0.1:8008/...')` from the
+  WebView failed with "TypeError: Failed to fetch" even with `no-cors` mode
+  (which bypasses CORS entirely), proving the request never left the
+  device. Confirmed on two real phones: the embedded node was listening and
+  answering correctly the whole time (proven with `curl` through
+  `adb forward`), only the WebView's own fetch was blocked.
+
+  This permits cleartext only to loopback, where the mesh node listens —
+  not app-wide, which would silently allow cleartext to any remote host
+  too and defeat the point of restricting it at all.
+-->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

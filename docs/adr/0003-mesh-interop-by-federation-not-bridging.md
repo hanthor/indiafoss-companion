@@ -103,9 +103,22 @@ who are not in BLE range, so nobody is left with nothing.
 
 ## Follow-ups
 
-- RFC filed with `tuna-os/spindle` asking which convergence they would accept —
-  Linearized Matrix (MSC3995), which both projects already touch, is our
-  preferred candidate.
+- ~~RFC filed with `tuna-os/spindle` asking which convergence they would
+  accept~~ — **answered 2026-09-04** (`docs/spindle-rfc.md`, and Spindle's
+  `docs/mesh-federation.md` on their `spindle-hub-p2p` branch). Not
+  Linearized Matrix: the MSC3995 hub is designed in their `SPEC.md` but
+  unimplemented, so it would have to be built on both sides. The convergence
+  they will federate with today is **room version 12 on the Neutrino side,
+  with event signing** — and an iroh node key is already an ed25519 key, so
+  it can be the signing key. Unsigned history is refused outright, so the
+  mesh must sign from its first event. Filed as #129.
+- **Venue gateways, not phone-to-Spindle federation.** Spindle fans an event
+  out to every server with a member in the room, so 3,000 phone homeservers
+  would be 3,000 outboxes mostly backing off against dark peers. Three to
+  five gateway nodes carrying the venue's uplink are the Spindle's only
+  peers; phones federate over the mesh with each other and the gateways.
+  Their `[federation] peers` config gives such a peer a URL and a patient
+  `max_backoff_ms`.
 - ~~Neutrino work is gated on a fork we can push to.~~ Written as patches
   instead (`patches/neutrino/`): the device directory keyed on the real
   `device_id`, one-time key storage with `/keys/claim`, `/sendToDevice` with

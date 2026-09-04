@@ -78,10 +78,43 @@ comes from these numbers.
    phone: that gives bytes per second per BLE link and the hop latency, the
    two numbers this note cannot produce. The harness gives the server side;
    the phones give the rest.
-4. **Raise the join ingest deadline on the fork, or make the joiner retry.**
-   The 20 s deadline is fine for a phone joining one room; under a crowd it
-   turns a slow join into a failed one that the client then has to repeat.
-   A retry with backoff on `504` in `joinOrCreateRoom` costs nothing.
+4. ~~Raise the join ingest deadline on the fork, or make the joiner
+   retry.~~ **Done, and the deadline turned out not to be the lever
+   (#120).** Both halves were measured:
+
+   | 30 nodes at once, 60 s deadline | 28 of 29 joins returned; the one `504` came after the full 60 s — and node 0 ended with **30 of 30 members** |
+   | 50 at once | 26 of 49 at 60 s, 29 of 49 at 20 s |
+   | 50 spread 0.5 s apart | 49 of 49, message to every peer in ~160 ms |
+
+   The server's `504 timed out applying room state; the join is still
+being processed` is literally true: the drain keeps running and the
+   membership lands. So a longer deadline only makes the same join block
+   longer before reporting the same thing, and rescues nothing at 50.
+   What works is the client: spread the joins out, and repeat on `504`.
+   Both shipped in `joinOrCreateRoom`; the fork keeps the deadline at
+   20 s with `NEUTRINO_JOIN_INGEST_TIMEOUT_MS` to tune it, because with
+   the client repeating, a fast refusal beats holding a phone's request
+   open for a minute.
+
+## The venue topology, confirmed from the other side
+
+Spindle's answer to our RFC (`docs/spindle-rfc.md`) reaches the same
+conclusion from the server end, and states it more sharply: a homeserver
+fans every event out to every server with a member in the room, so one
+message in a venue room of 3,000 phones is 3,000 transactions, most of them
+to phones that are out of range at that moment. "Three thousand outboxes
+backing off is not a homeserver, it is a port scanner."
+
+So the shape for the conference is **a handful of venue gateways**: three to
+five Neutrino nodes carrying the venue's uplink (a laptop or a small machine
+at the registration desk), which are the conference Spindle's only
+federation peers. Phones federate over the mesh with each other and with the
+gateways; the gateways federate with the Spindle. The Spindle then waits on
+three to five peers it can be patient with, rather than thousands.
+
+That leaves the honest open question exactly where our own measurements put
+it: whether Bluetooth gossip carries 3,000 nodes at all. Nothing in this
+harness answers that, and only a real crowd will.
 
 ## Re-running
 

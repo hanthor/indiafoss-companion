@@ -135,6 +135,22 @@ Neither is on unless you switch it on.
 - **Android via Accrescent** — the channel we are heading for: install [Accrescent](https://accrescent.app), install the Companion from it, and it stays up to date on its own, in the background, with the signing key verified against signed store metadata. Accrescent's developer sign-up is closed at the moment, so this is not live yet — [what it needs, and what attendees will do](docs/accrescent.md).
 - **iOS** — the PWA is iOS-ready: **Share → Add to Home Screen**. Apple touch icon and standalone metadata are in the build; no App Store account needed.
 
+## Make it yours
+
+This is meant to be forked. The programme, the floor plan, the branding and the
+messaging config are all **data**, and the seams between them and the code are
+where you work — a different conference should not mean touching a screen.
+
+- **[Fork this app](docs/forking.md)** — point it at your event, draw your
+  venue, swap the tokens and icons, and delete the features your conference
+  does not have. Also: the two obligations that come with the fork (AGPL source
+  offer, and re-branding away from FOSS United's assets).
+- **[Write your own client](docs/mesh-protocol.md)** — the mesh is plain Matrix
+  plus a handful of conventions, all specified: how rooms are named so
+  independent clients converge, the backoff a client owes the hall when a talk
+  starts, the question and identity-card formats, and what the mesh measurably
+  cannot do yet. No part of this repository is required to interoperate.
+
 ## Repository layout
 
 ```text
@@ -223,7 +239,10 @@ pnpm --filter @indiafoss/web screenshots
 | [Ranking](docs/ranking.md)                                                                                                                            | the quick pass, head to head, and the learnt taste                          |
 | [Contact sharing](docs/contact-sharing.md)                                                                                                            | signed cards, QR scanning, key continuity                                   |
 | [Calendar export](docs/calendar-export.md)                                                                                                            | ICS for a plan or the whole programme                                       |
+| [**Fork this app**](docs/forking.md)                                                                                                                  | make it your conference: data, venue, branding, what to delete              |
+| [**Mesh protocol**](docs/mesh-protocol.md)                                                                                                            | the interop spec — write your own client and join the mesh                  |
 | [Messaging](docs/messaging.md) · [Neutrino capabilities](docs/neutrino-capabilities.md) · [P2P state of the art](docs/p2p-matrix-state-of-the-art.md) | Matrix rooms, P2P mesh, threat model, and what the mesh measurably supports |
+| [Android testing](docs/android-testing.md)                                                                                                            | the emulator gate, the Maestro flows, and the exploratory pass              |
 | [Native client](docs/native-client.md) · [Android shell](apps/android/capacitor/README.md)                                                            | the Compose app and its Kotlin core; the Material look of the Android app   |
 | [Privacy](docs/privacy.md) · [Release](docs/release.md) · [Accrescent](docs/accrescent.md)                                                            | what is stored, how a release is cut, and the Accrescent channel            |
 | [ADRs](docs/adr/README.md) · [Phases](docs/phases.md) · [Roadmap](docs/roadmap.md)                                                                    | decisions and where the project is going                                    |

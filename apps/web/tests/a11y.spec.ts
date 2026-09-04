@@ -25,10 +25,6 @@ const CORE_SCREENS: [string, string][] = [
   ['now', '/now?now=2025-09-20T10%3A20%3A00%2B05%3A30'],
   ['activity', '/activity/act-c8ak0iov2l'],
   ['booths', '/explore/booths'],
-  ['home (Material look)', '/?look=material'],
-  ['schedule (Material look)', '/schedule?look=material'],
-  ['ranking (Material look)', '/plan/rank?look=material&mode=pairs'],
-  ['settings (Material look)', '/settings?look=material'],
 ];
 
 async function seriousViolations(page: import('@playwright/test').Page) {

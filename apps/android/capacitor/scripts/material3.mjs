@@ -85,6 +85,23 @@ patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
   );
 });
 
+// 3d. Cleartext loopback: API 28+ blocks all non-TLS traffic app-wide by
+//     default, regardless of the scheme the app's own pages load over.
+//     capacitor.config.ts serves the app over plain http://localhost so that
+//     fetching the embedded Neutrino node on http://127.0.0.1:8008 isn't a
+//     mixed-content problem — but that's a separate, browser-level rule from
+//     this one. Confirmed on real hardware: the WebView's fetch() to that URL
+//     failed even with `no-cors` mode, which only this OS-level block explains.
+//     res/xml/network_security_config.xml (copied above) scopes the exemption
+//     to loopback only, not app-wide.
+patch(join(app, 'src', 'main', 'AndroidManifest.xml'), (s) => {
+  if (s.includes('android:networkSecurityConfig')) return s;
+  return s.replace(
+    /<application\b/,
+    '<application\n        android:networkSecurityConfig="@xml/network_security_config"',
+  );
+});
+
 // 4. Optional P2P chat: the Neutrino plugin, compiled in only when the bindings
 //    .aar is present in neutrino/libs (scripts/fetch-neutrino.mjs downloads it
 //    from our own release; neutrino-bindings.yml builds it from source). No
@@ -108,11 +125,6 @@ function writeMainActivity({ neutrino }) {
   const body = [
     '    @Override',
     '    public void onCreate(android.os.Bundle savedInstanceState) {',
-    // Material You: seed the window from the wallpaper before the WebView
-    // exists, so the splash and system bars follow it too. No-op below API 31.
-    '        com.google.android.material.color.DynamicColors.applyToActivityIfAvailable(this);',
-    // The web layer reads the same scheme for its Material look.
-    '        registerPlugin(MaterialYouPlugin.class);',
     ...(neutrino ? ['        registerPlugin(NeutrinoPlugin.class);'] : []),
     '        super.onCreate(savedInstanceState);',
     '    }',
@@ -123,18 +135,6 @@ function writeMainActivity({ neutrino }) {
     console.log(`material3: wrote ${mainActivity.replace(root + '/', '')}`);
   }
 }
-
-// 3d. Material You colours for the web layer's Material look (plain Java: the
-//     Kotlin plugin is only applied when the Neutrino bindings are present).
-mkdirSync(pluginDir, { recursive: true });
-cpSync(
-  join(root, 'materialyou', 'MaterialYouPlugin.java'),
-  join(pluginDir, 'MaterialYouPlugin.java'),
-  {
-    force: true,
-  },
-);
-console.log('material3: installed MaterialYouPlugin.java');
 
 if (bindingsAvailable) {
   patch(join(android, 'build.gradle'), (s) =>
@@ -230,12 +230,14 @@ if (bindingsAvailable) {
 //    links, an app bar under the status bar), and this script once failed
 //    half-way through without failing the build. Now it fails loudly.
 const manifest = readFileSync(join(app, 'src', 'main', 'AndroidManifest.xml'), 'utf8');
-const activity = readFileSync(mainActivity, 'utf8');
 const expected = [
   ['CAMERA permission', manifest.includes('android.permission.CAMERA')],
   ['POST_NOTIFICATIONS permission', manifest.includes('android.permission.POST_NOTIFICATIONS')],
   ['indiafoss:// deep link', manifest.includes('android:scheme="indiafoss"')],
-  ['Material You dynamic colour', activity.includes('DynamicColors')],
+  [
+    'cleartext loopback network security config',
+    manifest.includes('android:networkSecurityConfig'),
+  ],
   [
     'Material Components dependency',
     readFileSync(join(app, 'build.gradle'), 'utf8').includes('com.google.android.material'),

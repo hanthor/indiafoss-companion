@@ -10,7 +10,13 @@ export {
   describeEvent,
 } from './sync.js';
 export type { SyncDelta } from './sync.js';
-export { ANNOUNCEMENTS_POWER_LEVELS, MatrixSessionManager, MemoryMatrixStore } from './session.js';
+export {
+  ANNOUNCEMENTS_POWER_LEVELS,
+  JOIN_RETRIES,
+  MatrixSessionManager,
+  MemoryMatrixStore,
+  joinStillProcessing,
+} from './session.js';
 export type { MatrixSessionOptions, MatrixSnapshot, MatrixStore, RoomSpec } from './session.js';
 export {
   companionChatLink,

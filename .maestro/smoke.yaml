@@ -1,0 +1,29 @@
+# Does the packaged app actually come up?
+#
+# CI builds two APKs and, until this flow existed, launched neither. The
+# failure this catches is the one a build-only pipeline cannot see: the
+# Capacitor shell installs and starts, but the WebView renders nothing —
+# a bad base path, a missing asset, a service worker that swallowed the
+# navigation. Gradle is perfectly happy either way.
+#
+# So the assertions are about the shell being *rendered*, not about any
+# particular screen's content. Anything richer belongs in navigation.yaml.
+appId: org.indiafoss.companion
+---
+- launchApp:
+    clearState: true
+
+# The tab bar lives in the root layout, so it is the first thing that proves
+# the WebView loaded the app rather than an error page. The event bundle is
+# fetched before the shell paints, hence the generous timeout: a cold start
+# on a 2-vCPU runner is slower than any phone.
+- extendedWaitUntil:
+    visible: 'Now'
+    timeout: 60000
+
+- assertVisible: 'Plan'
+- assertVisible: 'Schedule'
+- assertVisible: 'Map'
+- assertVisible: 'Explore'
+
+- takeScreenshot: 01-launched

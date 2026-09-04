@@ -17,6 +17,7 @@
   import type { FloorId, FloorRoom } from '$lib/venue-floors';
   import { floorOfRoom, locationsForRoom, roomForLocation } from '$lib/venue-rooms';
   import { computeNextUp } from '$lib/nextup';
+  import { devroomTrackNames, labelHeadingFor } from '$lib/devrooms';
 
   /** Destination location id (`/map/to/[location]`): highlighted and opened in the sheet. */
   let { initialTo = '' }: { initialTo?: string } = $props();
@@ -116,6 +117,22 @@
   });
 
   const liveCount = $derived([...liveByRoom.values()].reduce((n, list) => n + list.length, 0));
+
+  /**
+   * Tracks that are devrooms: a room with its own programme rather than a main
+   * hall (#117). A main hall is the one a keynote runs in, as ranking decides
+   * it (`isMainRoom`), so the two screens agree on what a devroom is.
+   */
+  const devroomTracks = $derived(devroomTrackNames(bundle));
+
+  /**
+   * What to head a room's label with: the devroom's own name when what is on
+   * is a devroom session, otherwise the room's name. In a devroom the
+   * programme is the identity — "Rust" tells you more than "HALL 3".
+   */
+  function labelHeading(room: FloorRoom): { text: string; devroom: boolean } {
+    return labelHeadingFor(roomTitle(room), liveByRoom.get(room.id)?.[0]?.trackId, devroomTracks);
+  }
 
   const nextUp = $derived(
     bundle
@@ -455,20 +472,22 @@
       {#each plan.rooms as room (room.id)}
         {@const live = liveByRoom.get(room.id) ?? []}
         {@const first = live[0]}
+        {@const heading = labelHeading(room)}
         <button
           class="roomlabel {roomState(room.id)}"
           class:compact={!zoomed}
           class:selected={selected === room.id}
           style={labelStyle(room)}
           aria-label="{roomTitle(room)}{first
-            ? `, live: ${first.title}, ${minutesLeft(first)} min left`
+            ? `${heading.devroom ? `, ${heading.text} devroom` : ''}, live: ${first.title}, ${minutesLeft(first)} min left`
             : ''}{room.id === hereRoom ? ', you are here' : ''}"
           aria-pressed={selected === room.id}
           onclick={() => select(room.id)}
         >
-          <span class="name">{roomTitle(room)}</span>
+          <span class="name" class:devroom={heading.devroom}>{heading.text}</span>
           {#if first}
-            {#if zoomed}<span class="talk">{truncate(first.title, 32)}</span>{/if}
+            <!-- The talk itself, so the map answers "what is on in there" without a tap (#117). -->
+            <span class="talk">{truncate(first.title, zoomed ? 34 : 26)}</span>
             <span class="left">{minutesLeft(first)} MIN LEFT</span>
           {/if}
           {#if room.id === hereRoom}<span class="you" aria-hidden="true"></span>{/if}
@@ -691,6 +710,13 @@
   .roomlabel.compact .name {
     font-size: 0.55rem;
   }
+  .roomlabel.compact .name.devroom {
+    font-size: 0.7rem;
+  }
+  .roomlabel.compact .talk {
+    font-size: 0.55rem;
+    max-width: 8.5rem;
+  }
   .roomlabel.compact .left {
     font-size: 0.5rem;
   }
@@ -701,6 +727,16 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     white-space: nowrap;
+  }
+  /* A devroom leads with its own name, larger than the talk under it (issue 117). */
+  .roomlabel .name.devroom {
+    font-family: inherit;
+    font-size: 0.82rem;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    max-width: 9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .roomlabel.live {
     border-color: var(--mint);
@@ -717,11 +753,12 @@
     outline-offset: 1px;
   }
   .roomlabel .talk {
-    font-size: 0.7rem;
+    font-size: 0.62rem;
     max-width: 9rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    opacity: 0.95;
   }
   .roomlabel .left {
     font-family: var(--font-mono);

@@ -76,6 +76,27 @@ contracts pass. Run it against a local Spindle before the conference:
 NEUTRINO_URL=http://127.0.0.1:8008 PROBE_GAPS=0 pnpm --filter @indiafoss/neutrino-probe test
 ```
 
+## Venue gateways (once mesh federation lands)
+
+Do not point 3,000 phones at the Spindle. It fans every event out to every
+server with a member in the room, so a venue room of phone homeservers is
+one transaction per phone, most of them dark. Run **three to five gateway
+nodes** instead — Neutrino nodes with the venue's uplink, at the
+registration desk — as the Spindle's only mesh peers, and list each one:
+
+```toml
+[federation]
+allow_internal = ["10.0.0.0/8"]   # only if a gateway is on a private range
+peers = { "a1b2…f0a1b2" = { url = "http://10.20.0.5:8008", max_backoff_ms = 3600000 } }
+```
+
+A listed peer is reached at that URL rather than by resolving its name,
+which is what a server named by a 64-hex node key needs; `http` is allowed
+for a host the operator named without loosening anything globally. The
+patient `max_backoff_ms` is the point: a gateway that walks out of range is
+retried hourly instead of every minute, and nothing queued for it is
+dropped, since outbox rows leave only on acknowledgement.
+
 ## Where the mesh and the Spindle still do not meet
 
 The venue mesh and the conference Spindle are two worlds joined by people,

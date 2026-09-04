@@ -13,8 +13,9 @@ committed). `scripts/material3.mjs` is applied by `pnpm --filter @indiafoss/andr
 
 - adds `com.google.android.material` and switches the app and activity themes to
   `Theme.Material3.DayNight` / `.NoActionBar` with the IndiaFOSS palette
-  (`res/values/colors.xml`, night variant in `res/values-night/`); dynamic
-  colour is off so the brand matches the web app;
+  (`res/values/colors.xml`, night variant in `res/values-night/`) — no dynamic
+  (wallpaper-based) colour, so the native chrome matches the web app's own
+  IndiaFOSS brand rather than the phone's;
 - installs an Android 12+ splash (`Theme.SplashScreen`, brand ink background,
   wordmark icon) and an adaptive launcher foreground built from the IndiaFOSS
   wordmark vector;
@@ -24,19 +25,10 @@ committed). `scripts/material3.mjs` is applied by `pnpm --filter @indiafoss/andr
 Edit the overlay under `res/` — it is copied over the generated project on
 every build.
 
-## Material look inside the WebView
-
-The screens are the web app, and on Android they render in a **Material 3
-look** by default (`apps/web/src/lib/material.css`, switched by
-`apps/web/src/lib/look.svelte.ts`): Roboto, tonal surfaces, pill buttons, an
-M3 navigation bar with the active-tab indicator, outlined text fields. The
-palette is the phone's own Material You scheme, read by
-`materialyou/MaterialYouPlugin.java` (installed by `material3.mjs`, registered
-in `MainActivity`) from the dynamic-colour theme overlays and handed to the
-page as `--md-*` custom properties; below Android 12, or on the web, a tonal
-palette seeded from the brand mint is used. Settings → Look switches between
-Material and the IndiaFOSS 2026 design on any platform, and `?look=material`
-forces it for one load (the a11y suite runs the main screens in both looks).
+The WebView content itself is the same IndiaFOSS 2026 design on every
+platform — no separate in-app Material look. Only the native chrome above
+(status bar, nav bar, splash, launcher icon) uses the Material3 theme
+classes, and it stays on the static IndiaFOSS palette described above.
 
 ## Deep links (§57)
 

@@ -43,6 +43,7 @@
     setRoomPreference,
   } from '$lib/roomPrefs.svelte';
   import { roomSummary } from '$lib/roomInfo';
+  import { splitTrackName } from '$lib/devrooms';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -557,18 +558,17 @@
         {#each rooms as r (r.track.id)}
           {@const pref = roomPreference(r.track.id)}
           {@const info = roomSummary(bundle, r.sessions)}
+          {@const named = splitTrackName(r.track.name)}
           <li class="roomrow" data-testid="room-row" class:out={pref === 'skip'}>
             <div class="roomtext">
-              <span class="roomname">{r.track.name}</span>
+              <span class="roomname">{named.title}</span>
+              {#if named.subtitle}
+                <span class="roomwhere">{named.subtitle}</span>
+              {/if}
               {#if r.track.description}
                 <span class="roomabout">{r.track.description}</span>
               {/if}
               <span class="muted small">{info.line}</span>
-              {#if info.tags.length > 0}
-                <span class="tags" aria-label="Topics">
-                  {#each info.tags as tag (tag)}<span class="tag">{tag}</span>{/each}
-                </span>
-              {/if}
               {#if info.speakers.length > 0}
                 <span class="muted small speakers"
                   >{info.speakers
@@ -1006,10 +1006,35 @@
     font-weight: 700;
     font-size: 1rem;
   }
+  /* The room is a booking, not the track's identity — "Devroom 1" under
+     "FOSS in Science", not the other way round (the CFP tool names the
+     track "Devroom 1 (FOSS in Science)"; see splitTrackName). */
+  .roomwhere {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
   .roomabout {
     font-size: 0.85rem;
     line-height: 1.45;
     text-wrap: pretty;
+  }
+  /* Base look for .linkbtn: a borderless text link, matching connect/+page.svelte
+     and welcome/+page.svelte. This route only had positioning overrides
+     (.roomtext .linkbtn, .linkbtn.center) and never the base rule, so "What's
+     on" rendered as a bare unstyled <button>. */
+  .linkbtn {
+    border: 0;
+    background: transparent;
+    color: var(--mint-ink);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0;
+    min-height: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .linkbtn.small {
+    font-size: 0.74rem;
   }
   .roomtext .linkbtn {
     align-self: flex-start;
