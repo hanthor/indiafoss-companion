@@ -68,28 +68,43 @@ set, so a contributor without a Rust toolchain still sees green.
 ## What it found
 
 Measured on this machine (4-core), release build at patch 0011, one room, one
-message, 60–90 s deadlines.
+message, 60 s deadline. These are the numbers **after** the connection-loss fix
+below; the earlier per-chunk-loss runs are not comparable and were discarded.
 
-| Scenario        | Invites   | Joined | Fan-out p50 | Undelivered |
-| --------------- | --------- | ------ | ----------- | ----------- |
-| 8 nodes, `lan`  | 70 ms     | 7/7    | 187 ms      | 0           |
-| 8 nodes, `ble`  | 4,108 ms  | 7/7    | 2,864 ms    | 0           |
-| 24 nodes, `ble` | 13,932 ms | 21/23  | —           | **23/21**   |
+| Scenario                    | Invites sent  | Joined | Fan-out p50 | Undelivered |
+| --------------------------- | ------------- | ------ | ----------- | ----------- |
+| 8 nodes, `lan`              | 7/7, 70 ms    | 7/7    | 187 ms      | 0/7         |
+| 8 nodes, `ble`              | 7/7, 4.4 s    | 7/7    | 3,254 ms    | 0/7         |
+| 16 nodes, `ble`             | 14/15, 9.2 s  | 14/15  | 2,342 ms    | 0/14        |
+| 24 nodes, `ble`             | 23/23, 14.6 s | 22/23  | —           | **22/22**   |
+| 24 nodes, `ble` + 3 gateway | 23/23, 13.1 s | 23/23  | —           | **23/23**   |
 
-Three things worth keeping:
+Four things worth keeping:
 
-**BLE is not a constant factor, it is a cliff.** At 8 nodes the room still works
-— everything arrives, just 15× slower. At 24 nodes on the same profile the
-message reached **nobody** inside 90 seconds, and two joins failed outright. The
-loopback numbers in `neutrino-scale.md` would have predicted 24 nodes to be
-comfortable; on the transport the venue will actually use, it is past the cliff.
+**BLE is not a constant factor, it is a cliff, and the edge is between 16 and 24
+members.** At 8 and at 16 nodes the room works: everything arrives, roughly 12–17×
+slower than LAN, and 16 is actually _faster_ per-message than 8 (2.3 s vs 3.3 s
+p50 — the fan-out overlaps). At 24 on the same profile the message reached
+**nobody** inside 60 seconds. Re-run after the loss-model fix with all 23 invites
+delivered and 22 nodes joined, so it is a property of the room, not a harness
+artefact. The loopback numbers in `neutrino-scale.md` would have called 24
+comfortable. A conference session room is bigger than 24 people.
+
+**Better links for a few nodes do not fix fan-out.** Giving 3 of the 24 nodes a
+`wifi` profile improved everything about _membership_ — 23/23 invited, 23/23
+joined, 24/24 members visible, versus 22/23 and 23/24 flat — and changed message
+delivery not at all. That is the case for the gateway topology in
+`conference-spindle.md` stated precisely: gateways are worth having because
+traffic is _routed_ through them, not because three nodes have better radios.
+Neutrino fans out peer-to-peer to every member, so the sender still pays 23 slow
+deliveries either way.
 
 **Invite fan-in degrades before message fan-out does.** Inviting 23 peers took
-14 seconds of wall clock on BLE because the host issues them serially and each
-one pays a federation round trip. That is a client-side shape, and it is fixable
-without touching the protocol.
+~15 s of wall clock on BLE because the host issues them serially and each pays a
+federation round trip. That is a client-side shape and is fixable without
+touching the protocol.
 
-**Failures must be recorded, not thrown.** The first gateway run aborted on
+**Failures must be recorded, not thrown.** An early run aborted on
 `M_UNKNOWN: could not reach the invitee's server` — which is not a harness bug,
 it is the result. The runner now counts unreachable invites, undelivered
 invites, failed joins and undelivered messages separately, so a degraded run
@@ -98,10 +113,23 @@ produces a row in the table instead of a stack trace.
 ## Network simulation: two modes, one of them unavailable here
 
 The default is the **userspace proxy** above: unprivileged, portable,
-CI-friendly, and faithful enough for per-link RTT, jitter, loss and a bandwidth
-ceiling. It shapes per chunk with backpressure, so a large federation
-transaction pays the ceiling repeatedly the way it would on a real slow link,
-rather than once.
+CI-friendly, and faithful for per-link RTT, jitter and a bandwidth ceiling. It
+shapes per chunk with backpressure, so a large federation transaction pays the
+ceiling repeatedly the way it would on a real slow link, rather than once.
+
+**Loss is modelled per connection, not per packet, and that is a deliberate
+limit rather than an approximation.** A userspace proxy sits above TCP: by the
+time a chunk reaches it the sender's kernel has already been ACKed, so dropping
+those bytes provokes no retransmit — it strands the stream and the request hangs
+until an outer timeout. The first version of this module did exactly that, and
+on the 2% `ble` profile it stalled roughly one request in fifty and quietly
+poisoned every measurement taken through the link (CI caught it as a timing test
+timing out). Loss is now sampled once, when a connection is opened: the dial
+fails, the peer sees a reset, and its federation retry does what it really
+would. One consequence worth knowing: HTTP keep-alive pools connections, so a
+client that reuses a socket samples the loss far less often than a packet-level
+model would — connection loss is the honest thing this layer can do, not the
+faithful one.
 
 The higher-fidelity mode is **containers with real `tc netem` qdiscs**, which
 models kernel-level queueing, correlated loss and true bandwidth far better than
