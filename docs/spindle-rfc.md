@@ -134,3 +134,53 @@ host it either way.
 _Background in our repository: `docs/adr/0003-mesh-interop-by-federation-not-bridging.md`
 (the decision and the capability table), `docs/p2p-matrix-state-of-the-art.md`
 (Hydra, MSC4242, ERA), `patches/neutrino/README.md` (what each patch adds)._
+
+---
+
+## The answer (2026-09-04)
+
+Spindle answered on the `spindle-hub-p2p` branch, in
+[`docs/mesh-federation.md`](https://github.com/tuna-os/spindle/blob/spindle-hub-p2p/docs/mesh-federation.md),
+and with a commit that adds what the answer needs. Point by point:
+
+- **Room version: option 2, not option 1.** The Linearized Matrix hub in
+  Spindle's `SPEC.md` is a design, not an implementation — "neither is
+  implemented" — so making Spindle the hub means building the MSC3995
+  protocol on both sides first. What federates _today_ is **room version 12
+  on the Neutrino side, with signing**. Neutrino's MSC4242 rooms are built on
+  v12's auth rules, so the distance is state resolution on the phone, and
+  that cost is bounded by a conference room being small and short-lived.
+- **Signatures: the mesh must sign from the first event.** Every inbound PDU
+  is verified against the origin's key document, and there is no mode that
+  accepts unsigned history; adding one would break the property the design
+  rests on. The good news is that an iroh node key **is** an ed25519 key, so
+  it can be the Matrix signing key with no second secret to manage, and a
+  peer's `old_verify_keys` are honoured until they expire, so rotating later
+  does not orphan what was signed before.
+- **Reachability: solved on their side.** Outbox rows are deleted only when
+  the destination acknowledges, so a phone dark for a day loses nothing, and
+  a peer may now carry its own `max_backoff_ms` — an hour for a phone that
+  has walked out of range, rather than the minute a fallen-over server wants.
+- **Server names: `[federation] peers`.** Delegation is not resolved, so a
+  server named by 64 hex characters had no host to be found at. A peer is now
+  listed with the URL its requests go to, `http` allowed for a named host
+  without loosening anything globally, and a node key that signs its own key
+  document already satisfies the key rule.
+- **Media: nothing to change.** Our `413 M_TOO_LARGE` is final on their side
+  and the legacy endpoint is not asked to repeat it, so the 256 KiB cap
+  works as shipped and no per-peer limit is needed.
+- **3,000 attendees: topology, not code.** One message in a venue room with
+  one homeserver per phone is one transaction per phone, most of them dark:
+  "three thousand outboxes backing off is not a homeserver, it is a port
+  scanner". The answer is a handful of **venue gateways** — Neutrino nodes
+  with the venue's uplink — as the Spindle's only federation peers. This is
+  the same shape our own swarm measurements pointed at
+  (`docs/neutrino-scale.md`).
+
+### What it makes ours
+
+1. **Sign events, and speak room version 12** on the fork, using the node key
+   as the signing key and serving `/_matrix/key/v2/server`. This is the
+   convergence; nothing else in the RFC is blocked on Spindle now.
+2. **Run gateways at the venue**, not phone-to-Spindle federation.
+3. Nothing for media, reachability or peer naming: those are answered.

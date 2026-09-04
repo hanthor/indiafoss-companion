@@ -135,6 +135,21 @@ export interface RoomSpec {
 /** `power_level_content_override` for an announcements room. */
 export const ANNOUNCEMENTS_POWER_LEVELS = { events_default: 50 } as const;
 
+/** How many times a join is repeated while the server is still applying state. */
+export const JOIN_RETRIES = 4;
+/** First wait between those repeats; it doubles. */
+const JOIN_RETRY_BASE_MS = 1_000;
+
+/**
+ * The server took the join and is still applying room state (#120): Neutrino
+ * answers `504 M_UNKNOWN` and keeps draining off the request path, so the
+ * membership lands shortly and repeating the join is both safe and the way
+ * to find out. Distinct from a refusal, which must not be retried.
+ */
+export function joinStillProcessing(error: unknown): boolean {
+  return error instanceof MatrixError && error.status === 504;
+}
+
 export interface MatrixSessionOptions {
   fetch?: FetchLike;
   /** Device name shown in the account's session list. */
@@ -143,8 +158,17 @@ export interface MatrixSessionOptions {
   syncTimeoutMs?: number;
   /** Retry backoff ceiling after a failed sync. */
   maxBackoffMs?: number;
+  /**
+   * Window for the random delay before joining a conference room (#120). A
+   * talk starting is a join storm: everyone opens the session room at the
+   * same moment, and simultaneous joins are quadratic work across the mesh
+   * (`docs/neutrino-scale.md`). Default 4 s; tests set 0.
+   */
+  joinStaggerMs?: number;
   now?: () => number;
   sleep?: (ms: number) => Promise<void>;
+  /** Source of randomness for the join stagger; tests pin it. */
+  random?: () => number;
   /** Called after every state change with a fresh snapshot. */
   onChange?: (snapshot: MatrixSnapshot) => void;
   /**
@@ -216,8 +240,10 @@ export class MatrixSessionManager {
       deviceName: options.deviceName ?? 'IndiaFOSS Companion',
       syncTimeoutMs: options.syncTimeoutMs ?? 30_000,
       maxBackoffMs: options.maxBackoffMs ?? 60_000,
+      joinStaggerMs: options.joinStaggerMs ?? 4_000,
       now: options.now ?? (() => Date.now()),
       sleep: options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms))),
+      random: options.random ?? Math.random,
       onChange: options.onChange ?? (() => {}),
       crypto: options.crypto,
       disposeCrypto: options.disposeCrypto,
@@ -802,8 +828,12 @@ export class MatrixSessionManager {
       (r) => r.alias === spec.alias && r.membership === 'join',
     );
     if (known) return known.roomId;
+    // Spread the crowd out before the first attempt: a room everyone opens
+    // when a talk starts is joined by everyone at once otherwise (#120).
+    const stagger = this.opts.joinStaggerMs;
+    if (stagger > 0) await this.opts.sleep(Math.floor(this.opts.random() * stagger));
     try {
-      return await this.joinRoom(spec.alias);
+      return await this.joinWithRetry(spec.alias);
     } catch (error) {
       if (
         !(error instanceof MatrixError) ||
@@ -842,8 +872,25 @@ export class MatrixSessionManager {
     } catch (error) {
       // Someone else created it a moment ago.
       if (error instanceof MatrixError && error.errcode === 'M_ROOM_IN_USE')
-        return this.joinRoom(spec.alias);
+        return this.joinWithRetry(spec.alias);
       throw error;
+    }
+  }
+
+  /**
+   * Join, repeating while the server says it is still applying room state
+   * (#120). A join is idempotent, so a repeat either lands or asks again.
+   */
+  private async joinWithRetry(alias: string): Promise<string> {
+    let wait = JOIN_RETRY_BASE_MS;
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this.joinRoom(alias);
+      } catch (error) {
+        if (attempt >= JOIN_RETRIES || !joinStillProcessing(error)) throw error;
+        await this.opts.sleep(wait);
+        wait *= 2;
+      }
     }
   }
 

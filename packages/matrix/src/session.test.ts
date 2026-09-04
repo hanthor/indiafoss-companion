@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { MatrixSessionManager, MemoryMatrixStore } from './session.js';
+import { MatrixSessionManager, MemoryMatrixStore, JOIN_RETRIES } from './session.js';
 import type { FetchLike } from './http.js';
 import type { SyncResponse } from './types.js';
 
 /** Tiny in-memory homeserver covering the endpoints the manager uses. */
 class FakeHomeserver {
+  /** How many joins answer 504 before one succeeds (#120). */
+  stallJoins = 0;
+  joinAttempts = 0;
   online = true;
   sent: { roomId: string; txnId: string; body: string }[] = [];
   syncQueue: SyncResponse[] = [];
@@ -59,6 +62,12 @@ class FakeHomeserver {
     }
     if (path.startsWith('/_matrix/client/v3/join/')) {
       const alias = decodeURIComponent(path.split('/join/')[1]!);
+      this.joinAttempts += 1;
+      // Neutrino under a join storm: the join was taken, state is still being applied.
+      if (this.stallJoins > 0) {
+        this.stallJoins -= 1;
+        return json({ errcode: 'M_UNKNOWN', error: 'timed out applying room state' }, 504);
+      }
       return json({
         room_id: alias === '#hallway:hs.test' ? '!hallway:hs.test' : '!joined:hs.test',
       });
@@ -237,5 +246,61 @@ describe('MatrixSessionManager', () => {
     expect(store.session).toBeNull();
     expect(store.rooms.size).toBe(0);
     expect(hs.requests.some((r) => r.endsWith('/logout'))).toBe(true);
+  });
+
+  it('spreads conference joins out and retries while the server is still applying state', async () => {
+    const hs = new FakeHomeserver();
+    const waits: number[] = [];
+    const store = new MemoryMatrixStore();
+    const m = new MatrixSessionManager(store, {
+      fetch: hs.fetch,
+      syncTimeoutMs: 0,
+      maxBackoffMs: 10,
+      joinStaggerMs: 4000,
+      random: () => 0.5,
+      sleep: async (ms) => {
+        waits.push(ms);
+      },
+    });
+    await m.signInWithPassword('https://hs.test', 'alice', 'pw');
+    hs.stallJoins = 2;
+
+    const roomId = await m.joinOrCreateRoom({
+      alias: '#hallway:hs.test',
+      name: 'Hallway',
+    });
+    expect(roomId).toBe('!hallway:hs.test');
+    // One stagger inside the window, then a doubling wait per stalled attempt.
+    expect(waits.slice(0, 3)).toEqual([2000, 1000, 2000]);
+    expect(hs.joinAttempts).toBe(3);
+    await m.stop();
+  });
+
+  it('gives up on a join the server keeps stalling, and never on a refusal', async () => {
+    const hs = new FakeHomeserver();
+    const store = new MemoryMatrixStore();
+    const m = new MatrixSessionManager(store, {
+      fetch: hs.fetch,
+      syncTimeoutMs: 0,
+      maxBackoffMs: 10,
+      joinStaggerMs: 0,
+      sleep: async () => {},
+    });
+    await m.signInWithPassword('https://hs.test', 'alice', 'pw');
+
+    hs.stallJoins = 99;
+    await expect(
+      m.joinOrCreateRoom({ alias: '#hallway:hs.test', name: 'Hallway' }),
+    ).rejects.toMatchObject({ status: 504 });
+    // The first attempt plus JOIN_RETRIES repeats, and no more.
+    expect(hs.joinAttempts).toBe(JOIN_RETRIES + 1);
+
+    // A room that is simply not there is created instead of retried.
+    hs.stallJoins = 0;
+    hs.joinAttempts = 0;
+    const created = await m.joinOrCreateRoom({ alias: '#missing:hs.test', name: 'Missing' });
+    expect(created).toBe('!joined:hs.test');
+    expect(hs.joinAttempts).toBe(1);
+    await m.stop();
   });
 });

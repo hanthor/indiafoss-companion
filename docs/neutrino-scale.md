@@ -83,6 +83,26 @@ comes from these numbers.
    turns a slow join into a failed one that the client then has to repeat.
    A retry with backoff on `504` in `joinOrCreateRoom` costs nothing.
 
+## The venue topology, confirmed from the other side
+
+Spindle's answer to our RFC (`docs/spindle-rfc.md`) reaches the same
+conclusion from the server end, and states it more sharply: a homeserver
+fans every event out to every server with a member in the room, so one
+message in a venue room of 3,000 phones is 3,000 transactions, most of them
+to phones that are out of range at that moment. "Three thousand outboxes
+backing off is not a homeserver, it is a port scanner."
+
+So the shape for the conference is **a handful of venue gateways**: three to
+five Neutrino nodes carrying the venue's uplink (a laptop or a small machine
+at the registration desk), which are the conference Spindle's only
+federation peers. Phones federate over the mesh with each other and with the
+gateways; the gateways federate with the Spindle. The Spindle then waits on
+three to five peers it can be patient with, rather than thousands.
+
+That leaves the honest open question exactly where our own measurements put
+it: whether Bluetooth gossip carries 3,000 nodes at all. Nothing in this
+harness answers that, and only a real crowd will.
+
 ## Re-running
 
 ```bash
