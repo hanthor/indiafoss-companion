@@ -27,6 +27,11 @@ mkdir -p "$ARTIFACTS"
 collect() {
   adb logcat -d > "$ARTIFACTS/logcat.txt" 2>&1 || true
   adb exec-out screencap -p > "$ARTIFACTS/final-screen.png" 2>/dev/null || true
+  # The accessibility tree of whatever is on screen when we stop — which,
+  # after a failed flow, is the screen the assertion failed on. Without this
+  # a selector that does not match can only be debugged by guessing at
+  # another one and spending a whole CI run to find out.
+  maestro hierarchy > "$ARTIFACTS/hierarchy.txt" 2>&1 || true
   cp -r ~/.maestro/tests/* "$ARTIFACTS/" 2>/dev/null || true
   find . -maxdepth 1 -name '*.png' -exec cp {} "$ARTIFACTS/" \; 2>/dev/null || true
 }

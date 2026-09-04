@@ -5,15 +5,19 @@
 # route resolved, the data did not — looks fine in a screenshot of the tab
 # bar and is exactly what this catches.
 #
-# Two rules for choosing what to assert on, both learned the hard way:
+# Three rules for the selectors, each learned from a red run:
 #
-#   1. Assert on real text nodes. A placeholder is an attribute on an
-#      <input>, not text, so it never reaches the accessibility tree and
-#      Maestro cannot see it however long it waits.
-#   2. Assert on chrome that is rendered unconditionally, and never on
-#      programme content. A talk title has to be rewritten every time the
-#      bundle is republished, and a conditional heading fails on the day the
-#      condition is false — which is how a suite stops being trusted.
+#   1. Real text nodes only. A placeholder is an attribute on an <input>,
+#      not text, so it never reaches the accessibility tree and no timeout
+#      will make it appear.
+#   2. Unconditional chrome, never programme content. A talk title has to be
+#      rewritten every republish; a conditional heading fails on the day its
+#      condition is false.
+#   3. Wait, and scroll, rather than assert on the instant. `assertVisible`
+#      is true only of what is on screen *now* — it fails both for a screen
+#      still rendering and for content below the fold. `extendedWaitUntil`
+#      covers the first, `scrollUntilVisible` covers both, and on a 2-vCPU
+#      runner rendering is the slow part.
 appId: org.indiafoss.companion
 ---
 - launchApp:
@@ -26,28 +30,38 @@ appId: org.indiafoss.companion
 # The view toggles and the filter disclosure are buttons, always drawn, and
 # they exist nowhere else in the app.
 - tapOn: 'Schedule'
-- assertVisible: 'Filters'
+- extendedWaitUntil:
+    visible: 'Filters'
+    timeout: 30000
 - assertVisible: 'Timeline'
 - takeScreenshot: 02-schedule
 
-# The booth directory entry is a plain link, drawn whether or not the bundle
-# has any tracks to list under it.
+# The booth directory tile is a plain link, drawn whether or not the bundle
+# has any tracks to list beneath it. Scrolled to rather than asserted on,
+# because where it lands depends on how tall the search box above it is.
 - tapOn: 'Explore'
-- assertVisible: 'Booths'
+- scrollUntilVisible:
+    element: 'Booths'
+    direction: DOWN
+    timeout: 30000
 - takeScreenshot: 03-explore
 
 # The map has no heading of its own — it is the floor plan. The legend is
 # static markup beside the zoom controls, so seeing it means FloorPlan
 # mounted with its venue SVG, graph and metadata all loaded.
 - tapOn: 'Map'
-- assertVisible: 'LIVE'
+- extendedWaitUntil:
+    visible: 'LIVE'
+    timeout: 30000
 - assertVisible: 'YOU'
 - takeScreenshot: 04-map
 
+# Without the trailing arrow: the glyph is decoration, and keeping it out of
+# the selector avoids a unicode round-trip through the driver.
 - tapOn: 'Plan'
-  # Without the trailing arrow: the glyph is decoration, and keeping it out
-  # of the selector avoids a unicode round-trip through the driver.
-- assertVisible: 'Rank this day first'
+- extendedWaitUntil:
+    visible: 'Rank this day first'
+    timeout: 30000
 - takeScreenshot: 05-plan
 
 # Now is asserted only by its screenshot: everything it renders depends on
