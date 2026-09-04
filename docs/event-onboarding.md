@@ -17,19 +17,19 @@ capture (fixtures) → normalize → verify → publish → serve
 - **normalize** — the `@indiafoss/sources` FOSS United adapter turns the raw
   fixtures into a canonical `EventBundle` at
   `events/<event>/normalized/event-bundle.json`.
-- **verify** — `just fixture-verify <event>` confirms the bundle parses and
+- **verify** — `just fixture-verify event=<event>` confirms the bundle parses and
   reports counts (activities, people, locations, tracks).
-- **publish** — `just event-publish <event>` writes immutable, hash-addressed
+- **publish** — `just event-publish event=<event>` writes immutable, hash-addressed
   assets and a manifest under `events/<event>/published/`, and syncs the served
   copy into `apps/web/static/`.
 
 ## Commands
 
 ```bash
-just fixture-normalize indiafoss-2026   # raw fixtures -> canonical bundle
-just fixture-verify    indiafoss-2026   # validate the bundle
-just event-sync        indiafoss-2026   # fetch/normalize/diff (fixture or live)
-just event-publish     indiafoss-2026   # publish immutable revision + manifest
+just fixture-normalize event=indiafoss-2026   # raw fixtures -> canonical bundle
+just fixture-verify    event=indiafoss-2026   # validate the bundle
+just event-sync        event=indiafoss-2026   # fetch/normalize/diff (fixture or live)
+just event-publish     event=indiafoss-2026   # publish immutable revision + manifest
 ```
 
 ## Stable identifiers
