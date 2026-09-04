@@ -32,9 +32,22 @@ EXCEPTION` was logged. It needs nothing from the accessibility tree, so it
 | `smoke.yaml`      | the WebView loaded the app shell, not an error page              |
 | `navigation.yaml` | every primary tab reaches a screen that rendered its own content |
 
-Assertions are on headings, placeholders and control labels — never on a
-specific talk. A flow that asserts on programme content has to be rewritten
-every time the bundle is republished, which is how a suite stops being run.
+Two rules govern what a flow may assert on, and both were learned by getting
+them wrong on the first run:
+
+1. **Real text nodes only.** A placeholder is an attribute on an `<input>`,
+   not text, so it never reaches the accessibility tree and Maestro cannot see
+   it however long it waits. `Search sessions…` failed for exactly this
+   reason; `Filters` and `Timeline`, which are a `<summary>` and a `<button>`,
+   work.
+2. **Unconditional chrome, never programme content.** A flow asserting on a
+   talk title has to be rewritten every time the bundle is republished, and
+   one asserting on a conditional heading fails on the day the condition is
+   false. Both are how a suite stops being trusted and then stops being run.
+
+The `Now` screen is therefore asserted by screenshot alone: everything it
+renders depends on what is live at the moment the flow runs, so any content
+assertion there would really be an assertion about the clock.
 
 ### Running it locally
 

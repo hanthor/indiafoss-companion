@@ -1,13 +1,19 @@
-# Every primary tab reaches a screen that rendered something.
+# Every primary tab reaches a screen that rendered its own content.
 #
 # The four questions in the README are four tabs, and each one loads a
 # different slice of the bundle. A tab that renders an empty shell — the
 # route resolved, the data did not — looks fine in a screenshot of the tab
 # bar and is exactly what this catches.
 #
-# Assertions are on headings and controls rather than event content, so the
-# flow survives a bundle change. Anything asserting on a specific talk would
-# have to be rewritten every time the programme is republished.
+# Two rules for choosing what to assert on, both learned the hard way:
+#
+#   1. Assert on real text nodes. A placeholder is an attribute on an
+#      <input>, not text, so it never reaches the accessibility tree and
+#      Maestro cannot see it however long it waits.
+#   2. Assert on chrome that is rendered unconditionally, and never on
+#      programme content. A talk title has to be rewritten every time the
+#      bundle is republished, and a conditional heading fails on the day the
+#      condition is false — which is how a suite stops being trusted.
 appId: org.indiafoss.companion
 ---
 - launchApp:
@@ -17,28 +23,35 @@ appId: org.indiafoss.companion
     visible: 'Now'
     timeout: 60000
 
+# The view toggles and the filter disclosure are buttons, always drawn, and
+# they exist nowhere else in the app.
 - tapOn: 'Schedule'
-- assertVisible: 'Search sessions…'
+- assertVisible: 'Filters'
+- assertVisible: 'Timeline'
 - takeScreenshot: 02-schedule
 
+# The booth directory entry is a plain link, drawn whether or not the bundle
+# has any tracks to list under it.
 - tapOn: 'Explore'
-- assertVisible: 'Try kernel, devroom, a speaker name…'
+- assertVisible: 'Booths'
 - takeScreenshot: 03-explore
 
+# The map has no heading of its own — it is the floor plan. The legend is
+# static markup beside the zoom controls, so seeing it means FloorPlan
+# mounted with its venue SVG, graph and metadata all loaded.
 - tapOn: 'Map'
-# The map has no heading of its own — it is the floor plan. These controls
-# are drawn by FloorPlan once the venue SVG, graph and metadata have all
-# loaded, so seeing them means the whole venue asset set arrived.
-- assertVisible:
-    id: 'Zoom in'
-- assertVisible:
-    id: 'Reset view'
+- assertVisible: 'LIVE'
+- assertVisible: 'YOU'
 - takeScreenshot: 04-map
 
 - tapOn: 'Plan'
-- assertVisible: 'Plan'
+  # Without the trailing arrow: the glyph is decoration, and keeping it out
+  # of the selector avoids a unicode round-trip through the driver.
+- assertVisible: 'Rank this day first'
 - takeScreenshot: 05-plan
 
+# Now is asserted only by its screenshot: everything it renders depends on
+# what is live at the moment the flow runs, so any content assertion here
+# would be a clock-dependent one. The tab bar was proved by smoke.yaml.
 - tapOn: 'Now'
-- assertVisible: 'Now'
 - takeScreenshot: 06-now
