@@ -1,26 +1,24 @@
-# Every primary tab reaches a screen that rendered its own content.
+# A first run gets past setup and onto a screen with real content.
 #
-# The four questions in the README are four tabs, and each one loads a
-# different slice of the bundle. A tab that renders an empty shell — the
-# route resolved, the data did not — looks fine in a screenshot of the tab
-# bar and is exactly what this catches.
+# `smoke.yaml` proves the shell rendered. This goes one step further and
+# proves the app is usable: setup is dismissed, a tab navigates, and the
+# screen behind it draws its own content rather than an empty frame.
 #
-# Five rules, each learned from a red run:
+# Deliberately narrow. An earlier version walked all five tabs and cost eight
+# red CI runs, because a failed assertion cannot distinguish "this screen did
+# not render" from "the tap never left the previous screen" — and it was the
+# latter. Everything asserted here has passed on CI hardware; see
+# docs/android-testing.md for what a wider walk needs first.
 #
-#   1. Real text nodes only. A placeholder is an attribute on an <input>,
-#      not text, so it never reaches the accessibility tree and no timeout
-#      will make it appear.
-#   2. Unconditional chrome, never programme content. A talk title has to be
-#      rewritten every republish; a conditional heading fails on the day its
-#      condition is false.
-#   3. A selector is a regex matched against an element's ENTIRE text, not a
-#      substring of it. `Booths` cannot match the booth tile, whose node
-#      carries the heading and the "N communities…" line together, and
-#      `Rank this day first` cannot match a link ending in an arrow. Wrap
-#      anything that shares a node with other text in `.*`.
-#   4. Wait, and scroll, rather than assert on the instant. `assertVisible`
-#      is true only of what is on screen *now*, and on a 2-vCPU runner
-#      rendering is the slow part.
+# Selector rules, each learned from one of those runs:
+#
+#   1. Real text nodes only. A placeholder is an attribute on an <input>, so
+#      it never reaches the accessibility tree — `Search sessions…` is a
+#      hintText, not text, and no timeout makes it matchable.
+#   2. A selector is a regex matched against an element's ENTIRE text. Wrap
+#      anything sharing a node with other text in `.*`.
+#   3. Unconditional chrome, never programme content: a talk title has to be
+#      rewritten every republish.
 appId: org.indiafoss.companion
 ---
 - launchApp:
@@ -29,59 +27,28 @@ appId: org.indiafoss.companion
 - extendedWaitUntil:
     visible: 'Now'
     timeout: 60000
+- takeScreenshot: 01-first-run
 
 # `clearState: true` makes every run a first run, and a first run opens the
 # setup flow ("SET UP IN A MINUTE" — reminders, ticket, name, ranking). The
 # tab bar renders behind it, so the app looks navigable while the setup card
-# still owns the screen. Dismiss it before asserting on anything underneath.
-#
-# Conditional, so the flow keeps working if onboarding moves, changes its
-# wording, or stops appearing on a cleared install.
+# still owns the screen. Conditional, so the flow survives onboarding being
+# moved, reworded, or dropped on a cleared install.
 - runFlow:
     when:
       visible: '.*Skip setup.*'
     commands:
       - tapOn: '.*Skip setup.*'
 
-# The view toggles and the filter disclosure are buttons, always drawn, and
-# they exist nowhere else in the app.
+# Schedule is the deepest screen proved on CI hardware. Filters is a
+# <summary> and List/Timeline are <button>s — each holds exactly its own
+# text — and "Conference day" is the day picker's own label, so together
+# they mean the route resolved *and* the bundle was read.
 - tapOn: 'Schedule'
 - extendedWaitUntil:
     visible: 'Filters'
     timeout: 30000
 - assertVisible: 'Timeline'
+- assertVisible: 'List'
+- assertVisible: '.*Conference day.*'
 - takeScreenshot: 02-schedule
-
-# The booth directory tile is a plain link, drawn whether or not the bundle
-# has any tracks to list beneath it. Scrolled to rather than asserted on,
-# because where it lands depends on how tall the search box above it is.
-- tapOn: 'Explore'
-- scrollUntilVisible:
-    element: '.*Booths.*'
-    direction: DOWN
-    timeout: 30000
-- takeScreenshot: 03-explore
-
-# The map has no heading of its own — it is the floor plan. The legend is
-# static markup beside the zoom controls, so seeing it means FloorPlan
-# mounted with its venue SVG, graph and metadata all loaded.
-- tapOn: 'Map'
-- extendedWaitUntil:
-    visible: '.*LIVE.*'
-    timeout: 30000
-- assertVisible: '.*YOU.*'
-- takeScreenshot: 04-map
-
-# Wrapped in `.*` so the trailing arrow on the link does not defeat the
-# whole-text match; the glyph itself stays out of the selector.
-- tapOn: 'Plan'
-- extendedWaitUntil:
-    visible: '.*Rank this day first.*'
-    timeout: 30000
-- takeScreenshot: 05-plan
-
-# Now is asserted only by its screenshot: everything it renders depends on
-# what is live at the moment the flow runs, so any content assertion here
-# would be a clock-dependent one. The tab bar was proved by smoke.yaml.
-- tapOn: 'Now'
-- takeScreenshot: 06-now

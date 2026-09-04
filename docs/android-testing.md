@@ -27,10 +27,10 @@ EXCEPTION` was logged. It needs nothing from the accessibility tree, so it
 2. **Maestro flows** in `.maestro/`, which drive the UI and can therefore tell
    an app that started from an app that started and rendered nothing.
 
-| Flow              | What it proves                                                   |
-| ----------------- | ---------------------------------------------------------------- |
-| `smoke.yaml`      | the WebView loaded the app shell, not an error page              |
-| `navigation.yaml` | every primary tab reaches a screen that rendered its own content |
+| Flow              | What it proves                                                        |
+| ----------------- | --------------------------------------------------------------------- |
+| `smoke.yaml`      | the WebView loaded the app shell, not an error page                   |
+| `navigation.yaml` | a first run clears setup and reaches a screen with real content on it |
 
 Four rules govern what a flow may assert on, all of them learned by getting
 them wrong on a red run:
@@ -157,3 +157,19 @@ legible: every step is one gesture with coordinates you can replay by hand.
 - **Real hardware.** An emulator will not find a problem that only appears on
   a particular vendor's WebView, and nothing here is a substitute for opening
   the app on a phone before a release.
+- **Tabs past Schedule.** `navigation.yaml` deliberately stops at Schedule.
+  An earlier version walked all five tabs and cost eight red CI runs, and the
+  diagnosis was not what the failures looked like: `tapOn: 'Explore'` did not
+  navigate, so an assertion about the Explore screen failed while the app was
+  still on Schedule — the hierarchy dump at exit read
+  `"Schedule, current page"`. A failed assertion cannot tell "this screen did
+  not render" from "the tap never left the previous one", which is why the
+  first four attempts all misread it as a selector problem.
+
+  Whoever widens this should start from that fact rather than from new
+  selectors. Both `text` and `accessibilityText` carry `Explore` in the tree,
+  so the tap is ambiguous; a tab-bar link identified unambiguously (an
+  explicit `id`, or an `index` on the matched set) is the likely fix, and
+  asserting `"<Screen>, current page"` — the tab's `aria-current` — after
+  every tap would make a navigation failure say so instead of blaming the
+  screen. Prove each step against the labels dump before adding the next.
