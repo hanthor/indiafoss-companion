@@ -3,6 +3,9 @@ import { CompanionStorage } from '@indiafoss/storage';
 import type { Activity, EventBundle, Track } from '@indiafoss/model';
 import type { RoomPreference } from '@indiafoss/elo';
 import { setTriage, triageOf } from '$lib/prefs.svelte';
+import { isMainRoom } from '$lib/devrooms';
+
+export { isMainRoom };
 
 /**
  * Room (track) preferences asked before ranking (#90): "skip" takes every
@@ -71,9 +74,6 @@ export function roomPreferences(): Record<string, RoomPreference | undefined> {
 }
 
 /** A room counts as a main hall when a keynote happens there. */
-export function isMainRoom(bundle: EventBundle, track: Track): boolean {
-  return bundle.activities.some((a) => a.trackId === track.id && a.type === 'keynote');
-}
 
 /** Rooms worth asking about: those with sessions to rank, main halls first. */
 export function rankableRooms(
