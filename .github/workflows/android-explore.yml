@@ -1,0 +1,123 @@
+# Exploratory UI pass, on demand.
+#
+# Manual only, and never a gate. The run is non-deterministic, it bills a
+# token budget, and `secrets` are not available to pull requests from forks —
+# so wiring it into CI would make the pipeline flaky, expensive, and
+# unreachable for exactly the contributors a fork-friendly project wants.
+# The Maestro flows in ci.yml are the gate; this goes looking for the
+# problems nobody wrote an assertion for.
+name: Android exploration
+
+on:
+  workflow_dispatch:
+    inputs:
+      max_steps:
+        description: 'Maximum agent turns (each turn is one screenshot and one gesture)'
+        required: false
+        default: '25'
+
+concurrency:
+  group: android-explore-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  explore:
+    name: Explore the app with Claude
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for an API key
+        id: key
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "${ANTHROPIC_API_KEY}" ]; then
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::ANTHROPIC_API_KEY is not set; skipping the exploratory pass." \
+              "Add it under Settings → Secrets → Actions to enable this workflow."
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        if: steps.key.outputs.present == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        if: steps.key.outputs.present == 'true'
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        if: steps.key.outputs.present == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build web app
+        if: steps.key.outputs.present == 'true'
+        run: pnpm --filter @indiafoss/web build
+
+      - name: Add Android platform
+        if: steps.key.outputs.present == 'true'
+        run: pnpm --filter @indiafoss/android exec cap add android
+
+      - name: Sync web assets
+        if: steps.key.outputs.present == 'true'
+        run: pnpm --filter @indiafoss/android build
+
+      - name: Assemble debug APK
+        if: steps.key.outputs.present == 'true'
+        run: cd apps/android/capacitor/android && ./gradlew assembleDebug
+
+      - name: Enable KVM
+        if: steps.key.outputs.present == 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Boot the emulator and explore
+        if: steps.key.outputs.present == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          EXPLORER_MAX_STEPS: ${{ inputs.max_steps }}
+        with:
+          api-level: 31
+          target: default
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            adb install -r -g apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk
+            pnpm --filter @indiafoss/android-explorer start
+
+      - name: Publish the report to the job summary
+        if: always() && steps.key.outputs.present == 'true'
+        run: |
+          if [ -f emulator-artifacts/exploration.md ]; then
+            cat emulator-artifacts/exploration.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the report
+        if: always() && steps.key.outputs.present == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-exploration
+          path: emulator-artifacts/
+          if-no-files-found: warn

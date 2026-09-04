@@ -1,0 +1,44 @@
+# Every primary tab reaches a screen that rendered something.
+#
+# The four questions in the README are four tabs, and each one loads a
+# different slice of the bundle. A tab that renders an empty shell — the
+# route resolved, the data did not — looks fine in a screenshot of the tab
+# bar and is exactly what this catches.
+#
+# Assertions are on headings and controls rather than event content, so the
+# flow survives a bundle change. Anything asserting on a specific talk would
+# have to be rewritten every time the programme is republished.
+appId: org.indiafoss.companion
+---
+- launchApp:
+    clearState: true
+
+- extendedWaitUntil:
+    visible: 'Now'
+    timeout: 60000
+
+- tapOn: 'Schedule'
+- assertVisible: 'Search sessions…'
+- takeScreenshot: 02-schedule
+
+- tapOn: 'Explore'
+- assertVisible: 'Try kernel, devroom, a speaker name…'
+- takeScreenshot: 03-explore
+
+- tapOn: 'Map'
+# The map has no heading of its own — it is the floor plan. These controls
+# are drawn by FloorPlan once the venue SVG, graph and metadata have all
+# loaded, so seeing them means the whole venue asset set arrived.
+- assertVisible:
+    id: 'Zoom in'
+- assertVisible:
+    id: 'Reset view'
+- takeScreenshot: 04-map
+
+- tapOn: 'Plan'
+- assertVisible: 'Plan'
+- takeScreenshot: 05-plan
+
+- tapOn: 'Now'
+- assertVisible: 'Now'
+- takeScreenshot: 06-now
