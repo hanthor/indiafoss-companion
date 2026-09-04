@@ -1,13 +1,13 @@
 {
   "ref": "v0.8.2",
-  "version": "0.8.2-e2ee.599e3eb",
+  "version": "0.8.2-e2ee.b076256",
   "commit": "65e4985181e7bce3af06a0cd7cebcabc13b3ff0b",
   "source": "https://github.com/element-hq/neutrino-iroh",
   "license": "AGPL-3.0-only",
   "neutrino": {
     "repo": "hanthor/neutrino",
     "branch": "e2ee-key-transport",
-    "rev": "599e3eb195109c5377ba858aa7031c4a67617c0f",
+    "rev": "b07625668d563233a8ffe53db12bd755cbeb0e6a",
     "base": "element-hq/neutrino@v0.7.1 (90bc1b1), the commit neutrino-iroh v0.8.2 pins",
     "patches": "patches/neutrino/"
   }
