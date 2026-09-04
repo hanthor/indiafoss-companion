@@ -144,7 +144,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val planEdits = PlanEditsStore(app)
     private val venue = VenueRepository(app)
     private val floors: List<Floor> = FloorPlans.load(app)
-    private val _state = MutableStateFlow(UiState(now = nowIso(), walkSecondsTo = { null }))
+    // nowIso() reads _state.value to check for an active simulation — not yet
+    // assigned while computing _state's own initial value, and there is no
+    // simulation to be mid-way through before the ViewModel exists anyway.
+    private val _state = MutableStateFlow(UiState(now = IsoClock.now(), walkSecondsTo = { null }))
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     init {
