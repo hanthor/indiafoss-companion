@@ -32,12 +32,15 @@ collect() {
   # a selector that does not match can only be debugged by guessing at
   # another one and spending a whole CI run to find out.
   maestro hierarchy > "$ARTIFACTS/hierarchy.txt" 2>&1 || true
-  # Also into the job log. The artifact is the complete record, but reading it
-  # means downloading a zip, and whoever is looking at a red run is looking at
-  # the log. The head is enough to see what the driver could match on.
+  # Also into the job log, because reading the artifact means downloading a
+  # zip and whoever is looking at a red run is looking at the log. Not the
+  # raw tree though: it is verbose enough that 300 lines of it was entirely
+  # the system status bar. Every non-empty label instead, which is precisely
+  # the set a selector can match against.
   if [ -s "$ARTIFACTS/hierarchy.txt" ]; then
-    echo "::group::Accessibility tree at exit (first 300 lines)"
-    head -300 "$ARTIFACTS/hierarchy.txt"
+    echo "::group::Selectable labels on screen at exit"
+    grep -oE '"(text|accessibilityText|hintText)" : "[^"]+"' "$ARTIFACTS/hierarchy.txt" \
+      | sort -u || echo "(none found — the tree may not have been captured)"
     echo "::endgroup::"
   fi
   cp -r ~/.maestro/tests/* "$ARTIFACTS/" 2>/dev/null || true
