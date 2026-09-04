@@ -137,8 +137,38 @@
   box-sizing: border-box;
 }
 
+/* --- Native feel in the Android WebView ----------------------------------
+   Without these, a WebView reads as a website: long-press selects text and
+   pops the OS callout menu, taps flash a grey highlight, scroll edges
+   rubber-band, images offer a drag-to-save handle. None of that happens in
+   a native app, so none of it should happen here. Form fields are the one
+   thing that must stay selectable — that is normal text-editing, not the
+   "this is a webpage" tell the rest of this fixes. */
+*,
+*::before,
+*::after {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable='true'] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+img,
+svg {
+  -webkit-user-drag: none;
+}
+
 html,
 body {
+  touch-action: manipulation;
+  overscroll-behavior: none;
   font-family: var(--font-body);
   background-color: var(--paper);
   color: var(--text);
