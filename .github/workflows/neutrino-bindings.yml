@@ -32,7 +32,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/neutrino-bindings.yml'
-      - 'apps/android/capacitor/neutrino/version.json'
+      - 'patches/neutrino/version.json'
 
 permissions:
   contents: write
@@ -51,7 +51,7 @@ jobs:
       - name: Read the pinned versions
         id: pin
         run: |
-          pin=./apps/android/capacitor/neutrino/version.json
+          pin=./patches/neutrino/version.json
           ref="${{ inputs.ref }}"
           if [ -z "$ref" ]; then
             ref=$(node -p "require('$pin').ref")

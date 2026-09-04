@@ -2,7 +2,7 @@ name: Neutrino Complement
 
 # Runs matrix-org/complement — the Matrix conformance suite — against the
 # Neutrino we ship: our fork, at the rev pinned in
-# apps/android/capacitor/neutrino/version.json. The fork's own CI runs the same
+# patches/neutrino/version.json. The fork's own CI runs the same
 # thing on every push to it; this job pins the companion to a result, so a
 # bump of the pin that regresses a spec behaviour is caught here, on the PR
 # that bumps it, rather than found on a phone.
@@ -25,7 +25,7 @@ on:
   pull_request:
     paths:
       - 'patches/neutrino/**'
-      - 'apps/android/capacitor/neutrino/version.json'
+      - 'patches/neutrino/version.json'
       - '.github/workflows/neutrino-complement.yml'
 
 permissions:
@@ -45,7 +45,7 @@ jobs:
       - name: Decide which Neutrino to test
         id: which
         run: |
-          pin=./apps/android/capacitor/neutrino/version.json
+          pin=./patches/neutrino/version.json
           repo="${{ inputs.repo }}"; ref="${{ inputs.ref }}"
           [ -n "$repo" ] || repo=$(node -p "require('$pin').neutrino.repo")
           [ -n "$ref" ] || ref=$(node -p "require('$pin').neutrino.rev")

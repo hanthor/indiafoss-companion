@@ -1,11 +1,13 @@
 # Testing the Android app
 
-CI built two APKs for a long time and launched neither. Gradle assembling
-successfully says the code compiles and the resources link; it says nothing
-about whether the app comes up. For a Capacitor shell that gap is wide — the
-web assets are copied in at build time, and a wrong base path or a missing
-asset produces an APK that installs, starts, and renders a blank WebView.
-Every check stays green.
+CI built the native Compose app for a long time and never launched it on a
+device — only Robolectric screenshots on the JVM. Gradle assembling
+successfully and every screen rendering under Robolectric says the code
+compiles and each screen draws in isolation; it says nothing about whether
+the Activity survives a real launch, or whether tapping a tab actually
+navigates. `CompanionViewModel` crashed on every real-device launch for
+exactly this reason — its constructor read its own `MutableStateFlow` before
+assignment — and nothing in the build or the screenshot tests caught it.
 
 So there are now two layers on an emulator, and they exist for different
 reasons.
@@ -13,77 +15,60 @@ reasons.
 ## The gate: Maestro on an emulator
 
 Runs on every push and pull request, as the **Android emulator (Maestro)** job
-in `ci.yml`. It reuses the debug APK the `Android build` job already uploaded,
-so the cost is an emulator boot rather than a second Gradle run.
+in `ci.yml`. It reuses the debug APK the `Native Compose client` job already
+uploaded, so the cost is an emulator boot rather than a second Gradle run.
 
 The job does two things, in order, because they fail differently:
 
 1. **A launch gate driven by `adb` alone** (`.github/scripts/android-emulator-test.sh`).
    Install, start, wait, then check the process is alive and no `FATAL
 EXCEPTION` was logged. It needs nothing from the accessibility tree, so it
-   stays true regardless of how the UI is built, and it catches the regression
-   that matters most. Running it first means a crash-on-launch is reported as
-   a crash on launch rather than as a handful of confusing selector timeouts.
+   stays true regardless of how a screen is built, and it catches the
+   regression that matters most. Running it first means a crash-on-launch is
+   reported as a crash on launch rather than as a handful of confusing
+   selector timeouts.
 2. **Maestro flows** in `.maestro/`, which drive the UI and can therefore tell
    an app that started from an app that started and rendered nothing.
 
-| Flow              | What it proves                                                        |
-| ----------------- | --------------------------------------------------------------------- |
-| `smoke.yaml`      | the WebView loaded the app shell, not an error page                   |
-| `navigation.yaml` | a first run clears setup and reaches a screen with real content on it |
+| Flow              | What it proves                                                      |
+| ----------------- | ------------------------------------------------------------------- |
+| `smoke.yaml`      | the Activity resumed and drew the welcome screen, not a blank frame |
+| `navigation.yaml` | a first run clears setup and two different tabs draw real content   |
 
-Four rules govern what a flow may assert on, all of them learned by getting
-them wrong on a red run:
-
-1. **Real text nodes only.** A placeholder is an attribute on an `<input>`,
-   not text, so it never reaches the accessibility tree and Maestro cannot see
-   it however long it waits. `Search sessions…` failed for exactly this
-   reason; `Filters` and `Timeline`, which are a `<summary>` and a `<button>`,
-   work.
-2. **Unconditional chrome, never programme content.** A flow asserting on a
-   talk title has to be rewritten every time the bundle is republished, and
-   one asserting on a conditional heading fails on the day the condition is
-   false. Both are how a suite stops being trusted and then stops being run.
-3. **A selector is a regex matched against an element's _entire_ text**, not
-   a substring of it. `Booths` does not match the booth tile, because that
-   node carries the heading and its "N communities…" line together;
-   `.*Booths.*` does. The same trap catches any label with a trailing glyph —
-   `Rank this day first` cannot match a link that ends in an arrow. When in
-   doubt, wrap the selector in `.*`.
-
-4. **`clearState: true` means every run is a first run**, and a first run
-   opens the setup flow — "SET UP IN A MINUTE", reminders, ticket, name,
-   ranking. The tab bar renders _behind_ it, so the app looks navigable in
-   the hierarchy while the setup card still owns the screen. `navigation.yaml`
-   dismisses it with a conditional `runFlow` on `Skip setup` before asserting
-   on anything underneath. This one cost four red runs: every failure looked
-   like a bad selector, because the element really was absent — the screen it
-   belonged to was never reached.
-
-The `Now` screen is therefore asserted by screenshot alone: everything it
-renders depends on what is live at the moment the flow runs, so any content
-assertion there would really be an assertion about the clock.
-
-`smoke.yaml` deliberately does _not_ dismiss setup. It asserts only that the
-shell rendered, which is true with the setup card on top, and keeping it free
-of onboarding steps means it stays a check on the WebView rather than a check
-on the onboarding copy.
+The same selector rules the retired Capacitor flows learned still apply —
+real text nodes only, a selector is a regex matched against an element's
+_entire_ text, never assert on programme content (a talk title, a devroom
+name) since it is rewritten on every republish. One thing changed for the
+better moving to Compose: the old WebView tab bar exposed the same label as
+both `text` and `accessibilityText` on nested nodes, which made a tap
+ambiguous and cost eight red CI runs to diagnose (see git history on this
+file if you need the full story). A real device's accessibility dump of the
+native tab bar shows each tab as one unambiguous text node — `Now`,
+`Schedule`, `My plan`, `Map`, `Explore` — so no index disambiguation has been
+needed here yet. If a future flow hits the "tap did not navigate" failure
+mode, dump the real tree (`adb shell uiautomator dump` needs no Maestro
+install) before guessing at a new selector.
 
 ### Running it locally
 
-You need an emulator or a device, and the app installed.
+You need an emulator or a real device connected over `adb`, and the app
+installed — Maestro does not care which:
 
 ```bash
-curl -Ls "https://get.maestro.mobile.dev" | bash   # once
-pnpm --filter @indiafoss/web build
-pnpm --filter @indiafoss/android build
-cd apps/android/capacitor/android && ./gradlew installDebug && cd -
+curl -Ls "https://get.maestro.mobile.dev" | bash   # once, needs a JVM
+cd apps/android/native && ./gradlew :app:installDebug && cd -
 maestro test .maestro/
 ```
 
+Against a specific device when more than one is connected:
+
+```bash
+maestro --device <serial> test .maestro/
+```
+
 `maestro studio` is the fastest way to write a new flow: it shows the view
-hierarchy the flows select against, which is also how you check whether a
-WebView element is visible to the driver at all.
+hierarchy the flows select against, which is also how you check whether an
+element is visible to the driver at all.
 
 ### The things that make this work on free runners
 
@@ -91,9 +76,8 @@ WebView element is visible to the driver at all.
   to software rendering and the job times out instead of failing with
   something readable. This is the single most common reason an emulator job
   "hangs" on a hosted runner.
-- **API 31, `default` target, x86_64.** API 33+ images want more RAM than a
-  standard runner comfortably has. The `default` (AOSP) image is lighter than
-  `google_apis` and still ships a WebView new enough for Capacitor.
+- **API 31, `default` target, x86_64.** The `default` (AOSP) image is lighter
+  than `google_apis` and boots faster on a standard runner.
 - **A cached AVD.** Created once and restored on later runs, which removes
   most of the boot cost.
 - **No window, no audio, no boot animation.** Nothing is watching.
@@ -144,32 +128,32 @@ pnpm --filter @indiafoss/android-explorer start
 space is four gestures plus two bookkeeping calls, which keeps the transcript
 legible: every step is one gesture with coordinates you can replay by hand.
 
+## Testing on real hardware
+
+An emulator will not find a problem that only appears on a particular
+vendor's OS build, and nothing here is a substitute for opening the app on a
+phone before a release. Both layers above run unchanged against a real
+device — connect it, confirm `adb devices` sees it, then either run
+`android-emulator-test.sh`'s steps by hand or `maestro test .maestro/`
+directly (see "Running it locally" above). Real hardware is also the only
+place BLE mesh chat can be exercised at all — see the dedicated
+`hanthor/indiafoss-chat-android` repository for that app's own test setup;
+this app carries no P2P chat code (ADR 0004).
+
 ## What is still not covered
 
-- **The native Compose client** (`apps/android/native`) has Robolectric
-  screenshot tests and builds in CI, but nothing launches it on a device
-  either. The same emulator job could run against `native-apk` with its own
-  flows; its `applicationId` is `org.indiafoss.companion.nativeapp`.
-- **The P2P variant.** CI builds the plain companion; the mesh needs a second
-  device and BLE hardware, which no hosted runner has. See
-  [neutrino-capabilities.md](./neutrino-capabilities.md) for what is measured
-  instead.
-- **Real hardware.** An emulator will not find a problem that only appears on
-  a particular vendor's WebView, and nothing here is a substitute for opening
-  the app on a phone before a release.
-- **Tabs past Schedule.** `navigation.yaml` deliberately stops at Schedule.
-  An earlier version walked all five tabs and cost eight red CI runs, and the
-  diagnosis was not what the failures looked like: `tapOn: 'Explore'` did not
-  navigate, so an assertion about the Explore screen failed while the app was
-  still on Schedule — the hierarchy dump at exit read
-  `"Schedule, current page"`. A failed assertion cannot tell "this screen did
-  not render" from "the tap never left the previous one", which is why the
-  first four attempts all misread it as a selector problem.
-
-  Whoever widens this should start from that fact rather than from new
-  selectors. Both `text` and `accessibilityText` carry `Explore` in the tree,
-  so the tap is ambiguous; a tab-bar link identified unambiguously (an
-  explicit `id`, or an `index` on the matched set) is the likely fix, and
-  asserting `"<Screen>, current page"` — the tab's `aria-current` — after
-  every tap would make a navigation failure say so instead of blaming the
-  screen. Prove each step against the labels dump before adding the next.
+- **The manual test checklist** ([docs/manual-test-checklist.md](./manual-test-checklist.md))
+  lists every feature area, deterministic or not — ranking, connect/scan,
+  notifications, map, settings, accessibility, device compatibility. Only a
+  fraction of it is codified as a Maestro flow yet; most of it still needs a
+  human on a real phone before a release.
+- **Native parity leftovers.** Custom plan blocks, contact import/profile-fill,
+  the schedule-update banner, speaker avatars — tracked in
+  [#110](https://github.com/hanthor/indiafoss-companion/issues/110). None of
+  these have a flow yet because the screen they'd test doesn't exist yet.
+- **Screens past My plan.** `navigation.yaml` stops at two tabs deep. Widening
+  it should reuse the same tap → `extendedWaitUntil` → screen-specific-chrome
+  pattern already proven for Now, Schedule and My plan, verified against a
+  real device's accessibility dump before being added — that verification is
+  what made this rewrite's flows pass without a single red run, unlike the
+  original suite's first attempt.

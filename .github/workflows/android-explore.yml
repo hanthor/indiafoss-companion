@@ -65,21 +65,12 @@ jobs:
         if: steps.key.outputs.present == 'true'
         run: pnpm install --frozen-lockfile
 
-      - name: Build web app
+      - uses: gradle/actions/setup-gradle@v4
         if: steps.key.outputs.present == 'true'
-        run: pnpm --filter @indiafoss/web build
-
-      - name: Add Android platform
-        if: steps.key.outputs.present == 'true'
-        run: pnpm --filter @indiafoss/android exec cap add android
-
-      - name: Sync web assets
-        if: steps.key.outputs.present == 'true'
-        run: pnpm --filter @indiafoss/android build
 
       - name: Assemble debug APK
         if: steps.key.outputs.present == 'true'
-        run: cd apps/android/capacitor/android && ./gradlew assembleDebug
+        run: cd apps/android/native && ./gradlew :app:assembleDebug
 
       - name: Enable KVM
         if: steps.key.outputs.present == 'true'
@@ -104,7 +95,7 @@ jobs:
           emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           disable-animations: true
           script: |
-            adb install -r -g apps/android/capacitor/android/app/build/outputs/apk/debug/app-debug.apk
+            adb install -r -g apps/android/native/app/build/outputs/apk/debug/app-debug.apk
             pnpm --filter @indiafoss/android-explorer start
 
       - name: Publish the report to the job summary

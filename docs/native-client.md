@@ -1,12 +1,11 @@
 # Native Compose client
 
 `apps/android/native` is a standalone Jetpack Compose / Material 3 Android app
-that reads the same published `EventBundle` as the web client. Since
-2026-09-03 it is the Android app being built towards release: the owner's
-direction is a fully native-feeling Compose app, and the Capacitor build in
-`apps/android/capacitor` stays only until this one reaches parity (see
-[ADR 0002](adr/0002-native-compose-client-rendered-natively.md) and the
-roadmap's decisions log).
+that reads the same published `EventBundle` as the web client. It is **the**
+Android app — the Capacitor build was retired in
+[ADR 0004](adr/0004-retire-the-capacitor-shell.md); see also
+[ADR 0002](adr/0002-native-compose-client-rendered-natively.md) for why the
+client renders natively rather than embedding a WebView.
 
 ## Screens
 
@@ -102,4 +101,4 @@ id — the same ids the web client uses.
 Android 12+, so the app takes the user's wallpaper palette. Below that it falls
 back to a scheme seeded from mint (`#0fb556`). Typography is stock M3. There is
 deliberately no IndiaFOSS wordmark, pixel font or brand chrome here — that is
-the Capacitor app's identity, not this one's.
+the PWA's identity, not this one's.

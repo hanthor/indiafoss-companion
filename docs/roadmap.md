@@ -65,6 +65,17 @@ alignment, #3 CI packages token, #4 fork roadmap.
 
 ## Decisions log
 
+- 2026-09-04: **Three apps, not four; the Capacitor shell is retired.** PWA
+  (Web/iOS), native Compose (Android), P2P chat as its own dedicated app
+  (`hanthor/indiafoss-chat-android`), carrying everything from the
+  `hanthor/neutrino` fork. Supersedes 2026-09-03's "Capacitor keeps shipping
+  until [native reaches] parity" and 2026-09-02's "one Android app, companion
+  first" choice of the Capacitor build for in-app P2P chat — chat is not
+  embedded in either remaining companion app. See
+  [ADR 0004](adr/0004-retire-the-capacitor-shell.md). The companion apps keep
+  deep-linking to chat rooms (handoff, not embedding, per ADR 0001) and gain
+  livestream support as a new surface — both tracked as follow-up work, not
+  done in the same change as the retirement itself.
 - 2026-09-03: **The Android app is the native Compose app.** Owner's
   direction: Material, Jetpack Compose, fully native feeling. `apps/android/native`
   is built out towards parity screen by screen (Rank, Plan itinerary,

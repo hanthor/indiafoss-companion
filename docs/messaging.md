@@ -1,5 +1,15 @@
 # Optional Matrix messaging
 
+> **Superseded 2026-09-04** ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)):
+> chat is no longer embedded in this repo's apps at all. It lives entirely in
+> the dedicated `hanthor/indiafoss-chat-android` app; the companion apps only
+> deep-link to it (handoff, per ADR 0001), and gain livestream support as a
+> new surface. This document still describes the embedded-chat architecture
+> that shipped in the (now-retired) Capacitor build; it has not yet been
+> rewritten for the handoff-only model — treat the model and the Capacitor
+> specifics below as historical, everything else (room aliases, Q&A, the
+> mesh protocol itself) as still accurate for the dedicated chat app.
+
 ## The model (decided 2026-09-02)
 
 - **In-app chat is peer-to-peer only.** The Android app embeds a Neutrino
@@ -342,12 +352,14 @@ No credentials, by design.
 
 1. **Publish the bindings once per pin.** Run the **Neutrino bindings** workflow
    (`workflow_dispatch`). It checks out `element-hq/neutrino-iroh` at the tag in
-   `apps/android/capacitor/neutrino/version.json`, builds the `.aar` from source
+   `patches/neutrino/version.json`, builds the `.aar` from source
    with the Rust toolchain, NDK r27c and `cargo-ndk`, and attaches it — with a
    SHA-256 — to a `neutrino-bindings-<version>` release. GitHub serves release
    assets anonymously, which is the whole point.
-2. **Fetch it.** `pnpm --filter @indiafoss/android neutrino` downloads that
-   asset into `neutrino/libs/` and verifies the checksum before writing it.
+2. **Fetch it.** This step described the retired Capacitor build's own fetch
+   script; the current consumer is `hanthor/indiafoss-chat-android`'s
+   `services/neutrino/impl/build.gradle.kts`, which downloads and
+   sha256-verifies the same release asset as a Gradle task.
 3. **Build.** `pnpm --filter @indiafoss/android build` sees the `.aar` and
    compiles the plugin in; with no `.aar` it patches the plain companion exactly
    as before. Nothing about the fallback changed — only what decides it.

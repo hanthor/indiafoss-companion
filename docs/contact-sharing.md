@@ -202,7 +202,7 @@ Every scan path has a no-camera equivalent:
   `indiafoss://location/<id>` / `?at=<id>` via `locationIdFromDeepLink`
   (`apps/web/src/lib/location.svelte.ts`), so a scanned or shared link resolves
   to the same current-location state.
-- **Android custom-scheme deep links:** the Capacitor wrapper can register the
+- **Android custom-scheme deep links:** the native app registers the
   `indiafoss` scheme so an OS-level scan of `indiafoss://location/<id>` opens
   the app on the location. Contact vCards are handled in-app rather than via a
   custom scheme, because `.vcf` is already a first-class OS import type — an
@@ -288,10 +288,12 @@ captured profile page; nothing about you is sent anywhere, the page is only
 read.
 
 `fossunited.org` sends `Access-Control-Allow-Origin: https://fossunited.org`,
-so a browser cannot read the page from the companion's origin. The Android app
-fetches it through `CapacitorHttp`, which performs the request natively and is
-not subject to that rule. On the web the import is attempted anyway and, when
-the browser blocks it, the UI says so and the fields stay manual.
+so a browser cannot read the page from the companion's origin, and the import
+is attempted anyway and, when the browser blocks it, the UI says so and the
+fields stay manual. The retired Capacitor build used to bypass this with a
+native HTTP fetch; the native Compose app doesn't have profile import at all
+yet ([#110](https://github.com/hanthor/indiafoss-companion/issues/110)), so
+for now this only ever works on the web.
 
 ## Handles or URLs, and Prav
 

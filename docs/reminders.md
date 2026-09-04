@@ -1,9 +1,10 @@
 # Reminders and must-attend
 
 Reminders are local notifications (§37): the Notification API and timers on
-the web, `@capacitor/local-notifications` alarms on Android. Nothing leaves
-the device and there is no push service. They are off until the attendee
-switches them on in Settings.
+the web, native `AlarmManager` scheduling
+(`apps/android/native/app/src/main/kotlin/org/indiafoss/companion/reminders/`)
+on Android. Nothing leaves the device and there is no push service. They are
+off until the attendee switches them on in Settings.
 
 ## Tiers
 

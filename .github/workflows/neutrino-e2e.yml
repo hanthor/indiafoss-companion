@@ -1,7 +1,7 @@
 name: Neutrino e2e
 
 # Builds the Neutrino homeserver we actually ship — our fork, at the rev pinned
-# in apps/android/capacitor/neutrino/version.json — and runs the companion's
+# in patches/neutrino/version.json — and runs the companion's
 # chat contracts against it, including the two-node proofs: an encrypted
 # message from one of our client sessions decrypting on the other node, and
 # the same after node B is killed and restarted.
@@ -31,7 +31,7 @@ on:
       - 'packages/matrix/**'
       - 'patches/neutrino/**'
       - 'tools/neutrino-probe/**'
-      - 'apps/android/capacitor/neutrino/version.json'
+      - 'patches/neutrino/version.json'
       - '.github/workflows/neutrino-e2e.yml'
   schedule:
     # Mondays, 06:00 UTC — the stock upstream run.
@@ -54,7 +54,7 @@ jobs:
       - name: Decide which Neutrino to build
         id: which
         run: |
-          pin=./apps/android/capacitor/neutrino/version.json
+          pin=./patches/neutrino/version.json
           if [ "${{ github.event_name }}" = "schedule" ]; then
             # Weekly: stock upstream main, tripwires armed.
             echo "repo=element-hq/neutrino" >> "$GITHUB_OUTPUT"

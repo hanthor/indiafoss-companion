@@ -1,29 +1,25 @@
-# Does the packaged app actually come up?
+# Does the packaged native app actually come up?
 #
-# CI builds two APKs and, until this flow existed, launched neither. The
-# failure this catches is the one a build-only pipeline cannot see: the
-# Capacitor shell installs and starts, but the WebView renders nothing —
-# a bad base path, a missing asset, a service worker that swallowed the
-# navigation. Gradle is perfectly happy either way.
+# Gradle assembling successfully says the code compiles; it says nothing
+# about whether the Activity actually resumes. The regression this catches
+# is a crash on first launch — CompanionViewModel's constructor did exactly
+# this once (it read its own MutableStateFlow before assignment) and nothing
+# in the build caught it.
 #
-# So the assertions are about the shell being *rendered*, not about any
-# particular screen's content. Anything richer belongs in navigation.yaml.
-appId: org.indiafoss.companion
+# Unlike the retired Capacitor shell, the first screen here is the welcome
+# card itself, not a tab bar with the card layered on top — a clean install
+# has no bundle downloaded yet for the tab screens to render. So the
+# assertion is about the welcome screen rendering, not the tab bar.
+appId: org.indiafoss.companion.nativeapp
 ---
 - launchApp:
     clearState: true
 
-# The tab bar lives in the root layout, so it is the first thing that proves
-# the WebView loaded the app rather than an error page. The event bundle is
-# fetched before the shell paints, hence the generous timeout: a cold start
-# on a 2-vCPU runner is slower than any phone.
 - extendedWaitUntil:
-    visible: 'Now'
+    visible: 'Welcome'
     timeout: 60000
 
-- assertVisible: 'Plan'
-- assertVisible: 'Schedule'
-- assertVisible: 'Map'
-- assertVisible: 'Explore'
+- assertVisible: 'SET UP IN A MINUTE'
+- assertVisible: '.*Skip setup.*'
 
 - takeScreenshot: 01-launched

@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Replaces the Capacitor template file of the same name (adaptive icon backdrop). -->
-<resources>
-    <color name="ic_launcher_background">#18222A</color>
-</resources>
