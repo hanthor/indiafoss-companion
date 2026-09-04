@@ -40,7 +40,7 @@ jobs:
     name: Complement allowlist against the pinned fork
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Decide which Neutrino to test
         id: which
@@ -54,7 +54,7 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
       - name: Check out neutrino
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ steps.which.outputs.repo }}
           ref: ${{ steps.which.outputs.ref }}
