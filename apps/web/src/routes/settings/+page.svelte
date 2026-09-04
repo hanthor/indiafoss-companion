@@ -1,8 +1,5 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import { features, hydrateFeatures, setChatEnabled } from '$lib/features.svelte';
-  import { getMatrix } from '$lib/matrix.svelte';
-  import { stopMeshNode } from '$lib/neutrino';
   import { notificationsEnabled, setNotificationsEnabled } from '$lib/notifications.svelte';
   import { goto } from '$app/navigation';
   import { formatDayLabel, getEventDays } from '@indiafoss/schedule';
@@ -18,7 +15,6 @@
   } from '$lib/simulator.svelte';
 
   $effect(() => {
-    void hydrateFeatures();
     hydrateSimulator();
     void loadEvent();
   });
@@ -41,22 +37,11 @@
     await goto(resolve('/now'));
   }
 
-  async function toggleChat(on: boolean) {
-    await setChatEnabled(on);
-    if (!on) {
-      // Switching off tears everything down: session, sync loop and the mesh node.
-      await getMatrix()
-        .signOut()
-        .catch(() => {});
-      await stopMeshNode();
-    }
-  }
-
   const privacyRules = [
     'No account is required for the conference app.',
     'Schedule, ranking, itinerary, notes, and contacts stay on this device.',
     'Email and phone are never included in contact sharing by default.',
-    'Peer-to-peer chat is optional and off until you switch it on; it never signs in to a public Matrix account.',
+    'Chat is never embedded here: session, booth and contact chats hand off to your own Matrix app (Element, or the dedicated IndiaFOSS chat app) via matrix.to links.',
     'Scanned Matrix or mesh identities are shown as unverified until checked in person or in a Matrix client.',
   ];
 </script>
@@ -70,30 +55,6 @@
       Use your FOSS United profile as your public identity and choose fields locally.
     </p>
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
-  </section>
-  <section class="card">
-    <h2>Peer-to-peer chat</h2>
-    <p class="muted">
-      Optional. Session chats and direct messages with nearby attendees over Bluetooth and Wi-Fi
-      mesh from the Android app, without venue internet. Nothing runs until you switch it on.
-    </p>
-    <label class="switch">
-      <input
-        type="checkbox"
-        role="switch"
-        checked={features.chat}
-        disabled={!features.loaded}
-        onchange={(e) => void toggleChat(e.currentTarget.checked)}
-      />
-      <span>Enable P2P chat</span>
-    </label>
-    {#if features.chat}
-      <a class="button" href={resolve('/chat')}>Open chat →</a>
-    {/if}
-    <p class="muted small">
-      Public Matrix accounts are not used inside the app. Contact cards carry Matrix ids so you can
-      continue a conversation in Element when you want to.
-    </p>
   </section>
   <section class="card">
     <h2>Reminders</h2>

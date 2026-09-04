@@ -20,7 +20,7 @@
   } from '$lib/location.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
-  import { conferenceChatQuery } from '$lib/matrix.svelte';
+  import { sessionRoomLink } from '$lib/element-links';
 
   const clock = clockFromParams(
     page.url.searchParams.get('now'),
@@ -103,6 +103,7 @@
         <p class="muted">Between sessions — take a break or explore the map.</p>
       {:else}
         {#each nowState!.current as activity (activity.id)}
+          {@const room = sessionRoomLink(bundle, activity.id, activity.locationId, activity.title)}
           <div class="session">
             <div class="row">
               <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
@@ -110,17 +111,18 @@
             </div>
             <p class="muted">
               {locationName(activity)}
-              {#if conferenceChatQuery(bundle, 'session', activity.id, activity.title)}
-                · <a
-                  href={resolve(
-                    `/chat?${conferenceChatQuery(
-                      bundle,
-                      'session',
-                      activity.id,
-                      `Chat: ${activity.title}`,
-                    )}`,
-                  )}>💬 chat</a
+              {#if room}
+                <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
+                ·
+                <a href={room.href} target="_blank" rel="noreferrer" title={room.alias}>💬 chat ↗</a
                 >
+                <!-- eslint-enable svelte/no-navigation-without-resolve -->
+              {/if}
+              {#if activity.livestreamUrl}
+                <!-- eslint-disable svelte/no-navigation-without-resolve -- external stream link -->
+                ·
+                <a href={activity.livestreamUrl} target="_blank" rel="noreferrer">▶ watch live ↗</a>
+                <!-- eslint-enable svelte/no-navigation-without-resolve -->
               {/if}
             </p>
             <div

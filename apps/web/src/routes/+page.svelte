@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { features } from '$lib/features.svelte';
   import { base, resolve } from '$app/paths';
   import { formatDayLabel } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
@@ -99,13 +98,6 @@
       <strong>Scan</strong>
       <span>Scan a location marker or contact card</span>
     </a>
-    {#if features.chat}
-      <a href={resolve('/chat')}>
-        <span class="ico" aria-hidden="true">✉</span>
-        <strong>Chat</strong>
-        <span>Session chats and DMs over the venue mesh</span>
-      </a>
-    {/if}
     <a href={resolve('/settings')}>
       <span class="ico" aria-hidden="true">⚙</span>
       <strong>Settings</strong>

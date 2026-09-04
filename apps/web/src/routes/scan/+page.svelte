@@ -28,7 +28,6 @@
     contactFromVCard,
     saveScannedContact,
   } from '$lib/contacts.svelte';
-  import { features } from '$lib/features.svelte';
   import { reconcileContact } from '$lib/contact-continuity';
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
@@ -445,16 +444,6 @@
           >
         {:else if pending.kind !== 'ticket'}
           <button class="button primary" onclick={confirmPending}>Save contact</button>
-          {#if contactPreview?.neutrinoServerName && features.chat}
-            <a
-              class="button secondary"
-              href={resolve(
-                `/chat?dm=${encodeURIComponent(neutrinoMatrixId(contactPreview.neutrinoServerName))}`,
-              )}
-            >
-              Message on mesh
-            </a>
-          {/if}
           {#if contactPreview?.matrixId}
             <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
             <a class="button secondary" href={matrixToUrl(contactPreview.matrixId)} rel="noreferrer"
@@ -523,9 +512,6 @@
   </details>
 
   <p><a href={resolve('/connect')}>Share your own contact card →</a></p>
-  {#if features.chat}
-    <p><a href={resolve('/chat')}>Open chat →</a></p>
-  {/if}
 </EventGate>
 
 <style>

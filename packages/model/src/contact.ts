@@ -1,3 +1,5 @@
+import { neutrinoMatrixId } from './friend';
+
 export type AttendeeSocial =
   | 'github'
   | 'gitlab'
@@ -268,6 +270,7 @@ export interface ContactLink {
     | 'sms'
     | 'email'
     | 'matrix'
+    | 'mesh'
     | 'telegram'
     | 'whatsapp'
     | 'signal'
@@ -309,6 +312,8 @@ export function contactDeepLinks(profile: {
   email?: string;
   website?: string;
   matrixId?: string;
+  /** This contact's mesh node identity (`neutrinoServerName` on a `ContactRecord`/profile). */
+  neutrinoServerName?: string;
   fossUnitedProfileUrl?: string;
   socials?: Partial<Record<AttendeeSocial, string>>;
 }): ContactLink[] {
@@ -326,6 +331,17 @@ export function contactDeepLinks(profile: {
       kind: 'matrix',
       label: 'Matrix',
       href: `https://matrix.to/#/${encodeURIComponent(profile.matrixId)}`,
+    });
+  }
+  // A mesh-only identity (no asserted public Matrix id): opens in whatever
+  // Matrix client can actually reach it — the dedicated P2P chat app, over
+  // proximity, not the wider internet (ADR 0004).
+  if (profile.neutrinoServerName?.trim()) {
+    const meshId = neutrinoMatrixId(profile.neutrinoServerName.trim());
+    links.push({
+      kind: 'mesh',
+      label: 'Message on mesh',
+      href: `https://matrix.to/#/${encodeURIComponent(meshId)}`,
     });
   }
   const socials = profile.socials ?? {};
@@ -400,6 +416,7 @@ const LINK_ORDER: LinkKind[] = [
   'bluesky',
   'x',
   'matrix',
+  'mesh',
   'prav',
   'xmpp',
   'deltachat',
@@ -425,6 +442,7 @@ export const LINK_LABELS: Record<LinkKind, string> = {
   bluesky: 'Bluesky',
   x: 'X',
   matrix: 'Matrix',
+  mesh: 'Mesh',
   prav: 'Prav',
   xmpp: 'XMPP',
   deltachat: 'Delta Chat',

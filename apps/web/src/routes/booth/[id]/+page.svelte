@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { conferenceChatQuery } from '$lib/matrix.svelte';
   import { boothRoomLink } from '$lib/element-links';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { linksFromUrls } from '@indiafoss/model';
@@ -53,22 +52,6 @@
       </p>
     {/if}
 
-    {#if conferenceChatQuery(bundle, 'booth', booth.id, booth.name)}
-      <p>
-        <a
-          class="chatlink"
-          href={resolve(
-            `/chat?${conferenceChatQuery(
-              bundle,
-              'booth',
-              booth.id,
-              `Booth: ${booth.name}`,
-              `Talk to the ${booth.name} booth`,
-            )}`,
-          )}>💬 Booth chat</a
-        >
-      </p>
-    {/if}
     {#if boothRoomLink(bundle, booth)}
       {@const room = boothRoomLink(bundle, booth)!}
       <p>

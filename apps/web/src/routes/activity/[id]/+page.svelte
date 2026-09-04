@@ -4,7 +4,6 @@
   import { activityToIcs, formatDayLabel, formatTime } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
-  import { conferenceChatQuery } from '$lib/matrix.svelte';
   import { sessionRoomLink } from '$lib/element-links';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { linksFromUrls } from '@indiafoss/model';
@@ -27,7 +26,7 @@
   const disposition = $derived(activity ? dispositionOf(activity.id) : 'normal');
   const isBookmarked = $derived(activity ? bookmarked(activity.id) : false);
   const room = $derived(
-    activity ? sessionRoomLink(bundle, activity.id, activity.locationId) : null,
+    activity ? sessionRoomLink(bundle, activity.id, activity.locationId, activity.title) : null,
   );
   let calendarMessage = $state('');
 
@@ -91,20 +90,6 @@
 
     <section class="actions" aria-label="Personal preferences">
       <button class="calendar" onclick={addToCalendar}>Add to calendar</button>
-      {#if activity && conferenceChatQuery(bundle, 'session', activity.id, activity.title)}
-        <a
-          class="chatlink"
-          href={resolve(
-            `/chat?${conferenceChatQuery(
-              bundle,
-              'session',
-              activity.id,
-              `Chat: ${activity.title}`,
-              `IndiaFOSS session chat — ${activity.title}`,
-            )}`,
-          )}>💬 Session chat</a
-        >
-      {/if}
       {#if room}
         <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
         <a
@@ -112,8 +97,7 @@
           href={room.href}
           target="_blank"
           rel="noreferrer"
-          title="{room.alias} — public room run by the organisers; join from your own Matrix account"
-          >Open room in Element ↗</a
+          title="{room.alias} — opens in your Matrix app of choice">💬 Session chat ↗</a
         >
         <!-- eslint-enable svelte/no-navigation-without-resolve -->
       {/if}
@@ -209,10 +193,14 @@
       </section>
     {/if}
 
-    {#if activity.recordingUrl || activity.slidesUrl || activity.links?.length || activity.references?.length || activity.sourceUrl}
+    {#if activity.livestreamUrl || activity.recordingUrl || activity.slidesUrl || activity.links?.length || activity.references?.length || activity.sourceUrl}
       <section class="media">
         <h2>Resources</h2>
         <div class="resource-list">
+          {#if activity.livestreamUrl}
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a class="livelink" href={activity.livestreamUrl} rel="noreferrer">▶ Watch live</a>
+          {/if}
           {#if activity.recordingUrl}
             <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
             <a href={activity.recordingUrl} rel="noreferrer">Watch recording</a>
@@ -380,5 +368,8 @@
   .resource-list a {
     color: var(--event-primary-dark);
     font-size: 0.85rem;
+  }
+  .resource-list a.livelink {
+    font-weight: 700;
   }
 </style>

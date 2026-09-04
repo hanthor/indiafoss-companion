@@ -34,8 +34,6 @@
   } from '$lib/contacts.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
-  import { features, hydrateFeatures } from '$lib/features.svelte';
-  import { meshStatus } from '$lib/neutrino';
   import { applyImportedProfile, type ImportedChange } from '$lib/fossunited';
   import { importLinkedProfiles } from '$lib/profile-import';
   import { hasContactPicker, pickContact, profileFromContactFile } from '$lib/contact-import';
@@ -72,25 +70,10 @@
   let cardMessage = $state('');
   let qrTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /** This device's own mesh node id, when the P2P add-on is on and the node runs. */
-  let meshServerName = $state<string | null>(null);
-
   $effect(() => {
     void hydrateProfile();
     void hydrateContacts().then(() => verifyMeshLinks());
     void hydrateIdentity();
-    void hydrateFeatures().then(async () => {
-      if (!features.chat) return;
-      const status = await meshStatus();
-      meshServerName = status.serverName?.toLowerCase() ?? null;
-      // First time the node reports an identity, adopt it as this attendee's mesh id
-      // and share it: it is what lets a scanned contact message you on the mesh.
-      if (meshServerName && !profileState.profile.neutrinoServerName) {
-        profileState.profile.neutrinoServerName = meshServerName;
-        profileState.selection.neutrinoServerName = true;
-        await persist();
-      }
-    });
   });
 
   const matrixIdValid = $derived(
@@ -772,16 +755,7 @@
                   value={shownValue(spec)}
                   oninput={(e) => setValue(spec, e.currentTarget.value)}
                 />
-                {#if spec.key === 'neutrinoServerName' && meshServerName && meshServerName !== profileState.profile.neutrinoServerName}
-                  <button
-                    class="linkbtn small"
-                    onclick={() => {
-                      profileState.profile.neutrinoServerName = meshServerName ?? undefined;
-                      profileState.selection.neutrinoServerName = true;
-                      scheduleCard();
-                    }}>Use this device's mesh id</button
-                  >
-                {:else if spec.key === 'neutrinoServerName' && neutrinoValid && profileState.profile.neutrinoServerName}
+                {#if spec.key === 'neutrinoServerName' && neutrinoValid && profileState.profile.neutrinoServerName}
                   <span class="hint"
                     >{neutrinoMatrixId(profileState.profile.neutrinoServerName)}</span
                   >
@@ -940,14 +914,6 @@
                         >
                           {checkingLink === c.id ? 'Checking…' : 'Check Matrix link'}
                         </button>
-                      {/if}
-                      {#if features.chat && c.neutrinoServerName}
-                        <a
-                          class="button secondary small"
-                          href={resolve(
-                            `/chat?dm=${encodeURIComponent(neutrinoMatrixId(c.neutrinoServerName))}`,
-                          )}>Message on mesh</a
-                        >
                       {/if}
                       <button
                         class="button secondary small"
