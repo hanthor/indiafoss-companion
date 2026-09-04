@@ -5,7 +5,7 @@
 # route resolved, the data did not — looks fine in a screenshot of the tab
 # bar and is exactly what this catches.
 #
-# Three rules for the selectors, each learned from a red run:
+# Four rules for the selectors, each learned from a red run:
 #
 #   1. Real text nodes only. A placeholder is an attribute on an <input>,
 #      not text, so it never reaches the accessibility tree and no timeout
@@ -13,11 +13,14 @@
 #   2. Unconditional chrome, never programme content. A talk title has to be
 #      rewritten every republish; a conditional heading fails on the day its
 #      condition is false.
-#   3. Wait, and scroll, rather than assert on the instant. `assertVisible`
-#      is true only of what is on screen *now* — it fails both for a screen
-#      still rendering and for content below the fold. `extendedWaitUntil`
-#      covers the first, `scrollUntilVisible` covers both, and on a 2-vCPU
-#      runner rendering is the slow part.
+#   3. A selector is a regex matched against an element's ENTIRE text, not a
+#      substring of it. `Booths` cannot match the booth tile, whose node
+#      carries the heading and the "N communities…" line together, and
+#      `Rank this day first` cannot match a link ending in an arrow. Wrap
+#      anything that shares a node with other text in `.*`.
+#   4. Wait, and scroll, rather than assert on the instant. `assertVisible`
+#      is true only of what is on screen *now*, and on a 2-vCPU runner
+#      rendering is the slow part.
 appId: org.indiafoss.companion
 ---
 - launchApp:
@@ -41,7 +44,7 @@ appId: org.indiafoss.companion
 # because where it lands depends on how tall the search box above it is.
 - tapOn: 'Explore'
 - scrollUntilVisible:
-    element: 'Booths'
+    element: '.*Booths.*'
     direction: DOWN
     timeout: 30000
 - takeScreenshot: 03-explore
@@ -51,16 +54,16 @@ appId: org.indiafoss.companion
 # mounted with its venue SVG, graph and metadata all loaded.
 - tapOn: 'Map'
 - extendedWaitUntil:
-    visible: 'LIVE'
+    visible: '.*LIVE.*'
     timeout: 30000
-- assertVisible: 'YOU'
+- assertVisible: '.*YOU.*'
 - takeScreenshot: 04-map
 
-# Without the trailing arrow: the glyph is decoration, and keeping it out of
-# the selector avoids a unicode round-trip through the driver.
+# Wrapped in `.*` so the trailing arrow on the link does not defeat the
+# whole-text match; the glyph itself stays out of the selector.
 - tapOn: 'Plan'
 - extendedWaitUntil:
-    visible: 'Rank this day first'
+    visible: '.*Rank this day first.*'
     timeout: 30000
 - takeScreenshot: 05-plan
 

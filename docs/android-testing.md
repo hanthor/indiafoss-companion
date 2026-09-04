@@ -44,6 +44,12 @@ them wrong on the first run:
    talk title has to be rewritten every time the bundle is republished, and
    one asserting on a conditional heading fails on the day the condition is
    false. Both are how a suite stops being trusted and then stops being run.
+3. **A selector is a regex matched against an element's _entire_ text**, not
+   a substring of it. `Booths` does not match the booth tile, because that
+   node carries the heading and its "N communities…" line together;
+   `.*Booths.*` does. The same trap catches any label with a trailing glyph —
+   `Rank this day first` cannot match a link that ends in an arrow. When in
+   doubt, wrap the selector in `.*`.
 
 The `Now` screen is therefore asserted by screenshot alone: everything it
 renders depends on what is live at the moment the flow runs, so any content
