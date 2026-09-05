@@ -323,14 +323,22 @@ test('plan explains an infeasible custom block instead of dropping it', async ({
   await expect(page.locator('.itinerary .flabel', { hasText: 'Overlap B' })).toBeVisible();
 });
 
-test('sessions link the organiser room via a matrix.to handoff', async ({ page }) => {
+test('sessions hand off to a Matrix client, offline-capable link first', async ({ page }) => {
   await page.goto(appUrl('/activity/act-c8ak0iov2l'));
+
+  // The primary link is a `matrix:` URI. matrix.to is a web page that
+  // redirects to a client, so at a venue with no internet it never reaches
+  // one — verified on a handset, where a matrix.to link with the radios off
+  // landed on the browser's offline page. This scheme is resolved locally.
   const room = page.getByRole('link', { name: /Session chat/ });
-  await expect(room).toHaveAttribute(
-    'href',
-    /matrix\.to\/#\/%23indiafoss-2025-room-devroom-1-aosp/,
-  );
-  await expect(room).toHaveAttribute('target', '_blank');
+  await expect(room).toHaveAttribute('href', /^matrix:r\/indiafoss-2025-room-devroom-1-aosp%3A/);
+  // Deliberately no target=_blank: a custom scheme is not a page, and opening
+  // a tab for it strands an empty one behind the handoff.
+  await expect(room).not.toHaveAttribute('target', '_blank');
+
+  // The web permalink stays reachable for a desktop browser with no client.
+  const web = page.getByRole('link', { name: /on the web/ });
+  await expect(web).toHaveAttribute('href', /matrix\.to\/#\/%23indiafoss-2025-room-devroom-1-aosp/);
 });
 
 test('must attend pins a talk in the plan and leads the leave-by banner', async ({ page }) => {

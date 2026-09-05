@@ -93,6 +93,32 @@ export function isMatrixRoomId(value: string): boolean {
   return ROOM_ID_RE.test(value);
 }
 
+/**
+ * MSC2312 `matrix:` URI for a user id, room alias or room id.
+ *
+ * This is the handoff link to prefer over a `matrix.to` permalink, and the
+ * reason is the venue: `matrix.to` is a *web page* that redirects to a client,
+ * so with no internet the browser shows an error and the client is never
+ * reached — measured on a real handset, a session-chat link with the radios off
+ * lands on Chrome's offline page. A `matrix:` URI is a scheme the package
+ * manager resolves locally, so it opens the installed client in airplane mode,
+ * which is the condition this whole project is built for.
+ *
+ * Returns `null` for anything that is not a Matrix id, so a caller can fall
+ * back rather than emit a link that goes nowhere.
+ */
+export function matrixUriFor(id: string): string | null {
+  const value = id.trim();
+  // The body is everything after the sigil; `?action=` tells the client what
+  // the user meant, so joining a room does not land them on a preview they
+  // then have to act on again.
+  if (isMatrixUserId(value)) return `matrix:u/${encodeURIComponent(value.slice(1))}?action=chat`;
+  if (isMatrixRoomAlias(value)) return `matrix:r/${encodeURIComponent(value.slice(1))}?action=join`;
+  if (isMatrixRoomId(value))
+    return `matrix:roomid/${encodeURIComponent(value.slice(1))}?action=join`;
+  return null;
+}
+
 /** What a messaging room may point at; ids are checked against the bundle. */
 export interface MessagingReferences {
   activityIds: Set<string>;

@@ -55,10 +55,10 @@
     {#if boothRoomLink(bundle, booth)}
       {@const room = boothRoomLink(bundle, booth)!}
       <p>
-        <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
-        <a class="chatlink" href={room.href} target="_blank" rel="noreferrer" title={room.alias}
-          >Open {room.name} on Matrix ↗</a
-        >
+        <!-- eslint-disable svelte/no-navigation-without-resolve -- handoff to a Matrix client -->
+        <!-- A `matrix:` URI, resolved by the OS with no network; no _blank, which
+             would strand an empty tab behind the handoff. -->
+        <a class="chatlink" href={room.href} title={room.alias}>Open {room.name} on Matrix</a>
         <!-- eslint-enable svelte/no-navigation-without-resolve -->
       </p>
     {/if}

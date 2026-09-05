@@ -1,4 +1,5 @@
 import { neutrinoMatrixId } from './friend';
+import { matrixUriFor } from './messaging';
 
 export type AttendeeSocial =
   | 'github'
@@ -326,23 +327,22 @@ export function contactDeepLinks(profile: {
   if (profile.email?.includes('@')) {
     links.push({ kind: 'email', label: 'Email', href: `mailto:${profile.email.trim()}` });
   }
-  if (profile.matrixId && /^@[^:\s]+:[^\s]+$/.test(profile.matrixId)) {
-    links.push({
-      kind: 'matrix',
-      label: 'Matrix',
-      href: `https://matrix.to/#/${encodeURIComponent(profile.matrixId)}`,
-    });
+  // `matrix:` rather than `matrix.to`: the latter is a web page that redirects
+  // to a client, so at a venue with no internet it never reaches one. See
+  // {@link matrixUriFor}. `matrixUriFor` returns null for anything malformed,
+  // so a bad id yields no link rather than a dead one.
+  if (profile.matrixId) {
+    const uri = matrixUriFor(profile.matrixId);
+    if (uri) links.push({ kind: 'matrix', label: 'Matrix', href: uri });
   }
   // A mesh-only identity (no asserted public Matrix id): opens in whatever
   // Matrix client can actually reach it — the dedicated P2P chat app, over
-  // proximity, not the wider internet (ADR 0004).
+  // proximity, not the wider internet (ADR 0004). This one especially must not
+  // depend on matrix.to: a mesh peer is reachable precisely when the internet
+  // is not.
   if (profile.neutrinoServerName?.trim()) {
-    const meshId = neutrinoMatrixId(profile.neutrinoServerName.trim());
-    links.push({
-      kind: 'mesh',
-      label: 'Message on mesh',
-      href: `https://matrix.to/#/${encodeURIComponent(meshId)}`,
-    });
+    const uri = matrixUriFor(neutrinoMatrixId(profile.neutrinoServerName.trim()));
+    if (uri) links.push({ kind: 'mesh', label: 'Message on mesh', href: uri });
   }
   const socials = profile.socials ?? {};
   const telegram = messengerHandle(socials.telegram);
