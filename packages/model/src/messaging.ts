@@ -32,7 +32,23 @@ export interface MessagingConfig {
    * (`#<prefix>-session-<activityId>:<server>`). Defaults to the event id.
    */
   aliasPrefix?: string;
-  /** Server name for generated aliases; defaults to the homeserver host. */
+  /**
+   * The server that owns the generated alias namespace; defaults to the
+   * homeserver host.
+   *
+   * This names **one** designated server, and it has to be reachable over
+   * whatever medium an attendee has. Matrix aliases are server-scoped and
+   * `room_alias_name` is a localpart the server completes with its own name,
+   * so no other server can hold or seed `#…:<this>` — on the mesh, where every
+   * phone is its own server, that is the difference between a hall converging
+   * on one room and every attendee sitting alone in their own copy of it.
+   *
+   * A mesh node id (64 hex characters) is a valid value here: that is what a
+   * venue gateway is called, and pointing the namespace at one is how the
+   * conference chats work with no uplink. Changing it is a bundle edit and
+   * needs no code change — but it moves the whole namespace, so a run that
+   * changes it mid-event strands everyone already in the old rooms.
+   */
   aliasServer?: string;
   /** Offer auto-created chats for sessions, booths and venue rooms (default true). */
   sessionChats?: boolean;
@@ -92,6 +108,70 @@ export function isMatrixRoomAlias(value: string): boolean {
 
 export function isMatrixUserId(value: string): boolean {
   return USER_ID_RE.test(value);
+}
+
+/**
+ * A mesh server name: the node's ed25519 public key as 64 lowercase hex
+ * characters. Neutrino derives its `server_name` from the node identity, so
+ * these are the server names the mesh actually uses — and they contain no dot
+ * and no colon, which is why code that assumes a hostname shape tends to
+ * mishandle them.
+ */
+/** Hosts that mean "this device", so plain HTTP to them is not a downgrade. */
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+/**
+ * Parse a homeserver as a URL, tolerating a bare `host` or `host:port`.
+ *
+ * Both failure modes here are worth naming. `127.0.0.1:8008` throws, which is
+ * at least loud. `localhost:8008` does *not* — `URL` reads it as the scheme
+ * `localhost:` with no host at all, so a caller checking `hostname` silently
+ * compares against an empty string and concludes it is not loopback. That is
+ * why this insists on http/https rather than trusting a successful parse.
+ */
+function parseHomeserverUrl(value: string): URL | null {
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'http:' || url.protocol === 'https:') return url;
+  } catch {
+    /* no scheme, or not a URL at all: try it as a bare host below */
+  }
+  try {
+    return new URL(`http://${value}`);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Whether a homeserver points at this device — `localhost`, `127.0.0.1` or
+ * `[::1]`, with or without a scheme or port.
+ *
+ * This is what makes plain HTTP acceptable: an embedded mesh node serves its
+ * client-server API over loopback, where there is no network to eavesdrop on.
+ */
+export function isLoopbackHomeserverHost(value: string): boolean {
+  const url = parseHomeserverUrl(value);
+  return url !== null && LOOPBACK_HOSTS.has(url.hostname);
+}
+
+export function isMeshServerName(value: string): boolean {
+  return /^[0-9a-f]{64}$/.test(value);
+}
+
+/**
+ * Whether a string can serve as a Matrix server name: a mesh node id, or a
+ * host with an optional port. Deliberately loose about the host — this exists
+ * to catch a value that could never work (a URL, a path, whitespace, an alias
+ * pasted whole), not to re-implement the grammar.
+ */
+export function isServerName(value: string): boolean {
+  if (isMeshServerName(value)) return true;
+  if (/[\s/\\?#@]/.test(value)) return false;
+  const [host, port, ...rest] = value.split(':');
+  if (rest.length > 0 || !host) return false;
+  if (port !== undefined && !/^\d{1,5}$/.test(port)) return false;
+  return /^[A-Za-z0-9.-]+$/.test(host) && !host.startsWith('.') && !host.endsWith('.');
 }
 
 export function isMatrixRoomId(value: string): boolean {
@@ -155,11 +235,21 @@ export function collectMessagingIssues(
   const issues: string[] = [];
   try {
     const url = new URL(config.homeserver);
-    if (url.protocol !== 'https:' && url.hostname !== 'localhost') {
+    // Loopback, not just `localhost`: an embedded mesh node serves its
+    // client-server API on 127.0.0.1, and there is no network between the app
+    // and a server inside the same device for https to protect.
+    if (url.protocol !== 'https:' && !isLoopbackHomeserverHost(config.homeserver)) {
       issues.push(`messaging.homeserver must use https: ${config.homeserver}`);
     }
   } catch {
     issues.push(`messaging.homeserver is not a valid URL: ${config.homeserver}`);
+  }
+  // A wrong alias server is the most expensive typo in this file: every
+  // generated alias lands in a namespace nobody owns, so each attendee's client
+  // finds nothing, and they end up in as many rooms as there are attendees —
+  // with no error anywhere. Caught here, at bundle build, rather than in a hall.
+  if (config.aliasServer !== undefined && !isServerName(config.aliasServer)) {
+    issues.push(`messaging.aliasServer is not a server name: ${config.aliasServer}`);
   }
   if (
     config.space !== undefined &&
