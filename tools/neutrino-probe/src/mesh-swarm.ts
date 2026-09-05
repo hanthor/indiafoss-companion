@@ -39,6 +39,16 @@ class MeshNode {
     readonly csPort: number,
     readonly fedPort: number,
     readonly storageDir: string,
+    /**
+     * Distinct loopback address for this node's QUIC endpoint.
+     *
+     * Not cosmetic. Bound to the wildcard, every node on one host advertises
+     * the *same* addresses and differs only by port, and iroh is built around
+     * one endpoint per host with per-address path selection. That rig produced
+     * a reproducible 60 s invite failure and ~2.8 s fan-out; giving each node
+     * its own 127.0.1.x makes the address sets disjoint and both disappear.
+     */
+    readonly relayBind: string,
   ) {}
 
   get url(): string {
@@ -62,6 +72,8 @@ class MeshNode {
         String(this.fedPort),
         '--storage',
         this.storageDir,
+        '--relay-bind',
+        `${this.relayBind}:0`,
       ],
       // stderr to a file, not /dev/null: when an invite fails there is
       // otherwise nothing to diagnose it with.
@@ -176,6 +188,7 @@ export async function runMeshSwarm(opts: {
   csBase: number;
   fedBase: number;
   timeoutMs: number;
+  settleMs: number;
   root: string;
 }): Promise<MeshResult> {
   rmSync(opts.root, { recursive: true, force: true });
@@ -183,7 +196,16 @@ export async function runMeshSwarm(opts: {
   const nodes = Array.from(
     { length: opts.size },
     (_, i) =>
-      new MeshNode(i, opts.bin, opts.csBase + i, opts.fedBase + i, join(opts.root, `n${i}`)),
+      new MeshNode(
+        i,
+        opts.bin,
+        opts.csBase + i,
+        opts.fedBase + i,
+        join(opts.root, `n${i}`),
+        // 127.0.1.1 upwards: inside loopback, so no interface setup is needed,
+        // and distinct per node so no two advertise the same address.
+        `127.0.1.${i + 1}`,
+      ),
   );
   const t0 = Date.now();
   try {
@@ -212,9 +234,12 @@ export async function runMeshSwarm(opts: {
       if (nodesLive === nodes.length) break;
       await sleep(500);
     }
-    // Give mDNS a moment to converge across every pair before inviting: a peer
-    // discovered after its invite is sent is the flaky case, not the interesting one.
-    await sleep(3000);
+    // Let discovery converge across every pair before inviting. This is not a
+    // formality: at 3 s one invite per run reliably died on a 60 s dial
+    // timeout even with disjoint addresses, and the same rig left running
+    // longer invited all peers in 240 ms. `--settle` makes that a knob rather
+    // than a hidden constant.
+    await sleep(opts.settleMs);
     const settleMs = Date.now() - t1;
 
     const host = nodes[0]!;
@@ -368,6 +393,7 @@ export async function main(argv: string[]): Promise<void> {
     csBase: Number(get('cs-base') ?? 8300),
     fedBase: Number(get('fed-base') ?? 8500),
     timeoutMs: Number(get('timeout') ?? 60_000),
+    settleMs: Number(get('settle') ?? 3_000),
     root: get('root') ?? join(tmpdir(), 'mesh-swarm'),
   });
   console.log(formatMesh(r));

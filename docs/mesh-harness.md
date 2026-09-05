@@ -66,72 +66,42 @@ The unit tests (`link.test.ts`) need no binary and run in the ordinary
 `pnpm -r test` sweep; the e2e suites skip themselves unless `NEUTRINO_BIN` is
 set, so a contributor without a Rust toolchain still sees green.
 
-## The shaped swarm measures the homeserver, not the medium
-
-Read the next section with this in mind, because it undercuts it.
+## The real medium, and why its numbers are not yet trustworthy
 
 `swarm.ts` drives `neutrino`'s own binary, which federates over plain HTTP and
-carries **no iroh medium at all**. The transport a phone actually uses — iroh
-QUIC, CoAP block framing through the `neutrino-lb` sidecar, peers found by mDNS
-rather than seeded — is not in those numbers. Neither is it in
-`docs/neutrino-scale.md`.
+carries **no iroh medium at all**. `mesh-swarm.ts` drives `neutrino-lan`
+([hanthor/neutrino-iroh#1](https://github.com/hanthor/neutrino-iroh/pull/1)):
+real iroh QUIC, CoAP framing through the `neutrino-lb` sidecar, peers found by
+mDNS with nothing seeded.
 
-`mesh-swarm.ts` drives the real medium (`neutrino-lan`, see
-[hanthor/neutrino-iroh#1](https://github.com/hanthor/neutrino-iroh/pull/1)), and
-the difference is not a rounding error:
+**Delivery is reliable.** Zero undelivered at 8 and at 16 nodes, across every
+run. The shaped-BLE model predicted total fan-out failure by 24 nodes; the real
+medium shows no sign of that.
 
-| 8 nodes, one message                  | Fan-out p50  |
-| ------------------------------------- | ------------ |
-| shaped loopback, `lan` profile (HTTP) | 187 ms       |
-| **real iroh medium** (release build)  | **2,786 ms** |
+**Discovery must be allowed to converge, and that was worth finding.** With a
+3 s settle, exactly one invite per run died on a 60 s dial timeout — at any
+size, with the victim varying. It looked like a scale defect and was not: the
+peer simply was not reachable yet. Raising `--settle` to 30 s gives **7/7
+invites in 179 ms**. Two wrong explanations were tried first — a capacity limit,
+then shared host addresses — and both were disproved by experiment before the
+timing explanation held. The lesson for the venue is real: a phone that has just
+appeared is not yet dialable, and a client that invites immediately will hang
+for a minute.
 
-Roughly 15× slower, on loopback, with no radio in the picture. This is not a
-debug-build artefact: a debug `neutrino-lan` measured 3,290 ms and release only
-2,786 ms, so ~15% of it is optimisation and the rest is the medium. Treat every
-shaped number below, and every figure in `neutrino-scale.md`, as a bound on the
-homeserver rather than a prediction about the product.
+**Fan-out latency is not settled.** Measurements have ranged from tens of
+milliseconds to ~2.8 s for the same 8-node room depending on rig details —
+settle time, how long nodes had been running, and whether the poller was serial
+or parallel. An earlier revision of this document claimed the real medium was
+~15x slower than the shaped `lan` profile and that
+`docs/neutrino-scale.md` was therefore optimistic by an order of magnitude.
+**That claim was not supported** and has been withdrawn: it came from runs whose
+invite path was timing out, which distorted everything measured after it. Do not
+quote a fan-out number from this harness until a run is reproducible across
+cold and warm starts.
 
-## What the real medium does
-
-`pnpm --filter @indiafoss/neutrino-probe mesh-swarm -- --size 8`, release
-`neutrino-lan`, one room, one message, nothing seeded — peers find each other
-over mDNS the way handsets on venue Wi-Fi would.
-
-| Nodes | Invites accepted  | Joined | Fan-out p50 / p90 | Undelivered |
-| ----- | ----------------- | ------ | ----------------- | ----------- |
-| 2     | 1/1, instant      | 1/1    | sub-second        | 0           |
-| 8     | **6/7**, 60.2 s   | 6/7    | 2,786 / 3,198 ms  | **0/6**     |
-| 16    | **14/15**, 60.5 s | 14/15  | 2,924 / 10,089 ms | **0/14**    |
-
-**Everything that joins, receives.** Zero undelivered at both sizes — the
-shaped-BLE model predicted total fan-out failure at 24, and the real medium
-shows no sign of that at 16.
-
-**But exactly one invite fails per run, at any size.** Always
-`502 M_UNKNOWN: could not reach the invitee's server` after ~60 s; the peer
-varies between runs (node 5, then 3, then 1), and the count stays at one whether
-there are 8 nodes or 16. Reproduced on four consecutive release runs. Discovery
-is _not_ the cause — the host had already discovered the peer that later failed.
-The failure is one layer down:
-
-```
-neutrino_lb::transport::coap::datagram: coap request to <peer> exceeded 60s
-```
-
-`CONNECT_TIMEOUT` is 30 s and the CoAP request timeout 60 s, so the dial failed
-first and CoAP retried into its own ceiling.
-
-**Do not yet read this as a mesh defect.** All nodes here run on one host and
-advertise the _same three IPs_ (`192.168.68.56`, a tailscale address, and the
-`10.88.0.1` podman bridge), differing only by port. iroh is built around one
-endpoint per host with per-address path selection and holepunching; eight
-endpoints behind identical addresses is not a topology a venue produces, where
-every phone has its own IP. Two data points fit "rig artefact" better than
-"capacity limit": a 2-node run federates instantly and cleanly, and a 16-node
-_debug_ run got 15/15 invites through. A real scale problem would not skip 16.
-
-Settling it needs two machines — which is the same thing that settles Android
-path selection when BLE and IP are both live.
+What is safe to say: the medium works, delivery is reliable at these sizes, and
+its cost is dominated by connection establishment rather than by steady-state
+throughput.
 
 ## What the shaped swarm found
 
