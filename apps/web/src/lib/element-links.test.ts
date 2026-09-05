@@ -4,6 +4,7 @@ import {
   boothRoomLink,
   listedRooms,
   matrixToRoom,
+  roomHandoffHref,
   sessionRoomLink,
   spaceLink,
 } from './element-links';
@@ -35,6 +36,23 @@ describe('element links', () => {
     );
   });
 
+  it('leads with a matrix: URI, because matrix.to needs the internet', () => {
+    // The reason this matters, measured on a handset: with the radios off a
+    // `matrix.to` link lands on the browser's offline page and never reaches a
+    // client, because matrix.to is a *web page* that redirects. A `matrix:`
+    // URI is resolved locally by the package manager and opens the installed
+    // client in airplane mode — which is the venue this app is built for.
+    const room = sessionRoomLink(bundle, 'a', 'audi-1', 'Talk A');
+    expect(room?.href.startsWith('matrix:')).toBe(true);
+    expect(room?.webHref.startsWith('https://matrix.to/')).toBe(true);
+  });
+
+  it('falls back to matrix.to for an alias the matrix: scheme cannot express', () => {
+    // Never emit a dead `matrix:` link: anything malformed still gets a URL a
+    // browser can show.
+    expect(roomHandoffHref('not-a-matrix-id')).toBe(matrixToRoom('not-a-matrix-id'));
+  });
+
   it('lists the space and rooms, recommended first', () => {
     expect(spaceLink(bundle)?.alias).toBe('#indiafoss:reilly.asia');
     expect(listedRooms(bundle).map((r) => r.name)).toEqual(['Announcements', 'Hallway', 'Audi 1']);
@@ -47,7 +65,9 @@ describe('element links', () => {
     expect(sessionRoomLink(bundle, 'a', 'audi-2', 'Talk A')).toEqual({
       alias: '#indiafoss-2025-room-audi-2:reilly.asia',
       name: 'Audi 2',
-      href: matrixToRoom('#indiafoss-2025-room-audi-2:reilly.asia'),
+      // `matrix:` leads: it resolves with no network, which is the venue.
+      href: 'matrix:r/indiafoss-2025-room-audi-2%3Areilly.asia?action=join',
+      webHref: matrixToRoom('#indiafoss-2025-room-audi-2:reilly.asia'),
       recommended: false,
     });
   });
@@ -56,7 +76,8 @@ describe('element links', () => {
     expect(sessionRoomLink(bundle, 'a', undefined, 'Talk A')).toEqual({
       alias: '#indiafoss-2025-session-a:reilly.asia',
       name: 'Talk A',
-      href: matrixToRoom('#indiafoss-2025-session-a:reilly.asia'),
+      href: 'matrix:r/indiafoss-2025-session-a%3Areilly.asia?action=join',
+      webHref: matrixToRoom('#indiafoss-2025-session-a:reilly.asia'),
       recommended: false,
     });
   });

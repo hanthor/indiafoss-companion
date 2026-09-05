@@ -248,6 +248,7 @@ export {
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
+  matrixUriFor,
   announcementsRoom,
 } from './messaging.js';
 export type {

@@ -6,6 +6,7 @@ import {
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
+  matrixUriFor,
   announcementsRoom,
 } from './messaging.js';
 
@@ -124,5 +125,33 @@ describe('announcementsRoom (#113)', () => {
       announcementsRoom({ ...base, announcementsAlias: '#news:reilly.asia' }, 'x')?.alias,
     ).toBe('#news:reilly.asia');
     expect(announcementsRoom({ ...base, announcementsAlias: false }, 'x')).toBeNull();
+  });
+});
+
+describe('matrixUriFor', () => {
+  it('builds MSC2312 URIs for each id shape, with the action a client should take', () => {
+    expect(matrixUriFor('@ada:matrix.org')).toBe('matrix:u/ada%3Amatrix.org?action=chat');
+    expect(matrixUriFor('#indiafoss:reilly.asia')).toBe(
+      'matrix:r/indiafoss%3Areilly.asia?action=join',
+    );
+    expect(matrixUriFor('!abc:reilly.asia')).toBe('matrix:roomid/abc%3Areilly.asia?action=join');
+  });
+
+  it('returns null for anything that is not a Matrix id, so callers can fall back', () => {
+    // A dead `matrix:` link is worse than a web permalink: it silently does
+    // nothing. Callers rely on null to choose matrix.to instead.
+    for (const bad of [
+      '',
+      'ada:matrix.org',
+      'https://matrix.to/#/@a:b',
+      'not-an-id',
+      '@no-server',
+    ]) {
+      expect(matrixUriFor(bad), bad).toBeNull();
+    }
+  });
+
+  it('tolerates surrounding whitespace from a pasted id', () => {
+    expect(matrixUriFor('  @ada:matrix.org  ')).toBe('matrix:u/ada%3Amatrix.org?action=chat');
   });
 });
