@@ -832,6 +832,7 @@ export class MatrixSessionManager {
     // when a talk starts is joined by everyone at once otherwise (#120).
     const stagger = this.opts.joinStaggerMs;
     if (stagger > 0) await this.opts.sleep(Math.floor(this.opts.random() * stagger));
+    let notFound: unknown;
     try {
       return await this.joinWithRetry(spec.alias);
     } catch (error) {
@@ -841,10 +842,20 @@ export class MatrixSessionManager {
       ) {
         throw error;
       }
+      notFound = error;
     }
+    // Only the server that owns the namespace can seed this room. Everyone
+    // else must wait for it, because `room_alias_name` is a localpart: ask a
+    // mesh node to create `#keynote:organiser.example` and it cheerfully makes
+    // `#keynote:<its own 64-hex name>` instead. Six nodes doing that produce
+    // six rooms, each attendee alone in one named after the session they
+    // wanted to be in, with no error anywhere (docs/mesh-protocol.md §5.2).
+    const aliasServer = spec.alias.slice(1).split(':').slice(1).join(':');
+    const ownServer = this.session?.userId.split(':').slice(1).join(':') ?? '';
+    if (!aliasServer || aliasServer !== ownServer) throw notFound;
     const localpart = spec.alias.slice(1).split(':')[0] ?? spec.alias;
     try {
-      const roomId = await client.createRoom({
+      const created = await client.createRoom({
         aliasLocalpart: localpart,
         name: spec.name,
         topic: spec.topic,
@@ -852,6 +863,15 @@ export class MatrixSessionManager {
         visibility: 'public',
         powerLevelOverride: spec.announcements ? { ...ANNOUNCEMENTS_POWER_LEVELS } : undefined,
       });
+      // The alias the server granted, never the one we asked for: recording
+      // the request would make `known` match a room that does not carry it,
+      // and the client would then never join the real one.
+      const { roomId, alias } = created;
+      if (alias !== spec.alias) {
+        throw new Error(
+          `createRoom did not claim ${spec.alias}: ${alias ?? 'no alias in the response'}`,
+        );
+      }
       const room: MatrixRoomRecord = {
         roomId,
         name: spec.name,
