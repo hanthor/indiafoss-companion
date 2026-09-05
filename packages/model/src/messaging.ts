@@ -79,7 +79,12 @@ export function conferenceChatAlias(
 
 const ALIAS_RE = /^#[^:\s]+:[^\s]+$/;
 const USER_ID_RE = /^@[^:\s]+:[^\s]+$/;
-const ROOM_ID_RE = /^![^:\s]+:[^\s]+$/;
+// Room v12 dropped the `:server` suffix: ids are now an opaque hash with no
+// domain in them at all (neutrino mints exactly these, e.g.
+// `!5Fo-Hb-VS5AIkPFP-KNNfWaGM…`). Requiring a colon rejected every room id the
+// mesh produces, so the suffix is optional — and its absence is precisely why
+// a room-id link cannot be routed without a `via` (see {@link matrixUriFor}).
+const ROOM_ID_RE = /^![^:\s]+(?::[^\s]+)?$/;
 
 export function isMatrixRoomAlias(value: string): boolean {
   return ALIAS_RE.test(value);
@@ -107,15 +112,28 @@ export function isMatrixRoomId(value: string): boolean {
  * Returns `null` for anything that is not a Matrix id, so a caller can fall
  * back rather than emit a link that goes nowhere.
  */
-export function matrixUriFor(id: string): string | null {
+export function matrixUriFor(
+  id: string,
+  options: { via?: readonly string[] } = {},
+): string | null {
   const value = id.trim();
   // The body is everything after the sigil; `?action=` tells the client what
   // the user meant, so joining a room does not land them on a preview they
   // then have to act on again.
   if (isMatrixUserId(value)) return `matrix:u/${encodeURIComponent(value.slice(1))}?action=chat`;
   if (isMatrixRoomAlias(value)) return `matrix:r/${encodeURIComponent(value.slice(1))}?action=join`;
-  if (isMatrixRoomId(value))
-    return `matrix:roomid/${encodeURIComponent(value.slice(1))}?action=join`;
+  if (isMatrixRoomId(value)) {
+    // A room id names no server, so a client that is not already in the room
+    // has nobody to ask and the join is a hard failure — measured against a
+    // mesh node: `POST /join/!<id>` with no hint answers 404 M_NOT_FOUND,
+    // while the same call with a `server_name` answers 200. Emitting the
+    // via-less link anyway would hand out something that works only for people
+    // who least need it, so it is `null` instead: no link beats a dead one.
+    const via = (options.via ?? []).map((s) => s.trim()).filter(Boolean);
+    if (via.length === 0) return null;
+    const hints = via.map((s) => `&via=${encodeURIComponent(s)}`).join('');
+    return `matrix:roomid/${encodeURIComponent(value.slice(1))}?action=join${hints}`;
+  }
   return null;
 }
 
