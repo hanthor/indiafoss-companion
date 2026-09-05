@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
+import { preferenceSaved } from './preference-saved.js';
 
 /**
  * Day simulator gate (#93): the app is run through a slice of the conference
@@ -23,42 +24,6 @@ const EARLY_START = '2025-09-20T09:00:00+05:30';
 const SLOW_SPEED = 300;
 
 test.use({ permissions: ['notifications'] });
-
-/**
- * Wait until a preference has actually reached IndexedDB.
- *
- * Clicking "Must attend" marks the button pressed immediately and writes in the
- * background. `page.goto` tears the page down, so navigating straight after the
- * click can lose the write — and then the run has nothing marked, arms nothing,
- * and fires nothing. That is what made this file flaky, and why it failed with
- * *zero* alerts rather than a short count (#159): the disposition was simply not
- * there.
- */
-async function preferenceSaved(page: import('@playwright/test').Page, activityId: string) {
-  await expect
-    .poll(
-      () =>
-        page.evaluate(async (id) => {
-          const open = indexedDB.open('indiafoss-companion');
-          const db: IDBDatabase = await new Promise((res, rej) => {
-            open.onsuccess = () => res(open.result);
-            open.onerror = () => rej(new Error('open failed'));
-          });
-          if (!db.objectStoreNames.contains('preferences')) return false;
-          const rows: { activityId: string }[] = await new Promise((res) => {
-            const req = db
-              .transaction('preferences', 'readonly')
-              .objectStore('preferences')
-              .getAll();
-            req.onsuccess = () => res(req.result as { activityId: string }[]);
-            req.onerror = () => res([]);
-          });
-          return rows.some((r) => r.activityId === id);
-        }, activityId),
-      { timeout: 10_000 },
-    )
-    .toBe(true);
-}
 
 test('the simulator fires every reminder tier and logs the banner', async ({ page }) => {
   await page.goto(appUrl('/'));

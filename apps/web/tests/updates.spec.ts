@@ -1,5 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { appUrl } from './app-url.js';
+import { preferenceSaved } from './preference-saved.js';
 
 /**
  * Production revision handling (#7). `app.spec.ts` covers the happy path — a
@@ -13,6 +14,21 @@ import { appUrl } from './app-url.js';
 const KEPT = 'act-c8ak0iov2l';
 /** A different session, renamed by the organisers in the new revision. */
 const RENAMED = 'act-akru0m7eqk';
+
+/**
+ * The service worker must not be running for these tests.
+ *
+ * They work by intercepting the manifest and the revision asset with
+ * `page.route`, and Playwright's routing does not see requests a service
+ * worker makes on the page's behalf. With the worker active the app fetches
+ * the *real* manifest, finds no new revision, and the banner never appears —
+ * so every assertion here silently tests nothing, or fails for a reason that
+ * has nothing to do with revision handling.
+ *
+ * The offline gate covers the worker itself; this file covers what the app
+ * does with a revision, and needs the network under its own control.
+ */
+test.use({ serviceWorkers: 'block' });
 
 const MANIFEST = /\/events\/indiafoss-2025\/manifest\.json/;
 const NEW_ASSET = /\/events\/indiafoss-2025\/event\.deadbeef\.json/;
@@ -58,6 +74,7 @@ test('an applied revision keeps the bookmarks and ratings attached to stable ids
     'true',
   );
   await page.getByRole('button', { name: /Must attend/ }).click();
+  await preferenceSaved(page, KEPT);
   await page.goto(appUrl('/plan/rank?mode=pairs'));
   await page.getByTestId('candidate-a').click();
   await expect(page.getByText(/[1-9]\d* CHOICES? · \d+ OVERLAPS? OPEN/)).toBeVisible();
@@ -139,7 +156,13 @@ test('a revision that changes nothing is never offered, and is not re-offered la
   };
   changed.activities.find((a) => a.id === RENAMED)!.title = 'Renamed by the organisers';
   await publish(page, 1000, changed);
+  // Wait for the app to fetch and inspect the new asset, for the same reason
+  // the no-op case above does: the banner appears only after the comparison,
+  // and asserting on it before the fetch has even been made is a race the
+  // control loses often enough to fail this file on unrelated pull requests.
+  const inspectedAgain = page.waitForRequest(NEW_ASSET);
   await page.goto(appUrl('/schedule'));
+  await inspectedAgain;
   await expect(banner).toBeVisible({ timeout: 10_000 });
 });
 
