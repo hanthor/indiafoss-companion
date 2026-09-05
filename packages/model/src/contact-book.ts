@@ -32,7 +32,10 @@ export interface ContactBookEntry {
   lastMetAt?: string;
   keyChanged?: boolean;
   /** Whether the card's Matrix id was verified against that account's profile (issue #111). */
-  meshLink?: { state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable'; checkedAt: number };
+  meshLink?: {
+    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+    checkedAt: number;
+  };
   previousFingerprint?: string;
 }
 

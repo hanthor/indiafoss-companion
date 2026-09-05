@@ -26,10 +26,14 @@ export function claimsMeshLink(
   return !!contact.matrixId?.trim() && !!contact.neutrinoServerName?.trim();
 }
 
-/** Never checked, or checked long enough ago, or last time the server was unreachable. */
+/** Never checked, or checked long enough ago, or last time it could not be decided. */
 export function meshLinkStale(contact: ContactRecord, now: number): boolean {
   const check = contact.meshLink;
   if (!check) return true;
   if (check.state === 'unverifiable') return true;
+  // `outdated` means one of the identities was a shape this build did not
+  // recognise (#160). A later build may well recognise it, so this is a
+  // question to ask again rather than a verdict to keep.
+  if (check.state === 'outdated') return true;
   return now - check.checkedAt > MESH_LINK_TTL_MS;
 }
