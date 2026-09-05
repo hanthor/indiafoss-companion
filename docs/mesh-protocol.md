@@ -223,10 +223,12 @@ alias exists to prevent. Therefore:
   [#165](https://github.com/hanthor/indiafoss-companion/issues/165).
 
 What _does_ work offline, measured on six nodes over the real iroh medium with
-nothing seeded: node 0 holds the alias, the other five resolve it over
-federation (5/5 to the same room id in 43 ms), join by alias (5/5 in 5.3 s),
-and a message fans out to all of them (p50 219 ms, max 2.1 s, none
-undelivered). Reproduce with:
+nothing seeded: node 0 holds the alias, four more resolve it over federation
+(4/4 to the same room id in 31 ms), join by alias (4/4 in 4.9 s), and a message
+fans out to all of them (p50 214 ms, none undelivered). The sixth sits out the
+opening rush and joins only after that message was sent, holding nothing but
+the alias — it lands in the same room and reads back the history it missed in
+4.5 s, which is what walking into a talk late has to do. Reproduce with:
 
 ```sh
 pnpm --filter neutrino-probe exec tsx src/mesh-swarm.ts \
