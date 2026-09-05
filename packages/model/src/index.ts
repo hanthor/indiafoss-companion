@@ -247,6 +247,7 @@ export {
   homeserverName,
   isMatrixRoomAlias,
   isMatrixRoomId,
+  isLoopbackHomeserverHost,
   isMeshServerName,
   isServerName,
   isMatrixUserId,

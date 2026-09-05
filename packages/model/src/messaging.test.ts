@@ -5,6 +5,7 @@ import {
   homeserverName,
   isMatrixRoomAlias,
   isMatrixRoomId,
+  isLoopbackHomeserverHost,
   isMatrixUserId,
   isMeshServerName,
   isServerName,
@@ -256,5 +257,46 @@ describe('a mesh node as the alias anchor', () => {
       `matrix:r/${encodeURIComponent(`indiafoss-2026-room-hall-3:${NODE}`)}?action=join`,
     );
     expect(isMatrixRoomAlias(alias)).toBe(true);
+  });
+});
+
+describe('loopback homeservers', () => {
+  it('recognises loopback with or without a scheme or port', () => {
+    for (const good of [
+      'http://localhost:8008',
+      'http://127.0.0.1:8008',
+      'http://[::1]:8008',
+      // Bare host:port. `127.0.0.1:8008` throws in `URL`, and `localhost:8008`
+      // is worse: it parses as the scheme `localhost:` with no host, so a
+      // hostname check silently compares against an empty string (#152).
+      '127.0.0.1:8008',
+      'localhost:8008',
+      'localhost',
+      '[::1]:8008',
+    ]) {
+      expect(isLoopbackHomeserverHost(good), good).toBe(true);
+    }
+  });
+
+  it('does not mistake a real host for loopback', () => {
+    for (const bad of [
+      'https://matrix.reilly.asia',
+      'matrix.reilly.asia:8448',
+      'localhost.evil.example',
+      '127.0.0.1.evil.example',
+      '',
+    ]) {
+      expect(isLoopbackHomeserverHost(bad), bad).toBe(false);
+    }
+  });
+
+  it('accepts a plain-HTTP mesh node in the bundle, and still rejects the open web', () => {
+    // The embedded node serves its client-server API over loopback, where
+    // there is no network for https to protect (#157).
+    expect(collectMessagingIssues({ homeserver: 'http://127.0.0.1:8008', rooms: [] })).toEqual([]);
+    expect(collectMessagingIssues({ homeserver: 'http://[::1]:8008', rooms: [] })).toEqual([]);
+    expect(collectMessagingIssues({ homeserver: 'http://matrix.reilly.asia', rooms: [] })).toEqual([
+      'messaging.homeserver must use https: http://matrix.reilly.asia',
+    ]);
   });
 });

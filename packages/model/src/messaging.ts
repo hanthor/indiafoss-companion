@@ -117,6 +117,44 @@ export function isMatrixUserId(value: string): boolean {
  * and no colon, which is why code that assumes a hostname shape tends to
  * mishandle them.
  */
+/** Hosts that mean "this device", so plain HTTP to them is not a downgrade. */
+const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]']);
+
+/**
+ * Parse a homeserver as a URL, tolerating a bare `host` or `host:port`.
+ *
+ * Both failure modes here are worth naming. `127.0.0.1:8008` throws, which is
+ * at least loud. `localhost:8008` does *not* — `URL` reads it as the scheme
+ * `localhost:` with no host at all, so a caller checking `hostname` silently
+ * compares against an empty string and concludes it is not loopback. That is
+ * why this insists on http/https rather than trusting a successful parse.
+ */
+function parseHomeserverUrl(value: string): URL | null {
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'http:' || url.protocol === 'https:') return url;
+  } catch {
+    /* no scheme, or not a URL at all: try it as a bare host below */
+  }
+  try {
+    return new URL(`http://${value}`);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Whether a homeserver points at this device — `localhost`, `127.0.0.1` or
+ * `[::1]`, with or without a scheme or port.
+ *
+ * This is what makes plain HTTP acceptable: an embedded mesh node serves its
+ * client-server API over loopback, where there is no network to eavesdrop on.
+ */
+export function isLoopbackHomeserverHost(value: string): boolean {
+  const url = parseHomeserverUrl(value);
+  return url !== null && LOOPBACK_HOSTS.has(url.hostname);
+}
+
 export function isMeshServerName(value: string): boolean {
   return /^[0-9a-f]{64}$/.test(value);
 }
@@ -197,7 +235,10 @@ export function collectMessagingIssues(
   const issues: string[] = [];
   try {
     const url = new URL(config.homeserver);
-    if (url.protocol !== 'https:' && url.hostname !== 'localhost') {
+    // Loopback, not just `localhost`: an embedded mesh node serves its
+    // client-server API on 127.0.0.1, and there is no network between the app
+    // and a server inside the same device for https to protect.
+    if (url.protocol !== 'https:' && !isLoopbackHomeserverHost(config.homeserver)) {
       issues.push(`messaging.homeserver must use https: ${config.homeserver}`);
     }
   } catch {

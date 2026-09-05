@@ -1,3 +1,4 @@
+import { isLoopbackHomeserverHost } from '@indiafoss/model';
 import type {
   PublicRoomSummary,
   RawMatrixEvent,
@@ -146,18 +147,13 @@ export function slidingSyncToSyncResponse(response: SlidingSyncResponse): SyncRe
   };
 }
 
-function normalizeBaseUrlHost(url: string): boolean {
-  try {
-    const host = new URL(url).hostname;
-    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
-  } catch {
-    return false;
-  }
-}
-
 /** True for an on-device homeserver (e.g. an embedded Neutrino node). */
 export function isLoopbackHomeserver(url: string): boolean {
-  return normalizeBaseUrlHost(url);
+  // One implementation, in the model, because the bundle validator has to
+  // agree with the client about what counts as loopback: if they disagree, a
+  // config is either rejected for a server that works or accepted for one that
+  // will not connect.
+  return isLoopbackHomeserverHost(url);
 }
 
 /**
