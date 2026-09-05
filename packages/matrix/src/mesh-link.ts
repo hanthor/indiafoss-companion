@@ -1,3 +1,4 @@
+import { isNeutrinoServerName } from '@indiafoss/model';
 import { MatrixClient, MatrixError, type FetchLike } from './http.js';
 
 /**
@@ -22,6 +23,12 @@ export type MeshLinkState =
   | 'mismatch'
   /** The account's profile carries no mesh identity: a claim, nothing more. */
   | 'unlinked'
+  /**
+   * One of the two identities is not a shape this build understands, so the
+   * comparison cannot be made. Distinct from `mismatch` on purpose — see
+   * {@link verifyMeshLink}.
+   */
+  | 'outdated'
   /** The homeserver could not be reached or would not answer without a login. */
   | 'unverifiable';
 
@@ -85,8 +92,24 @@ export async function verifyMeshLink(
     if (typeof published !== 'string' || !published.trim()) {
       return { state: 'unlinked', checkedAt: now() };
     }
-    const same = published.trim().toLowerCase() === claim.meshServerName.trim().toLowerCase();
-    return { state: same ? 'verified' : 'mismatch', checkedAt: now() };
+    const a = published.trim().toLowerCase();
+    const b = claim.meshServerName.trim().toLowerCase();
+    // `mismatch` is shown to the attendee as evidence that a card is not what
+    // it claims to be — the strongest thing this screen says about another
+    // person. It has to mean "these two identities disagree", never "this
+    // build does not recognise one of them".
+    //
+    // Element's roadmap has converging IDs: the 64-hex node key is meant to
+    // merge into ordinary Matrix ids (#160). When that lands, a card exchanged
+    // today holds an old-shape identity while the profile publishes a new one.
+    // Comparing them as strings makes every pre-convergence card read as a
+    // forgery. So an identity of an unrecognised shape is `outdated`, and the
+    // attendee is told the card predates a format change rather than accused
+    // of carrying a fake one.
+    if (!isNeutrinoServerName(a) || !isNeutrinoServerName(b)) {
+      return { state: 'outdated', checkedAt: now() };
+    }
+    return { state: a === b ? 'verified' : 'mismatch', checkedAt: now() };
   } catch {
     return { state: 'unverifiable', checkedAt: now() };
   }
@@ -101,6 +124,8 @@ export function meshLinkLabel(check: MeshLinkCheck | undefined): string {
       return 'Does not match';
     case 'unlinked':
       return 'Claimed';
+    case 'outdated':
+      return 'Card predates a format change';
     case 'unverifiable':
       return 'Not checked yet';
     default:

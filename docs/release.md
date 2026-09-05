@@ -12,9 +12,18 @@ CI runs on every push and PR (`.github/workflows/ci.yml`), three jobs:
 verification, venue validation (synthetic + 2026), PWA build, dependency audit
 (report-only), and a CycloneDX SBOM (uploaded as the `sbom` artifact).
 
-**e2e** — browser E2E (`tests/app.spec.ts`), accessibility checks
-(`tests/a11y.spec.ts`, axe-core WCAG A/AA), and the release-blocking offline
-gate (`tests/offline.spec.ts`).
+**e2e** — every Playwright suite, each named explicitly in `ci.yml`:
+`tests/app.spec.ts` (browser E2E, via `test:e2e`), `tests/a11y.spec.ts`
+(axe-core WCAG A/AA), `tests/camera.spec.ts` (the QR scanner, against
+Chromium's fake capture device), `tests/offline.spec.ts` (the release-blocking
+offline gate), `tests/simulate.spec.ts` (the day simulator), and
+`tests/design.spec.ts` + `tests/updates.spec.ts` (design tokens and revision
+handling).
+
+`test:e2e` runs `app.spec.ts` alone, so **a spec that is not named in `ci.yml`
+never runs at all**. `camera.spec.ts` was in that position — present, passing,
+and executed by nothing — until it was added here. Adding a spec file is
+therefore two steps, and this list is the check that the second one happened.
 
 **native** — runs the Kotlin `:core` unit tests, Robolectric screen-render
 tests, assembles a debug APK, checksums it (sha256), and uploads both.

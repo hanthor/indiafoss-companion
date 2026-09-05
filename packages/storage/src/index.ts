@@ -169,7 +169,10 @@ export interface ContactRecord {
    * checked; only meaningful when both ids are on the card.
    */
   meshLink?: {
-    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable';
+    // `outdated` means one of the two identities was a shape the checking
+    // build did not recognise, so no comparison was possible — kept distinct
+    // from `mismatch`, which is shown as evidence a card is not genuine (#160).
+    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
     checkedAt: number;
   };
   previousFingerprint?: string;

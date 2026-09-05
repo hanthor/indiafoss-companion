@@ -56,3 +56,15 @@ describe('mesh link helpers', () => {
     ).toBe(true);
   });
 });
+
+describe('a card that predates a format change', () => {
+  it('is asked again rather than left with the verdict', () => {
+    // `outdated` says this build could not compare the two identities, not
+    // that they disagree. A later build may recognise the new shape, so the
+    // check is due again rather than settled (#160).
+    const now = 1_000_000;
+    expect(meshLinkStale(contact({ meshLink: { state: 'outdated', checkedAt: now } }), now)).toBe(
+      true,
+    );
+  });
+});

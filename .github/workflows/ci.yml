@@ -96,6 +96,12 @@ jobs:
       - name: Run accessibility checks
         run: pnpm --filter @indiafoss/web exec playwright test tests/a11y.spec.ts
 
+      # The QR scanner, against Chromium's fake capture device. It needs its own
+      # step for the same reason as the gates below: `test:e2e` runs app.spec.ts
+      # and nothing else, so a spec not named in this file has never run.
+      - name: Run the camera gate
+        run: pnpm --filter @indiafoss/web exec playwright test tests/camera.spec.ts
+
       - name: Run offline E2E gate
         run: pnpm --filter @indiafoss/web exec playwright test tests/offline.spec.ts
 
