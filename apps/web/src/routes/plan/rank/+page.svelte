@@ -568,7 +568,15 @@
               {#if r.track.description}
                 <span class="roomabout">{r.track.description}</span>
               {/if}
-              <span class="muted small">{info.line}</span>
+              <span class="muted small">
+                {info.line}
+                {#each info.kinds as k (k.label)}
+                  <!-- BoFs and workshops ask something of the attendee that a
+                       talk does not, so they are called out here rather than
+                       left to be discovered in the room (#132). -->
+                  <span class="kind">{k.count} {k.label}</span>
+                {/each}
+              </span>
               {#if info.speakers.length > 0}
                 <span class="muted small speakers"
                   >{info.speakers
@@ -1126,6 +1134,18 @@
     border-radius: 999px;
     background: color-mix(in srgb, var(--text-muted) 12%, transparent);
     color: var(--text-muted);
+  }
+
+  .kind {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.85em;
+    /* Not a colour of its own: the row already carries the skipped/kept state
+       and a second colour here would compete with it. */
+    opacity: 0.85;
   }
 
   /* Step 2: the card stack */
