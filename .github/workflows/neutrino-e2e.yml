@@ -49,7 +49,7 @@ jobs:
     name: Chat contracts against a live Neutrino
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Decide which Neutrino to build
         id: which
@@ -71,7 +71,7 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
       - name: Check out neutrino
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ steps.which.outputs.repo }}
           ref: ${{ steps.which.outputs.ref }}
