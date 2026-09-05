@@ -204,6 +204,38 @@ companion app runs one.
       turning off / the app backgrounding? (Not yet characterized this
       session — worth a dedicated pass.)
 
+### 13a. Conference rooms over the mesh
+
+Automated on six nodes over the real iroh medium (`--mode alias` in
+`tools/neutrino-probe/src/mesh-swarm.ts`) and asserted in CI against two live
+nodes (`aliases.e2e.test.ts`). What remains is the part no rig reproduces:
+real radios, real walls, and a venue whose uplink comes and goes.
+
+- [ ] Two phones on the same Wi-Fi find each other over Wi-Fi rather than
+      falling back to BLE. Check the log line names an IP path, not a BLE one —
+      the mesh works either way, so this fails silently and only shows up as
+      latency.
+- [ ] The venue AP does **not** isolate clients. Verified by phone-to-phone
+      reachability, not by both phones reaching the internet: an AP that
+      isolates still passes multicast, so mDNS discovery looks perfectly
+      healthy while nothing can connect (#163). Test on the actual venue SSID —
+      the guest network usually isolates and the staff network usually does
+      not.
+- [ ] Opening a session chat on a phone whose server does **not** own the alias
+      shows a real message when the room does not exist yet. It must not create
+      a room: the client now declines, because `room_alias_name` is a localpart
+      and it would otherwise make `#keynote:<its own name>` and sit in it alone.
+- [ ] Whoever holds the alias namespace is reachable from every attendee's
+      medium — Wi-Fi, cellular, and BLE-only. This is the open one: today's
+      `aliasServer` is an internet host, so with no uplink there is no
+      conference chat at all (#166, gateway in #165). Decide the venue's
+      anchor before the day.
+- [ ] Ten-plus phones opening the same session at once still land in one room.
+      Six nodes converge in 43 ms on a rig; a hall adds radios and a join
+      storm, and §5.3's backoff is what stands between the two.
+- [ ] A phone that arrives late — after the room already has traffic — joins by
+      alias and can read back the history it missed.
+
 ## 14. Native feel / platform polish
 
 - [ ] (N) Material You dynamic colour matches the phone's wallpaper on

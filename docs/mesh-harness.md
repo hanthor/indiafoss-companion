@@ -13,13 +13,14 @@ answer it gives is much less encouraging, which is the point.
 
 ## What it is
 
-| Piece           | File                                | What it does                                                                                                                       |
-| --------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `ShapedLink`    | `tools/neutrino-probe/src/link.ts`  | A TCP proxy that adds delay, jitter, loss and a bandwidth ceiling to everything crossing it, and can be cut and healed at runtime. |
-| `LINK_PROFILES` | same                                | `lan`, `wifi`, `wan`, `ble`, `bleMultiHop` — the transports the mesh-protocol doc names, as numbers.                               |
-| `NeutrinoNode`  | `tools/neutrino-probe/src/nodes.ts` | One homeserver process plus its shaped link. Start, stop (crash), restart on the same storage, register a user, drive the CS API.  |
-| `Swarm`         | same                                | N nodes with an optional gateway tier.                                                                                             |
-| `runSwarm`      | `tools/neutrino-probe/src/swarm.ts` | One scenario end to end: create, invite, join, fan out, measure.                                                                   |
+| Piece           | File                                     | What it does                                                                                                                       |
+| --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `mesh-swarm`    | `tools/neutrino-probe/src/mesh-swarm.ts` | The same measurement over the **real** iroh medium (`neutrino-lan`), with mDNS discovery and nothing seeded.                       |
+| `ShapedLink`    | `tools/neutrino-probe/src/link.ts`       | A TCP proxy that adds delay, jitter, loss and a bandwidth ceiling to everything crossing it, and can be cut and healed at runtime. |
+| `LINK_PROFILES` | same                                     | `lan`, `wifi`, `wan`, `ble`, `bleMultiHop` — the transports the mesh-protocol doc names, as numbers.                               |
+| `NeutrinoNode`  | `tools/neutrino-probe/src/nodes.ts`      | One homeserver process plus its shaped link. Start, stop (crash), restart on the same storage, register a user, drive the CS API.  |
+| `Swarm`         | same                                     | N nodes with an optional gateway tier.                                                                                             |
+| `runSwarm`      | `tools/neutrino-probe/src/swarm.ts`      | One scenario end to end: create, invite, join, fan out, measure.                                                                   |
 
 It replaces three copies of the same code: `two-nodes-restart.e2e.test.ts`,
 `two-nodes-reinstall.e2e.test.ts` and `scripts/swarm.mjs` each carried their own
@@ -65,7 +66,44 @@ The unit tests (`link.test.ts`) need no binary and run in the ordinary
 `pnpm -r test` sweep; the e2e suites skip themselves unless `NEUTRINO_BIN` is
 set, so a contributor without a Rust toolchain still sees green.
 
-## What it found
+## The real medium, and why its numbers are not yet trustworthy
+
+`swarm.ts` drives `neutrino`'s own binary, which federates over plain HTTP and
+carries **no iroh medium at all**. `mesh-swarm.ts` drives `neutrino-lan`
+([hanthor/neutrino-iroh#1](https://github.com/hanthor/neutrino-iroh/pull/1)):
+real iroh QUIC, CoAP framing through the `neutrino-lb` sidecar, peers found by
+mDNS with nothing seeded.
+
+**Delivery is reliable.** Zero undelivered at 8 and at 16 nodes, across every
+run. The shaped-BLE model predicted total fan-out failure by 24 nodes; the real
+medium shows no sign of that.
+
+**Discovery must be allowed to converge, and that was worth finding.** With a
+3 s settle, exactly one invite per run died on a 60 s dial timeout — at any
+size, with the victim varying. It looked like a scale defect and was not: the
+peer simply was not reachable yet. Raising `--settle` to 30 s gives **7/7
+invites in 179 ms**. Two wrong explanations were tried first — a capacity limit,
+then shared host addresses — and both were disproved by experiment before the
+timing explanation held. The lesson for the venue is real: a phone that has just
+appeared is not yet dialable, and a client that invites immediately will hang
+for a minute.
+
+**Fan-out latency is not settled.** Measurements have ranged from tens of
+milliseconds to ~2.8 s for the same 8-node room depending on rig details —
+settle time, how long nodes had been running, and whether the poller was serial
+or parallel. An earlier revision of this document claimed the real medium was
+~15x slower than the shaped `lan` profile and that
+`docs/neutrino-scale.md` was therefore optimistic by an order of magnitude.
+**That claim was not supported** and has been withdrawn: it came from runs whose
+invite path was timing out, which distorted everything measured after it. Do not
+quote a fan-out number from this harness until a run is reproducible across
+cold and warm starts.
+
+What is safe to say: the medium works, delivery is reliable at these sizes, and
+its cost is dominated by connection establishment rather than by steady-state
+throughput.
+
+## What the shaped swarm found
 
 Measured on this machine (4-core), release build at patch 0011, one room, one
 message, 60 s deadline. These are the numbers **after** the connection-loss fix

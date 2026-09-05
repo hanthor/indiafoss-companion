@@ -15,7 +15,8 @@
     "test": "vitest run --passWithNoTests",
     "lint": "eslint .",
     "start": "tsx src/index.ts",
-    "swarm": "tsx src/swarm.ts"
+    "swarm": "tsx src/swarm.ts",
+    "mesh-swarm": "tsx src/mesh-swarm.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

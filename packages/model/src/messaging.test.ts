@@ -134,7 +134,27 @@ describe('matrixUriFor', () => {
     expect(matrixUriFor('#indiafoss:reilly.asia')).toBe(
       'matrix:r/indiafoss%3Areilly.asia?action=join',
     );
-    expect(matrixUriFor('!abc:reilly.asia')).toBe('matrix:roomid/abc%3Areilly.asia?action=join');
+    expect(matrixUriFor('!abc:reilly.asia', { via: ['reilly.asia'] })).toBe(
+      'matrix:roomid/abc%3Areilly.asia?action=join&via=reilly.asia',
+    );
+  });
+
+  it('refuses a room id with no via, because that link cannot be joined', () => {
+    // Measured against a mesh node: joining by room id with no server hint is
+    // 404 M_NOT_FOUND, and 200 once a hint is supplied. A room id names no
+    // server to ask — v12 ids do not even carry a domain — so without a via
+    // this would be a link that fails for exactly the people it is for.
+    expect(matrixUriFor('!abc:reilly.asia')).toBeNull();
+    expect(matrixUriFor('!abc:reilly.asia', { via: ['  '] })).toBeNull();
+  });
+
+  it('accepts a room v12 id, which carries no server suffix at all', () => {
+    // What neutrino mints. The older `!local:server` regex rejected these, so
+    // every room id the mesh produces yielded no link whatsoever.
+    const id = '!5Fo-Hb-VS5AIkPFP-KNNfWaGMl1hQO_pg0VxmHJ2Vm4';
+    expect(matrixUriFor(id, { via: ['a1b2', 'c3d4'] })).toBe(
+      `matrix:roomid/${'5Fo-Hb-VS5AIkPFP-KNNfWaGMl1hQO_pg0VxmHJ2Vm4'}?action=join&via=a1b2&via=c3d4`,
+    );
   });
 
   it('returns null for anything that is not a Matrix id, so callers can fall back', () => {
