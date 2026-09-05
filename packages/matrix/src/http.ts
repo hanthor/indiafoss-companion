@@ -148,7 +148,8 @@ export function slidingSyncToSyncResponse(response: SlidingSyncResponse): SyncRe
 
 function normalizeBaseUrlHost(url: string): boolean {
   try {
-    const host = new URL(url).hostname;
+    const candidate = /^https?:\/\//i.test(url) ? url : `http://${url}`;
+    const host = new URL(candidate).hostname;
     return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
   } catch {
     return false;
