@@ -13,8 +13,9 @@ verification, venue validation (synthetic + 2026), PWA build, dependency audit
 (report-only), and a CycloneDX SBOM (uploaded as the `sbom` artifact).
 
 **e2e** — browser E2E (`tests/app.spec.ts`), accessibility checks
-(`tests/a11y.spec.ts`, axe-core WCAG A/AA), and the release-blocking offline
-gate (`tests/offline.spec.ts`).
+(`tests/a11y.spec.ts`, axe-core WCAG A/AA), the release-blocking offline
+gate (`tests/offline.spec.ts`), the day-simulator gate (`tests/simulate.spec.ts`),
+and the design tokens and revision gates (`tests/design.spec.ts`, `tests/updates.spec.ts`).
 
 **native** — runs the Kotlin `:core` unit tests, Robolectric screen-render
 tests, assembles a debug APK, checksums it (sha256), and uploads both.
