@@ -10,6 +10,7 @@
     armNotifications,
     disarmNotifications,
     hydrateNotifications,
+    notificationsEnabled,
   } from '$lib/notifications.svelte';
   import { untrack } from 'svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
@@ -61,6 +62,14 @@
   // re-armed on the new one.
   $effect(() => {
     const run = simState.run;
+    // Dependencies, not incidental reads. Arming does nothing at all until the
+    // schedule is loaded and the stored preference says reminders are wanted,
+    // and both arrive asynchronously after the first paint. Without these the
+    // effect would not re-run when they land, so the first alerts would wait
+    // out the rest of the interval — a whole minute of a conference day in
+    // which nothing can fire (#159).
+    void eventState.bundle;
+    void notificationsEnabled.value;
     const every = run ? untrack(() => tickInterval(60_000)) : 60_000;
     const timer = setInterval(() => {
       void armNotifications();

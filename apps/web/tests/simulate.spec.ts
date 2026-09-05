@@ -24,6 +24,42 @@ const SLOW_SPEED = 300;
 
 test.use({ permissions: ['notifications'] });
 
+/**
+ * Wait until a preference has actually reached IndexedDB.
+ *
+ * Clicking "Must attend" marks the button pressed immediately and writes in the
+ * background. `page.goto` tears the page down, so navigating straight after the
+ * click can lose the write — and then the run has nothing marked, arms nothing,
+ * and fires nothing. That is what made this file flaky, and why it failed with
+ * *zero* alerts rather than a short count (#159): the disposition was simply not
+ * there.
+ */
+async function preferenceSaved(page: import('@playwright/test').Page, activityId: string) {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(async (id) => {
+          const open = indexedDB.open('indiafoss-companion');
+          const db: IDBDatabase = await new Promise((res, rej) => {
+            open.onsuccess = () => res(open.result);
+            open.onerror = () => rej(new Error('open failed'));
+          });
+          if (!db.objectStoreNames.contains('preferences')) return false;
+          const rows: { activityId: string }[] = await new Promise((res) => {
+            const req = db
+              .transaction('preferences', 'readonly')
+              .objectStore('preferences')
+              .getAll();
+            req.onsuccess = () => res(req.result as { activityId: string }[]);
+            req.onerror = () => res([]);
+          });
+          return rows.some((r) => r.activityId === id);
+        }, activityId),
+      { timeout: 10_000 },
+    )
+    .toBe(true);
+}
+
 test('the simulator fires every reminder tier and logs the banner', async ({ page }) => {
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
@@ -31,6 +67,7 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   // Mark the session must attend and switch reminders on, as an attendee would.
   await page.goto(appUrl(`/activity/${SESSION}`));
   await page.getByRole('button', { name: /Must attend/ }).click();
+  await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
   await page.getByRole('switch', { name: /Enable reminders/ }).check();
 
@@ -139,6 +176,7 @@ test('every reminder names the session, the room and the walk, and opens it when
 
   await page.goto(appUrl(`/activity/${SESSION}`));
   await page.getByRole('button', { name: /Must attend/ }).click();
+  await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
   await page.getByRole('switch', { name: /Enable reminders/ }).check();
 
@@ -150,11 +188,31 @@ test('every reminder names the session, the room and the walk, and opens it when
   // under parallel load, which is exactly the case this needs to survive.
   await page.goto(appUrl('/now'));
   await page.waitForFunction(() => !!window.__indiafossSim, null, { timeout: 15_000 });
+  // Wait for the schedule, not just for the simulator hook. Reminders are armed
+  // from the event bundle, and arming with no bundle loaded does nothing at all
+  // — so starting the clock here means the run can be minutes of simulated time
+  // old before the first reminder can even be computed. At 300x the whole
+  // 90-minute arming window is about eighteen real seconds wide, so a slow
+  // first paint under CI load ate every alert and the test saw zero (#159).
+  await expect(page.getByRole('heading', { name: 'Now', level: 1 })).toBeVisible({
+    timeout: 30_000,
+  });
+  // Start the run held at a standstill, let the app catch up, then let the
+  // clock go. At 300x a real second is five simulated minutes, so everything
+  // the app still has to do once the run begins — hydrate the stored
+  // preferences, arm the reminders — is racing the very window it is arming
+  // for. Paused still counts as simulating, so the alerts land on the
+  // simulated clock, and time spent here costs nothing at all.
   await page.evaluate(
-    ([start, speed]) => window.__indiafossSim!.start(start as string, speed as number),
+    ([start, speed]) => {
+      window.__indiafossSim!.start(start as string, speed as number);
+      window.__indiafossSim!.pause();
+    },
     [EARLY_START, SLOW_SPEED] as const,
   );
   await expect(page.getByTestId('sim-strip')).toBeVisible();
+  await page.waitForTimeout(2000);
+  await page.evaluate(() => window.__indiafossSim!.resume());
 
   // Wait for the alerts themselves, not for a clock reading.
   await expect
