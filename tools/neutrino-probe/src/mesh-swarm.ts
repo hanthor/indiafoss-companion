@@ -158,6 +158,8 @@ function pct(sorted: number[], p: number): number {
 }
 
 export interface MeshResult {
+  /** Which membership path was measured. */
+  mode: 'invite' | 'alias';
   size: number;
   startupMs: number;
   /**
@@ -189,6 +191,12 @@ export async function runMeshSwarm(opts: {
   fedBase: number;
   timeoutMs: number;
   settleMs: number;
+  /**
+   * `invite`: the host invites every peer (the original swarm shape).
+   * `alias`: peers resolve one deterministic alias and join it themselves —
+   * the conference flow, which contains no invite step at all.
+   */
+  mode: 'invite' | 'alias';
   root: string;
 }): Promise<MeshResult> {
   rmSync(opts.root, { recursive: true, force: true });
@@ -244,10 +252,20 @@ export async function runMeshSwarm(opts: {
 
     const host = nodes[0]!;
     const hostUser = users[0]!;
+    // `--mode alias` measures the flow a conference actually has, which
+    // contains no invites at all: the organiser's node holds the room, and
+    // every attendee derives the same deterministic alias and joins it
+    // themselves. Matrix aliases are server-scoped, so the alias lives in
+    // exactly one node's namespace and everyone else resolves it over
+    // federation — see docs/mesh-protocol.md for why that node has to be
+    // designated rather than emergent.
+    const aliasName = `mesh-swarm-${opts.size}`;
     const created = await host.api(
       'POST',
       '/_matrix/client/v3/createRoom',
-      { name: 'mesh', preset: 'private_chat' },
+      opts.mode === 'alias'
+        ? { name: 'mesh', preset: 'public_chat', room_alias_name: aliasName }
+        : { name: 'mesh', preset: 'private_chat' },
       hostUser.token,
     );
     const roomId = String(created.body.room_id);
@@ -255,60 +273,106 @@ export async function runMeshSwarm(opts: {
       throw new Error(`createRoom failed: ${JSON.stringify(created.body)}`);
     }
     const enc = encodeURIComponent(roomId);
+    const alias = `#${aliasName}:${host.serverName}`;
+    if (opts.mode === 'alias' && created.body.room_alias !== alias) {
+      // A server with no alias support answers 200 and hands back a room with
+      // the alias quietly dropped. Every attendee then claims their own and
+      // sits alone in it, and the swarm reports a healthy run. Fail loudly.
+      const got = created.body.room_alias ?? created.body.room_alias_error ?? null;
+      throw new Error(`createRoom did not claim ${alias}: ${JSON.stringify(got)}`);
+    }
+    const encAlias = encodeURIComponent(alias);
 
     const t2 = Date.now();
     const invited: number[] = [];
     const inviteFailures: string[] = [];
-    for (let i = 1; i < nodes.length; i++) {
-      const started = Date.now();
-      const r = await host.api(
-        'POST',
-        `/_matrix/client/v3/rooms/${enc}/invite`,
-        { user_id: users[i]!.userId },
-        hostUser.token,
+    if (opts.mode === 'alias') {
+      // Concurrent, because at a venue everyone taps the link when the session
+      // starts, not one after another.
+      await Promise.all(
+        nodes.slice(1).map(async (_peer, k) => {
+          const i = k + 1;
+          const started = Date.now();
+          const r = await nodes[i]!.api(
+            'GET',
+            `/_matrix/client/v3/directory/room/${encAlias}`,
+            undefined,
+            users[i]!.token,
+          );
+          // Resolving to a *different* room is the failure that matters: it
+          // means the swarm split, which is worse than not resolving at all.
+          if (r.status === 200 && r.body.room_id === roomId) invited.push(i);
+          else
+            inviteFailures.push(
+              `node ${i} (${nodes[i]!.serverName.slice(0, 12)}…) resolve ${r.status} after ` +
+                `${Date.now() - started} ms: ${JSON.stringify(r.body).slice(0, 160)}`,
+            );
+        }),
       );
-      if (r.status === 200) invited.push(i);
-      else {
-        inviteFailures.push(
-          `node ${i} (${nodes[i]!.serverName.slice(0, 12)}…) ${r.status} after ` +
-            `${Date.now() - started} ms: ${JSON.stringify(r.body).slice(0, 160)}`,
+    } else {
+      for (let i = 1; i < nodes.length; i++) {
+        const started = Date.now();
+        const r = await host.api(
+          'POST',
+          `/_matrix/client/v3/rooms/${enc}/invite`,
+          { user_id: users[i]!.userId },
+          hostUser.token,
         );
+        if (r.status === 200) invited.push(i);
+        else {
+          inviteFailures.push(
+            `node ${i} (${nodes[i]!.serverName.slice(0, 12)}…) ${r.status} after ` +
+              `${Date.now() - started} ms: ${JSON.stringify(r.body).slice(0, 160)}`,
+          );
+        }
       }
     }
     const invitesMs = Date.now() - t2;
 
     const delivered: number[] = [];
-    await Promise.all(
-      invited.map(async (i) => {
-        const end = Date.now() + opts.timeoutMs;
-        while (Date.now() < end) {
-          const s = await nodes[i]!.api(
-            'GET',
-            '/_matrix/client/v3/sync?timeout=0',
-            undefined,
-            users[i]!.token,
-          );
-          const inv = (s.body.rooms as Record<string, Record<string, unknown>> | undefined)?.invite;
-          if (inv?.[roomId]) {
-            delivered.push(i);
-            return;
+    if (opts.mode === 'alias') {
+      // Nothing to wait for: a resolved alias is the whole handshake.
+      delivered.push(...invited);
+    } else {
+      await Promise.all(
+        invited.map(async (i) => {
+          const end = Date.now() + opts.timeoutMs;
+          while (Date.now() < end) {
+            const s = await nodes[i]!.api(
+              'GET',
+              '/_matrix/client/v3/sync?timeout=0',
+              undefined,
+              users[i]!.token,
+            );
+            const inv = (s.body.rooms as Record<string, Record<string, unknown>> | undefined)
+              ?.invite;
+            if (inv?.[roomId]) {
+              delivered.push(i);
+              return;
+            }
+            await sleep(200);
           }
-          await sleep(200);
-        }
-      }),
-    );
+        }),
+      );
+    }
 
     const t3 = Date.now();
     const joined: number[] = [];
+    // Join by alias in alias mode: that is the link the attendee tapped, and
+    // joining by room id instead would skip the resolution the venue depends
+    // on.
+    const joinTarget = opts.mode === 'alias' ? encAlias : enc;
     await Promise.all(
       delivered.map(async (i) => {
         const r = await nodes[i]!.api(
           'POST',
-          `/_matrix/client/v3/join/${enc}`,
+          `/_matrix/client/v3/join/${joinTarget}`,
           {},
           users[i]!.token,
         );
-        if (r.status === 200) joined.push(i);
+        if (r.status === 200 && String(r.body.room_id) === roomId) joined.push(i);
+        else if (r.status === 200)
+          inviteFailures.push(`node ${i} joined a DIFFERENT room: ${String(r.body.room_id)}`);
       }),
     );
     const joinMs = Date.now() - t3;
@@ -345,6 +409,7 @@ export async function runMeshSwarm(opts: {
     const ok = arrivals.filter(Number.isFinite).sort((a, b) => a - b);
 
     return {
+      mode: opts.mode,
       size: opts.size,
       startupMs,
       nodesLive,
@@ -367,16 +432,20 @@ export async function runMeshSwarm(opts: {
 export function formatMesh(r: MeshResult): string {
   const ms = (v: number): string => (Number.isFinite(v) ? `${v} ms` : '—');
   const peers = r.size - 1;
+  const alias = r.mode === 'alias';
   return [
-    `${r.size} nodes on the real iroh medium (mDNS discovery, nothing seeded)`,
+    `${r.size} nodes on the real iroh medium (mDNS discovery, nothing seeded)` +
+      (alias ? ', joining by deterministic alias' : ''),
     `  startup            ${r.startupMs} ms`,
     `  nodes live         ${r.nodesLive}/${r.size} after ${r.settleMs} ms`,
-    `  invites accepted   ${r.invitesOk}/${peers} in ${r.invitesMs} ms`,
+    alias
+      ? `  alias resolved     ${r.invitesOk}/${peers} to one room in ${r.invitesMs} ms`
+      : `  invites accepted   ${r.invitesOk}/${peers} in ${r.invitesMs} ms`,
     `  joined             ${r.joined}/${peers} in ${r.joinMs} ms`,
     `  fan-out p50/p90    ${ms(r.fanoutP50)} / ${ms(r.fanoutP90)}`,
     `  fan-out max        ${ms(r.fanoutMax)}`,
     `  undelivered        ${r.undelivered}/${r.joined} joined members`,
-    ...r.inviteFailures.map((f) => `  ! invite failed     ${f}`),
+    ...r.inviteFailures.map((f) => `  ! ${alias ? 'did not converge' : 'invite failed  '}   ${f}`),
   ].join('\n');
 }
 
@@ -394,6 +463,7 @@ export async function main(argv: string[]): Promise<void> {
     fedBase: Number(get('fed-base') ?? 8500),
     timeoutMs: Number(get('timeout') ?? 60_000),
     settleMs: Number(get('settle') ?? 3_000),
+    mode: get('mode') === 'alias' ? 'alias' : 'invite',
     root: get('root') ?? join(tmpdir(), 'mesh-swarm'),
   });
   console.log(formatMesh(r));

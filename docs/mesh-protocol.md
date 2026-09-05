@@ -191,6 +191,55 @@ To open a conference room a client **MUST**:
 That three-step dance is what makes provisioning unnecessary. Any refusal other
 than those two **MUST** be surfaced, not retried.
 
+**Step 2 is only available to the alias server itself.** `room_alias_name` on
+`createRoom` is a _localpart_: the server appends its **own** name, and no
+Matrix server will mint an alias in another server's namespace. On the mesh
+every phone is its own server, so a client whose `server_name` is not
+`aliasServer` cannot execute step 2 at all — and a server that quietly drops
+the field answers 200 with a room carrying no alias, which looks like success.
+
+Measured, six mesh nodes each asked to create `keynote`:
+
+```
+node 0: #indiafoss-2026-session-keynote:16900202…  !5Fo-Hb…
+node 1: #indiafoss-2026-session-keynote:316b7422…  !qdlmRm…
+node 2: #indiafoss-2026-session-keynote:3650ba81…  !PWzwNy…
+…
+```
+
+Six aliases, six rooms, no convergence — the exact failure the deterministic
+alias exists to prevent. Therefore:
+
+- The alias namespace **MUST** be owned by one **designated** server, named by
+  `messaging.aliasServer`. It is not emergent and cannot be elected at the
+  venue.
+- A client whose own `server_name` differs from `aliasServer` **MUST** treat
+  `M_NOT_FOUND` as "the room does not exist yet", not as an invitation to
+  create it, and **MUST NOT** substitute an alias in its own namespace.
+- That designated server **MUST** be reachable over whatever medium the
+  attendee has. An `aliasServer` on the public internet (the current
+  `reilly.asia`) resolves fine online and is unreachable in a hall with no
+  uplink; giving the mesh its own reachable alias anchor is
+  [#165](https://github.com/hanthor/indiafoss-companion/issues/165).
+
+What _does_ work offline, measured on six nodes over the real iroh medium with
+nothing seeded: node 0 holds the alias, the other five resolve it over
+federation (5/5 to the same room id in 43 ms), join by alias (5/5 in 5.3 s),
+and a message fans out to all of them (p50 219 ms, max 2.1 s, none
+undelivered). Reproduce with:
+
+```sh
+pnpm --filter neutrino-probe exec tsx src/mesh-swarm.ts \
+  --bin path/to/neutrino-lan --size 6 --mode alias --settle 30000
+```
+
+`--mode alias` is the conference path and has no invite step in it; the
+default `--mode invite` measures host-invites-everyone instead.
+
+Racing clients on _one_ server is still real — an organiser with two devices,
+or several clients on the same Spindle — and the alias claim is
+first-write-wins there, so the loser is told it lost and joins.
+
 When creating the **announcements** room, a client **MUST** set
 `power_level_content_override` to `{"events_default": 50}`, so that whoever
 seeds it owns it and only moderators post. A room that has sent no power levels

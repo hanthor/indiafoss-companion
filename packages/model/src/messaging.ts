@@ -112,10 +112,7 @@ export function isMatrixRoomId(value: string): boolean {
  * Returns `null` for anything that is not a Matrix id, so a caller can fall
  * back rather than emit a link that goes nowhere.
  */
-export function matrixUriFor(
-  id: string,
-  options: { via?: readonly string[] } = {},
-): string | null {
+export function matrixUriFor(id: string, options: { via?: readonly string[] } = {}): string | null {
   const value = id.trim();
   // The body is everything after the sigil; `?action=` tells the client what
   // the user meant, so joining a room does not land them on a preview they
