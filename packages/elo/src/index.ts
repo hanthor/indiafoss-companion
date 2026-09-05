@@ -417,3 +417,69 @@ export function ratingWithPrior(rated: RankedActivity, model: AffinityModel): nu
 export function applyPriors(pool: RankedActivity[], model: AffinityModel): RankedActivity[] {
   return pool.map((r) => ({ ...r, rating: ratingWithPrior(r, model) }));
 }
+
+/** A session the learnt taste predicts, with the reasons it was picked. */
+export interface Recommendation {
+  activity: Activity;
+  /** The prior, in rating points; always positive here. */
+  score: number;
+  /** The facets that pulled it up, strongest first — `track:…`, `tag:…`, `type:…`. */
+  because: AffinityKey[];
+}
+
+export interface RecommendationOptions {
+  /** How many to return. */
+  limit?: number;
+  /**
+   * Comparisons a facet needs before it may justify a recommendation.
+   * Deliberately higher than the shrinkage the prior itself uses: nudging a
+   * rating on thin evidence is cheap and invisible, but telling someone "you
+   * liked Rust" on the strength of one swipe is a claim about them.
+   */
+  minEvidence?: number;
+}
+
+/**
+ * Sessions the attendee has not judged, ordered by what their answers so far
+ * predict — the recommender for #162.
+ *
+ * There is no new model here, and deliberately so. The taste already learnt
+ * for ranking (`affinityModel`) is a content-based recommender: it scores
+ * every session by the tracks, tags and formats the attendee's own
+ * comparisons pulled up or down. Surfacing it costs a sort, runs offline on a
+ * phone, needs no server, and can say *why* — which matters more than accuracy
+ * here, because an attendee has one shot at each slot and no way to check a
+ * recommendation except by walking to the room.
+ *
+ * Skipped: anything already decided (must-attend, not-interested) and anything
+ * with enough comparisons of its own that the prior no longer applies. A
+ * recommendation for a session someone has already ranked is not a
+ * recommendation, it is a reminder of their own opinion.
+ */
+export function recommendations(
+  pool: RankedActivity[],
+  model: AffinityModel,
+  options: RecommendationOptions = {},
+): Recommendation[] {
+  const limit = options.limit ?? 5;
+  const minEvidence = options.minEvidence ?? 2;
+  const out: Recommendation[] = [];
+  for (const rated of pool) {
+    if (rated.disposition === 'must-attend' || rated.disposition === 'not-interested') continue;
+    if (rated.activity.cancelled) continue;
+    // The prior has already faded out by three comparisons, so beyond that
+    // there is nothing left to recommend on.
+    if (rated.comparisons >= 3) continue;
+    const because = affinityKeysOf(rated.activity)
+      .filter((key) => (model.affinity.get(key) ?? 0) > 0)
+      .filter((key) => (model.evidence.get(key) ?? 0) >= minEvidence)
+      .sort((a, b) => (model.affinity.get(b) ?? 0) - (model.affinity.get(a) ?? 0));
+    if (because.length === 0) continue;
+    const score = priorOffset(rated.activity, model);
+    if (score <= 0) continue;
+    out.push({ activity: rated.activity, score, because });
+  }
+  return out
+    .sort((a, b) => b.score - a.score || a.activity.id.localeCompare(b.activity.id))
+    .slice(0, limit);
+}
