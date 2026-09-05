@@ -5,7 +5,7 @@ lands on `main` with tests green.
 
 | Phase | Deliverable                                                                    | Status                               |
 | ----- | ------------------------------------------------------------------------------ | ------------------------------------ |
-| 0     | Bootstrap: monorepo, SvelteKit PWA, Capacitor wrapper, tooling, CI             | ✅ done                              |
+| 0     | Bootstrap: monorepo, SvelteKit PWA, Capacitor wrapper, tooling, CI             | ✅ done (Capacitor retired: ADR 0004)|
 | 1     | Canonical model, source adapters, 2025 fixture, bundle validator               | ✅ done                              |
 | 2     | Schedule app: list + grid, detail, speakers, search, filters, bookmarks, clock | ✅ done                              |
 | 3     | Elo engine, comparison queue, ranking UI, dispositions                         | ✅ done                              |
@@ -14,13 +14,13 @@ lands on `main` with tests green.
 | 6     | Schedule-aware navigation: leave-by, QR location                               | ✅ done                              |
 | 7     | Booth experience: directory, map linkage, booth activities                     | ✅ done                              |
 | 8     | Production sync: event-sync, diffs, update UI                                  | ✅ done                              |
-| 9     | Android polish: notifications, deep links, F-Droid/Play flavors                | 🚧 partial (M3 shell, deep links)    |
+| 9     | Android polish: notifications, deep links, F-Droid/Play flavors                | 🚧 partial (native Compose, deep links; Capacitor M3 shell retired per ADR 0004) |
 | 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases              | 🚧 partial (a11y, SBOM, offline E2E) |
 
 ## Phase 0 acceptance
 
 - [x] web build green (SvelteKit + Vite, PWA with service worker + manifest)
-- [x] Android wrapper scaffolds and syncs (`cap add android` + `cap sync`)
+- [x] Android wrapper scaffolds and syncs (`cap add android` + `cap sync`) — *Note: Capacitor shell retired in favor of native Compose app per [ADR 0004](adr/0004-retire-the-capacitor-shell.md)*
 - [x] PWA installable (manifest, icons, sw.js)
 - [x] CI green (format, lint, typecheck, test, build, audit, Android APK)
 - [x] format / lint / typecheck / unit tests wired across the workspace
