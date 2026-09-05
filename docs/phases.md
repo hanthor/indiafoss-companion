@@ -3,24 +3,33 @@
 Tracked against the engineering specification in the project docs. Each phase
 lands on `main` with tests green.
 
-| Phase | Deliverable                                                                    | Status                               |
-| ----- | ------------------------------------------------------------------------------ | ------------------------------------ |
-| 0     | Bootstrap: monorepo, SvelteKit PWA, Capacitor wrapper, tooling, CI             | ✅ done                              |
-| 1     | Canonical model, source adapters, 2025 fixture, bundle validator               | ✅ done                              |
-| 2     | Schedule app: list + grid, detail, speakers, search, filters, bookmarks, clock | ✅ done                              |
-| 3     | Elo engine, comparison queue, ranking UI, dispositions                         | ✅ done                              |
-| 4     | Itinerary solver: DAG, locks, backups, flexible activities                     | ✅ done                              |
-| 5     | Venue engine: SVG map, routing graph, A\*, textual routes, validator           | ✅ done                              |
-| 6     | Schedule-aware navigation: leave-by, QR location                               | ✅ done                              |
-| 7     | Booth experience: directory, map linkage, booth activities                     | ✅ done                              |
-| 8     | Production sync: event-sync, diffs, update UI                                  | ✅ done                              |
-| 9     | Android polish: notifications, deep links, F-Droid/Play flavors                | 🚧 partial (M3 shell, deep links)    |
-| 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases              | 🚧 partial (a11y, SBOM, offline E2E) |
+| Phase | Deliverable                                                                    | Status                                |
+| ----- | ------------------------------------------------------------------------------ | ------------------------------------- |
+| 0     | Bootstrap: monorepo, SvelteKit PWA, ~~Capacitor wrapper~~, tooling, CI         | ✅ done (shell retired, ADR 0004)     |
+| 1     | Canonical model, source adapters, 2025 fixture, bundle validator               | ✅ done                               |
+| 2     | Schedule app: list + grid, detail, speakers, search, filters, bookmarks, clock | ✅ done                               |
+| 3     | Elo engine, comparison queue, ranking UI, dispositions                         | ✅ done                               |
+| 4     | Itinerary solver: DAG, locks, backups, flexible activities                     | ✅ done                               |
+| 5     | Venue engine: SVG map, routing graph, A\*, textual routes, validator           | ✅ done                               |
+| 6     | Schedule-aware navigation: leave-by, QR location                               | ✅ done                               |
+| 7     | Booth experience: directory, map linkage, booth activities                     | ✅ done                               |
+| 8     | Production sync: event-sync, diffs, update UI                                  | ✅ done                               |
+| 9     | Android polish: notifications, deep links, F-Droid/Play flavors                | 🚧 partial (deep links; see ADR 0004) |
+| 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases              | 🚧 partial (a11y, SBOM, offline E2E)  |
+
+> **The Capacitor shell is gone** ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)).
+> Phase 0 shipped it and Phase 9 polished it, and both entries are left standing
+> rather than rewritten, because a phase table is a record of what happened. What
+> replaced it is three apps, not four: the PWA for web and iOS, a native Compose
+> app for Android, and a separate chat app that carries the mesh. Anything below
+> that reads as "the wrapper" or "the M3 shell" refers to something that no
+> longer exists.
 
 ## Phase 0 acceptance
 
 - [x] web build green (SvelteKit + Vite, PWA with service worker + manifest)
-- [x] Android wrapper scaffolds and syncs (`cap add android` + `cap sync`)
+- [x] ~~Android wrapper scaffolds and syncs (`cap add android` + `cap sync`)~~ —
+      retired; Android is the native Compose app (ADR 0004)
 - [x] PWA installable (manifest, icons, sw.js)
 - [x] CI green (format, lint, typecheck, test, build, audit, Android APK)
 - [x] format / lint / typecheck / unit tests wired across the workspace
