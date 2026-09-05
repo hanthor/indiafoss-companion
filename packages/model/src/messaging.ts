@@ -32,7 +32,23 @@ export interface MessagingConfig {
    * (`#<prefix>-session-<activityId>:<server>`). Defaults to the event id.
    */
   aliasPrefix?: string;
-  /** Server name for generated aliases; defaults to the homeserver host. */
+  /**
+   * The server that owns the generated alias namespace; defaults to the
+   * homeserver host.
+   *
+   * This names **one** designated server, and it has to be reachable over
+   * whatever medium an attendee has. Matrix aliases are server-scoped and
+   * `room_alias_name` is a localpart the server completes with its own name,
+   * so no other server can hold or seed `#…:<this>` — on the mesh, where every
+   * phone is its own server, that is the difference between a hall converging
+   * on one room and every attendee sitting alone in their own copy of it.
+   *
+   * A mesh node id (64 hex characters) is a valid value here: that is what a
+   * venue gateway is called, and pointing the namespace at one is how the
+   * conference chats work with no uplink. Changing it is a bundle edit and
+   * needs no code change — but it moves the whole namespace, so a run that
+   * changes it mid-event strands everyone already in the old rooms.
+   */
   aliasServer?: string;
   /** Offer auto-created chats for sessions, booths and venue rooms (default true). */
   sessionChats?: boolean;
@@ -92,6 +108,32 @@ export function isMatrixRoomAlias(value: string): boolean {
 
 export function isMatrixUserId(value: string): boolean {
   return USER_ID_RE.test(value);
+}
+
+/**
+ * A mesh server name: the node's ed25519 public key as 64 lowercase hex
+ * characters. Neutrino derives its `server_name` from the node identity, so
+ * these are the server names the mesh actually uses — and they contain no dot
+ * and no colon, which is why code that assumes a hostname shape tends to
+ * mishandle them.
+ */
+export function isMeshServerName(value: string): boolean {
+  return /^[0-9a-f]{64}$/.test(value);
+}
+
+/**
+ * Whether a string can serve as a Matrix server name: a mesh node id, or a
+ * host with an optional port. Deliberately loose about the host — this exists
+ * to catch a value that could never work (a URL, a path, whitespace, an alias
+ * pasted whole), not to re-implement the grammar.
+ */
+export function isServerName(value: string): boolean {
+  if (isMeshServerName(value)) return true;
+  if (/[\s/\\?#@]/.test(value)) return false;
+  const [host, port, ...rest] = value.split(':');
+  if (rest.length > 0 || !host) return false;
+  if (port !== undefined && !/^\d{1,5}$/.test(port)) return false;
+  return /^[A-Za-z0-9.-]+$/.test(host) && !host.startsWith('.') && !host.endsWith('.');
 }
 
 export function isMatrixRoomId(value: string): boolean {
@@ -160,6 +202,13 @@ export function collectMessagingIssues(
     }
   } catch {
     issues.push(`messaging.homeserver is not a valid URL: ${config.homeserver}`);
+  }
+  // A wrong alias server is the most expensive typo in this file: every
+  // generated alias lands in a namespace nobody owns, so each attendee's client
+  // finds nothing, and they end up in as many rooms as there are attendees —
+  // with no error anywhere. Caught here, at bundle build, rather than in a hall.
+  if (config.aliasServer !== undefined && !isServerName(config.aliasServer)) {
+    issues.push(`messaging.aliasServer is not a server name: ${config.aliasServer}`);
   }
   if (
     config.space !== undefined &&

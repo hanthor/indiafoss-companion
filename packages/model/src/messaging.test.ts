@@ -6,6 +6,8 @@ import {
   isMatrixRoomAlias,
   isMatrixRoomId,
   isMatrixUserId,
+  isMeshServerName,
+  isServerName,
   matrixUriFor,
   announcementsRoom,
 } from './messaging.js';
@@ -173,5 +175,86 @@ describe('matrixUriFor', () => {
 
   it('tolerates surrounding whitespace from a pasted id', () => {
     expect(matrixUriFor('  @ada:matrix.org  ')).toBe('matrix:u/ada%3Amatrix.org?action=chat');
+  });
+});
+
+describe('alias server names', () => {
+  it('accepts a mesh node id, which is what a venue gateway is called', () => {
+    // 64 hex, no dot and no colon: neutrino derives server_name from the node
+    // identity, so this is the shape the mesh actually uses.
+    const node = 'a'.repeat(64);
+    expect(isMeshServerName(node)).toBe(true);
+    expect(isServerName(node)).toBe(true);
+    // Not a node id, and not a plausible host either.
+    expect(isMeshServerName('A'.repeat(64))).toBe(false);
+    expect(isMeshServerName('a'.repeat(63))).toBe(false);
+  });
+
+  it('accepts ordinary server names, with or without a port', () => {
+    for (const good of ['reilly.asia', 'matrix.org', 'localhost', '127.0.0.1:8008']) {
+      expect(isServerName(good), good).toBe(true);
+    }
+  });
+
+  it('rejects what could never be a server name', () => {
+    // Each of these is a real mistake: pasting the homeserver URL, a whole
+    // alias, or a trailing path. All of them would generate aliases in a
+    // namespace nobody owns.
+    for (const bad of [
+      '',
+      'https://matrix.reilly.asia',
+      '#room:reilly.asia',
+      'reilly.asia/',
+      'reilly asia',
+      'reilly.asia:notaport',
+      'reilly.asia:8008:9',
+      '@user:reilly.asia',
+    ]) {
+      expect(isServerName(bad), bad).toBe(false);
+    }
+  });
+
+  it('flags a bad alias server in the bundle, where it is still cheap', () => {
+    const base = { homeserver: 'https://matrix.reilly.asia', rooms: [] };
+    expect(collectMessagingIssues({ ...base, aliasServer: 'a'.repeat(64) })).toEqual([]);
+    expect(collectMessagingIssues({ ...base, aliasServer: 'reilly.asia' })).toEqual([]);
+    expect(collectMessagingIssues({ ...base, aliasServer: 'https://reilly.asia' })).toEqual([
+      'messaging.aliasServer is not a server name: https://reilly.asia',
+    ]);
+  });
+});
+
+describe('a mesh node as the alias anchor', () => {
+  // The offline venue case: the namespace is owned by a gateway node on the
+  // mesh rather than by a host on the internet, so the aliases resolve in a
+  // hall with no uplink. Changing to this is a bundle edit, and nothing below
+  // may need a code change for it to work — which is what this pins.
+  const NODE = '16900202044e255fbe89bb1c7bfff749809cad753e0ec5bb3fb727ad59dc7c50';
+  const config = {
+    homeserver: 'https://matrix.reilly.asia',
+    rooms: [],
+    aliasServer: NODE,
+  };
+
+  it('passes validation and generates aliases in the node namespace', () => {
+    expect(collectMessagingIssues(config)).toEqual([]);
+    expect(conferenceChatAlias(config, 'indiafoss-2026', 'session', 'act-C8AK0iov2l')).toBe(
+      `#indiafoss-2026-session-act-c8ak0iov2l:${NODE}`,
+    );
+    expect(announcementsRoom(config, 'indiafoss-2026')?.alias).toBe(
+      `#indiafoss-2026-announcements:${NODE}`,
+    );
+  });
+
+  it('still produces a handoff link a client can act on offline', () => {
+    // A node id has no dot and no colon in it, so anything treating a server
+    // name as a hostname mangles it. The alias must survive into the `matrix:`
+    // URI intact, since that URI is the whole offline handoff.
+    const alias = conferenceChatAlias(config, 'indiafoss-2026', 'room', 'Hall 3');
+    expect(alias).toBe(`#indiafoss-2026-room-hall-3:${NODE}`);
+    expect(matrixUriFor(alias)).toBe(
+      `matrix:r/${encodeURIComponent(`indiafoss-2026-room-hall-3:${NODE}`)}?action=join`,
+    );
+    expect(isMatrixRoomAlias(alias)).toBe(true);
   });
 });

@@ -247,6 +247,8 @@ export {
   homeserverName,
   isMatrixRoomAlias,
   isMatrixRoomId,
+  isMeshServerName,
+  isServerName,
   isMatrixUserId,
   matrixUriFor,
   announcementsRoom,
