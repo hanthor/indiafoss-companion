@@ -160,6 +160,10 @@ function pct(sorted: number[], p: number): number {
 export interface MeshResult {
   /** Which membership path was measured. */
   mode: 'invite' | 'alias';
+  /** Alias mode: how long a latecomer took to join and read back. */
+  lateJoinMs: number;
+  /** Alias mode: whether the latecomer could read the message sent before it joined. */
+  lateJoinRead: boolean;
   size: number;
   startupMs: number;
   /**
@@ -283,6 +287,11 @@ export async function runMeshSwarm(opts: {
     }
     const encAlias = encodeURIComponent(alias);
 
+    // In alias mode the last node stays out of the opening rush and joins after
+    // the message has been sent, which is the only way to test that a latecomer
+    // can read what they missed. Needs a node to spare.
+    const latecomer = opts.mode === 'alias' && nodes.length >= 3 ? nodes.length - 1 : undefined;
+
     const t2 = Date.now();
     const invited: number[] = [];
     const inviteFailures: string[] = [];
@@ -290,7 +299,7 @@ export async function runMeshSwarm(opts: {
       // Concurrent, because at a venue everyone taps the link when the session
       // starts, not one after another.
       await Promise.all(
-        nodes.slice(1).map(async (_peer, k) => {
+        nodes.slice(1, latecomer ?? nodes.length).map(async (_peer, k) => {
           const i = k + 1;
           const started = Date.now();
           const r = await nodes[i]!.api(
@@ -408,7 +417,48 @@ export async function runMeshSwarm(opts: {
     );
     const ok = arrivals.filter(Number.isFinite).sort((a, b) => a - b);
 
+    // Someone walks into the talk after it has started. They were never
+    // invited and were not in the room when the message was sent, so the only
+    // thing they have is the alias off the schedule — and what they need is
+    // the conversation so far, not an empty room. Backfill has to cross
+    // federation from the node that holds the room.
+    let lateJoinMs = NaN;
+    let lateJoinRead = false;
+    if (opts.mode === 'alias' && latecomer !== undefined) {
+      const t5 = Date.now();
+      const j = await nodes[latecomer]!.api(
+        'POST',
+        `/_matrix/client/v3/join/${encAlias}`,
+        {},
+        users[latecomer]!.token,
+      );
+      if (j.status === 200 && String(j.body.room_id) === roomId) {
+        const end = Date.now() + opts.timeoutMs;
+        while (Date.now() < end) {
+          const m = await nodes[latecomer]!.api(
+            'GET',
+            `/_matrix/client/v3/rooms/${enc}/messages?dir=b&limit=20`,
+            undefined,
+            users[latecomer]!.token,
+          );
+          const chunk = (m.body.chunk ?? []) as { event_id?: string }[];
+          if (chunk.some((e) => e.event_id === eventId)) {
+            lateJoinRead = true;
+            break;
+          }
+          await sleep(200);
+        }
+      } else {
+        inviteFailures.push(
+          `latecomer node ${latecomer} join ${j.status}: ${JSON.stringify(j.body).slice(0, 160)}`,
+        );
+      }
+      lateJoinMs = Date.now() - t5;
+    }
+
     return {
+      lateJoinMs,
+      lateJoinRead,
       mode: opts.mode,
       size: opts.size,
       startupMs,
@@ -431,8 +481,11 @@ export async function runMeshSwarm(opts: {
 
 export function formatMesh(r: MeshResult): string {
   const ms = (v: number): string => (Number.isFinite(v) ? `${v} ms` : '—');
-  const peers = r.size - 1;
   const alias = r.mode === 'alias';
+  // One node is held back as the latecomer, so it is not part of the opening
+  // rush and must not count against it.
+  const heldBack = alias && Number.isFinite(r.lateJoinMs) ? 1 : 0;
+  const peers = r.size - 1 - heldBack;
   return [
     `${r.size} nodes on the real iroh medium (mDNS discovery, nothing seeded)` +
       (alias ? ', joining by deterministic alias' : ''),
@@ -445,6 +498,11 @@ export function formatMesh(r: MeshResult): string {
     `  fan-out p50/p90    ${ms(r.fanoutP50)} / ${ms(r.fanoutP90)}`,
     `  fan-out max        ${ms(r.fanoutMax)}`,
     `  undelivered        ${r.undelivered}/${r.joined} joined members`,
+    ...(alias && Number.isFinite(r.lateJoinMs)
+      ? [
+          `  latecomer          ${r.lateJoinRead ? 'read the history it missed' : 'COULD NOT read back'} in ${r.lateJoinMs} ms`,
+        ]
+      : []),
     ...r.inviteFailures.map((f) => `  ! ${alias ? 'did not converge' : 'invite failed  '}   ${f}`),
   ].join('\n');
 }
