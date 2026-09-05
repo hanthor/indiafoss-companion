@@ -140,7 +140,9 @@ export function collectMessagingIssues(
   const issues: string[] = [];
   try {
     const url = new URL(config.homeserver);
-    if (url.protocol !== 'https:' && url.hostname !== 'localhost') {
+    const isLoopback =
+      url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '[::1]';
+    if (url.protocol !== 'https:' && !isLoopback) {
       issues.push(`messaging.homeserver must use https: ${config.homeserver}`);
     }
   } catch {

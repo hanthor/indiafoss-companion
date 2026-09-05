@@ -48,6 +48,12 @@ describe('collectMessagingIssues', () => {
     expect(issues.join('\n')).toMatch(/empty name/);
   });
 
+  it('accepts http loopback homeservers (localhost, 127.0.0.1, [::1])', () => {
+    expect(collectMessagingIssues({ homeserver: 'http://localhost:8008', rooms: [] })).toEqual([]);
+    expect(collectMessagingIssues({ homeserver: 'http://127.0.0.1:8008', rooms: [] })).toEqual([]);
+    expect(collectMessagingIssues({ homeserver: 'http://[::1]:8008', rooms: [] })).toEqual([]);
+  });
+
   it('rejects an unparsable homeserver url', () => {
     expect(collectMessagingIssues({ homeserver: 'matrix org', rooms: [] })).toEqual([
       'messaging.homeserver is not a valid URL: matrix org',
