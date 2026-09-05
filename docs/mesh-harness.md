@@ -13,13 +13,14 @@ answer it gives is much less encouraging, which is the point.
 
 ## What it is
 
-| Piece           | File                                | What it does                                                                                                                       |
-| --------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `ShapedLink`    | `tools/neutrino-probe/src/link.ts`  | A TCP proxy that adds delay, jitter, loss and a bandwidth ceiling to everything crossing it, and can be cut and healed at runtime. |
-| `LINK_PROFILES` | same                                | `lan`, `wifi`, `wan`, `ble`, `bleMultiHop` — the transports the mesh-protocol doc names, as numbers.                               |
-| `NeutrinoNode`  | `tools/neutrino-probe/src/nodes.ts` | One homeserver process plus its shaped link. Start, stop (crash), restart on the same storage, register a user, drive the CS API.  |
-| `Swarm`         | same                                | N nodes with an optional gateway tier.                                                                                             |
-| `runSwarm`      | `tools/neutrino-probe/src/swarm.ts` | One scenario end to end: create, invite, join, fan out, measure.                                                                   |
+| Piece           | File                                     | What it does                                                                                                                       |
+| --------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `mesh-swarm`    | `tools/neutrino-probe/src/mesh-swarm.ts` | The same measurement over the **real** iroh medium (`neutrino-lan`), with mDNS discovery and nothing seeded.                       |
+| `ShapedLink`    | `tools/neutrino-probe/src/link.ts`       | A TCP proxy that adds delay, jitter, loss and a bandwidth ceiling to everything crossing it, and can be cut and healed at runtime. |
+| `LINK_PROFILES` | same                                     | `lan`, `wifi`, `wan`, `ble`, `bleMultiHop` — the transports the mesh-protocol doc names, as numbers.                               |
+| `NeutrinoNode`  | `tools/neutrino-probe/src/nodes.ts`      | One homeserver process plus its shaped link. Start, stop (crash), restart on the same storage, register a user, drive the CS API.  |
+| `Swarm`         | same                                     | N nodes with an optional gateway tier.                                                                                             |
+| `runSwarm`      | `tools/neutrino-probe/src/swarm.ts`      | One scenario end to end: create, invite, join, fan out, measure.                                                                   |
 
 It replaces three copies of the same code: `two-nodes-restart.e2e.test.ts`,
 `two-nodes-reinstall.e2e.test.ts` and `scripts/swarm.mjs` each carried their own
@@ -65,7 +66,74 @@ The unit tests (`link.test.ts`) need no binary and run in the ordinary
 `pnpm -r test` sweep; the e2e suites skip themselves unless `NEUTRINO_BIN` is
 set, so a contributor without a Rust toolchain still sees green.
 
-## What it found
+## The shaped swarm measures the homeserver, not the medium
+
+Read the next section with this in mind, because it undercuts it.
+
+`swarm.ts` drives `neutrino`'s own binary, which federates over plain HTTP and
+carries **no iroh medium at all**. The transport a phone actually uses — iroh
+QUIC, CoAP block framing through the `neutrino-lb` sidecar, peers found by mDNS
+rather than seeded — is not in those numbers. Neither is it in
+`docs/neutrino-scale.md`.
+
+`mesh-swarm.ts` drives the real medium (`neutrino-lan`, see
+[hanthor/neutrino-iroh#1](https://github.com/hanthor/neutrino-iroh/pull/1)), and
+the difference is not a rounding error:
+
+| 8 nodes, one message                  | Fan-out p50  |
+| ------------------------------------- | ------------ |
+| shaped loopback, `lan` profile (HTTP) | 187 ms       |
+| **real iroh medium** (release build)  | **2,786 ms** |
+
+Roughly 15× slower, on loopback, with no radio in the picture. This is not a
+debug-build artefact: a debug `neutrino-lan` measured 3,290 ms and release only
+2,786 ms, so ~15% of it is optimisation and the rest is the medium. Treat every
+shaped number below, and every figure in `neutrino-scale.md`, as a bound on the
+homeserver rather than a prediction about the product.
+
+## What the real medium does
+
+`pnpm --filter @indiafoss/neutrino-probe mesh-swarm -- --size 8`, release
+`neutrino-lan`, one room, one message, nothing seeded — peers find each other
+over mDNS the way handsets on venue Wi-Fi would.
+
+| Nodes | Invites accepted  | Joined | Fan-out p50 / p90 | Undelivered |
+| ----- | ----------------- | ------ | ----------------- | ----------- |
+| 2     | 1/1, instant      | 1/1    | sub-second        | 0           |
+| 8     | **6/7**, 60.2 s   | 6/7    | 2,786 / 3,198 ms  | **0/6**     |
+| 16    | **14/15**, 60.5 s | 14/15  | 2,924 / 10,089 ms | **0/14**    |
+
+**Everything that joins, receives.** Zero undelivered at both sizes — the
+shaped-BLE model predicted total fan-out failure at 24, and the real medium
+shows no sign of that at 16.
+
+**But exactly one invite fails per run, at any size.** Always
+`502 M_UNKNOWN: could not reach the invitee's server` after ~60 s; the peer
+varies between runs (node 5, then 3, then 1), and the count stays at one whether
+there are 8 nodes or 16. Reproduced on four consecutive release runs. Discovery
+is _not_ the cause — the host had already discovered the peer that later failed.
+The failure is one layer down:
+
+```
+neutrino_lb::transport::coap::datagram: coap request to <peer> exceeded 60s
+```
+
+`CONNECT_TIMEOUT` is 30 s and the CoAP request timeout 60 s, so the dial failed
+first and CoAP retried into its own ceiling.
+
+**Do not yet read this as a mesh defect.** All nodes here run on one host and
+advertise the _same three IPs_ (`192.168.68.56`, a tailscale address, and the
+`10.88.0.1` podman bridge), differing only by port. iroh is built around one
+endpoint per host with per-address path selection and holepunching; eight
+endpoints behind identical addresses is not a topology a venue produces, where
+every phone has its own IP. Two data points fit "rig artefact" better than
+"capacity limit": a 2-node run federates instantly and cleanly, and a 16-node
+_debug_ run got 15/15 invites through. A real scale problem would not skip 16.
+
+Settling it needs two machines — which is the same thing that settles Android
+path selection when BLE and IP are both live.
+
+## What the shaped swarm found
 
 Measured on this machine (4-core), release build at patch 0011, one room, one
 message, 60 s deadline. These are the numbers **after** the connection-loss fix
