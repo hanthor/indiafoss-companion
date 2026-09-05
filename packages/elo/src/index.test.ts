@@ -20,6 +20,7 @@ import {
   type AffinityModel,
   type ComparisonChoice,
   type RankedActivity,
+  recommendations,
 } from './index.js';
 
 function act(id: string, start: string, end: string, title = id): Activity {
@@ -442,5 +443,73 @@ describe('conflictSlots', () => {
     });
     expect(slots.map((s) => s.key)).toEqual(['b', 'c']);
     expect(slots[0]!.members.map((m) => m.activity.id)).toEqual(['b', 'c']);
+  });
+});
+
+describe('recommendations', () => {
+  const act = (id: string, trackId: string, tags: string[] = []) =>
+    ({ id, title: id, type: 'talk', trackId, tags, speakerIds: [] }) as unknown as Activity;
+  const ranked = (a: Activity, over: Partial<RankedActivity> = {}): RankedActivity => ({
+    activity: a,
+    rating: 1200,
+    comparisons: 0,
+    disposition: 'normal',
+    ...over,
+  });
+  /** A taste that likes rust and dislikes ops, both on enough evidence. */
+  const model = {
+    affinity: new Map([
+      ['track:rust', 0.8],
+      ['track:ops', -0.8],
+    ]),
+    evidence: new Map([
+      ['track:rust', 4],
+      ['track:ops', 4],
+    ]),
+  };
+
+  it('suggests unrated sessions the taste pulls up, and says why', () => {
+    const out = recommendations([ranked(act('a', 'rust')), ranked(act('b', 'ops'))], model);
+    expect(out.map((r) => r.activity.id)).toEqual(['a']);
+    expect(out[0]!.because).toEqual(['track:rust']);
+    expect(out[0]!.score).toBeGreaterThan(0);
+  });
+
+  it('does not recommend what the attendee has already decided', () => {
+    // Their own verdict is not a recommendation, in either direction.
+    const pool = [
+      ranked(act('a', 'rust'), { disposition: 'must-attend' }),
+      ranked(act('b', 'rust'), { disposition: 'not-interested' }),
+      ranked(act('c', 'rust')),
+    ];
+    expect(recommendations(pool, model).map((r) => r.activity.id)).toEqual(['c']);
+  });
+
+  it('stops once a session has been compared enough to speak for itself', () => {
+    // The prior has faded to nothing by three comparisons, so there is no
+    // prediction left to offer.
+    const pool = [ranked(act('a', 'rust'), { comparisons: 3 }), ranked(act('b', 'rust'))];
+    expect(recommendations(pool, model).map((r) => r.activity.id)).toEqual(['b']);
+  });
+
+  it('will not justify itself on one swipe', () => {
+    // Nudging a rating on thin evidence is invisible; telling someone "you
+    // liked Rust" on the strength of a single answer is a claim about them.
+    const thin = {
+      affinity: new Map([['track:rust', 0.9]]),
+      evidence: new Map([['track:rust', 1]]),
+    };
+    expect(recommendations([ranked(act('a', 'rust'))], thin)).toEqual([]);
+  });
+
+  it('never recommends a cancelled session', () => {
+    const gone = { ...act('a', 'rust'), cancelled: true } as unknown as Activity;
+    expect(recommendations([ranked(gone)], model)).toEqual([]);
+  });
+
+  it('is stable when two sessions score the same', () => {
+    // A list that reshuffles between renders reads as noise, not judgement.
+    const pool = [ranked(act('b', 'rust')), ranked(act('a', 'rust'))];
+    expect(recommendations(pool, model).map((r) => r.activity.id)).toEqual(['a', 'b']);
   });
 });
