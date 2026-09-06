@@ -19,7 +19,7 @@ missing --bind <addr:port>
 ```
 
 This is not an arbitrary harness choice. The shaped links are TCP proxies, so
-the node's federation has to go over plain HTTP *through* them — which is what
+the node's federation has to go over plain HTTP _through_ them — which is what
 the plain binary does and precisely what `neutrino-lan` exists not to do (its
 federation rides the iroh medium, which would bypass the shaping entirely).
 Rung 2 measures the homeserver under venue-shaped links; the medium itself is
