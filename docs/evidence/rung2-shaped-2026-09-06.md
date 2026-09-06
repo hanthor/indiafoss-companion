@@ -68,3 +68,40 @@ Until the cliff is explained, **the playbook's 50- and 100-node rung-2
 targets are unreachable on any rig**, and §4's "hundred members as the design
 ceiling" rests on the loopback swarm only. This is the open question rung 2
 exists to answer, and it is open.
+
+## Resolution (same day): the cliff was the join-storm head-cap bug
+
+Found by finally checking the one response nothing checked: the host's own
+send was answering **`400 M_BAD_JSON: prev_events exceeds 20 entries`**. Under
+a shaped link the concurrent joins overlap, every join lands as a sibling
+forward extremity, and past 20 heads the fork's event builder — which
+references _every_ head — failed its own validator. Nothing merges heads, so
+the room was permanently unwritable by its own members. On loopback the joins
+serialise and the room keeps ~1 head, which is why `lan` never showed it.
+
+Every earlier observation now has its explanation: total-not-slow (the send
+failed, so there was nothing to deliver), profile-gated (shaping creates the
+concurrency), threshold ~22 (21 remote joins can leave ≤20 heads; 22 cannot),
+cross-host (it is protocol handling, not a rig), and the leaked-process noise
+merely moved the apparent threshold.
+
+Fixed in hanthor/neutrino#6 (cap at 20 like Synapse; unreferenced heads stay
+extremities and later events absorb them), and the harness now fails loudly on
+a non-200 send instead of reporting it as undelivered fan-out.
+
+**With the fix (debug build, himachal):**
+
+| scenario                                     | build   | joined    | fan-out p50 | p90          | undelivered |
+| -------------------------------------------- | ------- | --------- | ----------- | ------------ | ----------- |
+| 24 wifi                                      | debug   | 23/23     | 440 ms      | 598 ms       | 0           |
+| 50 wifi + 3 gateways, stagger 250 ms         | debug   | 49/49     | 865 ms      | 1180 ms      | 0           |
+| **100 wifi + 3 gateways, stagger 250 ms**    | release | **99/99** | **2495 ms** | **3102 ms**  | **0**       |
+| **50 ble + 3 wifi gateways, stagger 250 ms** | release | **49/49** | **6847 ms** | **11015 ms** | **0**       |
+
+Every rung-2 scenario in the playbook now completes with nothing undelivered
+(himachal, 18 cores). Against the playbook's budgets: wifi p90 at 100 nodes is
+3.1 s — over the "under a second" line, but that line was written for 50; at 50
+it is 1.2 s on a _debug_ build. BLE p50 is single-digit seconds as required;
+p90 is 11 s, just over, worth re-measuring on quieter hardware before calling
+it a miss. At a venue, the bug this run un-blocked was a talk starting: a hall
+joins the session room, and then nobody in it can send.

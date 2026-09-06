@@ -33,6 +33,14 @@ which is the seam a stock client turns encryption on through: Element X sends
 200 with a plaintext room the client believed was encrypted. Each addition
 exists because Element X or our own client hit its absence.
 
+**Join-storm survival** (#6): a local event referenced _every_ forward
+extremity, and past the PDU schema's 20-head cap the builder failed its own
+validator — so the join storm a talk's start produces left the room
+permanently unwritable by its own members (400 on every send; nothing else
+merges heads). Now capped at 20 the way Synapse does it, with the rest left
+as extremities for later events to absorb. Found at 22+ shaped-swarm members,
+deterministically; invisible on loopback, where joins serialise.
+
 **The room directory** (#1–#3 on the fork): `room_aliases` storage
 (first-write-wins claims), `createRoom` honouring `room_alias_name` and
 returning `room_alias`/`room_alias_error`, local and federated resolution
