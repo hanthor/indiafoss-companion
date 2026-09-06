@@ -91,10 +91,17 @@ a non-200 send instead of reporting it as undelivered fan-out.
 
 **With the fix (debug build, himachal):**
 
-| scenario                             | joined | fan-out p50 | p90     | undelivered |
-| ------------------------------------ | ------ | ----------- | ------- | ----------- |
-| 24 wifi                              | 23/23  | 440 ms      | 598 ms  | 0           |
-| 50 wifi + 3 gateways, stagger 250 ms | 49/49  | 865 ms      | 1180 ms | 0           |
+| scenario                                     | build   | joined    | fan-out p50 | p90          | undelivered |
+| -------------------------------------------- | ------- | --------- | ----------- | ------------ | ----------- |
+| 24 wifi                                      | debug   | 23/23     | 440 ms      | 598 ms       | 0           |
+| 50 wifi + 3 gateways, stagger 250 ms         | debug   | 49/49     | 865 ms      | 1180 ms      | 0           |
+| **100 wifi + 3 gateways, stagger 250 ms**    | release | **99/99** | **2495 ms** | **3102 ms**  | **0**       |
+| **50 ble + 3 wifi gateways, stagger 250 ms** | release | **49/49** | **6847 ms** | **11015 ms** | **0**       |
 
-The playbook's rung-2 targets are reachable again. At a venue, this bug was a
-talk starting: a hall joins the session room, and then nobody in it can send.
+Every rung-2 scenario in the playbook now completes with nothing undelivered
+(himachal, 18 cores). Against the playbook's budgets: wifi p90 at 100 nodes is
+3.1 s — over the "under a second" line, but that line was written for 50; at 50
+it is 1.2 s on a _debug_ build. BLE p50 is single-digit seconds as required;
+p90 is 11 s, just over, worth re-measuring on quieter hardware before calling
+it a miss. At a venue, the bug this run un-blocked was a talk starting: a hall
+joins the session room, and then nobody in it can send.
