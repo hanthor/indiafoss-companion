@@ -94,6 +94,18 @@ wiring it inherits, ours adds:
   announces itself, hears nothing, and falls back to BLE with no error.
   Without this the Wi-Fi mesh does not exist on a handset.
 - **`matrix:` URI handling** for the companion's offline handoff links.
+- **A cross-seam DM guard** (#40, for companion #176). On a mesh session the
+  app refuses to _create_ an encrypted DM with a user whose homeserver only
+  the internet can reach: the Megolm key share is a to-device EDU with no
+  relay through a gateway, so the invitee would sit on "waiting for the key"
+  forever. Clear refusal instead of a hung padlock; existing DMs still open;
+  internet sessions never blocked.
+- **Bindings pinned to the fork's rev** (`gradle/libs.versions.toml`,
+  `neutrino = "0.8.2-e2ee.<rev>"`), fetched from this repository's
+  `neutrino-bindings-*` releases with a checksum. Bumping the fork means
+  bumping this pin too, or handsets keep the old server — which is how the
+  chat app spent three revisions creating silently-plaintext DMs after the
+  fix existed.
 
 ## tuna-os/spindle — not our fork
 
