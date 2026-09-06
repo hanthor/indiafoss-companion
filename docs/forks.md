@@ -128,6 +128,22 @@ Proven, with the evidence in `docs/evidence/`:
   `initial_state` — so the whole stock-client path is what is under test.
 - **Gateway ↔ Spindle** — keys queried and claimed both ways, device-list
   changes announced, to-device delivered both ways (rung 1, 15/15).
+- **E2EE through a flaky link and a recipient crash** — a room key survives
+  the recipient's node being SIGKILLed mid-delivery over a BLE-grade impaired
+  link, then decrypts after restart (`flaky-link.e2e.test.ts`, opt-in). The
+  simulator (`udp-flaky.ts` + the fork's `NEUTRINO_SIM_LINK` transport) is
+  what found and now guards three fixes together: a to-device key is made
+  durable before its transaction is acked (neutrino#7), hearing from a peer
+  resets the outbound backoff so a healed link resumes in seconds
+  (neutrino#10), and `m.room_key_request` carries both ways for UTD
+  self-healing (neutrino#7). This is an end-to-end heal gate — the fixes are
+  belt-and-suspenders, so it does not isolate any one (a node missing only the
+  durability half still heals here via re-request). The isolated, deterministic
+  durability red/green is the fork's own `cargo nextest`
+  (`room_key_is_durable_by_the_time_the_transaction_is_acked`, which reads the
+  store right after the ack and cannot be masked by re-request); this job
+  catches what the unit tests cannot — the medium dropping to-device, or the
+  sender's backoff not resuming after the crash.
 
 Structurally open, and worth being honest about: **a phone cannot run E2EE
 with a Spindle user.** Room events cross the seam by store-and-forward — the

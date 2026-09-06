@@ -256,3 +256,69 @@ jobs:
           for port in 8008 8009 8010; do
             echo "=== node $port ==="; tail -n 120 /tmp/mesh-$port/log || true
           done
+
+  flaky-link:
+    name: E2EE survives a flaky link and a crash
+    # The plain-HTTP job proves the crypto; the medium job proves the medium
+    # carries it; this one proves it survives the two things a venue guarantees
+    # and no other job reproduces — a BLE-grade link (latency + jitter) and a
+    # phone whose node is SIGKILLed mid-key-delivery. An end-to-end HEAL gate:
+    # the composed medium must still deliver a decryptable message after the
+    # crash, by durability or by client key re-request. The isolated,
+    # deterministic durability red/green is the fork's own `cargo nextest`
+    # (room_key_is_durable_...); this catches the integration regressions that
+    # only surface end to end — the medium dropping to-device, or the sender's
+    # backoff not resuming after the crash. The node here is `neutrino-lan`
+    # with its plain-
+    # UDP test transport (NEUTRINO_SIM_LINK); the test spawns, kills, and
+    # restarts its own nodes and runs the impairment proxies in-process, so it
+    # needs no pre-started servers, no root, and no kernel netem.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out neutrino-iroh
+        uses: actions/checkout@v4
+        with:
+          repository: hanthor/neutrino-iroh
+          path: neutrino-iroh
+
+      - name: Install the Rust toolchain
+        run: |
+          rustup update stable
+          rustup default stable
+          rustc --version
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: neutrino-iroh
+
+      - name: Build neutrino-lan
+        working-directory: neutrino-iroh
+        run: cargo build --release -p neutrino-ffi-ble --bin neutrino-lan
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run the flaky-link crash simulation
+        env:
+          NEUTRINO_FLAKY_SIM: '1'
+          NEUTRINO_LAN_BIN: ${{ github.workspace }}/neutrino-iroh/target/release/neutrino-lan
+        run: |
+          pnpm --filter @indiafoss/neutrino-probe exec vitest run src/flaky-link.e2e.test.ts
+
+      - name: Node logs
+        if: failure()
+        run: |
+          for f in "$RUNNER_TEMP"/flaky-*.log /tmp/flaky-*.log; do
+            [ -f "$f" ] && { echo "=== $f ==="; tail -n 200 "$f"; }
+          done || true
