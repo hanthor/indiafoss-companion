@@ -99,13 +99,13 @@ jobs:
         # the users differ (@alice:127.0.0.1:8008 vs :8009).
         run: |
           bin=./neutrino/target/debug/neutrino
-          for port in 8008 8009; do
+          for port in 8008 8009 8010; do
             mkdir -p /tmp/node-$port
             NEUTRINO_SERVER_NAME=127.0.0.1:$port NEUTRINO_BIND_ADDR=127.0.0.1:$port \
               NEUTRINO_STORAGE_DIR=/tmp/node-$port NEUTRINO_STARTUP_JITTER_MS=0 \
               $bin > /tmp/node-$port/log 2>&1 &
           done
-          for port in 8008 8009; do
+          for port in 8008 8009 8010; do
             for _ in $(seq 1 30); do
               if curl -fsS http://127.0.0.1:$port/_matrix/client/versions >/dev/null; then
                 echo "node $port is up"; break
@@ -132,6 +132,10 @@ jobs:
         env:
           NEUTRINO_URL: http://127.0.0.1:8008
           NEUTRINO_URL_B: http://127.0.0.1:8009
+          # A third node: the group-E2EE contract needs the sender's key share
+          # fanned out to two *distinct* homeservers, which no two-node rig can
+          # exercise (mesh-e2ee.e2e.test.ts skips itself without it).
+          NEUTRINO_URL_C: http://127.0.0.1:8010
           NEUTRINO_FORK: ${{ steps.which.outputs.fork }}
           # The restart proof starts its own nodes on 8018/8019.
           NEUTRINO_BIN: ${{ github.workspace }}/neutrino/target/debug/neutrino
@@ -151,3 +155,104 @@ jobs:
         if: failure()
         run: |
           for port in 8008 8009; do echo "=== node $port ==="; tail -80 /tmp/node-$port/log; done
+
+  medium-e2ee:
+    name: E2EE over the iroh medium
+    # The plain-HTTP job above proves the crypto and the key-transport logic;
+    # this one proves the *medium* carries it. Federation here rides the CoAP
+    # sidecar over an iroh QUIC link with mDNS discovery — the exact path two
+    # phones use — so a regression in the datagram framing or in which EDU
+    # kinds the sidecar forwards fails here and nowhere else. It found nothing
+    # on its first run precisely because the branch already carries the
+    # transport; the job exists so that stays true.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out neutrino-iroh
+        uses: actions/checkout@v4
+        with:
+          repository: hanthor/neutrino-iroh
+          path: neutrino-iroh
+
+      - name: Install the Rust toolchain
+        run: |
+          rustup update stable
+          rustup default stable
+          rustc --version
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: neutrino-iroh
+
+      - name: Build neutrino-lan
+        working-directory: neutrino-iroh
+        run: cargo build --release -p neutrino-ffi-ble --bin neutrino-lan
+
+      - name: Start three nodes on the iroh medium
+        # Distinct loopback aliases per node: on one host every node would
+        # otherwise advertise the same addresses and differ only by port,
+        # which is not a topology iroh is designed for. --fed-port is what
+        # routes federation onto the medium at all; without it the nodes
+        # would federate over plain HTTP and this job would silently test
+        # the same thing as the one above.
+        run: |
+          bin=./neutrino-iroh/target/release/neutrino-lan
+          i=0
+          for port in 8008 8009 8010; do
+            i=$((i+1))
+            mkdir -p /tmp/mesh-$port
+            $bin --bind 127.0.0.1:$port --fed-port $((port+200)) \
+                 --relay-bind 127.0.4.$i:0 --storage /tmp/mesh-$port \
+                 > /tmp/mesh-$port/log 2>&1 &
+          done
+          for port in 8008 8009 8010; do
+            for _ in $(seq 1 45); do
+              if curl -fsS http://127.0.0.1:$port/_matrix/client/versions >/dev/null; then
+                echo "node $port is up"; break
+              fi
+              sleep 1
+            done
+            curl -fsS http://127.0.0.1:$port/_matrix/client/versions >/dev/null \
+              || { echo "node $port did not start"; cat /tmp/mesh-$port/log; exit 1; }
+          done
+          # mDNS discovery needs a moment to find and probe the peers before
+          # the first federation request, or it pays a dial timeout.
+          sleep 30
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.24.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run the E2EE and alias contracts over the medium
+        env:
+          NEUTRINO_URL: http://127.0.0.1:8008
+          NEUTRINO_URL_B: http://127.0.0.1:8009
+          NEUTRINO_URL_C: http://127.0.0.1:8010
+          NEUTRINO_FORK: '1'
+        # One vitest process per suite, deliberately. Two crypto-heavy suites
+        # in one process stall the first suite's sync loop often enough to fail
+        # either of them, and the failure wears a convincing federation
+        # costume — a receiver holding ciphertext and "waiting for the key" —
+        # that cost a real debugging day. The same suites pass back-to-back in
+        # fresh processes on the same nodes. Client coupling, not the medium;
+        # this job exists to catch the medium.
+        run: |
+          pnpm --filter @indiafoss/neutrino-probe exec vitest run src/two-nodes.e2e.test.ts
+          pnpm --filter @indiafoss/neutrino-probe exec vitest run src/mesh-e2ee.e2e.test.ts
+          pnpm --filter @indiafoss/neutrino-probe exec vitest run src/aliases.e2e.test.ts
+
+      - name: Node logs
+        if: failure()
+        run: |
+          for port in 8008 8009 8010; do
+            echo "=== node $port ==="; tail -n 120 /tmp/mesh-$port/log || true
+          done
