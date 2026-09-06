@@ -48,11 +48,17 @@ invites federate out (23/23), joins federate in, the host sees every member.
 Only the message transaction push dies, wholesale.
 
 Ruled out so far: file descriptors (limit is 524288), port collisions (ports
-are ephemeral via `freePort()`), the profile, the deadline. Not yet ruled
-out: a bound in the fork's outbox/sender at >20 destinations (the default
-outbound concurrency is 2, so it is not the semaphore's size), and a rig
-resource interaction specific to this machine — the same run has not yet been
-tried on a second host, which is the next discriminating step.
+are ephemeral via `freePort()`), the profile, the deadline. **Also ruled out
+since first writing this: a fixed node-count constant.** On a freshly cleaned
+box, 22 delivered completely and 24 still delivered nothing — and some of the
+bisection runs above were degraded by ~24 leaked debug nodes from an earlier
+timeout-killed run (the harness's children are detached, so killing the
+harness leaks them; `pgrep -x neutrino` does not match a binary named
+otherwise, which is how they survived a cleanup). The threshold therefore
+moves with background load; the wall is real by 24 on this rig but its
+location is not a protocol constant. Still not ruled out: the fork's
+outbox/sender behaviour at ~20+ destinations, and the rig itself — the same
+run on a second host is the next discriminating step.
 
 `SWARM_KEEP=1` now preserves every node's storage and log for exactly this
 kind of post-mortem; it was added mid-investigation because the alternative

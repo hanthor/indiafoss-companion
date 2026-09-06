@@ -83,9 +83,16 @@ describe.skipIf(!reachable)('E2EE in a group across three mesh nodes', () => {
     'one sender, two receivers, every hop ciphertext, replies prove each link',
     { timeout: 180_000 },
     async () => {
-      await alice.signInWithPassword(A, 'alice', 'neutrino');
-      await bob.signInWithPassword(B, 'alice', 'neutrino');
-      await carol.signInWithPassword(C, 'alice', 'neutrino');
+      // Distinct localparts, not three 'alice's. Beyond realism, this keeps
+      // the test independent of whatever ran before it in the same job: a
+      // second sign-in as an existing user mints a second *device*, and the
+      // sender then depends on the device_list_update EDU landing before she
+      // encrypts — a race that produced exactly one undecryptable receiver in
+      // CI while the same test passed locally. Three fresh users have no
+      // stale devices to race against.
+      await alice.signInWithPassword(A, 'mesh-alice', 'neutrino');
+      await bob.signInWithPassword(B, 'mesh-bob', 'neutrino');
+      await carol.signInWithPassword(C, 'mesh-carol', 'neutrino');
       const ids = [alice, bob, carol].map((s) => s.snapshot().session!.userId);
       expect(new Set(ids).size).toBe(3);
       for (const [s, name] of [

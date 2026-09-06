@@ -218,7 +218,7 @@ jobs:
           done
           # mDNS discovery needs a moment to find and probe the peers before
           # the first federation request, or it pays a dial timeout.
-          sleep 20
+          sleep 30
 
       - uses: pnpm/action-setup@v4
         with:
@@ -238,9 +238,17 @@ jobs:
           NEUTRINO_URL_B: http://127.0.0.1:8009
           NEUTRINO_URL_C: http://127.0.0.1:8010
           NEUTRINO_FORK: '1'
+        # One vitest process per suite, deliberately. Two crypto-heavy suites
+        # in one process stall the first suite's sync loop often enough to fail
+        # either of them, and the failure wears a convincing federation
+        # costume — a receiver holding ciphertext and "waiting for the key" —
+        # that cost a real debugging day. The same suites pass back-to-back in
+        # fresh processes on the same nodes. Client coupling, not the medium;
+        # this job exists to catch the medium.
         run: |
-          pnpm --filter @indiafoss/neutrino-probe exec vitest run \
-            src/two-nodes.e2e.test.ts src/mesh-e2ee.e2e.test.ts src/aliases.e2e.test.ts
+          pnpm --filter @indiafoss/neutrino-probe exec vitest run src/two-nodes.e2e.test.ts
+          pnpm --filter @indiafoss/neutrino-probe exec vitest run src/mesh-e2ee.e2e.test.ts
+          pnpm --filter @indiafoss/neutrino-probe exec vitest run src/aliases.e2e.test.ts
 
       - name: Node logs
         if: failure()
