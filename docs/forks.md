@@ -24,10 +24,14 @@ and to-device messages across federation; delivery through the durable outbox
 through sliding sync; persistence for all of it. This is what makes an
 encrypted DM between two phones possible at all.
 
-**Client-server surface a real client needs** (patches 0006…0011): redaction,
-typing/read receipts over federation, `/event`, device-list update EDUs,
-whoami/account-data, media with a size cap, CORS, a configurable join-ingest
-deadline. Each one exists because Element X or our own client hit its absence.
+**Client-server surface a real client needs** (patches 0006…0011, plus #4):
+redaction, typing/read receipts over federation, `/event`, device-list update
+EDUs, whoami/account-data, media with a size cap, CORS, a configurable
+join-ingest deadline — and `initial_state` honoured on `createRoom` (#4),
+which is the seam a stock client turns encryption on through: Element X sends
+`m.room.encryption` there, and before #4 the server dropped it and answered
+200 with a plaintext room the client believed was encrypted. Each addition
+exists because Element X or our own client hit its absence.
 
 **The room directory** (#1–#3 on the fork): `room_aliases` storage
 (first-write-wins claims), `createRoom` honouring `room_alias_name` and
@@ -99,7 +103,9 @@ Proven, with the evidence in `docs/evidence/`:
   against `neutrino-lan` nodes).
 - **Groups across three mesh homeservers** — one sender's key share fanned to
   two distinct servers, ciphertext-only on the wire, replies proving every
-  pairwise link (`mesh-e2ee.e2e.test.ts`, in CI on every push).
+  pairwise link (`mesh-e2ee.e2e.test.ts`, in CI on every push). The group room
+  is created the way Element X creates one — `m.room.encryption` in
+  `initial_state` — so the whole stock-client path is what is under test.
 - **Gateway ↔ Spindle** — keys queried and claimed both ways, device-list
   changes announced, to-device delivered both ways (rung 1, 15/15).
 

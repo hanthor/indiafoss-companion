@@ -104,21 +104,34 @@ describe.skipIf(!reachable)('E2EE in a group across three mesh nodes', () => {
       }
 
       const aToken = alice.snapshot().session!.accessToken;
+      // Encryption via `initial_state`, which is how Element X and the
+      // matrix-rust-sdk actually express it — not the enable-later PUT the
+      // 1:1 test uses (both are real paths, and now both are covered). A
+      // server that drops this answers 200 with a plaintext room the client
+      // believes is encrypted, which is why the encryption event is asserted
+      // present in the created room's state rather than trusted.
       const created = await raw(A, aToken, 'POST', '/_matrix/client/v3/createRoom', {
         name: 'mesh group',
         preset: 'private_chat',
+        initial_state: [
+          {
+            type: 'm.room.encryption',
+            state_key: '',
+            content: { algorithm: 'm.megolm.v1.aes-sha2' },
+          },
+        ],
       });
       expect(created.status).toBe(200);
       const roomId = created.body.room_id as string;
       const encRoom = encodeURIComponent(roomId);
-      const enc = await raw(
+      const encState = await raw(
         A,
         aToken,
-        'PUT',
+        'GET',
         `/_matrix/client/v3/rooms/${encRoom}/state/m.room.encryption/`,
-        { algorithm: 'm.megolm.v1.aes-sha2' },
       );
-      expect(enc.status).toBe(200);
+      expect(encState.status, 'initial_state must not be dropped').toBe(200);
+      expect(encState.body.algorithm).toBe('m.megolm.v1.aes-sha2');
       for (const id of [ids[1]!, ids[2]!]) {
         const invite = await raw(A, aToken, 'POST', `/_matrix/client/v3/rooms/${encRoom}/invite`, {
           user_id: id,
