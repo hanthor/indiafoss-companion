@@ -99,11 +99,16 @@ Make the mesh account _an_ account rather than _the_ account.
 - Start the node lazily: an attendee who only wants their classic account
   should not wait behind "Starting Neutrino…", and should not run a mesh node
   they never use.
-- Everything else is upstream's: **Element X 26.09.1 already ships
-  multi-session** — `matrixSessionCache` keyed by `SessionId`,
-  `switchToLoggedInFlow(sessionId, cacheIndex)`, and an `AccountSelect` nav
-  target in `RootFlowNode`. We adopt it rather than invent it, which is one
-  more reason to land the 26.09.1 forward-port (`ex-2609`).
+- Everything else is upstream's: **Element X ships multi-account behind a
+  disabled flag, on our current 26.05.2 base** — `feature.multi_account`,
+  a plural session store with switcher ordering, N live clients each with
+  their own DI graph and sync loop, an account picker, swipeable account
+  avatars, session-keyed notifications. We enable and finish it rather than
+  invent it; the audited enable-list, the upstream bugs the flag exposes,
+  and the fork's seventeen single-account assumptions are inventoried in
+  [the implementation notes](0006-implementation-notes.md). None of Stage 0
+  waits for the 26.09.1 port (`ex-2609`), though landing it there avoids
+  doing the work twice.
 - Deep links become account-aware: `RootFlowNode.navigateTo(permalinkData)`
   must first choose _which_ account resolves a `matrix:` or
   `indiafoss://friend` link.
@@ -242,8 +247,12 @@ channel only you can read. Not a bridge.
 
 ## Consequences
 
-- The 26.09.1 forward-port stops being housekeeping and becomes the
-  dependency for Stage 0 — multi-session is upstream's, already written.
+- Stage 0 is smaller than it looks: multi-account is upstream's, already
+  written on our current base, behind `feature.multi_account`. The real Stage
+  0 work is unwinding the fork's own single-account assumptions and fixing
+  the three upstream bugs the flag exposes (implementation notes). The
+  26.09.1 port stays desirable — its multi-account code is four months
+  fresher — but is not a dependency.
 - `docs/messaging.md`'s "chat app for mesh, Element for public" instruction
   is superseded once Stage 0 lands; both belong in one app.
 - The cross-seam DM guard (chat-android#40) is temporary by design: Stage 1
