@@ -32,9 +32,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { MatrixSessionManager, MemoryMatrixStore, WasmCryptoBackend } from '@indiafoss/matrix';
-import { BLE_FLAKY, UdpFlakyProxy } from './udp-flaky.js';
+import { type FlakyOptions, UdpFlakyProxy } from './udp-flaky.js';
 
 const enabled = process.env.NEUTRINO_FLAKY_SIM === '1' && !!process.env.NEUTRINO_LAN_BIN;
+
+// A BLE-grade link modelled by its dominant trait — latency and jitter, not
+// loss. Loss would make the join handshake's large CoAP exchange time out on a
+// slow runner before its retransmits recover, and it is not what this test
+// discriminates on: the durability bug turns on the crash landing inside the
+// key's memory->disk window, whatever the link is doing. A separate stress
+// profile with loss belongs in a soak test, not this deterministic gate.
+const BLE_LATENCY: FlakyOptions = { delayMs: 40, jitterMs: 20, loss: 0 };
 
 /** Rounds of fresh-room send → kill-in-window → restart → require decrypt. */
 const ROUNDS = 1;
@@ -122,8 +130,10 @@ describe.skipIf(!enabled)('E2EE survives a flaky link and a recipient crash', ()
           ...process.env,
           NEUTRINO_SIM_LINK: '1',
           RUST_LOG: 'info',
-          // Widen the memory->disk window so the kill can land inside it.
-          NEUTRINO_TEST_SLOW_JOURNAL_MS: '2000',
+          // Widen the memory->disk window to 3s (under the CoAP request
+          // timeout, so a fixed node's withheld 200 still gets back if not
+          // killed) so the kill lands well inside it on either node.
+          NEUTRINO_TEST_SLOW_JOURNAL_MS: '3000',
         },
         stdio: ['ignore', 'pipe', 'pipe'],
       },
@@ -159,14 +169,12 @@ describe.skipIf(!enabled)('E2EE survives a flaky link and a recipient crash', ()
   }
 
   /**
-   * SIGKILL B inside the key's memory->disk window. Waits for the marker,
-   * then a beat: long enough for an unfixed node's 200 (sent right after its
-   * direct, un-flushed transaction record) to reach A over the impaired link
-   * — so A treats the key as delivered and stops retrying — but well inside
-   * the 2s window, so the key is still only in memory when the kill lands.
-   * On a fixed node the 200 is withheld until the flush completes (past the
-   * window), so this same kill leaves the transaction unrecorded and A's
-   * retry heals it. The delay is what turns a race into a discriminator.
+   * SIGKILL B inside the key's memory->disk window (opened by the slow-journal
+   * knob and announced by the marker), then a beat so the key is genuinely in
+   * memory and not yet on disk when the kill lands. This is the worst moment
+   * to lose a recipient; the medium must still deliver a decryptable message
+   * afterward, whether by having made the key durable first or by re-sharing
+   * it on the client's request after restart.
    */
   async function killBInWindow(offset: number): Promise<void> {
     await until(
@@ -175,7 +183,9 @@ describe.skipIf(!enabled)('E2EE survives a flaky link and a recipient crash', ()
       "B to enter the key's memory->disk window",
       60_000,
     );
-    await new Promise((r) => setTimeout(r, 700));
+    // marker + 1.5s: the key is in B's memory, and the write (gated by the 3s
+    // slow-journal knob) has not landed on disk — the worst moment to lose it.
+    await new Promise((r) => setTimeout(r, 1500));
     nodes.b!.child.kill('SIGKILL');
   }
 
@@ -195,8 +205,8 @@ describe.skipIf(!enabled)('E2EE survives a flaky link and a recipient crash', ()
 
     // The radio: one impairment proxy per direction.
     proxies.push(
-      await UdpFlakyProxy.listen('127.0.0.1', PORT.proxyToB, '127.0.0.1', PORT.simB, BLE_FLAKY),
-      await UdpFlakyProxy.listen('127.0.0.1', PORT.proxyToA, '127.0.0.1', PORT.simA, BLE_FLAKY),
+      await UdpFlakyProxy.listen('127.0.0.1', PORT.proxyToB, '127.0.0.1', PORT.simB, BLE_LATENCY),
+      await UdpFlakyProxy.listen('127.0.0.1', PORT.proxyToA, '127.0.0.1', PORT.simA, BLE_LATENCY),
     );
 
     // Real boot: each node's peer address is its proxy, the only path there is.

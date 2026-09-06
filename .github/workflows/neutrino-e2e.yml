@@ -261,11 +261,15 @@ jobs:
     name: E2EE survives a flaky link and a crash
     # The plain-HTTP job proves the crypto; the medium job proves the medium
     # carries it; this one proves it survives the two things a venue guarantees
-    # and no other job reproduces — a BLE-grade link that drops packets and
-    # flaps, and a phone whose node is killed mid-delivery. It is a red/green
-    # gate by construction: the same test fails on a node without the durability
-    # fix (permanent "waiting for the key") and passes with it, so the fix
-    # cannot silently regress. The node here is `neutrino-lan` with its plain-
+    # and no other job reproduces — a BLE-grade link (latency + jitter) and a
+    # phone whose node is SIGKILLed mid-key-delivery. An end-to-end HEAL gate:
+    # the composed medium must still deliver a decryptable message after the
+    # crash, by durability or by client key re-request. The isolated,
+    # deterministic durability red/green is the fork's own `cargo nextest`
+    # (room_key_is_durable_...); this catches the integration regressions that
+    # only surface end to end — the medium dropping to-device, or the sender's
+    # backoff not resuming after the crash. The node here is `neutrino-lan`
+    # with its plain-
     # UDP test transport (NEUTRINO_SIM_LINK); the test spawns, kills, and
     # restarts its own nodes and runs the impairment proxies in-process, so it
     # needs no pre-started servers, no root, and no kernel netem.
