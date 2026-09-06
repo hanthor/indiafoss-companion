@@ -68,3 +68,33 @@ Until the cliff is explained, **the playbook's 50- and 100-node rung-2
 targets are unreachable on any rig**, and §4's "hundred members as the design
 ceiling" rests on the loopback swarm only. This is the open question rung 2
 exists to answer, and it is open.
+
+## Resolution (same day): the cliff was the join-storm head-cap bug
+
+Found by finally checking the one response nothing checked: the host's own
+send was answering **`400 M_BAD_JSON: prev_events exceeds 20 entries`**. Under
+a shaped link the concurrent joins overlap, every join lands as a sibling
+forward extremity, and past 20 heads the fork's event builder — which
+references _every_ head — failed its own validator. Nothing merges heads, so
+the room was permanently unwritable by its own members. On loopback the joins
+serialise and the room keeps ~1 head, which is why `lan` never showed it.
+
+Every earlier observation now has its explanation: total-not-slow (the send
+failed, so there was nothing to deliver), profile-gated (shaping creates the
+concurrency), threshold ~22 (21 remote joins can leave ≤20 heads; 22 cannot),
+cross-host (it is protocol handling, not a rig), and the leaked-process noise
+merely moved the apparent threshold.
+
+Fixed in hanthor/neutrino#6 (cap at 20 like Synapse; unreferenced heads stay
+extremities and later events absorb them), and the harness now fails loudly on
+a non-200 send instead of reporting it as undelivered fan-out.
+
+**With the fix (debug build, himachal):**
+
+| scenario                             | joined | fan-out p50 | p90     | undelivered |
+| ------------------------------------ | ------ | ----------- | ------- | ----------- |
+| 24 wifi                              | 23/23  | 440 ms      | 598 ms  | 0           |
+| 50 wifi + 3 gateways, stagger 250 ms | 49/49  | 865 ms      | 1180 ms | 0           |
+
+The playbook's rung-2 targets are reachable again. At a venue, this bug was a
+talk starting: a hall joins the session room, and then nobody in it can send.
