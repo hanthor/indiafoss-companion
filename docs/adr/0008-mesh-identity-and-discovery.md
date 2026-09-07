@@ -39,7 +39,7 @@ one root:
    nearby stranger sees it in their people-picker. There is no toggle, and no
    choice at onboarding.
 
-The companion PWA already solved the *sharing* half for its own surface —
+The companion PWA already solved the _sharing_ half for its own surface —
 `/connect` renders a signed vCard QR carrying `X-INDIAFOSS-MESH` (the node id)
 and shows a 5×5 key badge as the in-person check (`docs/contact-sharing.md`).
 The chat app carries none of that inward. This ADR brings the same ergonomics
@@ -73,7 +73,7 @@ way to establish one. The full id stays one tap away (tapping it already copies
 to clipboard, `UserProfileView.kt:84`). The display name is shown, but visibly
 secondary to the code+badge, because it is unauthenticated.
 
-### 2. Add a contact by QR — and let the DM room *be* the contact
+### 2. Add a contact by QR — and let the DM room _be_ the contact
 
 A "My code" QR on your own profile encodes a **standard user URI**
 (`matrix:u/n:<server-name>` / the matrix.to permalink `permalinkForUser` already
@@ -89,9 +89,9 @@ actually reaches peers:
 
 - **The QR does not seed reachability. It hands over identity.** A phone has no
   stable `ip:port` to put in a QR, and over BLE a peer is reached by resolving
-  *its own* advertisement — so a scanned node id does not make an otherwise
+  _its own_ advertisement — so a scanned node id does not make an otherwise
   unreachable peer dialable (`relay_transport.rs:689`, `addrs` empty on device).
-  The QR's job is to hand over the *exact* identity with no typing and no
+  The QR's job is to hand over the _exact_ identity with no typing and no
   name-collision; reachability is still the radio's job. v1 therefore carries
   **no dial hints** — they would be dead weight on BLE.
 - **There is no contact store, because the DM room is the contact.** A
@@ -106,10 +106,10 @@ actually reaches peers:
 **What this does and does not do for the shield.** Scanning someone's code in
 person pins their **server identity** — you saw it on their screen, out of
 band. It does **not** clear the "encrypted by a device not verified by its
-owner" shield, which is *device* cross-signing state, a different key. Naming
+owner" shield, which is _device_ cross-signing state, a different key. Naming
 the convergence rather than dropping it: a later QR payload that also carries
 the cross-signing **master key** — exactly what Matrix's own QR verification
-encodes — makes one scan mean *add and verify* at once. That is Phase 3, and it
+encodes — makes one scan mean _add and verify_ at once. That is Phase 3, and it
 is how this ADR keeps the earlier device-verification request alive instead of
 quietly closing it.
 
@@ -131,13 +131,13 @@ build. Two honest consequences stated up front:
 
 - **Hiding costs you your name to strangers.** A hidden peer drops out of other
   nodes' registries, so its `/profile` resolves empty there — it shows up
-  *nameless* to anyone who hasn't already got it in a room (in-room names
+  _nameless_ to anyone who hasn't already got it in a room (in-room names
   survive via `m.room.member`).
 - **Hidden is asymmetric, and that asymmetry is the design.** A hidden node can
-  still **dial out** (egress resolves the *other* peer's advert, which is
+  still **dial out** (egress resolves the _other_ peer's advert, which is
   unaffected by whether you advertise), so after any contact is made, whoever
   can dial, dials, and traffic rides that connection. But a hidden node cannot
-  be *found* over BLE, and on a phone it cannot be seeded by address either. So
+  be _found_ over BLE, and on a phone it cannot be seeded by address either. So
   a hidden user stays reachable by **reaching out first** — the honest
   mitigation, deferred to a later phase, is a hidden-mode heartbeat that
   periodically re-dials **known DM partners** so a hidden attendee still
@@ -157,7 +157,7 @@ build. Two honest consequences stated up front:
 2. **Phase 2 — the hide switch.** Wire `stop_advertising` through the FFI →
    `NeutrinoService` → a `SessionPreferencesStore` flag → a `PreferenceSwitch`
    in Advanced settings → a first-run choice adjacent to the display-name step.
-3. **Phase 3 — one scan, add *and* verify.** Extend the QR payload with the
+3. **Phase 3 — one scan, add _and_ verify.** Extend the QR payload with the
    cross-signing master key and route a scan into the verification flow, so an
    in-person scan clears the device shield.
 
