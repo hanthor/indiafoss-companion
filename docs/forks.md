@@ -13,7 +13,7 @@ them.
 ## hanthor/neutrino — the embedded homeserver
 
 Forked from `element-hq/neutrino` at v0.7.1 (`90bc1b1`). Branch:
-`e2ee-key-transport`, 17 commits ahead. Three groups:
+`e2ee-key-transport`, 18 commits ahead. Four groups:
 
 **End-to-end encryption transport** (the branch's namesake, also carried as
 `patches/neutrino/0001…0005`). Upstream v0.7.1 stores no real device keys and
@@ -32,6 +32,21 @@ which is the seam a stock client turns encryption on through: Element X sends
 `m.room.encryption` there, and before #4 the server dropped it and answered
 200 with a plaintext room the client believed was encrypted. Each addition
 exists because Element X or our own client hit its absence.
+
+**Media across the low-bandwidth proxy** (#11): on the mesh, federation runs
+through the `neutrino-lb` sidecar, which JSON⇄CBOR-transcodes every body to fit
+the CoAP-over-BLE wire. A federation media download answers `multipart/mixed`
+with a _binary_ body, which is not JSON — so the transcode failed, the 2xx
+ingress returned 502, and the recipient turned that into a 404. Text and the
+`m.image`/`m.audio` event itself (JSON) arrived, but the blob never did, so
+photo and voice-message attachments were silently broken phone-to-phone. The
+fix keys off the response `Content-Type`: JSON still transcodes, anything else
+(multipart, octet-stream, `image/*`) passes through byte-for-byte with its real
+type carried on a sentinel header over the existing `x-matrix` forwardable
+prefix — no transport change. The seam was untested because `e2e_media.rs` hits
+the router in-process, never through the sidecars; a new `e2e_lb_federation`
+media test now covers it. Separate, still open: the 256 KiB upload cap blocks
+multi-MB photos at the sender, and no thumbnail endpoints exist.
 
 **Join-storm survival** (#6): a local event referenced _every_ forward
 extremity, and past the PDU schema's 20-head cap the builder failed its own
