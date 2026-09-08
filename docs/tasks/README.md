@@ -20,6 +20,15 @@ records the decision. Do not open new issues for these.
 3. **Acceptance commands must actually pass**, and you must paste real output.
    A merged patch is not an installed-device result — several specs below turn
    on exactly that distinction.
+   - **Rebuild before running Playwright.** `npx playwright test` serves
+     whatever is already in `apps/web/build`, so it will happily pass against
+     a build made before your change. Use `just test-e2e` (which depends on
+     `build`) or run `just build` first. This has already produced one green
+     local run for a change CI then rejected.
+   - **`just android-test` runs `:core:test` only.** Nothing under `:app` is
+     covered, and `:app` needs the Android SDK to compile at all — see
+     [#210](https://github.com/hanthor/indiafoss-companion/issues/210). If your
+     change touches `:app`, say plainly whether you were able to compile it.
 4. **If the spec is wrong, stop and say so.** The architecture document wins
    over the spec, and reality wins over both. Do not implement something you
    can see is incorrect.
