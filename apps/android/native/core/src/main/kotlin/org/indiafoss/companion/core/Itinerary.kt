@@ -5,14 +5,15 @@ package org.indiafoss.companion.core
  * attendee can actually be in. Must-attend sessions are placed first and
  * never displaced; then bookmarks, then the rest by rating, each taken only
  * when it does not overlap what is already placed. Not-interested sessions
- * and meals are never placed. This is the greedy core of the web solver
+ * and source meal rows are never placed as talks. One lunch opportunity may
+ * occupy a free official lunch window. This is the greedy core of the web solver
  * (`@indiafoss/solver`), enough for a native plan that agrees with the
  * ranking; walking time between rooms is left to the leave-by logic.
  */
 object Itinerary {
     data class Item(val activity: Activity, val reason: Reason, val block: CustomBlock? = null)
 
-    enum class Reason { MUST_ATTEND, BOOKMARKED, RANKED, BLOCK }
+    enum class Reason { MUST_ATTEND, BOOKMARKED, RANKED, BLOCK, LUNCH }
 
     /**
      * A block of the attendee's own (#110, the web solver's custom and
@@ -82,7 +83,43 @@ object Itinerary {
                 placed += Item(fixed.asActivity(), Reason.BLOCK, fixed)
             }
         }
+        // Room lunch rows describe availability, not competing sessions. Place one
+        // food-area break only after talks and attendee blocks have claimed their time.
+        if (blocks.none { it.label.contains("lunch", ignoreCase = true) && (it.flexible || it.start!!.startsWith(day)) }) {
+            lunchOpportunity(bundle, day, placed.map { it.activity })?.let {
+                placed += Item(it, Reason.LUNCH)
+            }
+        }
         return placed.sortedBy { it.activity.start }
+    }
+
+    private fun lunchOpportunity(bundle: EventBundle, day: String, placed: List<Activity>): Activity? {
+        val busy = placed.filter { it.start != null && it.end != null }
+            .map { Schedule.parseInstant(it.start!!) to Schedule.parseInstant(it.end!!) }
+            .sortedBy { it.first }
+        if (busy.size < 2) return null
+        val windows = Schedule.activitiesForDay(bundle, day)
+            .filter { !it.cancelled && it.type == "meal" && it.title.contains("lunch", ignoreCase = true) && it.start != null && it.end != null }
+            .sortedBy { it.start }
+        val duration = 30 * 60_000L
+        for (window in windows) {
+            var cursor = maxOf(Schedule.parseInstant(window.start!!), busy.first().second)
+            val end = minOf(Schedule.parseInstant(window.end!!), busy.last().first)
+            for ((start, finish) in busy) {
+                if (minOf(start, end) - cursor >= duration) {
+                    val offset = Schedule.offsetMinutes(window.start!!)
+                    return Activity(
+                        id = "flex-lunch-$day", title = "Lunch · food area", type = "meal",
+                        start = Schedule.formatInstant(cursor, offset),
+                        end = Schedule.formatInstant(cursor + duration, offset),
+                        flexible = true,
+                    )
+                }
+                cursor = maxOf(cursor, finish)
+                if (cursor >= end) break
+            }
+        }
+        return null
     }
 
     private fun CustomBlock.asActivity(): Activity =
