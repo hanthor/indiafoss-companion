@@ -1,6 +1,6 @@
 # C-01 — A schedule change published during the day actually reaches the attendee
 
-- Status: Partially implemented; per-event freshness and status remain in #189
+- Status: Implemented on web; validation recorded in refresh feedback evidence
 - Repository: indiafoss-companion
 - Tracks: [#189](https://github.com/hanthor/indiafoss-companion/issues/189)
 - Size: S
@@ -11,13 +11,18 @@
 triggers, foreground polling and a 12-second manifest-plus-bundle timeout are
 implemented. The historical reproduction below should not be implemented again.
 
-The next patch should key freshness by event, show the last successful check,
-report HTTP/asset failures consistently, and make Settings read the active
-event's revision instead of `DEFAULT_EVENT_ID`. Extend the existing gate and
-browser tests, including an offline-to-online update without reload that retains
-notes and custom blocks as well as bookmarks and ratings. Keep data adoption in
-C-02: its atomic web implementation shipped in PR #235. See #189 for current
-review evidence and acceptance; it remains open.
+Per-event freshness and immediate retry after download failures shipped in PR
+#237. Settings now displays the active event's revision and persisted successful
+check time; failed forced checks clear old freshness. See
+[refresh feedback evidence](../reviews/refresh-feedback-2026-09-08.md).
+
+The combined service-worker cold-start recovery test now preserves preferences,
+notes and custom blocks. Periodic failures back off to a maximum 15 minutes;
+explicit recovery triggers can retry immediately. Manifests are excluded from
+precache so cached data cannot masquerade as a network freshness check. See the
+linked evidence for test seams and limits. The original scaffold below is
+historical; do not reimplement the permanent-latch fix. C-02's atomic web
+adoption shipped in PR #235.
 
 ## Why this matters
 

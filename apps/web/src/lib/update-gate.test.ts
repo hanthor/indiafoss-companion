@@ -161,3 +161,12 @@ it('runs a queued event even when the previous event throws', async () => {
   expect(gate.isFresh('2025')).toBe(false);
   expect(gate.isFresh('2026')).toBe(true);
 });
+
+it('a failed forced check clears older freshness so reconnect can retry', async () => {
+  const gate = new UpdateGate();
+  await gate.run(async () => true, { eventId: '2026' });
+  await gate.run(async () => false, { eventId: '2026', force: true });
+  const retry = vi.fn().mockResolvedValue(true);
+  await gate.run(retry, { eventId: '2026' });
+  expect(retry).toHaveBeenCalledTimes(1);
+});

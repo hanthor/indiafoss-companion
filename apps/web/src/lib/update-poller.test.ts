@@ -45,3 +45,11 @@ describe('schedule polling', () => {
     expect(check).toHaveBeenCalledTimes(1);
   });
 });
+
+it('backs off periodic failures with a cap while preserving the quiet interval', async () => {
+  const { updateRetryDelay } = await import('./update-poller');
+  expect(updateRetryDelay(60_000, 0)).toBe(60_000);
+  expect(updateRetryDelay(60_000, 1)).toBe(120_000);
+  expect(updateRetryDelay(60_000, 20)).toBe(900_000);
+  expect(updateRetryDelay(900_000, 1)).toBe(900_000);
+});
