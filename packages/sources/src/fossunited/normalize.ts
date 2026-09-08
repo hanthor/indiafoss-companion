@@ -286,6 +286,7 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
         activities.push({
           id: `act-${s.name}`,
           sourceId: s.name,
+          ...(s.linked_cfp ? { proposalId: s.linked_cfp } : {}),
           type,
           title: cleanTitle(
             s.title || s.talk_title || s.proposal_title || cfp?.talk_title || 'Untitled',
@@ -301,7 +302,9 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           ...(detail?.links.length ? { links: detail.links } : {}),
           ...(cfp?.intended_audience ? { audience: cfp.intended_audience } : {}),
           ...(cfp?.status ? { proposalStatus: cfp.status } : {}),
-          ...(detail?.sourceUrl ? { sourceUrl: detail.sourceUrl } : {}),
+          ...(detail?.sourceUrl || cfp?.route
+            ? { sourceUrl: detail?.sourceUrl ?? absoluteUrl(cfp?.route) }
+            : {}),
           start,
           ...(Date.parse(end) > Date.parse(start)
             ? { end }

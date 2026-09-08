@@ -2,6 +2,8 @@ import { collectBundleWarnings, isValidEventBundle } from '@indiafoss/model';
 import type { EventBundle, EventReference, MessagingConfig } from '@indiafoss/model';
 import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
 import { FixtureSource, FossUnitedSource, mergeBooths, repoRoot } from '@indiafoss/sources';
+import { preserveActivityIds } from './identity.js';
+import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import {
   copyFileSync,
@@ -9,6 +11,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   writeFileSync,
 } from 'node:fs';
 import { join } from 'node:path';
@@ -51,7 +54,31 @@ export async function syncEvent(
 ): Promise<EventManifest> {
   const ref: EventReference = { id: eventId, locator: publicEventRoute(eventId) };
   const sourceImpl = source === 'live' ? new FossUnitedSource() : new FixtureSource();
-  const bundle = await sourceImpl.normalize(await sourceImpl.fetchEvent(ref));
+  const captured = await sourceImpl.fetchEvent(ref);
+  // An unavailable enrichment page must not erase a previously published description.
+  if (source === 'live' && captured.kind === 'fossunited') {
+    const previousDetailsPath = repoRoot('events', eventId, 'raw', 'proposal-details.json');
+    if (existsSync(previousDetailsPath)) {
+      const previousDetails = JSON.parse(readFileSync(previousDetailsPath, 'utf8')) as Record<
+        string,
+        unknown
+      >;
+      const linked = new Set(
+        Object.values(captured.schedule).flatMap((rooms) =>
+          Object.values(rooms).flatMap((sessions) => sessions.map((session) => session.linked_cfp)),
+        ),
+      );
+      const missing = Object.keys(previousDetails).filter(
+        (id) => linked.has(id) && !captured.proposalDetails?.[id],
+      );
+      if (missing.length) {
+        throw new Error(
+          `Incomplete proposal capture: ${missing.length} previously available pages could not be read. Retry before publishing.`,
+        );
+      }
+    }
+  }
+  const bundle = await sourceImpl.normalize(captured);
 
   // Merge the authored booth fixture (booths are not in the public API).
   const boothsPath = join(repoRoot('events', eventId), 'booths.json');
@@ -99,6 +126,48 @@ export async function syncEvent(
     }
   }
 
+  if (bundle.activities.length === 0) throw new Error('Refusing to publish an empty programme');
+  if (prevBundle) {
+    preserveActivityIds(prevBundle, bundle);
+    const retained = new Set(bundle.activities.map((a) => a.id));
+    const missing = prevBundle.activities.filter((a) => !retained.has(a.id)).length;
+    if (prevBundle.activities.length && missing / prevBundle.activities.length > 0.25) {
+      throw new Error(
+        `Refusing automatic publication: ${missing} previous activities disappeared. Review the source and identity mapping.`,
+      );
+    }
+  }
+  if (!isValidEventBundle(bundle))
+    throw new Error('identity reconciliation produced an invalid bundle');
+  if (source === 'live' && !publishedDirOverride && captured.kind === 'fossunited') {
+    const rawDir = repoRoot('events', eventId, 'raw');
+    mkdirSync(rawDir, { recursive: true });
+    const captures = {
+      'event.json': captured.event,
+      'schedule.json': captured.schedule,
+      'proposals.json': { proposals: captured.proposals },
+      'proposal-details.json': captured.proposalDetails,
+    };
+    for (const [name, value] of Object.entries(captures)) {
+      writeFileSync(join(rawDir, name), JSON.stringify(value, null, 2) + '\n');
+    }
+    writeFileSync(
+      repoRoot('events', eventId, 'activity-ids.json'),
+      JSON.stringify(
+        Object.fromEntries(
+          bundle.activities.flatMap((a) => [
+            [`row:${a.sourceId}`, a.id],
+            ...(a.proposalId &&
+            bundle.activities.filter((b) => b.proposalId === a.proposalId).length === 1
+              ? [[`cfp:${a.proposalId}`, a.id]]
+              : []),
+          ]),
+        ),
+        null,
+        2,
+      ) + '\n',
+    );
+  }
   const eventJson = JSON.stringify(bundle, null, 2);
   const eventHash = hash(eventJson);
 
@@ -230,6 +299,6 @@ export async function main(): Promise<void> {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === realpathSync(process.argv[1])) {
   void main();
 }

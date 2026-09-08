@@ -234,8 +234,10 @@ test('plan supports editing: lock, remove/restore, and a persistent custom block
   page,
 }) => {
   await page.goto(appUrl('/plan'));
-  const firstRow = page.locator('.itinerary li').first();
-  await expect(firstRow).toBeVisible({ timeout: 10_000 });
+  const firstLink = page.locator('.itinerary li:not(.flex) a').first();
+  await expect(firstLink).toBeVisible({ timeout: 10_000 });
+  const href = await firstLink.getAttribute('href');
+  const firstRow = page.locator('.itinerary li').filter({ has: page.locator(`a[href="${href}"]`) });
 
   // Lock the first item.
   await firstRow.locator('summary', { hasText: 'Adjust' }).click();
@@ -245,8 +247,14 @@ test('plan supports editing: lock, remove/restore, and a persistent custom block
   // Remove the second item and restore it from the Removed list.
   const before = await page.locator('.itinerary li').count();
   // Filler blocks carry no controls, so pick the second real session.
-  const secondRow = page.locator('.itinerary li:not(.flex)').nth(1);
-  await secondRow.locator('summary', { hasText: 'Adjust' }).click();
+  const removableLink = page.locator('.itinerary li:not(.flex):not(.locked) a').first();
+  const removableHref = await removableLink.getAttribute('href');
+  const secondRow = page
+    .locator('.itinerary li')
+    .filter({ has: page.locator(`a[href="${removableHref}"]`) });
+  if (!(await secondRow.locator('details').evaluate((el) => (el as HTMLDetailsElement).open))) {
+    await secondRow.locator('summary', { hasText: 'Adjust' }).click();
+  }
   await secondRow.getByRole('button', { name: 'Remove' }).click();
   await expect(page.locator('.itinerary li')).toHaveCount(before - 1);
   await expect(page.getByRole('heading', { name: 'Removed' })).toBeVisible();
@@ -261,6 +269,8 @@ test('plan supports editing: lock, remove/restore, and a persistent custom block
   await addBlock.getByRole('button', { name: 'Add block' }).click();
   await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible();
 
+  // The form clears only after IndexedDB has committed the custom block.
+  await expect(addBlock.getByLabel('What')).toHaveValue('');
   await page.reload();
   await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible({
     timeout: 10_000,

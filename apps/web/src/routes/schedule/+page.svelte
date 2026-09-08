@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { loadPlanned, plannedKey, plannedState } from '$lib/planned.svelte';
   import type { ActivityType } from '@indiafoss/model';
   import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
@@ -23,6 +24,7 @@
   let selectedDay = $state<string | null>(null);
   let view: 'list' | 'grid' = $state('list');
   let query = $state('');
+  let selectedRoom = $state('');
   let devroomsOnly = $state(false);
   let bookmarkedOnly = $state(false);
   let calendarMessage = $state('');
@@ -68,12 +70,23 @@
 
   const dayActivities = $derived(selectedDay ? activitiesForDay(bundle, selectedDay) : []);
 
+  $effect(() => {
+    if (bundle && selectedDay) void loadPlanned(bundle.id, selectedDay);
+  });
+  const plannedIds = $derived(
+    new Set(bundle && selectedDay ? (plannedState[plannedKey(bundle.id, selectedDay)] ?? []) : []),
+  );
+
   const searchIds = $derived(
     query.trim().length >= 2 ? new Set(searchActivities(bundle, query, 60).map((h) => h.id)) : null,
   );
 
+  const rooms = $derived(
+    bundle?.locations.filter((room) => dayActivities.some((a) => a.locationId === room.id)) ?? [],
+  );
   const filtered = $derived(
     dayActivities.filter((a) => {
+      if (selectedRoom && a.locationId !== selectedRoom) return false;
       if (!typesOn.has(a.type)) return false;
       if (devroomsOnly && !a.devroomId) return false;
       if (bookmarkedOnly) {
@@ -111,7 +124,10 @@
           aria-selected={selectedDay === day}
           class="daytab"
           class:active={selectedDay === day}
-          onclick={() => (selectedDay = day)}
+          onclick={() => {
+            selectedDay = day;
+            selectedRoom = '';
+          }}
         >
           Day {i + 1}<br /><small>{formatDayLabel(day)}</small>
         </button>
@@ -124,11 +140,33 @@
         <input type="search" placeholder="Search sessions…" bind:value={query} />
       </label>
       <div class="seg" role="group" aria-label="View">
-        <button class:active={view === 'list'} onclick={() => (view = 'list')}>List</button>
-        <button class:active={view === 'grid'} onclick={() => (view = 'grid')}>Timeline</button>
+        <button
+          aria-pressed={view === 'list'}
+          class:active={view === 'list'}
+          onclick={() => (view = 'list')}>List</button
+        >
+        <button
+          aria-pressed={view === 'grid'}
+          class:active={view === 'grid'}
+          onclick={() => (view = 'grid')}>Room grid</button
+        >
       </div>
     </div>
 
+    <div class="room-filters" role="group" aria-label="Filter by room">
+      <button
+        class:active={!selectedRoom}
+        aria-pressed={!selectedRoom}
+        onclick={() => (selectedRoom = '')}>All rooms</button
+      >
+      {#each rooms as room (room.id)}
+        <button
+          class:active={selectedRoom === room.id}
+          aria-pressed={selectedRoom === room.id}
+          onclick={() => (selectedRoom = room.id)}>{room.name}</button
+        >
+      {/each}
+    </div>
     <details class="filters">
       <summary>Filters</summary>
       <div class="filters-inner">
@@ -158,6 +196,7 @@
     {filtered.length} session{filtered.length === 1 ? '' : 's'}
   </p>
 
+  {#if filtered.length === 0}<p>No sessions match these filters.</p>{/if}
   {#if view === 'list'}
     <div class="list">
       {#each groupByStart(filtered) as group (group.start)}
@@ -169,18 +208,40 @@
           </div>
           <div class="items">
             {#each group.activities as activity (activity.id)}
-              <SessionCard {activity} {bundle} compactTime />
+              <SessionCard {activity} {bundle} compactTime planned={plannedIds.has(activity.id)} />
             {/each}
           </div>
         </div>
       {/each}
     </div>
   {:else}
-    <TimelineGrid activities={filtered} {bundle} day={selectedDay ?? ''} />
+    <TimelineGrid activities={filtered} {plannedIds} {bundle} day={selectedDay ?? ''} />
   {/if}
 </EventGate>
 
 <style>
+  .room-filters {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-block: 0.25rem;
+  }
+  .room-filters button {
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--text);
+    min-height: 40px;
+    padding: 0.4rem 0.8rem;
+  }
+  .room-filters button.active {
+    background: var(--mint-soft);
+    color: var(--mint-dark);
+    border-color: var(--mint-dark);
+    font-weight: 700;
+  }
+
   .pagehead {
     display: flex;
     align-items: end;

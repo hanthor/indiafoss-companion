@@ -8,7 +8,7 @@
   "activities": [
     {
       "id": "act-aq5t2bsj44",
-      "sourceId": "f561o3ofgb",
+      "sourceId": "aq5t2bsj44",
       "type": "talk",
       "title": "Welcome Note",
       "subtitle": "Other",
@@ -25,7 +25,7 @@
     },
     {
       "id": "act-cfp-062rh0sg2r",
-      "sourceId": "f561dgr6pe",
+      "sourceId": "aq5thm5mke",
       "proposalId": "062rh0sg2r",
       "type": "talk",
       "title": "From Pull Requests to Patients: Building Open Healthcare Infrastructure in the Open",
@@ -88,7 +88,7 @@
     },
     {
       "id": "act-aq5to9iht3",
-      "sourceId": "f561mtn6vq",
+      "sourceId": "aq5to9iht3",
       "type": "talk",
       "title": "Opening Note",
       "subtitle": "Other",
@@ -105,7 +105,7 @@
     },
     {
       "id": "act-cfp-advandigma",
-      "sourceId": "f561e57qkb",
+      "sourceId": "aq5t8c6jtu",
       "proposalId": "advandigma",
       "type": "talk",
       "title": "Building Zasper: Inception to Growth",
@@ -158,7 +158,7 @@
     },
     {
       "id": "act-aq5tc0pju4",
-      "sourceId": "f5618mh3ee",
+      "sourceId": "aq5tc0pju4",
       "type": "talk",
       "title": "Devroom Intro: Documentation & Technical Writing",
       "subtitle": "Other",
@@ -176,7 +176,7 @@
     },
     {
       "id": "act-28latk6vs1",
-      "sourceId": "f561r8jo1o",
+      "sourceId": "aq5tjpn7ok",
       "type": "talk",
       "title": "Devroom Intro: Open Hardware",
       "subtitle": "Other",
@@ -194,7 +194,7 @@
     },
     {
       "id": "act-28la68il6o",
-      "sourceId": "f5617hpt9d",
+      "sourceId": "aq5tuv4fua",
       "proposalId": "7pt1ibasdd",
       "type": "talk",
       "title": "Minnow: An Open Platform for Ground Swarm Robotics",
@@ -242,7 +242,7 @@
     },
     {
       "id": "act-28lagehf47",
-      "sourceId": "f5611s8hu8",
+      "sourceId": "aq5tcn1kgh",
       "proposalId": "96gh03hfud",
       "type": "lightning-talk",
       "title": "Your first open source contribution does not have to be code",
@@ -295,7 +295,7 @@
     },
     {
       "id": "act-cfp-2bfslonj72",
-      "sourceId": "f561eog1ue",
+      "sourceId": "aq5tkuod4g",
       "proposalId": "2bfslonj72",
       "type": "talk",
       "title": "From Institution to Community: Building COSH and a Culture of Open Source",
@@ -343,7 +343,7 @@
     },
     {
       "id": "act-28laimsqbf",
-      "sourceId": "f561hhgm04",
+      "sourceId": "aq5tmat8lk",
       "proposalId": "clniq3em1j",
       "type": "lightning-talk",
       "title": "Why Documentation Shouldn't Feel Like Plain Text",
@@ -390,7 +390,7 @@
     },
     {
       "id": "act-28la7k72kp",
-      "sourceId": "f561o9bamj",
+      "sourceId": "aq5t2i2u4c",
       "proposalId": "db4ufng84v",
       "type": "talk",
       "title": "Documentation That Drives OSS Adoption: Lessons From Bruno",
@@ -438,7 +438,7 @@
     },
     {
       "id": "act-28la7s63ku",
-      "sourceId": "f5618m0e82",
+      "sourceId": "aq5tuvsouj",
       "proposalId": "32f9jjkob0",
       "type": "talk",
       "title": "Build your own open source keyboard with ZMK/QMK",
@@ -492,7 +492,7 @@
     },
     {
       "id": "act-cfp-0k2f61lkrj",
-      "sourceId": "f561mtsa0k",
+      "sourceId": "aq5t6438g4",
       "proposalId": "0k2f61lkrj",
       "type": "talk",
       "title": "Repub: Launching the Open Post-Processing Workflow for Digital Archiving in India",
@@ -548,7 +548,7 @@
     },
     {
       "id": "act-28la54hqh4",
-      "sourceId": "f561oat5h3",
+      "sourceId": "aq5thu6pfg",
       "proposalId": "en28h8l81s",
       "type": "lightning-talk",
       "title": "Ctrl+F for 34 Years of India's GovTech (Building a Public Commons for India's Digital Governance History)",
@@ -601,7 +601,7 @@
     },
     {
       "id": "act-cfp-8s4g5qj3oq",
-      "sourceId": "f56121t1la",
+      "sourceId": "aq5th9t06t",
       "proposalId": "8s4g5qj3oq",
       "type": "talk",
       "title": "Textbooks that run: interactive, zero-install CS education in the browser",
@@ -655,7 +655,7 @@
     },
     {
       "id": "act-28la283qdf",
-      "sourceId": "f561218p1d",
+      "sourceId": "aq5t9ar0mu",
       "proposalId": "3nr9benq94",
       "type": "talk",
       "title": "Building Open Source Music Hardware in India - Tarab Instruments",
@@ -719,7 +719,7 @@
     },
     {
       "id": "act-cfp-37sjgknrj3",
-      "sourceId": "f561ho9lvj",
+      "sourceId": "aq5tmh9sh2",
       "proposalId": "37sjgknrj3",
       "type": "bof",
       "title": "Do Open Source Companies Pay Competitively?",
@@ -775,7 +775,7 @@
     },
     {
       "id": "act-cfp-1vj5aoro8u",
-      "sourceId": "f561ifpk96",
+      "sourceId": "aq5t6qcdaq",
       "proposalId": "1vj5aoro8u",
       "type": "bof",
       "title": "How do we scale and sustain AI adoption without burning the planet?",
@@ -828,7 +828,7 @@
     },
     {
       "id": "act-cfp-42vnv417j4",
-      "sourceId": "f5616qrv5s",
+      "sourceId": "aq5tkkh7mb",
       "proposalId": "42vnv417j4",
       "type": "talk",
       "title": "How to Build Long-Lasting Tech Communities That Thrive — A Playbook",
@@ -876,7 +876,7 @@
     },
     {
       "id": "act-28lar2a71m",
-      "sourceId": "f561np7d0l",
+      "sourceId": "aq5t9tlthc",
       "proposalId": "9cl0lf8t0j",
       "type": "talk",
       "title": "Developer Experience is the New Open Source Contribution. Here's Why",
@@ -933,7 +933,7 @@
     },
     {
       "id": "act-28la2f67h1",
-      "sourceId": "f5611lk8oo",
+      "sourceId": "aq5tdkk706",
       "proposalId": "6dpd2lbkma",
       "type": "lightning-talk",
       "title": "Refactoring documentation without breaking it",
@@ -1010,7 +1010,7 @@
     },
     {
       "id": "act-cfp-44no6v1fbb",
-      "sourceId": "f561aqjteb",
+      "sourceId": "aq5t55lga2",
       "proposalId": "44no6v1fbb",
       "type": "talk",
       "title": "Tracking-free and hackable network cameras - powered by libre software",
@@ -1059,7 +1059,7 @@
     },
     {
       "id": "act-28ladjk67i",
-      "sourceId": "f561i531mh",
+      "sourceId": "aq5tbu9fi5",
       "type": "talk",
       "title": "Group Photo",
       "subtitle": "Other",
@@ -1077,7 +1077,7 @@
     },
     {
       "id": "act-28la2b9bfd",
-      "sourceId": "f561807k0t",
+      "sourceId": "aq5tvlg933",
       "proposalId": "76r6ku6p9h",
       "type": "lightning-talk",
       "title": "Changelogs Are Not Enough: Writing Community Memory for Kubernetes",
@@ -1149,7 +1149,7 @@
     },
     {
       "id": "act-28lahhqhja",
-      "sourceId": "f561d73hqe",
+      "sourceId": "aq5tb7og1j",
       "proposalId": "1cbj5bhfhf",
       "type": "talk",
       "title": "CNC4Everyone - How we built a CNC machine for every classroom, college and makerspace",
@@ -1206,7 +1206,7 @@
     },
     {
       "id": "act-cfp-9ojc3pnp7u",
-      "sourceId": "f561gq8kf9",
+      "sourceId": "aq5t3i0feq",
       "proposalId": "9ojc3pnp7u",
       "type": "talk",
       "title": "Optimizing Performance of GUIs",
@@ -1244,7 +1244,7 @@
     },
     {
       "id": "act-28lafff71r",
-      "sourceId": "f561532q78",
+      "sourceId": "aq5th2k4ol",
       "proposalId": "eqr1r1mp5b",
       "type": "talk",
       "title": "Writing Docs for Two Readers: Humans and AI Agents",
@@ -1293,7 +1293,7 @@
     },
     {
       "id": "act-cfp-4svti9mp47",
-      "sourceId": "f561n0qnu6",
+      "sourceId": "aq5t85cnf6",
       "proposalId": "4svti9mp47",
       "type": "lightning-talk",
       "title": "Fork Around and Find Out: How I Built a GNOME Extension Used by 200K+ People",
@@ -1353,7 +1353,7 @@
     },
     {
       "id": "act-cfp-658mrgdc1b",
-      "sourceId": "f561q3g125",
+      "sourceId": "aq5toea0k6",
       "proposalId": "658mrgdc1b",
       "type": "lightning-talk",
       "title": "FQ-PIE: Contributing to Open Standards by Contributing to FOSS",
@@ -1430,7 +1430,7 @@
     },
     {
       "id": "act-cfp-0dkd3hateq",
-      "sourceId": "f561v3nsrn",
+      "sourceId": "aq5t623509",
       "proposalId": "0dkd3hateq",
       "type": "lightning-talk",
       "title": "It takes a village to raise a repo",
@@ -1481,25 +1481,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5tk8jgaa",
-      "sourceId": "f5611s94sp",
-      "type": "meal",
-      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
-      "subtitle": "Other",
-      "start": "2026-09-26T12:00:00+05:30",
-      "end": "2026-09-26T14:30:00+05:30",
-      "flexible": false,
-      "locationId": "room-2",
-      "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
-      "trackId": "room-2",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5t5c8t57",
-      "sourceId": "f561v31b69",
+      "sourceId": "aq5t5c8t57",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
       "subtitle": "Other",
@@ -1515,8 +1498,25 @@
       "source": "fossunited"
     },
     {
+      "id": "act-aq5tk8jgaa",
+      "sourceId": "aq5tk8jgaa",
+      "type": "meal",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "subtitle": "Other",
+      "start": "2026-09-26T12:00:00+05:30",
+      "end": "2026-09-26T14:30:00+05:30",
+      "flexible": false,
+      "locationId": "room-2",
+      "speakerIds": [],
+      "tags": [
+        "Other"
+      ],
+      "trackId": "room-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lai08gg0",
-      "sourceId": "f561plij2t",
+      "sourceId": "aq5t1mk6k3",
       "proposalId": "9e9bajmm07",
       "type": "talk",
       "title": "My zero-to-hero journey deploying a fiber-optic and wireless community mesh",
@@ -1561,7 +1561,7 @@
     },
     {
       "id": "act-28la6nvldv",
-      "sourceId": "f56119tho9",
+      "sourceId": "aq5td38bvp",
       "proposalId": "7dfgb98p8p",
       "type": "lightning-talk",
       "title": "Python Now Speaks Tamil: Getting Official Docs Translated for a Mother Tongue",
@@ -1603,7 +1603,7 @@
     },
     {
       "id": "act-28la8gj1tt",
-      "sourceId": "f561ju3kr5",
+      "sourceId": "aq5tg4v2sr",
       "proposalId": "c9kecg3h9i",
       "type": "talk",
       "title": "404: Empathy Not Found",
@@ -1668,7 +1668,7 @@
     },
     {
       "id": "act-aq5t2pjeqp",
-      "sourceId": "f561qtddf1",
+      "sourceId": "aq5t2pjeqp",
       "type": "talk",
       "title": "2026 GB Elections. Meet the Candidates",
       "subtitle": "Other",
@@ -1685,7 +1685,7 @@
     },
     {
       "id": "act-cfp-bemvjh2dac",
-      "sourceId": "f5612uhiqk",
+      "sourceId": "aq5t8n847l",
       "proposalId": "bemvjh2dac",
       "type": "lightning-talk",
       "title": "Mapping India in seconds, for one and all",
@@ -1748,7 +1748,7 @@
     },
     {
       "id": "act-28lapvjakp",
-      "sourceId": "f561a80j3b",
+      "sourceId": "aq5tg9sao1",
       "proposalId": "0hs9gpkgp4",
       "type": "lightning-talk",
       "title": "Printable, Downloadable, Forever: An Ode to Offline Documentation",
@@ -1856,7 +1856,7 @@
     },
     {
       "id": "act-aq5tc1ppib",
-      "sourceId": "f561a0bolh",
+      "sourceId": "aq5tc1ppib",
       "type": "talk",
       "title": "Devroom Wrap-Up",
       "subtitle": "Other",
@@ -1874,7 +1874,7 @@
     },
     {
       "id": "act-28lap89l42",
-      "sourceId": "f561k2n64f",
+      "sourceId": "aq5tfpidkh",
       "proposalId": "4pm3u3odmn",
       "type": "talk",
       "title": "HackerFab IITB: democratizing semiconductor fabrication",
@@ -1930,8 +1930,64 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-0hgfa2n1kg",
+      "sourceId": "aq5to0mimj",
+      "proposalId": "0hgfa2n1kg",
+      "type": "talk",
+      "title": "Porting Pipecat to Rust: The story of Rustvani-Fast Cheap Voice Ai for Bharat",
+      "subtitle": "",
+      "description": "Voice AI is having its infrastructure moment. But if we look closely at the stack everyone recommends: For eg: Pipecat with 12k git stars is getting popular. but every pipecat layer assumes you have AWS credits, and Series A funding. For the vast majority of Indian builders who are cash-strapped startups, solo developers, govtech contractors working on ₹-denominated contracts, this stack simply burns. Due to startup time they have to run warm instances, that too atleast 512mb perpetually.\n\nRustvani is a direct response to this mismatch. It is a Rust-native voice AI framework inspired by Pipecat's pipeline architecture, rebuilt from scratch to run on cheap infrastructure, serve Indian languages using Indian providers, and fit inside a 30MB static binary.(pipecat takes 400mb and 2 sec start). which means it can run 3 instances comfortably on a 128 mb flyio instance.\n\nThis talk is the story of that build and the decisions, the dead ends, and the design principles that emerged. I'll walk through why I started with Python Pipecat, what broke when I tried to deploy it under real Indian cost constraints, and why Rust became the answer. Eventhough the title says porting pipecat to rust, Rustvani can do much more. Along the way I'll cover: replacing the ONNX Runtime dependency with a pure Rust Silero VAD implementation, building RAVI (a lightweight inter-component protocol), the Dhara conversation flow engine (a node-based state machine for managing dialogue), and integrating Sarvam AI for Indian language STT and TTS. The result deploys as a single static musl binary to a Fly.io instance in the Mumbai region. Absolutely no GPU, no Python runtime, no cloud vendor lock-in.Also a 300ms cold start on fly io (of which 200ms is firecracker startup)\n\nThe deeper argument of this talk is about who this FOSS infrastructure is designed for. Most voice AI tooling is built by well-funded San Francisco companies, for well-funded San Francisco companies. Rustvani is an attempt to build from the other direction ie, starting with the constraints of an Indian indie builder and working outward. I think that inversion produces better software for most of the world.",
+      "references": [
+        {
+          "label": "https://crates.io/crates/rustvani",
+          "url": "https://crates.io/crates/rustvani"
+        },
+        {
+          "label": "https://dev.to/allen_george_4d037f39d509/i-rewrote-pipecat-in-rust-heres-what-i-learned-building-a-voice-agent-framework-from-scratch-4oj6",
+          "url": "https://dev.to/allen_george_4d037f39d509/i-rewrote-pipecat-in-rust-heres-what-i-learned-building-a-voice-agent-framework-from-scratch-4oj6"
+        },
+        {
+          "label": "https://github.com/Allenmylath/rustvani",
+          "url": "https://github.com/Allenmylath/rustvani"
+        },
+        {
+          "label": "https://github.com/Allenmylath/rustvani_vad",
+          "url": "https://github.com/Allenmylath/rustvani_vad"
+        }
+      ],
+      "links": [
+        {
+          "label": "Fly.io",
+          "url": "http://fly.io/"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Screening",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0hgfa2n1kg",
+      "start": "2026-09-26T12:30:00+05:30",
+      "end": "2026-09-26T13:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-2",
+      "speakerIds": [
+        "person-allenmylath"
+      ],
+      "tags": [
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Contributing to FOSS",
+        "Story of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "hall-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28laq0mp6c",
-      "sourceId": "f561cemoei",
+      "sourceId": "aq5tpvr4hh",
       "proposalId": "1oleu7iev5",
       "type": "talk",
       "title": "Telling India's story through data",
@@ -1969,7 +2025,7 @@
     },
     {
       "id": "act-aq5t1o9k38",
-      "sourceId": "f561qq3h16",
+      "sourceId": "aq5t1o9k38",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -1986,7 +2042,7 @@
     },
     {
       "id": "act-aq5t091a1i",
-      "sourceId": "f5611lcc0g",
+      "sourceId": "aq5t091a1i",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -2003,7 +2059,7 @@
     },
     {
       "id": "act-aq5tu34gje",
-      "sourceId": "f561elb7p7",
+      "sourceId": "aq5tu34gje",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -2020,7 +2076,7 @@
     },
     {
       "id": "act-aq5t6vl7ef",
-      "sourceId": "f5614bm2ba",
+      "sourceId": "aq5t6vl7ef",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
       "subtitle": "Other",
@@ -2037,7 +2093,7 @@
     },
     {
       "id": "act-aq5t6oijso",
-      "sourceId": "f561455lum",
+      "sourceId": "aq5t6oijso",
       "type": "talk",
       "title": "Devroom Intro: Android Open Source Project (AOSP)",
       "subtitle": "Other",
@@ -2055,7 +2111,7 @@
     },
     {
       "id": "act-aq5tapk6u7",
-      "sourceId": "f561ffa2b3",
+      "sourceId": "aq5tapk6u7",
       "type": "talk",
       "title": "Devroom Intro: Compilers, Programming Languages & Systems",
       "subtitle": "Other",
@@ -2072,7 +2128,7 @@
     },
     {
       "id": "act-cfp-dticdhpupe",
-      "sourceId": "f561irs6d7",
+      "sourceId": "aq5t9g5ts1",
       "proposalId": "dticdhpupe",
       "type": "talk",
       "title": "FOSS for the Forgotten Middle: Open-Sourcing Finance Software for India's 50,000 Microgyms",
@@ -2127,7 +2183,7 @@
     },
     {
       "id": "act-28la93vrf8",
-      "sourceId": "f561a7ukj1",
+      "sourceId": "aq5t69jfhl",
       "proposalId": "4v0vd3g01j",
       "type": "lightning-talk",
       "title": "Inside Android Keyboards: Building an Open Source IME",
@@ -2185,7 +2241,7 @@
     },
     {
       "id": "act-28lapes3il",
-      "sourceId": "f5615qau8f",
+      "sourceId": "aq5tqa2j00",
       "proposalId": "381kk089so",
       "type": "lightning-talk",
       "title": "Semantic Quantization in KV Cache Eviction",
@@ -2243,7 +2299,7 @@
     },
     {
       "id": "act-28la1ogl62",
-      "sourceId": "f561gudpdd",
+      "sourceId": "aq5tensnck",
       "proposalId": "3ni2uq8bkg",
       "type": "lightning-talk",
       "title": "Databases in Ethereum Nodes",
@@ -2304,7 +2360,7 @@
     },
     {
       "id": "act-28la55ehov",
-      "sourceId": "f561kq5m6l",
+      "sourceId": "aq5taibmp4",
       "proposalId": "41r3mau7ga",
       "type": "lightning-talk",
       "title": "From HIDL to Stable AIDL: Modernizing Android HAL Interfaces",
@@ -2351,7 +2407,7 @@
     },
     {
       "id": "act-cfp-0j48rt6d3s",
-      "sourceId": "f561u2numl",
+      "sourceId": "aq5tvn91eg",
       "proposalId": "0j48rt6d3s",
       "type": "bof",
       "title": "FOSS and Co-operatives",
@@ -2396,7 +2452,7 @@
     },
     {
       "id": "act-cfp-dagd2l28tm",
-      "sourceId": "f561bt1qdv",
+      "sourceId": "aq5tc2nmak",
       "proposalId": "dagd2l28tm",
       "type": "bof",
       "title": "FOSS in the Public Consciousness",
@@ -2437,7 +2493,7 @@
     },
     {
       "id": "act-cfp-9lmiio7p5b",
-      "sourceId": "f5616qbrrn",
+      "sourceId": "aq5tsscg5v",
       "proposalId": "9lmiio7p5b",
       "type": "panel",
       "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for ensuring Democratic Accountability",
@@ -2473,8 +2529,61 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-8knf7bja7g",
+      "sourceId": "aq5tubvjo5",
+      "proposalId": "8knf7bja7g",
+      "type": "talk",
+      "title": "Navigating the FOSS Contribution Journey",
+      "subtitle": "",
+      "description": "Many developers see open source as a destination: get your first pull request merged, participate in Hacktoberfest, maybe even crack Google Summer of Code. But in reality, open source is a journey - one that evolves from curiosity to contribution, from contribution to ownership, and from ownership to leadership.\n\nIn this talk, I will share my unconventional path through the FOSS ecosystem. What started as participation in FOSS Hack (India's largest open-source hackathon) eventually led to building and maintaining projects used by thousands of developers, and growing it into an official Google Summer of Code organization, mentoring contributors worldwide.\n\nThrough stories of first contributions, rejected pull requests, community building, mentorship, and project stewardship, this session will explore what it really takes to grow in open source. We'll discuss how contributors can find projects they genuinely care about, navigate complex codebases, build credibility within communities, and transition from being \"someone who contributes\" to someone who creates opportunities for others.\n\nWe will also cover how contributing to large-scale industry led open source projects requires a slightly different approach.\n\nWhether you're wondering how to make your first contribution or thinking about becoming a maintainer, this talk offers practical lessons, hard-earned insights, and a roadmap for building a meaningful and sustainable open-source journey.",
+      "keyTakeaways": [
+        "A practical roadmap for getting started in FOSS.",
+        "How documentation, testing, design, community support, and issue triage are also valuable entry points into open source.",
+        "How long-term contributions come from genuine interest and alignment with a project's mission and community.",
+        "Open source is a people-first ecosystem where communication, collaboration, and empathy often have a bigger impact than technical expertise alone.",
+        "How consistent participation can lead to maintainer responsibilities, mentorship opportunities, and leadership roles.",
+        "How to evolve projects that begin as weekend experiments into thriving open-source communities with global contributors.",
+        "Lessons on growing from contributor to maintainer and the required skills.",
+        "Insights into building and sustaining open-source communities.",
+        "and more.."
+      ],
+      "references": [
+        {
+          "label": "https://github.com/ashitaprasad",
+          "url": "https://github.com/ashitaprasad"
+        },
+        {
+          "label": "https://ashitaprasad.github.io/",
+          "url": "https://ashitaprasad.github.io/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Screening",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8knf7bja7g",
+      "start": "2026-09-26T14:30:00+05:30",
+      "end": "2026-09-26T15:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-2",
+      "speakerIds": [
+        "person-ashita-prasad"
+      ],
+      "tags": [
+        "Talk",
+        "Contributing to FOSS",
+        "Beginner"
+      ],
+      "trackId": "hall-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28laigg511",
-      "sourceId": "f5610o9qda",
+      "sourceId": "aq5tq7btc4",
       "proposalId": "d8b9uvdntg",
       "type": "talk",
       "title": "Bend, don't Break. Modern Techniques for Flexibility in Strongly Typed Functional Programming",
@@ -2523,7 +2632,7 @@
     },
     {
       "id": "act-28laau6e4o",
-      "sourceId": "f561s94gos",
+      "sourceId": "aq5t711d5b",
       "proposalId": "3ltumiotgu",
       "type": "lightning-talk",
       "title": "Living With a DeGoogled Phone: Privacy, Trade-offs, and Daily Use",
@@ -2566,7 +2675,7 @@
     },
     {
       "id": "act-28lahmuq69",
-      "sourceId": "f561tfuugg",
+      "sourceId": "aq5t7in65a",
       "proposalId": "dojgnoj06v",
       "type": "lightning-talk",
       "title": "Volume Controller using Knob (Potentiometer)",
@@ -2622,7 +2731,7 @@
     },
     {
       "id": "act-28lam87dir",
-      "sourceId": "f561astms6",
+      "sourceId": "aq5tptp2nf",
       "proposalId": "09lln6s8nq",
       "type": "talk",
       "title": "PeerDAS: Erasure Coding When You Can't Trust the Storage",
@@ -2680,7 +2789,7 @@
     },
     {
       "id": "act-cfp-ck74mbe1ds",
-      "sourceId": "f5618ffeaf",
+      "sourceId": "aq5ttdkfqp",
       "proposalId": "ck74mbe1ds",
       "type": "talk",
       "title": "How FOSS and AI are Changing Government Workflows at NHAI",
@@ -2757,7 +2866,7 @@
     },
     {
       "id": "act-28la3ltjcq",
-      "sourceId": "f561kib5k6",
+      "sourceId": "aq5tb8cv0b",
       "proposalId": "beqsttjcbn",
       "type": "lightning-talk",
       "title": "Under the Hood of Android , What Really Happens When You Open an App?",
@@ -2810,7 +2919,7 @@
     },
     {
       "id": "act-28lauslk84",
-      "sourceId": "f561blojr4",
+      "sourceId": "aq5tja3cli",
       "proposalId": "6aasju7noq",
       "type": "lightning-talk",
       "title": "Benchmarking can be hard, here's why we're still creating a new one for OCaml",
@@ -2854,7 +2963,7 @@
     },
     {
       "id": "act-28laibfej4",
-      "sourceId": "f561kjf52a",
+      "sourceId": "aq5t4und8h",
       "proposalId": "coqs2rc43i",
       "type": "lightning-talk",
       "title": "Rust in Android: Building Secure HALs for the Next Generation of AOSP",
@@ -2901,7 +3010,7 @@
     },
     {
       "id": "act-cfp-ab8viuj62q",
-      "sourceId": "f56117em3u",
+      "sourceId": "aq5tjm0s12",
       "proposalId": "ab8viuj62q",
       "type": "talk",
       "title": "Building OpenSpeaks tools for language documentation and archiving",
@@ -2948,7 +3057,7 @@
     },
     {
       "id": "act-cfp-dmsksuju3d",
-      "sourceId": "f561d4irv2",
+      "sourceId": "aq5tud5a21",
       "proposalId": "dmsksuju3d",
       "type": "talk",
       "title": "Offline-first mobile apps on Frappe: a metadata-driven Flutter SDK with server-side control",
@@ -3006,7 +3115,7 @@
     },
     {
       "id": "act-28la1809t3",
-      "sourceId": "f56169mt0m",
+      "sourceId": "aq5tgk7a5p",
       "proposalId": "33ogils4n5",
       "type": "lightning-talk",
       "title": "What LLVM Does Differently When The Target Is CPU VS GPU",
@@ -3065,7 +3174,7 @@
     },
     {
       "id": "act-cfp-5773rhdk21",
-      "sourceId": "f5617aknq9",
+      "sourceId": "aq5tkl5f32",
       "proposalId": "5773rhdk21",
       "type": "bof",
       "title": "Who Governs the Internet? An Open Floor for India's FOSS Community",
@@ -3111,7 +3220,7 @@
     },
     {
       "id": "act-28lar6l8ag",
-      "sourceId": "f5611174jq",
+      "sourceId": "aq5tlgog08",
       "proposalId": "bb06npb4u0",
       "type": "lightning-talk",
       "title": "Launcher3 Internals: Understanding Android's Home Screen, Google Feed Integration, and Custom -1 Panels",
@@ -3161,7 +3270,7 @@
     },
     {
       "id": "act-28lar32res",
-      "sourceId": "f561vmf3gc",
+      "sourceId": "aq5tnnteui",
       "proposalId": "299lpkmuqh",
       "type": "talk",
       "title": "PythonBPF - now with loops, custom funcs, and more maps!",
@@ -3219,7 +3328,7 @@
     },
     {
       "id": "act-28laeusjrp",
-      "sourceId": "f561cst3bl",
+      "sourceId": "aq5tjjngas",
       "proposalId": "0le8m0bk3i",
       "type": "lightning-talk",
       "title": "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast storage analysis",
@@ -3269,7 +3378,7 @@
     },
     {
       "id": "act-28lad7fd91",
-      "sourceId": "f561hht5sj",
+      "sourceId": "aq5th0a7dp",
       "proposalId": "8cbv4mpi6o",
       "type": "lightning-talk",
       "title": "LGTM Is Not A Theorem",
@@ -3311,7 +3420,7 @@
     },
     {
       "id": "act-cfp-cpno9khavs",
-      "sourceId": "f5616ulnlt",
+      "sourceId": "aq5t2aidum",
       "proposalId": "cpno9khavs",
       "type": "talk",
       "title": "Open Code, Curated Data: Building Open Water Intelligence for Indian Cities",
@@ -3364,7 +3473,7 @@
     },
     {
       "id": "act-cfp-5jvkd5u7mk",
-      "sourceId": "f561jp0gnh",
+      "sourceId": "aq5tq6vkcl",
       "proposalId": "5jvkd5u7mk",
       "type": "talk",
       "title": "Physics at 60FPS",
@@ -3406,7 +3515,7 @@
     },
     {
       "id": "act-28laung17t",
-      "sourceId": "f561t2bml6",
+      "sourceId": "aq5tioo0no",
       "proposalId": "armmpc3k1l",
       "type": "lightning-talk",
       "title": "Zero Trust, Zero TEE: Porting Android 16 to a Device Whose Security Stack Doesn't Exist Yet",
@@ -3462,7 +3571,7 @@
     },
     {
       "id": "act-28la91lu3s",
-      "sourceId": "f561oitruo",
+      "sourceId": "aq5tqk1pdg",
       "proposalId": "3akfugngg7",
       "type": "lightning-talk",
       "title": "One Language, All GPU: How Julia Targets different GPU backends from a Single Kernel.",
@@ -3521,7 +3630,7 @@
     },
     {
       "id": "act-28laqr9ecm",
-      "sourceId": "f561gegakj",
+      "sourceId": "aq5tv1u7r9",
       "proposalId": "4etfsdh6i4",
       "type": "lightning-talk",
       "title": "Keeping up with the AOSP",
@@ -3563,7 +3672,7 @@
     },
     {
       "id": "act-28labhid7f",
-      "sourceId": "f56159g28l",
+      "sourceId": "aq5t2bpfgq",
       "proposalId": "0p3ti1uq2b",
       "type": "talk",
       "title": "Rust Is Not an HDL, So I Built a Tiny One.",
@@ -3643,7 +3752,7 @@
     },
     {
       "id": "act-aq5t5e261u",
-      "sourceId": "f5618dp90q",
+      "sourceId": "aq5t5e261u",
       "type": "talk",
       "title": "What's new at FOSS United Foundation",
       "subtitle": "Other",
@@ -3660,7 +3769,7 @@
     },
     {
       "id": "act-28lajt6fl6",
-      "sourceId": "f561lrlkbj",
+      "sourceId": "aq5tqir4f7",
       "proposalId": "e08r7fa8ja",
       "type": "talk",
       "title": "Adapting Generic Boot Loader on Android platforms",
@@ -3698,7 +3807,7 @@
     },
     {
       "id": "act-28lak6c90f",
-      "sourceId": "f561pisauv",
+      "sourceId": "aq5t7ha6bi",
       "proposalId": "9qjtkvb2gi",
       "type": "talk",
       "title": "Formal Verification: An Introduction through Elementary Arithmetic",
@@ -3745,7 +3854,7 @@
     },
     {
       "id": "act-28lap8q3re",
-      "sourceId": "f5610m0s2n",
+      "sourceId": "aq5tdfnsnk",
       "proposalId": "d883e2uauk",
       "type": "talk",
       "title": "Porting AOSP to Allwinner Sunxi platform",
@@ -3793,7 +3902,7 @@
     },
     {
       "id": "act-28la7q52h1",
-      "sourceId": "f561lbnl0g",
+      "sourceId": "aq5tm763em",
       "type": "talk",
       "title": "FOSS Awards",
       "subtitle": "Other",
@@ -3810,7 +3919,7 @@
     },
     {
       "id": "act-28laqivva5",
-      "sourceId": "f5611fg40m",
+      "sourceId": "aq5tfhffsu",
       "type": "talk",
       "title": "Reflections from GB Members",
       "subtitle": "Other",
@@ -3827,7 +3936,7 @@
     },
     {
       "id": "act-cfp-4llmgcq50k",
-      "sourceId": "f561p4i5j8",
+      "sourceId": "aq5tfam9eo",
       "proposalId": "4llmgcq50k",
       "type": "talk",
       "title": "How India’s Largest G2C Platform Migrated to FOSS and Broke Free from Oracle",
@@ -3869,7 +3978,7 @@
     },
     {
       "id": "act-aq5tg0077i",
-      "sourceId": "f5611eh8ea",
+      "sourceId": "aq5tg0077i",
       "type": "talk",
       "title": "Opening Note",
       "subtitle": "Other",
@@ -3886,7 +3995,7 @@
     },
     {
       "id": "act-28laac7vdq",
-      "sourceId": "f5616k4f4g",
+      "sourceId": "aq5thqhs0v",
       "type": "talk",
       "title": "Devroom Intro: Open Design",
       "subtitle": "Other",
@@ -3904,7 +4013,7 @@
     },
     {
       "id": "act-28lat7k13l",
-      "sourceId": "f561bh2bhq",
+      "sourceId": "aq5tsl5ohl",
       "type": "talk",
       "title": "Devroom Intro: Security",
       "subtitle": "Other",
@@ -3922,7 +4031,7 @@
     },
     {
       "id": "act-cfp-ccd7lpdj1o",
-      "sourceId": "f5614lnc0q",
+      "sourceId": "aq5tkktqah",
       "proposalId": "ccd7lpdj1o",
       "type": "lightning-talk",
       "title": "Don't Model Every Leaf: The Magic of Blender Geometry Nodes",
@@ -3964,8 +4073,58 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28ladhqd4a",
+      "sourceId": "aq5tuqkeg5",
+      "proposalId": "5sktsu12a4",
+      "type": "lightning-talk",
+      "title": "A plan to sort out this CVE mess",
+      "subtitle": "",
+      "description": "Be it in India, Europe or the US, vulnerability management for open source packages is an imperative. And right when we need it most, the CVE ecosystem is falling apart, a problem made ever more critical with AI-mediated attacks on the open source software supply chain. Let’s look at the problems, the solutions elements and walk through a concrete plan towards making vulnerability management a straight forward process because we feed it with correct, open, current, quality data about open source package security bugs, and their fixes, beyond CVE.",
+      "references": [
+        {
+          "label": "https://github.com/CVEProject/cvelistV5/",
+          "url": "https://github.com/CVEProject/cvelistV5/"
+        },
+        {
+          "label": "https://public.vulnerablecode.io/",
+          "url": "https://public.vulnerablecode.io/"
+        },
+        {
+          "label": "https://github.com/aboutcode-org/vulnerablecode",
+          "url": "https://github.com/aboutcode-org/vulnerablecode"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5sktsu12a4",
+      "start": "2026-09-27T10:05:00+05:30",
+      "end": "2026-09-27T10:20:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-sampurna-pyne",
+        "person-philippe-ombredanne"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Community",
+        "Story of a FOSS project - from inception to growth",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Beginner"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lajil88v",
-      "sourceId": "f561g8hejc",
+      "sourceId": "aq5tku7ccr",
       "proposalId": "2tsmo50knt",
       "type": "talk",
       "title": "Forkable design",
@@ -4023,7 +4182,7 @@
     },
     {
       "id": "act-cfp-8dso3avp9l",
-      "sourceId": "f561fk48iv",
+      "sourceId": "aq5tie8rm5",
       "proposalId": "8dso3avp9l",
       "type": "talk",
       "title": "How exactly can we teach students the right FOSS etiquette?",
@@ -4069,7 +4228,7 @@
     },
     {
       "id": "act-cfp-84efmkj2n3",
-      "sourceId": "f561ulfsvr",
+      "sourceId": "aq5thulb1r",
       "proposalId": "84efmkj2n3",
       "type": "lightning-talk",
       "title": "Property-based testing for UIs",
@@ -4116,8 +4275,56 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28laff4t5p",
+      "sourceId": "aq5tu2j96f",
+      "proposalId": "erphckugi7",
+      "type": "lightning-talk",
+      "title": "Extracting AES Keys from Embedded Devices Using Open Source Hardware",
+      "subtitle": "",
+      "description": "Embedded devices can unintentionally leak secrets through their physical behaviour, allowing attackers to recover cryptographic keys without exploiting software vulnerabilities.The talk mainly focuses on the demo of how power analysis is done against an AES encryption within embedded devices using the open-source ChipWhisperer platform.The talk will be covering an introduction into side channel attacks, a key extraction demo using chipWhisperer hardware and practical ways of defence against these kinds of attacks.For the demo, power analysis will be done on an embedded device, the AES secret key will be extracted and this will be used to decrypt the encrypted data within the device.",
+      "keyTakeaways": [
+        "Learn the fundamentals of Power analysis techniques.",
+        "Explore the ChipWhisperer and related tools and how it enables practical side-channel research using open-source hardware and software.",
+        "See a live demonstration of recovering an AES key from an embedded device through power analysis."
+      ],
+      "references": [
+        {
+          "label": "https://github.com/newaetech/chipwhisperer",
+          "url": "https://github.com/newaetech/chipwhisperer"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/erphckugi7",
+      "start": "2026-09-27T10:20:00+05:30",
+      "end": "2026-09-27T10:35:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-alwin-varghese",
+        "person-gautham-sai"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Tutorial about using a FOSS project",
+        "Engineering practice - productivity, debugging",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-cfp-4eh569dvq9",
-      "sourceId": "f56159sf47",
+      "sourceId": "aq5t4jljkn",
       "proposalId": "4eh569dvq9",
       "type": "bof",
       "title": "Can We Build a Copyleft License for Community Data in the Age of AI?",
@@ -4148,7 +4355,7 @@
     },
     {
       "id": "act-cfp-5inuh3i6co",
-      "sourceId": "f561m369j3",
+      "sourceId": "aq5ti18h53",
       "proposalId": "5inuh3i6co",
       "type": "bof",
       "title": "Community-Centred Technology",
@@ -4188,7 +4395,7 @@
     },
     {
       "id": "act-28lamk3q73",
-      "sourceId": "f561m729je",
+      "sourceId": "aq5tl6e1aq",
       "proposalId": "an3ot6c0v0",
       "type": "talk",
       "title": "Shaili Sanchaya: Reviving Indic Typography from Archival Metadata",
@@ -4244,7 +4451,7 @@
     },
     {
       "id": "act-cfp-2git32fbo6",
-      "sourceId": "f5618qaksb",
+      "sourceId": "aq5tqnk0kl",
       "proposalId": "2git32fbo6",
       "type": "talk",
       "title": "Surviving as an Open Source Startup : Xeneva",
@@ -4307,8 +4514,58 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28laf9lvrk",
+      "sourceId": "aq5toq2d2r",
+      "proposalId": "anvlvjqect",
+      "type": "lightning-talk",
+      "title": "Extending Capa for Malicious Script Analysis",
+      "subtitle": "",
+      "description": "Malware analysis is essential for understanding the behaviour of malicious software. While tools like capa can identify capabilities in native executables, extending similar analysis to scripts such as Python, Bash, JavaScript and C# broadens its support beyond binaries.\n\nCapa is an open-source malware analysis tool that identifies the capabilities of executable files, including PE, ELF, .NET module, shellcode and sandbox reports. It extracts low-level features from the input like API calls, strings and instruction sequence, matches them against the capa-rules and reports the detected behaviours in a structured format.\n\nThis talk is about my Google Summer of Code project with FLARE organization where I am integrating a new feature in the capa tool. Currently, capa supports the analysis of the executable files and sandbox reports. My work extends capa to support analysis of scripting languages such as Python, Bash, JavaScript and C# using Tree-Sitter library. Tree-Sitter is an open source parser generator library which builds concrete syntax trees of the source file to extract language-specific features.\n\nThe talk will begin with a brief introduction of my journey into open source and Google Summer of Code. I will then explain capa's architecture and capability analysis workflow, followed by the design and implementation of the Tree-sitter integration. The session will cover the architectural decisions behind the implementation and how Tree-sitter enables capability extraction from scripting languages.\n\nThe talk will conclude with a live demonstration of capa's binary analysis along with the newly added script analysis support. By the end of the session, attendees will understand capa's architecture, its analysis workflow and the benefits of extending it with scripting language support.",
+      "keyTakeaways": [
+        "Understand how capa identifies the capabilities of malware.",
+        "Learn how Tree-sitter enables analysis of scripting languages in capa.",
+        "Explore the architecture of capa and integration of the Tree-sitter library.",
+        "See a live demonstration of binary and script analysis in capa."
+      ],
+      "references": [
+        {
+          "label": "https://github.com/mandiant/capa",
+          "url": "https://github.com/mandiant/capa"
+        },
+        {
+          "label": "https://github.com/mandiant/capa-rules",
+          "url": "https://github.com/mandiant/capa-rules"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/anvlvjqect",
+      "start": "2026-09-27T10:35:00+05:30",
+      "end": "2026-09-27T10:50:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-saniya-fatima"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Contributing to FOSS",
+        "Technology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-cfp-f4ko2mik8q",
-      "sourceId": "f561h7rvkj",
+      "sourceId": "aq5ta0q0au",
       "proposalId": "f4ko2mik8q",
       "type": "talk",
       "title": "Seqout: search engine for the world’s genomic data",
@@ -4364,7 +4621,7 @@
     },
     {
       "id": "act-28lai8vuts",
-      "sourceId": "f561d5cuva",
+      "sourceId": "aq5tkv8h01",
       "proposalId": "f89n581n5c",
       "type": "talk",
       "title": "Designing for Reality: Where UI Meets the Physical World",
@@ -4409,8 +4666,61 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28lai818n3",
+      "sourceId": "aq5tn8he1s",
+      "proposalId": "9611q7a3nk",
+      "type": "talk",
+      "title": "The Art of Userspace Sandboxing on Linux",
+      "subtitle": "",
+      "description": "A whirlwind tour of building userspace sandboxes on Linux using various primitives provided by the Linux kernel like namespaces, seccomp, capabilities, landlock, userspace networking. We will go through how to combine these primitives to create sandboxes which have defense in depth against various attacks. We will understand how modern rootless container engines and sandboxes make use of these primitives.\n\nCode: https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b",
+      "keyTakeaways": [
+        "Linux has powerful primitives which allow unprivileged users to run code in an isolated environment.",
+        "This talk aims to help understand the limitations and risks of each primitive and how to layer them securely.",
+        "Understanding the benefits and drawbacks of shared kernel isolation using userspace-only primitives"
+      ],
+      "references": [
+        {
+          "label": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b",
+          "url": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b"
+        },
+        {
+          "label": "https://docs.google.com/presentation/d/1-ei99tTA8ds_H8mL1c5xAlyPDIu1b3QV2eIuhOSO19s/edit?usp=sharing",
+          "url": "https://docs.google.com/presentation/d/1-ei99tTA8ds_H8mL1c5xAlyPDIu1b3QV2eIuhOSO19s/edit?usp=sharing"
+        }
+      ],
+      "links": [
+        {
+          "label": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b",
+          "url": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9611q7a3nk",
+      "start": "2026-09-27T10:50:00+05:30",
+      "end": "2026-09-27T11:20:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-raunak"
+      ],
+      "tags": [
+        "Talk",
+        "Technology architecture",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-cfp-66qapl9qoe",
-      "sourceId": "f561jdgmsf",
+      "sourceId": "aq5tpfiqer",
       "proposalId": "66qapl9qoe",
       "type": "lightning-talk",
       "title": "OpenTCAD: A FOSS Python Pipeline for Semiconductor Process and Device Simulation",
@@ -4455,7 +4765,7 @@
     },
     {
       "id": "act-28latubece",
-      "sourceId": "f5610s8jpk",
+      "sourceId": "aq5toj7elo",
       "proposalId": "5fle5u3fll",
       "type": "talk",
       "title": "Creating Design Systems in p5JS to accelerate Content Creation",
@@ -4515,7 +4825,7 @@
     },
     {
       "id": "act-cfp-89tt0o6uio",
-      "sourceId": "f561jg6mn3",
+      "sourceId": "aq5t5uvo7f",
       "proposalId": "89tt0o6uio",
       "type": "talk",
       "title": "How we build Community Projects from the Community for the Community",
@@ -4579,7 +4889,7 @@
     },
     {
       "id": "act-cfp-6565fh5jve",
-      "sourceId": "f56166omqb",
+      "sourceId": "aq5thalgh3",
       "proposalId": "6565fh5jve",
       "type": "lightning-talk",
       "title": "Open, decentralized language assessment software for the public school system",
@@ -4620,8 +4930,79 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28lafri35r",
+      "sourceId": "aq5tsbmggd",
+      "proposalId": "b6m7iu49t2",
+      "type": "talk",
+      "title": "Papers, Please: A First Look at Age Verification on the Web",
+      "subtitle": "",
+      "description": "I would like to share the findings of our research paper, Papers, Please: A First Look at Age Verification on the Web [1]. We measured the prevalence of third-party age verification providers on the web as visible from different US states, and performed a security and privacy analysis of age verification methods offered by the top provider, Yoti.\n\nFierce debates on age verification, such as for social media access, and its impact on Internet freedom and digital privacy are active in India and abroad. Although our work focuses on the US, we lay a foundation for broader analyses of the privacy impact and effectiveness of age verification (AV) technology. My goal with a talk at IndiaFOSS would be to engage Indian technologists in this important discussion.\n\nBackground: State AV laws were challenged on free speech grounds; ultimately the US Supreme Court set a precedent for their constitutionality.\n\nAge Verification Provider Prevalence\n\nWe crawled the top 1 million websites from three US states—two with AV laws and one without.\n\nWe estimated that less than 20% of self-tagged adult websites use AV providers in states that require age verification.\n\nWe found that the laws created unprecedented state-wise differences in access (and, ultimately, privacy).\n\nWe estimated that Yoti was the most commonly-used third-party AV provider.\n\nYoti Privacy\n\nWe analysed three age verification methods (as observed in the browser) and found\n\ncollection of high-entropy browser metadata, and\n\nthe sharing of some sensitive data (e.g., IP address, the original website) with third parties.\n\nAfter reverse-engineering the selfie-based age estimation method, we demonstrated that it could be bypassed on the browser-side.\n\n[1] S. Minocha, I. Sheridan, H. Oppenheimer, P. Pearce, and M. A. Specter, “Papers, Please: A First Look at Age Verification on the Web,” in 2026 IEEE Symposium on Security and Privacy (SP), May 2026. [Online]. Available: https://shreyasminocha.me/papers/papers-please.pdf",
+      "keyTakeaways": [
+        "Age verification laws in the US have created new state-level access differences contingent on third-party age verification providers.",
+        "Age verification technology deployed in the wild causes privacy issues due to overcollection of data and sharing with other upstream parties.",
+        "Age verification laws may be ineffective due to incomplete compliance from websites and circumvention of age verification technology."
+      ],
+      "references": [
+        {
+          "label": "https://spdr.cc.gatech.edu/blog/AgeVerification/",
+          "url": "https://spdr.cc.gatech.edu/blog/AgeVerification/"
+        },
+        {
+          "label": "https://shreyasminocha.me/papers/papers-please.pdf",
+          "url": "https://shreyasminocha.me/papers/papers-please.pdf"
+        },
+        {
+          "label": "https://www.cc.gatech.edu/news/online-age-checks-create-pointless-privacy-risk",
+          "url": "https://www.cc.gatech.edu/news/online-age-checks-create-pointless-privacy-risk"
+        },
+        {
+          "label": "https://github.com/shreyasminocha/papers-please",
+          "url": "https://github.com/shreyasminocha/papers-please"
+        }
+      ],
+      "links": [
+        {
+          "label": "are active in India",
+          "url": "https://sflc.in/statement-on-age-gating/"
+        },
+        {
+          "label": "abroad",
+          "url": "https://www.eff.org/pages/age-gates-threaten-expressive-rights-every-internet-user#main-content"
+        },
+        {
+          "label": "https://shreyasminocha.me/papers/papers-please.pdf",
+          "url": "https://shreyasminocha.me/papers/papers-please.pdf"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/b6m7iu49t2",
+      "start": "2026-09-27T11:20:00+05:30",
+      "end": "2026-09-27T11:50:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-shreyas-minocha"
+      ],
+      "tags": [
+        "Talk",
+        "Other",
+        "Security Research",
+        "Technology / FOSS licenses, policy",
+        "Academic Research",
+        "Beginner"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-cfp-9c2a8js5lj",
-      "sourceId": "f561vmuvpq",
+      "sourceId": "aq5tt1p7ai",
       "proposalId": "9c2a8js5lj",
       "type": "talk",
       "title": "Computationalizing landscapes: The CoRE stack data structure for social-ecological diagnostics and planning",
@@ -4669,7 +5050,7 @@
     },
     {
       "id": "act-cfp-92adqrmbh1",
-      "sourceId": "f561pbj6kc",
+      "sourceId": "aq5tcosh07",
       "proposalId": "92adqrmbh1",
       "type": "bof",
       "title": "FOSS4Good - Techies in the social sector",
@@ -4704,7 +5085,7 @@
     },
     {
       "id": "act-28la1p92o8",
-      "sourceId": "f5614p0u8t",
+      "sourceId": "aq5tvemmq9",
       "proposalId": "1vuu1c1ma7",
       "type": "talk",
       "title": "KaiOS Design Notes: UX observations from a feature phone",
@@ -4754,7 +5135,7 @@
     },
     {
       "id": "act-28la3jufi5",
-      "sourceId": "f56131nqll",
+      "sourceId": "aq5td3i5vc",
       "proposalId": "82fbs78uua",
       "type": "bof",
       "title": "Micro-granting in India",
@@ -4785,7 +5166,7 @@
     },
     {
       "id": "act-cfp-96goef7o3q",
-      "sourceId": "f561s56034",
+      "sourceId": "aq5t4g4dcm",
       "proposalId": "96goef7o3q",
       "type": "lightning-talk",
       "title": "What can we do about open weight models enabling non consensual intimate imagery?",
@@ -4841,8 +5222,71 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28la8q5i65",
+      "sourceId": "aq5t71i26k",
+      "proposalId": "edu2vnri2u",
+      "type": "talk",
+      "title": "Keeping an Eye on your Eye: Disassembling and Reassembling Smart Camera Hardware to breach YOUR Security",
+      "subtitle": "",
+      "description": "You purchased a Smart IP Camera and use it just as a simple consumer device. Assuming you are a security enthusiast and think like an attacker, you'll know about the hidden layered stack of hardware, bootloaders, filesystems, services, and often years-old third-party code.\n\nIn this talk, we'll walk through a real-world firmware reverse engineering workflow for smart IP cameras, starting from PCB inspection to analyze and identify all the components, and then moving into UART probing, SPI flash extraction, firmware carving, filesystem mapping, and binary analysis.\n\nThe talk begins with the physical layer: identifying the SoC (System-on-Chip), SPI NOR flash, motor driver ICs, transistors and diodes, and other support components on the PCB. We'll then explain UART as the first communication surface we try to discover, how to identify VCC, TX, RX, and GND, and how vendors intentionally disable console access to stop people like us from accessing it. From there, we'll move on to how firmware can actually be dumped using the CH341A programmer, SOIC8 clips, and flashrom, including when desoldering becomes necessary and how to avoid damaging the board during extraction.\n\nOnce the dump is obtained, we'll move on to mapping the firmware using binwalk, interpreting magic numbers and compression markers, and distinguishing between readable and encrypted partitions. We'll talk about certain case studies to explain why some devices yield standard JFFS2, SquashFS, or MiniFS filesystems that are easy to unpack, whereas proprietary platforms like Anyka often customize them and add much more friction.\n\nThe final stage is to analyze and triage ELF binaries using tools like Ghidra, IDA Pro, Radare2, etc., search for risky patterns, and reason about vulnerability exposure in embedded services. Case studies will contain examples such as exposed root MD5crypt password hashes and vulnerable C programming functions like strcpy(), strcat(), sprintf(), etc., which can lead to buffer overflows, command injections, and all the way up to RCEs (Remote Code Executions).\n\nThe talk will close with the practical challenges of reassembling the hardware: keeping the device functional after desoldering, dumping, and analysis, while preserving the board and making sure the extraction process itself doesn't become the reason for our device getting completely fried.\n\nThis session is aimed at beginner-to-intermediate-level students, researchers, hobbyists, and practitioners who want a grounded introduction to firmware reverse engineering from the hardware side up. It's not a \"magic exploit\" talk; it's a guide to understanding the security posture of embedded systems, where each layer leaves a clue about the next.",
+      "keyTakeaways": [
+        "Learn how firmware is extracted from real-world IoT devices using UART, SPI flash, and hardware debugging techniques.",
+        "Understand how a smart camera's hardware, bootloader, operating system, and applications fit together beneath the surface.",
+        "Follow a practical workflow for moving from a physical device to an extracted and analyzed firmware image.",
+        "Discover how reverse engineers identify attack surfaces hidden inside embedded devices.",
+        "Understand why proprietary firmware formats and custom filesystems often become the biggest roadblocks during research.",
+        "Learn how common insecure coding practices in embedded software can lead to serious vulnerabilities.",
+        "Gain a practical methodology for assessing the security posture of embedded systems, starting from the PCB and ending at the firmware binaries.",
+        "Walk away with a repeatable process for approaching firmware reverse engineering without relying on proprietary tools or vendor documentation."
+      ],
+      "references": [
+        {
+          "label": "https://www.crac-learning.com/post/smart-security-research-diaries-defending-the-internet-of-things",
+          "url": "https://www.crac-learning.com/post/smart-security-research-diaries-defending-the-internet-of-things"
+        },
+        {
+          "label": "https://www.crac-learning.com/post/smart-security-research-diaries-attacking-the-internet-of-things",
+          "url": "https://www.crac-learning.com/post/smart-security-research-diaries-attacking-the-internet-of-things"
+        },
+        {
+          "label": "https://www.crac-learning.com/post/smart-home-security-research-cve-2026-0918-assigned",
+          "url": "https://www.crac-learning.com/post/smart-home-security-research-cve-2026-0918-assigned"
+        },
+        {
+          "label": "https://www.crac-learning.com/post/smart-home-security-research-cve-2025-14300-assigned",
+          "url": "https://www.crac-learning.com/post/smart-home-security-research-cve-2025-14300-assigned"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/edu2vnri2u",
+      "start": "2026-09-27T11:50:00+05:30",
+      "end": "2026-09-27T12:05:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-ayushman-agrawal-hingorani",
+        "person-azim-javed"
+      ],
+      "tags": [
+        "Talk",
+        "Technology architecture",
+        "Engineering practice - productivity, debugging",
+        "Beginner"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28labsaguc",
-      "sourceId": "f561r3rea5",
+      "sourceId": "aq5ttoc1gj",
       "proposalId": "0rlqb6s6lb",
       "type": "talk",
       "title": "Making Desktops Expressive: Introducing Bézier Curves to GTK",
@@ -4904,7 +5348,7 @@
     },
     {
       "id": "act-cfp-c6qld2dc77",
-      "sourceId": "f5617r530v",
+      "sourceId": "aq5tvuojb8",
       "proposalId": "c6qld2dc77",
       "type": "lightning-talk",
       "title": "Bad Internet, Good Software",
@@ -4961,7 +5405,7 @@
     },
     {
       "id": "act-cfp-5pig94v0sa",
-      "sourceId": "f561cinl91",
+      "sourceId": "aq5ta2qlin",
       "proposalId": "5pig94v0sa",
       "type": "lightning-talk",
       "title": "Opening the Archives: Building Digital Infrastructure for Public Participation in Archival Records",
@@ -5007,8 +5451,60 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28la50468f",
+      "sourceId": "aq5t0k6nch",
+      "proposalId": "a45o8u74jv",
+      "type": "lightning-talk",
+      "title": "Reverse Engineering the PAN QR Code",
+      "subtitle": "",
+      "description": "Note: The idea for this project stems from this unfinished IndiaFOSS project (https://archive.fossunited.org/fosshack/2023/project?project=e-PAN%20QR%20Reader) by Nemo.India’s newer PAN cards contain an embedded QR code that is advertised to be “encrypted” and readable through only verified scanners. However, information regarding this specification is totally non-existent. Starting with the official Android PAN QR Code reader application by NSDL, I reverse engineer the obfuscated app and build a fully open-source implementation capable of parsing and verifying these QR codes.The talk is a case study in practical reverse engineering and discusses broader lessons for government-issued digital credentials: security through obscurity, undocumented formats and the importance of publicly auditable implementations.",
+      "keyTakeaways": [
+        "Tips on reversing obfuscated android applications.",
+        "Techniques for static and dynamic analysis of proprietary formats.",
+        "A real-world case study on security through obscurity in public infrastructure."
+      ],
+      "references": [
+        {
+          "label": "https://desrever.dev/posts/opanqr/",
+          "url": "https://desrever.dev/posts/opanqr/"
+        },
+        {
+          "label": "https://github.com/serv0id/OPANqr/",
+          "url": "https://github.com/serv0id/OPANqr/"
+        }
+      ],
+      "links": [
+        {
+          "label": "https://archive.fossunited.org/fosshack/2023/project?project=e-PAN%20QR%20Reader",
+          "url": "https://archive.fossunited.org/fosshack/2023/project?project=e-PAN%20QR%20Reader"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/a45o8u74jv",
+      "start": "2026-09-27T12:05:00+05:30",
+      "end": "2026-09-27T12:20:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-serv0id"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lamb58kk",
-      "sourceId": "f5617dcu94",
+      "sourceId": "aq5ttdlsq1",
       "proposalId": "1qugujs7o0",
       "type": "talk",
       "title": "Sound Is All You Need: From Good UX to Great UX",
@@ -5062,7 +5558,7 @@
     },
     {
       "id": "act-cfp-fefrvv4n7q",
-      "sourceId": "f561cp6e9b",
+      "sourceId": "aq5to62534",
       "proposalId": "fefrvv4n7q",
       "type": "talk",
       "title": "Flexibility is complexity in disguise: Building frappe-ui for 10+ Products",
@@ -5114,7 +5610,7 @@
     },
     {
       "id": "act-cfp-e981trm7r1",
-      "sourceId": "f561jj8afp",
+      "sourceId": "aq5tbrmkga",
       "proposalId": "e981trm7r1",
       "type": "lightning-talk",
       "title": "Open Standards in XR - A current overview of OpenXR and WebXR",
@@ -5170,8 +5666,135 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28lah172t2",
+      "sourceId": "aq5tc96sf6",
+      "proposalId": "2pgiaujhvm",
+      "type": "lightning-talk",
+      "title": "Hacking India's Largest Exam System",
+      "subtitle": "",
+      "description": "Hi, I want to give a talk on how I hacked India's largest exam system (CBSE). i'll walk through how i found the vulnerability, the technical mistakes that made exploitation possible, the disclosure process with cert-in and relevant stakeholders, and the challenges researchers face when reporting security flaws in public institutions.\n\nthe talk will also explore larger questions: why do critical systems continue to fail basic security reviews? what incentives exist for researchers to report vulnerabilities responsibly? and how can india build a healthier relationship between security researchers and public-sector organizations?\n\nalso would like to highlight my usage of open source tools and how critical infrastructure can benefit from FOSS.\n\nA major focus of the session is demonstrating how accessible open source tooling can be used to evaluate the security of large-scale public infrastructure. Throughout the assessment I relied primarily on FOSS tools for reconnaissance, enumeration, testing and validation, highlighting how developers, students and organizations can build effective security workflows without expensive commercial software.\n\nLink: https://ni5arga.com/blog/posts/hacking-cbse\n\ni will walk the audience through various vulnerabilities like hardcoded master password in JS bundle, client-side OTP validation, missing route guards, bypassing auth with fake tokens into localStorage, password reset without old password verification, systemic IDOR across the entire API, SQL injection to RCE via xp_cmdshell, publicly listable S3 bucket, re-evaluation portal PII leak etc.\n\nA lot of famous personalities and organizations like [Deedy Das](https://x.com/deedydas/status/2059131444346425354), [Satish Acharya](https://x.com/satishacharya/status/2059224148845768781), [Internet Freedom Foundation](https://x.com/internetfreedom/status/2059267815690088454) tweeted about it & this blog has been featured in news reports by multiple media outlets:\n\n- [India Today](https://www.indiatoday.in/education-today/news/story/cbse-osm-portal-vulnerability-claims-surface-with-teens-detailed-blog-post-2917243-2026-05-26)\n\n- [BBC News](https://www.bbc.com/news/articles/cy42e8eljpno)\n\n- [NDTV](https://www.ndtv.com/education/cbse-osm-portal-had-critical-vulnerabilities-ethical-hacker-told-ndtv-he-alerted-board-months-earlier-11550090)\n\n- [Times of India](https://timesofindia.indiatimes.com/education/news/cbse-faces-fresh-scrutiny-after-teen-researcher-alleges-critical-flaws-in-osm-portal-claims-class-12-marks-could-be-altered/articleshow/131330616.cms)\n\n- [The Hindu BusinessLine](https://www.thehindubusinessline.com/news/education/government-should-take-cybersecurity-more-seriously-says-ethical-hacker-on-cbse-osm-flaws/article71024371.ece)\n\n- [ThePrint](https://theprint.in/feature/19-student-hacked-cbses-osm-portal-vulnerabilities/2942305/)\n\n- [News18](https://www.news18.com/viral/ex-google-engineer-calls-out-cbses-osm-portal-absolute-embarrassment-after-hacker-exposes-major-security-flaws-ws-l-10113830.html)\n\n- [Hindustan Times](https://www.hindustantimes.com/htcity/leisure/this-teen-hacked-into-cbse-s-osm-portal-while-preparing-for-boards-says-this-is-just-a-hobby-101779875877374.html)\n\n- [Financial Express](https://www.financialexpress.com/india-news/cbse-portal-very-easy-to-exploit-class-12-hacker-says-he-didnt-expect-amateur-vulnerabilities-exclusivenbsp/4252095/)\n\n- [Times Now](https://www.timesnownews.com/education/exclusive-i-have-enough-proof-19-year-old-defends-claims-of-security-flaws-in-cbse-osm-portal-article-154408591)\n\n- [CNBC TV18](https://www.cnbctv18.com/videos/education/cbse-on-screen-marking-controversy-hacker-security-claims-experts-divided-19914723.htm)\n\n- [Moneycontrol](https://www.moneycontrol.com/technology/big-blunder-how-a-cbse-student-uncovered-a-security-flaw-in-a-national-exam-portal-article-13932552.html)\n\n- [IFF Blog](https://internetfreedom.in/when-the-exam-itself-can-be-hacked-iff-writes-to-the-ministry-of-education-and-cert-in-on-the-cbse-on-screen-marking-disclosure/)\n\n- [Medianama](https://www.medianama.com/2026/05/223-cert-in-vulnerabilities-cbse-online-marking-portal/)\n\n- [Free Press Journal](https://www.freepressjournal.in/education/fpj-exclusive-meet-nisarga-the-19-year-old-ethical-hacker-who-flagged-alleged-cbse-portal-issues-in-february-2026)\n\n- [Careers360](https://news.careers360.com/cbse-osm-portal-hacker-nisarga-adhikary-vulnerabilities-report-meaning-class-12-checking-result-onmark-co-in-cybersecurity)",
+      "keyTakeaways": [
+        "Learn how multiple individually exploitable flaws can combine into a complete attack chain.",
+        "Understand common authentication, authorization and access control failures seen in production web applications.",
+        "See practical applications of open source security tools for reconnaissance, testing and validation.",
+        "Learn responsible vulnerability disclosure practices through a real-world case study involving CERT-In and public institutions.",
+        "Take away concrete recommendations for building and reviewing secure applications, especially those handling sensitive public data and critical infrastructure.",
+        "How the researcher <> government team reporting pipeline is broken."
+      ],
+      "references": [
+        {
+          "label": "https://ni5arga.com/blog/posts/hacking-cbse",
+          "url": "https://ni5arga.com/blog/posts/hacking-cbse"
+        }
+      ],
+      "links": [
+        {
+          "label": "https://ni5arga.com/blog/posts/hacking-cbse",
+          "url": "https://ni5arga.com/blog/posts/hacking-cbse"
+        },
+        {
+          "label": "https://x.com/deedydas/status/2059131444346425354",
+          "url": "https://x.com/deedydas/status/2059131444346425354"
+        },
+        {
+          "label": "https://x.com/satishacharya/status/2059224148845768781",
+          "url": "https://x.com/satishacharya/status/2059224148845768781"
+        },
+        {
+          "label": "https://x.com/internetfreedom/status/2059267815690088454",
+          "url": "https://x.com/internetfreedom/status/2059267815690088454"
+        },
+        {
+          "label": "https://www.indiatoday.in/education-today/news/story/cbse-osm-portal-vulnerability-claims-surface-with-teens-detailed-blog-post-2917243-2026-05-26",
+          "url": "https://www.indiatoday.in/education-today/news/story/cbse-osm-portal-vulnerability-claims-surface-with-teens-detailed-blog-post-2917243-2026-05-26"
+        },
+        {
+          "label": "https://www.bbc.com/news/articles/cy42e8eljpno",
+          "url": "https://www.bbc.com/news/articles/cy42e8eljpno"
+        },
+        {
+          "label": "https://www.ndtv.com/education/cbse-osm-portal-had-critical-vulnerabilities-ethical-hacker-told-ndtv-he-alerted-board-months-earlier-11550090",
+          "url": "https://www.ndtv.com/education/cbse-osm-portal-had-critical-vulnerabilities-ethical-hacker-told-ndtv-he-alerted-board-months-earlier-11550090"
+        },
+        {
+          "label": "https://timesofindia.indiatimes.com/education/news/cbse-faces-fresh-scrutiny-after-teen-researcher-alleges-critical-flaws-in-osm-portal-claims-class-12-marks-could-be-altered/articleshow/131330616.cms",
+          "url": "https://timesofindia.indiatimes.com/education/news/cbse-faces-fresh-scrutiny-after-teen-researcher-alleges-critical-flaws-in-osm-portal-claims-class-12-marks-could-be-altered/articleshow/131330616.cms"
+        },
+        {
+          "label": "https://www.thehindubusinessline.com/news/education/government-should-take-cybersecurity-more-seriously-says-ethical-hacker-on-cbse-osm-flaws/article71024371.ece",
+          "url": "https://www.thehindubusinessline.com/news/education/government-should-take-cybersecurity-more-seriously-says-ethical-hacker-on-cbse-osm-flaws/article71024371.ece"
+        },
+        {
+          "label": "https://theprint.in/feature/19-student-hacked-cbses-osm-portal-vulnerabilities/2942305/",
+          "url": "https://theprint.in/feature/19-student-hacked-cbses-osm-portal-vulnerabilities/2942305"
+        },
+        {
+          "label": "https://www.news18.com/viral/ex-google-engineer-calls-out-cbses-osm-portal-absolute-embarrassment-after-hacker-exposes-major-security-flaws-ws-l-10113830.html",
+          "url": "https://www.news18.com/viral/ex-google-engineer-calls-out-cbses-osm-portal-absolute-embarrassment-after-hacker-exposes-major-security-flaws-ws-l-10113830.html"
+        },
+        {
+          "label": "https://www.hindustantimes.com/htcity/leisure/this-teen-hacked-into-cbse-s-osm-portal-while-preparing-for-boards-says-this-is-just-a-hobby-101779875877374.html",
+          "url": "https://www.hindustantimes.com/htcity/leisure/this-teen-hacked-into-cbse-s-osm-portal-while-preparing-for-boards-says-this-is-just-a-hobby-101779875877374.html"
+        },
+        {
+          "label": "https://www.financialexpress.com/india-news/cbse-portal-very-easy-to-exploit-class-12-hacker-says-he-didnt-expect-amateur-vulnerabilities-exclusivenbsp/4252095/",
+          "url": "https://www.financialexpress.com/india-news/cbse-portal-very-easy-to-exploit-class-12-hacker-says-he-didnt-expect-amateur-vulnerabilities-exclusivenbsp/4252095"
+        },
+        {
+          "label": "https://www.timesnownews.com/education/exclusive-i-have-enough-proof-19-year-old-defends-claims-of-security-flaws-in-cbse-osm-portal-article-154408591",
+          "url": "https://www.timesnownews.com/education/exclusive-i-have-enough-proof-19-year-old-defends-claims-of-security-flaws-in-cbse-osm-portal-article-154408591"
+        },
+        {
+          "label": "https://www.cnbctv18.com/videos/education/cbse-on-screen-marking-controversy-hacker-security-claims-experts-divided-19914723.htm",
+          "url": "https://www.cnbctv18.com/videos/education/cbse-on-screen-marking-controversy-hacker-security-claims-experts-divided-19914723.htm"
+        },
+        {
+          "label": "https://www.moneycontrol.com/technology/big-blunder-how-a-cbse-student-uncovered-a-security-flaw-in-a-national-exam-portal-article-13932552.html",
+          "url": "https://www.moneycontrol.com/technology/big-blunder-how-a-cbse-student-uncovered-a-security-flaw-in-a-national-exam-portal-article-13932552.html"
+        },
+        {
+          "label": "https://internetfreedom.in/when-the-exam-itself-can-be-hacked-iff-writes-to-the-ministry-of-education-and-cert-in-on-the-cbse-on-screen-marking-disclosure/",
+          "url": "https://internetfreedom.in/when-the-exam-itself-can-be-hacked-iff-writes-to-the-ministry-of-education-and-cert-in-on-the-cbse-on-screen-marking-disclosure"
+        },
+        {
+          "label": "https://www.medianama.com/2026/05/223-cert-in-vulnerabilities-cbse-online-marking-portal/",
+          "url": "https://www.medianama.com/2026/05/223-cert-in-vulnerabilities-cbse-online-marking-portal"
+        },
+        {
+          "label": "https://www.freepressjournal.in/education/fpj-exclusive-meet-nisarga-the-19-year-old-ethical-hacker-who-flagged-alleged-cbse-portal-issues-in-february-2026",
+          "url": "https://www.freepressjournal.in/education/fpj-exclusive-meet-nisarga-the-19-year-old-ethical-hacker-who-flagged-alleged-cbse-portal-issues-in-february-2026"
+        },
+        {
+          "label": "https://news.careers360.com/cbse-osm-portal-hacker-nisarga-adhikary-vulnerabilities-report-meaning-class-12-checking-result-onmark-co-in-cybersecurity",
+          "url": "https://news.careers360.com/cbse-osm-portal-hacker-nisarga-adhikary-vulnerabilities-report-meaning-class-12-checking-result-onmark-co-in-cybersecurity"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2pgiaujhvm",
+      "start": "2026-09-27T12:20:00+05:30",
+      "end": "2026-09-27T12:35:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-nisarga-adhikary"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Other",
+        "Intermediate"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-cfp-4rfojd08rd",
-      "sourceId": "f5617tr4er",
+      "sourceId": "aq5t72vn83",
       "proposalId": "4rfojd08rd",
       "type": "talk",
       "title": "Freedom to code - Community's role in tech Policy",
@@ -5218,7 +5841,7 @@
     },
     {
       "id": "act-aq5ti5f6jv",
-      "sourceId": "f5619smi8t",
+      "sourceId": "aq5ti5f6jv",
       "type": "meal",
       "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
       "subtitle": "Other",
@@ -5235,7 +5858,7 @@
     },
     {
       "id": "act-28lao4nnm4",
-      "sourceId": "f561823h6c",
+      "sourceId": "aq5t0rgc0k",
       "type": "talk",
       "title": "Unconference",
       "subtitle": "Other",
@@ -5253,7 +5876,7 @@
     },
     {
       "id": "act-cfp-doht3bggkm",
-      "sourceId": "f5617v85gv",
+      "sourceId": "aq5tq08n0n",
       "proposalId": "doht3bggkm",
       "type": "bof",
       "title": "United by Free F&B",
@@ -5292,8 +5915,58 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28lao2ucgj",
+      "sourceId": "aq5tdonn8k",
+      "proposalId": "cmc3ntipr8",
+      "type": "lightning-talk",
+      "title": "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
+      "subtitle": "",
+      "description": "In this talk, I’ll walk through how I analyzed a security fix in Axios and found that the patch still left a bypass route open through IPv4-mapped IPv6 addresses. The original issue had already taught Axios to normalize some hostname edge cases for NO_PROXY, but the fix still relied on string comparisons after partial normalization. That left a gap where the same host could be represented differently enough to evade policy checks.\n\nI’ll show how this happens in practice, why the Node/WHATWG URL stack turns mapped addresses into canonical IPv6 forms, and how that breaks exact NO_PROXY matching in a way that is easy to miss during patch review. The session will include a small, reproducible demo using a local proxy and a safe local target, and then walk through the remediation strategy to properly close the issue.\n\nThis is a case study in patch-bypass hunting for open-source software, reviewing a fix, reasoning about representation mismatches, and turning a tiny edge case into a maintainable engineering lesson for security-sensitive code.\n\nThe GHSA I reported has been accepted and fixed in the latest Axios. GitHub has issued CVE-2026-44492.\n\nRef. link: https://github.com/advisories/GHSA-pjwm-pj3p-43mv",
+      "keyTakeaways": [
+        "How NO_PROXY, URL parsing, and host canonicalization interact in Node.js applications",
+        "Why IPv4-mapped IPv6 is a practical security problem and not just a formatting oddity",
+        "A repeatable methodology for finding patch bypasses by reviewing what a fix normalized and what it still compared as raw text",
+        "Concrete lessons maintainers can apply when enforcing network policy in OSS libraries"
+      ],
+      "references": [
+        {
+          "label": "https://github.com/axios/axios/security/advisories/GHSA-pjwm-pj3p-43mv",
+          "url": "https://github.com/axios/axios/security/advisories/GHSA-pjwm-pj3p-43mv"
+        }
+      ],
+      "links": [
+        {
+          "label": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv",
+          "url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/cmc3ntipr8",
+      "start": "2026-09-27T12:35:00+05:30",
+      "end": "2026-09-27T12:50:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [
+        "person-hamdaan-ali-quatil"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Other",
+        "Intermediate"
+      ],
+      "trackId": "devroom-security",
+      "devroomId": "devroom-security",
+      "source": "fossunited"
+    },
+    {
       "id": "act-aq5tm1051s",
-      "sourceId": "f561vrrdni",
+      "sourceId": "aq5tm1051s",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -5310,7 +5983,7 @@
     },
     {
       "id": "act-aq5td49n4f",
-      "sourceId": "f561n7hgif",
+      "sourceId": "aq5td49n4f",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -5327,7 +6000,7 @@
     },
     {
       "id": "act-aq5tidiu4b",
-      "sourceId": "f561isauvs",
+      "sourceId": "aq5tidiu4b",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -5344,7 +6017,7 @@
     },
     {
       "id": "act-aq5t7ni20b",
-      "sourceId": "f561fig28m",
+      "sourceId": "aq5t7ni20b",
       "type": "meal",
       "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
       "subtitle": "Other",
@@ -5361,7 +6034,7 @@
     },
     {
       "id": "act-aq5t8uuiph",
-      "sourceId": "f561p55dam",
+      "sourceId": "aq5t8uuiph",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
       "subtitle": "Other",
@@ -5378,7 +6051,7 @@
     },
     {
       "id": "act-28la4pp2q4",
-      "sourceId": "f561s59qe0",
+      "sourceId": "aq5tktvh5q",
       "type": "talk",
       "title": "Devroom Intro: Cloud & DevOps",
       "subtitle": "Other",
@@ -5396,7 +6069,7 @@
     },
     {
       "id": "act-aq5tf2jbhq",
-      "sourceId": "f56150nsst",
+      "sourceId": "aq5tf2jbhq",
       "type": "talk",
       "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
       "subtitle": "Other",
@@ -5414,7 +6087,7 @@
     },
     {
       "id": "act-cfp-391e59gb72",
-      "sourceId": "f56148mfca",
+      "sourceId": "aq5t2f6g2h",
       "proposalId": "391e59gb72",
       "type": "lightning-talk",
       "title": "Software Patents - AI and the Future of Open Innovation",
@@ -5467,7 +6140,7 @@
     },
     {
       "id": "act-28la6c24j6",
-      "sourceId": "f561umgb7b",
+      "sourceId": "aq5t2gftt8",
       "proposalId": "5ua576fg9k",
       "type": "lightning-talk",
       "title": "Beyond Hardware Description: Using Device Tree for System-Level Configuration in Zephyr RTOS",
@@ -5508,7 +6181,7 @@
     },
     {
       "id": "act-28lablklmc",
-      "sourceId": "f561mp7i68",
+      "sourceId": "aq5tp0p3v3",
       "proposalId": "9i6peimmer",
       "type": "lightning-talk",
       "title": "How OpenTelemetry Instrumentation Works Under the Hood",
@@ -5555,8 +6228,46 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-bk39jtqjkk",
+      "sourceId": "aq5tedf38d",
+      "proposalId": "bk39jtqjkk",
+      "type": "talk",
+      "title": "Tiles: Own your AI with local models and open protocols",
+      "subtitle": "",
+      "description": "As AI becomes central to how we work and communicate, I believe we’re seeing a new form of technological feudalism, where a handful of platforms control the models, identities, data, and distribution channels people depend on. Local-first AI offers an alternative, but many tools still lack the identity, sync, and collaboration features people expect.\n\nIn this talk, I’ll share what I’ve learned building Tiles, a local-first private AI assistant. I’ll discuss the tradeoffs we’ve encountered while combining local models with decentralized identity, peer-to-peer encrypted sync, and the AT Protocol for social and collaboration features.",
+      "references": [
+        {
+          "label": "https://www.tiles.run/",
+          "url": "https://www.tiles.run/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Screening",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bk39jtqjkk",
+      "start": "2026-09-27T14:15:00+05:30",
+      "end": "2026-09-27T14:45:00+05:30",
+      "flexible": false,
+      "locationId": "hall-2",
+      "speakerIds": [
+        "person-ankesh-bharti"
+      ],
+      "tags": [
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "hall-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28laiujb0d",
-      "sourceId": "f561325nin",
+      "sourceId": "aq5tdifrrf",
       "proposalId": "9qp8u3f894",
       "type": "lightning-talk",
       "title": "From Display Controller to Panel: A Modular Display Pipeline Architecture for Zephyr",
@@ -5606,7 +6317,7 @@
     },
     {
       "id": "act-28la11nd7m",
-      "sourceId": "f561agjdla",
+      "sourceId": "aq5tbck5u0",
       "proposalId": "d6mltdb2aq",
       "type": "talk",
       "title": "Remote Execution by Design: Sandboxing AI Agents with gVisor & Pipelock",
@@ -5651,7 +6362,7 @@
     },
     {
       "id": "act-cfp-1f9ett9bgj",
-      "sourceId": "f5616urm6t",
+      "sourceId": "aq5t2lqb97",
       "proposalId": "1f9ett9bgj",
       "type": "bof",
       "title": "Community-Driven or Community-Branded? Who Gets to Shape Community Events?",
@@ -5688,7 +6399,7 @@
     },
     {
       "id": "act-cfp-2p9brsg91r",
-      "sourceId": "f561ovfecj",
+      "sourceId": "aq5tnkimfs",
       "proposalId": "2p9brsg91r",
       "type": "bof",
       "title": "FOSS for Justice — What can Open Source do for India’s Courts?",
@@ -5725,7 +6436,7 @@
     },
     {
       "id": "act-cfp-6pb727vn12",
-      "sourceId": "f561mjuh46",
+      "sourceId": "aq5ttljuns",
       "proposalId": "6pb727vn12",
       "type": "panel",
       "title": "The future of FOSS, SWE and Technical Education",
@@ -5762,7 +6473,7 @@
     },
     {
       "id": "act-28lar927u4",
-      "sourceId": "f561rgqcd6",
+      "sourceId": "aq5tdsgjhd",
       "proposalId": "1s4iem9t8a",
       "type": "talk",
       "title": "From Reset to main(): Porting Infineon TriCore AURIX to Zephyr",
@@ -5804,7 +6515,7 @@
     },
     {
       "id": "act-cfp-7vvvus5cp0",
-      "sourceId": "f561hsnui1",
+      "sourceId": "aq5tgmsrs7",
       "proposalId": "7vvvus5cp0",
       "type": "talk",
       "title": "Calibrate: A framework for continuously evaluating and improving AI agents within non-profits",
@@ -5870,7 +6581,7 @@
     },
     {
       "id": "act-28lacdbph1",
-      "sourceId": "f5616trmog",
+      "sourceId": "aq5t903if9",
       "proposalId": "b8josvurds",
       "type": "lightning-talk",
       "title": "From Prompts to Production: Building an Open-Source AI On-Call Agent with MCP and Multi-Agent Workflows",
@@ -5925,7 +6636,7 @@
     },
     {
       "id": "act-28lac636ge",
-      "sourceId": "f561lqgs8u",
+      "sourceId": "aq5tq615ea",
       "proposalId": "76tid1o2lg",
       "type": "lightning-talk",
       "title": "Long live outbox : Outbox is dead",
@@ -5982,7 +6693,7 @@
     },
     {
       "id": "act-28laeodjb3",
-      "sourceId": "f561u3ok09",
+      "sourceId": "aq5tagl870",
       "proposalId": "6r7akaieb8",
       "type": "lightning-talk",
       "title": "Real-Time Video Pipelines on Embedded SoCs: A FreeRTOS Case Study",
@@ -6029,7 +6740,7 @@
     },
     {
       "id": "act-cfp-dglc657qff",
-      "sourceId": "f5611j29dt",
+      "sourceId": "aq5tknh5o7",
       "proposalId": "dglc657qff",
       "type": "talk",
       "title": "Being Bayesian: Stress-testing India's Loudest Stories with FOSS & Open Data",
@@ -6080,7 +6791,7 @@
     },
     {
       "id": "act-28laurq10s",
-      "sourceId": "f56120rucj",
+      "sourceId": "aq5t6aco2n",
       "proposalId": "bl0i7u8nno",
       "type": "lightning-talk",
       "title": "Kubernetes Native Observability Dashboards with Perses, without the YAML/JSON Hell",
@@ -6174,7 +6885,7 @@
     },
     {
       "id": "act-28lad4q6q5",
-      "sourceId": "f561ph3t1h",
+      "sourceId": "aq5tgvih3d",
       "proposalId": "8fc48rj2g2",
       "type": "lightning-talk",
       "title": "Tackling core lifecycle management in heterogeneous SoCs",
@@ -6214,7 +6925,7 @@
     },
     {
       "id": "act-aq5tm8dp26",
-      "sourceId": "f561pktmqs",
+      "sourceId": "aq5tm8dp26",
       "type": "talk",
       "title": "Communi-Con",
       "subtitle": "Other",
@@ -6231,7 +6942,7 @@
     },
     {
       "id": "act-28la635lu7",
-      "sourceId": "f561h50elv",
+      "sourceId": "aq5tj0ufhj",
       "proposalId": "5i25u6dfnv",
       "type": "lightning-talk",
       "title": "Cilium Network Policy Anti-Patterns I Learned the Hard Way",
@@ -6271,7 +6982,7 @@
     },
     {
       "id": "act-28lak5j8nt",
-      "sourceId": "f561bgojjo",
+      "sourceId": "aq5tp8vrke",
       "proposalId": "eofh2kev0d",
       "type": "lightning-talk",
       "title": "Loops to real time",
@@ -6319,7 +7030,7 @@
     },
     {
       "id": "act-cfp-62ntegtu09",
-      "sourceId": "f561lnjqu1",
+      "sourceId": "aq5t7t5jat",
       "proposalId": "62ntegtu09",
       "type": "lightning-talk",
       "title": "Building Open Source Digital Infrastructure for a University",
@@ -6392,7 +7103,7 @@
     },
     {
       "id": "act-28lacdroo3",
-      "sourceId": "f5617up751",
+      "sourceId": "aq5tagifhb",
       "proposalId": "8ne6l7qetc",
       "type": "lightning-talk",
       "title": "Escaping Cron Hell: Building and Contributing to Dagu, an Open Source Workflow Orchestrator",
@@ -6447,7 +7158,7 @@
     },
     {
       "id": "act-28lamtpeiu",
-      "sourceId": "f561s0jmnc",
+      "sourceId": "aq5t04l9sf",
       "proposalId": "5h4d5uhuro",
       "type": "lightning-talk",
       "title": "Indigenous, High-Performance, Safety-Critical RTOS",
@@ -6494,7 +7205,7 @@
     },
     {
       "id": "act-cfp-ajdpfpbh5a",
-      "sourceId": "f561ru3151",
+      "sourceId": "aq5t42q3ub",
       "proposalId": "ajdpfpbh5a",
       "type": "talk",
       "title": "Judiciary Entity Map: How open source can make India’s courts legible",
@@ -6568,7 +7279,7 @@
     },
     {
       "id": "act-28lag29fko",
-      "sourceId": "f5611pk76a",
+      "sourceId": "aq5t2luavp",
       "proposalId": "2rg09ct89v",
       "type": "lightning-talk",
       "title": "15 Years, One Server, 8GB RAM and 500,000 Linux Learners: Lessons from Running Webminal",
@@ -6615,7 +7326,7 @@
     },
     {
       "id": "act-28lakfdugu",
-      "sourceId": "f561emcf23",
+      "sourceId": "aq5t1m24pk",
       "proposalId": "2sfmvkhrrg",
       "type": "lightning-talk",
       "title": "From Architecture to Tasks: Designing Real-Time MCU Firmware in Heterogeneous APU-MCU Systems",
@@ -6661,7 +7372,7 @@
     },
     {
       "id": "act-28laqe1pg1",
-      "sourceId": "f561fg52n8",
+      "sourceId": "aq5tan520m",
       "proposalId": "8gv11r0ga6",
       "type": "lightning-talk",
       "title": "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
@@ -6708,7 +7419,7 @@
     },
     {
       "id": "act-28laedc93i",
-      "sourceId": "f561f2lei4",
+      "sourceId": "aq5tcm158q",
       "proposalId": "f4pdfg9qvh",
       "type": "lightning-talk",
       "title": "Unused Is Not a Kubernetes Field: Platform Hygiene Is Not Cleanup",
@@ -6783,7 +7494,7 @@
     },
     {
       "id": "act-28la409p82",
-      "sourceId": "f561bn0o8i",
+      "sourceId": "aq5tti049p",
       "proposalId": "av9de7vsu8",
       "type": "lightning-talk",
       "title": "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
@@ -6827,7 +7538,7 @@
     },
     {
       "id": "act-28laa2io5q",
-      "sourceId": "f5614dqm39",
+      "sourceId": "aq5tnt7h8h",
       "type": "talk",
       "title": "GB Election Results",
       "subtitle": "Other",
@@ -6844,7 +7555,7 @@
     },
     {
       "id": "act-28lam1ecee",
-      "sourceId": "f561e0i7oa",
+      "sourceId": "aq5t7m3k4t",
       "type": "talk",
       "title": "Closing Remarks, Feedback Session",
       "subtitle": "Other",
@@ -7005,6 +7716,28 @@
       ]
     },
     {
+      "id": "person-allenmylath",
+      "name": "allenmylath",
+      "bio": "Allen George is an open-source enthusiast and software developer with a passion for building high-performance systems in Rust. He is the creator of Rustvani , an open-source voice AI framework, and Rustvani VAD , a custom voice activity detection engine built entirely in Rust — eliminating heavy runtime dependencies in favour of lightweight, portable inference. His work sits at the intersection of speech technology and systems programming, bringing vernacular voice interfaces closer to production reality.",
+      "designation": "Open Source Enthusiast",
+      "avatarUrl": "https://fossunited.org/files/unnamedee1dc1.jpg",
+      "links": []
+    },
+    {
+      "id": "person-alwin-varghese",
+      "name": "Alwin Varghese",
+      "bio": "Electronics and Computer Engineering student at Amrita Vishwa Vidyapeetham strong interest in embedded systems, IoT, and hardware prototyping, a hardware security enthusiast and a member of the bi0s hardware. Experienced in building ESP32-based systems involving BLE communication, voice interfaces,. Passionate about developing practical hardware solutions that solve real-world problems and improve accessibility through technology.",
+      "designation": "Student",
+      "organization": "bi0s",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-28 at 11.42.42 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/alwin-varghese-58a45a330/"
+        }
+      ]
+    },
+    {
       "id": "person-aman-dalmia",
       "name": "Aman Dalmia",
       "bio": "I love building tools that help propagate the benefits of technology to people it wouldn't reach by default and have spent the last 8+ years applying AI to solve problems in agriculture, healthcare and education. After graduating from IIT Guwahati, I was a part of the founding team of Wadhwani AI where we built AI systems to advise cotton farmers on the optimal time to spray pesticides (winner of the Google AI Impact Challenge in 2018), identify low-birth weight babies and screen for COVID-19 using cough sounds.&nbsp; At Avanti Fellows , we built open-source learning tools (winner of the Tools Competition in 2023) to enable effective and engaging online learning for government school students.&nbsp; At Noora Health , I led the development of an AI copilot for nurses to reduce their turnaround time in responding to queries regarding maternal and child health for millions of caregivers across Bangladesh, Indonesia, India and Nepal. Most recently, I have been building Calibrate , an open-source AI agent evaluation platform for non-profits and Formbharo , a form-filling voice agent for public health, at Artpark . At Agency Fund , I work closely with their grantees to strengthen their AI evals and conduct workshops on the best practices for evaluating AI systems in development. I love open-source. Some of my other significant open-source projects are: SensAI , an open-source AI-powered LMS to help educators automate assessments and an AI coach that provides real-time, personalized support to every learner, used by HyperVerge Academy for training youth from low-income backgrounds to get jobs in tech. Plio , an open-source tool that converts any YouTube video into an interactive lesson. It helped Avanti Fellows increase the completion rate on their lesson videos by 5 times for 40k+ government school students during the pandemic and is currently being used by other non-profits for improving engagement on their video lessons. Some of my past work has also been published at top conferences such as KDD, ICLR, and CVPR. For more details, please check: https://amandalmia.com/",
@@ -7065,6 +7798,20 @@
         {
           "label": "social",
           "url": "https://amkhrjee.in/"
+        }
+      ]
+    },
+    {
+      "id": "person-ankesh-bharti",
+      "name": "Ankesh Bharti",
+      "bio": "I'm Ankesh Bharti, a technologist based in Jamshedpur, India. I'm the founder of&nbsp; Tiles Privacy &nbsp;and co-founder of the&nbsp; User &amp; Agents &nbsp;community. My work explores how decentralized infrastructure can give people more agency, control, and choice in their digital lives. Outside of work, I’m interested in bikes, hard sci-fi, and cybernetics.",
+      "designation": "Founder",
+      "organization": "Tiles Privacy",
+      "avatarUrl": "https://fossunited.org/files/headshot Large.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://bsky.app/profile/ankeshbharti.com"
         }
       ]
     },
@@ -7210,6 +7957,20 @@
       ]
     },
     {
+      "id": "person-ashita-prasad",
+      "name": "Ashita Prasad",
+      "bio": "Ashita works as a developer advocate at AWS with a strong focus on frontend, open source and AI technologies. With 10+ years of experience in full stack development, she is passionate about building impactful products and equally loves empowering &amp; engaging with fellow developers in the community. She is the co-creator of an award-winning open source, cross-platform agentic API client (GitHub -&nbsp; https://github.com/ashitaprasad ) and has delivered more than 100 talks &amp; workshops in reputed international conferences such as AI Devcon, AI India, PyML, SciPy, MCP Dev Summit India, etc.",
+      "designation": "SDE / Dev Advocate",
+      "organization": "AWS",
+      "avatarUrl": "https://fossunited.org/files/ashita_profile.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ashitaprasad/"
+        }
+      ]
+    },
+    {
       "id": "person-ashutosh-pandey",
       "name": "Ashutosh Pandey",
       "bio": "Currently I am working with the AOCC compiler team at AMD Bangalore, India. I work on Pragmas, Internal tooling, DevOps (for Compilers), validations, feature development and bug fixing. I also Co-organize the LLVM Bangalore meetup on weekends, which is the largest compiler community in the world.",
@@ -7247,6 +8008,34 @@
         {
           "label": "social",
           "url": "https://www.linkedin.com/in/ayushmaan-bora-4b2806278/"
+        }
+      ]
+    },
+    {
+      "id": "person-ayushman-agrawal-hingorani",
+      "name": "Ayushman Agrawal Hingorani",
+      "bio": "Residential Nerd, likes stuff related to the Roman Empire, FOSS and Security. Will work towards the better of mankind. (FOR THE EMPEROR!)",
+      "designation": "Security Researcher & Network Engineer",
+      "organization": "DefHawk",
+      "avatarUrl": "https://fossunited.org/files/Ayushman.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ayushman-agrawal-hingorani-8023b7192/"
+        }
+      ]
+    },
+    {
+      "id": "person-azim-javed",
+      "name": "Azim Javed",
+      "bio": "This boy pretends to be a Security Researcher but is always busy doom-scrolling reels. Sometimes when he’s bored, he likes to tear-up some IoT devices and tries to act as if he’s the cool hacker boy shown in movies with a terminal and random green coloured text.",
+      "designation": "Security Researcher",
+      "organization": "DefHawk",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-24 at 21.01.17.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/azimjaved/"
         }
       ]
     },
@@ -7520,6 +8309,20 @@
       ]
     },
     {
+      "id": "person-gautham-sai",
+      "name": "Gautham Sai",
+      "bio": "Electronics and Communication Engineering undergraduate, a hardware security enthusiast and a member of the bi0s hardware. interests include embedded security and development, side-channel attacks and automotive security.",
+      "designation": "Student",
+      "organization": "bi0s",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-28 at 11.32.47 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/gautham-sai-b3781b205/"
+        }
+      ]
+    },
+    {
       "id": "person-gigi-koneti",
       "name": "GiGi Koneti",
       "bio": "I’m an open-source contributor and student researcher in the field of AI and mathematics. I’m currently interning at IIT Bombay, building a math module for eSim, FOSSEE, an open-source EDA tool. I build optimized solutions for real-world problems. I have been actively contributing to open-source projects like ML-LAM, PyTorch, and Hugging Face. I am also a member of the open-source community in Bengaluru and an active member of Cohere Labs, an ML research community with researchers worldwide.",
@@ -7530,6 +8333,20 @@
         {
           "label": "social",
           "url": "https://gigikoneti.vercel.app"
+        }
+      ]
+    },
+    {
+      "id": "person-hamdaan-ali-quatil",
+      "name": "Hamdaan Ali Quatil",
+      "bio": "I'm a software engineer, architect, and open-source maintainer working at the intersection of security, identity, performance, and infrastructure. I build reliable systems, contribute to developer tools, and write about authentication, access control, API security, and performance engineering.",
+      "designation": "Software Engineer",
+      "organization": "Intuit",
+      "avatarUrl": "https://fossunited.org/files/698-crop.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://hamdaanali.com/"
         }
       ]
     },
@@ -8014,6 +8831,20 @@
       ]
     },
     {
+      "id": "person-nisarga-adhikary",
+      "name": "Nisarga Adhikary",
+      "bio": "hi, i'm nisarga. i love to code &amp; hack around. i'm heavily interested in foss and i love cybersecurity ^_^ you can reach out to me at hello[at]nisarga.me and i can be found on github as @ni5arga currently working as an osint &amp; threat intelligence engineer @ iit kanpur. also, i’m a foss hack ‘26 winner and a technical contributor of the fossunited platform.",
+      "designation": "osint & threat intelligence engineer",
+      "organization": "c3ihub, iit kanpur",
+      "avatarUrl": "https://fossunited.org/files/new-github-pfp.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://ni5arga.com"
+        }
+      ]
+    },
+    {
       "id": "person-ojas-k",
       "name": "Ojas K",
       "bio": "I work as a Software Architect for web development at the Archives at NCBS, where I maintain the in-house implementations of open source apps -- ArchivesSpace- an archives information management application, and DSpace- a repository management application for digital content.",
@@ -8089,6 +8920,20 @@
         {
           "label": "social",
           "url": "https://libperry.codeberg.page/"
+        }
+      ]
+    },
+    {
+      "id": "person-philippe-ombredanne",
+      "name": "Philippe Ombredanne",
+      "bio": "AboutCode Foundation - ScanCode - Package-URL - ClearlyDefined Philippe Ombredanne is a FOSS hacker on a mission to enable easier and safer reuse of healthy open source code. He is the lead maintainer of the AboutCode stack of open source tools for Software Composition Analysis, license and security compliance, including the industry-leading ScanCode, DejaCode, PurlDB, VulnerableCode, and ClearlyDefined. Philippe is leading the Package-URL (PURL) global standard for package identification in the software supply chains in SBOMs, VEX, and vulnerabilities (ECMA-427), co-founded SPDX and ClearlyDefined, and is a core contributor to CycloneDX. Philippe contributes to other open source projects, including the Linux kernel SPDX-ification, nix, Apache, Rust, strace, ORT, and several Python tools.",
+      "designation": "AboutCode maintainer",
+      "organization": "AboutCode",
+      "avatarUrl": "https://fossunited.org/files/phil2.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/ pombredanne"
         }
       ]
     },
@@ -8191,6 +9036,19 @@
       ]
     },
     {
+      "id": "person-raunak",
+      "name": "Raunak",
+      "bio": "I love understanding systems by building them from scratch. Some of my interesting projects are: A WebAssembly interpreter from scratch which runs Doom and boots Linux ( https://github.com/rrampage/wart ) A terminal Snake game which fits in a QR code ( https://gist.github.com/rrampage/2a781662645dc2fcba45784eb584cbdc ) HTTP server in ARM64 assembly ( https://gist.github.com/rrampage/d31e75647a77badb3586ebae1e414cb6 ) Minimal Linux shell which compiles to a 4kb binary ( https://gist.github.com/rrampage/5046b60ca2d040bcffb49ee38e86041f )",
+      "designation": "Systems Programmer",
+      "avatarUrl": "https://fossunited.org/files/Raunak-dp.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/raunak1/"
+        }
+      ]
+    },
+    {
       "id": "person-ritika",
       "name": "ritika",
       "bio": "I like to make things that you don’t see everyday, mostly in open, and I judge people with third person bios",
@@ -8251,6 +9109,33 @@
       ]
     },
     {
+      "id": "person-sampurna-pyne",
+      "name": "Sampurna Pyne",
+      "bio": "I am a Software Developer and Security Enthusiast. I am currently a Google Summer of Code 2026 Contributor at AboutCode, where I contribute to VulnerableCode. I am a pre-final year student of Computer Science and Engineering. I represented India at IETF 122 in Bangkok sponsored by AIORI and have secured podium finishes in 12 hackathons. I am interested in product security, software supply chain security and secure software development.",
+      "designation": "Student | Contributor at AboutCode",
+      "organization": "AboutCode",
+      "avatarUrl": "https://fossunited.org/files/1731346754359.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/Samk1710"
+        }
+      ]
+    },
+    {
+      "id": "person-saniya-fatima",
+      "name": "Saniya Fatima",
+      "bio": "I am Saniya Fatima, an open-source contributor and a Google Summer of Code Mentee at FLARE organization. I like exploring different technical domains. My primary interest lies in cyber security.",
+      "designation": "Open Source Contributor | Member of Point Blank",
+      "avatarUrl": "https://fossunited.org/files/profile_69jd6ehad107204c.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/saniyafatima07"
+        }
+      ]
+    },
+    {
       "id": "person-saravanan",
       "name": "Saravanan",
       "bio": "Saravanan graduated in Electrical Engineering and working as Software Engineer at Linumiz. Over the past 13 years his focus is primarily on Embedded Linux, RTOS in DVB, IoT and Automotive domain. His work involves to provide Mainline Linux Kernel and related projects to run on customer hardware boards. He is an contributor for Zephyr, Linux Kernel and Yocto.",
@@ -8267,6 +9152,19 @@
       "organization": "Linumiz",
       "avatarUrl": "https://fossunited.org/files/Saravanan.jpg",
       "links": []
+    },
+    {
+      "id": "person-serv0id",
+      "name": "serv0id",
+      "bio": "serv0id is a recent cs graduate and likes to tinker around with systems that don’t like to get tinkered with.",
+      "designation": "Security Analyst",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/113516593?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/serv0id"
+        }
+      ]
     },
     {
       "id": "person-shalini-a",
@@ -8296,6 +9194,20 @@
         {
           "label": "social",
           "url": "https://www.linkedin.com/in/shreyas-omkar/"
+        }
+      ]
+    },
+    {
+      "id": "person-shreyas-minocha",
+      "name": "Shreyas Minocha",
+      "bio": "Shreyas is a Computer Science PhD student at Georgia Tech where he works with Prof. Michael Specter in the Security, Privacy &amp; Democracy Lab. His research interests include censorship circumvention, anonymity, and privacy-preserving technologies. Prior to joining Georgia Tech, he received a Bachelor's degree in Computer Science from Rice University. His current research is on measuring and improving the impact of tech policy on the privacy of Internet users using tools from web measurement, reverse-engineering, and cryptography.",
+      "designation": "Computer Science PhD Student",
+      "organization": "Georgia Institute of Technology",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/11537232?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://shreyasminocha.me"
         }
       ]
     },
@@ -8674,7 +9586,7 @@
   ],
   "sourceMetadata": {
     "source": "fossunited",
-    "sourceUpdatedAt": "2026-09-08 23:17:05.653269",
+    "sourceUpdatedAt": "2026-09-08 20:34:50.971176",
     "normalizerVersion": "0.2.0",
     "scheduleStatus": "draft"
   }

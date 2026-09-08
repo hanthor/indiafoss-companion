@@ -26,6 +26,7 @@ async function postJson<T>(
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body,
+    signal: AbortSignal.timeout(20_000),
   });
   if (!res.ok) {
     throw new Error(`FOSS United request failed: ${path} (HTTP ${res.status})`);
@@ -62,7 +63,7 @@ async function fetchProposalDetails(
         if (!proposal?.route) return null;
         const sourceUrl = new URL(proposal.route.replace(/^\//, ''), `${baseUrl}/`).toString();
         try {
-          const response = await fetchImpl(sourceUrl);
+          const response = await fetchImpl(sourceUrl, { signal: AbortSignal.timeout(20_000) });
           if (!response.ok) return null;
           return parseProposalDetail(await response.text(), id, sourceUrl);
         } catch {

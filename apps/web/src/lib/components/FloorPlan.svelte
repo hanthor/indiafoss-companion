@@ -135,7 +135,12 @@
    * programme is the identity — "Rust" tells you more than "HALL 3".
    */
   function labelHeading(room: FloorRoom): { text: string; devroom: boolean } {
-    return labelHeadingFor(roomTitle(room), liveByRoom.get(room.id)?.[0]?.trackId, devroomTracks);
+    const heading = labelHeadingFor(
+      roomTitle(room),
+      liveByRoom.get(room.id)?.[0]?.trackId,
+      devroomTracks,
+    );
+    return heading.text === roomTitle(room) ? { text: heading.text, devroom: false } : heading;
   }
 
   const nextUp = $derived(
@@ -498,10 +503,14 @@
           aria-pressed={selected === room.id}
           onclick={() => select(room.id)}
         >
-          <span class="name" class:devroom={heading.devroom}>{heading.text}</span>
+          <span class="name">{roomTitle(room)}</span>
+          {#if heading.devroom}<span class="talk">{truncate(heading.text, zoomed ? 34 : 24)}</span
+            >{/if}
           {#if first}
             <!-- The talk itself, so the map answers "what is on in there" without a tap (#117). -->
-            <span class="talk">{truncate(first.title, zoomed ? 34 : 26)}</span>
+            {#if !heading.devroom || zoomed}<span class="talk"
+                >{truncate(first.title, zoomed ? 34 : 26)}</span
+              >{/if}
             <span class="left">{minutesLeft(first)} MIN LEFT</span>
           {/if}
           {#if room.id === hereRoom}<span class="you" aria-hidden="true"></span>{/if}
@@ -563,7 +572,7 @@
           <p class="meta">
             {#if roomTitle(selectedRoom) !== selectedRoom.name}{selectedRoom.name} ·
             {/if}
-            {plan.label} floor{#if selectedRoom.cap}
+            {FLOORS[floorOfRoom(selectedRoom.id) ?? floor].label} floor{#if selectedRoom.cap}
               · {selectedRoom.cap} seats{/if}
             {#if selectedRoom.id === destinationRoom}
               · <span class="tag">DESTINATION</span>{/if}
@@ -575,6 +584,14 @@
           onclick={() => select(selectedRoom.id)}>×</button
         >
       </header>
+
+      <div class="actions">
+        {#if primaryLocation(selectedRoom.id)}
+          <button class="here" class:clear={isHere} onclick={toggleHere}>
+            {isHere ? 'Clear location' : "I'm here"}
+          </button>
+        {/if}
+      </div>
 
       <div class="journey" aria-label="Walking route">
         <label for="map-routing-profile">Routing profile</label>
@@ -633,14 +650,6 @@
       {:else if live.length === 0}
         <p class="muted">Nothing scheduled here right now.</p>
       {/if}
-
-      <div class="actions">
-        {#if primaryLocation(selectedRoom.id)}
-          <button class="here" class:clear={isHere} onclick={toggleHere}>
-            {isHere ? 'Clear location' : "I'm here"}
-          </button>
-        {/if}
-      </div>
     </section>
   {/if}
 {/if}
@@ -986,12 +995,13 @@
     background: var(--line-strong);
     opacity: 0.4;
   }
-  /* Peek state: the header and the first block; tap the grabber for the rest. */
+  /* Keep the map visible while allowing every room action to remain reachable. */
   .sheet:not(.expanded) {
-    max-height: 11rem;
-    overflow: hidden;
+    max-height: 38dvh;
   }
   .sheet {
+    max-height: 65dvh;
+    overflow-y: auto;
     position: sticky;
     bottom: calc(var(--tabbar-height) + var(--safe-bottom));
     z-index: 2;
@@ -1003,6 +1013,9 @@
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
+  }
+  .sheet > * {
+    flex-shrink: 0;
   }
   .sheet header {
     display: flex;
