@@ -230,10 +230,11 @@
     {@render children()}
   </main>
 
-  {#if updateState.available}
+  {#if updateState.available && updateState.eventId === eventState.bundle?.id}
     <section class="updatebanner card accent" role="status" aria-label="Schedule update available">
       <div class="updatebody">
         <strong>Schedule changed</strong>
+        {#if updateState.error}<p role="alert">{updateState.error}</p>{/if}
         <span>
           {#each Object.entries(updateState.summary) as [type, count] (type)}
             {describeChangeCount(type as ScheduleChangeType, count)}

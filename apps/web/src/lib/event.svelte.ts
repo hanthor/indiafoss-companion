@@ -9,28 +9,9 @@ export const EVENT_MANIFEST_URL = `${base}/events/${DEFAULT_EVENT_ID}/manifest.j
 
 let storage: CompanionStorage | null = null;
 
-/** Remember which published revision the stored bundle corresponds to (§35). */
-export async function recordRevision(eventId: string, revision?: number): Promise<void> {
-  if (revision === undefined) {
-    try {
-      const res = await fetch(`${base}/events/${eventId}/manifest.json`, { cache: 'no-store' });
-      if (res.ok) {
-        const manifest = (await res.json()) as { revision?: number };
-        revision = manifest.revision;
-      }
-    } catch {
-      revision = undefined;
-    }
-  }
-  if (revision !== undefined) {
-    await getStorage().setSetting(`event-revision-${eventId}`, String(revision));
-  }
-}
-
 /** Revision of the stored bundle, if known. */
 export async function storedRevision(eventId: string): Promise<number | null> {
-  const raw = await getStorage().getSetting(`event-revision-${eventId}`);
-  return raw ? Number(raw) : null;
+  return getStorage().loadEventRevision(eventId);
 }
 function getStorage(): CompanionStorage {
   storage ??= new CompanionStorage();

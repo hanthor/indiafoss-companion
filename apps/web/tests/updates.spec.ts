@@ -1,6 +1,6 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { appUrl } from './app-url.js';
-import { preferenceSaved } from './preference-saved.js';
+import { preferenceSaved, settingSaved } from './preference-saved.js';
 
 // These regression scenarios use stable IDs and times from the archived fixture.
 test.beforeEach(async ({ page }) => {
@@ -55,6 +55,7 @@ async function publish(page: Page, revision: number, bundle: unknown): Promise<v
       json: {
         schemaVersion: 1,
         eventId: 'indiafoss-2025',
+        generatedAt: '2026-09-08T12:00:00Z',
         revision,
         assets: { event: 'event.deadbeef.json' },
       },
@@ -143,6 +144,7 @@ test('a revision that changes nothing is never offered, and is not re-offered la
   const banner = page.getByRole('status', { name: 'Schedule update available' });
   await expect(banner).toBeHidden();
 
+  await settingSaved(page, 'event-revision-indiafoss-2025', '999');
   // It was recorded as seen, so a later visit does not even fetch it again.
   let refetched = false;
   page.on('request', (r) => {
@@ -212,7 +214,15 @@ test('an open foreground schedule polls again and pauses while hidden', async ({
   let checks = 0;
   await page.route(MANIFEST, (route) => {
     checks += 1;
-    return route.fulfill({ json: { revision: 1 } });
+    return route.fulfill({
+      json: {
+        schemaVersion: 1,
+        eventId: 'indiafoss-2025',
+        generatedAt: '2026-09-08T12:00:00Z',
+        revision: 1,
+        assets: { event: 'event.deadbeef.json' },
+      },
+    });
   });
   await page.goto(appUrl('/settings?setup=done'));
   await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
@@ -235,4 +245,132 @@ test('an open foreground schedule polls again and pauses while hidden', async ({
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await expect.poll(() => checks).toBeGreaterThan(hidden);
+});
+
+async function savedEvent(
+  page: Page,
+): Promise<{ revision?: number; bundle: Record<string, unknown> }> {
+  return page.evaluate(async () => {
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      const open = indexedDB.open('indiafoss-companion');
+      open.onsuccess = () => resolve(open.result);
+      open.onerror = () => reject(open.error);
+    });
+    try {
+      return await new Promise((resolve, reject) => {
+        const get = db.transaction('events').objectStore('events').get('indiafoss-2025');
+        get.onsuccess = () => resolve(get.result);
+        get.onerror = () => reject(get.error);
+      });
+    } finally {
+      db.close();
+    }
+  });
+}
+
+test('a failed atomic save keeps the old schedule and offers the same downloaded update for retry', async ({
+  page,
+  request,
+}) => {
+  await page.goto(appUrl('/settings?setup=done'));
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+  const changed = (await publishedBundle(request)) as { activities: { title: string }[] };
+  changed.activities[0]!.title = 'Atomic update succeeds on retry';
+  await publish(page, 999, changed);
+  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  const banner = page.getByRole('status', { name: 'Schedule update available' });
+  await expect(banner).toBeVisible();
+  const before = await savedEvent(page);
+  await page.evaluate(() => {
+    const put = IDBObjectStore.prototype.put;
+    let fail = true;
+    IDBObjectStore.prototype.put = function (value, key) {
+      if (fail && this.name === 'settings' && value.key === 'event-revision-indiafoss-2025') {
+        fail = false;
+        throw new DOMException('Simulated storage full', 'QuotaExceededError');
+      }
+      return key === undefined ? put.call(this, value) : put.call(this, value, key);
+    };
+  });
+  await banner.getByRole('button', { name: 'Update', exact: true }).click();
+  await expect(banner.getByRole('alert')).toContainText('The update could not be saved');
+  const failed = await savedEvent(page);
+  expect(failed.bundle).toEqual(before.bundle);
+  expect(failed.revision).toBe(before.revision);
+  await banner.getByRole('button', { name: 'Update', exact: true }).click();
+  await expect(banner).toBeHidden();
+  expect((await savedEvent(page)).revision).toBe(999);
+  await page.goto(appUrl('/schedule'));
+  await expect(page.getByText('Atomic update succeeds on retry')).toBeVisible();
+});
+
+test('metadata-only updates persist without a banner, including across reload', async ({
+  page,
+  request,
+}) => {
+  await page.goto(appUrl('/settings?setup=done'));
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+  const updated = { ...(await publishedBundle(request)), name: 'IndiaFOSS corrected metadata' };
+  await publish(page, 999, updated);
+  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  await settingSaved(page, 'event-revision-indiafoss-2025', '999');
+  await expect(page.getByRole('status', { name: 'Schedule update available' })).toBeHidden();
+  await page.reload();
+  expect((await savedEvent(page)).bundle.name).toBe(updated.name);
+  expect((await savedEvent(page)).revision).toBe(999);
+});
+
+test('a manifest for a different event cannot advance the saved revision', async ({ page }) => {
+  await page.goto(appUrl('/settings?setup=done'));
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
+  await page.route(MANIFEST, (route) =>
+    route.fulfill({
+      json: {
+        schemaVersion: 1,
+        eventId: 'indiafoss-2026',
+        generatedAt: '2026-09-08T12:00:00Z',
+        revision: 999,
+        assets: { event: 'event.deadbeef.json' },
+      },
+    }),
+  );
+  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  await expect(page.getByText(/manifest is invalid or belongs to another event/)).toBeVisible();
+  expect((await savedEvent(page)).revision).not.toBe(999);
+});
+
+test('a reinstated session is saved as active while keeping its bookmark', async ({
+  page,
+  request,
+}) => {
+  const active = (await publishedBundle(request)) as {
+    activities: { id: string; cancelled?: boolean }[];
+  };
+  const cancelled = structuredClone(active);
+  cancelled.activities.find((activity) => activity.id === KEPT)!.cancelled = true;
+  await page.route('**/events/indiafoss-2025/event-bundle.json', (route) =>
+    route.fulfill({ json: cancelled }),
+  );
+  await publish(page, 1, cancelled);
+  await page.goto(appUrl(`/activity/${KEPT}?setup=done`));
+  await page.getByRole('button', { name: /Bookmark/ }).click();
+  await preferenceSaved(page, KEPT);
+  await publish(page, 2, active);
+  await page.goto(appUrl('/settings'));
+  const banner = page.getByRole('status', { name: 'Schedule update available' });
+  await expect(banner).toContainText('1 session back on');
+  await banner.getByRole('button', { name: 'Update', exact: true }).click();
+  await expect(banner).toBeHidden();
+  const stored = await savedEvent(page);
+  expect(
+    (stored.bundle.activities as { id: string; cancelled?: boolean }[]).find(
+      (activity) => activity.id === KEPT,
+    )?.cancelled,
+  ).not.toBe(true);
+  expect(stored.revision).toBe(2);
+  await page.goto(appUrl(`/activity/${KEPT}`));
+  await expect(page.getByRole('button', { name: /Bookmark/ })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
 });

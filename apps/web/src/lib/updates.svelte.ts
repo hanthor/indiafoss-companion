@@ -4,8 +4,9 @@ import type { ScheduleChange } from '@indiafoss/schedule';
 import type { EventBundle } from '@indiafoss/model';
 import { collectBundleIssues } from '@indiafoss/model';
 import { CompanionStorage } from '@indiafoss/storage';
+import { isValidEventManifest } from '@indiafoss/model/contracts';
 import { UpdateGate } from '$lib/update-gate';
-import { eventState, recordRevision, storedRevision } from '$lib/event.svelte';
+import { eventState, storedRevision } from '$lib/event.svelte';
 
 let storage: CompanionStorage | null = null;
 function getStorage(): CompanionStorage {
@@ -14,6 +15,7 @@ function getStorage(): CompanionStorage {
 }
 
 export const updateState = $state<{
+  eventId: string | null;
   checking: boolean;
   available: boolean;
   revision: number | null;
@@ -21,6 +23,7 @@ export const updateState = $state<{
   summary: Record<string, number>;
   error: string | null;
 }>({
+  eventId: null,
   checking: false,
   available: false,
   revision: null,
@@ -82,7 +85,11 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
       signal: controller.signal,
     });
     if (!res.ok) return false;
-    const manifest = (await res.json()) as { revision?: number; assets?: Record<string, string> };
+    const manifest: unknown = await res.json();
+    if (!isValidEventManifest(manifest) || manifest.eventId !== eventId) {
+      updateState.error = 'The schedule manifest is invalid or belongs to another event.';
+      return false;
+    }
     // The manifest is in hand, so the check succeeded — whether or not it
     // turns out to carry anything new.
     updateState.error = null;
@@ -117,7 +124,9 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
       return true;
     }
 
-    const changes = diffBundles(current, next);
+    // A background response must not replace another event selected in the meantime.
+    if (eventState.bundle?.id !== eventId) return false;
+    const changes = diffBundles(eventState.bundle ?? current, next);
     if (changes.length === 0) {
       // A revision with no attendee-visible change still carries real data —
       // corrected metadata, a fixed venue name. Applying it silently is right;
@@ -125,16 +134,21 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
       // talk showing as cancelled while the revision was recorded as handled
       // (#190).
       //
-      // Order matters: persist, then update memory, then record the revision.
-      // If the save throws, the revision stays unrecorded and the next check
-      // tries again rather than skipping this revision forever.
-      await getStorage().saveEventBundle(next);
-      eventState.bundle = next;
-      await recordRevision(eventId, manifest.revision);
+      // The bundle and revision commit in one storage transaction. Failed
+      // writes leave both unchanged and the next check can retry.
+      const saved = await getStorage().saveEventRevision(next, manifest.revision);
+      if (saved && eventState.bundle?.id === eventId) eventState.bundle = next;
+      if (updateState.revision !== null && updateState.revision <= manifest.revision) {
+        pendingBundle = null;
+        updateState.available = false;
+        updateState.changes = [];
+        updateState.summary = {};
+      }
       return true;
     }
     pendingBundle = next;
 
+    updateState.eventId = eventId;
     updateState.available = true;
     updateState.revision = manifest.revision;
     updateState.changes = changes;
@@ -153,18 +167,25 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
  * Apply the newer bundle, preserving user state via stable activity ids (§35).
  */
 export async function applyUpdate(eventId: string): Promise<void> {
-  if (!updateState.available) return;
-  let next = pendingBundle;
-  if (!next) {
-    const res = await fetch(assetUrl(eventId, undefined), { cache: 'no-store' });
-    if (!res.ok) throw new Error(`update fetch failed (HTTP ${res.status})`);
-    next = (await res.json()) as EventBundle;
+  const next = pendingBundle;
+  const revision = updateState.revision;
+  if (!updateState.available || !next || next.id !== eventId || revision === null) return;
+  try {
+    const saved = await getStorage().saveEventRevision(next, revision);
+    // A concurrent tab may already have saved this revision or a newer one.
+    const adopted = saved ? next : await getStorage().loadEventBundle(eventId);
+    if (adopted && eventState.bundle?.id === eventId) eventState.bundle = adopted;
+    // A poll may have downloaded another revision while storage was committing.
+    if (pendingBundle === next && updateState.revision === revision) {
+      pendingBundle = null;
+      updateState.available = false;
+      updateState.changes = [];
+      updateState.summary = {};
+    }
+    updateState.error = null;
+  } catch {
+    // Keep both the cached schedule and the downloaded proposal for a retry.
+    updateState.error =
+      'The update could not be saved. Your current schedule is unchanged. Try Update again.';
   }
-  pendingBundle = null;
-  await getStorage().saveEventBundle(next);
-  await recordRevision(eventId, updateState.revision ?? undefined);
-  eventState.bundle = next;
-  updateState.available = false;
-  updateState.changes = [];
-  updateState.summary = {};
 }

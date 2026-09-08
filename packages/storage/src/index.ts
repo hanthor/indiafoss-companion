@@ -32,6 +32,8 @@ export interface ComparisonRecord {
 }
 
 export interface EventBundleRecord {
+  /** Present only when the revision was committed with this exact bundle. */
+  revision?: number;
   eventId: string;
   bundle: EventBundle;
   savedAt: string;
@@ -256,6 +258,32 @@ export class CompanionStorage {
 
   async saveEventBundle(bundle: EventBundle): Promise<void> {
     await this.db.events.put({ eventId: bundle.id, bundle, savedAt: new Date().toISOString() });
+  }
+
+  /** Commit the bundle and its revision together, without rolling back a newer tab's update. */
+  async saveEventRevision(bundle: EventBundle, revision: number): Promise<boolean> {
+    if (!Number.isSafeInteger(revision) || revision < 1) throw new Error('Invalid event revision');
+    return this.db.transaction('rw', this.db.events, this.db.settings, async () => {
+      const key = `event-revision-${bundle.id}`;
+      const stored = (await this.db.events.get(bundle.id))?.revision;
+      if (stored !== undefined && Number.isSafeInteger(stored) && stored >= revision) return false;
+      await this.db.events.put({
+        eventId: bundle.id,
+        bundle,
+        revision,
+        savedAt: new Date().toISOString(),
+      });
+      await this.db.settings.put({ key, value: String(revision) });
+      return true;
+    });
+  }
+
+  /** Ignore legacy standalone revision stamps, which may not match the stored bundle. */
+  async loadEventRevision(eventId: string): Promise<number | null> {
+    const revision = (await this.db.events.get(eventId))?.revision;
+    return revision !== undefined && Number.isSafeInteger(revision) && revision > 0
+      ? revision
+      : null;
   }
 
   async loadEventBundle(eventId: string): Promise<EventBundle | undefined> {
