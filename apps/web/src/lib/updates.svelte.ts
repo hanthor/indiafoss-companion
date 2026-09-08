@@ -56,7 +56,7 @@ export function resetUpdateChecks(): void {
  * existing offline schedule stays untouched (§60).
  *
  * Called on launch, on reconnect, on foreground return and on manual refresh.
- * Only a manual refresh passes `force`, which skips the freshness limit; a
+ * Manual refresh and scheduled ticks pass `force`, skipping the freshness limit; a
  * failed check never records success, so the next trigger retries immediately.
  */
 export async function checkForUpdates(

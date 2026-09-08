@@ -80,7 +80,7 @@
     <button
       class="button"
       disabled={updateState.checking}
-      onclick={() => checkForUpdates(DEFAULT_EVENT_ID, { force: true })}
+      onclick={() => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID, { force: true })}
     >
       {updateState.checking ? 'Checking…' : 'Check for updates'}
     </button>

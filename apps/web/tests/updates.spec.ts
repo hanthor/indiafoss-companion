@@ -214,9 +214,11 @@ test('an open foreground schedule polls again and pauses while hidden', async ({
     checks += 1;
     return route.fulfill({ json: { revision: 1 } });
   });
-  await page.goto(appUrl('/?setup=done'));
-  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await page.goto(appUrl('/settings?setup=done'));
+  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
   await expect.poll(() => checks).toBeGreaterThan(0);
+  // Let the initial request finish before advancing its timeout clock.
+  await expect(page.getByRole('button', { name: 'Check for updates', exact: true })).toBeEnabled();
   const initial = checks;
   await page.clock.runFor(61_000);
   await expect.poll(() => checks).toBeGreaterThan(initial);

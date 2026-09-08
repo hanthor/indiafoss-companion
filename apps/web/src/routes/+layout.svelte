@@ -107,7 +107,7 @@
   // Keep an open schedule fresh; hidden/offline tabs do not poll.
   onMount(() => {
     const poller = new UpdatePoller(
-      () => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID),
+      (periodic) => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID, { force: periodic }),
       () => updatePollInterval(eventState.bundle),
     );
     const resume = () => {

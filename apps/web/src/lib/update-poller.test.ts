@@ -20,6 +20,7 @@ describe('schedule polling', () => {
     poller.start();
     await vi.advanceTimersByTimeAsync(EVENT_POLL_MS * 2);
     expect(check).toHaveBeenCalledTimes(3);
+    expect(check.mock.calls.map(([periodic]) => periodic)).toEqual([false, true, true]);
     poller.stop();
     await vi.advanceTimersByTimeAsync(EVENT_POLL_MS * 2);
     expect(check).toHaveBeenCalledTimes(3);

@@ -19,25 +19,25 @@ export class UpdatePoller {
   private generation = 0;
 
   constructor(
-    private readonly check: () => Promise<void>,
+    private readonly check: (periodic: boolean) => Promise<void>,
     private readonly interval: () => number,
   ) {}
 
   start(): void {
     this.stop();
     const generation = this.generation;
-    const tick = async () => {
+    const tick = async (periodic: boolean) => {
       try {
-        await this.check();
+        await this.check(periodic);
       } catch {
         // A failed check must not stop future retries. The updater owns error reporting.
       } finally {
         if (generation === this.generation) {
-          this.timer = setTimeout(() => void tick(), this.interval());
+          this.timer = setTimeout(() => void tick(true), this.interval());
         }
       }
     };
-    void tick();
+    void tick(false);
   }
 
   stop(): void {
