@@ -28,9 +28,9 @@ class ItineraryTest {
             dispositionOf = { if (it == "b") Disposition.MUST_ATTEND else Disposition.NORMAL },
             bookmarked = { false },
         )
-        assertEquals(listOf("b", "d"), plan.map { it.activity.id })
+        assertEquals(listOf("b", "d"), plan.filter { it.reason != Itinerary.Reason.LUNCH }.map { it.activity.id })
         assertEquals(Itinerary.Reason.MUST_ATTEND, plan[0].reason)
-        assertEquals(Itinerary.Reason.RANKED, plan[1].reason)
+        assertEquals(Itinerary.Reason.RANKED, plan.last().reason)
     }
 
     @Test
@@ -41,7 +41,7 @@ class ItineraryTest {
             dispositionOf = { if (it == "a") Disposition.NOT_INTERESTED else Disposition.NORMAL },
             bookmarked = { false },
         )
-        assertEquals(listOf("b", "d"), plan.map { it.activity.id })
+        assertEquals(listOf("b", "d"), plan.filter { it.reason != Itinerary.Reason.LUNCH }.map { it.activity.id })
     }
 
     @Test
@@ -53,11 +53,38 @@ class ItineraryTest {
             ratingOf = { 1200.0 }, dispositionOf = { Disposition.NORMAL }, bookmarked = { false },
             blocks = listOf(fixed, booth),
         )
-        assertEquals(listOf("blk-1", "blk-2", "d"), plan.map { it.activity.id })
+        assertEquals(listOf("blk-1", "blk-2", "d"), plan.filter { it.reason != Itinerary.Reason.LUNCH }.map { it.activity.id })
         // The largest gap runs from the block's end to lunch; the visit starts there.
         assertEquals("2025-09-20T10:45:00+05:30", plan[1].activity.start)
         assertEquals("2025-09-20T11:15:00+05:30", plan[1].activity.end)
         assertEquals(Itinerary.Reason.BLOCK, plan[1].reason)
+    }
+
+    @Test
+    fun `per-room lunches produce one food-area break inside a whole-devroom gap`() {
+        val morning = act("morning", "2025-09-20T11:00:00+05:30", "2025-09-20T12:00:00+05:30").copy(trackId = "track")
+        val afternoon = act("afternoon", "2025-09-20T13:00:00+05:30", "2025-09-20T14:00:00+05:30").copy(trackId = "track")
+        val lunch = act("room-lunch", "2025-09-20T12:00:00+05:30", "2025-09-20T13:00:00+05:30", "meal").copy(title = "Lunch break")
+        val plan = Itinerary.forDay(
+            bundle.copy(activities = listOf(morning, lunch, lunch.copy(id = "another-room-lunch"), afternoon)),
+            "2025-09-20", { 1200.0 }, { Disposition.NORMAL }, { false }, stayTrackIds = setOf("track"),
+        )
+        assertEquals(listOf("morning", "flex-lunch-2025-09-20", "afternoon"), plan.map { it.activity.id })
+        assertEquals("Lunch · food area", plan[1].activity.title)
+        assertEquals("2025-09-20T12:00:00+05:30", plan[1].activity.start)
+        assertEquals("2025-09-20T12:30:00+05:30", plan[1].activity.end)
+    }
+
+    @Test
+    fun `lunch never displaces a talk or attendee block`() {
+        val busy = act("busy", "2025-09-20T11:00:00+05:30", "2025-09-20T12:45:00+05:30")
+        val after = act("after", "2025-09-20T13:00:00+05:30", "2025-09-20T14:00:00+05:30")
+        val lunch = act("lunch", "2025-09-20T12:00:00+05:30", "2025-09-20T13:00:00+05:30", "meal")
+        val plan = Itinerary.forDay(bundle.copy(activities = listOf(busy, lunch, after)), "2025-09-20", { 1200.0 }, { Disposition.NORMAL }, { false })
+        assertEquals(listOf("busy", "after"), plan.map { it.activity.id })
+        val ownLunch = Itinerary.CustomBlock("mine", "Lunch with friends", "2025-09-20T12:00:00+05:30", "2025-09-20T12:30:00+05:30")
+        val ownPlan = Itinerary.forDay(bundle, "2025-09-20", { 1200.0 }, { Disposition.NORMAL }, { false }, blocks = listOf(ownLunch))
+        assertEquals(1, ownPlan.count { it.activity.title.contains("Lunch", ignoreCase = true) })
     }
 
     @Test

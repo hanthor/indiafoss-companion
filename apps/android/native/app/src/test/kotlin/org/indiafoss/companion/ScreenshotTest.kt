@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.performScrollTo
 import org.indiafoss.companion.ui.screens.ActivityScreen
 import androidx.test.core.app.ApplicationProvider
 import org.indiafoss.companion.core.ContactCard
@@ -77,6 +78,17 @@ class ScreenshotTest {
         view.draw(Canvas(bitmap))
         val dir = File("build/screenshots").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
+    }
+
+    @Test fun planLunchBreak() {
+        val template = bundle.activities.first()
+        val morning = template.copy(id = "morning", title = "Morning session", type = "talk", start = "2026-09-26T11:00:00+05:30", end = "2026-09-26T12:00:00+05:30")
+        val lunch = template.copy(id = "lunch", title = "Lunch break", type = "meal", start = "2026-09-26T12:00:00+05:30", end = "2026-09-26T13:00:00+05:30")
+        val afternoon = morning.copy(id = "afternoon", title = "Afternoon session", start = "2026-09-26T13:00:00+05:30", end = "2026-09-26T14:00:00+05:30")
+        shoot("plan-lunch-break") {
+            PlanScreen(state().copy(bundle = bundle.copy(activities = listOf(morning, lunch, lunch.copy(id = "other-room-lunch"), afternoon))), {}, {}, { null }, {}) {}
+        }
+        compose.onNodeWithText("Lunch · food area").performScrollTo().assertIsDisplayed()
     }
 
     @Test fun longSessionTitle() {

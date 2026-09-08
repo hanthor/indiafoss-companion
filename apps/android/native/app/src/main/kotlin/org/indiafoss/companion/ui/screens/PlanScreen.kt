@@ -140,6 +140,16 @@ fun PlanScreen(
                     TextButton(onClick = { adding = true }, modifier = Modifier.padding(16.dp, 0.dp)) { Text("+ Add a block of your own") }
                 }
                 items(plan.filter { it.reason != Itinerary.Reason.BLOCK }, key = { it.activity.id }) { item ->
+                    if (item.reason == Itinerary.Reason.LUNCH) {
+                        Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text(timeAndRoom(item.activity, state.bundle), style = MaterialTheme.typography.labelMedium)
+                                Text(item.activity.title, style = MaterialTheme.typography.titleMedium)
+                                Text("A free half hour within the official lunch break", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        return@items
+                    }
                     SessionCard(
                         activity = item.activity,
                         bundle = state.bundle,
@@ -148,6 +158,7 @@ fun PlanScreen(
                     )
                     val why = when (item.reason) {
                         Itinerary.Reason.BLOCK -> "Your block"
+                        Itinerary.Reason.LUNCH -> "Lunch break"
                         Itinerary.Reason.MUST_ATTEND -> "Must attend"
                         Itinerary.Reason.BOOKMARKED -> "Bookmarked"
                         Itinerary.Reason.RANKED ->
