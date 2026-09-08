@@ -48,6 +48,15 @@
     // `?setup=done` skips the welcome wizard (links, automation).
     if (page.url.searchParams.get('setup') === 'done') void markOnboardingDone();
     else void hydrateOnboarding();
+    const refreshPermission = () => {
+      if (document.visibilityState === 'visible') void hydrateNotifications();
+    };
+    window.addEventListener('focus', refreshPermission);
+    document.addEventListener('visibilitychange', refreshPermission);
+    return () => {
+      window.removeEventListener('focus', refreshPermission);
+      document.removeEventListener('visibilitychange', refreshPermission);
+    };
   });
 
   // First run (#107): the home screen hands over to the welcome wizard once.

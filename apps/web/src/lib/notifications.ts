@@ -17,7 +17,10 @@ export interface AppNotification {
   url?: string;
 }
 
+export type ReminderPermission = NotificationPermission | 'unsupported';
+
 export interface NotificationTransport {
+  permission(): Promise<ReminderPermission>;
   requestPermission(): Promise<boolean>;
   schedule(notification: AppNotification): Promise<void>;
   cancel(id: string): Promise<void>;
@@ -49,6 +52,10 @@ export class WebLocalNotificationTransport implements NotificationTransport {
     /** Base path the app is served under, so a tapped notification lands in the right place. */
     private readonly basePath = '',
   ) {}
+
+  async permission(): Promise<ReminderPermission> {
+    return typeof Notification === 'undefined' ? 'unsupported' : Notification.permission;
+  }
 
   async requestPermission(): Promise<boolean> {
     if (typeof Notification === 'undefined') return false;
@@ -119,6 +126,16 @@ export class NativeLocalNotificationTransport implements NotificationTransport {
   private load() {
     this.plugin ??= import('@capacitor/local-notifications');
     return this.plugin;
+  }
+
+  async permission(): Promise<ReminderPermission> {
+    const { LocalNotifications } = await this.load();
+    const result = await LocalNotifications.checkPermissions();
+    return result.display === 'granted'
+      ? 'granted'
+      : result.display === 'denied'
+        ? 'denied'
+        : 'default';
   }
 
   async requestPermission(): Promise<boolean> {
