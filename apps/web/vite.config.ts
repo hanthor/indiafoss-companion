@@ -14,7 +14,8 @@ export default defineConfig({
     sveltekit(),
     SvelteKitPWA({
       registerType: 'autoUpdate',
-      base: base || '/',
+      // The PWA plugin concatenates its worker filename with this directory.
+      base: `${base}/`,
       injectRegister: false,
       kit: {
         // SPA mode: adapter-static fallback is build/index.html.
@@ -33,8 +34,8 @@ export default defineConfig({
         theme_color: '#18222a',
         background_color: '#18222a',
         display: 'standalone',
-        start_url: base || '/',
-        scope: base || '/',
+        start_url: `${base}/`,
+        scope: `${base}/`,
         // A shared friend link, Matrix link or pasted card lands in the scan preview.
         share_target: {
           action: `${base || ''}/scan`,
