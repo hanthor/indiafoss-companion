@@ -46,7 +46,7 @@ jobs:
     name: Build the .aar from source
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Read the pinned versions
         id: pin
@@ -68,7 +68,7 @@ jobs:
           echo "Building neutrino-iroh $ref against $fork@$rev as $version"
 
       - name: Check out neutrino-iroh
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: element-hq/neutrino-iroh
           ref: ${{ steps.pin.outputs.ref }}
