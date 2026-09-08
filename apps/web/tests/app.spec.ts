@@ -529,7 +529,9 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
   await page.goto(appUrl('/schedule'));
   const banner = page.getByRole('status', { name: 'Schedule update available' });
   await expect(banner).toBeVisible({ timeout: 10_000 });
-  await expect(banner).toContainText(/title-changed/);
+  // Human wording, not the raw change type — the banner used to render
+  // "1 title-changed" and, for a plural, "2 title-changeds".
+  await expect(banner).toContainText('1 title change');
   await banner.getByRole('button', { name: 'Update' }).click();
   await expect(banner).toBeHidden();
   await expect(page.getByText('Renamed by the organisers')).toBeVisible();
