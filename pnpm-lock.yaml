@@ -176,6 +176,12 @@ importers:
 
   packages/model:
     devDependencies:
+      '@indiafoss/test-fixtures':
+        specifier: workspace:*
+        version: link:../test-fixtures
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.3
       eslint:
         specifier: ^10.9.1
         version: 10.9.1
@@ -286,6 +292,9 @@ importers:
 
   packages/test-fixtures:
     devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.3
       eslint:
         specifier: ^10.9.1
         version: 10.9.1

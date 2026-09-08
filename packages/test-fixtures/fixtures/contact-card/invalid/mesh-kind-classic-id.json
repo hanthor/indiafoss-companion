@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "cardKey": "k",
+  "profile": {},
+  "issuedAt": "2026-09-26T10:00:00.000Z",
+  "accounts": [
+    {
+      "userId": "@asha:indiafoss.org",
+      "kind": "mesh",
+      "trust": "claimed"
+    }
+  ]
+}

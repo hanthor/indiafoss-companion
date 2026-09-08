@@ -1,0 +1,248 @@
+{
+  "event-manifest": {
+    "valid": [
+      {
+        "file": "minimal.json",
+        "describes": "only the required fields, as an early publish emits them"
+      },
+      {
+        "file": "full.json",
+        "describes": "every optional field populated"
+      },
+      {
+        "file": "published-2025.json",
+        "describes": "the manifest already shipped for indiafoss-2025 still validates"
+      },
+      {
+        "file": "unknown-field.json",
+        "describes": "an unknown optional field is tolerated, not rejected"
+      }
+    ],
+    "invalid": [
+      {
+        "file": "future-schema-version.json",
+        "describes": "a newer major version is refused so the last good manifest survives",
+        "expectIssue": "newer than the supported version"
+      },
+      {
+        "file": "zero-revision.json",
+        "describes": "revision must be a positive integer",
+        "expectIssue": "revision must be a positive integer"
+      },
+      {
+        "file": "empty-assets.json",
+        "describes": "a manifest pointing at nothing is not a publish",
+        "expectIssue": "assets must not be empty"
+      },
+      {
+        "file": "asset-path-traversal.json",
+        "describes": "an asset name must not escape the published directory",
+        "expectIssue": "must be a plain filename"
+      },
+      {
+        "file": "bad-generated-at.json",
+        "describes": "generatedAt must parse as a timestamp",
+        "expectIssue": "must be an ISO-8601 timestamp"
+      }
+    ]
+  },
+  "conference-directory": {
+    "valid": [
+      {
+        "file": "minimal.json",
+        "describes": "one classic room, nothing optional"
+      },
+      {
+        "file": "full.json",
+        "describes": "resolved room ids, session rooms and rehearsed capabilities"
+      }
+    ],
+    "invalid": [
+      {
+        "file": "duplicate-alias.json",
+        "describes": "two entries sharing an alias is the split-room failure this contract prevents",
+        "expectIssue": "duplicate room alias id"
+      },
+      {
+        "file": "bad-alias.json",
+        "describes": "an alias without the # sigil is not resolvable",
+        "expectIssue": "must be a Matrix room alias"
+      },
+      {
+        "file": "unknown-route.json",
+        "describes": "an unrecognised route would be silently ignored by a naive reader",
+        "expectIssue": "route must be one of"
+      },
+      {
+        "file": "no-rooms.json",
+        "describes": "an empty directory would leave every client to invent its own room",
+        "expectIssue": "rooms must not be empty"
+      },
+      {
+        "file": "room-id-not-a-room.json",
+        "describes": "a roomId with the wrong sigil is a user id or an alias in the wrong field",
+        "expectIssue": "must be a Matrix room id"
+      }
+    ]
+  },
+  "contact-card": {
+    "valid": [
+      {
+        "file": "minimal.json",
+        "describes": "a card with no profile and no accounts is still a valid card"
+      },
+      {
+        "file": "signed-with-claims.json",
+        "describes": "a signed card claiming both a classic and a mesh account"
+      }
+    ],
+    "invalid": [
+      {
+        "file": "mesh-kind-classic-id.json",
+        "describes": "an account marked mesh must actually be an @n: identity",
+        "expectIssue": "marked mesh but is not an @n: identity"
+      },
+      {
+        "file": "duplicate-account.json",
+        "describes": "the same account claimed twice with different trust is ambiguous",
+        "expectIssue": "duplicate account id"
+      },
+      {
+        "file": "expiry-before-issue.json",
+        "describes": "a card that expired before it was issued cannot be reasoned about",
+        "expectIssue": "expiresAt must be after issuedAt"
+      },
+      {
+        "file": "insecure-link.json",
+        "describes": "a plain http link in a shared profile downgrades the reader",
+        "expectIssue": "must be https: or mailto:"
+      },
+      {
+        "file": "missing-profile.json",
+        "describes": "profile is required even when empty, so absence is never mistaken for consent",
+        "expectIssue": "profile must be an object"
+      },
+      {
+        "file": "unknown-trust.json",
+        "describes": "an unrecognised trust value must not be treated as a badge",
+        "expectIssue": "trust must be one of"
+      }
+    ]
+  },
+  "identity-binding": {
+    "valid": [
+      {
+        "file": "minimal.json",
+        "describes": "a display-scope binding with no signatures yet"
+      },
+      {
+        "file": "routing-scope.json",
+        "describes": "a routing-scope binding is structurally valid; acting on it still needs #188"
+      }
+    ],
+    "invalid": [
+      {
+        "file": "short-node-id.json",
+        "describes": "a truncated node id is the short code, which is a recognition aid not an identity",
+        "expectIssue": "must be 64 lowercase hex characters"
+      },
+      {
+        "file": "mesh-as-matrix.json",
+        "describes": "binding a mesh identity to itself carries no information",
+        "expectIssue": "must be a classic account"
+      },
+      {
+        "file": "unknown-scope.json",
+        "describes": "an unrecognised scope must not widen what the binding authorizes",
+        "expectIssue": "scope must be one of"
+      },
+      {
+        "file": "expiry-before-issue.json",
+        "describes": "an already-expired binding at issue time",
+        "expectIssue": "expiresAt must be after issuedAt"
+      },
+      {
+        "file": "uppercase-node-id.json",
+        "describes": "node ids are lowercase hex; case drift would break equality checks",
+        "expectIssue": "must be 64 lowercase hex characters"
+      }
+    ]
+  },
+  "app-handoff": {
+    "valid": [
+      {
+        "file": "view-session.json",
+        "describes": "Companion opening one of its own sessions"
+      },
+      {
+        "file": "open-dm.json",
+        "describes": "Companion handing a mesh peer to Chat, with an explicit sending account"
+      },
+      {
+        "file": "join-room.json",
+        "describes": "a room handoff by canonical alias"
+      }
+    ],
+    "invalid": [
+      {
+        "file": "carries-access-token.json",
+        "describes": "a handoff must never carry credential material, however well-formed",
+        "expectIssue": "must not carry credential material"
+      },
+      {
+        "file": "dm-ref-is-a-room.json",
+        "describes": "an open-dm handoff pointing at a room would start a DM with nobody",
+        "expectIssue": "must be a Matrix user id for open-dm"
+      },
+      {
+        "file": "unknown-action.json",
+        "describes": "an unrecognised action must not fall through to a default",
+        "expectIssue": "action must be one of"
+      },
+      {
+        "file": "account-hint-not-an-id.json",
+        "describes": "an accountHint that is not a user id cannot select an account",
+        "expectIssue": "accountHint must be a Matrix user id"
+      }
+    ]
+  },
+  "capability-record": {
+    "valid": [
+      {
+        "file": "minimal.json",
+        "describes": "one component, one host-tested claim"
+      },
+      {
+        "file": "release-evidence.json",
+        "describes": "a full release record, including a capability recorded as not working"
+      }
+    ],
+    "invalid": [
+      {
+        "file": "branch-as-revision.json",
+        "describes": "a branch name makes the record unreproducible the moment the branch moves",
+        "expectIssue": "revision must be a commit sha"
+      },
+      {
+        "file": "topology-claim-without-topology.json",
+        "describes": "a topology claim that does not say which topology proves nothing",
+        "expectIssue": "topology is required when level is topology-tested"
+      },
+      {
+        "file": "missing-supported.json",
+        "describes": "a claim with no verdict would read as support by omission",
+        "expectIssue": "supported must be a boolean"
+      },
+      {
+        "file": "no-claims.json",
+        "describes": "a record with no claims is not evidence of anything",
+        "expectIssue": "claims must not be empty"
+      },
+      {
+        "file": "duplicate-claim.json",
+        "describes": "the same capability claimed twice with different verdicts is unresolvable",
+        "expectIssue": "duplicate claim id"
+      }
+    ]
+  }
+}

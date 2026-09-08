@@ -4,6 +4,11 @@
  * Every external source (FOSS United, Pretalx, static files, fixtures) is
  * normalized into these types. Application components must never read raw
  * upstream structures directly.
+ *
+ * Formats that cross an app, device or platform boundary — the publish
+ * manifest, the room directory, contact cards, identity bindings, handoff
+ * links, capability records — live in `./contracts/` and are imported from
+ * `@indiafoss/model/contracts`. See ADR 0009.
  */
 
 import type { MessagingConfig } from './messaging.js';

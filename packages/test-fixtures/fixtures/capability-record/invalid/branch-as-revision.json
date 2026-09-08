@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "run-2",
+  "recordedAt": "2026-09-07T18:00:00.000Z",
+  "components": [
+    {
+      "name": "neutrino",
+      "revision": "e2ee-key-transport"
+    }
+  ],
+  "claims": [
+    {
+      "name": "mesh.text",
+      "supported": true,
+      "level": "host-tested"
+    }
+  ]
+}
