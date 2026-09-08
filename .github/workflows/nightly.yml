@@ -74,7 +74,7 @@ jobs:
 
             This is a rolling preview: the release's original publication date is not the APK build date. The timestamp and build identifier above describe the current download. Draft sessions and times may change.
 
-            Debug APK for testing. Older nightlies used runner-generated signing keys, so an in-place update may be rejected. Do not uninstall an existing app without preserving your local data.
+            Debug APK for testing. Nightlies currently use runner-generated signing keys, so an in-place update may be rejected. Do not uninstall an existing app without preserving your local data.
 
             [Build log](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) · SHA-256 checksum attached below.
           files: |
