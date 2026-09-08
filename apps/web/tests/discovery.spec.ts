@@ -120,3 +120,29 @@ test('horizontal swipes save choices; vertical and cancelled gestures do not', a
   await page.getByRole('button', { name: /Change answered/ }).click();
   await expect(page.locator('.quicklist li').filter({ hasText: leftTitle! })).toContainText('OUT');
 });
+
+test('desktop discovery supports focused keyboard choices and undo without hijacking controls', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan/rank?setup=done'));
+  const card = page.getByTestId('talk-card');
+  await expect(card).toBeVisible();
+  await expect(page.getByText('Keyboard: Tab to the talk card.', { exact: false })).toBeVisible();
+  const firstTitle = await card.getAttribute('aria-label');
+  await page.getByRole('button', { name: /^Must go:/ }).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(card).toHaveAttribute('aria-label', firstTitle!);
+  await card.focus();
+  await page.keyboard.press('Control+ArrowRight');
+  await card.dispatchEvent('keydown', { key: 'ArrowRight', repeat: true });
+  await expect(card).toHaveAttribute('aria-label', firstTitle!);
+  for (const key of ['ArrowRight', 'ArrowLeft', 'ArrowUp']) {
+    const title = await card.getAttribute('aria-label');
+    await page.keyboard.press(key);
+    await expect(card).not.toHaveAttribute('aria-label', title!);
+    await expect(card).toBeFocused();
+    await page.keyboard.press('z');
+    await expect(page.getByText('0 choices saved', { exact: false })).toBeVisible();
+    await expect(card).toBeFocused();
+  }
+});

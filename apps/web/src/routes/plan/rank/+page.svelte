@@ -1,6 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
+  import { tick } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
   import type { Activity, Person } from '@indiafoss/model';
   import { activitiesForDay, formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
@@ -204,6 +205,7 @@
    */
   async function answerCard(answer: 'yes' | 'no' | 'must'): Promise<void> {
     if (!card || busy) return;
+    const restoreFocus = document.activeElement?.matches('[data-testid="talk-card"]');
     busy = true;
     chosenMode = 'cards';
     const answeredCard = card;
@@ -221,9 +223,22 @@
       leaving = null;
       dragX = 0;
       busy = false;
+      if (restoreFocus) await focusDiscovery();
     }
   }
+  async function focusDiscovery(): Promise<void> {
+    await tick();
+    (
+      document.querySelector<HTMLElement>('[data-testid="talk-card"]') ??
+      document.querySelector<HTMLElement>('[data-testid="discovery-undo"]')
+    )?.focus();
+  }
   async function clearAnswer(activity: Activity): Promise<void> {
+    if (busy) return;
+    const restoreFocus = document.activeElement?.matches(
+      '[data-testid="talk-card"], [data-testid="discovery-undo"]',
+    );
+    busy = true;
     chosenMode = 'cards';
     try {
       await setTalkChoice(activity.id, undefined);
@@ -231,6 +246,9 @@
       saveError = '';
     } catch {
       saveError = 'Your choice could not be saved. Please try again.';
+    } finally {
+      busy = false;
+      if (restoreFocus) await focusDiscovery();
     }
   }
 
@@ -423,9 +441,23 @@
   // Keyboard: the cards are buttons, so Tab + Enter already works; these are shortcuts.
   function onKeydown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
-    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    if (
+      event.defaultPrevented ||
+      event.repeat ||
+      event.isComposing ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey
+    )
+      return;
+    if (
+      target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+    )
+      return;
     if (busy) return;
     if (mode === 'cards') {
+      // Single-letter shortcuts only apply while the card itself has focus.
+      if (!target?.matches('[data-testid="talk-card"]')) return;
       switch (event.key) {
         case 'ArrowRight':
         case 'y':
@@ -439,9 +471,16 @@
           event.preventDefault();
           void answerCard('no');
           break;
+        case 'ArrowUp':
         case 'm':
         case 'M':
+          event.preventDefault();
           void answerCard('must');
+          break;
+        case 'z':
+        case 'Z':
+          event.preventDefault();
+          if (lastAnswered) void clearAnswer(lastAnswered);
           break;
         default:
           break;
@@ -697,6 +736,7 @@
     {#if lastAnswered}
       <button
         class="linkbtn small"
+        data-testid="discovery-undo"
         disabled={busy}
         onclick={() => lastAnswered && clearAnswer(lastAnswered)}>Undo last choice</button
       >
@@ -742,6 +782,10 @@
           Explore something different.
         {/if}
       </p>
+      <p class="muted small center" id="discovery-keys">
+        Keyboard: Tab to the talk card. Left: not interested · Right: want to go · Up: must go · Z:
+        undo.
+      </p>
       <div class="stack" aria-live="polite">
         {#if nextCard}
           <article class="talkcard behind" aria-hidden="true">
@@ -753,13 +797,16 @@
           </article>
         {/if}
         {#key card.id}
-          <!-- The buttons below are the keyboard and screen-reader path; the drag is a shortcut. -->
+          <!-- Focus scopes the discovery keyboard shortcuts; individual choice buttons remain available. -->
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <article
             class="talkcard"
             class:dragging
             class:leaving-left={leaving === 'left'}
             class:leaving-right={leaving === 'right'}
             data-testid="talk-card"
+            tabindex="0"
+            aria-describedby="discovery-keys"
             aria-label={card.title}
             style="--dx:{dragX}px;--rot:{dragX / 18}deg"
             onpointerdown={onCardDown}
