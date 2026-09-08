@@ -25,7 +25,7 @@ test('2026 draft offers three local choices, persists them, and supports undo', 
   const wantTitle = await card.getAttribute('aria-label');
   await page.getByRole('button', { name: `Want to go: ${wantTitle}`, exact: true }).click();
   await expect(card).not.toHaveAttribute('aria-label', wantTitle!);
-  await expect(page.getByText(/More like your choices/)).toBeVisible();
+  await expect(page.getByText(/More like your choices|Swipe right to want/)).toHaveCount(0);
   await page.getByRole('button', { name: /^Not interested:/ }).click();
   await expect(page.getByRole('status').filter({ hasText: 'choices saved' })).toBeVisible();
 });
@@ -121,13 +121,20 @@ test('horizontal swipes save choices; vertical and cancelled gestures do not', a
   await expect(page.locator('.quicklist li').filter({ hasText: leftTitle! })).toContainText('OUT');
 });
 
-test('desktop discovery supports focused keyboard choices and undo without hijacking controls', async ({
+test('desktop discovery supports immediate keyboard choices and undo without hijacking controls', async ({
   page,
 }) => {
   await page.goto(appUrl('/plan/rank?setup=done'));
   const card = page.getByTestId('talk-card');
   await expect(card).toBeVisible();
-  await expect(page.getByText('Keyboard: Tab to the talk card.', { exact: false })).toBeVisible();
+  await expect(page.locator('#discovery-keys')).toHaveClass('sr-only');
+  const initialTitle = await card.getAttribute('aria-label');
+  await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+  await page.keyboard.press('ArrowRight');
+  await expect(card).not.toHaveAttribute('aria-label', initialTitle!);
+  await expect(card).toBeFocused();
+  await page.keyboard.press('z');
+  await expect(page.getByText('0 choices saved', { exact: false })).toBeVisible();
   const firstTitle = await card.getAttribute('aria-label');
   await page.getByRole('button', { name: /^Must go:/ }).focus();
   await page.keyboard.press('ArrowRight');

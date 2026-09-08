@@ -48,7 +48,8 @@ export async function plannedBoothVisits(bundle: EventBundle): Promise<FlexibleG
 /**
  * Build a schedule-aware travel provider from the event's venue graph, honouring
  * the attendee's routing profile (§29). Falls back to the flat default when the
- * venue asset cannot be loaded (e.g. offline before the first fetch).
+ * venue asset cannot be loaded (e.g. offline before the first fetch). Restricted
+ * profiles never substitute a made-up transfer for a missing route.
  */
 export async function travelForEvent(bundle: EventBundle): Promise<TravelTimeProvider> {
   await hydrateRoutingProfile();
@@ -56,9 +57,14 @@ export async function travelForEvent(bundle: EventBundle): Promise<TravelTimePro
     const venue = await loadVenue(venueKeyForEvent(bundle.id));
     return createGraphTravelTime(venue.graph, venue.metadata, {
       profile: routingPrefs.profile,
+      defaultSeconds: routingPrefs.profile === 'fastest' ? 300 : Infinity,
     });
   } catch {
-    return DefaultTravelTime;
+    return routingPrefs.profile === 'fastest'
+      ? DefaultTravelTime
+      : {
+          seconds: (from, to) => (from && to && from !== to ? Infinity : 0),
+        };
   }
 }
 

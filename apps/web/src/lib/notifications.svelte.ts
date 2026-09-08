@@ -14,7 +14,8 @@ import { bookmarked, dispositionOf, hydratePreferences } from '$lib/prefs.svelte
 import { eventState } from '$lib/event.svelte';
 import { currentLocation } from '$lib/location.svelte';
 import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
-import { findRoute } from '@indiafoss/venue';
+import { journeyRoute } from '$lib/journey';
+import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
 import { appNowMs, appSpeed, logSimEvent, simActive } from '$lib/simulator.svelte';
 
 let storage: CompanionStorage | null = null;
@@ -181,6 +182,7 @@ export async function armNotifications(): Promise<void> {
   const bundle = eventState.bundle;
   if (!bundle) return;
 
+  await hydrateRoutingProfile();
   // Resolve travel estimates from the venue graph when a location is known.
   let venue: Awaited<ReturnType<typeof loadVenue>> | null = null;
   try {
@@ -191,13 +193,10 @@ export async function armNotifications(): Promise<void> {
   // Null when the walk cannot be worked out (no location set, no route): the
   // alert then leaves the walk out rather than inventing five minutes.
   const travelSecondsFor = (locationId: string | undefined): number | null => {
-    if (!venue || !locationId || !currentLocation.value) return null;
-    const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
-    const to = venue.metadata.locations[locationId]?.entrances[0];
-    if (!from || !to) return null;
-    if (from === to) return 0;
-    const route = findRoute(venue.graph, from, to, 'fastest');
-    return route?.durationSeconds ?? null;
+    return (
+      journeyRoute(venue, currentLocation.value, locationId, routingPrefs.profile)
+        ?.durationSeconds ?? null
+    );
   };
 
   const nowMs = appNowMs();

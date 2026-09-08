@@ -1,6 +1,6 @@
 import type { Activity, EventBundle } from '@indiafoss/model';
 import { computeNowState, leaveByInstant, parseInstant } from '@indiafoss/schedule';
-import { findRoute } from '@indiafoss/venue';
+import { journeyRoute } from './journey';
 import type { RoutingProfile } from '@indiafoss/venue';
 import type { LoadedVenue } from '$lib/venue.svelte';
 
@@ -64,25 +64,21 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
   let floorChange = false;
   let restricted = false;
 
-  if (input.venue && input.currentLocation && activity.locationId) {
-    const from = input.venue.metadata.locations[input.currentLocation]?.entrances[0];
-    const to = input.venue.metadata.locations[activity.locationId]?.entrances[0];
-    if (from && to) {
-      if (from === to) {
-        travelSeconds = 0;
-      } else {
-        const route = findRoute(input.venue.graph, from, to, input.profile);
-        if (route) {
-          travelSeconds = route.durationSeconds;
-          floorChange = new Set(route.segments.map((s) => s.floor)).size > 1;
-          restricted = route.restricted;
-        }
-      }
-      if (travelSeconds !== null) {
-        leaveBy = leaveByInstant(activity.start, travelSeconds, input.bufferSeconds);
-        leaveInMinutes = Math.ceil((parseInstant(leaveBy) - nowMs) / 60_000);
-      }
-    }
+  const route = journeyRoute(
+    input.venue,
+    input.currentLocation,
+    activity.locationId,
+    input.profile,
+  );
+  if (route) {
+    travelSeconds = route.durationSeconds;
+    floorChange =
+      new Set(
+        route.nodeIds.map((id) => input.venue?.graph.nodes.find((node) => node.id === id)?.floor),
+      ).size > 1;
+    restricted = route.restricted;
+    leaveBy = leaveByInstant(activity.start, travelSeconds, input.bufferSeconds);
+    leaveInMinutes = Math.ceil((parseInstant(leaveBy) - nowMs) / 60_000);
   }
 
   return {
