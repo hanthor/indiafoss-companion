@@ -3,7 +3,8 @@
   import { notificationsEnabled, setNotificationsEnabled } from '$lib/notifications.svelte';
   import { goto } from '$app/navigation';
   import { formatDayLabel, getEventDays } from '@indiafoss/schedule';
-  import { eventState, loadEvent } from '$lib/event.svelte';
+  import { DEFAULT_EVENT_ID, eventState, loadEvent, storedRevision } from '$lib/event.svelte';
+  import { checkForUpdates, updateState } from '$lib/updates.svelte';
   import {
     dayStart,
     formatSimTime,
@@ -17,6 +18,14 @@
   $effect(() => {
     hydrateSimulator();
     void loadEvent();
+  });
+
+  // The revision actually stored on this device, not the one we hoped to
+  // fetch. Offline, this is the honest answer to "what am I looking at?".
+  let localRevision = $state<number | null>(null);
+  $effect(() => {
+    void updateState.available;
+    void storedRevision(DEFAULT_EVENT_ID).then((r) => (localRevision = r));
   });
 
   // ---------- Day simulator (#93) ----------
@@ -55,6 +64,26 @@
       Use your FOSS United profile as your public identity and choose fields locally.
     </p>
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
+  </section>
+  <section class="card">
+    <h2>Schedule updates</h2>
+    <p class="muted">
+      {#if localRevision === null}
+        Using the schedule this app shipped with. Nothing has been downloaded yet.
+      {:else}
+        You have revision {localRevision} stored on this device.
+      {/if}
+    </p>
+    {#if updateState.error}
+      <p class="muted">Last check failed: {updateState.error}</p>
+    {/if}
+    <button
+      class="button"
+      disabled={updateState.checking}
+      onclick={() => checkForUpdates(DEFAULT_EVENT_ID, { force: true })}
+    >
+      {updateState.checking ? 'Checking…' : 'Check for updates'}
+    </button>
   </section>
   <section class="card">
     <h2>Reminders</h2>

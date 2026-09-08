@@ -6,6 +6,8 @@
   import { registerSW } from 'virtual:pwa-register';
   import { hydratePreferences } from '$lib/prefs.svelte';
   import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
+  import { describeChangeCount } from '@indiafoss/schedule';
+  import type { ScheduleChangeType } from '@indiafoss/schedule';
   import {
     armNotifications,
     disarmNotifications,
@@ -101,6 +103,23 @@
     }
   });
 
+  // A check that failed at 9am on a venue Wi-Fi that was not up yet must not
+  // decide the rest of the day (#189). Coming back online and returning to the
+  // app both re-check; the freshness limit in checkForUpdates keeps a burst of
+  // these down to one fetch.
+  onMount(() => {
+    const recheck = () => void checkForUpdates(DEFAULT_EVENT_ID);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') recheck();
+    };
+    window.addEventListener('online', recheck);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('online', recheck);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  });
+
   // The map fills the screen edge to edge; every other route keeps the gutter.
   const fullbleed = $derived(isActive(resolve('/map')));
 
@@ -192,8 +211,7 @@
         <strong>Schedule changed</strong>
         <span>
           {#each Object.entries(updateState.summary) as [type, count] (type)}
-            {count}
-            {type}{count === 1 ? '' : 's'}
+            {describeChangeCount(type as ScheduleChangeType, count)}
             {#if type === 'room-changed'}
               — your route will be recalculated.
             {/if}

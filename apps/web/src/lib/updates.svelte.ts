@@ -1,7 +1,9 @@
 import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
 import type { ScheduleChange } from '@indiafoss/schedule';
 import type { EventBundle } from '@indiafoss/model';
+import { collectBundleIssues } from '@indiafoss/model';
 import { CompanionStorage } from '@indiafoss/storage';
+import { UpdateGate } from '$lib/update-gate';
 import {
   eventState,
   EVENT_BUNDLE_URL,
@@ -42,38 +44,87 @@ function assetUrl(asset: string | undefined): string {
     : EVENT_BUNDLE_URL;
 }
 
-let checked = false;
+/**
+ * Serialises checks and applies the freshness limit. The interesting
+ * behaviour, and the #189 regression tests, live in `update-gate.ts`.
+ */
+const gate = new UpdateGate();
+
+/** Forget the check state. Test seam; not part of the app's own flow. */
+export function resetUpdateChecks(): void {
+  gate.reset();
+}
 
 /**
  * Network-first manifest check with a short timeout (§34). On failure the
  * existing offline schedule stays untouched (§60).
+ *
+ * Called on launch, on reconnect, on foreground return and on manual refresh.
+ * Only a manual refresh passes `force`, which skips the freshness limit; a
+ * failed check never records success, so the next trigger retries immediately.
  */
-export async function checkForUpdates(eventId: string): Promise<void> {
-  if (checked || eventState.status !== 'ready' || !eventState.bundle) return;
-  checked = true;
+export async function checkForUpdates(
+  eventId: string,
+  options: { force?: boolean } = {},
+): Promise<void> {
+  // Captured once, so the diff below is against the bundle this check
+  // started from rather than whatever the store holds when it finishes.
+  const current = eventState.bundle;
+  if (eventState.status !== 'ready' || !current) return;
+  await gate.run(() => runCheck(eventId, current), options);
+}
+
+/** Resolves true when the manifest was actually reached. */
+async function runCheck(eventId: string, current: EventBundle): Promise<boolean> {
   updateState.checking = true;
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 4000);
     const res = await fetch(EVENT_MANIFEST_URL, { cache: 'no-store', signal: controller.signal });
     clearTimeout(timer);
-    if (!res.ok) return;
+    if (!res.ok) return false;
     const manifest = (await res.json()) as { revision?: number; assets?: Record<string, string> };
+    // The manifest is in hand, so the check succeeded — whether or not it
+    // turns out to carry anything new.
+    updateState.error = null;
     const local = await storedRevision(eventId);
-    if (!manifest.revision || (local !== null && manifest.revision <= local)) return;
+    if (!manifest.revision || (local !== null && manifest.revision <= local)) return true;
 
     // Download the changed asset in full before anything is replaced (§34).
     let bundleRes = await fetch(assetUrl(manifest.assets?.event), { cache: 'no-store' });
     if (!bundleRes.ok && bundleRes.status === 404) {
       bundleRes = await fetch(EVENT_BUNDLE_URL, { cache: 'no-store' });
     }
-    if (!bundleRes.ok) return;
+    if (!bundleRes.ok) return true;
     const next = (await bundleRes.json()) as EventBundle;
-    const changes = diffBundles(eventState.bundle, next);
+
+    // A download that is not a usable bundle for this event must never evict
+    // the good one already stored. Leave both bundle and revision untouched
+    // so the next check retries.
+    const issues = collectBundleIssues(next);
+    if (next.id !== eventId || issues.length > 0) {
+      updateState.error =
+        next.id !== eventId
+          ? `downloaded bundle is for ${next.id}, expected ${eventId}`
+          : `downloaded bundle is invalid: ${issues[0]}`;
+      return true;
+    }
+
+    const changes = diffBundles(current, next);
     if (changes.length === 0) {
-      // A no-op revision (metadata only) must not nag: remember it as applied.
+      // A revision with no attendee-visible change still carries real data —
+      // corrected metadata, a fixed venue name. Applying it silently is right;
+      // discarding it was not, and it is what previously left a reinstated
+      // talk showing as cancelled while the revision was recorded as handled
+      // (#190).
+      //
+      // Order matters: persist, then update memory, then record the revision.
+      // If the save throws, the revision stays unrecorded and the next check
+      // tries again rather than skipping this revision forever.
+      await getStorage().saveEventBundle(next);
+      eventState.bundle = next;
       await recordRevision(eventId, manifest.revision);
-      return;
+      return true;
     }
     pendingBundle = next;
 
@@ -81,8 +132,10 @@ export async function checkForUpdates(eventId: string): Promise<void> {
     updateState.revision = manifest.revision;
     updateState.changes = changes;
     updateState.summary = summarizeChanges(changes);
+    return true;
   } catch (error) {
     updateState.error = error instanceof Error ? error.message : String(error);
+    return false;
   } finally {
     updateState.checking = false;
   }

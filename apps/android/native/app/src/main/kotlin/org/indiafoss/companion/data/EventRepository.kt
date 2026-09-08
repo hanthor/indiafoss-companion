@@ -6,6 +6,7 @@ import kotlinx.coroutines.withContext
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.EventManifest
 import org.indiafoss.companion.core.bundleJson
+import org.indiafoss.companion.core.writeFileAtomically
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -23,14 +24,29 @@ class EventRepository(
     private val cacheFile: File get() = File(context.filesDir, "$eventId-bundle.json")
     private val revisionFile: File get() = File(context.filesDir, "$eventId-revision")
 
-    /** Cached bundle, or the copy shipped in assets on a first run. */
-    suspend fun cached(): EventBundle? = withContext(Dispatchers.IO) {
-        runCatching { bundleJson.decodeFromString<EventBundle>(cacheFile.readText()) }.getOrNull()
-            ?: runCatching {
-                context.assets.open("event-bundle.json").bufferedReader().use { reader ->
-                    bundleJson.decodeFromString<EventBundle>(reader.readText())
-                }
-            }.getOrNull()
+    /** Cached bundle, or the copy seeded into assets at build time. */
+    suspend fun cached(): EventBundle? = cachedWithSource()?.bundle
+
+    /**
+     * The cached bundle together with where it came from.
+     *
+     * Callers need the distinction: falling back to the seed is survivable but
+     * silently shows a schedule frozen at APK build time, which at the venue
+     * can be months stale. The UI should say so rather than present it as a
+     * refreshed schedule.
+     */
+    suspend fun cachedWithSource(): CachedBundle? = withContext(Dispatchers.IO) {
+        val refreshed = runCatching {
+            bundleJson.decodeFromString<EventBundle>(cacheFile.readText())
+        }.getOrNull()
+        if (refreshed != null) return@withContext CachedBundle(refreshed, BundleSource.REFRESHED)
+
+        val seed = runCatching {
+            context.assets.open("event-bundle.json").bufferedReader().use { reader ->
+                bundleJson.decodeFromString<EventBundle>(reader.readText())
+            }
+        }.getOrNull()
+        if (seed == null) null else CachedBundle(seed, BundleSource.SEED)
     }
 
     /**
@@ -52,8 +68,12 @@ class EventRepository(
             // Parse before writing: a malformed download must not evict a good cache.
             val bundle = bundleJson.decodeFromString<EventBundle>(body)
             val previous = cached()
-            cacheFile.writeText(body)
-            revisionFile.writeText(manifest.revision.toString())
+            // Atomic: an interrupted write leaves the previous cache readable
+            // rather than truncated (#190). The revision is written only after
+            // the bundle is in place, so a crash between the two re-downloads
+            // this revision rather than skipping it.
+            writeFileAtomically(cacheFile, body)
+            writeFileAtomically(revisionFile, manifest.revision.toString())
             RefreshResult.Updated(bundle, manifest.revision, previous)
         } catch (error: Exception) {
             RefreshResult.Failed(error.message ?: "network error")
@@ -79,6 +99,17 @@ class EventRepository(
         const val DEFAULT_BASE_URL = "https://hanthor.github.io/indiafoss-companion"
     }
 }
+
+/** Where a cached bundle came from. */
+enum class BundleSource {
+    /** Downloaded by this install and cached on disk. */
+    REFRESHED,
+
+    /** Seeded into assets when the APK was built; as old as the release. */
+    SEED,
+}
+
+data class CachedBundle(val bundle: EventBundle, val source: BundleSource)
 
 sealed interface RefreshResult {
     data object UpToDate : RefreshResult
