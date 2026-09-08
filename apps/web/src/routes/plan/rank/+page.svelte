@@ -1,4 +1,5 @@
 <script lang="ts">
+  import DevroomBanner from '$lib/components/DevroomBanner.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import { tick } from 'svelte';
@@ -639,7 +640,13 @@
           {@const pref = roomPreference(r.track.id)}
           {@const info = roomSummary(bundle, r.sessions)}
           {@const named = splitTrackName(r.track.name)}
-          <li class="roomrow" data-testid="room-row" class:out={pref === 'skip'}>
+          <li
+            class="roomrow"
+            id="devroom-{r.track.id}"
+            data-testid="room-row"
+            class:out={pref === 'skip'}
+          >
+            <DevroomBanner trackId={r.track.id} eventId={bundle.id} />
             <div class="roomtext">
               <span class="roomname">{named.title}</span>
               {#if named.subtitle}
@@ -1091,10 +1098,10 @@
     align-items: center;
     justify-content: center;
     gap: 0.3rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 0.5rem 0.3rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -1132,7 +1139,7 @@
     flex-direction: column;
     gap: 0.6rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 14px;
     padding: 0.8rem 0.9rem;
     transition: opacity 0.15s;
@@ -1220,7 +1227,7 @@
   .roomchoice button {
     min-height: 2.4rem;
     padding: 0 0.4rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 999px;
     background: var(--surface);
     color: var(--text-muted);
@@ -1263,7 +1270,7 @@
     gap: 0.3rem;
   }
   .tag {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.6rem;
     letter-spacing: 0.04em;
     padding: 0.15rem 0.45rem;
@@ -1299,7 +1306,7 @@
     flex-direction: column;
     gap: 0.55rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 18px;
     padding: 1rem 1rem 0.9rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -1387,7 +1394,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.8rem;
     font-weight: 700;
     color: var(--mint-ink);
@@ -1464,7 +1471,7 @@
     align-items: center;
     gap: 0.6rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 14px;
     padding: 0.45rem 0.8rem;
   }
@@ -1483,7 +1490,7 @@
     text-wrap: pretty;
   }
   .clash {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     letter-spacing: 0.04em;
     color: var(--amber-ink);
@@ -1496,7 +1503,7 @@
     flex: none;
   }
   .answer {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1557,7 +1564,7 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.66rem;
     letter-spacing: 0.06em;
     color: var(--text-muted);
@@ -1613,7 +1620,7 @@
     flex-wrap: wrap;
   }
   .pill {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1633,7 +1640,7 @@
   .talk {
     position: relative;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 16px;
     padding: 0 1rem 0.7rem;
     display: flex;
@@ -1683,7 +1690,7 @@
     gap: 0.5rem;
   }
   .when {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.7rem;
     color: var(--text-muted);
     text-align: right;
@@ -1701,7 +1708,7 @@
   }
   .mustpill {
     align-self: flex-start;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1711,7 +1718,7 @@
     align-self: flex-end;
     border: 0;
     background: transparent;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -1804,7 +1811,7 @@
     padding: 0;
     margin: 0.5rem 0 0;
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 16px;
     overflow: hidden;
   }
@@ -1844,7 +1851,7 @@
     font-size: 0.64rem;
   }
   .rating {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.72rem;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
