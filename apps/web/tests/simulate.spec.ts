@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
-import { preferenceSaved } from './preference-saved.js';
+import { preferenceSaved, settingSaved } from './preference-saved.js';
 
 // These regression scenarios use stable IDs and times from the archived fixture.
 test.beforeEach(async ({ page }) => {
@@ -40,6 +40,7 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
   await page.getByRole('switch', { name: /Enable reminders/ }).check();
+  await settingSaved(page, 'notifications-enabled', 'true');
 
   // Start the run from the URL, the way an automated walk-through would.
   await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}`));
@@ -143,12 +144,14 @@ test('every reminder names the session, the room and the walk, and opens it when
   await page.goto(appUrl('/map'));
   await page.getByRole('button', { name: /^Audi 2/ }).click();
   await page.getByRole('button', { name: "I'm here" }).click();
+  await settingSaved(page, 'current-location', 'audi-2');
 
   await page.goto(appUrl(`/activity/${SESSION}`));
   await page.getByRole('button', { name: /Must attend/ }).click();
   await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
   await page.getByRole('switch', { name: /Enable reminders/ }).check();
+  await settingSaved(page, 'notifications-enabled', 'true');
 
   // Reminders in the past are never fired retroactively, so this run must not
   // lose simulated time to anything. Two things guard that: the clock is

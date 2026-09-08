@@ -42,3 +42,36 @@ export async function preferenceSaved(page: Page, activityId: string): Promise<v
     )
     .toBe(true);
 }
+
+/** Full-page navigation must wait for settings writes, just like preference writes. */
+export async function settingSaved(page: Page, key: string, value: string): Promise<void> {
+  await expect
+    .poll(
+      () =>
+        page.evaluate(
+          async ({ key, value }) => {
+            const open = indexedDB.open('indiafoss-companion');
+            const db = await new Promise<IDBDatabase>((resolve, reject) => {
+              open.onsuccess = () => resolve(open.result);
+              open.onerror = () => reject(open.error);
+            });
+            try {
+              const row = await new Promise<{ value: string } | undefined>((resolve, reject) => {
+                const request = db
+                  .transaction('settings', 'readonly')
+                  .objectStore('settings')
+                  .get(key);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+              });
+              return row?.value === value;
+            } finally {
+              db.close();
+            }
+          },
+          { key, value },
+        ),
+      { timeout: 10_000 },
+    )
+    .toBe(true);
+}
