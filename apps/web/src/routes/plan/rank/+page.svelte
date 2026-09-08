@@ -191,6 +191,13 @@
     releasePointer(event);
     dragX = 0;
   }
+  function onCardLostCapture(event: PointerEvent): void {
+    // Touch starts implicitly captured by the description/title. Taking
+    // capture on the card makes that child's lost event bubble here; only
+    // losing the card's own capture cancels this gesture.
+    if (event.target !== event.currentTarget) return;
+    onCardCancel(event);
+  }
   function onCardUp(event: PointerEvent): void {
     if (event.pointerId !== activePointer) return;
     const answer = dragging && Math.abs(dragX) >= SWIPE_COMMIT ? (dragX > 0 ? 'yes' : 'no') : null;
@@ -820,7 +827,7 @@
             onpointermove={onCardMove}
             onpointerup={onCardUp}
             onpointercancel={onCardCancel}
-            onlostpointercapture={onCardCancel}
+            onlostpointercapture={onCardLostCapture}
           >
             <span
               class="stamp yes"
