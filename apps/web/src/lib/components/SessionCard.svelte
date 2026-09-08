@@ -77,6 +77,7 @@
       onclick={onMustAttend}>MUST</button
     >
   </div>
+  {#if activity.scheduleNote}<p class="muted small" role="status">{activity.scheduleNote}</p>{/if}
 </article>
 
 <style>

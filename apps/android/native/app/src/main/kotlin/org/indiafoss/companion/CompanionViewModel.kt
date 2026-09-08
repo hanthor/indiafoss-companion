@@ -82,7 +82,7 @@ data class UiState(
 
     fun ranked(activity: Activity): RankedActivity {
         val r = ranking.rating(activity.id)
-        return RankedActivity(activity, r.rating, r.comparisons, dispositionOf(activity.id))
+        return RankedActivity(activity, r.rating, r.comparisons, dispositionOf(activity.id), r.triage)
     }
 
     /** The taste learnt from every answer so far (docs/ranking.md). */
@@ -102,8 +102,9 @@ data class UiState(
         val byId = b.activities.associateBy { it.id }
         return Itinerary.forDay(
             b, day,
-            ratingOf = { id -> byId[id]?.let { model.ratingWithPrior(ranked(it)) } ?: Ranking.INITIAL_RATING },
+            ratingOf = { id -> (byId[id]?.let { model.ratingWithPrior(ranked(it)) } ?: Ranking.INITIAL_RATING) + (if (ranking.rating(id).triage == "yes") 120.0 else 0.0) },
             dispositionOf = ::dispositionOf,
+            stayTrackIds = ranking.rooms.filterValues { it == "stay" }.keys,
             bookmarked = { it in bookmarks },
             blocks = blocks.filter { it.day == day }.map { it.toBlock() },
         )
@@ -347,7 +348,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     // ---------- Ranking (docs/ranking.md) ----------
 
     fun answerQuick(id: String, answer: String?) {
-        viewModelScope.launch { ratings.setTriage(id, answer) }
+        viewModelScope.launch {
+            ratings.setTriage(id, answer)
+            if (answer == null) preferences.setMustAttend(id, false)
+        }
     }
 
     fun setRoom(trackId: String, pref: String?) {
@@ -365,7 +369,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     fun answerCard(id: String, answer: String) {
         viewModelScope.launch {
             ratings.setTriage(id, if (answer == "no") "no" else "yes")
-            if (answer == "must") preferences.setMustAttend(id, true)
+            preferences.setMustAttend(id, answer == "must")
         }
     }
 

@@ -74,14 +74,19 @@ fun PlanScreen(
             }
             val day = days[selected.coerceIn(0, days.lastIndex)]
             val plan = state.itineraryFor(day)
+            val conflicts = state.bundle?.let { Itinerary.stayConflicts(it, day, state.ranking.rooms.filterValues { value -> value == "stay" }.keys, state::dispositionOf) }.orEmpty()
             val ranked = state.ranking.comparisons.isNotEmpty() ||
                 state.ranking.ratings.values.any { it.triage != null }
             LazyColumn(Modifier.fillMaxSize()) {
+                if (conflicts.isNotEmpty()) item {
+                    Text("Your devroom or must-go choices conflict. Review these before following the plan:", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+                    conflicts.forEach { (a, b) -> Text("${a.title} / ${b.title}", modifier = Modifier.padding(horizontal = 16.dp)) }
+                }
                 item {
                     Row(Modifier.fillMaxWidth().padding(16.dp, 12.dp, 16.dp, 4.dp)) {
                         Button(onClick = onRank) {
                             Icon(Icons.Filled.SwapVert, contentDescription = null)
-                            Text(if (ranked) "  Keep ranking" else "  Rank this day first")
+                            Text("  Find talks and devrooms")
                         }
                         OutlinedButton(
                             onClick = {
@@ -101,7 +106,7 @@ fun PlanScreen(
                         }
                     }
                     if (!ranked) Text(
-                        "Until you rank, the plan is your bookmarks plus the programme's first pick in each slot.",
+                        "Choose a few talks or stay for a devroom. You can change your choices any time.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 8.dp),

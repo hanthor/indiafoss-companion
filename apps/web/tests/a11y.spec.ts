@@ -21,8 +21,8 @@ const CORE_SCREENS: [string, string][] = [
   ['scan', '/scan'],
   ['settings', '/settings'],
   ['map', '/map'],
-  ['now', '/now?now=2025-09-20T10%3A20%3A00%2B05%3A30'],
-  ['activity', '/activity/act-c8ak0iov2l'],
+  ['now', '/now?now=2026-09-26T10%3A20%3A00%2B05%3A30'],
+  ['activity', '/activity/act-28la68il6o'],
   ['booths', '/explore/booths'],
 ];
 
@@ -69,7 +69,7 @@ test('a11y: ranking is fully operable with the keyboard only', async ({ browser 
   const context = await browser.newContext();
   const page = await context.newPage();
   await page.goto(appUrl('/'));
-  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
   await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible({ timeout: 10_000 });
   // A keyboard choice registers and is undoable using only key presses.
@@ -84,4 +84,17 @@ test('a11y: ranking is fully operable with the keyboard only', async ({ browser 
   await page.waitForTimeout(200);
   await expect(undo).toBeDisabled();
   await context.close();
+});
+
+test('a11y: the three talk choices and undo work from the keyboard', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank?setup=done'));
+  const must = page.getByRole('button', { name: /^Must go:/ });
+  await must.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText(/1 choices saved/)).toBeVisible();
+  await page.getByRole('button', { name: /Change answered/ }).focus();
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: 'Undo', exact: true }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText(/0 choices saved/)).toBeVisible();
 });

@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
 const assets = [
-  {
-    src: join(root, 'events', 'indiafoss-2025', 'normalized', 'event-bundle.json'),
-    dest: join(root, 'apps', 'web', 'static', 'events', 'indiafoss-2025', 'event-bundle.json'),
-  },
+  ...['indiafoss-2025', 'indiafoss-2026'].map((eventId) => ({
+    src: join(root, 'events', eventId, 'normalized', 'event-bundle.json'),
+    dest: join(root, 'apps', 'web', 'static', 'events', eventId, 'event-bundle.json'),
+  })),
   {
     src: join(root, 'events', 'synthetic', 'venue', 'venue.svg'),
     dest: join(root, 'apps', 'web', 'static', 'venues', 'synthetic', 'venue.svg'),
@@ -45,14 +45,16 @@ for (const { src, dest } of assets) {
 
 // The published manifest and its hash-addressed event asset ride along, so the
 // app's update check finds a real immutable asset next to the precached copy.
-const published = join(root, 'events', 'indiafoss-2025', 'published');
-const manifestPath = join(published, 'manifest.json');
-if (existsSync(manifestPath)) {
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  const dest = join(root, 'apps', 'web', 'static', 'events', 'indiafoss-2025');
-  copyFileSync(manifestPath, join(dest, 'manifest.json'));
-  const asset = manifest.assets?.event;
-  if (asset && existsSync(join(published, asset)))
-    copyFileSync(join(published, asset), join(dest, asset));
-  console.log(`synced manifest rev ${manifest.revision} (${asset})`);
+for (const eventId of ['indiafoss-2025', 'indiafoss-2026']) {
+  const published = join(root, 'events', eventId, 'published');
+  const manifestPath = join(published, 'manifest.json');
+  if (existsSync(manifestPath)) {
+    const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    const dest = join(root, 'apps', 'web', 'static', 'events', eventId);
+    copyFileSync(manifestPath, join(dest, 'manifest.json'));
+    const asset = manifest.assets?.event;
+    if (asset && existsSync(join(published, asset)))
+      copyFileSync(join(published, asset), join(dest, asset));
+    console.log(`synced manifest rev ${manifest.revision} (${asset})`);
+  }
 }

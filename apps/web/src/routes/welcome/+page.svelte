@@ -203,7 +203,8 @@
         now and the app builds a plan around what you would actually go to.
       </p>
       <div class="actions">
-        <button class="button dark" onclick={() => finish('/plan/rank')}>Rank my sessions →</button>
+        <button class="button dark" onclick={() => finish('/plan/rank')}>Find talks for me →</button
+        >
         <button class="button secondary" onclick={() => finish('/')}>Later, show me around</button>
         <button class="linkbtn" onclick={back}>← Back</button>
       </div>

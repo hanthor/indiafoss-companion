@@ -100,7 +100,7 @@
           link deliberately does not.
         -->
         <a class="chatlink" href={room.href} title="{room.alias} — opens in your Matrix app"
-          >💬 Session chat</a
+          >Session chat</a
         >
         <a class="weblink" href={room.webHref} target="_blank" rel="noreferrer" title={room.alias}
           >on the web ↗</a
@@ -175,6 +175,7 @@
       </section>
     {/if}
 
+    {#if activity.scheduleNote}<p role="status">{activity.scheduleNote}</p>{/if}
     {#if activity.description}
       <section>
         <h2>About</h2>

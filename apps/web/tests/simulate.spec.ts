@@ -2,6 +2,11 @@ import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
 import { preferenceSaved } from './preference-saved.js';
 
+// These regression scenarios use stable IDs and times from the archived fixture.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
+});
+
 /**
  * Day simulator gate (#93): the app is run through a slice of the conference
  * day at 600× (ten simulated minutes a second) with reminders on and one

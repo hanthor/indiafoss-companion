@@ -45,6 +45,7 @@ check: format-check lint typecheck test verify-assets build
 # Verify captured fixtures and validate venue assets (matches CI).
 verify-assets:
     pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+    pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2026
     pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" synthetic
     pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" indiafoss-2026
 
@@ -65,7 +66,7 @@ simulate-e2e: build
     cd apps/web && pnpm exec playwright test tests/simulate.spec.ts
 
 # Walk the built app through a whole conference day at speed and print the timeline.
-simulate day="2025-09-20" speed="600":
+simulate day="2026-09-26" speed="600":
     cd apps/web && node scripts/simulate.mjs --day {{day}} --speed {{speed}}
 
 # Run all local checks, including browser E2E and accessibility.

@@ -114,7 +114,7 @@
               {#if room}
                 <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
                 ·
-                <a href={room.href} title={room.alias}>💬 chat</a>
+                <a href={room.href} title={room.alias}>Chat</a>
                 <!-- eslint-enable svelte/no-navigation-without-resolve -->
               {/if}
               {#if activity.livestreamUrl}

@@ -148,7 +148,7 @@
 <EventGate>
   <h1>Plan</h1>
   <p class="muted">
-    Your personal itinerary, generated from your ratings — edit it as the day goes.
+    Your personal itinerary, built around your talk and devroom choices — edit it as the day goes.
   </p>
 
   <div class="days">
@@ -160,7 +160,7 @@
   </div>
 
   <div class="actions">
-    <a href={resolve('/plan/rank')}>Rank this day first →</a>
+    <a href={resolve('/plan/rank')}>Choose talks or a whole devroom →</a>
     {#if edited && edited.items.length > 0}
       <button class="calendar" onclick={exportItinerary}>Add plan to calendar</button>
     {/if}
@@ -205,7 +205,7 @@
   {:else if result && edited}
     {#if result.mustAttendConflicts.length > 0}
       <section class="conflict" role="alert">
-        <h2>Your must-attend items conflict</h2>
+        <h2>Your must-go or devroom choices conflict</h2>
         {#each result.mustAttendConflicts as c (c.a + c.b)}
           <p>
             <strong>{activityTitle(c.a)}</strong> and <strong>{activityTitle(c.b)}</strong> cannot both
@@ -244,7 +244,7 @@
                     >{item.label ?? activityTitle(item.id)}</a
                   >
                 {/if}
-                {#if item.locked}<span class="badge" title="Locked">🔒</span>{/if}
+                {#if item.locked}<span class="badge" title="Locked">Locked</span>{/if}
                 {#if item.replacedActivityId}<span class="badge alt">replaced</span>{/if}
               </div>
               {#if item.locationId}

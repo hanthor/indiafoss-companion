@@ -99,6 +99,8 @@ export interface RankedActivity {
   rating: number;
   comparisons: number;
   disposition: Disposition;
+  /** Direct card choice; independent of historical pairwise ratings. */
+  interest?: 'yes' | 'no';
 }
 
 export interface ComparisonSelectionInput {
@@ -337,7 +339,7 @@ const AFFINITY_SHRINKAGE = 3;
  * so one pick cannot demote a whole track.
  */
 /** What the attendee said about a room (track) before ranking: skip it, or love it. */
-export type RoomPreference = 'skip' | 'love';
+export type RoomPreference = 'skip' | 'love' | 'stay';
 
 /** Votes a loved room is given up front: enough to lift its talks by ~40 points, well under a settled gap. */
 export const LOVED_ROOM_VOTES = 6;
@@ -367,20 +369,22 @@ export function learnAffinity(
   }
   for (const r of byId.values()) {
     if (r.disposition === 'not-interested') vote(r.activity.id, -1);
+    else if (r.disposition === 'must-attend') vote(r.activity.id, 3);
+    else if (r.interest === 'yes') vote(r.activity.id, 1);
   }
   // A loved room starts with a head of votes; a skipped one is already out of
   // the pool, and gets the same weight against for anything that slips in.
   for (const [trackId, pref] of Object.entries(rooms)) {
     if (!pref) continue;
     const key = `track:${trackId}`;
-    const weight = pref === 'love' ? LOVED_ROOM_VOTES : -LOVED_ROOM_VOTES;
+    const weight = pref === 'skip' ? -LOVED_ROOM_VOTES : LOVED_ROOM_VOTES;
     votes.set(key, (votes.get(key) ?? 0) + weight);
     evidence.set(key, (evidence.get(key) ?? 0) + LOVED_ROOM_VOTES);
   }
   const affinity = new Map<AffinityKey, number>();
   for (const [key, total] of votes) {
     const n = evidence.get(key) ?? 0;
-    affinity.set(key, total / (n + AFFINITY_SHRINKAGE));
+    affinity.set(key, Math.max(-1, Math.min(1, total / (n + AFFINITY_SHRINKAGE))));
   }
   return { affinity, evidence };
 }
@@ -482,4 +486,51 @@ export function recommendations(
   return out
     .sort((a, b) => b.score - a.score || a.activity.id.localeCompare(b.activity.id))
     .slice(0, limit);
+}
+
+/**
+ * Local discovery deck. Explicit choices leave the deck; each fourth card
+ * explores another track. Cold start samples tracks instead of presenting
+ * the schedule chronologically. A reason is always an observed positive facet.
+ */
+export function discoveryDeck(pool: RankedActivity[], model: AffinityModel): Recommendation[] {
+  const remaining = pool.filter(
+    (r) =>
+      !r.interest &&
+      r.disposition === 'normal' &&
+      !r.activity.cancelled &&
+      r.activity.type !== 'meal',
+  );
+  const selected: Recommendation[] = [];
+  const usedTracks = new Map<string, number>();
+  const candidates = remaining.map((r) => {
+    const because = affinityKeysOf(r.activity).filter(
+      (k) =>
+        !k.startsWith('type:') &&
+        !/^tag:(talk|lightning talk|other|beginner|intermediate|advanced)$/i.test(k) &&
+        (model.affinity.get(k) ?? 0) > 0,
+    );
+    return {
+      activity: r.activity,
+      score: because.length ? priorOffset(r.activity, model) : 0,
+      because,
+    };
+  });
+  while (candidates.length) {
+    const explore = selected.length % 4 === 3 || candidates.every((c) => c.score <= 0);
+    candidates.sort((a, b) => {
+      const diversity =
+        (usedTracks.get(a.activity.trackId ?? '') ?? 0) -
+        (usedTracks.get(b.activity.trackId ?? '') ?? 0);
+      return (
+        (explore ? diversity || b.score - a.score : b.score - a.score || diversity) ||
+        a.activity.id.localeCompare(b.activity.id)
+      );
+    });
+    const next = candidates.shift()!;
+    const track = next.activity.trackId ?? '';
+    usedTracks.set(track, (usedTracks.get(track) ?? 0) + 1);
+    selected.push(next);
+  }
+  return selected;
 }

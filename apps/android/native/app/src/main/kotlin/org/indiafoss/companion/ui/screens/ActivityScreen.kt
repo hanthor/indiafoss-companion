@@ -137,6 +137,7 @@ fun ActivityScreen(
                     )
                 }
             }
+            activity.scheduleNote?.let { note -> item { Text(note, modifier = Modifier.padding(16.dp)) } }
             activity.description?.takeIf { it.isNotBlank() }?.let { description ->
                 item {
                     Text(

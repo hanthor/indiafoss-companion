@@ -109,6 +109,8 @@ export interface SolveDayInput {
   travel?: TravelTimeProvider;
   bufferSeconds?: number;
   flexibleGoals?: FlexibleGoal[];
+  /** Reserve the full published block for these programme tracks. */
+  stayTrackIds?: readonly string[];
 }
 
 function parse(iso: string): number {
@@ -137,7 +139,14 @@ export function canFollow(
   bufferSeconds: number,
 ): boolean {
   if (!prev.end || !next.start) return false;
-  const travelSeconds = travel.seconds(prev.locationId, next.locationId);
+  const sameDevroom = Boolean(
+    prev.devroomId &&
+    prev.devroomId === next.devroomId &&
+    prev.locationId &&
+    prev.locationId === next.locationId,
+  );
+  const travelSeconds = sameDevroom ? 0 : travel.seconds(prev.locationId, next.locationId);
+  if (sameDevroom) bufferSeconds = 0;
   return parse(prev.end) + (travelSeconds + bufferSeconds) * 1000 <= parse(next.start);
 }
 
@@ -241,11 +250,49 @@ export function solveDay(input: SolveDayInput): SolverResult {
   const {
     bundle,
     day,
-    preferences,
+    preferences: originalPreferences,
     travel = DefaultTravelTime,
     bufferSeconds = SOLVER_CONFIG.defaultBufferSeconds,
     flexibleGoals = DEFAULT_FLEXIBLE_GOALS,
   } = input;
+
+  const stays = new Set(input.stayTrackIds ?? []);
+  const ranges = [...stays].flatMap((trackId) => {
+    const sessions = bundle.activities.filter(
+      (a) =>
+        a.trackId === trackId &&
+        !a.cancelled &&
+        a.type !== 'meal' &&
+        a.start?.startsWith(day) &&
+        a.end?.startsWith(day),
+    );
+    if (!sessions.length) return [];
+    return [
+      {
+        trackId,
+        representative: sessions[0]!.id,
+        start: Math.min(...sessions.map((a) => parse(a.start!))),
+        end: Math.max(...sessions.map((a) => parse(a.end!))),
+      },
+    ];
+  });
+  const byId = new Map(bundle.activities.map((a) => [a.id, a]));
+  const preferences: SolverPreferences = {
+    ...originalPreferences,
+    dispositionOf: (id) => {
+      const own = originalPreferences.dispositionOf(id);
+      const a = byId.get(id);
+      if (!a || own === 'not-interested' || own === 'must-attend') return own;
+      if (stays.has(a.trackId ?? '') && a.type !== 'meal') return 'must-attend';
+      if (
+        a.start &&
+        a.end &&
+        ranges.some((r) => parse(a.start!) < r.end && parse(a.end!) > r.start)
+      )
+        return 'not-interested';
+      return own;
+    },
+  };
 
   const candidates = bundle.activities.filter(
     (a) =>
@@ -266,6 +313,26 @@ export function solveDay(input: SolveDayInput): SolverResult {
     .sort((a, b) => parse(a.start!) - parse(b.start!));
 
   const mustAttendConflicts = checkMustAttendConflicts(mustAttends, travel, bufferSeconds);
+  // A must-go in a gap still conflicts with the whole-block commitment.
+  for (const range of ranges) {
+    for (const a of mustAttends) {
+      if (
+        a.trackId === range.trackId ||
+        parse(a.start!) >= range.end ||
+        parse(a.end!) <= range.start
+      )
+        continue;
+      if (
+        !mustAttendConflicts.some(
+          (c) =>
+            (c.a === range.representative && c.b === a.id) ||
+            (c.b === range.representative && c.a === a.id),
+        )
+      ) {
+        mustAttendConflicts.push({ a: range.representative, b: a.id });
+      }
+    }
+  }
   if (mustAttendConflicts.length > 0) {
     return {
       itinerary: { eventId: bundle.id, day, items: [], totalUtility: 0 },
@@ -321,7 +388,11 @@ export function solveDay(input: SolveDayInput): SolverResult {
       minutesOfDay(current.end!) + travel.seconds(current.locationId, next.locationId) / 60;
     const gapEndMin = minutesOfDay(next.start!) - bufferSeconds / 60;
     const gapMinutes = gapEndMin - gapStartMin;
-    if (gapMinutes < 15) continue;
+    if (
+      gapMinutes < 15 ||
+      ranges.some((r) => parse(current.end!) < r.end && parse(next.start!) > r.start)
+    )
+      continue;
 
     for (const goal of flexibleGoals) {
       const remaining = flexBudget.get(goal.kind) ?? 0;

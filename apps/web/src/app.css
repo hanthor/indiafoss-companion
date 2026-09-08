@@ -42,6 +42,14 @@
   --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-body: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
+  /* Direct talk choices: accessible text stays paired with its surface. */
+  --choice-must: #efc44b;
+  --choice-must-text: #332700;
+  --choice-want: #b9efc9;
+  --choice-want-text: #143923;
+  --choice-no: #e4e4e4;
+  --choice-no-text: #303030;
+
   /* Brand */
   --mint: hsl(144 92% 37%); /* --v3-primary-button */
   --mint-dark: hsl(145 63% 18%); /* --v3-dark-green */
