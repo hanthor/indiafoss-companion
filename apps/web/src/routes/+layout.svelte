@@ -6,6 +6,8 @@
   import { registerSW } from 'virtual:pwa-register';
   import { hydratePreferences } from '$lib/prefs.svelte';
   import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
+  import { describeChangeCount } from '@indiafoss/schedule';
+  import type { ScheduleChangeType } from '@indiafoss/schedule';
   import {
     armNotifications,
     disarmNotifications,
@@ -209,8 +211,7 @@
         <strong>Schedule changed</strong>
         <span>
           {#each Object.entries(updateState.summary) as [type, count] (type)}
-            {count}
-            {type}{count === 1 ? '' : 's'}
+            {describeChangeCount(type as ScheduleChangeType, count)}
             {#if type === 'room-changed'}
               — your route will be recalculated.
             {/if}

@@ -1,6 +1,7 @@
 import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
 import type { ScheduleChange } from '@indiafoss/schedule';
 import type { EventBundle } from '@indiafoss/model';
+import { collectBundleIssues } from '@indiafoss/model';
 import { CompanionStorage } from '@indiafoss/storage';
 import { UpdateGate } from '$lib/update-gate';
 import {
@@ -96,9 +97,32 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
     }
     if (!bundleRes.ok) return true;
     const next = (await bundleRes.json()) as EventBundle;
+
+    // A download that is not a usable bundle for this event must never evict
+    // the good one already stored. Leave both bundle and revision untouched
+    // so the next check retries.
+    const issues = collectBundleIssues(next);
+    if (next.id !== eventId || issues.length > 0) {
+      updateState.error =
+        next.id !== eventId
+          ? `downloaded bundle is for ${next.id}, expected ${eventId}`
+          : `downloaded bundle is invalid: ${issues[0]}`;
+      return true;
+    }
+
     const changes = diffBundles(current, next);
     if (changes.length === 0) {
-      // A no-op revision (metadata only) must not nag: remember it as applied.
+      // A revision with no attendee-visible change still carries real data —
+      // corrected metadata, a fixed venue name. Applying it silently is right;
+      // discarding it was not, and it is what previously left a reinstated
+      // talk showing as cancelled while the revision was recorded as handled
+      // (#190).
+      //
+      // Order matters: persist, then update memory, then record the revision.
+      // If the save throws, the revision stays unrecorded and the next check
+      // tries again rather than skipping this revision forever.
+      await getStorage().saveEventBundle(next);
+      eventState.bundle = next;
       await recordRevision(eventId, manifest.revision);
       return true;
     }
