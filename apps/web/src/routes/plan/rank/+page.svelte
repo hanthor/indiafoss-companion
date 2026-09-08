@@ -446,7 +446,11 @@
   });
   const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'slots');
   $effect(() => {
-    if (ready && mode === 'cards')
+    if (
+      ready &&
+      mode === 'cards' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    )
       untrack(() => {
         void focusDiscovery();
       });
@@ -744,7 +748,7 @@
     {/if}
   {:else if mode === 'cards'}
     <p class="muted small" role="status">
-      {triaged.length} choices saved · Stop whenever you like.
+      {triaged.length} choices saved ·
       <a href={resolve('/plan')}>See my plan →</a>
     </p>
     {#if lastAnswered}

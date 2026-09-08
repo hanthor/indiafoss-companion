@@ -2,7 +2,7 @@
 
 ## Attendee UX feedback
 
-The swipe page no longer shows repeated gesture, keyboard or recommendation-explanation paragraphs. Choice buttons, progress, undo and screen-reader keyboard instructions remain. Opening Talks focuses the card without scrolling; arrow choices also work with page focus. Typing, interactive controls, modifiers, composition and repeated keydown events are guarded. Single-character aliases remain scoped to card focus. Existing expanded-card touch regressions continue to pass.
+The swipe page no longer shows repeated gesture, keyboard or recommendation-explanation paragraphs. Choice buttons, progress, undo and screen-reader keyboard instructions remain. Opening Talks on a desktop pointer focuses the card without scrolling; arrow choices also work with page focus. Typing, interactive controls, modifiers, composition and repeated keydown events are guarded. Single-character aliases remain scoped to card focus. Existing expanded-card touch regressions continue to pass.
 
 Devrooms now offer Interested, Not interested and Stay for this devroom. The ambiguous More like this control is removed. The footer counts whole-devroom reservations instead of calling interest boosts must-go choices. Existing saved interest boosts remain readable as Interested; choosing Interested clears the old boost. The recommendation engine still learns from individual talk choices.
 
