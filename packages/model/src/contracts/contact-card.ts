@@ -1,3 +1,4 @@
+import { MAX_SCAN_PAYLOAD_BYTES } from '../payload-limits.js';
 /**
  * ContactCard — the versioned envelope for "we met, here is how to reach me".
  *
@@ -43,9 +44,9 @@ export const CONTACT_CARD_SCHEMA_VERSION = 1;
 /**
  * Maximum encoded card size. A card arrives from a QR code or a file chosen
  * by the user; both are untrusted input and must be bounded before parsing.
- * Matches {@link import('../scan.js').MAX_SCAN_PAYLOAD_BYTES}.
+ * Matches {@link import('../payload-limits.js').MAX_SCAN_PAYLOAD_BYTES}.
  */
-export const MAX_CONTACT_CARD_BYTES = 8192;
+export const MAX_CONTACT_CARD_BYTES = MAX_SCAN_PAYLOAD_BYTES;
 
 /**
  * Trust in an account *claim* on a card. Only `verified` may render as a

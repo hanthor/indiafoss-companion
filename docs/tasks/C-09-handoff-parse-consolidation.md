@@ -118,12 +118,10 @@ const FORBIDDEN_FIELDS = [
 
 ### The three concrete disagreements
 
-1. **Two size constants with the same name and different values.**
-   `scan.ts:7` exports `MAX_SCAN_PAYLOAD_BYTES = 8192`;
-   `packages/model/src/friend.ts:37` exports `MAX_SCAN_PAYLOAD_BYTES = 4096`
-   ("Maximum accepted scanned payload; larger inputs cannot be a valid QR
-   anyway"). `packages/model/src/index.ts:208` re-exports one of them. Two
-   limits under one name is the whole defect in miniature.
+1. **Size policy is now shared.** `payload-limits.ts` owns the 8192-byte
+   ceiling. Scanner, direct friend decoder/verifier, and handoff URL parser
+   enforce UTF-8 byte bounds. The old 4096-byte friend export was unused;
+   accepting scanned cards between 4096 and 8192 bytes is preserved.
 
 2. **Two custom-scheme grammars.** `scan.ts` understands
    `indiafoss://chat?dm=…` / `?join=…` and `indiafoss://location/<id>` and
@@ -203,18 +201,10 @@ Deciding the emitted encoding is the maintainer's call on ADR 0009.
    `app-handoff.ts` the owner of the handoff _envelope_ and its URL encodings.
    `scan.ts` imports from `contracts/app-handoff.js`, never the reverse.
 
-2. **Collapse the size constants.** Keep one `MAX_SCAN_PAYLOAD_BYTES`. Have
-   `friend.ts` import it from `scan.ts` (or move it to a shared module both
-   import) instead of declaring 4096. Make `MAX_HANDOFF_BYTES` an alias of the
-   same number so the two files cannot drift; `app-handoff.ts` already
-   documents that it "Matches `MAX_SCAN_PAYLOAD_BYTES`". Check whether raising
-   the friend limit from 4096 to 8192 changes any existing behaviour and say so
-   in the PR — if a smaller bound is deliberate for friend payloads, keep it
-   but give it a distinct name.
-
-   Also make the handoff bound a **byte** check, matching `scan.ts`'s
-   `utf8ByteLength`. `parseHandoffUrl` currently checks `input.length`, which
-   is UTF-16 code units.
+2. **Preserve the shared size policy.** This part is implemented under #211.
+   Keep `payload-limits.ts` as the dependency-neutral owner and retain its
+   boundary tests when consolidating the parsers. Existing constant exports
+   are aliases for compatibility.
 
 3. **Route `indiafoss://` through both grammars, legacy first.** In
    `parseScannedPayload`'s `indiafoss://` branch, keep the existing
