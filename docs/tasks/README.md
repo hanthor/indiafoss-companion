@@ -51,13 +51,13 @@ records the decision. Do not open new issues for these.
 
 These are the work that makes a conference day trustworthy. Do these first.
 
-| ID                                           | Task                                                     | Status | Tracks                                                            |
-| -------------------------------------------- | -------------------------------------------------------- | ------ | ----------------------------------------------------------------- |
-| [C-01](C-01-update-check-latch.md)           | Schedule updates can be missed for a whole session       | Ready  | [#189](https://github.com/hanthor/indiafoss-companion/issues/189) |
-| [C-02](C-02-persist-every-valid-revision.md) | A reinstated talk stays cancelled; valid data is dropped | Ready  | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
-| [C-03](C-03-android-atomic-bundle-write.md)  | An interrupted write can truncate the cached schedule    | Ready  | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
-| [C-04](C-04-publish-2026-bundle.md)          | Ship the real 2026 bundle, not the 2025 fixture          | Ready  | [#191](https://github.com/hanthor/indiafoss-companion/issues/191) |
-| [C-05](C-05-plan-without-ranking.md)         | A useful plan without ranking every talk                 | Ready  | [#192](https://github.com/hanthor/indiafoss-companion/issues/192) |
+| ID                                           | Task                                                     | Status                           | Tracks                                                            |
+| -------------------------------------------- | -------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------- |
+| [C-01](C-01-update-check-latch.md)           | Schedule updates can be missed for a whole session       | Partial — refresh status remains | [#189](https://github.com/hanthor/indiafoss-companion/issues/189) |
+| [C-02](C-02-persist-every-valid-revision.md) | A reinstated talk stays cancelled; valid data is dropped | Implemented (web), PR #235       | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
+| [C-03](C-03-android-atomic-bundle-write.md)  | An interrupted write can truncate the cached schedule    | Ready                            | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
+| [C-04](C-04-publish-2026-bundle.md)          | Ship the real 2026 bundle, not the 2025 fixture          | Ready                            | [#191](https://github.com/hanthor/indiafoss-companion/issues/191) |
+| [C-05](C-05-plan-without-ranking.md)         | A useful plan without ranking every talk                 | Ready                            | [#192](https://github.com/hanthor/indiafoss-companion/issues/192) |
 
 ## Companion — contracts and handoff
 
