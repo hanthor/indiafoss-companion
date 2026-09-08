@@ -494,8 +494,7 @@
     <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
     <h1>Your contact card</h1>
     <p class="muted">
-      Show this to someone. Only the fields switched on below are encoded — nothing leaves this
-      phone.
+      Show this to someone. Only the fields switched on below are encoded in your QR code.
     </p>
   </section>
 
