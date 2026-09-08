@@ -283,8 +283,7 @@ export const MERGE_WINDOW_MINUTES = 5;
  * Every alert names the session, the room and (when the attendee's location
  * is known) the walk, because a reminder that does not say where to go is
  * only half a reminder. `travelSecondsFor` returns null when the walk cannot
- * be worked out; the leave-by time then falls back to a default allowance and
- * the body simply leaves the walk out.
+ * be worked out; omit the departure alert and retain the starting-soon alert.
  */
 export function computeNotifications(
   bundle: EventBundle,
@@ -338,9 +337,11 @@ export function computeNotifications(
     }
 
     const startingSoonAt = startMs - window.startingSoonMinutes * 60_000;
-    const leaveAtMs = Date.parse(
-      leaveByInstant(activity.start, travel ?? 300, window.leaveBufferMinutes * 60),
-    );
+    // No route means no departure estimate; keep the ordinary starting-soon alert.
+    const leaveAtMs =
+      travel === null
+        ? Number.NaN
+        : Date.parse(leaveByInstant(activity.start, travel, window.leaveBufferMinutes * 60));
     const bothAhead = startingSoonAt > nowMs && leaveAtMs > nowMs;
     const merged =
       bothAhead && Math.abs(leaveAtMs - startingSoonAt) <= MERGE_WINDOW_MINUTES * 60_000;

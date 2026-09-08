@@ -2,7 +2,7 @@
   import DevroomBanner from '$lib/components/DevroomBanner.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import { tick } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
   import type { Activity, Person } from '@indiafoss/model';
   import { activitiesForDay, formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
@@ -81,7 +81,7 @@
   // ---------- Step 1: devrooms ----------
   const rooms = $derived(devrooms(bundle));
   const roomsOut = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'skip').length);
-  const roomsMust = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'love').length);
+  const roomsStay = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'stay').length);
   /** Which devroom's programme is unfolded. */
   let openRoom = $state<string | null>(null);
   async function roomsDone(): Promise<void> {
@@ -239,7 +239,7 @@
     (
       document.querySelector<HTMLElement>('[data-testid="talk-card"]') ??
       document.querySelector<HTMLElement>('[data-testid="discovery-undo"]')
-    )?.focus();
+    )?.focus({ preventScroll: true });
   }
   async function clearAnswer(activity: Activity): Promise<void> {
     if (busy) return;
@@ -445,6 +445,16 @@
     chosenMode = forcedMode ?? 'cards';
   });
   const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'slots');
+  $effect(() => {
+    if (
+      ready &&
+      mode === 'cards' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    )
+      untrack(() => {
+        void focusDiscovery();
+      });
+  });
 
   // Keyboard: the cards are buttons, so Tab + Enter already works; these are shortcuts.
   function onKeydown(event: KeyboardEvent): void {
@@ -464,26 +474,28 @@
       return;
     if (busy) return;
     if (mode === 'cards') {
-      // Single-letter shortcuts only apply while the card itself has focus.
-      if (!target?.matches('[data-testid="talk-card"]')) return;
+      if (target?.closest('button, a, [role="tab"], [role="button"], [role="dialog"], summary'))
+        return;
+      // Arrows work immediately; character aliases stay scoped to the card.
+      if (!event.key.startsWith('Arrow') && !target?.matches('[data-testid="talk-card"]')) return;
       switch (event.key) {
         case 'ArrowRight':
         case 'y':
         case 'Y':
           event.preventDefault();
-          void answerCard('yes');
+          void answerCard('yes').then(() => focusDiscovery());
           break;
         case 'ArrowLeft':
         case 'n':
         case 'N':
           event.preventDefault();
-          void answerCard('no');
+          void answerCard('no').then(() => focusDiscovery());
           break;
         case 'ArrowUp':
         case 'm':
         case 'M':
           event.preventDefault();
-          void answerCard('must');
+          void answerCard('must').then(() => focusDiscovery());
           break;
         case 'z':
         case 'Z':
@@ -604,7 +616,7 @@
       onclick={() => (chosenMode = 'rooms')}
     >
       Devrooms
-      {#if roomsOut + roomsMust > 0}<span class="count">{roomsOut + roomsMust}</span>{/if}
+      {#if roomsOut + roomsStay > 0}<span class="count">{roomsOut + roomsStay}</span>{/if}
     </button>
     <button
       role="tab"
@@ -711,17 +723,9 @@
                 >Not interested</button
               >
               <button
-                class:on={!pref}
-                aria-pressed={!pref}
+                class:on={!pref || pref === 'love'}
+                aria-pressed={!pref || pref === 'love'}
                 onclick={() => setRoomPreference(bundle, r.track.id, undefined)}>Interested</button
-              >
-              <button
-                class:on={pref === 'love'}
-                class="love"
-                aria-pressed={pref === 'love'}
-                onclick={() =>
-                  setRoomPreference(bundle, r.track.id, pref === 'love' ? undefined : 'love')}
-                >More like this</button
               >
               <button
                 class:on={pref === 'stay'}
@@ -736,15 +740,15 @@
       </ul>
       <div class="roomsdone">
         <button class="button dark" onclick={roomsDone}>
-          {roomsOut > 0 || roomsMust > 0
-            ? `Done · ${roomsOut} out, ${roomsMust} must go →`
+          {roomsOut > 0 || roomsStay > 0
+            ? `Done · ${roomsOut} out, ${roomsStay} staying →`
             : 'All devrooms are fine →'}
         </button>
       </div>
     {/if}
   {:else if mode === 'cards'}
     <p class="muted small" role="status">
-      {triaged.length} choices saved · Stop whenever you like.
+      {triaged.length} choices saved ·
       <a href={resolve('/plan')}>See my plan →</a>
     </p>
     {#if lastAnswered}
@@ -781,24 +785,8 @@
       </section>
     {:else}
       {@const clashes = clashCount(card)}
-      <p class="muted small lead center">
-        Swipe right to want to go, left for not interested. Use the crown for must go.
-        {#if suggestions[0]?.because.length}
-          More like your choices in {suggestions[0].because
-            .map((key) =>
-              key.startsWith('track:')
-                ? (bundle.tracks.find((t) => t.id === key.slice(6))?.name ?? key.slice(6))
-                : key.slice(4),
-            )
-            .slice(0, 2)
-            .join(' · ')}.
-        {:else}
-          Explore something different.
-        {/if}
-      </p>
-      <p class="muted small center" id="discovery-keys">
-        Keyboard: Tab to the talk card. Left: not interested · Right: want to go · Up: must go · Z:
-        undo.
+      <p class="sr-only" id="discovery-keys">
+        Left: not interested · Right: want to go · Up: must go · Z: undo.
       </p>
       <div class="stack" aria-live="polite">
         {#if nextCard}
@@ -811,7 +799,7 @@
           </article>
         {/if}
         {#key card.id}
-          <!-- Focus scopes the discovery keyboard shortcuts; individual choice buttons remain available. -->
+          <!-- Choice buttons remain available alongside immediate arrow-key shortcuts. -->
           <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <article
             class="talkcard"
@@ -1248,11 +1236,6 @@
     border-color: var(--ink);
     color: var(--on-ink);
   }
-  .roomchoice button.love.on {
-    background: var(--mint);
-    border-color: var(--mint);
-    color: var(--ink);
-  }
   .roomchoice button.skip.on {
     background: var(--amber-soft);
     border-color: var(--amber-ink);
@@ -1267,9 +1250,6 @@
     margin: 0 0 0.8rem;
     line-height: 1.5;
     text-wrap: pretty;
-  }
-  .lead.center {
-    text-align: center;
   }
   .tags {
     display: flex;

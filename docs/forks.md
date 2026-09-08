@@ -109,6 +109,14 @@ No test baselines or application code changed. See
 [Chat #44](https://github.com/hanthor/indiafoss-chat-android/issues/44);
 test execution remains a separate gate.
 
+The recovered test run reached Kotlin compilation and exposed two calls to the
+removed `indices` property in `DiffCacheTest`.
+[Chat PR #55](https://github.com/hanthor/indiafoss-chat-android/pull/55) changes those
+assertions to the current `indices()` function. It changes no runtime code or
+screenshot baselines. Full unit/screenshot/coverage and quality gates remain
+pending; the local review environment has no Java runtime. This is the concrete
+follow-up to the existing test work in Chat #20/#21, not a new test-suite proposal.
+
 Forked from Element X Android. Beyond branding and the embedded-Neutrino
 wiring it inherits, ours adds:
 

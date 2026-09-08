@@ -4,12 +4,17 @@
   import { page } from '$app/state';
   import { formatTime } from '@indiafoss/schedule';
   import { clockFromParams, isFixedClock } from '$lib/clock';
+  import { routingPrefs } from '$lib/routingPrefs.svelte';
+  import { currentLocation } from '$lib/location.svelte';
+  import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
+  import { ROUTING_LABELS } from '$lib/journey';
   import { eventState } from '$lib/event.svelte';
   import { bookmarked, dispositionOf } from '$lib/prefs.svelte';
+  import { DEFAULT_NOTIFICATION_WINDOW } from '$lib/notifications';
   import { computeNextUp } from '$lib/nextup';
   import { logSimEvent, simState, tickInterval } from '$lib/simulator.svelte';
 
-  const BUFFER_SECONDS = 300;
+  const BUFFER_SECONDS = DEFAULT_NOTIFICATION_WINDOW.leaveBufferMinutes * 60;
 
   // The `?now=` time-travel parameter works here as on the Now screen.
   const clock = $derived(
@@ -30,17 +35,32 @@
   });
 
   const bundle = $derived(eventState.bundle);
+  let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
+  $effect(() => {
+    const key = bundle ? venueKeyForEvent(bundle.id) : null;
+    let active = true;
+    venue = null;
+    if (key)
+      void loadVenue(key)
+        .then((loaded) => {
+          if (active) venue = loaded;
+        })
+        .catch(() => {});
+    return () => {
+      active = false;
+    };
+  });
 
   const next = $derived(
-    bundle && now
+    bundle && now && routingPrefs.loaded
       ? computeNextUp({
           bundle,
           now,
           bookmarked,
           mustAttend: (id) => dispositionOf(id) === 'must-attend',
-          venue: null,
-          currentLocation: null,
-          profile: 'fastest',
+          venue,
+          currentLocation: currentLocation.value,
+          profile: routingPrefs.profile,
           bufferSeconds: BUFFER_SECONDS,
         })
       : null,
@@ -53,11 +73,16 @@
       : null,
   );
 
-  const urgent = $derived((next?.startsInMinutes ?? 99) <= 5);
+  const urgent = $derived(
+    (next?.leaveInMinutes ?? next?.startsInMinutes ?? 99) <= 0 ||
+      (next?.startsInMinutes ?? 99) <= 5,
+  );
 
   const kicker = $derived.by(() => {
     if (!next) return '';
     if (next.startsInMinutes <= 0) return 'STARTING NOW';
+    if (next.leaveInMinutes !== null && next.leaveInMinutes <= 0) return 'LEAVE NOW';
+    if (next.leaveBy) return `LEAVE BY ${formatTime(next.leaveBy)}`;
     return `STARTS IN ${next.startsInMinutes} MIN`;
   });
 
@@ -102,6 +127,12 @@
     <span class="detail">
       <strong>{next.activity.title}</strong>
       {#if roomName}· {roomName}{/if}
+      {#if next.travelSeconds !== null}· {Math.ceil(next.travelSeconds / 60)} min estimated walk · {ROUTING_LABELS[
+          routingPrefs.profile
+        ]}
+      {:else if currentLocation.value}· Route unavailable for {ROUTING_LABELS[
+          routingPrefs.profile
+        ].toLowerCase()}{/if}
       {#if next.planned && !next.mustAttend}· bookmarked{/if}
     </span>
   </a>

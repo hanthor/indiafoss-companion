@@ -11,13 +11,21 @@ export const currentLocation = $state<{ value: string | null }>({ value: null })
 
 let hydrated = false;
 
+let hydration: Promise<void> | null = null;
 export async function hydrateLocation(): Promise<void> {
   if (hydrated) return;
-  currentLocation.value = (await getStorage().getSetting('current-location')) || null;
-  hydrated = true;
+  hydration ??= (async () => {
+    const saved = (await getStorage().getSetting('current-location')) || null;
+    if (!hydrated) currentLocation.value = saved;
+    hydrated = true;
+  })().finally(() => {
+    hydration = null;
+  });
+  await hydration;
 }
 
 export async function setCurrentLocation(locationId: string | null): Promise<void> {
+  hydrated = true;
   currentLocation.value = locationId;
   await getStorage().setSetting('current-location', locationId ?? '');
 }

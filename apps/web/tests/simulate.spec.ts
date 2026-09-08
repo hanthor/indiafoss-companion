@@ -52,7 +52,7 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   await settingSaved(page, 'notifications-enabled', 'true');
 
   // Start the run from the URL, the way an automated walk-through would.
-  await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}`));
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}&at=audi-1`));
   await expect(page.getByTestId('sim-strip')).toBeVisible();
   await expect(page.getByTestId('sim-time')).toContainText('Sat 20 · 09:4');
 
@@ -76,10 +76,10 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   expect(fired.some((f) => f.includes('Leave now: First Step'))).toBe(true);
   expect(fired).toContain('10:15 Starting now: First Step into Open Source with AOSP');
   // The banner counted down and was logged as it changed.
-  expect(log.some((e) => e.kind === 'banner' && /STARTS IN \d+ MIN/.test(e.title))).toBe(true);
+  expect(log.some((e) => e.kind === 'banner' && /LEAVE BY|LEAVE NOW/.test(e.title))).toBe(true);
   // The strip shows the latest thing that happened: a reminder or the banner moving on.
   await expect(page.getByTestId('sim-latest')).toContainText(
-    /STARTS IN|STARTING NOW|Starting now|Leave now|In \d+ min/,
+    /STARTS IN|STARTING NOW|LEAVE BY|LEAVE NOW|Starting now|Leave now|In \d+ min/,
   );
 
   // Pause holds the clock; stop ends the run and the log records both.

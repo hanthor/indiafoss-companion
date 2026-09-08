@@ -161,8 +161,8 @@ test('devroom preferences are an optional path and remain editable', async ({ pa
     'aria-pressed',
     'true',
   );
-  await rows.last().getByRole('button', { name: 'More like this', exact: true }).click();
-  await page.getByRole('button', { name: /Done · 1 out, 1 must go/ }).click();
+  await rows.last().getByRole('button', { name: 'Stay for this devroom', exact: true }).click();
+  await page.getByRole('button', { name: /Done · 1 out, 1 staying/ }).click();
   await expect(page.getByRole('tab', { name: /Talks/ })).toHaveAttribute('aria-selected', 'true');
   await page.getByRole('tab', { name: /Devrooms/ }).click();
   await aosp.getByRole('button', { name: 'Interested', exact: true }).click();

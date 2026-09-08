@@ -5,6 +5,9 @@
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
+  import { journeyRoute, ROUTING_LABELS } from '$lib/journey';
+  import { routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
+  import type { RoutingProfile } from '@indiafoss/venue';
   import { bookmarked } from '$lib/prefs.svelte';
   import {
     currentLocation,
@@ -16,13 +19,14 @@
   import { FLOORS, FLOOR_ORDER, anchorPercent } from '$lib/venue-floors';
   import type { FloorId, FloorRoom } from '$lib/venue-floors';
   import { floorOfRoom, locationsForRoom, roomForLocation } from '$lib/venue-rooms';
+  import { DEFAULT_NOTIFICATION_WINDOW } from '$lib/notifications';
   import { computeNextUp } from '$lib/nextup';
   import { devroomTrackNames, labelHeadingFor } from '$lib/devrooms';
 
   /** Destination location id (`/map/to/[location]`): highlighted and opened in the sheet. */
   let { initialTo = '' }: { initialTo?: string } = $props();
 
-  const BUFFER_SECONDS = 300;
+  const BUFFER_SECONDS = DEFAULT_NOTIFICATION_WINDOW.leaveBufferMinutes * 60;
 
   const clock = clockFromParams(
     page.url.searchParams.get('now'),
@@ -135,14 +139,14 @@
   }
 
   const nextUp = $derived(
-    bundle
+    bundle && routingPrefs.loaded
       ? computeNextUp({
           bundle,
           now,
           bookmarked,
           venue,
           currentLocation: currentLocation.value,
-          profile: 'fastest',
+          profile: routingPrefs.profile,
           bufferSeconds: BUFFER_SECONDS,
         })
       : null,
@@ -408,6 +412,16 @@
     return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
   }
 
+  const selectedRoute = $derived(
+    routingPrefs.loaded && selectedRoom
+      ? journeyRoute(
+          venue,
+          currentLocation.value,
+          primaryLocation(selectedRoom.id),
+          routingPrefs.profile,
+        )
+      : null,
+  );
   const isHere = $derived(selectedRoom !== null && hereRoom === selectedRoom.id);
 
   async function toggleHere() {
@@ -562,6 +576,36 @@
         >
       </header>
 
+      <div class="journey" aria-label="Walking route">
+        <label for="map-routing-profile">Routing profile</label>
+        <select
+          id="map-routing-profile"
+          value={routingPrefs.profile}
+          disabled={!routingPrefs.loaded}
+          onchange={(event) => void setRoutingProfile(event.currentTarget.value as RoutingProfile)}
+        >
+          {#each Object.entries(ROUTING_LABELS) as [value, label] (value)}<option {value}
+              >{label}</option
+            >{/each}
+        </select>
+        {#if !currentLocation.value}
+          <p>Choose your starting room and select “I'm here” to estimate the walk.</p>
+        {:else if !routingPrefs.loaded}
+          <p>Loading your routing preference…</p>
+        {:else if selectedRoute}
+          <p>
+            {Math.ceil(selectedRoute.durationSeconds / 60)} min estimated walk · {ROUTING_LABELS[
+              routingPrefs.profile
+            ]}
+          </p>
+        {:else}
+          <p>
+            No {ROUTING_LABELS[routingPrefs.profile].toLowerCase()} route is available on this map from
+            your starting location. Ask the venue team for directions.
+          </p>
+        {/if}
+      </div>
+
       {#each live as a (a.id)}
         <div class="block">
           <span class="kicker live">ON NOW</span>
@@ -602,6 +646,19 @@
 {/if}
 
 <style>
+  .journey {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  .journey label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .journey select {
+    min-height: 44px;
+  }
   .loading,
   .empty {
     padding: 1rem;
