@@ -52,6 +52,17 @@ was restarted after verification. Its result must be assessed separately: repair
 asset availability does not establish that Gradle, unit tests, screenshot tests
 or coverage thresholds pass. Chat #44 stays open until that evidence is recorded.
 
+Follow-up execution evidence:
+
+- Attempt 3 passed LFS checkout and failed Kotlin test compilation in
+  `DiffCacheTest`: the interface has `indices()`, while the test used `indices`.
+- [PR #55](https://github.com/hanthor/indiafoss-chat-android/pull/55) repairs those
+  two assertions. Its [first run](https://github.com/hanthor/indiafoss-chat-android/actions/runs/34240824973)
+  passed compilation and reached `:appnav:testDebugUnitTest`: 66 of 67 tests passed.
+- The remaining assertion expected `%21abc%3Ahs` rather than Android's valid
+  `!abc%3Ahs` permalink encoding. PR #55 corrects the expected string without
+  altering room-join behaviour. The new full execution gate is still pending.
+
 This restores assets referenced by the current main tree. It does not assert
 that every historical commit or pending PR has all of its distinct LFS objects.
 It is not attachment-delivery, mesh reachability or physical-device evidence.

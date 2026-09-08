@@ -1,9 +1,23 @@
 # C-01 — A schedule change published during the day actually reaches the attendee
 
-- Status: Ready
+- Status: Partially implemented; per-event freshness and status remain in #189
 - Repository: indiafoss-companion
 - Tracks: [#189](https://github.com/hanthor/indiafoss-companion/issues/189)
 - Size: S
+
+## Current implementation and remaining work
+
+`UpdateGate` replaced the permanent latch. Launch/reconnect/foreground/manual
+triggers, foreground polling and a 12-second manifest-plus-bundle timeout are
+implemented. The historical reproduction below should not be implemented again.
+
+The next patch should key freshness by event, show the last successful check,
+report HTTP/asset failures consistently, and make Settings read the active
+event's revision instead of `DEFAULT_EVENT_ID`. Extend the existing gate and
+browser tests, including an offline-to-online update without reload that retains
+notes and custom blocks as well as bookmarks and ratings. Keep data adoption in
+C-02: its atomic web implementation shipped in PR #235. See #189 for current
+review evidence and acceptance; it remains open.
 
 ## Why this matters
 
