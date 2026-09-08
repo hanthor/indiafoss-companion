@@ -59,7 +59,7 @@ jobs:
 
       - name: Set up Android SDK
         if: steps.key.outputs.present == 'true'
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install dependencies
         if: steps.key.outputs.present == 'true'
