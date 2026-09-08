@@ -90,12 +90,14 @@ class AffinityModel(val affinity: Map<String, Double>, val evidence: Map<String,
         val remaining = pool.filter { it.interest == null && it.disposition == Disposition.NORMAL && !it.activity.cancelled && it.activity.type != "meal" }.toMutableList()
         val out = ArrayList<Activity>()
         val used = HashMap<String, Int>()
+        val decided = pool.filter { it.interest != null || it.disposition != Disposition.NORMAL }
+        decided.forEach { used[it.activity.trackId.orEmpty()] = (used[it.activity.trackId.orEmpty()] ?: 0) + 1 }
         fun score(r: RankedActivity): Double {
-            val topical = keysOf(r.activity).any { !it.startsWith("type:") && !Regex("tag:(talk|lightning talk|other|beginner|intermediate|advanced)", RegexOption.IGNORE_CASE).matches(it) && (affinity[it] ?: 0.0) > 0 }
-            return if (topical) priorOffset(r.activity) else 0.0
+            val topics = keysOf(r.activity).filter { !it.startsWith("type:") && !Regex("tag:(talk|lightning talk|other|beginner|intermediate|advanced)", RegexOption.IGNORE_CASE).matches(it) }
+            return topics.sumOf { affinity[it] ?: 0.0 } / topics.size.coerceAtLeast(1)
         }
         while (remaining.isNotEmpty()) {
-            val explore = out.size % 4 == 3 || remaining.all { score(it) <= 0 }
+            val explore = (decided.size + out.size) % 4 == 3 || remaining.all { score(it) <= 0 }
             remaining.sortWith { a, b ->
                 val diversity = (used[a.activity.trackId.orEmpty()] ?: 0).compareTo(used[b.activity.trackId.orEmpty()] ?: 0)
                 val relevance = score(b).compareTo(score(a))
