@@ -101,6 +101,14 @@ directory and the e2ee transport.
 
 ## hanthor/indiafoss-chat-android — the phone client
 
+**LFS availability, 8 September 2026:** the fork's missing current-main screenshot
+and media-test assets were restored from the exact upstream objects. A separate
+cache fetched them back from the fork and passed object integrity verification.
+No test baselines or application code changed. See
+[the recovery evidence](evidence/chat-lfs-recovery-2026-09-08.md) and
+[Chat #44](https://github.com/hanthor/indiafoss-chat-android/issues/44);
+test execution remains a separate gate.
+
 Forked from Element X Android. Beyond branding and the embedded-Neutrino
 wiring it inherits, ours adds:
 
