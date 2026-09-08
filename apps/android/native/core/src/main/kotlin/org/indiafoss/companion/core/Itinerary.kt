@@ -5,7 +5,8 @@ package org.indiafoss.companion.core
  * attendee can actually be in. Must-attend sessions are placed first and
  * never displaced; then bookmarks, then the rest by rating, each taken only
  * when it does not overlap what is already placed. Not-interested sessions
- * and meals are never placed. This is the greedy core of the web solver
+ * and source meal rows are never placed as talks. One lunch opportunity may
+ * occupy a free official lunch window. This is the greedy core of the web solver
  * (`@indiafoss/solver`), enough for a native plan that agrees with the
  * ranking; walking time between rooms is left to the leave-by logic.
  */

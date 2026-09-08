@@ -28,20 +28,20 @@ class ItineraryTest {
             dispositionOf = { if (it == "b") Disposition.MUST_ATTEND else Disposition.NORMAL },
             bookmarked = { false },
         )
-        assertEquals(listOf("b", "d"), plan.filter { it.reason != Itinerary.Reason.LUNCH }.map { it.activity.id })
+        assertEquals(listOf("b", "flex-lunch-2025-09-20", "d"), plan.map { it.activity.id })
         assertEquals(Itinerary.Reason.MUST_ATTEND, plan[0].reason)
         assertEquals(Itinerary.Reason.RANKED, plan.last().reason)
     }
 
     @Test
-    fun `not interested and meals are never placed`() {
+    fun `not interested talks and source meal rows are never placed`() {
         val plan = Itinerary.forDay(
             bundle, "2025-09-20",
             ratingOf = { 1200.0 },
             dispositionOf = { if (it == "a") Disposition.NOT_INTERESTED else Disposition.NORMAL },
             bookmarked = { false },
         )
-        assertEquals(listOf("b", "d"), plan.filter { it.reason != Itinerary.Reason.LUNCH }.map { it.activity.id })
+        assertEquals(listOf("b", "flex-lunch-2025-09-20", "d"), plan.map { it.activity.id })
     }
 
     @Test
@@ -53,7 +53,7 @@ class ItineraryTest {
             ratingOf = { 1200.0 }, dispositionOf = { Disposition.NORMAL }, bookmarked = { false },
             blocks = listOf(fixed, booth),
         )
-        assertEquals(listOf("blk-1", "blk-2", "d"), plan.filter { it.reason != Itinerary.Reason.LUNCH }.map { it.activity.id })
+        assertEquals(listOf("blk-1", "blk-2", "flex-lunch-2025-09-20", "d"), plan.map { it.activity.id })
         // The largest gap runs from the block's end to lunch; the visit starts there.
         assertEquals("2025-09-20T10:45:00+05:30", plan[1].activity.start)
         assertEquals("2025-09-20T11:15:00+05:30", plan[1].activity.end)
