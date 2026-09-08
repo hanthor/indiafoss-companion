@@ -31,6 +31,15 @@ const SLOW_SPEED = 300;
 test.use({ permissions: ['notifications'] });
 
 test('the simulator fires every reminder tier and logs the banner', async ({ page }) => {
+  // Simulated delivery needs explicit Notification API permission. Chromium's
+  // headless Permissions override alone can still leave this API denied.
+  await page.addInitScript(() => {
+    class SimNotification {
+      static permission = 'granted';
+      close() {}
+    }
+    Object.defineProperty(window, 'Notification', { value: SimNotification });
+  });
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
 
@@ -39,7 +48,7 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   await page.getByRole('button', { name: /Must attend/ }).click();
   await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
-  await page.getByRole('switch', { name: /Enable reminders/ }).check();
+  await page.getByRole('switch', { name: /Enable reminders/ }).click();
   await settingSaved(page, 'notifications-enabled', 'true');
 
   // Start the run from the URL, the way an automated walk-through would.
@@ -150,7 +159,7 @@ test('every reminder names the session, the room and the walk, and opens it when
   await page.getByRole('button', { name: /Must attend/ }).click();
   await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
-  await page.getByRole('switch', { name: /Enable reminders/ }).check();
+  await page.getByRole('switch', { name: /Enable reminders/ }).click();
   await settingSaved(page, 'notifications-enabled', 'true');
 
   // Reminders in the past are never fired retroactively, so this run must not

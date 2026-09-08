@@ -1,6 +1,11 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import { notificationsEnabled, setNotificationsEnabled } from '$lib/notifications.svelte';
+  import ReminderStatus from '$lib/components/ReminderStatus.svelte';
+  import {
+    notificationsEnabled,
+    reminderState,
+    setNotificationsEnabled,
+  } from '$lib/notifications.svelte';
   import { goto } from '$app/navigation';
   import { formatDayLabel, getEventDays } from '@indiafoss/schedule';
   import { DEFAULT_EVENT_ID, eventState, loadEvent, storedRevision } from '$lib/event.svelte';
@@ -96,11 +101,17 @@
       <input
         type="checkbox"
         role="switch"
+        disabled={reminderState.status === 'requesting' || reminderState.status === 'unsupported'}
         checked={notificationsEnabled.value}
-        onchange={(e) => void setNotificationsEnabled(e.currentTarget.checked)}
+        onchange={(e) => {
+          const enabled = e.currentTarget.checked;
+          e.currentTarget.checked = notificationsEnabled.value;
+          void setNotificationsEnabled(enabled);
+        }}
       />
       <span>Enable reminders</span>
     </label>
+    <ReminderStatus />
   </section>
   <section class="card" aria-labelledby="sim-title">
     <h2 id="sim-title">Simulate the day</h2>

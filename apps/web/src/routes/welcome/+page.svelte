@@ -3,7 +3,12 @@
   import { goto } from '$app/navigation';
   import { isTicketRef, type AttendeeSocial } from '@indiafoss/model';
   import { eventState } from '$lib/event.svelte';
-  import { notificationsEnabled, setNotificationsEnabled } from '$lib/notifications.svelte';
+  import ReminderStatus from '$lib/components/ReminderStatus.svelte';
+  import {
+    notificationsEnabled,
+    reminderState,
+    setNotificationsEnabled,
+  } from '$lib/notifications.svelte';
   import { hydrateProfile, profileState, saveProfile, setSocial } from '$lib/profile.svelte';
   import { LINK_LABELS, LINK_PLACEHOLDERS } from '$lib/card-fields';
   import { markOnboardingDone } from '$lib/onboarding.svelte';
@@ -25,14 +30,8 @@
   });
 
   // Reminders
-  let asking = $state(false);
-  let denied = $state(false);
   async function turnOnReminders(): Promise<void> {
-    asking = true;
     await setNotificationsEnabled(true);
-    asking = false;
-    if (typeof Notification !== 'undefined' && Notification.permission === 'denied') denied = true;
-    else next();
   }
 
   // Ticket
@@ -98,26 +97,23 @@
   <section class="card step" aria-live="polite">
     {#if step === 'reminders'}
       <div class="eyebrow">1 · REMINDERS</div>
-      <h2>Never miss a talk you picked</h2>
+      <h2>Choose how to get reminders</h2>
       <p class="muted">
         A local "starting soon" and "leave now" alert for the sessions you bookmark, timed with the
         walk from wherever you last scanned. No push service, nothing leaves the phone.
       </p>
+      <ReminderStatus />
       {#if notificationsEnabled.value}
-        <p class="ok" role="status">Reminders are on.</p>
         <div class="actions">
           <button class="button dark" onclick={next}>Next →</button>
         </div>
       {:else}
-        {#if denied}
-          <p class="warn" role="alert">
-            Notifications are blocked for this site. Allow them in the browser's site settings, then
-            switch reminders on under Settings.
-          </p>
-        {/if}
         <div class="actions">
-          <button class="button dark" onclick={turnOnReminders} disabled={asking}
-            >Turn on reminders</button
+          <button
+            class="button dark"
+            onclick={turnOnReminders}
+            disabled={reminderState.status === 'requesting' ||
+              reminderState.status === 'unsupported'}>Turn on reminders</button
           >
           <button class="button secondary" onclick={next}>Not now</button>
         </div>

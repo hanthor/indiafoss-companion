@@ -25,6 +25,11 @@ function getStorage(): CompanionStorage {
 
 /** Local notification preferences (§37) — off by default, on-device only. */
 export const notificationsEnabled = $state<{ value: boolean }>({ value: false });
+export const reminderState = $state<{
+  status: 'off' | 'requesting' | 'granted' | 'blocked' | 'unsupported' | 'dismissed' | 'error';
+  testMessage: string;
+}>({ status: 'off', testMessage: '' });
+let preferenceGeneration = 0;
 
 let armedAt: string | null = null;
 // Bookkeeping only; nothing renders from it.
@@ -71,14 +76,76 @@ export async function disarmNotifications(): Promise<void> {
 }
 
 export async function hydrateNotifications(): Promise<void> {
-  const setting = await getStorage().getSetting('notifications-enabled');
-  if (setting !== null) notificationsEnabled.value = setting === 'true';
+  if (reminderState.status === 'requesting') return;
+  const generation = preferenceGeneration;
+  try {
+    const setting = await getStorage().getSetting('notifications-enabled');
+    const permission = await (await getTransport()).permission();
+    if (generation !== preferenceGeneration) return;
+    notificationsEnabled.value = setting === 'true' && permission === 'granted';
+    reminderState.status =
+      permission === 'unsupported'
+        ? 'unsupported'
+        : permission === 'denied'
+          ? 'blocked'
+          : notificationsEnabled.value
+            ? 'granted'
+            : 'off';
+  } catch {
+    if (generation !== preferenceGeneration) return;
+    notificationsEnabled.value = false;
+    reminderState.status = 'error';
+  }
 }
 
 export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
-  notificationsEnabled.value = enabled;
-  await getStorage().setSetting('notifications-enabled', String(enabled));
-  if (enabled) await (await getTransport()).requestPermission();
+  if (reminderState.status === 'requesting') return;
+  preferenceGeneration++;
+  reminderState.testMessage = '';
+  reminderState.status = enabled ? 'requesting' : 'off';
+  notificationsEnabled.value = false;
+  try {
+    // Request first, directly from the user action; never persist success before permission.
+    const transport = await getTransport();
+    const granted = enabled && (await transport.requestPermission());
+    const permission = await transport.permission();
+    await getStorage().setSetting('notifications-enabled', String(granted));
+    notificationsEnabled.value = granted;
+    reminderState.status = !enabled
+      ? 'off'
+      : granted
+        ? 'granted'
+        : permission === 'unsupported'
+          ? 'unsupported'
+          : permission === 'denied'
+            ? 'blocked'
+            : 'dismissed';
+    if (!granted) await disarmNotifications();
+  } catch {
+    notificationsEnabled.value = false;
+    reminderState.status = 'error';
+  }
+}
+
+/** An immediate delivery check, not proof of background or future delivery. */
+export async function testReminder(): Promise<void> {
+  if (!notificationsEnabled.value) return;
+  try {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+      await hydrateNotifications();
+      return;
+    }
+    const shown = new Notification('IndiaFOSS reminder test', {
+      body: 'This is a test while the Companion is open.',
+      tag: 'indiafoss-reminder-test',
+    });
+    setTimeout(() => shown.close(), 10_000);
+    reminderState.testMessage =
+      'Test sent to your browser. Check whether it appeared; this does not test delivery with the app closed.';
+  } catch {
+    reminderState.testMessage =
+      'This browser could not show the test notification. Use your calendar for reminders.';
+  }
 }
 
 /** Custom blocks from every day's plan edits (stored per day, see planEdits.svelte.ts). */
