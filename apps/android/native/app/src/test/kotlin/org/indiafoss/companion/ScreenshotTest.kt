@@ -50,9 +50,9 @@ class ScreenshotTest {
         context.assets.open("event-bundle.json").bufferedReader().use { bundleJson.decodeFromString(it.readText()) }
     }
 
-    private fun state(now: String = "2025-09-20T10:20:00+05:30") = UiState(
+    private fun state(now: String = "2026-09-26T10:20:00+05:30") = UiState(
         loading = false, bundle = bundle, now = now,
-        bookmarks = setOf("act-c8ak0iov2l"), mustAttend = setOf("act-c8ak0iov2l"),
+        bookmarks = setOf("act-28laimsqbf"), mustAttend = setOf("act-28laimsqbf"),
         currentLocation = "audi-1",
     )
 
@@ -84,15 +84,19 @@ class ScreenshotTest {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true)), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun rankSlots() = shoot("rank-slots") {
-        val one = StoredComparison("cmp-1", "act-01sogi4649", "act-2i81tb75s8", 1.0, 0L)
+        val one = StoredComparison("cmp-1", "act-28lagehf47", "act-28la68il6o", 1.0, 0L)
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
     @Test fun explore() = shoot("explore") { ExploreScreen(state(), {}, {}, {}) {} }
-    @Test fun booth() = shoot("booth") { BoothScreen(state(), bundle.booths.first().id, { _, _ -> }, {}) {} }
+    @Test fun booth() = shoot("booth") {
+        // The published draft has no booth catalogue; this is test-only content.
+        val booth = org.indiafoss.companion.core.Booth("test-booth", "Sample community booth", description = "Meet the community")
+        BoothScreen(state().copy(bundle = bundle.copy(booths = listOf(booth))), booth.id, { _, _ -> }, {}) {}
+    }
     @Test fun nowUpdated() = shoot("now-updated") {
-        val update = ScheduleUpdate(7, listOf(ScheduleDiff.Change("act-c8ak0iov2l", "First Step into Open Source", ScheduleDiff.Kind.TIME, "10:15 → 11:00")))
-        NowScreen(state().copy(update = update, blocks = listOf(StoredBlock("visit-1", "Visit the Zulip booth", "2025-09-20"))), {}, {}) {}
+        val update = ScheduleUpdate(7, listOf(ScheduleDiff.Change("act-28laimsqbf", "Why Documentation Shouldn't Feel Like Plain Text", ScheduleDiff.Kind.TIME, "10:15 → 11:00")))
+        NowScreen(state().copy(update = update, blocks = listOf(StoredBlock("visit-1", "Visit the sample booth", "2026-09-26"))), {}, {}) {}
     }
     @Test fun connect() = shoot("connect") {
         ConnectScreen(
@@ -102,7 +106,7 @@ class ScreenshotTest {
     }
     @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}, {}) {} }
     @Test fun welcome() = shoot("welcome") { WelcomeScreen(state(), {}, {}, {}) {} }
-    @Test fun banner() = shoot("banner") { LeaveByBanner(state("2025-09-20T09:58:00+05:30")) {} }
+    @Test fun banner() = shoot("banner") { LeaveByBanner(state("2026-09-26T09:58:00+05:30")) {} }
 }
 
 /** The same screens in the dark scheme. */
@@ -135,7 +139,7 @@ class DarkScreenshotTest {
         File("build/screenshots/$name-dark.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
     }
 
-    private fun state() = UiState(loading = false, bundle = bundle, now = "2025-09-20T10:20:00+05:30", mustAttend = setOf("act-c8ak0iov2l"), currentLocation = "audi-1")
+    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"), currentLocation = "audi-1")
 
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
