@@ -53,6 +53,7 @@ data class Activity(
     val flexible: Boolean = false,
     val audience: String? = null,
     val sourceUrl: String? = null,
+    val proposalId: String? = null,
     val scheduleNote: String? = null,
     val keyTakeaways: List<String> = emptyList(),
     val links: List<ExternalLink> = emptyList(),

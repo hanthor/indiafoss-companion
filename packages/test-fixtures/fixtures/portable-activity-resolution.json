@@ -1,0 +1,190 @@
+[
+  {
+    "name": "CFP survives a recreated schedule row",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "old",
+      "proposalId": "cfp"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": "new",
+        "proposalId": "cfp"
+      }
+    ],
+    "expected": {
+      "status": "matched",
+      "activityId": "new"
+    }
+  },
+  {
+    "name": "CFP takes precedence over a reused row ID",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "old",
+      "proposalId": "cfp"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": "old",
+        "proposalId": "different"
+      },
+      {
+        "id": "new",
+        "proposalId": "cfp"
+      }
+    ],
+    "expected": {
+      "status": "matched",
+      "activityId": "new"
+    }
+  },
+  {
+    "name": "legacy ID still resolves without CFP",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "old"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": "old",
+        "proposalId": "cfp"
+      }
+    ],
+    "expected": {
+      "status": "matched",
+      "activityId": "old"
+    }
+  },
+  {
+    "name": "never import into another event",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "old",
+      "proposalId": "cfp"
+    },
+    "eventId": "indiafoss-2025",
+    "activities": [
+      {
+        "id": "old",
+        "proposalId": "cfp"
+      }
+    ],
+    "expected": {
+      "status": "wrong-event"
+    }
+  },
+  {
+    "name": "missing CFP never falls back to a different talk",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "old",
+      "proposalId": "cfp"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": "old",
+        "proposalId": "different"
+      }
+    ],
+    "expected": {
+      "status": "missing"
+    }
+  },
+  {
+    "name": "repeated CFP without occurrence identity is ambiguous",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "old",
+      "proposalId": "cfp"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": "first",
+        "proposalId": "cfp"
+      },
+      {
+        "id": "second",
+        "proposalId": "cfp"
+      }
+    ],
+    "expected": {
+      "status": "ambiguous"
+    }
+  },
+  {
+    "name": "known occurrence survives repeated CFP",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "second",
+      "proposalId": "cfp"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": "first",
+        "proposalId": "cfp"
+      },
+      {
+        "id": "second",
+        "proposalId": "cfp"
+      }
+    ],
+    "expected": {
+      "status": "matched",
+      "activityId": "second"
+    }
+  },
+  {
+    "name": "missing rows remain unresolved",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "missing"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [],
+    "expected": {
+      "status": "missing"
+    }
+  },
+  {
+    "name": "duplicate destination IDs are ambiguous",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": "same"
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": "same"
+      },
+      {
+        "id": "same"
+      }
+    ],
+    "expected": {
+      "status": "ambiguous"
+    }
+  },
+  {
+    "name": "empty source identity is rejected",
+    "reference": {
+      "eventId": "indiafoss-2026",
+      "activityId": ""
+    },
+    "eventId": "indiafoss-2026",
+    "activities": [
+      {
+        "id": ""
+      }
+    ],
+    "expected": {
+      "status": "missing"
+    }
+  }
+]
