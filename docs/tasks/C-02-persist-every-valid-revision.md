@@ -1,9 +1,18 @@
 # C-02 — A reinstated talk stops showing as cancelled, and valid data is never dropped
 
-- Status: Ready
+- Status: Implemented in the web client; broader native/digest gates remain in #190
 - Repository: indiafoss-companion
 - Tracks: [#190](https://github.com/hanthor/indiafoss-companion/issues/190)
 - Size: S
+
+## Current implementation
+
+The web client now persists metadata-only revisions, reports reinstatements,
+and commits a bundle together with its revision in one IndexedDB transaction.
+Failed saves retain the downloaded proposal for retry. See the
+[implementation and validation record](../reviews/atomic-revisions-2026-09-08.md).
+The reproduction and scaffold below describe the original defect; do not create
+a duplicate implementation from those historical snippets.
 
 ## Why this matters
 

@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EventBundle } from '@indiafoss/model';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from '@indiafoss/model';
 import { CompanionDatabase, CompanionStorage, defaultPreference, INITIAL_RATING } from './index.js';
@@ -14,6 +14,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await db.delete();
 });
 
@@ -206,5 +207,49 @@ describe('contacts', () => {
     expect((await storage.listContacts()).map((c) => c.fullName)).toEqual(['Two', 'One']);
     await storage.deleteContact('c2');
     expect((await storage.listContacts()).map((c) => c.id)).toEqual(['c1']);
+  });
+});
+
+describe('atomic event revisions', () => {
+  it('commits the bundle, revision and legacy stamp without touching attendee data', async () => {
+    await storage.saveNote('talk', 'My notes');
+    await storage.setBookmark('talk', true);
+    expect(await storage.saveEventRevision(bundle(), 1)).toBe(true);
+    expect(await storage.loadEventRevision('e1')).toBe(1);
+    expect(await storage.getSetting('event-revision-e1')).toBe('1');
+    expect(await storage.getNote('talk')).toBe('My notes');
+    expect((await storage.getPreference('talk'))?.bookmarked).toBe(true);
+  });
+  it('rolls back the bundle when writing the revision stamp fails, then allows retry', async () => {
+    await storage.saveEventRevision(bundle(), 1);
+    const next = { ...bundle(), name: 'New revision' };
+    vi.spyOn(db.settings, 'put').mockRejectedValueOnce(new Error('Storage full'));
+    await expect(storage.saveEventRevision(next, 2)).rejects.toThrow('Storage full');
+    expect(await storage.loadEventBundle('e1')).toEqual(bundle());
+    expect(await storage.loadEventRevision('e1')).toBe(1);
+    expect(await storage.getSetting('event-revision-e1')).toBe('1');
+    expect(await storage.saveEventRevision(next, 2)).toBe(true);
+    expect(await storage.loadEventBundle('e1')).toEqual(next);
+  });
+  it('does not let competing writers roll back a newer revision', async () => {
+    await Promise.all([
+      storage.saveEventRevision({ ...bundle(), name: 'Revision 3' }, 3),
+      storage.saveEventRevision({ ...bundle(), name: 'Revision 2' }, 2),
+    ]);
+    expect(await storage.loadEventRevision('e1')).toBe(3);
+    expect((await storage.loadEventBundle('e1'))?.name).toBe('Revision 3');
+  });
+  it('repairs legacy standalone stamps by adopting a coherently downloaded revision', async () => {
+    await storage.saveEventBundle(bundle());
+    await storage.setSetting('event-revision-e1', '999');
+    expect(await storage.loadEventRevision('e1')).toBeNull();
+    expect(await storage.saveEventRevision({ ...bundle(), name: 'Current' }, 3)).toBe(true);
+    expect(await storage.loadEventRevision('e1')).toBe(3);
+  });
+  it.each([0, -1, 1.5, Infinity, Number.NaN])('rejects invalid revision %s', async (revision) => {
+    await expect(storage.saveEventRevision(bundle(), revision)).rejects.toThrow(
+      'Invalid event revision',
+    );
+    expect(await storage.loadEventBundle('e1')).toBeUndefined();
   });
 });

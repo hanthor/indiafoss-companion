@@ -483,6 +483,7 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
       json: {
         schemaVersion: 1,
         eventId: 'indiafoss-2025',
+        generatedAt: '2026-09-08T12:00:00Z',
         revision: 999,
         assets: { event: 'event.deadbeef.json' },
       },
