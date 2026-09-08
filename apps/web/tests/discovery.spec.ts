@@ -6,7 +6,7 @@ test('2026 draft offers three local choices, persists them, and supports undo', 
 }) => {
   await page.goto(appUrl('/plan/rank?setup=done'));
   await expect(page.getByRole('heading', { name: 'Find your talks' })).toBeVisible();
-  await expect(page.getByText('Draft schedule · Times and sessions may change.')).toBeVisible();
+  await expect(page.getByText('Draft schedule · Times and sessions may change.')).toHaveCount(0);
   const card = page.getByTestId('talk-card');
   await expect(page.getByRole('button', { name: /^Must go:/ })).toHaveCSS(
     'background-color',
@@ -53,7 +53,7 @@ test('the old programme is explicitly archived and the fresh default is 2026', a
     page.getByText('Archived programme · This is not the current IndiaFOSS schedule.'),
   ).toBeVisible();
   await page.goto(appUrl('/schedule?event=indiafoss-2026&setup=done'));
-  await expect(page.getByText('Draft schedule · Times and sessions may change.')).toBeVisible();
+  await expect(page.getByText('Draft schedule · Times and sessions may change.')).toHaveCount(0);
   await expect(
     page.getByText('Archived programme · This is not the current IndiaFOSS schedule.'),
   ).toHaveCount(0);

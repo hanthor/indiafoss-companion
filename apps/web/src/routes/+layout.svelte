@@ -215,9 +215,7 @@
   <div class="pixelstripe" aria-hidden="true"></div>
   <SimulatorStrip />
   <LeaveByBanner />
-  {#if eventState.bundle?.sourceMetadata.scheduleStatus === 'draft'}
-    <p class="event-notice">Draft schedule · Times and sessions may change.</p>
-  {:else if eventState.bundle && eventState.bundle.id !== DEFAULT_EVENT_ID}
+  {#if eventState.bundle && eventState.bundle.id !== DEFAULT_EVENT_ID}
     <p class="event-notice">Archived programme · This is not the current IndiaFOSS schedule.</p>
   {/if}
 

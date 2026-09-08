@@ -15,6 +15,7 @@
     isMatrixUserId,
     isNeutrinoServerName,
     isTicketRef,
+    parseScannedPayload,
     neutrinoMatrixId,
     searchContacts,
     shortFingerprint,
@@ -22,6 +23,7 @@
     type AttendeeSocial,
     socialFromLink,
   } from '@indiafoss/model';
+  import TicketUpload from '$lib/components/TicketUpload.svelte';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
   import {
@@ -188,6 +190,10 @@
   }
   function setValue(spec: CardFieldSpec, value: string): void {
     let stored: string | undefined = value.trim() ? value : undefined;
+    if (spec.key === 'ticketRef' && stored) {
+      const parsed = parseScannedPayload(stored);
+      if (parsed.kind === 'ticket') stored = parsed.ticketRef;
+    }
     // The FOSS United row takes a username; the card carries the profile URL.
     if (spec.key === 'fossUnitedProfileUrl' && stored) {
       const username = usernameFromProfileUrl(stored);
@@ -485,7 +491,7 @@
 <EventGate>
   <section class="intro">
     <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
-    <h1>Your card</h1>
+    <h1>Your contact card</h1>
     <p class="muted">
       Show this to someone. Only the fields switched on below are encoded — nothing leaves this
       phone.
@@ -648,6 +654,15 @@
           <button class="linkbtn small" onclick={undoImport}>Take the import back</button>
         {/if}
       {/if}
+      {#if group === 'extras'}
+        <TicketUpload
+          saveOnSelect
+          onselect={(reference) => {
+            profileState.profile.ticketRef = reference;
+            scheduleCard();
+          }}
+        />
+      {/if}
       <div class="rows">
         {#if group === 'links'}
           <!-- The FOSS United profile is one profile among the others (#96). -->
@@ -748,7 +763,16 @@
                   aria-label={spec.label}
                   aria-invalid={bad}
                   type={spec.inputType}
-                  autocomplete="off"
+                  name={spec.key}
+                  autocomplete={spec.key === 'fullName'
+                    ? 'name'
+                    : spec.key === 'organization'
+                      ? 'organization'
+                      : spec.key === 'email'
+                        ? 'email'
+                        : spec.key === 'phone'
+                          ? 'tel'
+                          : 'off'}
                   spellcheck="false"
                   class:mono={spec.mono}
                   placeholder={spec.placeholder}

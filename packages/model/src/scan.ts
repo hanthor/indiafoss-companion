@@ -371,6 +371,24 @@ export function parseScannedPayload(input: string): ScannedPayload {
     return { kind: 'contact', profile, vcard: input };
   }
 
+  // Official ticket QR links are references, never an instruction to fetch the URL.
+  try {
+    const url = new URL(payload);
+    const ids = url.searchParams.getAll('id');
+    if (
+      url.origin === 'https://fossunited.org' &&
+      !url.username &&
+      !url.password &&
+      url.pathname === '/get_tickets' &&
+      ids.length === 1 &&
+      /^[A-Za-z0-9_-]{6,64}$/.test(ids[0]!)
+    ) {
+      return { kind: 'ticket', ticketRef: `ticket::${ids[0]}` };
+    }
+  } catch {
+    /* Bare references are handled below. */
+  }
+
   // FOSS United ticket QR codes carry the bare ticket id; explicit refs use ticket::<id>.
   if (isTicketRef(payload)) return { kind: 'ticket', ticketRef: payload };
   if (/^[A-Za-z0-9_-]{6,64}$/.test(payload))

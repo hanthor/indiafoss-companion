@@ -61,7 +61,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff2}'],
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,json,woff2}'],
         // The 7.8 MB E2EE WASM is fetched on first sign-in and then kept for offline use.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [

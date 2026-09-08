@@ -186,3 +186,23 @@ describe('PHOTO on scanned cards (#95)', () => {
     expect(parseVCard(inline)?.avatarUrl).toBeUndefined();
   });
 });
+
+describe('official ticket URL QR codes', () => {
+  it('normalizes the official ticket URL without fetching it', () => {
+    expect(parseScannedPayload('https://fossunited.org/get_tickets?id=6k1ha138pb')).toEqual({
+      kind: 'ticket',
+      ticketRef: 'ticket::6k1ha138pb',
+    });
+  });
+  it.each([
+    'https://fossunited.org.evil.example/get_tickets?id=6k1ha138pb',
+    'http://fossunited.org/get_tickets?id=6k1ha138pb',
+    'https://user@fossunited.org/get_tickets?id=6k1ha138pb',
+    'https://fossunited.org/get_tickets?id=6k1ha138pb&id=another1',
+    'https://fossunited.org/get_tickets?id=',
+    'https://fossunited.org/get_tickets?id=%3Cscript%3E',
+    'https://fossunited.org/other?id=6k1ha138pb',
+  ])('rejects lookalikes and malformed URLs: %s', (url) => {
+    expect(parseScannedPayload(url).kind).toBe('error');
+  });
+});
