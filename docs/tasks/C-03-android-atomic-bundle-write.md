@@ -170,12 +170,9 @@ say so.
    - a malformed download leaves the existing cache untouched, which guards
      the behaviour already present at lines 52-53.
 
-8. `just android-test` currently runs only `:core:test` (`Justfile`, line 107),
-   and `EventRepository` lives in `:app`. Extend that recipe to run the app
-   module's unit tests too, for example
-   `./gradlew :core:test :app:testDebugUnitTest`, and confirm the correct task
-   name against `./gradlew :app:tasks`. Without this the mandated acceptance
-   command exercises none of your new tests.
+8. Run `just android-test`, which covers both `:core:test` and
+   `:app:testDebugUnitTest`. See [Android testing](../android-testing.md) for
+   JDK 21 and SDK setup; do not substitute the core-only gate for app validation.
 
 ## Acceptance
 
@@ -187,15 +184,10 @@ Passes, and the run output visibly includes the new test class. Paste the real
 output; a green run that never executed the tests is the exact failure mode
 step 8 exists to prevent.
 
-**Where the tests live, and why it matters.** `just android-test` runs
-`:core:test` only, and `:core` is a plain Kotlin JVM module that builds without
-the Android SDK. `:app` needs the SDK, so on a machine without it neither
-`:app:compileDebugKotlin` nor any `:app` test can run at all — a contributor
-there cannot even compile a change to `EventRepository`. Put the file-replacement
-logic in `:core` (`AtomicFile.kt`) where it is testable everywhere, and keep the
-`:app` change to wiring. If you add `:app` tests, extend the `android-test`
-recipe to run them and say clearly in the PR whether you were able to execute
-them.
+**Where the tests live, and why it matters.** Keep file-replacement logic in
+`:core` (`AtomicFile.kt`) so `just android-core-test` can exercise it without
+an SDK. App wiring still requires `just android-test` and the Android SDK.
+Report local limitations plainly and require native CI before merge.
 
 Negative case: make `writeFileAtomically` truncate the target before writing
 the temp file, and confirm `a failed write leaves the previous contents

@@ -138,11 +138,8 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Core unit tests
-        run: cd apps/android/native && ./gradlew :core:test
-
-      - name: Screen renders (Robolectric screenshots)
-        run: cd apps/android/native && ./gradlew :app:testDebugUnitTest
+      - name: Core and app tests (including Robolectric screen renders)
+        run: bash scripts/android-test.sh
 
       - name: Upload screenshots
         if: always()
