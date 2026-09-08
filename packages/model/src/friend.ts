@@ -1,3 +1,6 @@
+import { MAX_SCAN_PAYLOAD_BYTES, utf8ByteLength } from './payload-limits.js';
+export { MAX_SCAN_PAYLOAD_BYTES } from './payload-limits.js';
+
 import { isMatrixUserId } from './messaging.js';
 import type { AttendeeSocial } from './contact.js';
 import { messengerHandle, normalizePhone } from './contact.js';
@@ -32,9 +35,6 @@ export interface FriendPayload {
   /** Signature over the other fields (base64url); see handshake.ts. */
   signature?: string;
 }
-
-/** Maximum accepted scanned payload; larger inputs cannot be a valid QR anyway. */
-export const MAX_SCAN_PAYLOAD_BYTES = 4096;
 
 const NEUTRINO_SERVER_NAME_RE = /^[0-9a-f]{64}$/i;
 const TICKET_REF_RE = /^ticket::[A-Za-z0-9_-]{1,64}$/;
@@ -128,11 +128,12 @@ export async function verifyFriendPayload(text: string): Promise<{
   signature: FriendSignatureState;
   publicKey: HandshakePublicKey | null;
 }> {
-  const payload = decodeFriendPayload(text);
+  const input = text.trim();
+  const payload = decodeFriendPayload(input);
   if (!payload) throw new Error('Not a friend card');
   const publicKey = parsePublicKey(payload.publicKey);
   if (!publicKey || !payload.signature) return { payload, signature: 'unsigned', publicKey };
-  const params = new URLSearchParams(text.slice(text.indexOf('?') + 1));
+  const params = new URLSearchParams(input.slice(input.indexOf('?') + 1));
   const ok = await verifyCard(params, publicKey, payload.signature);
   return { payload, signature: ok ? 'valid' : 'invalid', publicKey };
 }
@@ -143,7 +144,9 @@ export async function verifyFriendPayload(text: string): Promise<{
  * whole scan, except identities, which must be well-formed to be accepted.
  */
 export function decodeFriendPayload(text: string): FriendPayload | null {
-  const match = text.trim().match(/^indiafoss:\/\/friend\/?\?(.*)$/i);
+  const input = text.trim();
+  if (utf8ByteLength(input) > MAX_SCAN_PAYLOAD_BYTES) return null;
+  const match = input.match(/^indiafoss:\/\/friend\/?\?(.*)$/i);
   if (!match?.[1]) return null;
   const params = new URLSearchParams(match[1]);
   if (params.get('v') !== '1') return null;

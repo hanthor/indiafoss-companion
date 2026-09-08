@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AppHandoff } from './app-handoff.js';
-import { isHandoffUrl, parseHandoffUrl, toHandoffUrl } from './app-handoff.js';
+import { MAX_HANDOFF_BYTES, isHandoffUrl, parseHandoffUrl, toHandoffUrl } from './app-handoff.js';
 
 const NODE = '845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e';
 
@@ -87,4 +87,13 @@ describe('toHandoffUrl / parseHandoffUrl', () => {
       parseHandoffUrl('https://hanthor.github.io/indiafoss-companion/h/open-dm?ref=keynote&v=1'),
     ).toBeUndefined();
   });
+});
+
+it('accepts exactly 8192 UTF-8 bytes and rejects a multibyte overflow', () => {
+  const prefix = 'indiafoss://view-session?ref=keynote&padding=';
+  const remaining = 8192 - prefix.length;
+  const atLimit = prefix + 'अ'.repeat(Math.floor(remaining / 3)) + 'a'.repeat(remaining % 3);
+  expect(new TextEncoder().encode(atLimit).length).toBe(MAX_HANDOFF_BYTES);
+  expect(parseHandoffUrl(atLimit)).toMatchObject({ action: 'view-session', ref: 'keynote' });
+  expect(parseHandoffUrl(atLimit + 'a')).toBeUndefined();
 });

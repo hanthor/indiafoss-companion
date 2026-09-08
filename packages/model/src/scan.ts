@@ -3,8 +3,8 @@ import { decodeFriendPayload, isTicketRef } from './friend.js';
 import type { FriendPayload } from './friend.js';
 import { isMatrixUserId } from './messaging.js';
 
-/** Hard ceiling for a scanned payload, guarding against oversized QR abuse (§28, §42). */
-export const MAX_SCAN_PAYLOAD_BYTES = 8192;
+import { MAX_SCAN_PAYLOAD_BYTES, utf8ByteLength } from './payload-limits.js';
+export { MAX_SCAN_PAYLOAD_BYTES } from './payload-limits.js';
 
 /** A location marker resolved from an `indiafoss://location/<id>` deep link. */
 export interface ScannedLocation {
@@ -93,10 +93,6 @@ function splitStructured(value: string): string[] {
 }
 
 const LOCATION_ID = /^[a-z0-9][a-z0-9-]*$/i;
-
-function utf8ByteLength(value: string): number {
-  return new TextEncoder().encode(value).length;
-}
 
 function unescapeVCard(value: string): string {
   let out = '';

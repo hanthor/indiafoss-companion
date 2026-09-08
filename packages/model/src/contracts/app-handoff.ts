@@ -1,3 +1,4 @@
+import { MAX_SCAN_PAYLOAD_BYTES, utf8ByteLength } from '../payload-limits.js';
 /**
  * AppHandoff — what one app hands the other when the attendee crosses the
  * Companion/Chat boundary.
@@ -43,9 +44,9 @@ export const APP_HANDOFF_SCHEMA_VERSION = 1;
 /**
  * Maximum encoded handoff size, bytes. A handoff arrives from a scanned code
  * or an inbound link — untrusted input, bounded before parsing. Matches
- * {@link import('../scan.js').MAX_SCAN_PAYLOAD_BYTES}.
+ * {@link import('../payload-limits.js').MAX_SCAN_PAYLOAD_BYTES}.
  */
-export const MAX_HANDOFF_BYTES = 8192;
+export const MAX_HANDOFF_BYTES = MAX_SCAN_PAYLOAD_BYTES;
 
 /** The custom scheme already understood by `scan.ts`. */
 export const HANDOFF_SCHEME = 'indiafoss:';
@@ -236,7 +237,7 @@ export function toHandoffUrl(
  * hand them a denial-of-service on every poster QR code.
  */
 export function parseHandoffUrl(input: string): AppHandoff | undefined {
-  if (input.length > MAX_HANDOFF_BYTES) return undefined;
+  if (utf8ByteLength(input) > MAX_HANDOFF_BYTES) return undefined;
   if (!isHandoffUrl(input)) return undefined;
 
   let url: URL;
