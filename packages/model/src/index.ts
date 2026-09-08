@@ -297,3 +297,6 @@ export {
   verifyVCardSignature,
 } from './signed-vcard.js';
 export type { VCardIdentity, VCardSignatureState } from './signed-vcard.js';
+
+export { resolvePortableActivity } from './portable-activity.js';
+export type { PortableActivityReference, ActivityResolution } from './portable-activity.js';
