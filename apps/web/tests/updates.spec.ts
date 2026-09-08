@@ -374,3 +374,24 @@ test('a reinstated session is saved as active while keeping its bookmark', async
     'true',
   );
 });
+
+for (const failure of ['manifest', 'asset'] as const) {
+  test(`a failed ${failure} download retries on reconnect without reloading`, async ({
+    page,
+    request,
+  }) => {
+    const bundle = await publishedBundle(request);
+    await publish(page, 9999, bundle);
+    let failing = true;
+    await page.route(failure === 'manifest' ? MANIFEST : NEW_ASSET, async (route) => {
+      if (failing) await route.fulfill({ status: 503, body: 'Temporarily unavailable' });
+      else await route.fallback();
+    });
+    await page.goto(appUrl('/settings?setup=done'));
+    await expect(page.getByText(/Last check failed:/)).toBeVisible();
+    failing = false;
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await expect(page.getByText(/Last check failed:/)).toHaveCount(0);
+    await settingSaved(page, 'event-revision-indiafoss-2025', '9999');
+  });
+}

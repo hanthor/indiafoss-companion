@@ -29,7 +29,8 @@ export const FRESHNESS_MS = 60_000;
  */
 export class UpdateGate {
   private inFlight: Promise<void> | null = null;
-  private lastSuccessAt = 0;
+  private lastSuccessAt = new Map<string, number>();
+  private inFlightKey: string | null = null;
 
   constructor(
     private readonly freshnessMs: number = FRESHNESS_MS,
@@ -41,15 +42,24 @@ export class UpdateGate {
    * fresh. `force` skips the freshness limit; manual refresh uses it, and
    * automatic triggers do not.
    */
-  async run(check: () => Promise<boolean>, options: { force?: boolean } = {}): Promise<void> {
+  async run(
+    check: () => Promise<boolean>,
+    options: { force?: boolean; eventId?: string } = {},
+  ): Promise<void> {
     // A caller arriving mid-flight awaits the running check rather than
     // starting a competing one. Both resolve together.
-    if (this.inFlight) return this.inFlight;
-    if (!options.force && this.isFresh()) return;
+    const key = options.eventId ?? '';
+    while (this.inFlight) {
+      if (this.inFlightKey === key) return this.inFlight;
+      // Another event must get its own check, even if the previous one fails.
+      await this.inFlight.catch(() => {});
+    }
+    if (!options.force && this.isFresh(key)) return;
+    this.inFlightKey = key;
 
     this.inFlight = (async () => {
       const reached = await check();
-      if (reached) this.lastSuccessAt = this.now();
+      if (reached) this.lastSuccessAt.set(key, this.now());
     })();
 
     try {
@@ -58,17 +68,20 @@ export class UpdateGate {
       // Cleared even when `check` throws, so one rejection cannot wedge the
       // gate shut for the rest of the session.
       this.inFlight = null;
+      this.inFlightKey = null;
     }
   }
 
   /** Whether a successful check is recent enough to skip another. */
-  isFresh(): boolean {
-    return this.lastSuccessAt > 0 && this.now() - this.lastSuccessAt < this.freshnessMs;
+  isFresh(eventId = ''): boolean {
+    const last = this.lastSuccessAt.get(eventId);
+    return last !== undefined && this.now() - last < this.freshnessMs;
   }
 
   /** Forget all state. Used by tests and by a deliberate reset. */
   reset(): void {
     this.inFlight = null;
-    this.lastSuccessAt = 0;
+    this.lastSuccessAt.clear();
+    this.inFlightKey = null;
   }
 }

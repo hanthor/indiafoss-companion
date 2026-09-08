@@ -113,3 +113,51 @@ describe('UpdateGate', () => {
     expect(check).toHaveBeenCalledTimes(2);
   });
 });
+
+it('keeps freshness separate for each event', async () => {
+  const gate = new UpdateGate();
+  const check = vi.fn().mockResolvedValue(true);
+  await gate.run(check, { eventId: '2025' });
+  await gate.run(check, { eventId: '2026' });
+  await gate.run(check, { eventId: '2025' });
+  expect(check).toHaveBeenCalledTimes(2);
+});
+
+it('queues another event while coalescing its duplicate triggers', async () => {
+  const gate = new UpdateGate();
+  let release!: (value: boolean) => void;
+  const first = gate.run(
+    () =>
+      new Promise<boolean>((resolve) => {
+        release = resolve;
+      }),
+    { eventId: '2025' },
+  );
+  const check = vi.fn().mockResolvedValue(true);
+  const second = gate.run(check, { eventId: '2026' });
+  const duplicate = gate.run(check, { eventId: '2026' });
+  expect(check).not.toHaveBeenCalled();
+  release(true);
+  await Promise.all([first, second, duplicate]);
+  expect(check).toHaveBeenCalledTimes(1);
+});
+
+it('runs a queued event even when the previous event throws', async () => {
+  const gate = new UpdateGate();
+  let reject!: (error: Error) => void;
+  const first = gate.run(
+    () =>
+      new Promise<boolean>((_, fail) => {
+        reject = fail;
+      }),
+    { eventId: '2025' },
+  );
+  const failed = expect(first).rejects.toThrow('offline');
+  const check = vi.fn().mockResolvedValue(true);
+  const second = gate.run(check, { eventId: '2026' });
+  reject(new Error('offline'));
+  await Promise.all([failed, second]);
+  expect(check).toHaveBeenCalledTimes(1);
+  expect(gate.isFresh('2025')).toBe(false);
+  expect(gate.isFresh('2026')).toBe(true);
+});

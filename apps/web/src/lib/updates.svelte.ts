@@ -70,10 +70,16 @@ export async function checkForUpdates(
   // started from rather than whatever the store holds when it finishes.
   const current = eventState.bundle;
   if (eventState.status !== 'ready' || !current || current.id !== eventId) return;
-  await gate.run(() => runCheck(eventId, current), options);
+  await gate.run(
+    () => {
+      if (eventState.bundle?.id !== eventId) return Promise.resolve(false);
+      return runCheck(eventId, eventState.bundle);
+    },
+    { ...options, eventId },
+  );
 }
 
-/** Resolves true when the manifest was actually reached. */
+/** Resolves true only after all required data is downloaded and validated. */
 async function runCheck(eventId: string, current: EventBundle): Promise<boolean> {
   updateState.checking = true;
   const controller = new AbortController();
@@ -84,7 +90,11 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
       cache: 'no-store',
       signal: controller.signal,
     });
-    if (!res.ok) return false;
+    if (!res.ok) {
+      updateState.error =
+        'The schedule could not be checked. Try again when your connection is working.';
+      return false;
+    }
     const manifest: unknown = await res.json();
     if (!isValidEventManifest(manifest) || manifest.eventId !== eventId) {
       updateState.error = 'The schedule manifest is invalid or belongs to another event.';
@@ -109,7 +119,11 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
         signal: controller.signal,
       });
     }
-    if (!bundleRes.ok) return true;
+    if (!bundleRes.ok) {
+      updateState.error =
+        'The updated schedule could not be downloaded. Your saved schedule is unchanged. Try again.';
+      return false;
+    }
     const next = (await bundleRes.json()) as EventBundle;
 
     // A download that is not a usable bundle for this event must never evict
@@ -121,7 +135,7 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
         next.id !== eventId
           ? `downloaded bundle is for ${next.id}, expected ${eventId}`
           : `downloaded bundle is invalid: ${issues[0]}`;
-      return true;
+      return false;
     }
 
     // A background response must not replace another event selected in the meantime.
