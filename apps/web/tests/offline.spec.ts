@@ -53,7 +53,7 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   // 6. Browse schedule.
   await page.goto(appUrl('/schedule'));
   await expect(page.getByRole('tab', { name: /Day 1/ })).toBeVisible();
-  await expect(page.getByText(/Registrations and Breakfast/).first()).toBeVisible();
+  await expect(page.getByRole('article').first()).toBeVisible();
 
   // 7. Search.
   await page.getByPlaceholder('Search sessions…').fill('Android');

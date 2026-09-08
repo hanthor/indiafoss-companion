@@ -28,25 +28,34 @@ export const planEdits = $state<{ eventId: string | null; day: string | null; ed
   edits: structuredClone(EMPTY_PLAN_EDITS),
 });
 
-export async function hydratePlanEdits(eventId: string, day: string): Promise<void> {
-  if (planEdits.eventId === eventId && planEdits.day === day) return;
+let hydration: Promise<void> = Promise.resolve();
+let hydrationVersion = 0;
+
+export function hydratePlanEdits(eventId: string, day: string): Promise<void> {
+  if (planEdits.eventId === eventId && planEdits.day === day) return hydration;
+  const version = ++hydrationVersion;
   planEdits.eventId = eventId;
   planEdits.day = day;
   planEdits.edits = structuredClone(EMPTY_PLAN_EDITS);
-  const saved = await getStorage().getSetting(key(eventId, day));
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved) as Partial<PlanEdits>;
-      planEdits.edits = {
-        locked: parsed.locked ?? [],
-        removed: parsed.removed ?? [],
-        replacements: parsed.replacements ?? {},
-        customBlocks: parsed.customBlocks ?? [],
-      };
-    } catch {
-      // Ignore malformed local data and keep an empty edit set.
-    }
-  }
+  hydration = getStorage()
+    .getSetting(key(eventId, day))
+    .then((saved) => {
+      if (version !== hydrationVersion) return;
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as Partial<PlanEdits>;
+          planEdits.edits = {
+            locked: parsed.locked ?? [],
+            removed: parsed.removed ?? [],
+            replacements: parsed.replacements ?? {},
+            customBlocks: parsed.customBlocks ?? [],
+          };
+        } catch {
+          // Ignore malformed local data and keep an empty edit set.
+        }
+      }
+    });
+  return hydration;
 }
 
 async function persist(): Promise<void> {

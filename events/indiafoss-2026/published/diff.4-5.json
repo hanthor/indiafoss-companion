@@ -1,0 +1,70 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 5,
+  "from": 4,
+  "changes": [
+    {
+      "activityId": "act-cfp-0hgfa2n1kg",
+      "title": "Porting Pipecat to Rust: The story of Rustvani-Fast Cheap Voice Ai for Bharat",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-cfp-8knf7bja7g",
+      "title": "Navigating the FOSS Contribution Journey",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28ladhqd4a",
+      "title": "A plan to sort out this CVE mess",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laff4t5p",
+      "title": "Extracting AES Keys from Embedded Devices Using Open Source Hardware",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laf9lvrk",
+      "title": "Extending Capa for Malicious Script Analysis",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lai818n3",
+      "title": "The Art of Userspace Sandboxing on Linux",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lafri35r",
+      "title": "Papers, Please: A First Look at Age Verification on the Web",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la8q5i65",
+      "title": "Keeping an Eye on your Eye: Disassembling and Reassembling Smart Camera Hardware to breach YOUR Security",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la50468f",
+      "title": "Reverse Engineering the PAN QR Code",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lah172t2",
+      "title": "Hacking India's Largest Exam System",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lao2ucgj",
+      "title": "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-cfp-bk39jtqjkk",
+      "title": "Tiles: Own your AI with local models and open protocols",
+      "type": "cancelled"
+    }
+  ],
+  "summary": {
+    "cancelled": 12
+  }
+}

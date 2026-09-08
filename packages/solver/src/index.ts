@@ -297,6 +297,7 @@ export function solveDay(input: SolveDayInput): SolverResult {
   const candidates = bundle.activities.filter(
     (a) =>
       !a.cancelled &&
+      a.type !== 'meal' &&
       a.start?.startsWith(day) === true &&
       a.end?.startsWith(day) === true &&
       preferences.dispositionOf(a.id) !== 'not-interested',
@@ -375,6 +376,15 @@ export function solveDay(input: SolveDayInput): SolverResult {
   // place at most one flexible activity from the goal budget (largest goal
   // that fits, up to 60 min in 15-min steps).
   const items: ItineraryItem[] = [];
+  let lunchPlaced = false;
+  const lunchWindows = bundle.activities.filter(
+    (a) =>
+      a.type === 'meal' &&
+      !a.cancelled &&
+      /lunch/i.test(a.title) &&
+      a.start?.startsWith(day) &&
+      a.end?.startsWith(day),
+  );
   const flexBudget = new Map(flexibleGoals.map((g) => [g.kind, g.dailyMinutes]));
   const chosenSorted = [...chosen].sort((a, b) => parse(a.start!) - parse(b.start!));
 
@@ -388,6 +398,29 @@ export function solveDay(input: SolveDayInput): SolverResult {
       minutesOfDay(current.end!) + travel.seconds(current.locationId, next.locationId) / 60;
     const gapEndMin = minutesOfDay(next.start!) - bufferSeconds / 60;
     const gapMinutes = gapEndMin - gapStartMin;
+    // Per-room lunch rows describe availability, not competing sessions. Use
+    // one 30-minute reservation within a real gap; never displace a chosen talk.
+    if (!lunchPlaced) {
+      const slots = lunchWindows
+        .map((meal) => ({
+          start: Math.max(gapStartMin, minutesOfDay(meal.start!)),
+          end: Math.min(gapEndMin, minutesOfDay(meal.end!)),
+        }))
+        .filter((slot) => slot.end - slot.start >= 30)
+        .sort((a, b) => a.start - b.start);
+      const slot = slots[0];
+      if (slot) {
+        items.push({
+          activityId: `flex-lunch-${day}`,
+          start: toIso(day, slot.start),
+          end: toIso(day, slot.start + 30),
+          flexible: true,
+          label: 'Lunch · food area',
+        });
+        lunchPlaced = true;
+        continue;
+      }
+    }
     if (
       gapMinutes < 15 ||
       ranges.some((r) => parse(current.end!) < r.end && parse(next.start!) > r.start)

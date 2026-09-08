@@ -4,6 +4,7 @@
   import { applyItineraryEdits } from '@indiafoss/solver';
   import { formatDayLabel, formatTime, getEventDays, itineraryToIcs } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
+  import { savePlanned } from '$lib/planned.svelte';
   import { solveForDay } from '$lib/solver.svelte';
   import type { TravelTimeProvider } from '@indiafoss/solver';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
@@ -45,18 +46,23 @@
   $effect(() => {
     if (!bundle || !selectedDay) return;
     // Read locks synchronously so toggling a lock re-solves with it as a hard constraint.
-    const locked = [...planEdits.edits.locked];
+    void [...planEdits.edits.locked];
+    let cancelled = false;
     const day = selectedDay;
     solving = true;
     void hydratePlanEdits(bundle.id, day)
-      .then(() => solveForDay(bundle, day, locked))
+      .then(() => solveForDay(bundle, day, [...planEdits.edits.locked]))
       .then((r) => {
+        if (cancelled) return;
         result = r;
         solving = false;
       })
       .catch(() => {
-        solving = false;
+        if (!cancelled) solving = false;
       });
+    return () => {
+      cancelled = true;
+    };
   });
 
   const activityMap = $derived(new Map((bundle?.activities ?? []).map((a) => [a.id, a])));
@@ -70,6 +76,13 @@
       activities: activityMap,
       travel: r.travel,
     });
+  });
+
+  $effect(() => {
+    if (!bundle || !selectedDay || !edited || solving || result?.itinerary.day !== selectedDay)
+      return;
+    const ids = edited.items.filter((item) => activityMap.has(item.id)).map((item) => item.id);
+    void savePlanned(bundle.id, selectedDay, ids).catch(() => {});
   });
 
   const locationName = (id: string | undefined): string | undefined =>

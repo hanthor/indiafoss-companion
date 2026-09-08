@@ -311,3 +311,58 @@ describe('flexible gap boundaries', () => {
     }
   });
 });
+
+describe('per-room lunch availability', () => {
+  it('keeps duplicated lunch rows out of attendance choices and reserves lunch once', () => {
+    const result = solveDay({
+      bundle: bundle([
+        act('morning', '10:00', '12:00'),
+        act('afternoon', '14:00', '15:00'),
+        act('lunch-a', '12:00', '14:30', {
+          type: 'meal',
+          title: 'Lunch break',
+          locationId: 'hall-1',
+        }),
+        act('lunch-b', '13:00', '14:00', {
+          type: 'meal',
+          title: 'Lunch break',
+          locationId: 'room-1',
+        }),
+      ]),
+      day: DAY,
+      preferences: prefs(),
+      travel,
+      flexibleGoals: [],
+    });
+    expect(
+      result.itinerary.items.filter((a) => a.activityId.startsWith('flex-lunch-')),
+    ).toHaveLength(1);
+    expect(result.itinerary.items.map((a) => a.activityId)).not.toContain('lunch-a');
+    expect(result.itinerary.items.map((a) => a.activityId)).not.toContain('lunch-b');
+    expect(Object.values(result.backups).flat()).not.toContain('lunch-a');
+  });
+  it('allows a lunch pause inside a whole-devroom reservation without adding competing talks', () => {
+    const result = solveDay({
+      bundle: bundle([
+        act('morning', '10:00', '12:00', { trackId: 'devroom', locationId: 'room-1' }),
+        act('afternoon', '14:00', '15:00', { trackId: 'devroom', locationId: 'room-1' }),
+        act('lunch', '12:00', '14:00', {
+          type: 'meal',
+          title: 'Lunch break',
+          locationId: 'room-1',
+        }),
+        act('other', '12:30', '13:00', { trackId: 'other' }),
+      ]),
+      day: DAY,
+      preferences: prefs(),
+      travel,
+      stayTrackIds: ['devroom'],
+    });
+    expect(result.mustAttendConflicts).toEqual([]);
+    expect(result.itinerary.items.map((a) => a.activityId)).toEqual([
+      'morning',
+      `flex-lunch-${DAY}`,
+      'afternoon',
+    ]);
+  });
+});

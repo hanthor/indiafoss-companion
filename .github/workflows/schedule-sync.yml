@@ -1,0 +1,109 @@
+name: Import the official IndiaFOSS schedule
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: official-schedule-sync
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.repository == 'hanthor/indiafoss-companion' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      changed: ${{ steps.candidate.outputs.changed }}
+      head: ${{ steps.candidate.outputs.head }}
+      base: ${{ steps.candidate.outputs.base }}
+      pr: ${{ steps.candidate.outputs.pr }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.26.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Fetch and reconcile the published programme
+        run: pnpm --filter @indiafoss/event-sync exec tsx src/index.ts sync indiafoss-2026 --source live
+      - name: Prepare a data-only candidate
+        id: candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          base=$(git rev-parse HEAD)
+          git add events/indiafoss-2026/raw events/indiafoss-2026/normalized events/indiafoss-2026/published events/indiafoss-2026/activity-ids.json
+          if git diff --cached --quiet -- events/indiafoss-2026/published/manifest.json; then
+            echo 'changed=false' >> "$GITHUB_OUTPUT"
+            echo 'The public programme is unchanged.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git diff --cached --name-only | while IFS= read -r file; do
+            case "$file" in
+              events/indiafoss-2026/raw/*.json|events/indiafoss-2026/normalized/*.json|events/indiafoss-2026/published/*.json|events/indiafoss-2026/activity-ids.json) ;;
+              *) echo "Unexpected candidate path: $file"; exit 1 ;;
+            esac
+          done
+          branch="automation/schedule-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git checkout -b "$branch"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Refresh the official IndiaFOSS 2026 programme'
+          head=$(git rev-parse HEAD)
+          git push origin "$branch"
+          printf '%s\n' 'Automatically imported from the public FOSS United APIs. Talk choice keys are reconciled through CFP identity. The complete reusable CI workflow must pass before this data-only PR is merged. Main must still match the tested base.' > "$RUNNER_TEMP/schedule-pr.md"
+          pr=$(gh pr create --base main --head "$branch" --title 'Refresh the official IndiaFOSS 2026 programme' --body-file "$RUNNER_TEMP/schedule-pr.md")
+          {
+            echo "changed=true"
+            echo "head=$head"
+            echo "base=$base"
+            echo "pr=$pr"
+          } >> "$GITHUB_OUTPUT"
+          echo "Candidate: $pr" >> "$GITHUB_STEP_SUMMARY"
+
+  validate:
+    needs: prepare
+    if: needs.prepare.outputs.changed == 'true'
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ needs.prepare.outputs.head }}
+
+  publish:
+    needs: [prepare, validate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - name: Merge only the tested candidate on its unchanged base
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SYNC_HEAD: ${{ needs.prepare.outputs.head }}
+          SYNC_BASE: ${{ needs.prepare.outputs.base }}
+          SYNC_PR: ${{ needs.prepare.outputs.pr }}
+        run: |
+          set -euo pipefail
+          current=$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq .object.sha)
+          test "$current" = "$SYNC_BASE" || { echo 'Main advanced during validation; leave the candidate for review.'; exit 1; }
+          gh pr merge "$SYNC_PR" --squash --delete-branch --match-head-commit "$SYNC_HEAD"
+          # Bot-authored pushes do not trigger other workflows. Dispatch explicitly.
+          gh workflow run pages.yml --ref main
+          gh workflow run nightly.yml --ref main
+          echo "Validated and merged $SYNC_PR; PWA deployment and nightly builds dispatched." >> "$GITHUB_STEP_SUMMARY"

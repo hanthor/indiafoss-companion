@@ -52,7 +52,7 @@ fun ActivityScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(activity?.title ?: "Session") },
+                title = { Text("Session") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -79,6 +79,13 @@ fun ActivityScreen(
                 .padding(padding),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
+            item {
+                Text(
+                    text = activity.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+                )
+            }
             item {
                 Text(
                     text = timeAndRoom(activity, bundle),

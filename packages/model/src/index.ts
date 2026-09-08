@@ -39,8 +39,10 @@ export interface ExternalLink {
 
 export interface Activity {
   id: string;
-  /** Upstream identifier when one exists and is stable. */
+  /** Upstream schedule-row identifier; organisers may recreate it. */
   sourceId?: string;
+  /** Stable CFP identity for talk choices, independent of time and room. */
+  proposalId?: string;
 
   type: ActivityType;
 

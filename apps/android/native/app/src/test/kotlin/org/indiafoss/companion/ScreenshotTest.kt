@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.assertIsDisplayed
+import org.indiafoss.companion.ui.screens.ActivityScreen
 import androidx.test.core.app.ApplicationProvider
 import org.indiafoss.companion.core.ContactCard
 import org.indiafoss.companion.core.EventBundle
@@ -74,6 +77,18 @@ class ScreenshotTest {
         view.draw(Canvas(bitmap))
         val dir = File("build/screenshots").apply { mkdirs() }
         File(dir, "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
+    }
+
+    @Test fun longSessionTitle() {
+        val title = "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast file transfers"
+        val activity = bundle.activities.first().copy(title = title)
+        shoot("session-long-title") {
+            ActivityScreen(
+                state().copy(bundle = bundle.copy(activities = listOf(activity))),
+                activity.id, {}, {}, {},
+            )
+        }
+        compose.onNodeWithText(title).assertIsDisplayed()
     }
 
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }

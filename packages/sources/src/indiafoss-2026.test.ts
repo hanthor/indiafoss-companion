@@ -42,10 +42,6 @@ describe('published IndiaFOSS 2026 draft', () => {
     expect(bundle.id).toBe('indiafoss-2026');
     expect(bundle.sourceMetadata.scheduleStatus).toBe('draft');
     expect(bundle.activities.length).toBeGreaterThan(0);
-    expect(bundle.activities.find((a) => a.id === 'act-28la50468f')?.scheduleNote).toContain(
-      'Timing needs confirmation',
-    );
-    expect(bundle.activities.find((a) => a.id === 'act-28la50468f')?.end).toBeUndefined();
     expect(scheduleIssues(bundle)).toEqual([]);
   });
   it('rejects a stale year or an invented room', () => {
