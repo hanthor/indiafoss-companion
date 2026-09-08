@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
   import { meshLinkLabel } from '@indiafoss/matrix';
   import { onMount } from 'svelte';
@@ -497,6 +498,19 @@
       phone.
     </p>
   </section>
+
+  <ProfileImport
+    onimport={(imported) => {
+      const before = JSON.stringify(profileState.profile);
+      const changes = applyImportedProfile(profileState.profile, imported);
+      if (changes.length > 0) {
+        importSnapshot = before;
+        snapshotFrom = 'identity';
+      }
+      contactMessage = acceptChanges(changes, 'GitHub');
+      scheduleCard();
+    }}
+  />
 
   <!-- Hero: the QR is always live -->
   <section class="card hero" aria-label="Your contact QR code">
