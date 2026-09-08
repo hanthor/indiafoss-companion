@@ -25,10 +25,10 @@ records the decision. Do not open new issues for these.
      a build made before your change. Use `just test-e2e` (which depends on
      `build`) or run `just build` first. This has already produced one green
      local run for a change CI then rejected.
-   - **`just android-test` runs `:core:test` only.** Nothing under `:app` is
-     covered, and `:app` needs the Android SDK to compile at all — see
-     [#210](https://github.com/hanthor/indiafoss-companion/issues/210). If your
-     change touches `:app`, say plainly whether you were able to compile it.
+   - **`just android-test` runs both core and app tests.** It requires JDK 21
+     and the Android SDK; see [Android testing](../android-testing.md).
+     `just android-core-test` is explicitly core-only. Say which gate ran,
+     and require native CI plus emulator success for native changes.
 4. **If the spec is wrong, stop and say so.** The architecture document wins
    over the spec, and reality wins over both. Do not implement something you
    can see is incorrect.
@@ -128,10 +128,9 @@ Two couplings the arrows understate, both found while writing the specs:
   replaces that tool's local `EventManifest` declaration. Neither blocks the
   other, but doing them in parallel will conflict. Take them in either order,
   one at a time.
-- **C-03's acceptance command does not currently test C-03.** `just
-android-test` runs only `:core:test`, and `EventRepository` lives in `:app`.
-  The spec directs the implementer to extend that recipe first; without it the
-  acceptance is vacuous.
+- **C-03 needs the full native gate.** `just android-test` covers both
+  `:core:test` and `:app:testDebugUnitTest`; `just android-core-test` alone
+  cannot validate `EventRepository` or app wiring.
 
 ## Spec template
 

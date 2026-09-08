@@ -104,8 +104,12 @@ venue-validate event="synthetic":
 venue-report event="indiafoss-2026":
     pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" {{event}} --markdown > events/{{event}}/venue/validation-report.md
 
-# Run the native Android app's Kotlin :core unit tests.
+# Test Android core and app (including Compose screen renders; JDK 21 and SDK required).
 android-test:
+    bash scripts/android-test.sh
+
+# Test only the pure Kotlin engines; this does not compile or test the Android app.
+android-core-test:
     cd apps/android/native && ./gradlew :core:test
 
 # Assemble a debug APK (requires JDK 21 and Android SDK).
