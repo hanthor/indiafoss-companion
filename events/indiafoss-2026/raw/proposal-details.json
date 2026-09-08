@@ -1899,6 +1899,60 @@
       }
     ]
   },
+  "1vj5aoro8u": {
+    "proposalId": "1vj5aoro8u",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
+    "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
+    "keyTakeaways": [
+      "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
+      "Feasibility of eco-cost standard for interfaces",
+      "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
+      "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
+      "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
+    ],
+    "references": [
+      {
+        "label": "https://gooey.ai/sovereignty",
+        "url": "https://gooey.ai/sovereignty"
+      },
+      {
+        "label": "https://gooey.ai/agriculture",
+        "url": "https://gooey.ai/agriculture"
+      },
+      {
+        "label": "https://gooey.ai/model-trainer",
+        "url": "https://gooey.ai/model-trainer"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "dagd2l28tm": {
+    "proposalId": "dagd2l28tm",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
+    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://fosstodon.org/@badrihippo",
+        "url": "https://fosstodon.org/@badrihippo"
+      }
+    ],
+    "links": [
+      {
+        "label": "@Muneer_S’s thread",
+        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "37sjgknrj3": {
     "proposalId": "37sjgknrj3",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/37sjgknrj3",
@@ -1979,60 +2033,6 @@
       }
     ],
     "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1vj5aoro8u": {
-    "proposalId": "1vj5aoro8u",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
-    "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
-    "keyTakeaways": [
-      "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
-      "Feasibility of eco-cost standard for interfaces",
-      "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
-      "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
-      "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
-    ],
-    "references": [
-      {
-        "label": "https://gooey.ai/sovereignty",
-        "url": "https://gooey.ai/sovereignty"
-      },
-      {
-        "label": "https://gooey.ai/agriculture",
-        "url": "https://gooey.ai/agriculture"
-      },
-      {
-        "label": "https://gooey.ai/model-trainer",
-        "url": "https://gooey.ai/model-trainer"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "dagd2l28tm": {
-    "proposalId": "dagd2l28tm",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
-    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://fosstodon.org/@badrihippo",
-        "url": "https://fosstodon.org/@badrihippo"
-      }
-    ],
-    "links": [
-      {
-        "label": "@Muneer_S’s thread",
-        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
-      },
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"
@@ -2725,6 +2725,334 @@
       }
     ]
   },
+  "9i6peimmer": {
+    "proposalId": "9i6peimmer",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9i6peimmer",
+    "description": "Add OpenTelemetry to a Python or Node application and traces often appear as if by magic. A launcher patches your libraries, you restart the app, and suddenly Jaeger is full of spans.\n\nTry the same thing in Go and you quickly discover there's no opentelemetry-instrument command that just works. Why not?\n\nThis talk starts with that question and follows the path of a span through a Go application. We'll briefly look at what instrumentation really is just code that starts and ends spans at the right moments, and why manual instrumentation remains the norm in Go, using context.Context and libraries such as otelhttp, otelgrpc, and otelsql.\n\nFrom there, we'll explore the three places where telemetry can be injected into a Go program: directly in your source code, at build time through compiler-assisted rewriting, or externally using eBPF agents attached to a running binary.\n\nBy the end of the session, attendees will be able to examine any span in a Go service, explain how it was created, and understand the trade-offs among manual instrumentation, build-time tooling, and eBPF-based observability. loooks good?",
+    "keyTakeaways": [
+      "What instrumentation really is: code that starts and ends spans at the right moments, and in Go, that code has to be explicit, because nothing patches it in for you at runtime.",
+      "Why Go has no opentelemetry-instrument: Go compiles to native machine code with no VM and no mutable runtime functions, so the monkey-patching and bytecode agents used in Python, Node, and Java simply don't apply.",
+      "Manual is the norm in Go: the SDK plus context.Context propagation and libraries like otelhttp, otelgrpc, and otelsql are how most real Go services get traced."
+    ],
+    "references": [
+      {
+        "label": "https://opentelemetry.io/blog/2025/go-compile-time-instrumentation/",
+        "url": "https://opentelemetry.io/blog/2025/go-compile-time-instrumentation/"
+      },
+      {
+        "label": "https://opentelemetry.io/docs/languages/go/instrumentation/",
+        "url": "https://opentelemetry.io/docs/languages/go/instrumentation/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "d6mltdb2aq": {
+    "proposalId": "d6mltdb2aq",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d6mltdb2aq",
+    "description": "Autonomous AI agents running continuous, self-learning execution loops introduce a severe infrastructure security challenge: they inherently require running non-deterministic, AI-generated code and managing live external network boundaries.\n\nThis architectural paradigm represents \"Remote Code Execution by Design,\" where traditional Linux container runtimes (relying purely on namespaces and cgroups via Docker or containerd) fail to provide strong enough isolation to prevent kernel-level exploits or data exfiltration.\n\nThis talk demonstrates an end-to-end, open-source defense-in-depth architecture combining gVisor for system-level compute containment and Pipelock for inline network data loss prevention (DLP).\n\nWe will analyze how gVisor’s user-space kernel (runsc) intercepts application system calls to isolate the host OS from dangerous or unexpected runtime execution paths triggered during an agent's self-directed optimization cycles.\n\nConcurrently, we look at Pipelock acting as an out-of-process AI egress firewall, capturing outbound HTTP, Model Context Protocol (MCP), and WebSocket traffic to strip out leaked credentials (API keys, secrets) and intercept prompt injection vectors before they reach the agent's context.\n\nLive Demo: The core of this 30-minute session will be a live terminal walkthrough demonstrating a self-learning agent deployed inside a Kubernetes Pod sandboxed by gVisor, with Pipelock attached as an egress proxy.\n\nDuring the demo, we will execute a simulated adversarial payload designed to trigger both a host-level container escape and a sensitive credential leak, visualizing live how gVisor drops the malicious system calls and Pipelock blocks the data exfiltration path.\n\nWe will conclude by detailing the engineering trade-offs, providing latency overhead benchmarks, and sharing the open-source configuration templates.",
+    "keyTakeaways": [
+      "The Dual-Threat Vector: Learn why self-learning autonomous agents break traditional container security models by introducing simultaneously unvetted local code execution and dynamic network exfiltration risks.",
+      "Compute Sandboxing: Understand how gVisor's Sentry and Gofer architecture intercepts system calls to safely cage untrusted, AI-generated Python code without the resource overhead of full virtualization.",
+      "Network Defenses : Discover how to implement Pipelock as an out-of-process egress proxy to intercept Model Context Protocol (MCP) and HTTP payloads, enforcing strict data loss prevention (DLP) boundaries.",
+      "Production Blueprint: Walk away with a validated, completely open-source infrastructure template (Kubernetes manifests + proxy configuration files) to securely isolate high-privilege AI agents in enterprise systems."
+    ],
+    "references": [
+      {
+        "label": "https://cloudonair.withgoogle.com/events/google-cloud-summit-india-builder-connect/speakers#",
+        "url": "https://cloudonair.withgoogle.com/events/google-cloud-summit-india-builder-connect/speakers#"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "b8josvurds": {
+    "proposalId": "b8josvurds",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/b8josvurds",
+    "description": "Large Language Models have made it incredibly easy to build AI demos, but taking an AI agent from a weekend prototype to a production-ready system is a completely different challenge.\n\nIn this talk, I’ll walk through the architecture and engineering decisions behind building an AI-powered on-call assistant using an open-source stack. Instead of focusing on prompt engineering alone, we’ll look at what happens after the first successful demo - how agents interact with tools, how Model Context Protocol (MCP) simplifies integrations, how multi-agent workflows improve task execution, and what it takes to deploy and operate these systems reliably.\n\nWe’ll explore an end-to-end architecture consisting of a web UI, agent layer, MCP server, tool integrations, and deployment on Kubernetes/OpenShift with GitLab CI/CD. Along the way, I’ll discuss real engineering challenges such as context management, tool failures, latency, deployment strategies, observability, and debugging production issues.\n\nThe goal of this talk isn’t to introduce another AI framework. Instead, it’s to share practical lessons that any engineer can apply while building production-grade AI applications using open technologies.\n\nWhether you’re experimenting with AI agents for the first time or already deploying them in production, you’ll leave with a clearer understanding of the architectural patterns, trade-offs, and operational challenges involved in moving from prompts to production.",
+    "keyTakeaways": [
+      "Understand the architecture of a production-ready AI agent built using open-source components.",
+      "Learn how the Model Context Protocol (MCP) simplifies tool integration and agent extensibility.",
+      "Discover common production challenges including context management, latency, hallucinations, retries, and observability.",
+      "See how GitLab CI/CD and Kubernetes/OpenShift can be used to automate deployments for AI services.",
+      "Learn practical engineering patterns that make AI systems more reliable, maintainable, and scalable.",
+      "Understand the trade-offs between proof-of-concept demos and production-ready AI applications.",
+      "Leave with a reference architecture that can be adapted for your own AI projects."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/modelcontextprotocol/modelcontextprotocol",
+        "url": "https://github.com/modelcontextprotocol/modelcontextprotocol"
+      },
+      {
+        "label": "https://arxiv.org/abs/2606.13699",
+        "url": "https://arxiv.org/abs/2606.13699"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "76tid1o2lg": {
+    "proposalId": "76tid1o2lg",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/76tid1o2lg",
+    "description": "TLDR\n\nHow we utilized a lesser known postgres feature/hack to inject custom data into the database WAL stream to remove the outbox table completely. Reduced tail latencies and make downstream events durable in distributed systems en route.\n\nBackground\n\nRoots from learnings of production challenges of dealing with with realtime payments, at #6th largest UPI payments org by volume\n\nContext\n\nOutbox pattern is a well known pattern used in distributed systems to power side-effects of actions. These effects need to be strongly tied to actions, else users face broken processes. Need durability + reliaiblity + speed (fast rewards/cashbacks!)\n\nActions (SignUp, Transaction, …)\n\nEffects: (Allow UPI Id, Bank Account Fetch, Cashback, ..)\n\nSome examples of our usecases\n\nDurability : services will go down, still need to give cashback\n\nReliability: users need cashbacks after the txn, always.\n\nSpeed: no one wants to wait 5 seconds to get a cashback\n\nThe Old Way\n\nWrite data in a new database table wrapped in an atomic block → double writes and updates, contention on database disk and cpu resources.\n\nRun a polling based consumer to read→ dedicated index needed to poll, scan, read record. Send, handle retires, backoffs, polling delays, expensive housekeeping.\n\nLong Maintenance Windows: MVCC means updates are inserts, deletes are not actually deletes, but tagging → this cleanup needed everyday via vacuum jobs.\n\nThe Hack?\n\nTo keep a standby in sync, the database writes every change to WAL log, ships those bytes to replicas in order, and tracks how far each replica has caught up.\n\nPostgres’ replication can already carry application’s events\n\nWe ride the pg_logical_emit_message to write a blob into the WAL atomically with the surrounding transaction, and consume it from WAL stream.\n\nWe use this in production, will share benchmark results, consumer guarentees, gotchas, when to use and when not to etc.",
+    "keyTakeaways": [
+      "Benchmark Results of the new method v/s classical method",
+      "Production risks and learnings of using this on millions of events per hour scale on prod.",
+      "How we removed an entire class of infra (outbox workers, retries, cleanup) from our system and The hidden cost of \"industry standard\" patterns → and how to avoid them"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/YashKumarVerma/prototypes/tree/main/postgres",
+        "url": "https://github.com/YashKumarVerma/prototypes/tree/main/postgres"
+      },
+      {
+        "label": "https://microservices.io/patterns/data/transactional-outbox.html",
+        "url": "https://microservices.io/patterns/data/transactional-outbox.html"
+      },
+      {
+        "label": "https://pgpedia.info/p/pg_logical_emit_message.html",
+        "url": "https://pgpedia.info/p/pg_logical_emit_message.html"
+      },
+      {
+        "label": "https://fossunited.org/c/bengaluru/march-2026/cfp/2sbjrl0q5o",
+        "url": "https://fossunited.org/c/bengaluru/march-2026/cfp/2sbjrl0q5o"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "bl0i7u8nno": {
+    "proposalId": "bl0i7u8nno",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bl0i7u8nno",
+    "description": "Dashboards, the very thing that has to hint you what is broken becomes the thing most likely to break.\n\n\"Dashboard-as-Code\" has been a broken promise for years. Teams export dashboards into giant JSON blobs or YAML files, only to commit them to Git, and call it \"Infrastructure as Code\". But these files are difficult to review in a pull request, they can break silently when a field name changes, and they offer little validation before deployment.\n\nWhat if your observability dashboards could be treated the same way as your application code?\n\nThis talk covers Perses, a CNCF Sandbox project for vendor neutral dashboards, and its Kubernetes Operator. Together they bring Kubernetes-native Dashboard-as-Code to the cloud-native ecosystem providing the option to author dashboards with the Perses Go SDK and deploy them via GitOps.\n\nThis talk will focus on Prometheus metrics dashboards (Prometheus plugin).\n\nConsider a typical observability workflow today:\n\nA team member builds a dashboard in a UI, exports it as a 1000 line JSON or YAML file, and commits it.\n\nAnother team member edits a Prometheus query as a raw string. The change is hard to review in a giant JSON/YAML diff, and nothing in the usual export and commit workflow validates the dashboard definition before deploy.\n\nThe dashboard gets deployed and panels break due to a malformed query or a wrong field in the JSON/YAML.\n\nPerses provides an open dashboard and datasource specification aimed at interoperability across tools. The Perses Operator brings dashboard and datasource management to Kubernetes with four Custom Resource Definitions (CRDs):\n\nPerses: Declares a Perses server instance. The operator manages the Deployment or StatefulSet, Service, ConfigMap, and optional TLS, storage, and health probes.\n\nPersesDashboard: Defines a dashboard as a Kubernetes resource. The Kubernetes namespace maps to a Perses project.\n\nPersesDatasource: Declares a project scoped datasource (e.g., a Prometheus endpoint) synced to matching Perses instances.\n\nPersesGlobalDatasource: A cluster scoped datasource shared across all projects.\n\nYou do not have to hand write these manifests. With the Perses Go SDK and promql-builder, dashboards are authored in Go and can be generated as PersesDashboard YAML for GitOps. promql-builder constructs PromQL as an AST instead of fragile raw strings, with built-in validation. The YAML is the delivery format; the source of truth is code.\n\nExample: A generated PersesDashboard CR (simplified):\n\nThe operator watches for changes, syncs valid dashboards to the matching Perses instance via the Perses API, and reports status on the Custom Resource. No manual imports and no fragile copy paste scripts.\n\nFrom Go code to PersesDashboard CRs: author dashboards with the Perses Go SDK and promql-builder, validate PromQL at build / CI time, and generate PersesDashboard Custom Resources instead of maintaining giant exported JSON or YAML.\n\nCompose and extend: import reusable panels from community-mixins as a Go module, customize label matchers for your environment, and add your own panels alongside them.\n\nGitOps workflow: PR review, render manifests, deploy via Argo CD; the operator reconciles PersesDashboard CRs and they appear in the Perses UI.",
+    "keyTakeaways": [
+      "Attendees will learn how to treat dashboards like application code that is version controlled, peer reviewed, validated in CI, and delivered declaratively through GitOps.",
+      "Attendees will see how familiar Kubernetes primitives CRDs, namespaces, and controllers manage the lifecycle of dashboards and datasources.",
+      "Attendees will understand Perses as a CNCF Sandbox, open specification dashboarding project, and how DaC (Go SDK + promql-builder + community-mixins) plus the Operator close the gap left by exported JSON/YAML \"as code\"."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/perses/perses",
+        "url": "https://github.com/perses/perses"
+      },
+      {
+        "label": "https://github.com/perses/perses-operator",
+        "url": "https://github.com/perses/perses-operator"
+      },
+      {
+        "label": "https://github.com/perses/spec",
+        "url": "https://github.com/perses/spec"
+      },
+      {
+        "label": "https://perses.dev/perses/docs/dac/go/",
+        "url": "https://perses.dev/perses/docs/dac/go/"
+      },
+      {
+        "label": "https://github.com/perses/promql-builder",
+        "url": "https://github.com/perses/promql-builder"
+      },
+      {
+        "label": "https://github.com/perses/community-mixins",
+        "url": "https://github.com/perses/community-mixins"
+      },
+      {
+        "label": "https://perses.dev/plugins/docs/prometheus/",
+        "url": "https://perses.dev/plugins/docs/prometheus/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Perses",
+        "url": "https://github.com/perses/perses"
+      },
+      {
+        "label": "Kubernetes Operator",
+        "url": "https://github.com/perses/perses-operator"
+      },
+      {
+        "label": "Perses Go SDK",
+        "url": "https://perses.dev/perses/docs/dac/go/"
+      },
+      {
+        "label": "open dashboard and datasource specification",
+        "url": "https://github.com/perses/spec"
+      },
+      {
+        "label": "promql-builder",
+        "url": "https://github.com/perses/promql-builder"
+      },
+      {
+        "label": "community-mixins",
+        "url": "https://github.com/perses/community-mixins"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5i25u6dfnv": {
+    "proposalId": "5i25u6dfnv",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5i25u6dfnv",
+    "description": "Writing Network Policies looks straightforward - until traffic starts getting blocked for reasons that aren’t obvious, policies silently match nothing, or things work in staging but fail in production. I learned this the hard way while writing and designing Network Policies used by multiple teams across multiple Kubernetes clusters, and debugging policy failures in real production environments.In this lightning talk, I’ll share the most common Cilium Network Policy anti-patterns one can run into. We’ll look at real examples of policies that look correct but are wrong, why certain design decisions matter, and how small mistakes can lead to confusing failures. Each example will be drawn from real world usage and paired with the corrected approach.We will highlight practical tips and anti-patterns that are rarely documented, and brings together the key things you need to know to reliably firewall Kubernetes workloads using Cilium Network Policies.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://cilium.io/",
+        "url": "https://cilium.io/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8ne6l7qetc": {
+    "proposalId": "8ne6l7qetc",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8ne6l7qetc",
+    "description": "Many teams start with a handful of cron jobs and shell scripts. Over time, these grow into business-critical workflows that become difficult to monitor, debug, retry, and maintain. While workflow orchestration platforms such as Airflow and Temporal solve many of these problems, they can introduce operational complexity that smaller teams may not need.\n\nDagu is an open source workflow orchestration engine designed around simplicity. It allows teams to define workflows using declarative YAML, execute existing scripts and commands, visualize dependencies, monitor execution, and manage scheduled jobs without requiring a complex control plane.\n\nIn this talk, I will share my experience contributing to Dagu and explore the architectural decisions that make it lightweight while still being capable of handling production automation workloads.\n\nThe session will cover:\n\nThe limitations of traditional cron-based automation.\n\nCommon workflow orchestration patterns and challenges.\n\nHow Dagu models workflows, dependencies, retries, and scheduling.\n\nArchitectural trade-offs compared to Airflow, Temporal, and Kubernetes CronJobs.\n\nLessons learned while contributing to an open source workflow orchestration project.\n\nPractical demonstrations of building and operating workflows using Dagu.\n\nAttendees will gain both a practical understanding of workflow orchestration and an inside look at contributing to a growing open source infrastructure project.",
+    "keyTakeaways": [
+      "Learn the core architectural concepts behind modern workflow engines.",
+      "Discover how Dagu approaches scheduling, dependency management, and observability.",
+      "Understand the trade-offs between Dagu, Airflow, Temporal, and Kubernetes-native approaches.",
+      "Gain practical insights into contributing to open source infrastructure projects.",
+      "Leave with ideas for improving automation reliability in their own environments."
+    ],
+    "references": [
+      {
+        "label": "https://dagu.sh/",
+        "url": "https://dagu.sh/"
+      },
+      {
+        "label": "https://canva.link/3s3zgykonqfbawm",
+        "url": "https://canva.link/3s3zgykonqfbawm"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "2rg09ct89v": {
+    "proposalId": "2rg09ct89v",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2rg09ct89v",
+    "description": "This talk provides insights about running large educational platform with minimal resources. We will cover how it survived for 15 years on a single Linux server with 8GB ram and helped more than 500,000 users to learn and practice Linux.\n\nThis talk shares the story of webminal. It highlights several unconventional technologies and approaches that are often overlooked by modern IT industry yet continue to solve practical problems without complex infrastructure. We will share lessons from our infra failures, maintenance and challenges of keeping it alive and free for 15 years.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.webminal.org",
+        "url": "https://www.webminal.org/"
+      },
+      {
+        "label": "https://webminal.org/fulc/",
+        "url": "https://webminal.org/fulc/"
+      },
+      {
+        "label": "https://news.ycombinator.com/item?id=47570940",
+        "url": "https://news.ycombinator.com/item?id=47570940"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "f4pdfg9qvh": {
+    "proposalId": "f4pdfg9qvh",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4pdfg9qvh",
+    "description": "Cloud-native teams eventually run into the same problem: clusters accumulate resources that nobody fully understands anymore. Old namespaces, unattached volumes, stale services, abandoned Helm releases, deprecated APIs, manually created incident artifacts, and resources that are no longer clearly owned. The usual instinct is to write a cleanup script. This talk argues that this is the wrong starting point.\n\nKubernetes does not have a native field called “unused.” A resource can look stale because it is genuinely abandoned, but it can also look stale because ownership metadata is missing, a controller created it, GitOps no longer tracks it, observability is incomplete, or an inventory script failed during discovery. Treating “unknown” as “safe to delete” is how platform hygiene turns into a production incident.\n\nThis talk presents a practical workflow for safer cloud-native hygiene: Capture, Detect, Classify, Prove, Act.\n\nCapture means making resources explain themselves through labels, annotations, ownership metadata, lifecycle state, and policy-as-code. Detect means continuously finding drift, deprecated APIs, orphaned resources, missing metadata, idle workloads, and configuration decay using open source tools. Classify means separating active, idle, unowned, controller-generated, incident-created, and unknown resources instead of treating them all as cleanup candidates. Prove means collecting evidence before mutation through GitOps state, owner references, metrics, logs, traces, diffs, and backups. Act means making cleanup staged, reviewable, observable, and reversible.\n\nThe talk will map this workflow to practical FOSS tools and patterns, including Kubernetes recommended labels, Argo CD orphaned resource monitoring, Flux or Argo CD GitOps workflows, Kyverno or OPA Gatekeeper for admission policies, Pluto or kubent for deprecated API detection, Trivy, Polaris, kube-state-metrics, Prometheus, Grafana, OpenTelemetry, Velero, and policy checks in CI.\n\nDrawn from personal learning experiences, the goal is not to teach people how to delete more resources. The goal is to help platform, DevOps, and SRE teams improve their existing workflows so they can understand their clusters better, reduce operational risk, and make infrastructure changes safer.",
+    "keyTakeaways": [
+      "Why “unused” is not a reliable Kubernetes concept, and why cleanup should be treated as an evidence-gathering workflow rather than a one-pass script.",
+      "A reusable framework for platform hygiene: Capture, Detect, Classify, Prove, Act.",
+      "How to capture ownership and lifecycle metadata using Kubernetes labels, annotations, Backstage-style service ownership, and admission policies with Kyverno or OPA Gatekeeper.",
+      "How to detect drift, stale resources, deprecated APIs, and configuration decay using FOSS tools such as Argo CD, Flux, Pluto, kubent, Trivy, Polaris, kube-state-metrics, Prometheus, and Grafana.",
+      "How to classify resources before acting, including owned-active, owned-idle, unowned-active, unowned-idle, controller-generated, incident residue, and unknown resources.",
+      "How to prove safety before mutation using GitOps state, owner references, service endpoints, metrics, logs, traces, diffs, backups, and restore plans.",
+      "How to design safer cleanup workflows with dry runs, explain mode, owner review, grace periods, quarantine, rollback artifacts, and post-cleanup validation.",
+      "Why the safest platform cleanup is the cleanup you can explain, pause, review, replay, and roll back."
+    ],
+    "references": [
+      {
+        "label": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/",
+        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"
+      },
+      {
+        "label": "https://argo-cd.readthedocs.io/en/stable/user-guide/orphaned-resources/",
+        "url": "https://argo-cd.readthedocs.io/en/stable/user-guide/orphaned-resources/"
+      },
+      {
+        "label": "https://kyverno.io/docs/policy-types/cleanup-policy/",
+        "url": "https://kyverno.io/docs/policy-types/cleanup-policy/"
+      },
+      {
+        "label": "https://github.com/FairwindsOps/pluto",
+        "url": "https://github.com/FairwindsOps/pluto"
+      },
+      {
+        "label": "https://github.com/doitintl/kube-no-trouble",
+        "url": "https://github.com/doitintl/kube-no-trouble"
+      },
+      {
+        "label": "https://trivy.dev/latest/docs/target/kubernetes/",
+        "url": "https://trivy.dev/latest/docs/target/kubernetes/"
+      },
+      {
+        "label": "https://velero.io/",
+        "url": "https://velero.io/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "av9de7vsu8": {
+    "proposalId": "av9de7vsu8",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/av9de7vsu8",
+    "description": "helm upgrade --install is in every platform team's playbook. It's also the fastest way to delete a PersistentVolumeClaim you've been growing for 8 months if you don't know about the one Helm behavior that nobody puts in the getting-started guide.I'll walk through the exact sequence: a values file refactor, an immutable field change, Helm deciding a resource needs to be deleted and recreated, and a database volume that went with it. Statefulset. Production. Gone.\n\nThe twist: none of this was a bug. It was Helm behaving exactly as documented. We just hadn't read the right paragraph.\n\nI'll cover what Helm actually does during upgrade vs. what engineers think it does, the 3 resource types that silently get nuked during common refactors, and the --dry-run + diff workflow that would have saved us.",
+    "keyTakeaways": [
+      "How Helm handles immutable field changes vs. what most engineers assume",
+      "The 3 resource types most likely to get silently deleted during a helm upgrade",
+      "A pre-upgrade diff workflow that catches destructive changes before they happen"
+    ],
+    "references": [
+      {
+        "label": "https://helm.sh/docs/",
+        "url": "https://helm.sh/docs/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "2tsmo50knt": {
     "proposalId": "2tsmo50knt",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2tsmo50knt",
@@ -3142,334 +3470,6 @@
       {
         "label": "https://www.ti.com/product/AM62A7",
         "url": "https://www.ti.com/product/AM62A7"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "9i6peimmer": {
-    "proposalId": "9i6peimmer",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9i6peimmer",
-    "description": "Add OpenTelemetry to a Python or Node application and traces often appear as if by magic. A launcher patches your libraries, you restart the app, and suddenly Jaeger is full of spans.\n\nTry the same thing in Go and you quickly discover there's no opentelemetry-instrument command that just works. Why not?\n\nThis talk starts with that question and follows the path of a span through a Go application. We'll briefly look at what instrumentation really is just code that starts and ends spans at the right moments, and why manual instrumentation remains the norm in Go, using context.Context and libraries such as otelhttp, otelgrpc, and otelsql.\n\nFrom there, we'll explore the three places where telemetry can be injected into a Go program: directly in your source code, at build time through compiler-assisted rewriting, or externally using eBPF agents attached to a running binary.\n\nBy the end of the session, attendees will be able to examine any span in a Go service, explain how it was created, and understand the trade-offs among manual instrumentation, build-time tooling, and eBPF-based observability. loooks good?",
-    "keyTakeaways": [
-      "What instrumentation really is: code that starts and ends spans at the right moments, and in Go, that code has to be explicit, because nothing patches it in for you at runtime.",
-      "Why Go has no opentelemetry-instrument: Go compiles to native machine code with no VM and no mutable runtime functions, so the monkey-patching and bytecode agents used in Python, Node, and Java simply don't apply.",
-      "Manual is the norm in Go: the SDK plus context.Context propagation and libraries like otelhttp, otelgrpc, and otelsql are how most real Go services get traced."
-    ],
-    "references": [
-      {
-        "label": "https://opentelemetry.io/blog/2025/go-compile-time-instrumentation/",
-        "url": "https://opentelemetry.io/blog/2025/go-compile-time-instrumentation/"
-      },
-      {
-        "label": "https://opentelemetry.io/docs/languages/go/instrumentation/",
-        "url": "https://opentelemetry.io/docs/languages/go/instrumentation/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "d6mltdb2aq": {
-    "proposalId": "d6mltdb2aq",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d6mltdb2aq",
-    "description": "Autonomous AI agents running continuous, self-learning execution loops introduce a severe infrastructure security challenge: they inherently require running non-deterministic, AI-generated code and managing live external network boundaries.\n\nThis architectural paradigm represents \"Remote Code Execution by Design,\" where traditional Linux container runtimes (relying purely on namespaces and cgroups via Docker or containerd) fail to provide strong enough isolation to prevent kernel-level exploits or data exfiltration.\n\nThis talk demonstrates an end-to-end, open-source defense-in-depth architecture combining gVisor for system-level compute containment and Pipelock for inline network data loss prevention (DLP).\n\nWe will analyze how gVisor’s user-space kernel (runsc) intercepts application system calls to isolate the host OS from dangerous or unexpected runtime execution paths triggered during an agent's self-directed optimization cycles.\n\nConcurrently, we look at Pipelock acting as an out-of-process AI egress firewall, capturing outbound HTTP, Model Context Protocol (MCP), and WebSocket traffic to strip out leaked credentials (API keys, secrets) and intercept prompt injection vectors before they reach the agent's context.\n\nLive Demo: The core of this 30-minute session will be a live terminal walkthrough demonstrating a self-learning agent deployed inside a Kubernetes Pod sandboxed by gVisor, with Pipelock attached as an egress proxy.\n\nDuring the demo, we will execute a simulated adversarial payload designed to trigger both a host-level container escape and a sensitive credential leak, visualizing live how gVisor drops the malicious system calls and Pipelock blocks the data exfiltration path.\n\nWe will conclude by detailing the engineering trade-offs, providing latency overhead benchmarks, and sharing the open-source configuration templates.",
-    "keyTakeaways": [
-      "The Dual-Threat Vector: Learn why self-learning autonomous agents break traditional container security models by introducing simultaneously unvetted local code execution and dynamic network exfiltration risks.",
-      "Compute Sandboxing: Understand how gVisor's Sentry and Gofer architecture intercepts system calls to safely cage untrusted, AI-generated Python code without the resource overhead of full virtualization.",
-      "Network Defenses : Discover how to implement Pipelock as an out-of-process egress proxy to intercept Model Context Protocol (MCP) and HTTP payloads, enforcing strict data loss prevention (DLP) boundaries.",
-      "Production Blueprint: Walk away with a validated, completely open-source infrastructure template (Kubernetes manifests + proxy configuration files) to securely isolate high-privilege AI agents in enterprise systems."
-    ],
-    "references": [
-      {
-        "label": "https://cloudonair.withgoogle.com/events/google-cloud-summit-india-builder-connect/speakers#",
-        "url": "https://cloudonair.withgoogle.com/events/google-cloud-summit-india-builder-connect/speakers#"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "b8josvurds": {
-    "proposalId": "b8josvurds",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/b8josvurds",
-    "description": "Large Language Models have made it incredibly easy to build AI demos, but taking an AI agent from a weekend prototype to a production-ready system is a completely different challenge.\n\nIn this talk, I’ll walk through the architecture and engineering decisions behind building an AI-powered on-call assistant using an open-source stack. Instead of focusing on prompt engineering alone, we’ll look at what happens after the first successful demo - how agents interact with tools, how Model Context Protocol (MCP) simplifies integrations, how multi-agent workflows improve task execution, and what it takes to deploy and operate these systems reliably.\n\nWe’ll explore an end-to-end architecture consisting of a web UI, agent layer, MCP server, tool integrations, and deployment on Kubernetes/OpenShift with GitLab CI/CD. Along the way, I’ll discuss real engineering challenges such as context management, tool failures, latency, deployment strategies, observability, and debugging production issues.\n\nThe goal of this talk isn’t to introduce another AI framework. Instead, it’s to share practical lessons that any engineer can apply while building production-grade AI applications using open technologies.\n\nWhether you’re experimenting with AI agents for the first time or already deploying them in production, you’ll leave with a clearer understanding of the architectural patterns, trade-offs, and operational challenges involved in moving from prompts to production.",
-    "keyTakeaways": [
-      "Understand the architecture of a production-ready AI agent built using open-source components.",
-      "Learn how the Model Context Protocol (MCP) simplifies tool integration and agent extensibility.",
-      "Discover common production challenges including context management, latency, hallucinations, retries, and observability.",
-      "See how GitLab CI/CD and Kubernetes/OpenShift can be used to automate deployments for AI services.",
-      "Learn practical engineering patterns that make AI systems more reliable, maintainable, and scalable.",
-      "Understand the trade-offs between proof-of-concept demos and production-ready AI applications.",
-      "Leave with a reference architecture that can be adapted for your own AI projects."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/modelcontextprotocol/modelcontextprotocol",
-        "url": "https://github.com/modelcontextprotocol/modelcontextprotocol"
-      },
-      {
-        "label": "https://arxiv.org/abs/2606.13699",
-        "url": "https://arxiv.org/abs/2606.13699"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "76tid1o2lg": {
-    "proposalId": "76tid1o2lg",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/76tid1o2lg",
-    "description": "TLDR\n\nHow we utilized a lesser known postgres feature/hack to inject custom data into the database WAL stream to remove the outbox table completely. Reduced tail latencies and make downstream events durable in distributed systems en route.\n\nBackground\n\nRoots from learnings of production challenges of dealing with with realtime payments, at #6th largest UPI payments org by volume\n\nContext\n\nOutbox pattern is a well known pattern used in distributed systems to power side-effects of actions. These effects need to be strongly tied to actions, else users face broken processes. Need durability + reliaiblity + speed (fast rewards/cashbacks!)\n\nActions (SignUp, Transaction, …)\n\nEffects: (Allow UPI Id, Bank Account Fetch, Cashback, ..)\n\nSome examples of our usecases\n\nDurability : services will go down, still need to give cashback\n\nReliability: users need cashbacks after the txn, always.\n\nSpeed: no one wants to wait 5 seconds to get a cashback\n\nThe Old Way\n\nWrite data in a new database table wrapped in an atomic block → double writes and updates, contention on database disk and cpu resources.\n\nRun a polling based consumer to read→ dedicated index needed to poll, scan, read record. Send, handle retires, backoffs, polling delays, expensive housekeeping.\n\nLong Maintenance Windows: MVCC means updates are inserts, deletes are not actually deletes, but tagging → this cleanup needed everyday via vacuum jobs.\n\nThe Hack?\n\nTo keep a standby in sync, the database writes every change to WAL log, ships those bytes to replicas in order, and tracks how far each replica has caught up.\n\nPostgres’ replication can already carry application’s events\n\nWe ride the pg_logical_emit_message to write a blob into the WAL atomically with the surrounding transaction, and consume it from WAL stream.\n\nWe use this in production, will share benchmark results, consumer guarentees, gotchas, when to use and when not to etc.",
-    "keyTakeaways": [
-      "Benchmark Results of the new method v/s classical method",
-      "Production risks and learnings of using this on millions of events per hour scale on prod.",
-      "How we removed an entire class of infra (outbox workers, retries, cleanup) from our system and The hidden cost of \"industry standard\" patterns → and how to avoid them"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/YashKumarVerma/prototypes/tree/main/postgres",
-        "url": "https://github.com/YashKumarVerma/prototypes/tree/main/postgres"
-      },
-      {
-        "label": "https://microservices.io/patterns/data/transactional-outbox.html",
-        "url": "https://microservices.io/patterns/data/transactional-outbox.html"
-      },
-      {
-        "label": "https://pgpedia.info/p/pg_logical_emit_message.html",
-        "url": "https://pgpedia.info/p/pg_logical_emit_message.html"
-      },
-      {
-        "label": "https://fossunited.org/c/bengaluru/march-2026/cfp/2sbjrl0q5o",
-        "url": "https://fossunited.org/c/bengaluru/march-2026/cfp/2sbjrl0q5o"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "bl0i7u8nno": {
-    "proposalId": "bl0i7u8nno",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bl0i7u8nno",
-    "description": "Dashboards, the very thing that has to hint you what is broken becomes the thing most likely to break.\n\n\"Dashboard-as-Code\" has been a broken promise for years. Teams export dashboards into giant JSON blobs or YAML files, only to commit them to Git, and call it \"Infrastructure as Code\". But these files are difficult to review in a pull request, they can break silently when a field name changes, and they offer little validation before deployment.\n\nWhat if your observability dashboards could be treated the same way as your application code?\n\nThis talk covers Perses, a CNCF Sandbox project for vendor neutral dashboards, and its Kubernetes Operator. Together they bring Kubernetes-native Dashboard-as-Code to the cloud-native ecosystem providing the option to author dashboards with the Perses Go SDK and deploy them via GitOps.\n\nThis talk will focus on Prometheus metrics dashboards (Prometheus plugin).\n\nConsider a typical observability workflow today:\n\nA team member builds a dashboard in a UI, exports it as a 1000 line JSON or YAML file, and commits it.\n\nAnother team member edits a Prometheus query as a raw string. The change is hard to review in a giant JSON/YAML diff, and nothing in the usual export and commit workflow validates the dashboard definition before deploy.\n\nThe dashboard gets deployed and panels break due to a malformed query or a wrong field in the JSON/YAML.\n\nPerses provides an open dashboard and datasource specification aimed at interoperability across tools. The Perses Operator brings dashboard and datasource management to Kubernetes with four Custom Resource Definitions (CRDs):\n\nPerses: Declares a Perses server instance. The operator manages the Deployment or StatefulSet, Service, ConfigMap, and optional TLS, storage, and health probes.\n\nPersesDashboard: Defines a dashboard as a Kubernetes resource. The Kubernetes namespace maps to a Perses project.\n\nPersesDatasource: Declares a project scoped datasource (e.g., a Prometheus endpoint) synced to matching Perses instances.\n\nPersesGlobalDatasource: A cluster scoped datasource shared across all projects.\n\nYou do not have to hand write these manifests. With the Perses Go SDK and promql-builder, dashboards are authored in Go and can be generated as PersesDashboard YAML for GitOps. promql-builder constructs PromQL as an AST instead of fragile raw strings, with built-in validation. The YAML is the delivery format; the source of truth is code.\n\nExample: A generated PersesDashboard CR (simplified):\n\nThe operator watches for changes, syncs valid dashboards to the matching Perses instance via the Perses API, and reports status on the Custom Resource. No manual imports and no fragile copy paste scripts.\n\nFrom Go code to PersesDashboard CRs: author dashboards with the Perses Go SDK and promql-builder, validate PromQL at build / CI time, and generate PersesDashboard Custom Resources instead of maintaining giant exported JSON or YAML.\n\nCompose and extend: import reusable panels from community-mixins as a Go module, customize label matchers for your environment, and add your own panels alongside them.\n\nGitOps workflow: PR review, render manifests, deploy via Argo CD; the operator reconciles PersesDashboard CRs and they appear in the Perses UI.",
-    "keyTakeaways": [
-      "Attendees will learn how to treat dashboards like application code that is version controlled, peer reviewed, validated in CI, and delivered declaratively through GitOps.",
-      "Attendees will see how familiar Kubernetes primitives CRDs, namespaces, and controllers manage the lifecycle of dashboards and datasources.",
-      "Attendees will understand Perses as a CNCF Sandbox, open specification dashboarding project, and how DaC (Go SDK + promql-builder + community-mixins) plus the Operator close the gap left by exported JSON/YAML \"as code\"."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/perses/perses",
-        "url": "https://github.com/perses/perses"
-      },
-      {
-        "label": "https://github.com/perses/perses-operator",
-        "url": "https://github.com/perses/perses-operator"
-      },
-      {
-        "label": "https://github.com/perses/spec",
-        "url": "https://github.com/perses/spec"
-      },
-      {
-        "label": "https://perses.dev/perses/docs/dac/go/",
-        "url": "https://perses.dev/perses/docs/dac/go/"
-      },
-      {
-        "label": "https://github.com/perses/promql-builder",
-        "url": "https://github.com/perses/promql-builder"
-      },
-      {
-        "label": "https://github.com/perses/community-mixins",
-        "url": "https://github.com/perses/community-mixins"
-      },
-      {
-        "label": "https://perses.dev/plugins/docs/prometheus/",
-        "url": "https://perses.dev/plugins/docs/prometheus/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Perses",
-        "url": "https://github.com/perses/perses"
-      },
-      {
-        "label": "Kubernetes Operator",
-        "url": "https://github.com/perses/perses-operator"
-      },
-      {
-        "label": "Perses Go SDK",
-        "url": "https://perses.dev/perses/docs/dac/go/"
-      },
-      {
-        "label": "open dashboard and datasource specification",
-        "url": "https://github.com/perses/spec"
-      },
-      {
-        "label": "promql-builder",
-        "url": "https://github.com/perses/promql-builder"
-      },
-      {
-        "label": "community-mixins",
-        "url": "https://github.com/perses/community-mixins"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5i25u6dfnv": {
-    "proposalId": "5i25u6dfnv",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5i25u6dfnv",
-    "description": "Writing Network Policies looks straightforward - until traffic starts getting blocked for reasons that aren’t obvious, policies silently match nothing, or things work in staging but fail in production. I learned this the hard way while writing and designing Network Policies used by multiple teams across multiple Kubernetes clusters, and debugging policy failures in real production environments.In this lightning talk, I’ll share the most common Cilium Network Policy anti-patterns one can run into. We’ll look at real examples of policies that look correct but are wrong, why certain design decisions matter, and how small mistakes can lead to confusing failures. Each example will be drawn from real world usage and paired with the corrected approach.We will highlight practical tips and anti-patterns that are rarely documented, and brings together the key things you need to know to reliably firewall Kubernetes workloads using Cilium Network Policies.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://cilium.io/",
-        "url": "https://cilium.io/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8ne6l7qetc": {
-    "proposalId": "8ne6l7qetc",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8ne6l7qetc",
-    "description": "Many teams start with a handful of cron jobs and shell scripts. Over time, these grow into business-critical workflows that become difficult to monitor, debug, retry, and maintain. While workflow orchestration platforms such as Airflow and Temporal solve many of these problems, they can introduce operational complexity that smaller teams may not need.\n\nDagu is an open source workflow orchestration engine designed around simplicity. It allows teams to define workflows using declarative YAML, execute existing scripts and commands, visualize dependencies, monitor execution, and manage scheduled jobs without requiring a complex control plane.\n\nIn this talk, I will share my experience contributing to Dagu and explore the architectural decisions that make it lightweight while still being capable of handling production automation workloads.\n\nThe session will cover:\n\nThe limitations of traditional cron-based automation.\n\nCommon workflow orchestration patterns and challenges.\n\nHow Dagu models workflows, dependencies, retries, and scheduling.\n\nArchitectural trade-offs compared to Airflow, Temporal, and Kubernetes CronJobs.\n\nLessons learned while contributing to an open source workflow orchestration project.\n\nPractical demonstrations of building and operating workflows using Dagu.\n\nAttendees will gain both a practical understanding of workflow orchestration and an inside look at contributing to a growing open source infrastructure project.",
-    "keyTakeaways": [
-      "Learn the core architectural concepts behind modern workflow engines.",
-      "Discover how Dagu approaches scheduling, dependency management, and observability.",
-      "Understand the trade-offs between Dagu, Airflow, Temporal, and Kubernetes-native approaches.",
-      "Gain practical insights into contributing to open source infrastructure projects.",
-      "Leave with ideas for improving automation reliability in their own environments."
-    ],
-    "references": [
-      {
-        "label": "https://dagu.sh/",
-        "url": "https://dagu.sh/"
-      },
-      {
-        "label": "https://canva.link/3s3zgykonqfbawm",
-        "url": "https://canva.link/3s3zgykonqfbawm"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "2rg09ct89v": {
-    "proposalId": "2rg09ct89v",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2rg09ct89v",
-    "description": "This talk provides insights about running large educational platform with minimal resources. We will cover how it survived for 15 years on a single Linux server with 8GB ram and helped more than 500,000 users to learn and practice Linux.\n\nThis talk shares the story of webminal. It highlights several unconventional technologies and approaches that are often overlooked by modern IT industry yet continue to solve practical problems without complex infrastructure. We will share lessons from our infra failures, maintenance and challenges of keeping it alive and free for 15 years.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.webminal.org",
-        "url": "https://www.webminal.org/"
-      },
-      {
-        "label": "https://webminal.org/fulc/",
-        "url": "https://webminal.org/fulc/"
-      },
-      {
-        "label": "https://news.ycombinator.com/item?id=47570940",
-        "url": "https://news.ycombinator.com/item?id=47570940"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "f4pdfg9qvh": {
-    "proposalId": "f4pdfg9qvh",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4pdfg9qvh",
-    "description": "Cloud-native teams eventually run into the same problem: clusters accumulate resources that nobody fully understands anymore. Old namespaces, unattached volumes, stale services, abandoned Helm releases, deprecated APIs, manually created incident artifacts, and resources that are no longer clearly owned. The usual instinct is to write a cleanup script. This talk argues that this is the wrong starting point.\n\nKubernetes does not have a native field called “unused.” A resource can look stale because it is genuinely abandoned, but it can also look stale because ownership metadata is missing, a controller created it, GitOps no longer tracks it, observability is incomplete, or an inventory script failed during discovery. Treating “unknown” as “safe to delete” is how platform hygiene turns into a production incident.\n\nThis talk presents a practical workflow for safer cloud-native hygiene: Capture, Detect, Classify, Prove, Act.\n\nCapture means making resources explain themselves through labels, annotations, ownership metadata, lifecycle state, and policy-as-code. Detect means continuously finding drift, deprecated APIs, orphaned resources, missing metadata, idle workloads, and configuration decay using open source tools. Classify means separating active, idle, unowned, controller-generated, incident-created, and unknown resources instead of treating them all as cleanup candidates. Prove means collecting evidence before mutation through GitOps state, owner references, metrics, logs, traces, diffs, and backups. Act means making cleanup staged, reviewable, observable, and reversible.\n\nThe talk will map this workflow to practical FOSS tools and patterns, including Kubernetes recommended labels, Argo CD orphaned resource monitoring, Flux or Argo CD GitOps workflows, Kyverno or OPA Gatekeeper for admission policies, Pluto or kubent for deprecated API detection, Trivy, Polaris, kube-state-metrics, Prometheus, Grafana, OpenTelemetry, Velero, and policy checks in CI.\n\nDrawn from personal learning experiences, the goal is not to teach people how to delete more resources. The goal is to help platform, DevOps, and SRE teams improve their existing workflows so they can understand their clusters better, reduce operational risk, and make infrastructure changes safer.",
-    "keyTakeaways": [
-      "Why “unused” is not a reliable Kubernetes concept, and why cleanup should be treated as an evidence-gathering workflow rather than a one-pass script.",
-      "A reusable framework for platform hygiene: Capture, Detect, Classify, Prove, Act.",
-      "How to capture ownership and lifecycle metadata using Kubernetes labels, annotations, Backstage-style service ownership, and admission policies with Kyverno or OPA Gatekeeper.",
-      "How to detect drift, stale resources, deprecated APIs, and configuration decay using FOSS tools such as Argo CD, Flux, Pluto, kubent, Trivy, Polaris, kube-state-metrics, Prometheus, and Grafana.",
-      "How to classify resources before acting, including owned-active, owned-idle, unowned-active, unowned-idle, controller-generated, incident residue, and unknown resources.",
-      "How to prove safety before mutation using GitOps state, owner references, service endpoints, metrics, logs, traces, diffs, backups, and restore plans.",
-      "How to design safer cleanup workflows with dry runs, explain mode, owner review, grace periods, quarantine, rollback artifacts, and post-cleanup validation.",
-      "Why the safest platform cleanup is the cleanup you can explain, pause, review, replay, and roll back."
-    ],
-    "references": [
-      {
-        "label": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/",
-        "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/"
-      },
-      {
-        "label": "https://argo-cd.readthedocs.io/en/stable/user-guide/orphaned-resources/",
-        "url": "https://argo-cd.readthedocs.io/en/stable/user-guide/orphaned-resources/"
-      },
-      {
-        "label": "https://kyverno.io/docs/policy-types/cleanup-policy/",
-        "url": "https://kyverno.io/docs/policy-types/cleanup-policy/"
-      },
-      {
-        "label": "https://github.com/FairwindsOps/pluto",
-        "url": "https://github.com/FairwindsOps/pluto"
-      },
-      {
-        "label": "https://github.com/doitintl/kube-no-trouble",
-        "url": "https://github.com/doitintl/kube-no-trouble"
-      },
-      {
-        "label": "https://trivy.dev/latest/docs/target/kubernetes/",
-        "url": "https://trivy.dev/latest/docs/target/kubernetes/"
-      },
-      {
-        "label": "https://velero.io/",
-        "url": "https://velero.io/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "av9de7vsu8": {
-    "proposalId": "av9de7vsu8",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/av9de7vsu8",
-    "description": "helm upgrade --install is in every platform team's playbook. It's also the fastest way to delete a PersistentVolumeClaim you've been growing for 8 months if you don't know about the one Helm behavior that nobody puts in the getting-started guide.I'll walk through the exact sequence: a values file refactor, an immutable field change, Helm deciding a resource needs to be deleted and recreated, and a database volume that went with it. Statefulset. Production. Gone.\n\nThe twist: none of this was a bug. It was Helm behaving exactly as documented. We just hadn't read the right paragraph.\n\nI'll cover what Helm actually does during upgrade vs. what engineers think it does, the 3 resource types that silently get nuked during common refactors, and the --dry-run + diff workflow that would have saved us.",
-    "keyTakeaways": [
-      "How Helm handles immutable field changes vs. what most engineers assume",
-      "The 3 resource types most likely to get silently deleted during a helm upgrade",
-      "A pre-upgrade diff workflow that catches destructive changes before they happen"
-    ],
-    "references": [
-      {
-        "label": "https://helm.sh/docs/",
-        "url": "https://helm.sh/docs/"
       }
     ],
     "links": [
