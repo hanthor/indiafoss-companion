@@ -32,6 +32,8 @@
     "@indiafoss/sources": "workspace:*",
     "@indiafoss/storage": "workspace:*",
     "@indiafoss/venue": "workspace:*",
+    "@zxing/browser": "^0.2.1",
+    "pdfjs-dist": "^6.3.289",
     "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.4"
   },

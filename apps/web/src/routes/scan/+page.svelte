@@ -18,6 +18,7 @@
   import { computeNowState } from '@indiafoss/schedule';
   import { matrixToUrl } from '@indiafoss/matrix';
   import type { ContactRecord } from '@indiafoss/storage';
+  import { hydrateProfile, profileState, saveProfile } from '$lib/profile.svelte';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { currentLocation, hydrateLocation, setCurrentLocation } from '$lib/location.svelte';
@@ -246,6 +247,11 @@
       }
       await setCurrentLocation(pending.locationId);
       status = `Location set to ${labelForLocation(pending.locationId)}.`;
+    } else if (pending.kind === 'ticket') {
+      await hydrateProfile();
+      profileState.profile.ticketRef = pending.ticketRef;
+      await saveProfile();
+      status = 'Ticket reference saved. This does not verify admission.';
     } else if (draft) {
       // Contact import is local: keep it in the on-device contact list (unverified).
       const result = await saveScannedContact(draft);
@@ -442,7 +448,9 @@
           <a class="button primary" href={matrixToUrl(pending.idOrAlias)} rel="noreferrer"
             >Open in Element</a
           >
-        {:else if pending.kind !== 'ticket'}
+        {:else if pending.kind === 'ticket'}
+          <button class="button primary" onclick={confirmPending}>Save my ticket reference</button>
+        {:else}
           <button class="button primary" onclick={confirmPending}>Save contact</button>
           {#if contactPreview?.matrixId}
             <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->

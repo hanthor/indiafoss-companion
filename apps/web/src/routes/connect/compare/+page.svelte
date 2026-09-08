@@ -20,7 +20,7 @@
       .trim();
 </script>
 
-<a class="back" href={resolve('/connect')}>← Your card</a>
+<a class="back" href={resolve('/connect')}>← Your contact card</a>
 <div class="eyebrow">KEY BADGES · VERIFY IN PERSON</div>
 <h1>Compare badges</h1>
 <p class="lead">

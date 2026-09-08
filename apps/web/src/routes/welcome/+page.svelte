@@ -1,7 +1,7 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import { goto } from '$app/navigation';
-  import { isTicketRef, type AttendeeSocial } from '@indiafoss/model';
+  import { parseScannedPayload, type AttendeeSocial } from '@indiafoss/model';
   import { eventState } from '$lib/event.svelte';
   import ReminderStatus from '$lib/components/ReminderStatus.svelte';
   import {
@@ -12,12 +12,15 @@
   import { hydrateProfile, profileState, saveProfile, setSocial } from '$lib/profile.svelte';
   import { LINK_LABELS, LINK_PLACEHOLDERS } from '$lib/card-fields';
   import { markOnboardingDone } from '$lib/onboarding.svelte';
+  import TicketUpload from '$lib/components/TicketUpload.svelte';
+  import { hasContactPicker, pickContact, profileFromContactFile } from '$lib/contact-import';
+  import { applyImportedProfile, type ImportedProfile } from '$lib/fossunited';
   import EventGate from '$lib/components/EventGate.svelte';
 
   /**
    * The welcome wizard (#107): reminders, ticket, who you are, then ranking.
    * Every step can be skipped; nothing here cannot be changed later from
-   * Settings, Your card or the Rank screen.
+   * Settings, Your contact card or the Rank screen.
    */
   const STEPS = ['reminders', 'ticket', 'you', 'rank'] as const;
   type Step = (typeof STEPS)[number];
@@ -36,16 +39,42 @@
 
   // Ticket
   let ticket = $state('');
-  const ticketOk = $derived(!ticket.trim() || isTicketRef(ticket.trim()));
+  const parsedTicket = $derived(parseScannedPayload(ticket));
+  const ticketOk = $derived(!ticket.trim() || parsedTicket.kind === 'ticket');
   async function saveTicket(): Promise<void> {
     if (!ticketOk) return;
-    if (ticket.trim()) {
-      profileState.profile.ticketRef = ticket.trim();
+    if (parsedTicket.kind === 'ticket') {
+      profileState.profile.ticketRef = parsedTicket.ticketRef;
       await saveProfile();
     }
     next();
   }
 
+  // Contact imports fill blanks and never change sharing switches.
+  let contactMessage = $state('');
+  function fillContact(imported: ImportedProfile | null) {
+    if (!imported) {
+      contactMessage = 'No contact selected or no readable contact found.';
+      return;
+    }
+    const changes = applyImportedProfile(profileState.profile, imported);
+    contactMessage = changes.length
+      ? 'Contact details filled in. Review them before saving.'
+      : 'Your existing details were kept; no empty fields to fill.';
+  }
+  async function importContactFile(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      if (file.size > 256 * 1024) throw new Error('Choose a contact file smaller than 256 KB.');
+      fillContact(profileFromContactFile(await file.text()));
+    } catch (error) {
+      contactMessage = error instanceof Error ? error.message : 'Could not read this contact file.';
+    } finally {
+      input.value = '';
+    }
+  }
   // You
   const SOCIALS_HERE: AttendeeSocial[] = ['github', 'linkedin', 'mastodon'];
   async function saveYou(): Promise<void> {
@@ -78,7 +107,7 @@
     <h1 id="welcome-title">Welcome to {bundle?.name ?? 'IndiaFOSS'}</h1>
     <p class="hero-desc">
       Four quick questions, all optional, so the app can remind you, know your ticket, put your name
-      on a card and plan your day. Everything stays on this device.
+      on a contact card and plan your day. Everything stays on this device.
     </p>
   </section>
 
@@ -122,9 +151,10 @@
       <div class="eyebrow">2 · TICKET</div>
       <h2>Your ticket reference</h2>
       <p class="muted">
-        The code on your ticket QR (<code>ticket::…</code>). It only lets organisers match you at
-        the desk; it is never an identity and never shared unless you switch it on.
+        Upload your ticket PDF or a screenshot to read its QR code, or paste the FOSS United ticket
+        link. Review the reference before saving. Ticket sharing stays off unless you enable it.
       </p>
+      <TicketUpload onselect={(reference) => (ticket = reference)} />
       <label class="field">
         <span>Ticket reference</span>
         <input
@@ -136,7 +166,9 @@
           autocapitalize="off"
           autocomplete="off"
         />
-        {#if !ticketOk}<span class="hint warn">Must look like ticket::…</span>{/if}
+        {#if !ticketOk}<span class="hint warn"
+            >Paste a FOSS United ticket link or ticket::… reference</span
+          >{/if}
       </label>
       <div class="actions">
         <button class="button dark" onclick={saveTicket} disabled={!ticketOk}
@@ -147,50 +179,101 @@
       </div>
     {:else if step === 'you'}
       <div class="eyebrow">3 · YOU</div>
-      <h2>Who is on your card</h2>
+      <h2>Your contact card</h2>
       <p class="muted">
         Your name and a few public profiles make the contact card people scan when you meet. Add
-        more, or take any of it off, under Your card later.
+        more, or take any of it off, under Your contact card later.
       </p>
+      <p class="muted">
+        Use your browser or password manager’s identity autofill, or import your own contact. Email
+        and phone stay off your shared card unless you enable them.
+      </p>
+      {#if hasContactPicker()}
+        <button
+          type="button"
+          class="button secondary"
+          onclick={async () => fillContact(await pickContact())}>From my contacts</button
+        >
+      {/if}
       <label class="field">
-        <span>Name</span>
-        <input type="text" placeholder="Your name" bind:value={profileState.profile.fullName} />
+        <span>Import my contact (.vcf)</span>
+        <input type="file" accept=".vcf,text/vcard,text/x-vcard" onchange={importContactFile} />
+        <span class="hint"
+          >Export your own entry from Contacts, then choose that file. Nothing is uploaded.</span
+        >
       </label>
-      <label class="field">
-        <span>Organisation</span>
-        <input
-          type="text"
-          placeholder="Company, project or college"
-          bind:value={profileState.profile.organization}
-        />
-      </label>
-      {#each SOCIALS_HERE as network (network)}
+      <p role="status">{contactMessage}</p>
+      <form
+        autocomplete="on"
+        onsubmit={(event) => {
+          event.preventDefault();
+          void saveYou();
+        }}
+      >
         <label class="field">
-          <span>{LINK_LABELS[network]}</span>
+          <span>Name</span>
           <input
             type="text"
-            placeholder={LINK_PLACEHOLDERS[network]}
-            value={profileState.profile.socials[network] ?? ''}
-            oninput={(e) => setSocial(network, e.currentTarget.value)}
+            name="name"
+            autocomplete="name"
+            placeholder="Your name"
+            bind:value={profileState.profile.fullName}
+          />
+        </label>
+        <label class="field">
+          <span>Organisation</span>
+          <input
+            type="text"
+            name="organization"
+            autocomplete="organization"
+            placeholder="Company, project or college"
+            bind:value={profileState.profile.organization}
+          />
+        </label>
+        <label class="field"
+          ><span>Email</span><input
+            type="email"
+            name="email"
+            autocomplete="email"
+            bind:value={profileState.profile.email}
+          /></label
+        >
+        <label class="field"
+          ><span>Phone</span><input
+            type="tel"
+            name="tel"
+            autocomplete="tel"
+            bind:value={profileState.profile.phone}
+          /></label
+        >
+        {#each SOCIALS_HERE as network (network)}
+          <label class="field">
+            <span>{LINK_LABELS[network]}</span>
+            <input
+              type="text"
+              placeholder={LINK_PLACEHOLDERS[network]}
+              value={profileState.profile.socials[network] ?? ''}
+              oninput={(e) => setSocial(network, e.currentTarget.value)}
+              autocapitalize="off"
+            />
+          </label>
+        {/each}
+        <label class="field">
+          <span>FOSS United username</span>
+          <input
+            type="text"
+            placeholder="your_username"
+            bind:value={profileState.profile.fossUnitedProfileUrl}
             autocapitalize="off"
           />
         </label>
-      {/each}
-      <label class="field">
-        <span>FOSS United username</span>
-        <input
-          type="text"
-          placeholder="your_username"
-          bind:value={profileState.profile.fossUnitedProfileUrl}
-          autocapitalize="off"
-        />
-      </label>
-      <div class="actions">
-        <button class="button dark" onclick={saveYou}
-          >{profileState.profile.fullName.trim() ? 'Save →' : 'Skip for now →'}</button
-        >
-        <button class="linkbtn" onclick={back}>← Back</button>
-      </div>
+        <div class="actions">
+          <button type="submit" class="button dark"
+            >{profileState.profile.fullName.trim() ? 'Save →' : 'Skip for now →'}</button
+          >
+          <button type="button" class="linkbtn" onclick={back}>← Back</button>
+        </div>
+      </form>
     {:else}
       <div class="eyebrow">4 · YOUR DAY</div>
       <h2>Rank the sessions</h2>

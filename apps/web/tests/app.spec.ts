@@ -372,7 +372,7 @@ test('activity calendar action downloads a portable ICS file', async ({ page }) 
 
 test('connect keeps a live QR card and downloads a vCard', async ({ page }) => {
   await page.goto(appUrl('/connect'));
-  await expect(page.getByRole('heading', { name: 'Your card' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your contact card' })).toBeVisible();
   // An empty card shows a prompt, not a code that encodes nothing.
   await expect(page.getByRole('img', { name: /contact details as a QR code/ })).toHaveCount(0);
   await expect(page.getByText(/Add your name below/)).toBeVisible();
