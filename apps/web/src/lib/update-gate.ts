@@ -60,10 +60,14 @@ export class UpdateGate {
     this.inFlight = (async () => {
       const reached = await check();
       if (reached) this.lastSuccessAt.set(key, this.now());
+      else this.lastSuccessAt.delete(key);
     })();
 
     try {
       await this.inFlight;
+    } catch (error) {
+      this.lastSuccessAt.delete(key);
+      throw error;
     } finally {
       // Cleared even when `check` throws, so one rejection cannot wedge the
       // gate shut for the rest of the session.

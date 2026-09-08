@@ -32,6 +32,36 @@ export const updateState = $state<{
   error: null,
 });
 
+/** Check status belongs to an event, independently of its pending update. */
+export const refreshStatus = $state<
+  Record<
+    string,
+    {
+      checking: boolean;
+      lastSuccessAt: number | null;
+      failures: number;
+      error: string | null;
+    }
+  >
+>({});
+
+function statusFor(eventId: string) {
+  refreshStatus[eventId] ??= { checking: false, lastSuccessAt: null, failures: 0, error: null };
+  return refreshStatus[eventId]!;
+}
+
+export async function hydrateRefreshStatus(eventId: string): Promise<void> {
+  const status = statusFor(eventId);
+  try {
+    const saved = Number(await getStorage().getSetting(`event-last-check-${eventId}`));
+    if (Number.isFinite(saved) && saved > 0 && saved > (status.lastSuccessAt ?? 0)) {
+      status.lastSuccessAt = saved;
+    }
+  } catch {
+    // A storage read failure must not prevent a fresh network check.
+  }
+}
+
 /** The newer bundle, already downloaded in full; applied only when the attendee says so. */
 let pendingBundle: EventBundle | null = null;
 
@@ -71,9 +101,25 @@ export async function checkForUpdates(
   const current = eventState.bundle;
   if (eventState.status !== 'ready' || !current || current.id !== eventId) return;
   await gate.run(
-    () => {
-      if (eventState.bundle?.id !== eventId) return Promise.resolve(false);
-      return runCheck(eventId, eventState.bundle);
+    async () => {
+      if (eventState.bundle?.id !== eventId) return false;
+      const status = statusFor(eventId);
+      status.checking = true;
+      try {
+        const success = await runCheck(eventId, eventState.bundle);
+        status.error = success ? null : updateState.error;
+        status.failures = success ? 0 : status.failures + 1;
+        if (success) {
+          status.lastSuccessAt = Date.now();
+          // Status persistence is best effort; the schedule has its own atomic save.
+          await getStorage()
+            .setSetting(`event-last-check-${eventId}`, String(status.lastSuccessAt))
+            .catch(() => {});
+        }
+        return success;
+      } finally {
+        status.checking = false;
+      }
     },
     { ...options, eventId },
   );
@@ -86,6 +132,11 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
   // Bound the whole download so a stalled asset cannot disable later polls.
   const timer = setTimeout(() => controller.abort(), 12_000);
   try {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      updateState.error =
+        'You are offline. Your saved schedule is available; reconnect to check for changes.';
+      return false;
+    }
     const res = await fetch(`${base}/events/${eventId}/manifest.json`, {
       cache: 'no-store',
       signal: controller.signal,
@@ -100,8 +151,7 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
       updateState.error = 'The schedule manifest is invalid or belongs to another event.';
       return false;
     }
-    // The manifest is in hand, so the check succeeded — whether or not it
-    // turns out to carry anything new.
+    // Clear the previous failure while validating the remaining data.
     updateState.error = null;
     const local = await storedRevision(eventId);
     if (!manifest.revision || (local !== null && manifest.revision <= local)) return true;

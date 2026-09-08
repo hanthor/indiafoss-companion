@@ -7,8 +7,8 @@
   import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
   import { currentLocation, hydrateLocation } from '$lib/location.svelte';
   import { hydratePreferences } from '$lib/prefs.svelte';
-  import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
-  import { UpdatePoller, updatePollInterval } from '$lib/update-poller';
+  import { applyUpdate, checkForUpdates, updateState, refreshStatus } from '$lib/updates.svelte';
+  import { UpdatePoller, updatePollInterval, updateRetryDelay } from '$lib/update-poller';
   import { describeChangeCount } from '@indiafoss/schedule';
   import type { ScheduleChangeType } from '@indiafoss/schedule';
   import {
@@ -124,7 +124,11 @@
   onMount(() => {
     const poller = new UpdatePoller(
       (periodic) => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID, { force: periodic }),
-      () => updatePollInterval(eventState.bundle),
+      () =>
+        updateRetryDelay(
+          updatePollInterval(eventState.bundle),
+          refreshStatus[eventState.bundle?.id ?? DEFAULT_EVENT_ID]?.failures ?? 0,
+        ),
     );
     const resume = () => {
       if (document.visibilityState === 'visible' && navigator.onLine) poller.start();

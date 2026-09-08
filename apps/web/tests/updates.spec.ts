@@ -395,3 +395,140 @@ for (const failure of ['manifest', 'asset'] as const) {
     await settingSaved(page, 'event-revision-indiafoss-2025', '9999');
   });
 }
+
+test('Settings keeps the active event revision and successful check after a failed reload check', async ({
+  page,
+  request,
+}) => {
+  await publish(page, 9999, await publishedBundle(request));
+  await page.goto(appUrl('/settings?setup=done'));
+  await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
+  const success = page.getByTestId('refresh-success');
+  await expect(success).toContainText('Last successful check:');
+  const checked = await success.innerText();
+  await page.route(MANIFEST, (route) => route.abort());
+  await page.reload();
+  await expect(page.getByText(/Last check failed:/)).toBeVisible();
+  await expect(success).toHaveText(checked);
+  await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
+});
+
+test.describe('service-worker recovery', () => {
+  test.use({ serviceWorkers: 'allow' });
+  test('offline recovery applies a changed session without losing any personal records', async ({
+    page,
+    request,
+    context,
+  }) => {
+    const bundle = await publishedBundle(request);
+    await page.goto(appUrl('/settings?setup=done'));
+    await expect(page.getByTestId('refresh-success')).toContainText('Last successful check:');
+    // Notes have a storage API but no editor yet; seed the same records that API writes.
+    const readPersonal = async (seed = false) =>
+      page.evaluate(
+        async ({ seed, kept }) => {
+          const open = indexedDB.open('indiafoss-companion');
+          const db = await new Promise<IDBDatabase>((resolve) => {
+            open.onsuccess = () => resolve(open.result);
+          });
+          const names = ['preferences', 'notes', 'settings'];
+          if (seed) {
+            await new Promise<void>((resolve, reject) => {
+              const tx = db.transaction(names, 'readwrite');
+              tx.objectStore('preferences').put({
+                activityId: kept,
+                bookmarked: true,
+                disposition: 'must-attend',
+                comparisons: 1,
+                rating: 1234,
+              });
+              tx.objectStore('notes').put({
+                activityId: kept,
+                body: 'Ask about contributors',
+                updatedAt: '2026-09-08T12:00:00Z',
+              });
+              tx.objectStore('settings').put({
+                key: 'plan-edits-indiafoss-2025-2025-09-20',
+                value: JSON.stringify({
+                  locked: [kept],
+                  removed: [],
+                  replacements: {},
+                  customBlocks: [
+                    {
+                      id: 'lunch',
+                      label: 'Lunch with friends',
+                      start: '2025-09-20T13:00:00+05:30',
+                      end: '2025-09-20T13:45:00+05:30',
+                    },
+                  ],
+                }),
+              });
+              tx.oncomplete = () => resolve();
+              tx.onerror = () => reject(tx.error);
+            });
+          }
+          const rows = await Promise.all(
+            names.map(
+              (name) =>
+                new Promise<unknown[]>((resolve) => {
+                  const req = db.transaction(name).objectStore(name).getAll();
+                  req.onsuccess = () =>
+                    resolve(
+                      name === 'settings'
+                        ? req.result.filter((r: { key: string }) => r.key.startsWith('plan-edits-'))
+                        : req.result,
+                    );
+                }),
+            ),
+          );
+          db.close();
+          return rows;
+        },
+        { seed, kept: KEPT },
+      );
+    const before = await readPersonal(true);
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+    await context.setOffline(true);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByText(/Last check failed:/)).toBeVisible();
+    const next = structuredClone(bundle) as {
+      activities: { id: string; title: string; start: string }[];
+    };
+    const changed = next.activities.find((a) => a.id === RENAMED)!;
+    changed.title = 'Updated after reconnect';
+    changed.start = new Date(Date.parse(changed.start) + 60_000).toISOString();
+    // Inject the newly published network responses at the page fetch boundary:
+    // page.route cannot intercept requests handled by a service worker.
+    await page.evaluate(
+      ({ next }) => {
+        const original = window.fetch.bind(window);
+        window.fetch = async (input, init) => {
+          const url = String(input);
+          if (!navigator.onLine) return original(input, init);
+          if (url.endsWith('/events/indiafoss-2025/manifest.json'))
+            return Response.json({
+              schemaVersion: 1,
+              eventId: 'indiafoss-2025',
+              generatedAt: '2026-09-08T12:00:00Z',
+              revision: 9999,
+              assets: { event: 'event.deadbeef.json' },
+            });
+          if (url.endsWith('/events/indiafoss-2025/event.deadbeef.json'))
+            return Response.json(next);
+          return original(input, init);
+        };
+      },
+      { next },
+    );
+    await context.setOffline(false);
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    const banner = page.getByRole('status', { name: 'Schedule update available' });
+    await expect(banner).toBeVisible();
+    await banner.getByRole('button', { name: 'Update', exact: true }).click();
+    await expect(banner).toBeHidden();
+    await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
+    expect(await readPersonal()).toEqual(before);
+  });
+});

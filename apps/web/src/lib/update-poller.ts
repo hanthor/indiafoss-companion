@@ -46,3 +46,11 @@ export class UpdatePoller {
     this.timer = undefined;
   }
 }
+
+/** Back off periodic failures up to 15 minutes; explicit reconnect/manual checks bypass it. */
+export function updateRetryDelay(interval: number, failures: number): number {
+  return Math.max(
+    interval,
+    Math.min(QUIET_POLL_MS, interval * 2 ** Math.min(4, Math.max(0, failures))),
+  );
+}

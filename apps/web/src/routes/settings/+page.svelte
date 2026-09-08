@@ -9,7 +9,12 @@
   import { goto } from '$app/navigation';
   import { formatDayLabel, getEventDays } from '@indiafoss/schedule';
   import { DEFAULT_EVENT_ID, eventState, loadEvent, storedRevision } from '$lib/event.svelte';
-  import { checkForUpdates, updateState } from '$lib/updates.svelte';
+  import {
+    checkForUpdates,
+    updateState,
+    refreshStatus,
+    hydrateRefreshStatus,
+  } from '$lib/updates.svelte';
   import {
     dayStart,
     formatSimTime,
@@ -28,9 +33,21 @@
   // The revision actually stored on this device, not the one we hoped to
   // fetch. Offline, this is the honest answer to "what am I looking at?".
   let localRevision = $state<number | null>(null);
+  const activeEventId = $derived(eventState.bundle?.id ?? DEFAULT_EVENT_ID);
+  const refresh = $derived(refreshStatus[activeEventId]);
   $effect(() => {
     void updateState.available;
-    void storedRevision(DEFAULT_EVENT_ID).then((r) => (localRevision = r));
+    void refresh?.checking;
+    const eventId = activeEventId;
+    let cancelled = false;
+    localRevision = null;
+    void storedRevision(eventId).then((r) => {
+      if (!cancelled) localRevision = r;
+    });
+    void hydrateRefreshStatus(eventId);
+    return () => {
+      cancelled = true;
+    };
   });
 
   // ---------- Day simulator (#93) ----------
@@ -74,20 +91,27 @@
     <h2>Schedule updates</h2>
     <p class="muted">
       {#if localRevision === null}
-        Using the schedule this app shipped with. Nothing has been downloaded yet.
+        Using a cached schedule without a recorded revision.
       {:else}
         You have revision {localRevision} stored on this device.
       {/if}
     </p>
-    {#if updateState.error}
-      <p class="muted">Last check failed: {updateState.error}</p>
+    <p class="muted" data-testid="refresh-success">
+      {#if refresh?.lastSuccessAt}
+        Last successful check: {new Date(refresh.lastSuccessAt).toLocaleString()}.
+      {:else}
+        No successful check recorded for this event yet.
+      {/if}
+    </p>
+    {#if refresh?.error}
+      <p class="muted" role="status">Last check failed: {refresh.error}</p>
     {/if}
     <button
       class="button"
-      disabled={updateState.checking}
-      onclick={() => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID, { force: true })}
+      disabled={refresh?.checking ?? false}
+      onclick={() => checkForUpdates(activeEventId, { force: true })}
     >
-      {updateState.checking ? 'Checking…' : 'Check for updates'}
+      {refresh?.checking ? 'Checking…' : 'Check for updates'}
     </button>
   </section>
   <section class="card">
