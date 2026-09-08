@@ -15,5 +15,9 @@ assert(
 const manifest = JSON.parse(readFileSync(new URL('manifest.webmanifest', build), 'utf8'));
 assert.equal(manifest.scope, scope);
 assert.equal(manifest.start_url, scope);
-assert(readdirSync(build).includes('sw.js'));
+const sw = readFileSync(new URL('sw.js', build), 'utf8');
+assert(
+  !/url:["'][^"']*events\/[^/"']+\/manifest\.json["']/.test(sw),
+  'Event manifests must not be precached: update checks need a network response',
+);
 console.log(`PWA registration and manifest use ${scope}`);
