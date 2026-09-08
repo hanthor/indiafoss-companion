@@ -92,3 +92,29 @@ test('the first load shows a skeleton of what is coming, not a bare line of text
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
   await expect(loading).toBeHidden();
 });
+
+test('2026 devroom artwork remains available after an offline reload', async ({
+  page,
+  context,
+}) => {
+  await page.goto(appUrl('/?setup=done'));
+  await expect(page.getByRole('heading', { name: 'Find your devroom' })).toBeVisible();
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  // The newly installed worker controls the next navigation (it need not
+  // claim the already-open first page).
+  await context.setOffline(true);
+  await page.reload();
+  const banners = page.locator('.devroom-grid img');
+  await expect(banners).toHaveCount(8);
+  for (const banner of await banners.all()) {
+    await banner.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() => banner.evaluate((img) => (img as HTMLImageElement).naturalWidth))
+      .toBeGreaterThan(0);
+  }
+  await expect(
+    page.getByRole('link', { name: 'Android Open Source Project (AOSP)', exact: true }),
+  ).toBeVisible();
+});

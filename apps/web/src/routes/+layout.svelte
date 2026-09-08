@@ -34,7 +34,7 @@
   let { children }: { children: import('svelte').Snippet } = $props();
 
   const brandHref = resolve('/');
-  const logoSrc = `${base}/branding/indiafoss-2026-white.svg`;
+  const logoSrc = `${base}/branding/indiafoss-2026-black.svg`;
 
   registerSW({ immediate: true });
 
@@ -308,9 +308,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: calc(0.55rem + var(--safe-top)) 0.9rem 0.55rem;
-    background: var(--ink-2);
-    color: var(--on-ink);
+    padding: calc(0.55rem + var(--safe-top)) max(1rem, calc((100vw - 75rem) / 2)) 0.55rem;
+    background: var(--paper);
+    color: var(--text);
+    border-bottom: 1px solid var(--line);
   }
 
   .brand {
@@ -326,12 +327,17 @@
     width: min(7.5rem, 36vw);
     height: auto;
   }
+  @media (prefers-color-scheme: dark) {
+    .brand img {
+      filter: invert(1);
+    }
+  }
   .brand-sub {
     font-family: var(--font-display);
-    font-size: 0.5rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--amber);
+    color: var(--text-muted);
   }
   @media (max-width: 480px) {
     .brand-sub {
@@ -354,10 +360,10 @@
     min-height: 44px;
     padding: 0.25rem 0.45rem;
     border-radius: var(--radius);
-    color: var(--on-ink);
+    color: var(--text);
     text-decoration: none;
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
+    font-family: var(--font-body);
+    font-size: 0.65rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -367,7 +373,7 @@
     fill: currentColor;
   }
   .toplinks a:hover {
-    background: hsl(0 0% 20%);
+    background: var(--line);
   }
   .toplinks a[aria-current='page'] {
     background: hsl(0 0% 29%);
@@ -397,7 +403,7 @@
   .content {
     flex: 1;
     padding: 0.75rem 1rem 1.25rem;
-    max-width: 72rem;
+    max-width: 77rem;
     width: 100%;
     margin: 0 auto;
   }
@@ -430,8 +436,8 @@
     padding: 0.35rem 0.2rem;
     color: var(--text-muted);
     text-decoration: none;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
