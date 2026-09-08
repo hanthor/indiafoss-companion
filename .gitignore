@@ -15,6 +15,7 @@ test-results/
 
 # Gradle
 .gradle/
+.kotlin/
 local.properties
 
 # Capacitor / Android generated output

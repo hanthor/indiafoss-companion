@@ -206,3 +206,31 @@ test('an unreachable manifest leaves the cached schedule usable', async ({ page,
     timeout: 10_000,
   });
 });
+
+test('an open foreground schedule polls again and pauses while hidden', async ({ page }) => {
+  await page.clock.install({ time: new Date('2025-09-20T10:00:00+05:30') });
+  let checks = 0;
+  await page.route(MANIFEST, (route) => {
+    checks += 1;
+    return route.fulfill({ json: { revision: 1 } });
+  });
+  await page.goto(appUrl('/?setup=done'));
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect.poll(() => checks).toBeGreaterThan(0);
+  const initial = checks;
+  await page.clock.runFor(61_000);
+  await expect.poll(() => checks).toBeGreaterThan(initial);
+
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  const hidden = checks;
+  await page.clock.runFor(120_000);
+  expect(checks).toBe(hidden);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect.poll(() => checks).toBeGreaterThan(hidden);
+});

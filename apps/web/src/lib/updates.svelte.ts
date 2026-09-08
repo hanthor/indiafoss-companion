@@ -73,14 +73,14 @@ export async function checkForUpdates(
 /** Resolves true when the manifest was actually reached. */
 async function runCheck(eventId: string, current: EventBundle): Promise<boolean> {
   updateState.checking = true;
+  const controller = new AbortController();
+  // Bound the whole download so a stalled asset cannot disable later polls.
+  const timer = setTimeout(() => controller.abort(), 12_000);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 4000);
     const res = await fetch(`${base}/events/${eventId}/manifest.json`, {
       cache: 'no-store',
       signal: controller.signal,
     });
-    clearTimeout(timer);
     if (!res.ok) return false;
     const manifest = (await res.json()) as { revision?: number; assets?: Record<string, string> };
     // The manifest is in hand, so the check succeeded — whether or not it
@@ -89,10 +89,18 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
     const local = await storedRevision(eventId);
     if (!manifest.revision || (local !== null && manifest.revision <= local)) return true;
 
+    if (pendingBundle?.id === eventId && updateState.revision === manifest.revision) return true;
+
     // Download the changed asset in full before anything is replaced (§34).
-    let bundleRes = await fetch(assetUrl(eventId, manifest.assets?.event), { cache: 'no-store' });
+    let bundleRes = await fetch(assetUrl(eventId, manifest.assets?.event), {
+      cache: 'no-store',
+      signal: controller.signal,
+    });
     if (!bundleRes.ok && bundleRes.status === 404) {
-      bundleRes = await fetch(assetUrl(eventId, undefined), { cache: 'no-store' });
+      bundleRes = await fetch(assetUrl(eventId, undefined), {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
     }
     if (!bundleRes.ok) return true;
     const next = (await bundleRes.json()) as EventBundle;
@@ -136,6 +144,7 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
     updateState.error = error instanceof Error ? error.message : String(error);
     return false;
   } finally {
+    clearTimeout(timer);
     updateState.checking = false;
   }
 }

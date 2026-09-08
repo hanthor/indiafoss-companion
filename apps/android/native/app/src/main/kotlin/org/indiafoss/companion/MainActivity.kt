@@ -28,6 +28,16 @@ class MainActivity : ComponentActivity() {
         intent.dataString?.let(viewModel::openDeepLink)
     }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.startSchedulePolling()
+    }
+
+    override fun onStop() {
+        viewModel.stopSchedulePolling()
+        super.onStop()
+    }
+
     override fun onResume() {
         super.onResume()
         // "Now" is time-sensitive: recompute the clock whenever we come forward.
