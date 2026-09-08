@@ -146,3 +146,107 @@ test('desktop discovery supports focused keyboard choices and undo without hijac
     await expect(card).toBeFocused();
   }
 });
+
+for (const direction of ['right', 'left'] as const) {
+  test(`touch swipes ${direction} on an expanded abstract save a choice`, async ({
+    browser,
+    baseURL,
+  }) => {
+    const context = await browser.newContext({
+      baseURL,
+      viewport: { width: 390, height: 844 },
+      isMobile: true,
+      hasTouch: true,
+    });
+    const page = await context.newPage();
+    try {
+      await page.goto(appUrl('/plan/rank?setup=done'));
+      const card = page.getByTestId('talk-card');
+      await card.getByRole('button', { name: /Read more/ }).tap();
+      const abstract = card.locator('.abstract.open p');
+      await abstract.scrollIntoViewIfNeeded();
+      const title = await card.getAttribute('aria-label');
+      const box = (await abstract.boundingBox())!;
+      const y = Math.max(180, Math.min(550, box.y + 30));
+      const startX = direction === 'right' ? 90 : 280;
+      const delta = direction === 'right' ? 15 : -15;
+      // Browser-generated touch input exercises implicit capture on the text
+      // and its transfer to the card; synthetic pointer events do not.
+      const cdp = await context.newCDPSession(page);
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchStart',
+        touchPoints: [{ x: startX, y }],
+      });
+      for (let step = 1; step <= 10; step++) {
+        await cdp.send('Input.dispatchTouchEvent', {
+          type: 'touchMove',
+          touchPoints: [{ x: startX + step * delta, y }],
+        });
+      }
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await expect(card).not.toHaveAttribute('aria-label', title!);
+      await expect(page.getByText('1 choices saved', { exact: false })).toBeVisible();
+      await page.getByRole('button', { name: /Change answered/ }).click();
+      await expect(page.locator('.quicklist li').filter({ hasText: title! })).toContainText(
+        direction === 'right' ? 'IN' : 'OUT',
+      );
+      await page.getByRole('button', { name: 'Undo last choice', exact: true }).click();
+      await expect(page.getByText('0 choices saved', { exact: false })).toBeVisible();
+    } finally {
+      await context.close();
+    }
+  });
+}
+
+test('expanded touch reading and cancelled swipes stay neutral', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({
+    baseURL,
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true,
+  });
+  const page = await context.newPage();
+  try {
+    await page.goto(appUrl('/plan/rank?setup=done'));
+    const card = page.getByTestId('talk-card');
+    await card.getByRole('button', { name: /Read more/ }).tap();
+    const abstract = card.locator('.abstract.open p');
+    await abstract.scrollIntoViewIfNeeded();
+    const title = await card.getAttribute('aria-label');
+    const cdp = await context.newCDPSession(page);
+    const scrollBefore = await page.evaluate(() => scrollY);
+    const box = (await abstract.boundingBox())!;
+    const y = Math.max(250, Math.min(550, box.y + 80));
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: 160, y }],
+    });
+    for (let step = 1; step <= 8; step++) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [{ x: 160, y: y - step * 15 }],
+      });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(scrollBefore);
+    await expect(card).toHaveAttribute('aria-label', title!);
+    await abstract.scrollIntoViewIfNeeded();
+    const cancelBox = (await abstract.boundingBox())!;
+    const cancelY = Math.max(180, Math.min(550, cancelBox.y + 30));
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchStart',
+      touchPoints: [{ x: 90, y: cancelY }],
+    });
+    for (let x = 105; x <= 240; x += 15) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [{ x, y: cancelY }],
+      });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchCancel', touchPoints: [] });
+    await expect(card).toHaveAttribute('aria-label', title!);
+    await expect(page.getByText('0 choices saved', { exact: false })).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
