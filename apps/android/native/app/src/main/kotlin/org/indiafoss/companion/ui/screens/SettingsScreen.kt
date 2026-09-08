@@ -1,5 +1,6 @@
 package org.indiafoss.companion.ui.screens
 
+import org.indiafoss.companion.BuildConfig
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -175,6 +176,7 @@ fun SettingsScreen(
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("About", style = MaterialTheme.typography.titleMedium)
+                    Text("Build ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                     Text(
                         "IndiaFOSS Companion, native. An unofficial community app built with AI assistance; " +
                             "not produced or endorsed by FOSS United. AGPL-3.0-or-later.",

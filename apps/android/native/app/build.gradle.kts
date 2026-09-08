@@ -28,8 +28,8 @@ android {
         applicationId = "org.indiafoss.companion.nativeapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = providers.gradleProperty("nightlyVersionCode").orNull?.toInt() ?: 1
+        versionName = providers.gradleProperty("nightlyVersionName").orNull ?: "0.1-dev"
     }
 
     buildTypes {
@@ -51,6 +51,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {
