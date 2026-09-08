@@ -49,22 +49,22 @@
       {/if}
     </p>
     <p id="hero-title" class="hero-desc">
-      A festival of open source, in your pocket: schedule, personal ranking, itinerary and indoor
+      A festival of open source, in your pocket: schedule, talk discovery, itinerary and indoor
       navigation — all offline, no account needed.
     </p>
     <div class="hero-actions" role="group" aria-label="Primary actions">
-      <a class="button light" href={resolve('/plan/rank')}>Rank your sessions</a>
+      <a class="button light" href={resolve('/plan/rank')}>Find talks for you</a>
       <a class="button gray" href={resolve('/now')}>What's on now</a>
     </div>
   </section>
 
   <a class="rank-hero" href={resolve('/plan/rank')}>
     <span class="rank-kicker">Make the most of your day</span>
-    <strong>Rank your sessions</strong>
+    <strong>Find talks for you</strong>
     <span class="rank-copy"
       >Tap or swipe through a few choices. We'll build your personal plan.</span
     >
-    <span class="rank-action">Start ranking →</span>
+    <span class="rank-action">Find talks for you →</span>
   </a>
 
   <nav class="quick" aria-label="Quick actions">

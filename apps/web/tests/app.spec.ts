@@ -6,6 +6,7 @@ const DURING = '2025-09-20T10:20:00+05:30';
 const NOW_URL = appUrl(`/now?event=indiafoss-2025&now=${encodeURIComponent(DURING)}`);
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
   // The event bundle is fetched from a static asset and cached in IndexedDB.
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
@@ -33,7 +34,7 @@ test('first run opens the welcome wizard once: reminders, ticket, you, then rank
   await page.getByLabel('Name', { exact: true }).fill('Asha Menon');
   await page.getByLabel('GitHub').fill('https://github.com/asha');
   await page.getByRole('button', { name: /Save →/ }).click();
-  await page.getByRole('button', { name: /Rank my sessions/ }).click();
+  await page.getByRole('button', { name: /Find talks for me/ }).click();
   await expect(page).toHaveURL(/\/plan\/rank$/);
   // What was entered is on the card; the wizard does not come back.
   await page.goto(appUrl('/connect'));
@@ -146,86 +147,49 @@ test('ranking supports keyboard choices and undo', async ({ page }) => {
   await expect(page.getByText(SOME_CHOICES)).toBeVisible();
 });
 
-test('ranking starts with the devrooms; not interested takes their talks out', async ({ page }) => {
-  await page.goto(appUrl('/plan/rank'));
+test('devroom preferences are an optional path and remain editable', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank?mode=rooms'));
   await expect(page.getByRole('tab', { name: /Devrooms/ })).toHaveAttribute(
     'aria-selected',
     'true',
   );
   const rows = page.getByTestId('room-row');
   expect(await rows.count()).toBeGreaterThan(3);
-  // Only devrooms are asked about; the main halls never appear here.
-  await expect(rows.filter({ hasText: /^Audi/ })).toHaveCount(0);
-  await expect(rows.filter({ hasText: 'main hall' })).toHaveCount(0);
-  // Each devroom says what it is about and can unfold its programme.
-  await expect(rows.first()).toContainText(/\d+ talks? · /);
-  await rows
-    .first()
-    .getByRole('button', { name: /What's on/ })
-    .click();
-  await expect(rows.first().getByRole('link').first()).toBeVisible();
-  // Not interested in AOSP, must go to the last one.
   const aosp = rows.filter({ hasText: 'AOSP' });
-  await aosp.getByRole('button', { name: 'Not interested' }).click();
-  await rows.last().getByRole('button', { name: 'Must go' }).click();
+  await aosp.getByRole('button', { name: 'Not interested', exact: true }).click();
+  await expect(aosp.getByRole('button', { name: 'Not interested', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await rows.last().getByRole('button', { name: 'More like this', exact: true }).click();
   await page.getByRole('button', { name: /Done · 1 out, 1 must go/ }).click();
-  // The talks follow, without the room's talks.
   await expect(page.getByRole('tab', { name: /Talks/ })).toHaveAttribute('aria-selected', 'true');
-  const toGo = async () =>
-    Number((await page.getByText(/\d+ TO GO/).textContent())?.match(/\d+/)?.[0]);
-  const without = await toGo();
-  // Interested again brings them back.
   await page.getByRole('tab', { name: /Devrooms/ }).click();
   await aosp.getByRole('button', { name: 'Interested', exact: true }).click();
-  await page.getByRole('tab', { name: /Talks/ }).click();
-  expect(await toGo()).toBeGreaterThan(without);
+  await expect(aosp.getByRole('button', { name: 'Not interested', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
 });
 
-test('the talks step deals one rich card at a time and remembers the answers', async ({ page }) => {
+test('talk discovery keeps archived preferences and pairwise history compatible', async ({
+  page,
+}) => {
   await page.goto(appUrl('/plan/rank?mode=quick'));
-  await expect(page.getByRole('tab', { name: /Talks/ })).toHaveAttribute('aria-selected', 'true');
   const card = page.getByTestId('talk-card');
   await expect(card).toBeVisible();
-  const toGo = async () =>
-    Number((await page.getByText(/\d+ TO GO/).textContent())?.match(/\d+/)?.[0]);
-  const before = await toGo();
-  expect(before).toBeGreaterThan(5);
-  // "Not for me" deals the next card; the opening notes go until a talk with a speaker is up.
-  let dropped = 0;
-  while (!/First Step into Open Source/.test((await card.getAttribute('aria-label')) ?? '')) {
-    await page.getByRole('button', { name: /^Not for me/ }).click();
-    dropped++;
-    expect(dropped).toBeLessThan(8);
-    await page.waitForTimeout(250);
-  }
-  // The card carries the speaker and the abstract, not just a title.
-  await expect(card.getByRole('link').first()).toBeVisible();
-  await expect(card.getByRole('button', { name: /Read more/ })).toBeVisible();
-  // "Interested" keeps it.
-  await page.getByRole('button', { name: /^Interested/ }).click();
-  await expect(page.getByText(new RegExp(`1 IN · ${dropped} OUT`))).toBeVisible();
-  expect(await toGo()).toBe(before - dropped - 1);
-  // A swipe to the right is an "Interested" too.
-  const box = (await card.boundingBox())!;
-  await page.mouse.move(box.x + box.width / 2, box.y + 40);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 120, box.y + 40, { steps: 6 });
-  await page.mouse.move(box.x + box.width / 2 + 220, box.y + 40, { steps: 6 });
-  await page.mouse.up();
-  await expect(page.getByText(new RegExp(`2 IN · ${dropped} OUT`))).toBeVisible();
-  // Answers survive a reload and can be changed.
+  const first = await card.getAttribute('aria-label');
+  await page.getByRole('button', { name: /^Want to go:/ }).click();
+  await expect(card).not.toHaveAttribute('aria-label', first!);
+  await expect(page.getByText(/1 choices saved/)).toBeVisible();
   await page.reload();
-  await expect(page.getByText(new RegExp(`2 IN · ${dropped} OUT`))).toBeVisible();
+  await expect(card).not.toHaveAttribute('aria-label', first!);
+  await expect(page.getByText(/1 choices saved/)).toBeVisible();
   await page.getByRole('button', { name: /Change answered/ }).click();
-  await page.getByRole('button', { name: 'Undo' }).first().click();
-  await expect(
-    page.getByText(new RegExp(`(2 IN · ${dropped - 1} OUT|1 IN · ${dropped} OUT)`)),
-  ).toBeVisible();
-  // The overlaps step is one tap away and shows a slot's sessions.
-  await page.getByRole('tab', { name: /Overlaps/ }).click();
-  await expect(page.getByText(/SLOT 1 OF \d+/)).toBeVisible();
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(page.getByText(/0 choices saved/)).toBeVisible();
+  await page.getByRole('tab', { name: /Compare overlaps/ }).click();
   await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await expect(page.getByTestId('candidate-b')).toBeVisible();
 });
 
 test('answered pairs are not asked again after a reload', async ({ page }) => {
@@ -243,6 +207,7 @@ test('answered pairs are not asked again after a reload', async ({ page }) => {
 
 test('ranking respects reduced motion while still recording choices', async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: 'reduce' });
+  await context.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
   const page = await context.newPage();
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();

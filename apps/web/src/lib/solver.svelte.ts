@@ -10,6 +10,8 @@ import {
   hydratePreferences,
   ratingOf,
 } from '$lib/prefs.svelte';
+import { hydrateRoomPrefs, roomPreferences } from '$lib/roomPrefs.svelte';
+import { triageOf } from '$lib/prefs.svelte';
 import { affinityModel, effectiveRating } from '$lib/priors.svelte';
 import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
 import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
@@ -66,7 +68,7 @@ export async function travelForEvent(bundle: EventBundle): Promise<TravelTimePro
  * venue route durations under the attendee's routing profile (§29).
  */
 export async function solveForDay(bundle: EventBundle, day: string, lockedIds: string[] = []) {
-  await Promise.all([hydratePreferences(), hydrateComparisons()]);
+  await Promise.all([hydratePreferences(), hydrateComparisons(), hydrateRoomPrefs(bundle.id)]);
   const [boothGoals, travel] = await Promise.all([
     plannedBoothVisits(bundle),
     travelForEvent(bundle),
@@ -79,7 +81,10 @@ export async function solveForDay(bundle: EventBundle, day: string, lockedIds: s
   const activityById = new Map(bundle.activities.map((a) => [a.id, a]));
   const ratingWithTaste = (id: string): number => {
     const activity = activityById.get(id);
-    return activity ? effectiveRating(activity, model) : ratingOf(id);
+    return (
+      (activity ? effectiveRating(activity, model) : ratingOf(id)) +
+      (triageOf(id) === 'yes' ? 120 : 0)
+    );
   };
   // Locked itinerary rows are hard constraints: the solver must keep them (§18).
   // Plain lookup set for one solve; nothing observes it.
@@ -95,6 +100,9 @@ export async function solveForDay(bundle: EventBundle, day: string, lockedIds: s
   const result = solveDay({
     bundle,
     day,
+    stayTrackIds: Object.entries(roomPreferences())
+      .filter(([, value]) => value === 'stay')
+      .map(([id]) => id),
     preferences: prefs,
     travel,
     flexibleGoals: [...DEFAULT_FLEXIBLE_GOALS, ...boothGoals],

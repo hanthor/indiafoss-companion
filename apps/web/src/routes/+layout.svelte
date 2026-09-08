@@ -99,7 +99,7 @@
 
   $effect(() => {
     if (eventState.status === 'ready' && eventState.bundle) {
-      void checkForUpdates(DEFAULT_EVENT_ID);
+      void checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID);
     }
   });
 
@@ -108,7 +108,7 @@
   // app both re-check; the freshness limit in checkForUpdates keeps a burst of
   // these down to one fetch.
   onMount(() => {
-    const recheck = () => void checkForUpdates(DEFAULT_EVENT_ID);
+    const recheck = () => void checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID);
     const onVisible = () => {
       if (document.visibilityState === 'visible') recheck();
     };
@@ -200,6 +200,11 @@
   <div class="pixelstripe" aria-hidden="true"></div>
   <SimulatorStrip />
   <LeaveByBanner />
+  {#if eventState.bundle?.sourceMetadata.scheduleStatus === 'draft'}
+    <p class="event-notice">Draft schedule · Times and sessions may change.</p>
+  {:else if eventState.bundle && eventState.bundle.id !== DEFAULT_EVENT_ID}
+    <p class="event-notice">Archived programme · This is not the current IndiaFOSS schedule.</p>
+  {/if}
 
   <main class="content" class:fullbleed>
     {@render children()}
@@ -218,8 +223,9 @@
           {/each}
         </span>
       </div>
-      <button class="button primary small" onclick={() => applyUpdate(DEFAULT_EVENT_ID)}
-        >Update</button
+      <button
+        class="button primary small"
+        onclick={() => applyUpdate(eventState.bundle?.id ?? DEFAULT_EVENT_ID)}>Update</button
       >
     </section>
   {/if}
@@ -265,6 +271,14 @@
 </div>
 
 <style>
+  .event-notice {
+    margin: 0;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.9rem;
+  }
   .shell {
     display: flex;
     flex-direction: column;

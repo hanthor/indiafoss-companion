@@ -1,0 +1,15 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 3,
+  "from": 2,
+  "changes": [
+    {
+      "activityId": "act-28la50468f",
+      "title": "Reverse Engineering the PAN QR Code",
+      "type": "time-changed"
+    }
+  ],
+  "summary": {
+    "time-changed": 1
+  }
+}

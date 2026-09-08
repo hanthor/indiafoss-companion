@@ -95,7 +95,10 @@ export function rankableRooms(
 export function devrooms(
   bundle: EventBundle,
 ): { track: Track; sessions: Activity[]; main: boolean }[] {
-  return rankableRooms(bundle).filter((r) => !r.main);
+  const explicit = bundle.activities.some((a) => a.devroomId?.startsWith('devroom-'));
+  return rankableRooms(bundle).filter(
+    (r) => !r.main && (!explicit || r.track.id.startsWith('devroom-')),
+  );
 }
 
 /**

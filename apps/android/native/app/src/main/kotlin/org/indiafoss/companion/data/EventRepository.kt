@@ -95,7 +95,7 @@ class EventRepository(
     }
 
     companion object {
-        const val DEFAULT_EVENT_ID = "indiafoss-2025"
+        const val DEFAULT_EVENT_ID = "indiafoss-2026"
         const val DEFAULT_BASE_URL = "https://hanthor.github.io/indiafoss-companion"
     }
 }

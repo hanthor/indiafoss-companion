@@ -58,7 +58,7 @@ data class RankingState(
         get() = rooms.mapNotNull { (id, pref) ->
             when (pref) {
                 "skip" -> id to RoomPreference.SKIP
-                "love" -> id to RoomPreference.LOVE
+                "love", "stay" -> id to RoomPreference.LOVE
                 else -> null
             }
         }.toMap()

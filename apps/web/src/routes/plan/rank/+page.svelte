@@ -5,6 +5,7 @@
   import type { Activity, Person } from '@indiafoss/model';
   import { activitiesForDay, formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
   import {
+    discoveryDeck,
     applyComparison,
     applyPriors,
     conflictProgress,
@@ -30,7 +31,7 @@
     recordComparison,
     setDisposition,
     setRating,
-    setTriage,
+    setTalkChoice,
     triageOf,
   } from '$lib/prefs.svelte';
   import { affinityModel } from '$lib/priors.svelte';
@@ -39,7 +40,6 @@
     hydrateRoomPrefs,
     markRoomsDecided,
     roomPreference,
-    roomPrefsState,
     setRoomPreference,
   } from '$lib/roomPrefs.svelte';
   import { roomSummary } from '$lib/roomInfo';
@@ -58,6 +58,7 @@
   let busy = $state(false);
   let entering = $state(false);
   let ready = $state(false);
+  let saveError = $state('');
   /** Answered talks are folded away; this unfolds them to change an answer. */
   let showAnswered = $state(false);
 
@@ -100,6 +101,7 @@
       rating: ratingOf(a.id),
       comparisons: comparisonsOf(a.id),
       disposition: dispositionOf(a.id),
+      interest: triageOf(a.id),
     })),
   );
 
@@ -128,7 +130,13 @@
   });
 
   // ---------- Step 2: one talk at a time ----------
-  const untriaged = $derived(daySessions.filter((a) => !triageOf(a.id)));
+  const suggestions = $derived(
+    discoveryDeck(
+      stored.filter((r) => roomPreference(r.activity.trackId ?? '') !== 'stay'),
+      model,
+    ),
+  );
+  const untriaged = $derived(suggestions.map((s) => s.activity));
   const triaged = $derived(daySessions.filter((a) => !!triageOf(a.id)));
   const keptCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'yes').length);
   const droppedCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'no').length);
@@ -176,16 +184,26 @@
     const id = card.id;
     leaving = answer === 'no' ? 'left' : 'right';
     await new Promise((r) => setTimeout(r, 180));
-    await setTriage(id, answer === 'no' ? 'no' : 'yes');
-    if (answer === 'must') await setDisposition(id, 'must-attend');
-    leaving = null;
-    dragX = 0;
-    readMore = false;
-    busy = false;
+    try {
+      await setTalkChoice(id, answer);
+      saveError = '';
+      readMore = false;
+    } catch {
+      saveError = 'Your choice could not be saved. Please try again.';
+    } finally {
+      leaving = null;
+      dragX = 0;
+      busy = false;
+    }
   }
   async function clearAnswer(activity: Activity): Promise<void> {
     chosenMode = 'cards';
-    await setTriage(activity.id, undefined);
+    try {
+      await setTalkChoice(activity.id, undefined);
+      saveError = '';
+    } catch {
+      saveError = 'Your choice could not be saved. Please try again.';
+    }
   }
 
   /** Sessions that clash with a given one, for the card's hint. */
@@ -370,13 +388,7 @@
   // first answer must not flip the screen to the next step.
   $effect(() => {
     if (!ready || chosenMode !== null || daySessions.length === 0) return;
-    chosenMode =
-      forcedMode ??
-      (!roomPrefsState.decided && rooms.length > 0
-        ? 'rooms'
-        : untriaged.length > 0 && choicesMade === 0
-          ? 'cards'
-          : 'slots');
+    chosenMode = forcedMode ?? 'cards';
   });
   const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'slots');
 
@@ -492,7 +504,7 @@
   <div class="head">
     <div>
       <a class="eyebrow back" href={resolve('/plan')}>← PLAN</a>
-      <h1>Rank your day</h1>
+      <h1>Find your talks</h1>
     </div>
     <div class="days" role="tablist" aria-label="Day">
       {#each days as day, i (day)}
@@ -516,7 +528,7 @@
       class:active={mode === 'rooms'}
       onclick={() => (chosenMode = 'rooms')}
     >
-      1 · Devrooms
+      Devrooms
       {#if roomsOut + roomsMust > 0}<span class="count">{roomsOut + roomsMust}</span>{/if}
     </button>
     <button
@@ -525,7 +537,7 @@
       class:active={mode === 'cards'}
       onclick={() => (chosenMode = 'cards')}
     >
-      2 · Talks
+      Talks for you
       {#if untriaged.length > 0}<span class="count">{untriaged.length}</span>{/if}
     </button>
     <button
@@ -534,7 +546,7 @@
       class:active={mode === 'slots'}
       onclick={() => (chosenMode = 'slots')}
     >
-      3 · Overlaps
+      Compare overlaps (optional)
       <!-- The count means little before the talks step has thinned the day. -->
       {#if openSlots.length > 0 && (untriaged.length === 0 || choicesMade > 0)}
         <span class="count">{openSlots.length}</span>
@@ -545,7 +557,8 @@
   {#if mode === 'rooms'}
     <p class="muted small lead">
       Which devrooms are for you? <b>Not interested</b> takes a room's talks out of the day,
-      <b>Must go</b> puts them ahead of the rest. The main halls are always in.
+      <b>Stay for this devroom</b> reserves its whole block. Conflicting must-go choices are shown in
+      your plan.
     </p>
     {#if rooms.length === 0}
       <section class="done" aria-live="polite">
@@ -627,7 +640,14 @@
                 aria-pressed={pref === 'love'}
                 onclick={() =>
                   setRoomPreference(bundle, r.track.id, pref === 'love' ? undefined : 'love')}
-                >Must go</button
+                >More like this</button
+              >
+              <button
+                class:on={pref === 'stay'}
+                aria-pressed={pref === 'stay'}
+                onclick={() =>
+                  setRoomPreference(bundle, r.track.id, pref === 'stay' ? undefined : 'stay')}
+                >Stay for this devroom</button
               >
             </div>
           </li>
@@ -642,20 +662,11 @@
       </div>
     {/if}
   {:else if mode === 'cards'}
-    <div class="progress" role="status">
-      <div class="progresstext">
-        <span class="ok">{keptCount} IN · {droppedCount} OUT</span>
-        <span>{untriaged.length} TO GO</span>
-      </div>
-      <div class="track">
-        <div
-          class="fill"
-          style="width:{daySessions.length
-            ? Math.round((triaged.length / daySessions.length) * 100)
-            : 0}%"
-        ></div>
-      </div>
-    </div>
+    <p class="muted small" role="status">
+      {triaged.length} choices saved · Stop whenever you like.
+      <a href={resolve('/plan')}>See my plan →</a>
+    </p>
+    {#if saveError}<p role="alert">{saveError}</p>{/if}
 
     {#if !ready}
       <p class="muted" role="status">Loading your picks…</p>
@@ -682,8 +693,19 @@
     {:else}
       {@const clashes = clashCount(card)}
       <p class="muted small lead center">
-        Swipe right if you might go, left if not. Only the Yeses that overlap need settling
-        afterwards.
+        Choose a few talks you like. Your next suggestions adapt on this device.
+        {#if suggestions[0]?.because.length}
+          More like your choices in {suggestions[0].because
+            .map((key) =>
+              key.startsWith('track:')
+                ? (bundle.tracks.find((t) => t.id === key.slice(6))?.name ?? key.slice(6))
+                : key.slice(4),
+            )
+            .slice(0, 2)
+            .join(' · ')}.
+        {:else}
+          Explore something different.
+        {/if}
       </p>
       <div class="stack" aria-live="polite">
         {#if nextCard}
@@ -751,6 +773,7 @@
                 </span>
               </div>
             {/each}
+            {#if card.scheduleNote}<p role="status">{card.scheduleNote}</p>{/if}
             {#if card.description}
               <div class="abstract" class:open={readMore}>
                 <p>{card.description}</p>
@@ -779,22 +802,40 @@
       </div>
       <div class="cardbtns">
         <button
-          class="button secondary no"
-          aria-label={`Not for me: ${card.title}`}
-          onclick={() => answerCard('no')}
-          disabled={busy}>✕ Not for me</button
+          class="button must"
+          aria-label={`Must go: ${card.title}`}
+          onclick={() => answerCard('must')}
+          disabled={busy}
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"><path d="m3 6 5 4 4-7 4 7 5-4-2 12H5Z" /><path d="M5 21h14" /></svg
+          > Must go</button
         >
         <button
           class="button secondary yes"
-          aria-label={`Interested: ${card.title}`}
+          aria-label={`Want to go: ${card.title}`}
           onclick={() => answerCard('yes')}
-          disabled={busy}>✓ Interested</button
+          disabled={busy}
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg
+          > Want to go</button
         >
         <button
-          class="button dark must"
-          aria-label={`Must go: ${card.title}`}
-          onclick={() => answerCard('must')}
-          disabled={busy}>★ Must go</button
+          class="button secondary no"
+          aria-label={`Not interested: ${card.title}`}
+          onclick={() => answerCard('no')}
+          disabled={busy}>Not interested</button
         >
       </div>
     {/if}
@@ -943,6 +984,18 @@
 </EventGate>
 
 <style>
+  .cardbtns .must {
+    background: var(--choice-must);
+    color: var(--choice-must-text);
+  }
+  .cardbtns .yes {
+    background: var(--choice-want);
+    color: var(--choice-want-text);
+  }
+  .cardbtns .no {
+    background: var(--choice-no);
+    color: var(--choice-no-text);
+  }
   /* Steps */
   .modes {
     display: grid;

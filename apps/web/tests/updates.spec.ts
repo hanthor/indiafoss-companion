@@ -2,6 +2,11 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 import { appUrl } from './app-url.js';
 import { preferenceSaved } from './preference-saved.js';
 
+// These regression scenarios use stable IDs and times from the archived fixture.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
+});
+
 /**
  * Production revision handling (#7). `app.spec.ts` covers the happy path — a
  * newer revision is offered, downloaded in full, then applied. These are the

@@ -38,7 +38,7 @@
   });
 
   const bundle = $derived(eventState.bundle);
-  const venueKey = $derived(venueKeyForEvent(bundle?.id ?? 'indiafoss-2025'));
+  const venueKey = $derived(venueKeyForEvent(bundle?.id ?? 'indiafoss-2026'));
   let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
   let venueError: string | null = $state(null);
 

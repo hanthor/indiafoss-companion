@@ -140,6 +140,9 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         },
     ) { padding ->
         Column(Modifier.padding(padding)) {
+        if (state.bundle?.sourceMetadata?.scheduleStatus == "draft") {
+            Text("Draft schedule · Times and sessions may change.")
+        }
         val route = backStack?.destination?.route
         // The countdown strip sits under every tab's app bar, not over detail screens.
         if (route != null && destinations.any { it.route == route }) {

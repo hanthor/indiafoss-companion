@@ -5,6 +5,10 @@
 - Tracks: [#192](https://github.com/hanthor/indiafoss-companion/issues/192)
 - Size: M
 
+## Updated product direction — 8 September
+
+Use [talk discovery and whole-devroom planning](../recommendations.md): gold crown Must go, green Want to go, grey Not interested, and a separate Stay for this devroom choice. Learn from these direct answers locally; pairwise ranking is optional. Do not ask attendees to finish every talk before generating a plan. The exact original steps below are subordinate to this updated direction.
+
 ## Why this matters
 
 Someone opens the Companion on the train to the venue. They know three talks

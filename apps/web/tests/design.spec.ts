@@ -50,8 +50,8 @@ test('every design token resolves, and the themed ones actually change', async (
   const darkPage = await dark.newPage();
   await lightPage.goto(appUrl('/?setup=done'));
   await darkPage.goto(appUrl('/?setup=done'));
-  await expect(lightPage.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
-  await expect(darkPage.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect(lightPage.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
+  await expect(darkPage.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
 
   const inLight = await tokens(lightPage);
   const inDark = await tokens(darkPage);
@@ -89,6 +89,6 @@ test('the first load shows a skeleton of what is coming, not a bare line of text
   expect(await loading.locator('[aria-hidden="true"]').count()).toBeGreaterThan(3);
 
   release();
-  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
   await expect(loading).toBeHidden();
 });

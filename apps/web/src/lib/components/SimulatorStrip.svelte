@@ -50,7 +50,9 @@
     {#if latest}
       <div class="latest" role="status" data-testid="sim-latest">
         <span class="at">{latest.simAt.slice(11, 16)}</span>
-        <span class="what">{latest.kind === 'notification' ? '🔔' : '▮'} {latest.title}</span>
+        <span class="what"
+          >{latest.kind === 'notification' ? 'Notification:' : 'Update:'} {latest.title}</span
+        >
         {#if latest.body}<span class="body">— {latest.body}</span>{/if}
       </div>
     {/if}

@@ -32,14 +32,8 @@ Output under events/<event-id>/published/:
   changes.<revision>.json
 `;
 
-export interface EventManifest {
-  schemaVersion: number;
-  eventId: string;
-  revision: number;
-  generatedAt: string;
-  sourceUpdatedAt?: string;
-  assets: Record<string, string>;
-}
+import { isValidEventManifest, type EventManifest } from '@indiafoss/model/contracts';
+export type { EventManifest } from '@indiafoss/model/contracts';
 
 function hash(data: string): string {
   return createHash('sha256').update(data).digest('hex').slice(0, 8);
@@ -70,6 +64,17 @@ export async function syncEvent(
   const messagingPath = join(repoRoot('events', eventId), 'messaging.json');
   if (existsSync(messagingPath)) {
     bundle.messaging = JSON.parse(readFileSync(messagingPath, 'utf8')) as MessagingConfig;
+  }
+
+  const publicationPath = join(repoRoot('events', eventId), 'publication.json');
+  if (existsSync(publicationPath)) {
+    const publication = JSON.parse(readFileSync(publicationPath, 'utf8')) as {
+      scheduleStatus?: unknown;
+    };
+    if (publication.scheduleStatus !== 'draft' && publication.scheduleStatus !== 'confirmed') {
+      throw new Error('publication.scheduleStatus must be draft or confirmed');
+    }
+    bundle.sourceMetadata.scheduleStatus = publication.scheduleStatus;
   }
 
   if (!isValidEventBundle(bundle)) {
@@ -156,11 +161,13 @@ export async function syncEvent(
     eventId,
     revision,
     generatedAt: new Date().toISOString(),
+    timezone: bundle.timezone,
     ...(bundle.sourceMetadata.sourceUpdatedAt
       ? { sourceUpdatedAt: bundle.sourceMetadata.sourceUpdatedAt }
       : {}),
     assets,
   };
+  if (!isValidEventManifest(manifest)) throw new Error('generated manifest failed validation');
   writeFileSync(join(publishedDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 
   console.log(

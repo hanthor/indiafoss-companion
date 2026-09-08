@@ -76,6 +76,8 @@ export interface Activity {
 
   cancelled?: boolean;
   delayedMinutes?: number;
+  /** Source timing is inconsistent; do not invent a plannable end time. */
+  scheduleNote?: string;
 
   source: string;
 }
@@ -143,6 +145,8 @@ export interface SourceMetadata {
   sourceUpdatedAt?: string;
   /** Version of the normalizer that produced the bundle. */
   normalizerVersion: string;
+  /** Editorial publication status; absent in legacy bundles. */
+  scheduleStatus?: 'draft' | 'confirmed';
 }
 
 export interface EventBundle {

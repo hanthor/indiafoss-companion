@@ -1,16 +1,11 @@
+import { base } from '$app/paths';
 import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
 import type { ScheduleChange } from '@indiafoss/schedule';
 import type { EventBundle } from '@indiafoss/model';
 import { collectBundleIssues } from '@indiafoss/model';
 import { CompanionStorage } from '@indiafoss/storage';
 import { UpdateGate } from '$lib/update-gate';
-import {
-  eventState,
-  EVENT_BUNDLE_URL,
-  EVENT_MANIFEST_URL,
-  recordRevision,
-  storedRevision,
-} from '$lib/event.svelte';
+import { eventState, recordRevision, storedRevision } from '$lib/event.svelte';
 
 let storage: CompanionStorage | null = null;
 function getStorage(): CompanionStorage {
@@ -38,10 +33,11 @@ export const updateState = $state<{
 let pendingBundle: EventBundle | null = null;
 
 /** Immutable, hash-addressed asset named by the manifest; the hash-less copy is the fallback. */
-function assetUrl(asset: string | undefined): string {
+function assetUrl(eventId: string, asset: string | undefined): string {
+  const bundleUrl = `${base}/events/${eventId}/event-bundle.json`;
   return asset && /^event\.[0-9a-f]+\.json$/.test(asset)
-    ? `${EVENT_BUNDLE_URL.replace(/event-bundle\.json$/, '')}${asset}`
-    : EVENT_BUNDLE_URL;
+    ? `${bundleUrl.replace(/event-bundle\.json$/, '')}${asset}`
+    : bundleUrl;
 }
 
 /**
@@ -70,7 +66,7 @@ export async function checkForUpdates(
   // Captured once, so the diff below is against the bundle this check
   // started from rather than whatever the store holds when it finishes.
   const current = eventState.bundle;
-  if (eventState.status !== 'ready' || !current) return;
+  if (eventState.status !== 'ready' || !current || current.id !== eventId) return;
   await gate.run(() => runCheck(eventId, current), options);
 }
 
@@ -80,7 +76,10 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 4000);
-    const res = await fetch(EVENT_MANIFEST_URL, { cache: 'no-store', signal: controller.signal });
+    const res = await fetch(`${base}/events/${eventId}/manifest.json`, {
+      cache: 'no-store',
+      signal: controller.signal,
+    });
     clearTimeout(timer);
     if (!res.ok) return false;
     const manifest = (await res.json()) as { revision?: number; assets?: Record<string, string> };
@@ -91,9 +90,9 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
     if (!manifest.revision || (local !== null && manifest.revision <= local)) return true;
 
     // Download the changed asset in full before anything is replaced (§34).
-    let bundleRes = await fetch(assetUrl(manifest.assets?.event), { cache: 'no-store' });
+    let bundleRes = await fetch(assetUrl(eventId, manifest.assets?.event), { cache: 'no-store' });
     if (!bundleRes.ok && bundleRes.status === 404) {
-      bundleRes = await fetch(EVENT_BUNDLE_URL, { cache: 'no-store' });
+      bundleRes = await fetch(assetUrl(eventId, undefined), { cache: 'no-store' });
     }
     if (!bundleRes.ok) return true;
     const next = (await bundleRes.json()) as EventBundle;
@@ -148,7 +147,7 @@ export async function applyUpdate(eventId: string): Promise<void> {
   if (!updateState.available) return;
   let next = pendingBundle;
   if (!next) {
-    const res = await fetch(EVENT_BUNDLE_URL, { cache: 'no-store' });
+    const res = await fetch(assetUrl(eventId, undefined), { cache: 'no-store' });
     if (!res.ok) throw new Error(`update fetch failed (HTTP ${res.status})`);
     next = (await res.json()) as EventBundle;
   }

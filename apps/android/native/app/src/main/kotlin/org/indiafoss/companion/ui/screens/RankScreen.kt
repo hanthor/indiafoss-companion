@@ -100,7 +100,7 @@ fun RankScreen(
 
     val sessions = if (days.isEmpty()) emptyList() else
         state.activitiesFor(days[day.coerceIn(0, days.lastIndex)]).filter { !it.cancelled && it.type != "meal" }
-    val untriaged = sessions.filter { state.ranking.rating(it.id).triage == null }
+    val untriaged = state.affinity.discoveryDeck(sessions.filter { state.ranking.rooms[it.trackId] != "stay" }.map(state::ranked))
     val answered = state.ranking.answeredPairs
     val model = state.affinity
     val pool = model.apply(sessions.map(state::ranked))
@@ -108,16 +108,12 @@ fun RankScreen(
     val slots = Ranking.slots(pool, answered)
     val ids = sessions.map { it.id }.toSet()
     val choices = answered.count { key -> key.split("|").let { it.size == 2 && it[0] in ids && it[1] in ids } }
-    val step = chosen ?: when {
-        !state.ranking.roomsDecided && rooms.isNotEmpty() -> Step.DEVROOMS
-        untriaged.isNotEmpty() && choices == 0 -> Step.TALKS
-        else -> Step.SLOTS
-    }
+    val step = chosen ?: Step.TALKS
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rank your day") },
+                title = { Text("Find your talks") },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
                 },
@@ -251,6 +247,9 @@ private fun DevroomsStep(rooms: List<Room>, state: UiState, onRoom: (String, Str
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp),
                     )
+                    TextButton(onClick = { onRoom(room.track.id, if (pref == "stay") null else "stay") }) {
+                        Text(if (pref == "stay") "Staying for this devroom · Undo" else "Stay for this devroom")
+                    }
                     TextButton(onClick = { openRoom = if (openRoom == room.track.id) null else room.track.id }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                         Text(if (openRoom == room.track.id) "Hide the talks" else "What's on")
                     }
@@ -308,7 +307,7 @@ private fun TalksStep(
         item {
             Row(Modifier.fillMaxWidth().padding(20.dp, 4.dp, 20.dp, 0.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("$kept in · $dropped out", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                Text("${untriaged.size} to go", style = MaterialTheme.typography.labelLarge)
+                Text("Stop any time", style = MaterialTheme.typography.labelLarge)
             }
             LinearProgressIndicator(
                 progress = { if (sessions.isEmpty()) 0f else (sessions.size - untriaged.size).toFloat() / sessions.size },
@@ -334,7 +333,7 @@ private fun TalksStep(
         } else {
             item {
                 Text(
-                    "Swipe right if you might go, left if not. Only the Yeses that overlap need settling afterwards.",
+                    "Choose talks you like. Suggestions adapt on this device. Comparing overlaps is optional.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -349,17 +348,17 @@ private fun TalksStep(
             }
             item {
                 Row(Modifier.fillMaxWidth().padding(16.dp, 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { onAnswer(card.id, "no") }, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
-                        Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Text("Not for me", Modifier.padding(start = 4.dp), maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                    Button(onClick = { onAnswer(card.id, "must") }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFEFC44B), contentColor = androidx.compose.ui.graphics.Color(0xFF332700)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                        CrownIcon()
+                        Text("Must go", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
-                    FilledTonalButton(onClick = { onAnswer(card.id, "yes") }, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                    FilledTonalButton(onClick = { onAnswer(card.id, "yes") }, colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFB9EFC9), contentColor = androidx.compose.ui.graphics.Color(0xFF143923)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
                         Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Text("Interested", Modifier.padding(start = 4.dp), maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                        Text("Want to go", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
-                    Button(onClick = { onAnswer(card.id, "must") }, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
-                        Icon(Icons.Filled.Star, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Text("Must go", Modifier.padding(start = 4.dp), maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                    OutlinedButton(onClick = { onAnswer(card.id, "no") }, colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE4E4E4), contentColor = androidx.compose.ui.graphics.Color(0xFF303030)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                        Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text("Not interested", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -611,5 +610,28 @@ private fun PickCard(ranked: RankedActivity, state: UiState, onOpen: (String) ->
                 FilledTonalButton(onClick = onPick) { Text("This one") }
             }
         }
+    }
+}
+
+
+/** Decorative vector crown; the adjacent button text provides its accessible label. */
+@Composable
+private fun CrownIcon() {
+    val color = androidx.compose.material3.LocalContentColor.current
+    androidx.compose.foundation.Canvas(Modifier.size(18.dp)) {
+        val scale = size.minDimension / 24f
+        val crown = androidx.compose.ui.graphics.Path().apply {
+            moveTo(3f * scale, 6f * scale)
+            lineTo(8f * scale, 10f * scale)
+            lineTo(12f * scale, 3f * scale)
+            lineTo(16f * scale, 10f * scale)
+            lineTo(21f * scale, 6f * scale)
+            lineTo(19f * scale, 18f * scale)
+            lineTo(5f * scale, 18f * scale)
+            close()
+            moveTo(5f * scale, 21f * scale)
+            lineTo(19f * scale, 21f * scale)
+        }
+        drawPath(crown, color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f * scale))
     }
 }

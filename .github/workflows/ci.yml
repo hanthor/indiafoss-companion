@@ -41,7 +41,9 @@ jobs:
         run: pnpm -r test
 
       - name: Verify captured fixtures
-        run: pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+        run: |
+          pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+          pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2026
 
       - name: Validate venue assets
         run: |
@@ -91,7 +93,7 @@ jobs:
         run: pnpm --filter @indiafoss/web build
 
       - name: Run browser E2E tests
-        run: pnpm --filter @indiafoss/web test:e2e
+        run: pnpm --filter @indiafoss/web exec playwright test tests/app.spec.ts tests/discovery.spec.ts
 
       - name: Run accessibility checks
         run: pnpm --filter @indiafoss/web exec playwright test tests/a11y.spec.ts

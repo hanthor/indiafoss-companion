@@ -1,7 +1,6 @@
 # C-04 — Both clients open on the real IndiaFOSS 2026 schedule, not last year's fixture
 
-- Status: Ready — the pipeline work can start now. Two steps wait on the
-  organisers publishing the 2026 schedule; they are named below.
+- Status: Draft published on 8 September; cutover implementation in progress. The maintainer explicitly requests current draft data with a visible draft label.
 - Repository: indiafoss-companion
 - Tracks: [#191](https://github.com/hanthor/indiafoss-companion/issues/191)
 - Size: M
@@ -164,8 +163,7 @@ Verified by reading each file:
 
 ## What to do
 
-Steps 1 to 4 are doable now. Steps 5 and 6 need the organisers' published
-schedule.
+The organisers published a draft on 8 September. The maintainer has authorised using that draft with a visible status label; final confirmation is not a cutover prerequisite.
 
 1. Create `events/indiafoss-2026/` alongside the venue directory it already
    has: a `README.md` describing the capture, and `provenance.json` in the same
@@ -195,9 +193,9 @@ schedule.
    - every activity's `locationId` resolves to a location in the bundle **and**
      to a key in `events/indiafoss-2026/venue/venue.metadata.json`;
    - activity ids are unique and stable;
-   - `isValidEventBundle` passes and `collectBundleWarnings` is empty.
+   - `isValidEventBundle` passes and `collectBundleWarnings` is reviewed and documented. Preserve real duplicate opening/lunch rows across different rooms. Invalid end-before-start entries retain a timing note and cannot enter the planner.
 
-5. **Needs the organisers.** Capture the real data:
+5. **Draft now published.** Capture the real data:
 
    ```bash
    pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts capture-details indiafoss-2026
@@ -208,11 +206,7 @@ schedule.
    reproducible from committed inputs. Then **verify the content against the
    organisers, not against the URL**. Confirm the day count, the two main days
    plus the separate workshop day, the room names, and that the schedule is the
-   final one rather than a draft that happens to be live. Record who confirmed
-   it and when, in `provenance.json`. If the schedule is not final, stop here
-   and say so on
-   [#191](https://github.com/hanthor/indiafoss-companion/issues/191); do not
-   ship a draft as current data.
+   draft status and any source inconsistencies. Record provenance without inventing organiser confirmation. Per the maintainer’s 8 September instruction, publish the current draft with a visible draft label; do not present it as final.
 
 6. **Needs step 5.** Flip the defaults, in one change, once the bundle passes:
    `DEFAULT_EVENT_ID` in `apps/web/src/lib/event.svelte.ts`, `DEFAULT_EVENT_ID`

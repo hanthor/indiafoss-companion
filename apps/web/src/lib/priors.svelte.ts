@@ -5,7 +5,13 @@ import {
   type AffinityModel,
   type RankedActivity,
 } from '@indiafoss/elo';
-import { comparisonHistory, comparisonsOf, dispositionOf, ratingOf } from '$lib/prefs.svelte';
+import {
+  comparisonHistory,
+  comparisonsOf,
+  dispositionOf,
+  ratingOf,
+  triageOf,
+} from '$lib/prefs.svelte';
 import { roomPreferences } from '$lib/roomPrefs.svelte';
 
 /**
@@ -26,6 +32,7 @@ export function rankedOf(activity: Activity): RankedActivity {
     rating: ratingOf(activity.id),
     comparisons: comparisonsOf(activity.id),
     disposition: dispositionOf(activity.id),
+    interest: triageOf(activity.id),
   };
 }
 
