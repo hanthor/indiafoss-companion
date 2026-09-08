@@ -69,7 +69,29 @@ describe('local talk discovery', () => {
     expect(new Set(cold.slice(0, 3).map((r) => r.activity.trackId)).size).toBe(3);
     pool.push(talk('liked', 'rust', 'yes'));
     const warm = discoveryDeck(pool, learnAffinity(pool, []));
-    expect(warm[3]?.activity.trackId).not.toBe('rust');
+    expect(warm[2]?.activity.trackId).not.toBe('rust');
     expect(discoveryDeck(pool, learnAffinity(pool, []))).toEqual(warm);
   });
+});
+
+it('explores after three saved choices even when only the first card is consumed', () => {
+  const pool = [
+    talk('liked-1', 'rust', 'yes'),
+    talk('liked-2', 'rust', 'yes'),
+    talk('liked-3', 'rust', 'yes'),
+    talk('a-similar', 'rust'),
+    talk('z-different', 'design'),
+  ];
+  expect(discoveryDeck(pool, learnAffinity(pool, []))[0]?.activity.id).toBe('z-different');
+  pool[2] = talk('liked-3', 'rust');
+  expect(discoveryDeck(pool, learnAffinity(pool, []))[0]?.activity.trackId).toBe('rust');
+});
+
+it('a dislike demotes similar talks even without a positive explanation', () => {
+  const pool = [
+    talk('disliked', 'rust', 'no', 'not-interested'),
+    talk('a-similar', 'rust'),
+    talk('z-different', 'design'),
+  ];
+  expect(discoveryDeck(pool, learnAffinity(pool, []))[0]?.activity.id).toBe('z-different');
 });

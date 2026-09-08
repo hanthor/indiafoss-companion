@@ -149,26 +149,51 @@
   let dragX = $state(0);
   let dragging = $state(false);
   let leaving = $state<'left' | 'right' | null>(null);
-  const SWIPE_COMMIT = 90;
+  const SWIPE_COMMIT = 96;
   let pointerStartX = 0;
+  let pointerStartY = 0;
+  let activePointer: number | null = null;
+  let lastAnswered: Activity | null = $state(null);
 
   function onCardDown(event: PointerEvent): void {
-    if (busy || !card) return;
+    if (busy || !card || !event.isPrimary || event.button !== 0 || activePointer !== null) return;
     const target = event.target as HTMLElement | null;
-    if (target?.closest('button, a')) return; // reading about a talk is not an answer
+    if (target?.closest('button, a, input, select, textarea')) return;
     pointerStartX = event.clientX;
-    dragging = true;
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    pointerStartY = event.clientY;
+    activePointer = event.pointerId;
   }
   function onCardMove(event: PointerEvent): void {
-    if (!dragging) return;
-    dragX = event.clientX - pointerStartX;
+    if (event.pointerId !== activePointer) return;
+    const dx = event.clientX - pointerStartX;
+    const dy = event.clientY - pointerStartY;
+    if (!dragging) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        onCardCancel(event);
+        return;
+      }
+      dragging = true;
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    }
+    dragX = dx;
   }
-  function onCardUp(): void {
-    if (!dragging) return;
+  function releasePointer(event: PointerEvent): void {
+    activePointer = null;
     dragging = false;
-    if (dragX > SWIPE_COMMIT) void answerCard('yes');
-    else if (dragX < -SWIPE_COMMIT) void answerCard('no');
+    const target = event.currentTarget as HTMLElement;
+    if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  }
+  function onCardCancel(event: PointerEvent): void {
+    if (event.pointerId !== activePointer) return;
+    releasePointer(event);
+    dragX = 0;
+  }
+  function onCardUp(event: PointerEvent): void {
+    if (event.pointerId !== activePointer) return;
+    const answer = dragging && Math.abs(dragX) >= SWIPE_COMMIT ? (dragX > 0 ? 'yes' : 'no') : null;
+    releasePointer(event);
+    if (answer) void answerCard(answer);
     else dragX = 0;
   }
 
@@ -181,11 +206,13 @@
     if (!card || busy) return;
     busy = true;
     chosenMode = 'cards';
-    const id = card.id;
+    const answeredCard = card;
+    const id = answeredCard.id;
     leaving = answer === 'no' ? 'left' : 'right';
     await new Promise((r) => setTimeout(r, 180));
     try {
       await setTalkChoice(id, answer);
+      lastAnswered = answeredCard;
       saveError = '';
       readMore = false;
     } catch {
@@ -200,6 +227,7 @@
     chosenMode = 'cards';
     try {
       await setTalkChoice(activity.id, undefined);
+      if (lastAnswered?.id === activity.id) lastAnswered = null;
       saveError = '';
     } catch {
       saveError = 'Your choice could not be saved. Please try again.';
@@ -666,6 +694,13 @@
       {triaged.length} choices saved · Stop whenever you like.
       <a href={resolve('/plan')}>See my plan →</a>
     </p>
+    {#if lastAnswered}
+      <button
+        class="linkbtn small"
+        disabled={busy}
+        onclick={() => lastAnswered && clearAnswer(lastAnswered)}>Undo last choice</button
+      >
+    {/if}
     {#if saveError}<p role="alert">{saveError}</p>{/if}
 
     {#if !ready}
@@ -693,7 +728,7 @@
     {:else}
       {@const clashes = clashCount(card)}
       <p class="muted small lead center">
-        Choose a few talks you like. Your next suggestions adapt on this device.
+        Swipe right to want to go, left for not interested. Use the crown for must go.
         {#if suggestions[0]?.because.length}
           More like your choices in {suggestions[0].because
             .map((key) =>
@@ -730,17 +765,18 @@
             onpointerdown={onCardDown}
             onpointermove={onCardMove}
             onpointerup={onCardUp}
-            onpointercancel={onCardUp}
+            onpointercancel={onCardCancel}
+            onlostpointercapture={onCardCancel}
           >
             <span
               class="stamp yes"
               aria-hidden="true"
-              style="opacity:{Math.min(1, Math.max(0, dragX) / SWIPE_COMMIT)}">INTERESTED</span
+              style="opacity:{Math.min(1, Math.max(0, dragX) / SWIPE_COMMIT)}">WANT TO GO</span
             >
             <span
               class="stamp no"
               aria-hidden="true"
-              style="opacity:{Math.min(1, Math.max(0, -dragX) / SWIPE_COMMIT)}">NOT FOR ME</span
+              style="opacity:{Math.min(1, Math.max(0, -dragX) / SWIPE_COMMIT)}">NOT INTERESTED</span
             >
             <span class="talkhead">
               <TypeBadge type={card.type} />

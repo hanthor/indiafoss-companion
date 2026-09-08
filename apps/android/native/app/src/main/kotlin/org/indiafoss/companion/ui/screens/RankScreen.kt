@@ -52,6 +52,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -302,6 +304,11 @@ private fun TalksStep(
     val kept = sessions.count { state.ranking.rating(it.id).triage == "yes" }
     val dropped = sessions.count { state.ranking.rating(it.id).triage == "no" }
     var showAnswered by remember { mutableStateOf(false) }
+    var lastAnswered by remember { mutableStateOf<String?>(null) }
+    val answer: (String, String) -> Unit = { id, choice ->
+        onAnswer(id, choice)
+        lastAnswered = id
+    }
     val card = untriaged.firstOrNull()
     LazyColumn(Modifier.fillMaxSize()) {
         item {
@@ -313,6 +320,13 @@ private fun TalksStep(
                 progress = { if (sessions.isEmpty()) 0f else (sessions.size - untriaged.size).toFloat() / sessions.size },
                 modifier = Modifier.fillMaxWidth().padding(20.dp, 6.dp),
             )
+        }
+        lastAnswered?.let { id ->
+            item {
+                TextButton(onClick = { onClear(id); lastAnswered = null }, modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text("Undo last choice")
+                }
+            }
         }
         if (card == null) {
             item {
@@ -333,7 +347,7 @@ private fun TalksStep(
         } else {
             item {
                 Text(
-                    "Choose talks you like. Suggestions adapt on this device. Comparing overlaps is optional.",
+                    "Swipe right to want to go, left for not interested. Use the crown for must go.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -344,19 +358,19 @@ private fun TalksStep(
                 val clashes = sessions.count {
                     it.id != card.id && state.dispositionOf(it.id) != Disposition.NOT_INTERESTED && Ranking.overlaps(it, card)
                 }
-                SwipeCard(card, state, clashes, onOpen, onOpenSpeaker, onAnswer)
+                SwipeCard(card, state, clashes, onOpen, onOpenSpeaker, answer)
             }
             item {
                 Row(Modifier.fillMaxWidth().padding(16.dp, 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Button(onClick = { onAnswer(card.id, "must") }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFEFC44B), contentColor = androidx.compose.ui.graphics.Color(0xFF332700)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                    Button(onClick = { answer(card.id, "must") }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFEFC44B), contentColor = androidx.compose.ui.graphics.Color(0xFF332700)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
                         CrownIcon()
                         Text("Must go", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
-                    FilledTonalButton(onClick = { onAnswer(card.id, "yes") }, colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFB9EFC9), contentColor = androidx.compose.ui.graphics.Color(0xFF143923)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                    FilledTonalButton(onClick = { answer(card.id, "yes") }, colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFB9EFC9), contentColor = androidx.compose.ui.graphics.Color(0xFF143923)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
                         Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text("Want to go", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
-                    OutlinedButton(onClick = { onAnswer(card.id, "no") }, colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE4E4E4), contentColor = androidx.compose.ui.graphics.Color(0xFF303030)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                    OutlinedButton(onClick = { answer(card.id, "no") }, colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE4E4E4), contentColor = androidx.compose.ui.graphics.Color(0xFF303030)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
                         Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp))
                         Text("Not interested", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
@@ -403,7 +417,8 @@ private fun SwipeCard(
     val scope = rememberCoroutineScope()
     val offset = remember(card.id) { Animatable(0f) }
     var readMore by remember(card.id) { mutableStateOf(false) }
-    val commit = 260f
+    val commit = with(LocalDensity.current) { 96.dp.toPx() }
+    var committing by remember(card.id) { mutableStateOf(false) }
     LaunchedEffect(card.id) { offset.snapTo(0f) }
     Card(
         modifier = Modifier
@@ -414,18 +429,19 @@ private fun SwipeCard(
                 rotationZ = offset.value / 40f
                 alpha = 1f - min(0.6f, abs(offset.value) / 1200f)
             }
-            .pointerInput(card.id) {
+            .testTag("talk-card")
+            .pointerInput(card.id, commit) {
                 detectHorizontalDragGestures(
                     onDragEnd = {
                         val x = offset.value
-                        when {
-                            x > commit -> scope.launch { offset.animateTo(1600f, tween(180)); onAnswer(card.id, "yes") }
-                            x < -commit -> scope.launch { offset.animateTo(-1600f, tween(180)); onAnswer(card.id, "no") }
+                        if (!committing) when {
+                            x >= commit -> { committing = true; scope.launch { offset.animateTo(1600f, tween(180)); onAnswer(card.id, "yes") } }
+                            x <= -commit -> { committing = true; scope.launch { offset.animateTo(-1600f, tween(180)); onAnswer(card.id, "no") } }
                             else -> scope.launch { offset.animateTo(0f) }
                         }
                     },
                     onDragCancel = { scope.launch { offset.animateTo(0f) } },
-                    onHorizontalDrag = { change, delta -> change.consume(); scope.launch { offset.snapTo(offset.value + delta) } },
+                    onHorizontalDrag = { change, delta -> if (!committing) { change.consume(); scope.launch { offset.snapTo(offset.value + delta) } } },
                 )
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
@@ -435,8 +451,8 @@ private fun SwipeCard(
                 Text(card.type.replace('-', ' ').uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 Text(timeAndRoom(card, state.bundle), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (offset.value > 40f) Text("INTERESTED", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            if (offset.value < -40f) Text("NOT FOR ME", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.tertiary)
+            if (offset.value > 40f) Text("WANT TO GO", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            if (offset.value < -40f) Text("NOT INTERESTED", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.tertiary)
             Text(card.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
             val speakers = state.bundle?.speakersOf(card).orEmpty()
             speakers.forEach { p -> SpeakerRow(p) { onOpenSpeaker(p.id) } }

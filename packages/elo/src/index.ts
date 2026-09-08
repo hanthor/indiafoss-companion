@@ -503,21 +503,27 @@ export function discoveryDeck(pool: RankedActivity[], model: AffinityModel): Rec
   );
   const selected: Recommendation[] = [];
   const usedTracks = new Map<string, number>();
+  const decided = pool.filter((r) => r.interest || r.disposition !== 'normal');
+  for (const r of decided) {
+    const track = r.activity.trackId ?? '';
+    usedTracks.set(track, (usedTracks.get(track) ?? 0) + 1);
+  }
   const candidates = remaining.map((r) => {
-    const because = affinityKeysOf(r.activity).filter(
+    const topics = affinityKeysOf(r.activity).filter(
       (k) =>
         !k.startsWith('type:') &&
-        !/^tag:(talk|lightning talk|other|beginner|intermediate|advanced)$/i.test(k) &&
-        (model.affinity.get(k) ?? 0) > 0,
+        !/^tag:(talk|lightning talk|other|beginner|intermediate|advanced)$/i.test(k),
     );
-    return {
-      activity: r.activity,
-      score: because.length ? priorOffset(r.activity, model) : 0,
-      because,
-    };
+    const because = topics.filter((k) => (model.affinity.get(k) ?? 0) > 0);
+    // Format/audience is not a topic: liking one talk must not boost every talk equally.
+    const score =
+      topics.reduce((sum, key) => sum + (model.affinity.get(key) ?? 0), 0) /
+      Math.max(1, topics.length);
+    return { activity: r.activity, score, because };
   });
   while (candidates.length) {
-    const explore = selected.length % 4 === 3 || candidates.every((c) => c.score <= 0);
+    const explore =
+      (decided.length + selected.length) % 4 === 3 || candidates.every((c) => c.score <= 0);
     candidates.sort((a, b) => {
       const diversity =
         (usedTracks.get(a.activity.trackId ?? '') ?? 0) -

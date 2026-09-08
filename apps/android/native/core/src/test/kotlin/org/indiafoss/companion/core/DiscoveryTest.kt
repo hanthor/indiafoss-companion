@@ -22,7 +22,7 @@ class DiscoveryTest {
     fun `cold discovery samples tracks and excludes direct dislikes`() {
         val pool = listOf(RankedActivity(talk("a", "rust")), RankedActivity(talk("b", "rust")), RankedActivity(talk("c", "design")), RankedActivity(talk("d", "systems")), RankedActivity(talk("no", "design"), disposition = Disposition.NOT_INTERESTED, interest = "no"))
         val deck = AffinityModel.learn(pool, emptyList()).discoveryDeck(pool)
-        assertEquals(3, deck.take(3).map { it.trackId }.distinct().size)
+        assertEquals(2, deck.take(2).map { it.trackId }.distinct().size)
         assertTrue(deck.none { it.id == "no" })
     }
 
@@ -34,4 +34,14 @@ class DiscoveryTest {
         val conflicts = Itinerary.stayConflicts(b, day, setOf("docs")) { if (it == "gap") Disposition.MUST_ATTEND else Disposition.NORMAL }
         assertTrue(conflicts.any { it.second.id == "gap" })
     }
+    @Test fun `exploration survives recomputing the deck after each answer`() {
+        val pool = listOf("liked-1", "liked-2", "liked-3").map { RankedActivity(talk(it, "rust"), interest = "yes") } + listOf(RankedActivity(talk("a-similar", "rust")), RankedActivity(talk("z-different", "design")))
+        assertEquals("z-different", AffinityModel.learn(pool, emptyList()).discoveryDeck(pool).first().id)
+    }
+
+    @Test fun `negative feedback demotes similar unanswered talks`() {
+        val pool = listOf(RankedActivity(talk("no", "rust"), interest = "no", disposition = Disposition.NOT_INTERESTED), RankedActivity(talk("a-similar", "rust")), RankedActivity(talk("z-different", "design")))
+        assertEquals("z-different", AffinityModel.learn(pool, emptyList()).discoveryDeck(pool).first().id)
+    }
+
 }

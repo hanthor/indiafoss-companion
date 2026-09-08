@@ -43,3 +43,9 @@ The default programme is IndiaFOSS 2026, explicitly marked draft. Preserve publi
 The engine needs golden cross-language cases for cold start, positive/negative/undo, sparse tags, periodic exploration, cancelled or retimed sessions and whole-track conflicts. Tests in `packages/elo/src/discovery.test.ts`, `packages/solver/src/stay.test.ts`, source fixture tests and browser discovery/offline tests cover the initial web change. Native gates must be reported separately.
 
 Use vector icons for the crown and check. Emoji are not allowed in the interface.
+
+For the swipe interaction, adaptive exploration, and examples from Pandora,
+YouTube Music, Tinder and recommendation research, see
+[interactive recommendation patterns](recommendation-patterns.md). The PWA
+notification/map/plan integration review is recorded in
+[the September UX review](reviews/pwa-ux-2026-09-08.md).
