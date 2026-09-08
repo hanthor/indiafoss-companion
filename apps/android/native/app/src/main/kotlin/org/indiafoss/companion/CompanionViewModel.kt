@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.indiafoss.companion.core.Activity
@@ -191,11 +194,32 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
         }
-        refresh()
     }
 
-    fun refresh() {
-        viewModelScope.launch {
+    private var refreshJob: Job? = null
+    private var pollingJob: Job? = null
+
+    fun startSchedulePolling() {
+        if (pollingJob?.isActive == true) return
+        pollingJob = viewModelScope.launch {
+            state.first { !it.loading }
+            while (true) {
+                requestRefresh().join()
+                delay(org.indiafoss.companion.core.UpdatePolling.interval(state.value.bundle))
+            }
+        }
+    }
+
+    fun stopSchedulePolling() {
+        pollingJob?.cancel()
+        pollingJob = null
+    }
+
+    fun refresh() { requestRefresh() }
+
+    private fun requestRefresh(): Job {
+        refreshJob?.takeIf { it.isActive }?.let { return it }
+        return viewModelScope.launch {
             when (val result = repository.refresh()) {
                 is RefreshResult.Updated -> {
                     val changes = result.previous?.let { ScheduleDiff.between(it, result.bundle) }.orEmpty()
@@ -213,7 +237,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                     _state.update { it.copy(message = null) } // offline is normal; stay quiet
                 RefreshResult.UpToDate -> _state.update { it.copy(now = nowIso()) }
             }
-        }
+        }.also { refreshJob = it }
     }
 
     fun tick() {

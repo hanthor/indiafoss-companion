@@ -6,6 +6,7 @@
   import { registerSW } from 'virtual:pwa-register';
   import { hydratePreferences } from '$lib/prefs.svelte';
   import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
+  import { UpdatePoller, updatePollInterval } from '$lib/update-poller';
   import { describeChangeCount } from '@indiafoss/schedule';
   import type { ScheduleChangeType } from '@indiafoss/schedule';
   import {
@@ -103,20 +104,25 @@
     }
   });
 
-  // A check that failed at 9am on a venue Wi-Fi that was not up yet must not
-  // decide the rest of the day (#189). Coming back online and returning to the
-  // app both re-check; the freshness limit in checkForUpdates keeps a burst of
-  // these down to one fetch.
+  // Keep an open schedule fresh; hidden/offline tabs do not poll.
   onMount(() => {
-    const recheck = () => void checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID);
-    const onVisible = () => {
-      if (document.visibilityState === 'visible') recheck();
+    const poller = new UpdatePoller(
+      (periodic) => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID, { force: periodic }),
+      () => updatePollInterval(eventState.bundle),
+    );
+    const resume = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) poller.start();
+      else poller.stop();
     };
-    window.addEventListener('online', recheck);
-    document.addEventListener('visibilitychange', onVisible);
+    resume();
+    window.addEventListener('online', resume);
+    window.addEventListener('offline', resume);
+    document.addEventListener('visibilitychange', resume);
     return () => {
-      window.removeEventListener('online', recheck);
-      document.removeEventListener('visibilitychange', onVisible);
+      poller.stop();
+      window.removeEventListener('online', resume);
+      window.removeEventListener('offline', resume);
+      document.removeEventListener('visibilitychange', resume);
     };
   });
 
