@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProfileImport from '$lib/components/ProfileImport.svelte';
   import { resolve } from '$app/paths';
   import { goto } from '$app/navigation';
   import { parseScannedPayload, type AttendeeSocial } from '@indiafoss/model';
@@ -184,6 +185,7 @@
         Your name and a few public profiles make the contact card people scan when you meet. Add
         more, or take any of it off, under Your contact card later.
       </p>
+      <ProfileImport onimport={fillContact} />
       <p class="muted">
         Use your browser or password manager’s identity autofill, or import your own contact. Email
         and phone stay off your shared card unless you enable them.

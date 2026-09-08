@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
   import { meshLinkLabel } from '@indiafoss/matrix';
   import { onMount } from 'svelte';
@@ -493,10 +494,22 @@
     <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
     <h1>Your contact card</h1>
     <p class="muted">
-      Show this to someone. Only the fields switched on below are encoded — nothing leaves this
-      phone.
+      Show this to someone. Only the fields switched on below are encoded in your QR code.
     </p>
   </section>
+
+  <ProfileImport
+    onimport={(imported) => {
+      const before = JSON.stringify(profileState.profile);
+      const changes = applyImportedProfile(profileState.profile, imported);
+      if (changes.length > 0) {
+        importSnapshot = before;
+        snapshotFrom = 'identity';
+      }
+      contactMessage = acceptChanges(changes, 'GitHub');
+      scheduleCard();
+    }}
+  />
 
   <!-- Hero: the QR is always live -->
   <section class="card hero" aria-label="Your contact QR code">
