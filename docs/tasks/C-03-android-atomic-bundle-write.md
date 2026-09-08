@@ -12,10 +12,11 @@ overwrites it in place. If the process is killed, the device loses power, or
 the disk fills while that write is in flight, the file is left truncated. The
 next launch cannot parse it and falls back to the copy shipped in assets.
 
-Except there is no copy shipped in assets. There is no assets directory in the
-native app at all, so today the fallback resolves to nothing and the attendee
-opens the app at the venue to an empty schedule, offline, with no way to
-recover except a working network.
+That fallback does exist, so the attendee is not left with nothing — but the
+seed bundle is whatever the web client had published when the APK was built.
+At the venue, offline, that can be a schedule months out of date, silently
+replacing one the attendee had successfully refreshed. Nothing tells them the
+app has fallen back, and nothing tries to recover the newer data.
 
 ## Context you need
 
@@ -33,7 +34,7 @@ class EventRepository(
     private val revisionFile: File get() = File(context.filesDir, "$eventId-revision")
 ```
 
-The read path, lines 27-34, is the fallback that does not exist:
+The read path, lines 27-34, falls back to the seeded asset:
 
 ```kotlin
     /** Cached bundle, or the copy shipped in assets on a first run. */
@@ -47,10 +48,23 @@ The read path, lines 27-34, is the fallback that does not exist:
     }
 ```
 
-Verified with `find` and `git ls-files`: there is no
-`apps/android/native/app/src/main/assets/` directory and no committed
-`event-bundle.json` under the native app. The second `runCatching` therefore
-swallows a `FileNotFoundException` and `cached()` returns `null`.
+There is no committed `apps/android/native/app/src/main/assets/` directory,
+which is why a `find` for one comes back empty — but the asset is **generated
+at build time** rather than checked in. `app/build.gradle.kts` copies the web
+client's published bundle into the APK:
+
+```kotlin
+val copySeedBundle by tasks.registering(Copy::class) {
+    from(rootProject.file("../../web/static/events/indiafoss-2025/event-bundle.json"))
+    into(seedAssets)
+}
+// ...
+sourceSets["main"].assets.srcDir(seedAssets)   // line 64
+```
+
+So the second `runCatching` succeeds and `cached()` returns the seed bundle.
+The failure is a silent, possibly large regression in schedule freshness, not
+an empty screen. Note the seed is pinned to `indiafoss-2025`; C-04 moves it.
 
 The write path, lines 41-61:
 
@@ -138,15 +152,12 @@ say so.
    into place, and have `cached()` try `cacheFile`, then the backup, then
    assets. Delete the backup only after a successful parse of the new file.
 
-6. Ship a bundled fallback, or stop claiming one. The comment on `cached()`
-   promises "the copy shipped in assets on a first run" and there is no such
-   file. Either add the normalized bundle to
-   `apps/android/native/app/src/main/assets/event-bundle.json` as part of the
-   build, or correct the comment to say the fallback is absent. Do not leave a
-   comment describing a file that does not exist. If you add the asset, note on
-   [#190](https://github.com/hanthor/indiafoss-companion/issues/190) that
-   keeping it in step with the published bundle is **C-04's** problem, not
-   yours.
+6. Make the fallback visible rather than silent. The seeded asset exists
+   (`copySeedBundle` in `app/build.gradle.kts`), so falling back is survivable
+   — but the attendee is shown a build-time schedule with nothing saying so.
+   Have `cached()` report _which_ source it used, and surface a plain note when
+   it is the seed rather than a refreshed cache. Keeping the seed in step with
+   the published bundle is **C-04's** problem, not yours.
 
 7. Tests under `apps/android/native/app/src/test/kotlin/`, alongside the
    existing `ScreenshotTest.kt`:
@@ -172,12 +183,23 @@ say so.
 just android-test
 ```
 
-Passes, and the run output visibly includes the new `:app` test class. Paste
-the real output; a green run that never executed the tests is the exact failure
-mode step 8 exists to prevent.
+Passes, and the run output visibly includes the new test class. Paste the real
+output; a green run that never executed the tests is the exact failure mode
+step 8 exists to prevent.
 
-Negative case: revert the rename change so `cacheFile.writeText(body)` is
-direct again, and confirm the interrupted-write test fails. Restore it.
+**Where the tests live, and why it matters.** `just android-test` runs
+`:core:test` only, and `:core` is a plain Kotlin JVM module that builds without
+the Android SDK. `:app` needs the SDK, so on a machine without it neither
+`:app:compileDebugKotlin` nor any `:app` test can run at all — a contributor
+there cannot even compile a change to `EventRepository`. Put the file-replacement
+logic in `:core` (`AtomicFile.kt`) where it is testable everywhere, and keep the
+`:app` change to wiring. If you add `:app` tests, extend the `android-test`
+recipe to run them and say clearly in the PR whether you were able to execute
+them.
+
+Negative case: make `writeFileAtomically` truncate the target before writing
+the temp file, and confirm `a failed write leaves the previous contents
+byte-identical` fails. Restore it.
 
 ```bash
 just check
