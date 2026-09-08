@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "id": "release-2026.09.20",
+  "recordedAt": "2026-09-20T18:00:00.000Z",
+  "eventId": "indiafoss-2026",
+  "components": [
+    {
+      "name": "neutrino",
+      "revision": "2a93cf0f1b6d4e5a",
+      "checksum": "sha256:abcd",
+      "source": "https://github.com/hanthor/neutrino"
+    },
+    {
+      "name": "chat-android",
+      "revision": "dba27084"
+    }
+  ],
+  "claims": [
+    {
+      "name": "mesh.text",
+      "supported": true,
+      "level": "topology-tested",
+      "topology": "Pixel 6a + Pixel 7, BLE only, airplane mode",
+      "evidence": "docs/evidence/2026-09-20-two-phone.md"
+    },
+    {
+      "name": "mesh.media.photo",
+      "supported": false,
+      "level": "device-tested",
+      "limitations": "sender-side 256 KiB upload cap rejects camera photos with 413"
+    },
+    {
+      "name": "seam.encrypted.async",
+      "supported": false,
+      "level": "implemented",
+      "limitations": "protocol review pending in #176; no disconnected-endpoint proof"
+    }
+  ]
+}
