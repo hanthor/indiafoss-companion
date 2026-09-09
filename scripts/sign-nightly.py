@@ -19,6 +19,18 @@ def run(*args):
     return result.stdout
 
 
+def verify_certificate(report, expected):
+    fingerprints = re.findall(
+        r"^(?:Signer (?:#\d+|\(minSdkVersion=[^\n]+\))|V[234]\.[0-9]+ Signer:) certificate SHA-256 digest: ([0-9a-fA-F]{64})$",
+        report, re.MULTILINE,
+    )
+    # Source stamps and public-key digests do not identify the APK certificate.
+    # Every signing scheme/SDK range must use the configured identity.
+    if (re.search(r"^Number of signers: 1$", report, re.MULTILINE) is None
+            or set(fingerprint.lower() for fingerprint in fingerprints) != {expected}):
+        raise ValueError("APK signer does not match the configured certificate")
+
+
 def main():
     source, destination = map(Path, sys.argv[1:])
     required = ("NIGHTLY_KEYSTORE_BASE64", "NIGHTLY_KEYSTORE_PASSWORD",
@@ -45,16 +57,7 @@ def main():
             "--key-pass", "env:NIGHTLY_KEYSTORE_PASSWORD",
             "--out", str(signed), str(aligned))
         report = run(os.environ["APKSIGNER"], "verify", "--verbose", "--print-certs", str(signed))
-        fingerprints = re.findall(
-            r"^Signer (?:#\d+|\(minSdkVersion=[^\n]+\)) certificate SHA-256 digest: ([0-9a-fA-F]{64})$",
-            report, re.MULTILINE,
-        )
-        # New build-tools report SDK-ranged v3.1 signers. Every range must use
-        # the expected identity; a source-stamp certificate is not an APK signer.
-        if set(fingerprint.lower() for fingerprint in fingerprints) != {expected}:
-            # Certificate reports are public metadata, never signing credentials.
-            print(report, file=sys.stderr)
-            raise ValueError(f"APK signer does not match configured certificate (found {len(fingerprints)} signer records)")
+        verify_certificate(report, expected)
         run(os.environ["ZIPALIGN"], "-c", "-p", "4", str(signed))
         destination.write_bytes(signed.read_bytes())
     digest = hashlib.sha256(destination.read_bytes()).hexdigest()

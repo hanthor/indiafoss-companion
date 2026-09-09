@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Real Android signing-tool acceptance with a disposable CI-only identity.
 set -euo pipefail
+python3 scripts/test_nightly_signing.py
 signing_test_dir=$(mktemp -d)
 trap 'rm -rf "$signing_test_dir"' EXIT
 export NIGHTLY_KEYSTORE_PASSWORD=ci-only-password NIGHTLY_KEY_ALIAS=ci-test
