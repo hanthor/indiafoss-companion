@@ -71,6 +71,8 @@ The [booth import review](../reviews/booth-directory-2026-09-09.md) records the 
 Automatic spreadsheet refresh, booth map positions and native visit planning remain under #191/#221; portable booth preferences remain under #240.
 The [native seed evidence](../reviews/native-seed-2026-09-09.md) records the actual downloaded revision 7 APK verification after #255/#256.
 
+The [Now resolved-plan slice](../reviews/now-resolved-plan-2026-09-09.md) shares generation/edit validation between Plan and Now and restricts Now's leave-by banner to that plan. Map, reminders and schedule-marker invalidation remain in #221; this is not full cross-screen completion.
+
 ## Companion — contracts and handoff
 
 | ID                                                 | Task                                              | Status | Tracks                                                                                                                             |

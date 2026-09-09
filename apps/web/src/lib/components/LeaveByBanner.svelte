@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { nowPlanState } from '$lib/resolved-plan.svelte';
+  import { eventDay } from '$lib/resolved-plan';
   import { untrack } from 'svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
@@ -57,6 +59,14 @@
           bundle,
           now,
           bookmarked,
+          plannedIds: page.url.pathname.endsWith('/now')
+            ? new Set(
+                nowPlanState.eventId === bundle.id &&
+                  nowPlanState.day === eventDay(now, bundle.timezone)
+                  ? nowPlanState.activityIds
+                  : [],
+              )
+            : undefined,
           mustAttend: (id) => dispositionOf(id) === 'must-attend',
           venue,
           currentLocation: currentLocation.value,

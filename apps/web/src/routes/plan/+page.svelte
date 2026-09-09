@@ -1,12 +1,11 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
-  import type { EditedItem, ItineraryItem, SolverResult } from '@indiafoss/solver';
-  import { applyItineraryEdits } from '@indiafoss/solver';
+  import { page } from '$app/state';
+  import type { EditedItem, ItineraryItem } from '@indiafoss/solver';
   import { formatDayLabel, formatTime, getEventDays, itineraryToIcs } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
   import { savePlanned } from '$lib/planned.svelte';
-  import { solveForDay } from '$lib/solver.svelte';
-  import type { TravelTimeProvider } from '@indiafoss/solver';
+  import { resolveDayPlan } from '$lib/resolved-plan.svelte';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import {
     addCustomBlock,
@@ -29,7 +28,7 @@
 
   let selectedDay = $state<string | null>(null);
   let solving = $state(false);
-  let result: (SolverResult & { travel: TravelTimeProvider }) | null = $state(null);
+  let result: Awaited<ReturnType<typeof resolveDayPlan>> | null = $state(null);
   let calendarMessage = $state('');
 
   // Custom-block form state.
@@ -40,18 +39,22 @@
   let blockFlexible = $state(false);
 
   $effect(() => {
-    if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
+    if (selectedDay === null && days.length > 0) {
+      const requested = page.url.searchParams.get('day');
+      selectedDay = requested && days.includes(requested) ? requested : days[0]!;
+    }
   });
 
   $effect(() => {
     if (!bundle || !selectedDay) return;
-    // Read locks synchronously so toggling a lock re-solves with it as a hard constraint.
-    void [...planEdits.edits.locked];
+    // All edits participate in the same resolved projection consumed by Now.
+    void JSON.stringify(planEdits.edits);
     let cancelled = false;
     const day = selectedDay;
     solving = true;
+    result = null;
     void hydratePlanEdits(bundle.id, day)
-      .then(() => solveForDay(bundle, day, [...planEdits.edits.locked]))
+      .then(() => resolveDayPlan(bundle, day, $state.snapshot(planEdits.edits)))
       .then((r) => {
         if (cancelled) return;
         result = r;
@@ -67,16 +70,7 @@
 
   const activityMap = $derived(new Map((bundle?.activities ?? []).map((a) => [a.id, a])));
 
-  const edited = $derived.by(() => {
-    const r = result;
-    if (!r) return null;
-    return applyItineraryEdits({
-      base: r.itinerary.items,
-      edits: planEdits.edits,
-      activities: activityMap,
-      travel: r.travel,
-    });
-  });
+  const edited = $derived.by(() => result?.edited ?? null);
 
   $effect(() => {
     if (!bundle || !selectedDay || !edited || solving || result?.itinerary.day !== selectedDay)
