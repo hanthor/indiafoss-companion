@@ -356,13 +356,20 @@ export function solveDay(input: SolveDayInput): SolverResult {
   }
 
   const dayEnd = 24 * 60;
-  const segments: { fromMin: number; toMin: number }[] = [];
+  const segments: { fromMin: number; toMin: number; before?: Activity; after?: Activity }[] = [];
   let prevEnd = 0;
+  let previousCommitment: Activity | undefined;
   for (const m of mustAttends) {
-    segments.push({ fromMin: prevEnd, toMin: minutesOfDay(m.start!) });
+    segments.push({
+      fromMin: prevEnd,
+      toMin: minutesOfDay(m.start!),
+      before: previousCommitment,
+      after: m,
+    });
     prevEnd = minutesOfDay(m.end!);
+    previousCommitment = m;
   }
-  segments.push({ fromMin: prevEnd, toMin: dayEnd });
+  segments.push({ fromMin: prevEnd, toMin: dayEnd, before: previousCommitment });
 
   const chosen: Activity[] = [...mustAttends];
   let totalUtility = mustAttends.reduce((sum, m) => sum + activityUtility(m, preferences), 0);
@@ -373,6 +380,8 @@ export function solveDay(input: SolveDayInput): SolverResult {
       if (seen.has(a.id)) return false;
       if (minutesOfDay(a.start!) < segment.fromMin) return false;
       if (minutesOfDay(a.end!) > segment.toMin) return false;
+      if (segment.before && !canFollow(segment.before, a, travel, bufferSeconds)) return false;
+      if (segment.after && !canFollow(a, segment.after, travel, bufferSeconds)) return false;
       return true;
     });
     const { order } = longestPathInDag(inside, preferences, travel, bufferSeconds);
