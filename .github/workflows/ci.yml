@@ -163,6 +163,13 @@ jobs:
       - name: Assemble debug APK
         run: cd apps/android/native && ./gradlew :app:assembleDebug
 
+      - name: Verify nightly signing and rejection paths with a disposable key
+        run: |
+          (cd apps/android/native && ./gradlew :app:assembleRelease)
+          build_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          export APKSIGNER="$build_tools/apksigner" ZIPALIGN="$build_tools/zipalign"
+          bash scripts/test-nightly-signing.sh apps/android/native/app/build/outputs/apk/release/app-release-unsigned.apk
+
       - name: Checksum the APK
         run: |
           cd apps/android/native/app/build/outputs/apk/debug
