@@ -7,6 +7,9 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performClick
 import org.junit.Assert.assertEquals
 import org.indiafoss.companion.ui.screens.ActivityScreen
@@ -136,7 +139,8 @@ class ScreenshotTest {
         shoot("talk-speaker-link") {
             ActivityScreen(state(), talk.id, {}, {}, onOpenSpeaker = { opened = it }) {}
         }
-        compose.onNodeWithText(person.name).performScrollTo().performClick()
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(person.name))
+        compose.onNodeWithText(person.name).performClick()
         assertEquals(person.id, opened)
     }
 
