@@ -149,10 +149,14 @@ export async function testReminder(): Promise<void> {
 
 /**
  * All alerts come from feasible edited plans, including removals/replacements.
- * Reconciliation cancels old timers before resolving and serialises transport writes.
+ * Input changes cancel old timers before resolving. Clock-only refreshes extend
+ * the lookahead window without interrupting timers or browser deliveries.
  */
-export async function armNotifications(): Promise<void> {
-  await reconciler.replace(async () => {
+export async function armNotifications(clockRefresh = false): Promise<void> {
+  const reconcile = clockRefresh
+    ? reconciler.refresh.bind(reconciler)
+    : reconciler.replace.bind(reconciler);
+  await reconcile(async () => {
     const bundle = eventState.bundle;
     if (!notificationsEnabled.value || !bundle) return null;
     await hydrateRoutingProfile();

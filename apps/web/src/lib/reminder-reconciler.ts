@@ -26,6 +26,18 @@ export class ReminderReconciler {
     return this.enqueue(() => this.cancelAll());
   }
 
+  /** Only for the passage of time with unchanged plan/clock inputs.
+   * Keep due timers and in-flight browser deliveries; remember IDs already
+   * scheduled so moving the lookahead window cannot deliver them twice.
+   * Plan, permission, location and clock changes must use replace/clear.
+   */
+  async refresh(load: () => Promise<ReminderBatch | null>): Promise<void> {
+    const generation = this.generation;
+    const batch = await load();
+    if (generation !== this.generation || !batch) return;
+    await this.scheduleBatch(batch, generation, true);
+  }
+
   async replace(load: () => Promise<ReminderBatch | null>): Promise<void> {
     const generation = ++this.generation;
     // Drop the old timers immediately, including while a new plan is loading.
@@ -39,10 +51,18 @@ export class ReminderReconciler {
       throw error;
     }
     if (generation !== this.generation || !batch) return;
-    const wanted = batch;
+    await this.scheduleBatch(batch, generation, false);
+  }
+
+  private async scheduleBatch(
+    wanted: ReminderBatch,
+    generation: number,
+    preserve: boolean,
+  ): Promise<void> {
     await this.enqueue(async () => {
       for (const notification of wanted.notifications) {
         if (generation !== this.generation) return;
+        if (preserve && this.armed.has(notification.id)) continue;
         // Record before awaiting so even a delayed/partially failing schedule is cancellable.
         this.armed.set(notification.id, wanted.transport);
         try {
