@@ -38,10 +38,8 @@ import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.ContactCard
 
-private val TICKET_REF = Regex("^ticket::[A-Za-z0-9._:-]{1,64}$")
-
 /**
- * First-run setup (#107): reminders, ticket, who you are, then ranking. Every
+ * First-run setup (#107): reminders, who you are, then ranking. Every
  * step can be skipped; everything here can be changed later under Settings,
  * Your card or Rank. Shown once, and again from Settings on request.
  */
@@ -51,13 +49,11 @@ fun WelcomeScreen(
     state: UiState,
     onReminders: (Boolean) -> Unit,
     onSave: (ContactCard) -> Unit,
-    onScan: () -> Unit,
     onDone: (rank: Boolean) -> Unit,
 ) {
-    val steps = listOf("Reminders", "Ticket", "You", "Your day")
+    val steps = listOf("Reminders", "You", "Your day")
     var step by remember { mutableIntStateOf(0) }
     var draft by remember(state.profile) { mutableStateOf(state.profile) }
-    var ticket by remember(state.profile) { mutableStateOf(state.profile.ticketRef) }
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         onReminders(granted)
         if (granted) step = 1
@@ -74,7 +70,7 @@ fun WelcomeScreen(
                     Text("SET UP IN A MINUTE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                     Text("Welcome to $eventName", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
                     Text(
-                        "Four quick questions, all optional, so the app can remind you, know your ticket, put your name on a card and plan your day. Everything stays on this phone.",
+                        "Three quick steps, all optional, so the app can remind you, put your name on a card and plan your day. Everything stays on this phone.",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 6.dp),
                     )
@@ -111,35 +107,6 @@ fun WelcomeScreen(
                             }
                         }
                         1 -> {
-                            Text("Your ticket reference", style = MaterialTheme.typography.titleLarge)
-                            Text(
-                                "The code on your ticket QR (ticket::…). It only lets organisers match you at the desk; it is never an identity and never shared unless you switch it on.",
-                                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            val ok = ticket.isBlank() || TICKET_REF.matches(ticket.trim())
-                            OutlinedTextField(
-                                value = ticket,
-                                onValueChange = { ticket = it },
-                                label = { Text("Ticket reference") },
-                                placeholder = { Text("ticket::…") },
-                                isError = !ok,
-                                supportingText = if (!ok) ({ Text("Must look like ticket::…") }) else null,
-                                singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(
-                                    enabled = ok,
-                                    onClick = {
-                                        if (ticket.isNotBlank()) { draft = draft.copy(ticketRef = ticket.trim()); onSave(draft) }
-                                        step = 2
-                                    },
-                                ) { Text(if (ticket.isBlank()) "No ticket yet" else "Save ticket") }
-                                OutlinedButton(onClick = onScan) { Text("Scan my ticket") }
-                            }
-                            TextButton(onClick = { step = 0 }) { Text("Back") }
-                        }
-                        2 -> {
                             Text("Who is on your card", style = MaterialTheme.typography.titleLarge)
                             Text(
                                 "Your name and a few public profiles make the contact card people scan when you meet. Add more, or take any of it off, under Your card later.",
@@ -152,10 +119,10 @@ fun WelcomeScreen(
                             OutlinedTextField(draft.socials["mastodon"].orEmpty(), { draft = draft.copy(socials = draft.socials + ("mastodon" to it)) }, label = { Text("Mastodon") }, placeholder = { Text("https://fosstodon.org/@you") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(draft.fossUnitedUsername, { draft = draft.copy(fossUnitedUsername = it) }, label = { Text("FOSS United username") }, placeholder = { Text("your_username") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(onClick = { onSave(draft.copy(fullName = draft.fullName.trim())); step = 3 }) {
+                                Button(onClick = { onSave(draft.copy(fullName = draft.fullName.trim())); step = 2 }) {
                                     Text(if (draft.fullName.isBlank()) "Skip for now" else "Save")
                                 }
-                                TextButton(onClick = { step = 1 }) { Text("Back") }
+                                TextButton(onClick = { step = 0 }) { Text("Back") }
                             }
                         }
                         else -> {
@@ -168,7 +135,7 @@ fun WelcomeScreen(
                                 Button(onClick = { onDone(true) }) { Text("Rank my sessions") }
                                 OutlinedButton(onClick = { onDone(false) }) { Text("Later") }
                             }
-                            TextButton(onClick = { step = 2 }) { Text("Back") }
+                            TextButton(onClick = { step = 1 }) { Text("Back") }
                         }
                     }
                 }

@@ -19,19 +19,12 @@ test('home shows event facts', async ({ page }) => {
   await expect(page.getByText(/117 speakers/)).toBeVisible();
 });
 
-test('first run opens the welcome wizard once: reminders, ticket, you, then rank', async ({
-  page,
-}) => {
+test('first run opens the welcome wizard once: reminders, you, then rank', async ({ page }) => {
   // beforeEach landed on `/`, which hands over to the wizard on a fresh device.
   await expect(page).toHaveURL(/\/welcome$/);
   await expect(page.getByRole('heading', { name: /Welcome to IndiaFOSS 2025/ })).toBeVisible();
   await page.getByRole('button', { name: 'Not now' }).click();
-  // A ticket must look like ticket::…
-  const ticket = page.getByLabel('Ticket reference');
-  await ticket.fill('nope');
-  await expect(page.getByRole('button', { name: /Save ticket/ })).toBeDisabled();
-  await ticket.fill('ticket::abc123');
-  await page.getByRole('button', { name: /Save ticket/ }).click();
+  await expect(page.getByLabel('Ticket reference')).toHaveCount(0);
   await page.getByLabel('Name', { exact: true }).fill('Asha Menon');
   await page.getByLabel('GitHub').fill('https://github.com/asha');
   await page.getByRole('button', { name: /Save →/ }).click();
