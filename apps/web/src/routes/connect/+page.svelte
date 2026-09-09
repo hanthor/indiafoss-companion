@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ContactChecks from '$lib/components/ContactChecks.svelte';
   import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
   import { meshLinkLabel } from '@indiafoss/matrix';
@@ -613,9 +614,8 @@
   </section>
 
   <p class="muted small explain">
-    Any phone camera saves you straight to Contacts. Scanned with the Companion, the same code also
-    verifies your key badge and lets them message you. A QR can be photographed — email and phone
-    stay off unless you switch them on.
+    A phone camera can open your contact card. The Companion can save it in People I met and check
+    its signature. A QR can be photographed — email and phone stay off unless you switch them on.
   </p>
 
   {#if profileState.profile.socials.github}
@@ -624,6 +624,8 @@
       {@render profileImporter()}
     </details>
   {/if}
+
+  <ContactChecks />
 
   <!-- Field groups -->
   {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}
