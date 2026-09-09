@@ -20,7 +20,10 @@ import { collectContactCardIssues } from './contact-card.js';
 import { collectEventManifestIssues } from './event-manifest.js';
 import { collectIdentityBindingIssues } from './identity-binding.js';
 
+import { collectPersonalDataIssues } from './personal-data.js';
+
 const VALIDATORS: Record<ContractName, (value: unknown) => string[]> = {
+  'personal-data': collectPersonalDataIssues,
   'event-manifest': collectEventManifestIssues,
   'conference-directory': collectConferenceDirectoryIssues,
   'contact-card': collectContactCardIssues,

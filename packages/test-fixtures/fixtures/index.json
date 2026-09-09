@@ -244,5 +244,64 @@
         "expectIssue": "duplicate claim id"
       }
     ]
+  },
+  "personal-data": {
+    "valid": [
+      {
+        "file": "minimal.json",
+        "describes": "an event with CFP-linked choices and notes"
+      },
+      {
+        "file": "unknown-field.json",
+        "describes": "unknown optional fields and sections survive a round trip"
+      }
+    ],
+    "invalid": [
+      {
+        "file": "future-version.json",
+        "describes": "future-version.json",
+        "expectIssue": "newer than"
+      },
+      {
+        "file": "wrong-format.json",
+        "describes": "wrong-format.json",
+        "expectIssue": "format"
+      },
+      {
+        "file": "invalid-time.json",
+        "describes": "invalid-time.json",
+        "expectIssue": "exportedAt"
+      },
+      {
+        "file": "missing-zone.json",
+        "describes": "missing-zone.json",
+        "expectIssue": "exportedAt"
+      },
+      {
+        "file": "duplicate-event.json",
+        "describes": "duplicate event IDs are rejected",
+        "expectIssue": "duplicate eventId"
+      },
+      {
+        "file": "duplicate-activity.json",
+        "describes": "duplicate activity references are rejected",
+        "expectIssue": "duplicate activityId"
+      },
+      {
+        "file": "wrong-event.json",
+        "describes": "references cannot cross event boundaries",
+        "expectIssue": "eventId"
+      },
+      {
+        "file": "sections-array.json",
+        "describes": "personal sections must form an object",
+        "expectIssue": "sections"
+      },
+      {
+        "file": "contact-array.json",
+        "describes": "contact data must form an object",
+        "expectIssue": "contact"
+      }
+    ]
   }
 }

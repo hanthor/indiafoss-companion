@@ -8,11 +8,15 @@ Both TypeScript and Kotlin resolve an event-scoped activity reference containing
 
 Resolution uses CFP identity first. A unique CFP match survives a recreated row. Repeated CFP entries require an exact occurrence ID; otherwise the result is ambiguous. Legacy references without CFP use the exact activity ID. References for another event are rejected. Missing/ambiguous references stay available for review and later retry.
 
-This is a prerequisite, not a shipped export/import flow. The file codec, storage adapters and attendee UI remain to implement.
+The version-1 transport codec is implemented in both languages. It validates the envelope, unique event/activity references, canonical UTC export timestamp, a 5 MiB UTF-8 limit and maximum nesting of 64. Shared fixtures cover valid files, unknown fields and rejection cases. Unknown optional JSON sections survive decoding and encoding.
+
+This is not a shipped export/import flow. A valid envelope does not mean its section contents are safe to apply: storage adapters must validate their records and identity references before mutation. Those adapters and the attendee UI remain to implement.
 
 ## Versioned file design
 
-Use one JSON document with format `indiafoss-personal-data`, integer `schemaVersion: 1`, export time, and separately scoped event records. Each event record carries its activity-reference table and personal sections:
+The transport uses one JSON document with format `indiafoss-personal-data`, integer `schemaVersion: 1`, export time (for example `2026-09-09T00:00:00.000Z`), and separately scoped event records. Each event record has `eventId`, an `activities` reference table, and a `sections` object. Device-independent contact data is carried in an optional top-level `contact` object.
+
+Section record schemas will be validated by their owning adapters; envelope decoding deliberately preserves unsupported optional sections. The required personal sections are:
 
 - Preferences: dispositions, bookmarks, ratings, comparison counts and triage answers.
 - Comparison history and devroom preferences, including whole-devroom reservations.
