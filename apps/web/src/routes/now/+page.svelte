@@ -1,10 +1,6 @@
 <script lang="ts">
-  import { nowPlanState, resolveDayPlan } from '$lib/resolved-plan.svelte';
+  import { livePlanState } from '$lib/resolved-plan.svelte';
   import { eventDay, nextPlannedItem } from '$lib/resolved-plan';
-  import { planEdits, readPlanEdits } from '$lib/planEdits.svelte';
-  import { preferenceFor } from '$lib/prefs.svelte';
-  import { roomPreferences } from '$lib/roomPrefs.svelte';
-  import { routingPrefs } from '$lib/routingPrefs.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type { Activity } from '@indiafoss/model';
@@ -46,42 +42,9 @@
   const nowState = $derived(bundle && now ? computeNowState(bundle, now) : null);
 
   const day = $derived(bundle && now ? eventDay(now, bundle.timezone) : null);
-  let personalPlan = $state<Awaited<ReturnType<typeof resolveDayPlan>> | null>(null);
-  let planStatus = $state<'loading' | 'ready' | 'error'>('loading');
-  $effect(() => {
-    const currentBundle = bundle;
-    const currentDay = day;
-    if (!currentBundle || !currentDay) return;
-    // Subscribe to local choices, edits and route changes without polling every clock tick.
-    void JSON.stringify(currentBundle.activities.map((a) => preferenceFor(a.id)));
-    void JSON.stringify(roomPreferences());
-    void JSON.stringify(planEdits.edits);
-    void routingPrefs.profile;
-    let active = true;
-    personalPlan = null;
-    nowPlanState.eventId = currentBundle.id;
-    nowPlanState.day = currentDay;
-    nowPlanState.activityIds = [];
-    planStatus = 'loading';
-    void readPlanEdits(currentBundle.id, currentDay)
-      .then((edits) => resolveDayPlan(currentBundle, currentDay, edits))
-      .then((resolved) => {
-        if (!active) return;
-        personalPlan = resolved;
-        nowPlanState.activityIds =
-          resolved.edited.feasible && resolved.mustAttendConflicts.length === 0
-            ? resolved.edited.items.map((item) => item.id)
-            : [];
-        planStatus = 'ready';
-      })
-      .catch(() => {
-        if (active) planStatus = 'error';
-      });
-    return () => {
-      active = false;
-      nowPlanState.activityIds = [];
-    };
-  });
+  const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === day);
+  const personalPlan = $derived(currentPlan ? livePlanState.result : null);
+  const planStatus = $derived(currentPlan ? livePlanState.status : 'loading');
   const planConflicted = $derived(
     Boolean(
       personalPlan &&

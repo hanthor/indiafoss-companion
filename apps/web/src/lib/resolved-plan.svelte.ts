@@ -17,13 +17,20 @@ export async function resolveDayPlan(bundle: EventBundle, day: string, edits: Pl
   return { ...result, edited };
 }
 
-/** The Now route publishes its current projection for the global leave-by banner. */
-export const nowPlanState = $state<{
-  eventId: string | null;
+/** Layout-owned projection: every route observes the same current venue day. */
+export const livePlanState = $state<{
+  bundle: EventBundle | null;
   day: string | null;
+  status: 'loading' | 'ready' | 'error';
+  result: Awaited<ReturnType<typeof resolveDayPlan>> | null;
   activityIds: string[];
 }>({
-  eventId: null,
+  bundle: null,
   day: null,
+  status: 'loading',
+  result: null,
   activityIds: [],
 });
+
+/** Invalidates persisted flexible goals after a booth visit is saved. */
+export const planInputs = $state({ revision: 0 });
