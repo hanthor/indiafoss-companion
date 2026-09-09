@@ -302,3 +302,5 @@ export type { VCardIdentity, VCardSignatureState } from './signed-vcard.js';
 
 export { resolvePortableActivity } from './portable-activity.js';
 export type { PortableActivityReference, ActivityResolution } from './portable-activity.js';
+
+export { isDiscoveryActivity } from './discovery.js';
