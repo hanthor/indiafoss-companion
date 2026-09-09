@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ContactChecks from '$lib/components/ContactChecks.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
@@ -262,10 +263,10 @@
       savedContactId = result.contact.id;
       status =
         result.outcome === 'updated'
-          ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Identities stay unverified until compared in person.`
+          ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Card signatures do not verify linked accounts.`
           : result.outcome === 'key-changed'
             ? `Saved ${result.contact.fullName} as a new entry: the card's key differs from the one you saved before, so the earlier contact was kept. Compare key badges in person before trusting either.`
-            : `Saved ${result.contact.fullName} to your contacts. Identities stay unverified until compared in person.`;
+            : `Saved ${result.contact.fullName} to your contacts. Card signatures do not verify linked accounts.`;
     }
     pending = null;
     manualLocation = '';
@@ -372,6 +373,7 @@
           </p>
         {/if}
         <p class="muted">These fields were shared with you. Nothing is uploaded.</p>
+        <ContactChecks />
         <p class="unverified">
           Unverified — a QR code exchanges identifiers, it does not prove who someone is.
         </p>
@@ -385,13 +387,13 @@
               {#if !cardIdentity}
                 <span class="muted small">Checking signature…</span>
               {:else if cardIdentity.signature === 'valid'}
-                <strong class="sig-ok">✔ Signed card</strong>
+                <strong class="sig-ok">Card signature valid</strong>
                 <span class="muted small">
                   Badge <code>{shortFingerprint(cardIdentity.fingerprint ?? '')}</code> — ask them to
                   show their badge on the Connect screen; if it matches, you scanned their device's key.
                 </span>
               {:else if cardIdentity.signature === 'invalid'}
-                <strong class="sig-bad">✖ Signature does not match</strong>
+                <strong class="sig-bad">Card signature does not match</strong>
                 <span class="muted small"
                   >The card was altered or re-encoded. Ask for a fresh code.</span
                 >
