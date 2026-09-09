@@ -621,6 +621,556 @@
       }
     ]
   },
+  "7pt1ibasdd": {
+    "proposalId": "7pt1ibasdd",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/7pt1ibasdd",
+    "description": "Swarm robotics is the study of how many simple robots can work together to create complex behaviour. It is one of the most fascinating areas in robotics, but actually getting started with it is surprisingly difficult. Most swarm robotics platforms are expensive, hard to buy, locked behind proprietary software, or built only for a specific lab.\n\nMinnow is being built to make swarm robotics more accessible. It is an affordable, open-source kit of small ground robots designed for researchers, students, educators, and builders who want to experiment with swarms without needing a six-figure lab budget.\n\nThe goal is not to build a robot that pretends it is ready for real-world deployment. The goal is to build a proper research and teaching tool: something people can use to study decentralized coordination, neighbour communication, collective behaviour, robot-to-robot interaction, and swarm algorithms in the real world.\n\nInspired by projects like Crazyflie, where the value is not just the hardware, but the software, documentation, ecosystem, and community around it.\n\nHere’s a brief overview of what I’ll cover:\n\nThe design of Minnow: a small ground robot built around a round PCB-as-chassis, ESP32-S3, differential drive, ToF distance sensors, and an IR neighbour-communication ring.\n\nWhy we are designing for affordability, with a target of under $35 per robot in small kits.\n\nWhy decentralized control matters, and why each robot should run its own logic instead of depending on a central computer.\n\nHow we use ESP-NOW for peer-to-peer communication and an overhead camera only for logging and ground-truth data, not for controlling the swarm.\n\nThe challenges of designing a robotics platform around India-first sourcing and small-scale manufacturing.\n\nWhy we think there is space for a truly open, buyable, decentralized ground swarm kit with good software and documentation.\n\nThe idea of treating Minnow as a scientific instrument, not a deployment robot, and how that changes the way we design the hardware and software.\n\nMy goal with this talk is to show that meaningful swarm robotics research does not need to be locked away inside expensive labs. With the right tools, documentation, and community, more people should be able to build, study, and experiment with swarms of their own.",
+    "keyTakeaways": [
+      "A practical introduction to swarm robotics and why building real-world swarm experiments is still difficult.",
+      "How Minnow is designed as a small ground robot platform for studying decentralized swarm behaviour.",
+      "Why each robot having its own onboard control matters for swarm research, instead of relying on a central computer to control everything.",
+      "How components like the ESP32-S3, differential drive, ToF sensors, IR neighbour communication, and ESP-NOW can be used to build small swarm robots.",
+      "The design trade-offs involved in building low-cost robotics hardware that is still useful for research, teaching, and experimentation.",
+      "The challenges of sourcing, manufacturing, and documenting small robotics platforms in India.",
+      "Why treating Minnow as a research and teaching instrument changes how the hardware, firmware, software, and documentation are designed."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/balub/minnow",
+        "url": "https://github.com/balub/minnow"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "32f9jjkob0": {
+    "proposalId": "32f9jjkob0",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/32f9jjkob0",
+    "description": "Your keyboard is the tool you touch more than any other computer hardware. Why is it the least programmable?\n\nEver looked at your boring old keyboard and thought what if I could make something better, faster, cheaper and completely open source?\n\n- Want to use a 10 finger key macro that'll trigger your custom buff combo in Elden Ring to one shot Radahn?\n\n- Wanted to build a split keyboard that sits under your hands like a glove instead of forcing your hands to adapt to it?\n\n- Ever wanted to launch your entire development environment with a single keypress?\n\n- Wished you could create your own keyboard instead of choosing from someone else's designs?\n\nYou can do all this without installing a third party software with ZMK or QMK firmware.\n\nIn this session I'll walk you through an open source keyboard design, a completely open hardware project using ZMK/QMK and show how the same principles can be applied to design your own custom keyboard from simple macropads to fully wireless split ergonomic mechanical keyboards or customize your existing supported mechanical keyboard.\n\nOne of the best aspects of ZMK keyboard firmware is that it's built on top of Zephyr RTOS. Underneath the layers lies a complete embedded ecosystem which powers your keyboard. Whether you're an embedded veteran or someone just getting started, building a custom keyboard is a unique opportunity to explore every layer of the stack and have fun along the way!",
+    "keyTakeaways": [
+      "Understand how modern keyboards work, from matrix scanning to USB/Bluetooth HID.",
+      "Learn the workflow for designing a custom keyboard, from schematic and PCB design to firmware development.",
+      "Understand how layers, combos, macros, and custom behaviors can improve your workflow."
+    ],
+    "references": [
+      {
+        "label": "https://zmk.dev/docs",
+        "url": "https://zmk.dev/docs"
+      },
+      {
+        "label": "https://github.com/foostan/crkbd",
+        "url": "https://github.com/foostan/crkbd"
+      },
+      {
+        "label": "https://docs.qmk.fm/",
+        "url": "https://docs.qmk.fm/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "3nr9benq94": {
+    "proposalId": "3nr9benq94",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3nr9benq94",
+    "description": "This talk is about building open source music hardware in India - and, more usefully, about the practical process knowledge required to actually do it here.\n\nIt started with a personal itch: I wanted a compact 16-knob MIDI controller to drive my Ableton Live sets. My APC40 MkII was too bulky, and a commercial Midi Fighter–style controller ran around ₹40,000 for what is, electrically, a fairly simple device. So I built my own Arduino-based version instead. Those controllers have since found a steady audience, which pushed me deeper into hardware: I now also design and build DIY Eurorack modules, including a delay module built around a Daisy Patch submodule, with a custom PCB co-designed with a collaborator in Pune.\n\nEverything I build sits on the shoulders of open hardware - Mutable Instruments designs, the Arduino MIDI ecosystem, and the wider DIY synth community. But turning those open designs into working hardware in India meant solving a long list of problems that nobody hands you a manual for: where to reliably source components, where to get PCBs and front panels manufactured, which tools to learn, how to prototype affordably, and - maybe most importantly - where to find people and advice when you're stuck.\n\nI'll walk through that process end to end. On the design side, that meant learning KiCad for schematic and PCB work, and FreeCAD and Fusion for designing the enclosures and front panels for both the controllers and the Eurorack modules. Along the way I wrote a few KiCad plugins to automate converting PCB component placements into front-panel hole layouts - the kind of small tooling gap you only discover once you're knee-deep in the work. I'll also cover sourcing and fabrication (components, PCBs, panels), prototyping, and a side quest into repairing music gear, which turned out to be one of the best ways to actually understand how this equipment works.\n\nTwo of the projects I'll reference are open and available:\n\nTarab MIDI 64 controller - https://github.com/basisvectors/tarab-midi-64\"TI - Super Simple Delay\" Eurorack module (Daisy submodule) - https://github.com/basisvectors/tape-delay-daisysm\n\nThe goal is that anyone in the room thinking \"I could build that\" leaves knowing concretely where to start, what it costs, and where the potholes are.",
+    "keyTakeaways": [
+      "A realistic picture of what it takes to design and build MIDI and Eurorack hardware in India, from first idea to a finished, usable unit.",
+      "A practical sourcing and fabrication map: where to get components, PCBs, and front panels reliably, and roughly what it costs.",
+      "The tooling reality: learning KiCad for PCB design and FreeCAD/Fusion for enclosures - including writing your own KiCad plugins to fill gaps in the workflow.",
+      "How to build on existing open hardware (Mutable Instruments, Arduino MIDI, etc.) rather than starting from scratch, and how to contribute back.",
+      "Where to find community, advice, and collaborators when you hit a wall."
+    ],
+    "references": [
+      {
+        "label": "https://tarabinstruments.qaree.bi",
+        "url": "https://tarabinstruments.qaree.bi/"
+      },
+      {
+        "label": "https://instagram.com/tarab_instruments",
+        "url": "https://instagram.com/tarab_instruments"
+      },
+      {
+        "label": "https://instagram.com/qaree.bi",
+        "url": "https://instagram.com/qaree.bi"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://github.com/basisvectors/tarab-midi-64",
+        "url": "https://github.com/basisvectors/tarab-midi-64"
+      },
+      {
+        "label": "https://github.com/basisvectors/tape-delay-daisysm",
+        "url": "https://github.com/basisvectors/tape-delay-daisysm"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1cbj5bhfhf": {
+    "proposalId": "1cbj5bhfhf",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1cbj5bhfhf",
+    "description": "Most modern CNC machines and plotters are built around monolithic controller boards (like a GRBL shield or a commercial DSP). While this works initially, it creates a massive single point of failure. If one stepper driver burns out, your entire machine is down until you replace the whole board. On the software side, the workflow is equally frustrating: you need heavy CAD/CAM software to generate complex G-code, which then requires a dedicated server or sender just to get the machine moving.\n\nWe wanted to fix this, especially for classrooms, colleges, and makerspaces where budgets are tight and repairs need to happen fast.\n\nAt last year's IndiaFOSS, Mr. Balu Babu put it plainly:\n\n\"China can fill a stadium with CNC operators, We can barely fill a classroom... This isn't just about having the right tools, it's about having enough people who know how to use them effectively. And that gap affects everything from quality to innovation speed.\"\n\nThat one sentence captures the exact problem. Digital fabrication tools exist, but they are inaccessible, not just in cost, but in complexity. A machine that requires a trained technician to operate, a proprietary sender to run, and an expensive replacement board when a single driver fails is not a machine built for a classroom. It is a machine built for a well-funded production floor. We think that is the wrong design philosophy for open hardware.\n\nUrumi was built to challenge that philosophy from first principles. This talk is the story of how we did it . A low-cost, open-source flatbed 4 axis CNC machine that rethinks both the hardware and software stack to make digital manufacturing genuinely accessible.\n\nThe hardware story starts with a question: why does one broken stepper driver bring down the entire machine? Because every axis shares a single controller board. We broke that dependency by giving each axis its own cheap, dedicated node, a small PCB built around the AVR128DB32 microcontroller, connected to everything else over a shared RS-485 bus. A failed node costs less than a cup of coffee to replace, and the rest of the machine keeps running.\n\nThe software side starts with a different question: why do you need a server just to cut a file? You shouldn't. We built the entire CAM pipeline - Bezier flattening, arc-length parameterisation, tangential knife angle calculation all of that in plain vanilla JavaScript, running entirely in the browser with zero dependencies. The browser talks directly to the machine over WebSerial. No installation, no backend, no G-code.\n\nThe vision story starts with a prototype that failed. We mounted a camera on the gantry. It was heavy, expensive, and nearly impossible to calibrate. We scrapped it entirely and replaced it with a smartphone. You place a printed ArUco marker frame on the cutting bed, take one photo, and upload it. OpenCV corrects the perspective warp and lens distortion, detects your material edges automatically, and a skeletonisation pipeline converts your hand-drawn ink lines, red for score, green for crease, blue for cut, directly into a colour-coded toolpath SVG, ready to run.\n\nWe'll walk through the real engineering decisions behind each of these systems: where we failed, what the math actually looks like, and what you can take away for your own hardware and software projects.",
+    "keyTakeaways": [
+      "Modular CNC Architectures: How to design independent networked stepper nodes over RS-485 so a single axis failure never brings down the whole machine.",
+      "Client-Side CAM: How to process SVG path geometry, flatten Bezier curves with arc-length parameterisation, and calculate tangential knife angles entirely in browser JavaScript(no server required).",
+      "WebSerial for Hardware Control: How to use the WebSerial API to stream binary motion data directly from a browser to a microcontroller, including flow control and error recovery.",
+      "Perspective Rectification: How to use OpenCV and ArUco markers to correct perspective warp and lens distortion from an ordinary smartphone photo into a calibrated 1:1 physical coordinate space.",
+      "Colour-Coded Toolpath Design: How HSL-space voting on a skeletonised ink mask can classify hand-drawn marker lines by colour into distinct cutting operations (thru-cut, score, crease) automatically.",
+      "Open Hardware for Access: Practical lessons from building a fabrication tool specifically for low-budget environments, where repairability, zero-dependency software, and cheap off-the-shelf components matter as much as performance."
+    ],
+    "references": [
+      {
+        "label": "https://projects.fablabkerala.in/mtm_projects/urumi/",
+        "url": "https://projects.fablabkerala.in/mtm_projects/urumi/"
+      },
+      {
+        "label": "https://gitlab.cba.mit.edu/quentinbolsee/aruco-frame",
+        "url": "https://gitlab.cba.mit.edu/quentinbolsee/aruco-frame"
+      },
+      {
+        "label": "https://git.fablabkerala.in/pub/mtm-projects/zundlet",
+        "url": "https://git.fablabkerala.in/pub/mtm-projects/zundlet"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "9e9bajmm07": {
+    "proposalId": "9e9bajmm07",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9e9bajmm07",
+    "description": "The Tamarind Valley Collective is a unique experiment. 50 families came together pre-pandemic to restore 75 acres of hillside into a food forest and sustainable farm, in small parcels of land privately owned but collectively managed. Our residential village is in one corner so there’s a minimal footprint on the land. It struck us that having 50 internet connections for secondary homes made no sense, so why don’t we have community WiFi? And why not extend it across the entire farm so every corner is connected for telemetry? So we did it.\n\nMapped on OpenStreetMap, down to every single tree. Because you have to know what tree your fiber is hanging from, and where the delicious fruits are.\n\nA fiber optic backbone rolled out with maximum jugaad. When the lineman doesn’t come to the field, you take the field to the lineman.\n\nA WiFi, BLE and LoRa mesh, for connectivity everywhere and beyond. Remote is when devices outnumber humans.\n\nRecycled equipment as far as possible. They don’t get security updates and I have to enable outdated SSH ciphers to connect, but the main kind of bugs here have DNA, not source code.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://tvc.farm",
+        "url": "https://tvc.farm/"
+      },
+      {
+        "label": "https://www.openstreetmap.org/#map=16/12.35028/77.64544",
+        "url": "https://www.openstreetmap.org/#map=16/12.35028/77.64544"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4pm3u3odmn": {
+    "proposalId": "4pm3u3odmn",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4pm3u3odmn",
+    "description": "HackerFab IITB is India’s first open-source, student-run, low-cost semiconductor fabrication lab (fab). We build open-source educational tools (like litho, sputter) to make chips. We extend a global open-source HackerFab community that hacks and tinkers with fabs - HackerFab!\n\nSemiconductors are the cornerstone of modern civilization, quietly powering the entire world, yet, in India, college students seldom get any hands-on exposure to actually building semiconductor chips. HackerFab seeks to fill this gap by building low-cost and open-source fab templates, which can be replicated by students across India. Our component and machining pipelines are tailored for Indian procurement.\n\nThe power of open-source has let us cross the moat of the heavily monopolized fab companies like ASML and TSMC. Our active community on Discord suggests tens of improvements daily, and expertise pours in from people across the globe. This tribal knowledge which we crowdsource was not written down previously, and was gatekept by the industry.\n\nOur CAD designs, lithography scripts, control algorithms, and tool GUIs are all open-source on our Github: https://github.com/hackerfabiitb\n\nOur immediate objectives are:\n\nStudent Accessibility: Make semiconductor fabrication accessible, affordable, and aspirational for students across colleges in India.\n\nWorkforce Development: Start a direct pipeline of industry ready talent by providing real, hands on fabrication experience\n\nCost Reduction: Lower the cost of fabrication setups from crores to lakhs, indigenizing them for teaching and prototyping rather than for mass production\n\nReplicable Template: Serve as a template that inspires and supports other Indian institutes in creating their own HackerFabs and setting up fabrication facilities all over India.\n\nIn our session, we will\n\npresent our story from a bunch of students building out of their hostel room, to developing a complete in-house process to make working MOSCAP devices.\n\ndiscuss how the open-source philosophy enabled our success.\n\ndemo our photolithography tool which can project micron-scale features in real-time.\n\nhave a open conversation with the participant on how we can leverage the community further.\n\nRead more at https://hackerfabiitb.github.io/Contact us at hackerfabiitb@gmail.com- by Jai Bellare, HackerFab IITB\n\nPS: The video linked as a Session Reference is an interview and tour of our lab. We previously presented at two conferences (sadly we don’t have recordings of those):\n\nInvited to present to industry, academic and government dignitaries at the IITB SemiX Annual Summit 2025\n\nWon the User Design Track at the International Conference on VLSI Design 2026.",
+    "keyTakeaways": [
+      "Open hardware can take India to the State-of-the-Art in certain unexplored areas in the short-term, and make us global technology leaders in the long-term.",
+      "Open hardware empowers students to build no matter their financial situation or geographical location."
+    ],
+    "references": [
+      {
+        "label": "https://youtu.be/UWHMm4Qjpmo",
+        "url": "https://youtu.be/UWHMm4Qjpmo"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://github.com/hackerfabiitb",
+        "url": "https://github.com/hackerfabiitb"
+      },
+      {
+        "label": "https://hackerfabiitb.github.io/",
+        "url": "https://hackerfabiitb.github.io/"
+      },
+      {
+        "label": "hackerfabiitb@gmail.com",
+        "url": "mailto:hackerfabiitb@gmail.com"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "381kk089so": {
+    "proposalId": "381kk089so",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/381kk089so",
+    "description": "When a program runs out of memory, the operating system does not crash, it uses a page replacement policy to swap pages in and out, keeping the most useful ones active.\n\nLLMs processing long texts face a similar memory bottleneck. They store a \"KV cache\" (memory buffer) that grows linearly with sequence length. At 32,000 tokens, this cache requires ~11.6 GB of VRAM. If you try to run this on a standard 8 GB GPU, the process runs out of memory and crashes.\n\nPopular open-source solutions like H2O and SnapKV try to evict less important tokens using attention weights. However, calculating these weights across long contexts creates an even larger memory bottleneck, causing OOM crashes anyway.\n\nI built EntropyKV to solve this using systems design principles rather than complex ML overhead. EntropyKV operates like an OS page replacement policy for model memory:\n\nResult: EntropyKV cuts cache memory by 43% (11.6 GB → 6.6 GB) and speeds up generation by 32×, allowing long-context models to run on standard 8 GB consumer GPUs where competing methods crash.\n\nCrucially, when cache space is cut by 50%, the model doesn't output garbage. It exhibits what we call \"semantic quantization\" : it perfectly preserves the structure and meaning of the retrieved context while only losing fine numeric details (e.g., retrieving \"2023\" instead of \"2026\").",
+    "keyTakeaways": [
+      "Understand why traditional attention-based KV cache eviction methods fail (OOM) at long contexts on consumer GPUs.",
+      "Learn how to implement a lightweight, attention-free eviction policy using only key and value vector norms.",
+      "Explore how layer-adaptive allocation (LARA) acts as a tiered caching strategy across different layers of a model.",
+      "Witness the \"semantic quantization\" effect, showing how neural networks gracefully degrade like JPEGs under lossy memory compression."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/GiGiKoneti/EntropyKV-VW-Norm-LARA-KV-Cache-Compression",
+        "url": "https://github.com/GiGiKoneti/EntropyKV-VW-Norm-LARA-KV-Cache-Compression"
+      },
+      {
+        "label": "https://arxiv.org/abs/2306.14048",
+        "url": "https://arxiv.org/abs/2306.14048"
+      },
+      {
+        "label": "https://arxiv.org/abs/2309.17453",
+        "url": "https://arxiv.org/abs/2309.17453"
+      },
+      {
+        "label": "https://arxiv.org/abs/2205.14135",
+        "url": "https://arxiv.org/abs/2205.14135"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "3ni2uq8bkg": {
+    "proposalId": "3ni2uq8bkg",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3ni2uq8bkg",
+    "description": "General-purpose databases handle the overwhelming majority of workloads. Pick a flavor — relational, NoSQL, column-store, in-memory — tune its config, and it'll fit an enormous range of problems.\n\nBut in some fields, we need to go down to the fundamentals and build a custom database from the ground up. In bioinformatics, the need is often to store petabytes of data and/or have a database that can efficiently do string operations on structures like suffix trees or the Burrows–Wheeler Transform (FM-index). Blockchains are another such field. They work under different constraints — unique access patterns, authenticated state for a trustless environment, distribution requirements and different artifacts to store.\n\nThe Ethereum Foundation coordinates with a cohort of client teams that drive protocol research and development. Pretty much every client has come up with custom storage solutions. Erigon is one of these client teams; it specializes in archive nodes — the biggest node type by storage size, relied on by node/RPC providers (Infura, Alchemy, QuickNode) and by indexers and analytics platforms (The Graph, Dune, Etherscan).\n\nIn this session, I will talk about ErigonDB, the custom database devised by Erigon. It's a multi-tiered database with an mmap'd B-tree (MDBX) at L0 and custom snapshots at the lower levels. It provides transactional semantics, and the immutable snapshots are distributed via torrent to other nodes. We'll explore the data model, succinct data structures, custom file formats and algorithms that power ErigonDB — and of course the constraints and motivations that drove those decisions.",
+    "keyTakeaways": [
+      "access patterns in blockchains in general and ethereum in particular",
+      "kinds of data that need to be stored in an ethereum node and the distribution requirements",
+      "the architecture of the custom database; composing ACID properties",
+      "different algorithms and data structures used in database - recsplit, elias-fano, existence filters, good old btree and so on."
+    ],
+    "references": [
+      {
+        "label": "https://ethereum.github.io/yellowpaper/paper.pdf",
+        "url": "https://ethereum.github.io/yellowpaper/paper.pdf"
+      },
+      {
+        "label": "https://blog.ethereum.org/en/2025/12/16/future-of-state",
+        "url": "https://blog.ethereum.org/en/2025/12/16/future-of-state"
+      },
+      {
+        "label": "https://erigon.tech/blog/how-i-reduced-a-polygon-archive-node-size-by-900gb/",
+        "url": "https://erigon.tech/blog/how-i-reduced-a-polygon-archive-node-size-by-900gb/"
+      },
+      {
+        "label": "https://libmdbx.dqdkfa.ru/",
+        "url": "https://libmdbx.dqdkfa.ru/"
+      },
+      {
+        "label": "https://docs.erigon.tech/fundamentals/optimizing-storage",
+        "url": "https://docs.erigon.tech/fundamentals/optimizing-storage"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "d8b9uvdntg": {
+    "proposalId": "d8b9uvdntg",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d8b9uvdntg",
+    "description": "Strong static guarantees of runtime behaviour, and fighting the compiler until it and you come to a shared mutual understanding. If these two things usually go hand in hand for you, then this talk is for you!\n\nThis talk is at its core, a compendium of the techniques that functional programmers employ to keep programming pleasant without losing any of the safety and robustness. It’s not really about advanced type systems (we will never mention dependent types, promise), but it is about bending the type system to your will, and that, predictably, requires gaining some understanding of a few slightly advanced type systems topics. While we will provide a brief overview of everything, familiarity with Haskell, PureScript, OCaml, Rust, Lean, or some other statically typed programming language is recommended.\n\nSome things we will look at and how to apply them to real world code -- Establishing invariants, convincing the compiler to relax the inbuilt checks because you took care of them already- Producing, consuming, and traversing dynamic values of unknown structure, sealing structures so the compiler knows safety is preserved- Building extensible data structures and extensible algorithms. Performing type safe dynamic dispatch and dependency injection",
+    "keyTakeaways": [
+      "Flexibility and type safety are not a trade-off. You will learn how to get both in modern functional languages.",
+      "Advanced types are a tool to improve your development experience, not to engage in type astronomy. You will learn how advanced types make it easier to read and write code.",
+      "Learn how to guide the compiler effectively so that it shifts your relationship with the compiler from a battle into a cooperative partnership."
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/@StrongStaticType",
+        "url": "https://www.youtube.com/@StrongStaticType"
+      },
+      {
+        "label": "https://github.com/ajnsit/",
+        "url": "https://github.com/ajnsit/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "09lln6s8nq": {
+    "proposalId": "09lln6s8nq",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/09lln6s8nq",
+    "description": "You've probably used erasure coding without calling it that. RAID, CDs that still play with scratches on them, most distributed storage systems. The idea is you add redundancy up front so you can lose some of the data and still rebuild it. Reed-Solomon is the usual workhorse, and the property you care about is that any ~50% of the encoded pieces is enough to get everything back.\n\nThe catch is that all of those systems assume the storage isn't out to get you. A disk can die, but it won't deliberately hand you corrupted bytes, and it won't sit on the exact pieces you need while pretending everything's fine. Once the thing storing your data is an untrusted peer who might be malicious, that assumption is gone, and plain erasure coding isn't enough anymore.\n\nThis talk is about what you have to add to make it work anyway. I'll use PeerDAS as the example because it shipped on a live Ethereum network in December 2025, and several independent open-source clients had to implement the same protocol and actually interoperate.\n\nI'll cover why a malicious peer is harder than a failing disk, specifically the two separate problems: it can serve you wrong data, or it can withhold the pieces you're missing. Those need different solutions. For the first, KZG commitments let you check that a single chunk is the real thing without downloading the whole dataset. For the second, you sample a handful of random chunks, and because of the erasure coding, that's enough to be confident the whole thing is really available. Then there's the networking layer: deciding who stores which pieces, passing samples around between peers, and letting the network reconstruct data that's gone missing.\n\nThis talk would be nothing about blockchain. Just a genuinely hard distributed systems problem and how people solved it.",
+    "keyTakeaways": [
+      "what erasure coding gives you and why that 50% reconstruction number is the thing that makes the whole approach possible",
+      "why storage that fails is a different problem from storage that lies, and why one set of tricks doesn't cover both",
+      "how you check a small chunk is correct without pulling down the dataset it came from",
+      "the basic idea of data availability sampling: look at a few random pieces, conclude something about all of them",
+      "how the network actually spreads the data out, shares samples, and repairs itself, and a couple of the practical tradeoffs that came with shipping it"
+    ],
+    "references": [
+      {
+        "label": "https://eips.ethereum.org/EIPS/eip-7594",
+        "url": "https://eips.ethereum.org/EIPS/eip-7594"
+      },
+      {
+        "label": "https://ethereum.org/roadmap/fusaka/peerdas/",
+        "url": "https://ethereum.org/roadmap/fusaka/peerdas/"
+      },
+      {
+        "label": "https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/das-core.md",
+        "url": "https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/das-core.md"
+      },
+      {
+        "label": "https://blog.ethereum.org/2025/11/06/fusaka-mainnet-announcement",
+        "url": "https://blog.ethereum.org/2025/11/06/fusaka-mainnet-announcement"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "6aasju7noq": {
+    "proposalId": "6aasju7noq",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6aasju7noq",
+    "description": "Software and hardware are continuously evolving. New innovations & improvements help bring us better performance gains and sometimes things work out like magic. This is also true for programming languages like Java and OCaml. And yet, while developing our research ideas and trying to argue about performance, its hard to comprehend what we’re seeing: Is my benchmark now faster because of what we did, or was it another previous unrelated change showing up now? Is it better caching or was it the garbage collector being triggered? How can we be sure. There is, thus, a need to get reliable feedback while building up our systems and often benchmark suites can be key in guiding us.In this talk, we’ll try to visualize how benchmarking can be hard, what to look out for and with helpful scenarios all along the way. We will briefly look into how this may show up in real life in the context of improving OCaml: an industrial strength functional programming language. Finally, we describe some of the ideas, old & new, we’re thinking about to help us grow, quantify, and maintain(!) a new benchmark suite to aid us in bringing more cutting edge research to our users without sacrificing on legacy code nor slowing down production workloads.",
+    "keyTakeaways": [
+      "Why do we care about benchmarks while developing and why these can be hard",
+      "Ways to build reliable feedback from benchmarks and maintaining them as systems grow",
+      "A quick intro to OCaml that hopefully piques your interest to learn about it more :)"
+    ],
+    "references": [
+      {
+        "label": "https://drive.google.com/file/d/1ybdBYRyyArXw9-euwXhEaEYbDQQnqNxv/view",
+        "url": "https://drive.google.com/file/d/1ybdBYRyyArXw9-euwXhEaEYbDQQnqNxv/view"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "33ogils4n5": {
+    "proposalId": "33ogils4n5",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/33ogils4n5",
+    "description": "Most people working with LLVM know the pipeline: source → IR → analysis passes → optimization passes → codegen to machine code. What's less obvious is that when learning about this pipeline, they silently assume the target is a CPU, but LLVM lowers and optimizes for GPUs too.\n\nIn this talk I'll take a function, compile it for x86-64 and NVPTX, and walk through exactly where the pipelines diverge and why. We'll see what the middle-end shares between the two targets and where things change fundamentally. I will also cover the instruction selection differences between the two-level ISA on NVIDIA (PTX → SASS) vs direct ISA emission on AMD.\n\nThe talk closes with a look at LLVM's growing role in GPU development with projects like cuTile and CUDA-OXIDE both targeting LLVM IR and why that makes LLVM contribution directly relevant to the future of open GPU tooling.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://llvm.org/",
+        "url": "https://llvm.org/"
+      },
+      {
+        "label": "https://godbolt.org/",
+        "url": "https://godbolt.org/"
+      },
+      {
+        "label": "https://llvm.org/docs/NVPTXUsage.html",
+        "url": "https://llvm.org/docs/NVPTXUsage.html"
+      },
+      {
+        "label": "https://llvm.org/docs/AMDGPUUsage.html",
+        "url": "https://llvm.org/docs/AMDGPUUsage.html"
+      },
+      {
+        "label": "https://mlir.llvm.org/",
+        "url": "https://mlir.llvm.org/"
+      },
+      {
+        "label": "https://openmp.llvm.org/",
+        "url": "https://openmp.llvm.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "299lpkmuqh": {
+    "proposalId": "299lpkmuqh",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/299lpkmuqh",
+    "description": "PythonBPF is a project that enables developers to write eBPF programs in pure Python, essentially allowing you to write code that runs inside your kernel in Python.\n\nWe allow a reduced Python grammar to be used for the eBPF-specific parts of code. This allows users to:\n\nFeel free to go through the project's README to get an overview of how this is done.\n\nOur goal with this session is to explain how some parts of PythonBPF work, as well as gain insight into what new features that people who might use PythonBPF need.\n\nWe’ll briefly discuss what PythonBPF is (for the uninitiated), how it overcomes the shortcomings of other ways of writing eBPF code, and what’s new in PythonBPF since it was last demoed at FOSDEM - loops, custom functions, a better type deduction system and support for more helpers",
+    "keyTakeaways": [
+      "An overview of eBPF",
+      "Why PythonBPF is needed.",
+      "New features we recently added to PythonBPF and why you might want to try it out",
+      "A request for community help in development"
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=eFVhLnWFxtE",
+        "url": "https://www.youtube.com/watch?v=eFVhLnWFxtE"
+      },
+      {
+        "label": "https://mirrors.dotsrc.org/fosdem/2026/h1308/T9D8ZR-pythonbpf.av1.webm",
+        "url": "https://mirrors.dotsrc.org/fosdem/2026/h1308/T9D8ZR-pythonbpf.av1.webm"
+      },
+      {
+        "label": "https://github.com/pythonbpf/Python-BPF",
+        "url": "https://github.com/pythonbpf/Python-BPF"
+      }
+    ],
+    "links": [
+      {
+        "label": "README",
+        "url": "https://github.com/pythonbpf/Python-BPF/blob/master/README.md"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8cbv4mpi6o": {
+    "proposalId": "8cbv4mpi6o",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8cbv4mpi6o",
+    "description": "My time at IBM, MathWorks, and AWS prior to my PhD taught me that software engineering principles are adaptable guidelines, not rigid laws. MathWorks demanded an exceptionally high bar for rigorous testing because its software simulates safety-critical systems. Conversely, AWS prioritized a first-mover advantage, driving rapid delivery. Ultimately, an organization’s testing bandwidth depends on whether the business goal is immaculate quality or speed-to- market. Navigating these philosophies means as an engineer you need to align yourself with a company’s operational reality and adapting to the business demand.\n\nIs formal verification overrated? No. However, it is economically unfeasible if treated as an all-or-nothing pursuit of total correctness. This talk argues for a pragmatic middle ground: proving what we can, where it matters most. Moving up the assurance ladder shouldn’t require verifying an entire software stack. In a typical production setup, like a Django web server talking to a database, verifying the Python-to-JSON translation or the FFI is largely intractable. Instead, the buck stops at the interface. I show how to use formal methods to ensure core application contracts strictly abide by the expected specification, bypassing the messy infrastructure. We aren’t proving the universe; we just want to verify the critical layers in between.",
+    "keyTakeaways": [
+      "The audience will walk away with a clear design mindset. This pivots the software engineering discussion away from endless code generation and toward the economics of formal properties. Instead of chasing the expensive illusion of total correctness, attendees will learn to target resources effectively at critical interface layers. Ultimately, this approach forces us to evaluate a vital question: does our target theorem represent a strong, structural property, or just a weak, superficial one?"
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/live/EpvvD14E8GA",
+        "url": "https://www.youtube.com/live/EpvvD14E8GA"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "3akfugngg7": {
+    "proposalId": "3akfugngg7",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3akfugngg7",
+    "description": "GPU programming is usually synonymous with CUDA and with that comes vendor lock in, a steep learning curve, and code that only runs on NVIDIA hardware. In this talk, I'll share my experience as one of the maintainers of JuliaGPU, working on AcceleratedKernels.jl and GPUArrays.jl as part of Google Summer of Code, and show how Julia lets you write a single GPU kernel that runs unchanged on NVIDIA, AMD, Intel, and Apple GPUs.\n\nWe'll start from the ground up: what a GPU kernel actually is, why \"write once, run on any GPU\" matters for researchers and developers who don't want to be tied to one hardware vendor, and how KernelAbstractions.jl makes this possible through Julia's compiler infrastructure (GPUCompiler.jl, LLVM based codegen for multiple backends).\n\nI'll walk through code snippets, a simple kernel, running it across backends, and then go deeper into how higher level operations are implemented across the JuliaGPU stack, the performance challenges involved (closing the gap with hand tuned libraries like PyTorch's kernels).Target Audience:\n\nDevelopers curious about GPU programming.\n\nJulia users wanting to use their GPUs without learning CUDA/HIP/etc.\n\nResearchers in scientific computing, ML, or data science.\n\nOpen source contributors interested in compiler/runtime internals.\n\nAnyone curious how a single high level language can target wildly different hardware.\n\nFOSS Alignment:\n\nJuliaGPU is a fully open source, community maintained ecosystem. This talk shares not just the technology but the experience of contributing to and maintaining a major open source project, encouraging attendees to get involved in GPU computing without needing access to expensive proprietary toolchains or vendor specific knowledge.",
+    "keyTakeaways": [
+      "Rather than writing vendor specific kernel implementations, Julia kernel written with KernelAbstractions.jl can run on NVIDIA, AMD, Intel, and Apple GPUs without rewriting code.",
+      "Understand the layered structure of the JuliaGPU stack (GPUCompiler.jl → KernelAbstractions.jl → GPUArrays.jl/AcceleratedKernels.jl) and how each layer abstracts away vendor specific details.",
+      "Exposure to writing and running a GPU kernel, including how high level operations get compiled down to hardware specific code.",
+      "Insight into the performance engineering challenges of cross vendor GPU code where it lags hand tuned vendor libraries and what techniques (e.g. better memory access patterns, intrinsics, vectorised loads etc) help close the gap.",
+      "A look at what it's actually like to contribute to major open source GPU ecosystem, as motivation for attendees to get involved themselves."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/juliagpu/",
+        "url": "https://github.com/juliagpu/"
+      },
+      {
+        "label": "https://juliagpu.org/",
+        "url": "https://juliagpu.org/"
+      },
+      {
+        "label": "https://www.sciencedirect.com/science/article/abs/pii/S0965997818310123",
+        "url": "https://www.sciencedirect.com/science/article/abs/pii/S0965997818310123"
+      },
+      {
+        "label": "https://ieeexplore.ieee.org/abstract/document/8471188",
+        "url": "https://ieeexplore.ieee.org/abstract/document/8471188"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "0p3ti1uq2b": {
+    "proposalId": "0p3ti1uq2b",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0p3ti1uq2b",
+    "description": "Why hardware design and compiler development are more similar than they first appear.\n\nMy experience building a small HDL (Hardware Description Language) compiler in Rust.\n\nTurning source code into hardware through parsing, ASTs, semantic analysis, and intermediate representations.\n\nChallenges of thinking in hardware instead of software, including state, timing, and concurrency.\n\nDesign decisions, mistakes, and lessons learned while building the project.\n\nHow open-source projects such as LLVM, MLIR, CIRCT, Chisel, and RustHDL influenced the development process.\n\nA live demonstration showing how a simple digital circuit moves through the compiler pipeline.\n\nPractical takeaways for developers interested in compilers, systems programming, hardware tooling, and open-source development.",
+    "keyTakeaways": [
+      "Understand how compiler concepts such as parsing, ASTs, semantic analysis, and code generation can be applied to hardware tooling.",
+      "Learn the key differences between software and hardware thinking, especially around state, timing, and concurrency.",
+      "See how a simple HDL compiler can be built using familiar systems programming techniques.",
+      "Gain insight into modern open-source hardware ecosystems and the tools that power them.",
+      "Walk away with practical ideas and resources for exploring compilers, hardware design, and language development projects of your own."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/afnanksalal/frag",
+        "url": "https://github.com/afnanksalal/frag"
+      },
+      {
+        "label": "https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools",
+        "url": "https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools"
+      },
+      {
+        "label": "https://craftinginterpreters.com/",
+        "url": "https://craftinginterpreters.com/"
+      },
+      {
+        "label": "https://llvm.org/",
+        "url": "https://llvm.org/"
+      },
+      {
+        "label": "https://www.chisel-lang.org/",
+        "url": "https://www.chisel-lang.org/"
+      },
+      {
+        "label": "https://github.com/samitbasu/rust-hdl",
+        "url": "https://github.com/samitbasu/rust-hdl"
+      },
+      {
+        "label": "https://hdlbits.01xz.net/wiki/Main_Page",
+        "url": "https://hdlbits.01xz.net/wiki/Main_Page"
+      },
+      {
+        "label": "https://github.com/yupferris/kaze",
+        "url": "https://github.com/yupferris/kaze"
+      },
+      {
+        "label": "https://spade-lang.org/",
+        "url": "https://spade-lang.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "9qjtkvb2gi": {
+    "proposalId": "9qjtkvb2gi",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9qjtkvb2gi",
+    "description": "Formal verification is often viewed as a highly specialized area accessible only to seasoned developers and researchers. Yet the core idea - verifying that an implementation satisfies a particular specification - can be introduced very naturally and easily via the basic arithmetic algorithms one learns in school.In this talk I present a Lean 4 project that implements and proves the correctness of elementary pen-and-paper arithmetic algorithms, including addition, subtraction, multiplication, division, square-roots, and divisibility tests. Alongside the formal proofs, the project includes interactive visualizations that connect each step of an algorithm with the invariant or proof idea that justifies it. These visualizations allow users to follow both the execution of an algorithm and the invariants that justify its correctness.The main purpose of the talk is to make formal verification more approachable using basic algorithms everyone already knows very well. Using these algorithms as case studies, the talk demonstrates how correctness invariants arise naturally from the mathematical structure of an algorithm and how inductive reasoning can be translated into machine-checked proofs in Lean.",
+    "keyTakeaways": [
+      "An accessible introduction to formal verification through familiar arithmetic algorithms.",
+      "An understanding of how theorem-proving concepts such as induction and invariants arise naturally when reasoning about algorithm correctness",
+      "An overview of how Lean 4 can be used to specify algorithms and construct machine-checked correctness proofs.",
+      "An appreciation for how interactive visualizations can make formal verification and theorem-proving concepts more approachable."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/UnOrdinary19/Lean_formalization",
+        "url": "https://github.com/UnOrdinary19/Lean_formalization"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "96gh03hfud": {
     "proposalId": "96gh03hfud",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96gh03hfud",
@@ -1349,556 +1899,6 @@
       }
     ]
   },
-  "7pt1ibasdd": {
-    "proposalId": "7pt1ibasdd",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/7pt1ibasdd",
-    "description": "Swarm robotics is the study of how many simple robots can work together to create complex behaviour. It is one of the most fascinating areas in robotics, but actually getting started with it is surprisingly difficult. Most swarm robotics platforms are expensive, hard to buy, locked behind proprietary software, or built only for a specific lab.\n\nMinnow is being built to make swarm robotics more accessible. It is an affordable, open-source kit of small ground robots designed for researchers, students, educators, and builders who want to experiment with swarms without needing a six-figure lab budget.\n\nThe goal is not to build a robot that pretends it is ready for real-world deployment. The goal is to build a proper research and teaching tool: something people can use to study decentralized coordination, neighbour communication, collective behaviour, robot-to-robot interaction, and swarm algorithms in the real world.\n\nInspired by projects like Crazyflie, where the value is not just the hardware, but the software, documentation, ecosystem, and community around it.\n\nHere’s a brief overview of what I’ll cover:\n\nThe design of Minnow: a small ground robot built around a round PCB-as-chassis, ESP32-S3, differential drive, ToF distance sensors, and an IR neighbour-communication ring.\n\nWhy we are designing for affordability, with a target of under $35 per robot in small kits.\n\nWhy decentralized control matters, and why each robot should run its own logic instead of depending on a central computer.\n\nHow we use ESP-NOW for peer-to-peer communication and an overhead camera only for logging and ground-truth data, not for controlling the swarm.\n\nThe challenges of designing a robotics platform around India-first sourcing and small-scale manufacturing.\n\nWhy we think there is space for a truly open, buyable, decentralized ground swarm kit with good software and documentation.\n\nThe idea of treating Minnow as a scientific instrument, not a deployment robot, and how that changes the way we design the hardware and software.\n\nMy goal with this talk is to show that meaningful swarm robotics research does not need to be locked away inside expensive labs. With the right tools, documentation, and community, more people should be able to build, study, and experiment with swarms of their own.",
-    "keyTakeaways": [
-      "A practical introduction to swarm robotics and why building real-world swarm experiments is still difficult.",
-      "How Minnow is designed as a small ground robot platform for studying decentralized swarm behaviour.",
-      "Why each robot having its own onboard control matters for swarm research, instead of relying on a central computer to control everything.",
-      "How components like the ESP32-S3, differential drive, ToF sensors, IR neighbour communication, and ESP-NOW can be used to build small swarm robots.",
-      "The design trade-offs involved in building low-cost robotics hardware that is still useful for research, teaching, and experimentation.",
-      "The challenges of sourcing, manufacturing, and documenting small robotics platforms in India.",
-      "Why treating Minnow as a research and teaching instrument changes how the hardware, firmware, software, and documentation are designed."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/balub/minnow",
-        "url": "https://github.com/balub/minnow"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "32f9jjkob0": {
-    "proposalId": "32f9jjkob0",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/32f9jjkob0",
-    "description": "Your keyboard is the tool you touch more than any other computer hardware. Why is it the least programmable?\n\nEver looked at your boring old keyboard and thought what if I could make something better, faster, cheaper and completely open source?\n\n- Want to use a 10 finger key macro that'll trigger your custom buff combo in Elden Ring to one shot Radahn?\n\n- Wanted to build a split keyboard that sits under your hands like a glove instead of forcing your hands to adapt to it?\n\n- Ever wanted to launch your entire development environment with a single keypress?\n\n- Wished you could create your own keyboard instead of choosing from someone else's designs?\n\nYou can do all this without installing a third party software with ZMK or QMK firmware.\n\nIn this session I'll walk you through an open source keyboard design, a completely open hardware project using ZMK/QMK and show how the same principles can be applied to design your own custom keyboard from simple macropads to fully wireless split ergonomic mechanical keyboards or customize your existing supported mechanical keyboard.\n\nOne of the best aspects of ZMK keyboard firmware is that it's built on top of Zephyr RTOS. Underneath the layers lies a complete embedded ecosystem which powers your keyboard. Whether you're an embedded veteran or someone just getting started, building a custom keyboard is a unique opportunity to explore every layer of the stack and have fun along the way!",
-    "keyTakeaways": [
-      "Understand how modern keyboards work, from matrix scanning to USB/Bluetooth HID.",
-      "Learn the workflow for designing a custom keyboard, from schematic and PCB design to firmware development.",
-      "Understand how layers, combos, macros, and custom behaviors can improve your workflow."
-    ],
-    "references": [
-      {
-        "label": "https://zmk.dev/docs",
-        "url": "https://zmk.dev/docs"
-      },
-      {
-        "label": "https://github.com/foostan/crkbd",
-        "url": "https://github.com/foostan/crkbd"
-      },
-      {
-        "label": "https://docs.qmk.fm/",
-        "url": "https://docs.qmk.fm/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "3nr9benq94": {
-    "proposalId": "3nr9benq94",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3nr9benq94",
-    "description": "This talk is about building open source music hardware in India - and, more usefully, about the practical process knowledge required to actually do it here.\n\nIt started with a personal itch: I wanted a compact 16-knob MIDI controller to drive my Ableton Live sets. My APC40 MkII was too bulky, and a commercial Midi Fighter–style controller ran around ₹40,000 for what is, electrically, a fairly simple device. So I built my own Arduino-based version instead. Those controllers have since found a steady audience, which pushed me deeper into hardware: I now also design and build DIY Eurorack modules, including a delay module built around a Daisy Patch submodule, with a custom PCB co-designed with a collaborator in Pune.\n\nEverything I build sits on the shoulders of open hardware - Mutable Instruments designs, the Arduino MIDI ecosystem, and the wider DIY synth community. But turning those open designs into working hardware in India meant solving a long list of problems that nobody hands you a manual for: where to reliably source components, where to get PCBs and front panels manufactured, which tools to learn, how to prototype affordably, and - maybe most importantly - where to find people and advice when you're stuck.\n\nI'll walk through that process end to end. On the design side, that meant learning KiCad for schematic and PCB work, and FreeCAD and Fusion for designing the enclosures and front panels for both the controllers and the Eurorack modules. Along the way I wrote a few KiCad plugins to automate converting PCB component placements into front-panel hole layouts - the kind of small tooling gap you only discover once you're knee-deep in the work. I'll also cover sourcing and fabrication (components, PCBs, panels), prototyping, and a side quest into repairing music gear, which turned out to be one of the best ways to actually understand how this equipment works.\n\nTwo of the projects I'll reference are open and available:\n\nTarab MIDI 64 controller - https://github.com/basisvectors/tarab-midi-64\"TI - Super Simple Delay\" Eurorack module (Daisy submodule) - https://github.com/basisvectors/tape-delay-daisysm\n\nThe goal is that anyone in the room thinking \"I could build that\" leaves knowing concretely where to start, what it costs, and where the potholes are.",
-    "keyTakeaways": [
-      "A realistic picture of what it takes to design and build MIDI and Eurorack hardware in India, from first idea to a finished, usable unit.",
-      "A practical sourcing and fabrication map: where to get components, PCBs, and front panels reliably, and roughly what it costs.",
-      "The tooling reality: learning KiCad for PCB design and FreeCAD/Fusion for enclosures - including writing your own KiCad plugins to fill gaps in the workflow.",
-      "How to build on existing open hardware (Mutable Instruments, Arduino MIDI, etc.) rather than starting from scratch, and how to contribute back.",
-      "Where to find community, advice, and collaborators when you hit a wall."
-    ],
-    "references": [
-      {
-        "label": "https://tarabinstruments.qaree.bi",
-        "url": "https://tarabinstruments.qaree.bi/"
-      },
-      {
-        "label": "https://instagram.com/tarab_instruments",
-        "url": "https://instagram.com/tarab_instruments"
-      },
-      {
-        "label": "https://instagram.com/qaree.bi",
-        "url": "https://instagram.com/qaree.bi"
-      }
-    ],
-    "links": [
-      {
-        "label": "https://github.com/basisvectors/tarab-midi-64",
-        "url": "https://github.com/basisvectors/tarab-midi-64"
-      },
-      {
-        "label": "https://github.com/basisvectors/tape-delay-daisysm",
-        "url": "https://github.com/basisvectors/tape-delay-daisysm"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1cbj5bhfhf": {
-    "proposalId": "1cbj5bhfhf",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1cbj5bhfhf",
-    "description": "Most modern CNC machines and plotters are built around monolithic controller boards (like a GRBL shield or a commercial DSP). While this works initially, it creates a massive single point of failure. If one stepper driver burns out, your entire machine is down until you replace the whole board. On the software side, the workflow is equally frustrating: you need heavy CAD/CAM software to generate complex G-code, which then requires a dedicated server or sender just to get the machine moving.\n\nWe wanted to fix this, especially for classrooms, colleges, and makerspaces where budgets are tight and repairs need to happen fast.\n\nAt last year's IndiaFOSS, Mr. Balu Babu put it plainly:\n\n\"China can fill a stadium with CNC operators, We can barely fill a classroom... This isn't just about having the right tools, it's about having enough people who know how to use them effectively. And that gap affects everything from quality to innovation speed.\"\n\nThat one sentence captures the exact problem. Digital fabrication tools exist, but they are inaccessible, not just in cost, but in complexity. A machine that requires a trained technician to operate, a proprietary sender to run, and an expensive replacement board when a single driver fails is not a machine built for a classroom. It is a machine built for a well-funded production floor. We think that is the wrong design philosophy for open hardware.\n\nUrumi was built to challenge that philosophy from first principles. This talk is the story of how we did it . A low-cost, open-source flatbed 4 axis CNC machine that rethinks both the hardware and software stack to make digital manufacturing genuinely accessible.\n\nThe hardware story starts with a question: why does one broken stepper driver bring down the entire machine? Because every axis shares a single controller board. We broke that dependency by giving each axis its own cheap, dedicated node, a small PCB built around the AVR128DB32 microcontroller, connected to everything else over a shared RS-485 bus. A failed node costs less than a cup of coffee to replace, and the rest of the machine keeps running.\n\nThe software side starts with a different question: why do you need a server just to cut a file? You shouldn't. We built the entire CAM pipeline - Bezier flattening, arc-length parameterisation, tangential knife angle calculation all of that in plain vanilla JavaScript, running entirely in the browser with zero dependencies. The browser talks directly to the machine over WebSerial. No installation, no backend, no G-code.\n\nThe vision story starts with a prototype that failed. We mounted a camera on the gantry. It was heavy, expensive, and nearly impossible to calibrate. We scrapped it entirely and replaced it with a smartphone. You place a printed ArUco marker frame on the cutting bed, take one photo, and upload it. OpenCV corrects the perspective warp and lens distortion, detects your material edges automatically, and a skeletonisation pipeline converts your hand-drawn ink lines, red for score, green for crease, blue for cut, directly into a colour-coded toolpath SVG, ready to run.\n\nWe'll walk through the real engineering decisions behind each of these systems: where we failed, what the math actually looks like, and what you can take away for your own hardware and software projects.",
-    "keyTakeaways": [
-      "Modular CNC Architectures: How to design independent networked stepper nodes over RS-485 so a single axis failure never brings down the whole machine.",
-      "Client-Side CAM: How to process SVG path geometry, flatten Bezier curves with arc-length parameterisation, and calculate tangential knife angles entirely in browser JavaScript(no server required).",
-      "WebSerial for Hardware Control: How to use the WebSerial API to stream binary motion data directly from a browser to a microcontroller, including flow control and error recovery.",
-      "Perspective Rectification: How to use OpenCV and ArUco markers to correct perspective warp and lens distortion from an ordinary smartphone photo into a calibrated 1:1 physical coordinate space.",
-      "Colour-Coded Toolpath Design: How HSL-space voting on a skeletonised ink mask can classify hand-drawn marker lines by colour into distinct cutting operations (thru-cut, score, crease) automatically.",
-      "Open Hardware for Access: Practical lessons from building a fabrication tool specifically for low-budget environments, where repairability, zero-dependency software, and cheap off-the-shelf components matter as much as performance."
-    ],
-    "references": [
-      {
-        "label": "https://projects.fablabkerala.in/mtm_projects/urumi/",
-        "url": "https://projects.fablabkerala.in/mtm_projects/urumi/"
-      },
-      {
-        "label": "https://gitlab.cba.mit.edu/quentinbolsee/aruco-frame",
-        "url": "https://gitlab.cba.mit.edu/quentinbolsee/aruco-frame"
-      },
-      {
-        "label": "https://git.fablabkerala.in/pub/mtm-projects/zundlet",
-        "url": "https://git.fablabkerala.in/pub/mtm-projects/zundlet"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "9e9bajmm07": {
-    "proposalId": "9e9bajmm07",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9e9bajmm07",
-    "description": "The Tamarind Valley Collective is a unique experiment. 50 families came together pre-pandemic to restore 75 acres of hillside into a food forest and sustainable farm, in small parcels of land privately owned but collectively managed. Our residential village is in one corner so there’s a minimal footprint on the land. It struck us that having 50 internet connections for secondary homes made no sense, so why don’t we have community WiFi? And why not extend it across the entire farm so every corner is connected for telemetry? So we did it.\n\nMapped on OpenStreetMap, down to every single tree. Because you have to know what tree your fiber is hanging from, and where the delicious fruits are.\n\nA fiber optic backbone rolled out with maximum jugaad. When the lineman doesn’t come to the field, you take the field to the lineman.\n\nA WiFi, BLE and LoRa mesh, for connectivity everywhere and beyond. Remote is when devices outnumber humans.\n\nRecycled equipment as far as possible. They don’t get security updates and I have to enable outdated SSH ciphers to connect, but the main kind of bugs here have DNA, not source code.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://tvc.farm",
-        "url": "https://tvc.farm/"
-      },
-      {
-        "label": "https://www.openstreetmap.org/#map=16/12.35028/77.64544",
-        "url": "https://www.openstreetmap.org/#map=16/12.35028/77.64544"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "4pm3u3odmn": {
-    "proposalId": "4pm3u3odmn",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4pm3u3odmn",
-    "description": "HackerFab IITB is India’s first open-source, student-run, low-cost semiconductor fabrication lab (fab). We build open-source educational tools (like litho, sputter) to make chips. We extend a global open-source HackerFab community that hacks and tinkers with fabs - HackerFab!\n\nSemiconductors are the cornerstone of modern civilization, quietly powering the entire world, yet, in India, college students seldom get any hands-on exposure to actually building semiconductor chips. HackerFab seeks to fill this gap by building low-cost and open-source fab templates, which can be replicated by students across India. Our component and machining pipelines are tailored for Indian procurement.\n\nThe power of open-source has let us cross the moat of the heavily monopolized fab companies like ASML and TSMC. Our active community on Discord suggests tens of improvements daily, and expertise pours in from people across the globe. This tribal knowledge which we crowdsource was not written down previously, and was gatekept by the industry.\n\nOur CAD designs, lithography scripts, control algorithms, and tool GUIs are all open-source on our Github: https://github.com/hackerfabiitb\n\nOur immediate objectives are:\n\nStudent Accessibility: Make semiconductor fabrication accessible, affordable, and aspirational for students across colleges in India.\n\nWorkforce Development: Start a direct pipeline of industry ready talent by providing real, hands on fabrication experience\n\nCost Reduction: Lower the cost of fabrication setups from crores to lakhs, indigenizing them for teaching and prototyping rather than for mass production\n\nReplicable Template: Serve as a template that inspires and supports other Indian institutes in creating their own HackerFabs and setting up fabrication facilities all over India.\n\nIn our session, we will\n\npresent our story from a bunch of students building out of their hostel room, to developing a complete in-house process to make working MOSCAP devices.\n\ndiscuss how the open-source philosophy enabled our success.\n\ndemo our photolithography tool which can project micron-scale features in real-time.\n\nhave a open conversation with the participant on how we can leverage the community further.\n\nRead more at https://hackerfabiitb.github.io/Contact us at hackerfabiitb@gmail.com- by Jai Bellare, HackerFab IITB\n\nPS: The video linked as a Session Reference is an interview and tour of our lab. We previously presented at two conferences (sadly we don’t have recordings of those):\n\nInvited to present to industry, academic and government dignitaries at the IITB SemiX Annual Summit 2025\n\nWon the User Design Track at the International Conference on VLSI Design 2026.",
-    "keyTakeaways": [
-      "Open hardware can take India to the State-of-the-Art in certain unexplored areas in the short-term, and make us global technology leaders in the long-term.",
-      "Open hardware empowers students to build no matter their financial situation or geographical location."
-    ],
-    "references": [
-      {
-        "label": "https://youtu.be/UWHMm4Qjpmo",
-        "url": "https://youtu.be/UWHMm4Qjpmo"
-      }
-    ],
-    "links": [
-      {
-        "label": "https://github.com/hackerfabiitb",
-        "url": "https://github.com/hackerfabiitb"
-      },
-      {
-        "label": "https://hackerfabiitb.github.io/",
-        "url": "https://hackerfabiitb.github.io/"
-      },
-      {
-        "label": "hackerfabiitb@gmail.com",
-        "url": "mailto:hackerfabiitb@gmail.com"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "381kk089so": {
-    "proposalId": "381kk089so",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/381kk089so",
-    "description": "When a program runs out of memory, the operating system does not crash, it uses a page replacement policy to swap pages in and out, keeping the most useful ones active.\n\nLLMs processing long texts face a similar memory bottleneck. They store a \"KV cache\" (memory buffer) that grows linearly with sequence length. At 32,000 tokens, this cache requires ~11.6 GB of VRAM. If you try to run this on a standard 8 GB GPU, the process runs out of memory and crashes.\n\nPopular open-source solutions like H2O and SnapKV try to evict less important tokens using attention weights. However, calculating these weights across long contexts creates an even larger memory bottleneck, causing OOM crashes anyway.\n\nI built EntropyKV to solve this using systems design principles rather than complex ML overhead. EntropyKV operates like an OS page replacement policy for model memory:\n\nResult: EntropyKV cuts cache memory by 43% (11.6 GB → 6.6 GB) and speeds up generation by 32×, allowing long-context models to run on standard 8 GB consumer GPUs where competing methods crash.\n\nCrucially, when cache space is cut by 50%, the model doesn't output garbage. It exhibits what we call \"semantic quantization\" : it perfectly preserves the structure and meaning of the retrieved context while only losing fine numeric details (e.g., retrieving \"2023\" instead of \"2026\").",
-    "keyTakeaways": [
-      "Understand why traditional attention-based KV cache eviction methods fail (OOM) at long contexts on consumer GPUs.",
-      "Learn how to implement a lightweight, attention-free eviction policy using only key and value vector norms.",
-      "Explore how layer-adaptive allocation (LARA) acts as a tiered caching strategy across different layers of a model.",
-      "Witness the \"semantic quantization\" effect, showing how neural networks gracefully degrade like JPEGs under lossy memory compression."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/GiGiKoneti/EntropyKV-VW-Norm-LARA-KV-Cache-Compression",
-        "url": "https://github.com/GiGiKoneti/EntropyKV-VW-Norm-LARA-KV-Cache-Compression"
-      },
-      {
-        "label": "https://arxiv.org/abs/2306.14048",
-        "url": "https://arxiv.org/abs/2306.14048"
-      },
-      {
-        "label": "https://arxiv.org/abs/2309.17453",
-        "url": "https://arxiv.org/abs/2309.17453"
-      },
-      {
-        "label": "https://arxiv.org/abs/2205.14135",
-        "url": "https://arxiv.org/abs/2205.14135"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "3ni2uq8bkg": {
-    "proposalId": "3ni2uq8bkg",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3ni2uq8bkg",
-    "description": "General-purpose databases handle the overwhelming majority of workloads. Pick a flavor — relational, NoSQL, column-store, in-memory — tune its config, and it'll fit an enormous range of problems.\n\nBut in some fields, we need to go down to the fundamentals and build a custom database from the ground up. In bioinformatics, the need is often to store petabytes of data and/or have a database that can efficiently do string operations on structures like suffix trees or the Burrows–Wheeler Transform (FM-index). Blockchains are another such field. They work under different constraints — unique access patterns, authenticated state for a trustless environment, distribution requirements and different artifacts to store.\n\nThe Ethereum Foundation coordinates with a cohort of client teams that drive protocol research and development. Pretty much every client has come up with custom storage solutions. Erigon is one of these client teams; it specializes in archive nodes — the biggest node type by storage size, relied on by node/RPC providers (Infura, Alchemy, QuickNode) and by indexers and analytics platforms (The Graph, Dune, Etherscan).\n\nIn this session, I will talk about ErigonDB, the custom database devised by Erigon. It's a multi-tiered database with an mmap'd B-tree (MDBX) at L0 and custom snapshots at the lower levels. It provides transactional semantics, and the immutable snapshots are distributed via torrent to other nodes. We'll explore the data model, succinct data structures, custom file formats and algorithms that power ErigonDB — and of course the constraints and motivations that drove those decisions.",
-    "keyTakeaways": [
-      "access patterns in blockchains in general and ethereum in particular",
-      "kinds of data that need to be stored in an ethereum node and the distribution requirements",
-      "the architecture of the custom database; composing ACID properties",
-      "different algorithms and data structures used in database - recsplit, elias-fano, existence filters, good old btree and so on."
-    ],
-    "references": [
-      {
-        "label": "https://ethereum.github.io/yellowpaper/paper.pdf",
-        "url": "https://ethereum.github.io/yellowpaper/paper.pdf"
-      },
-      {
-        "label": "https://blog.ethereum.org/en/2025/12/16/future-of-state",
-        "url": "https://blog.ethereum.org/en/2025/12/16/future-of-state"
-      },
-      {
-        "label": "https://erigon.tech/blog/how-i-reduced-a-polygon-archive-node-size-by-900gb/",
-        "url": "https://erigon.tech/blog/how-i-reduced-a-polygon-archive-node-size-by-900gb/"
-      },
-      {
-        "label": "https://libmdbx.dqdkfa.ru/",
-        "url": "https://libmdbx.dqdkfa.ru/"
-      },
-      {
-        "label": "https://docs.erigon.tech/fundamentals/optimizing-storage",
-        "url": "https://docs.erigon.tech/fundamentals/optimizing-storage"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "d8b9uvdntg": {
-    "proposalId": "d8b9uvdntg",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d8b9uvdntg",
-    "description": "Strong static guarantees of runtime behaviour, and fighting the compiler until it and you come to a shared mutual understanding. If these two things usually go hand in hand for you, then this talk is for you!\n\nThis talk is at its core, a compendium of the techniques that functional programmers employ to keep programming pleasant without losing any of the safety and robustness. It’s not really about advanced type systems (we will never mention dependent types, promise), but it is about bending the type system to your will, and that, predictably, requires gaining some understanding of a few slightly advanced type systems topics. While we will provide a brief overview of everything, familiarity with Haskell, PureScript, OCaml, Rust, Lean, or some other statically typed programming language is recommended.\n\nSome things we will look at and how to apply them to real world code -- Establishing invariants, convincing the compiler to relax the inbuilt checks because you took care of them already- Producing, consuming, and traversing dynamic values of unknown structure, sealing structures so the compiler knows safety is preserved- Building extensible data structures and extensible algorithms. Performing type safe dynamic dispatch and dependency injection",
-    "keyTakeaways": [
-      "Flexibility and type safety are not a trade-off. You will learn how to get both in modern functional languages.",
-      "Advanced types are a tool to improve your development experience, not to engage in type astronomy. You will learn how advanced types make it easier to read and write code.",
-      "Learn how to guide the compiler effectively so that it shifts your relationship with the compiler from a battle into a cooperative partnership."
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/@StrongStaticType",
-        "url": "https://www.youtube.com/@StrongStaticType"
-      },
-      {
-        "label": "https://github.com/ajnsit/",
-        "url": "https://github.com/ajnsit/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "09lln6s8nq": {
-    "proposalId": "09lln6s8nq",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/09lln6s8nq",
-    "description": "You've probably used erasure coding without calling it that. RAID, CDs that still play with scratches on them, most distributed storage systems. The idea is you add redundancy up front so you can lose some of the data and still rebuild it. Reed-Solomon is the usual workhorse, and the property you care about is that any ~50% of the encoded pieces is enough to get everything back.\n\nThe catch is that all of those systems assume the storage isn't out to get you. A disk can die, but it won't deliberately hand you corrupted bytes, and it won't sit on the exact pieces you need while pretending everything's fine. Once the thing storing your data is an untrusted peer who might be malicious, that assumption is gone, and plain erasure coding isn't enough anymore.\n\nThis talk is about what you have to add to make it work anyway. I'll use PeerDAS as the example because it shipped on a live Ethereum network in December 2025, and several independent open-source clients had to implement the same protocol and actually interoperate.\n\nI'll cover why a malicious peer is harder than a failing disk, specifically the two separate problems: it can serve you wrong data, or it can withhold the pieces you're missing. Those need different solutions. For the first, KZG commitments let you check that a single chunk is the real thing without downloading the whole dataset. For the second, you sample a handful of random chunks, and because of the erasure coding, that's enough to be confident the whole thing is really available. Then there's the networking layer: deciding who stores which pieces, passing samples around between peers, and letting the network reconstruct data that's gone missing.\n\nThis talk would be nothing about blockchain. Just a genuinely hard distributed systems problem and how people solved it.",
-    "keyTakeaways": [
-      "what erasure coding gives you and why that 50% reconstruction number is the thing that makes the whole approach possible",
-      "why storage that fails is a different problem from storage that lies, and why one set of tricks doesn't cover both",
-      "how you check a small chunk is correct without pulling down the dataset it came from",
-      "the basic idea of data availability sampling: look at a few random pieces, conclude something about all of them",
-      "how the network actually spreads the data out, shares samples, and repairs itself, and a couple of the practical tradeoffs that came with shipping it"
-    ],
-    "references": [
-      {
-        "label": "https://eips.ethereum.org/EIPS/eip-7594",
-        "url": "https://eips.ethereum.org/EIPS/eip-7594"
-      },
-      {
-        "label": "https://ethereum.org/roadmap/fusaka/peerdas/",
-        "url": "https://ethereum.org/roadmap/fusaka/peerdas/"
-      },
-      {
-        "label": "https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/das-core.md",
-        "url": "https://github.com/ethereum/consensus-specs/blob/master/specs/fulu/das-core.md"
-      },
-      {
-        "label": "https://blog.ethereum.org/2025/11/06/fusaka-mainnet-announcement",
-        "url": "https://blog.ethereum.org/2025/11/06/fusaka-mainnet-announcement"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "6aasju7noq": {
-    "proposalId": "6aasju7noq",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6aasju7noq",
-    "description": "Software and hardware are continuously evolving. New innovations & improvements help bring us better performance gains and sometimes things work out like magic. This is also true for programming languages like Java and OCaml. And yet, while developing our research ideas and trying to argue about performance, its hard to comprehend what we’re seeing: Is my benchmark now faster because of what we did, or was it another previous unrelated change showing up now? Is it better caching or was it the garbage collector being triggered? How can we be sure. There is, thus, a need to get reliable feedback while building up our systems and often benchmark suites can be key in guiding us.In this talk, we’ll try to visualize how benchmarking can be hard, what to look out for and with helpful scenarios all along the way. We will briefly look into how this may show up in real life in the context of improving OCaml: an industrial strength functional programming language. Finally, we describe some of the ideas, old & new, we’re thinking about to help us grow, quantify, and maintain(!) a new benchmark suite to aid us in bringing more cutting edge research to our users without sacrificing on legacy code nor slowing down production workloads.",
-    "keyTakeaways": [
-      "Why do we care about benchmarks while developing and why these can be hard",
-      "Ways to build reliable feedback from benchmarks and maintaining them as systems grow",
-      "A quick intro to OCaml that hopefully piques your interest to learn about it more :)"
-    ],
-    "references": [
-      {
-        "label": "https://drive.google.com/file/d/1ybdBYRyyArXw9-euwXhEaEYbDQQnqNxv/view",
-        "url": "https://drive.google.com/file/d/1ybdBYRyyArXw9-euwXhEaEYbDQQnqNxv/view"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "33ogils4n5": {
-    "proposalId": "33ogils4n5",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/33ogils4n5",
-    "description": "Most people working with LLVM know the pipeline: source → IR → analysis passes → optimization passes → codegen to machine code. What's less obvious is that when learning about this pipeline, they silently assume the target is a CPU, but LLVM lowers and optimizes for GPUs too.\n\nIn this talk I'll take a function, compile it for x86-64 and NVPTX, and walk through exactly where the pipelines diverge and why. We'll see what the middle-end shares between the two targets and where things change fundamentally. I will also cover the instruction selection differences between the two-level ISA on NVIDIA (PTX → SASS) vs direct ISA emission on AMD.\n\nThe talk closes with a look at LLVM's growing role in GPU development with projects like cuTile and CUDA-OXIDE both targeting LLVM IR and why that makes LLVM contribution directly relevant to the future of open GPU tooling.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://llvm.org/",
-        "url": "https://llvm.org/"
-      },
-      {
-        "label": "https://godbolt.org/",
-        "url": "https://godbolt.org/"
-      },
-      {
-        "label": "https://llvm.org/docs/NVPTXUsage.html",
-        "url": "https://llvm.org/docs/NVPTXUsage.html"
-      },
-      {
-        "label": "https://llvm.org/docs/AMDGPUUsage.html",
-        "url": "https://llvm.org/docs/AMDGPUUsage.html"
-      },
-      {
-        "label": "https://mlir.llvm.org/",
-        "url": "https://mlir.llvm.org/"
-      },
-      {
-        "label": "https://openmp.llvm.org/",
-        "url": "https://openmp.llvm.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "299lpkmuqh": {
-    "proposalId": "299lpkmuqh",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/299lpkmuqh",
-    "description": "PythonBPF is a project that enables developers to write eBPF programs in pure Python, essentially allowing you to write code that runs inside your kernel in Python.\n\nWe allow a reduced Python grammar to be used for the eBPF-specific parts of code. This allows users to:\n\nFeel free to go through the project's README to get an overview of how this is done.\n\nOur goal with this session is to explain how some parts of PythonBPF work, as well as gain insight into what new features that people who might use PythonBPF need.\n\nWe’ll briefly discuss what PythonBPF is (for the uninitiated), how it overcomes the shortcomings of other ways of writing eBPF code, and what’s new in PythonBPF since it was last demoed at FOSDEM - loops, custom functions, a better type deduction system and support for more helpers",
-    "keyTakeaways": [
-      "An overview of eBPF",
-      "Why PythonBPF is needed.",
-      "New features we recently added to PythonBPF and why you might want to try it out",
-      "A request for community help in development"
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=eFVhLnWFxtE",
-        "url": "https://www.youtube.com/watch?v=eFVhLnWFxtE"
-      },
-      {
-        "label": "https://mirrors.dotsrc.org/fosdem/2026/h1308/T9D8ZR-pythonbpf.av1.webm",
-        "url": "https://mirrors.dotsrc.org/fosdem/2026/h1308/T9D8ZR-pythonbpf.av1.webm"
-      },
-      {
-        "label": "https://github.com/pythonbpf/Python-BPF",
-        "url": "https://github.com/pythonbpf/Python-BPF"
-      }
-    ],
-    "links": [
-      {
-        "label": "README",
-        "url": "https://github.com/pythonbpf/Python-BPF/blob/master/README.md"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8cbv4mpi6o": {
-    "proposalId": "8cbv4mpi6o",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8cbv4mpi6o",
-    "description": "My time at IBM, MathWorks, and AWS prior to my PhD taught me that software engineering principles are adaptable guidelines, not rigid laws. MathWorks demanded an exceptionally high bar for rigorous testing because its software simulates safety-critical systems. Conversely, AWS prioritized a first-mover advantage, driving rapid delivery. Ultimately, an organization’s testing bandwidth depends on whether the business goal is immaculate quality or speed-to- market. Navigating these philosophies means as an engineer you need to align yourself with a company’s operational reality and adapting to the business demand.\n\nIs formal verification overrated? No. However, it is economically unfeasible if treated as an all-or-nothing pursuit of total correctness. This talk argues for a pragmatic middle ground: proving what we can, where it matters most. Moving up the assurance ladder shouldn’t require verifying an entire software stack. In a typical production setup, like a Django web server talking to a database, verifying the Python-to-JSON translation or the FFI is largely intractable. Instead, the buck stops at the interface. I show how to use formal methods to ensure core application contracts strictly abide by the expected specification, bypassing the messy infrastructure. We aren’t proving the universe; we just want to verify the critical layers in between.",
-    "keyTakeaways": [
-      "The audience will walk away with a clear design mindset. This pivots the software engineering discussion away from endless code generation and toward the economics of formal properties. Instead of chasing the expensive illusion of total correctness, attendees will learn to target resources effectively at critical interface layers. Ultimately, this approach forces us to evaluate a vital question: does our target theorem represent a strong, structural property, or just a weak, superficial one?"
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/live/EpvvD14E8GA",
-        "url": "https://www.youtube.com/live/EpvvD14E8GA"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "3akfugngg7": {
-    "proposalId": "3akfugngg7",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3akfugngg7",
-    "description": "GPU programming is usually synonymous with CUDA and with that comes vendor lock in, a steep learning curve, and code that only runs on NVIDIA hardware. In this talk, I'll share my experience as one of the maintainers of JuliaGPU, working on AcceleratedKernels.jl and GPUArrays.jl as part of Google Summer of Code, and show how Julia lets you write a single GPU kernel that runs unchanged on NVIDIA, AMD, Intel, and Apple GPUs.\n\nWe'll start from the ground up: what a GPU kernel actually is, why \"write once, run on any GPU\" matters for researchers and developers who don't want to be tied to one hardware vendor, and how KernelAbstractions.jl makes this possible through Julia's compiler infrastructure (GPUCompiler.jl, LLVM based codegen for multiple backends).\n\nI'll walk through code snippets, a simple kernel, running it across backends, and then go deeper into how higher level operations are implemented across the JuliaGPU stack, the performance challenges involved (closing the gap with hand tuned libraries like PyTorch's kernels).Target Audience:\n\nDevelopers curious about GPU programming.\n\nJulia users wanting to use their GPUs without learning CUDA/HIP/etc.\n\nResearchers in scientific computing, ML, or data science.\n\nOpen source contributors interested in compiler/runtime internals.\n\nAnyone curious how a single high level language can target wildly different hardware.\n\nFOSS Alignment:\n\nJuliaGPU is a fully open source, community maintained ecosystem. This talk shares not just the technology but the experience of contributing to and maintaining a major open source project, encouraging attendees to get involved in GPU computing without needing access to expensive proprietary toolchains or vendor specific knowledge.",
-    "keyTakeaways": [
-      "Rather than writing vendor specific kernel implementations, Julia kernel written with KernelAbstractions.jl can run on NVIDIA, AMD, Intel, and Apple GPUs without rewriting code.",
-      "Understand the layered structure of the JuliaGPU stack (GPUCompiler.jl → KernelAbstractions.jl → GPUArrays.jl/AcceleratedKernels.jl) and how each layer abstracts away vendor specific details.",
-      "Exposure to writing and running a GPU kernel, including how high level operations get compiled down to hardware specific code.",
-      "Insight into the performance engineering challenges of cross vendor GPU code where it lags hand tuned vendor libraries and what techniques (e.g. better memory access patterns, intrinsics, vectorised loads etc) help close the gap.",
-      "A look at what it's actually like to contribute to major open source GPU ecosystem, as motivation for attendees to get involved themselves."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/juliagpu/",
-        "url": "https://github.com/juliagpu/"
-      },
-      {
-        "label": "https://juliagpu.org/",
-        "url": "https://juliagpu.org/"
-      },
-      {
-        "label": "https://www.sciencedirect.com/science/article/abs/pii/S0965997818310123",
-        "url": "https://www.sciencedirect.com/science/article/abs/pii/S0965997818310123"
-      },
-      {
-        "label": "https://ieeexplore.ieee.org/abstract/document/8471188",
-        "url": "https://ieeexplore.ieee.org/abstract/document/8471188"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "0p3ti1uq2b": {
-    "proposalId": "0p3ti1uq2b",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0p3ti1uq2b",
-    "description": "Why hardware design and compiler development are more similar than they first appear.\n\nMy experience building a small HDL (Hardware Description Language) compiler in Rust.\n\nTurning source code into hardware through parsing, ASTs, semantic analysis, and intermediate representations.\n\nChallenges of thinking in hardware instead of software, including state, timing, and concurrency.\n\nDesign decisions, mistakes, and lessons learned while building the project.\n\nHow open-source projects such as LLVM, MLIR, CIRCT, Chisel, and RustHDL influenced the development process.\n\nA live demonstration showing how a simple digital circuit moves through the compiler pipeline.\n\nPractical takeaways for developers interested in compilers, systems programming, hardware tooling, and open-source development.",
-    "keyTakeaways": [
-      "Understand how compiler concepts such as parsing, ASTs, semantic analysis, and code generation can be applied to hardware tooling.",
-      "Learn the key differences between software and hardware thinking, especially around state, timing, and concurrency.",
-      "See how a simple HDL compiler can be built using familiar systems programming techniques.",
-      "Gain insight into modern open-source hardware ecosystems and the tools that power them.",
-      "Walk away with practical ideas and resources for exploring compilers, hardware design, and language development projects of your own."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/afnanksalal/frag",
-        "url": "https://github.com/afnanksalal/frag"
-      },
-      {
-        "label": "https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools",
-        "url": "https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools"
-      },
-      {
-        "label": "https://craftinginterpreters.com/",
-        "url": "https://craftinginterpreters.com/"
-      },
-      {
-        "label": "https://llvm.org/",
-        "url": "https://llvm.org/"
-      },
-      {
-        "label": "https://www.chisel-lang.org/",
-        "url": "https://www.chisel-lang.org/"
-      },
-      {
-        "label": "https://github.com/samitbasu/rust-hdl",
-        "url": "https://github.com/samitbasu/rust-hdl"
-      },
-      {
-        "label": "https://hdlbits.01xz.net/wiki/Main_Page",
-        "url": "https://hdlbits.01xz.net/wiki/Main_Page"
-      },
-      {
-        "label": "https://github.com/yupferris/kaze",
-        "url": "https://github.com/yupferris/kaze"
-      },
-      {
-        "label": "https://spade-lang.org/",
-        "url": "https://spade-lang.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "9qjtkvb2gi": {
-    "proposalId": "9qjtkvb2gi",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9qjtkvb2gi",
-    "description": "Formal verification is often viewed as a highly specialized area accessible only to seasoned developers and researchers. Yet the core idea - verifying that an implementation satisfies a particular specification - can be introduced very naturally and easily via the basic arithmetic algorithms one learns in school.In this talk I present a Lean 4 project that implements and proves the correctness of elementary pen-and-paper arithmetic algorithms, including addition, subtraction, multiplication, division, square-roots, and divisibility tests. Alongside the formal proofs, the project includes interactive visualizations that connect each step of an algorithm with the invariant or proof idea that justifies it. These visualizations allow users to follow both the execution of an algorithm and the invariants that justify its correctness.The main purpose of the talk is to make formal verification more approachable using basic algorithms everyone already knows very well. Using these algorithms as case studies, the talk demonstrates how correctness invariants arise naturally from the mathematical structure of an algorithm and how inductive reasoning can be translated into machine-checked proofs in Lean.",
-    "keyTakeaways": [
-      "An accessible introduction to formal verification through familiar arithmetic algorithms.",
-      "An understanding of how theorem-proving concepts such as induction and invariants arise naturally when reasoning about algorithm correctness",
-      "An overview of how Lean 4 can be used to specify algorithms and construct machine-checked correctness proofs.",
-      "An appreciation for how interactive visualizations can make formal verification and theorem-proving concepts more approachable."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/UnOrdinary19/Lean_formalization",
-        "url": "https://github.com/UnOrdinary19/Lean_formalization"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
   "1vj5aoro8u": {
     "proposalId": "1vj5aoro8u",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
@@ -2030,6 +2030,237 @@
       {
         "label": "https://icannwiki.org/Local_APIGA_India",
         "url": "https://icannwiki.org/Local_APIGA_India"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4llmgcq50k": {
+    "proposalId": "4llmgcq50k",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4llmgcq50k",
+    "description": "I’d like to present the Telangana State MeeSeva Oracle-to-PostgreSQL migration as a factual, replicable case study to an audience spanning government IT leadership, enterprise database teams, and the global open-source community. The talk would accomplish three things:\n\nFor the open-source community: Contribute a significant government migration case study to the PostgreSQL and Ora2Pg ecosystem, reinforcing the viability of open-source databases at national scale.\n\nFor database professionals: Provide a technically honest account of the migration process, the role of Ora2Pg, what required manual effort, and what they should plan for in their own migrations.\n\nFor government CIOs and IT directors: Demonstrate that PostgreSQL is production-ready for large-scale, mission-critical citizen services, with real numbers, real challenges, and real cost savings.\n\nI’ll keep it factual, technical and honest. A practitioner’s account of what happened, what went wrong, what went right, and what others can learn from it.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx",
+        "url": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx"
+      },
+      {
+        "label": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl",
+        "url": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8dso3avp9l": {
+    "proposalId": "8dso3avp9l",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8dso3avp9l",
+    "description": "Every online tutorial and blog on “how to contribute to OSS” or “how to make your first PR” teaches the mechanics and commands, but almost none teach the etiquette: when it's okay to ping a maintainer, how to take a rejected proposal gracefully, why a half-finished AI-generated PR adds to stress and overload for the maintainers. Now that open source sits on the student resume(s) right next to internships and projects, this missing gap of education has real consequences: maintainers across GSoC, LFX and Hacktoberfest have publicly described waves of low-effort and spam contributions, with many OSS projects shutting down for new contributions.\n\nThis talk is about the cultural layer underneath a pipeline: the norms that decide whether a student community produces thoughtful contributors or AI spammers. A pipeline tells you how to get more students contributing; it says nothing about whether those contributions are any good for the projects on the receiving end.\n\nAt Point Blank, an OSS community we have been running for the last 7 years, we've spent the last few years turning that culture into something teachable, and we’ll walk through what actually worked:\n\nA peer proposal-review gate : our \"war rooms\" so that of the ~40 GSoC proposals our members write in a season, none reach a maintainer as unreviewed slop. Every draft is torn apart by people who've been selected before it goes anywhere near an org.\n\nA \"contribute before you apply\" norm, anchored by a Hacktoberfest kickoff and weekly sync-ups, so contribution is a sustained relationship with a project rather than a March résumé sprint.\n\nAn explicit etiquette curriculum covering what contributing.md leaves out: how to ask for help in public without spamming, how to treat a maintainer's time as the scarcest resource in the project, and how to behave when your contributions are rejected.\n\nA mentor-handoff model: every contributor who gets selected comes back to coach the next batch, so etiquette is transmitted by example, not preached from a slide.\n\nWe will be honest about what didn't work, and about the awkward cases, including what we do with the member who openly just wants the T-shirt. We will close with a short, concrete checklist that maintainers and student-club organizers can adopt to keep their contribution spaces both welcoming to newcomers and resistant to spam.",
+    "keyTakeaways": [
+      "A repeatable way to teach contribution etiquette, not just mechanics and why that distinction matters more in a hyper-competitive student culture.",
+      "A concrete proposal-review process that cuts low-effort and spam submissions at the source, including the trade-offs of running it at scale.",
+      "How to coach contributors through rejection so they stay civil and keep contributing.",
+      "A short checklist maintainers can use to set norms that invite newcomers without inviting spam."
+    ],
+    "references": [
+      {
+        "label": "https://www.pointblank.club/oss",
+        "url": "https://www.pointblank.club/oss"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "f4ko2mik8q": {
+    "proposalId": "f4ko2mik8q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4ko2mik8q",
+    "description": "DNA is the molecular blueprint of life. Modern sequencing technologies allow us to read DNA and RNA at unprecedented scale, generating vast amounts of biological data from organisms, tissues, and individual cells. Today, public repositories host millions of sequencing experiments comprising petabytes of data that power discoveries in medicine, drug development, agriculture, and fundamental biology.\n\nYet finding the right dataset is often harder than analysing it. Researchers must navigate fragmented repositories, heterogeneous metadata standards, and incomplete descriptions, making dataset discovery a time-consuming and frustrating process. With Seqout (https://seqout.org), we set out to build a genomics search engine that is fast, comprehensive, and lean enough to run on modest hardware while serving hundreds of thousands of researchers worldwide. Seqout is built entirely on open-source software: PostgreSQL and Neo4j power keyword and graph-based search, while embedding-based retrieval is enabled by open-source models and libraries from Hugging Face.\n\nIn this talk, we will discuss the engineering challenges involved in building a low-latency search engine over millions of biological datasets with limited resources (aka compute and GPUs). We will cover data ingestion, metadata normalisation, indexing strategies, typo tolerance, semantic search, and the trade-offs involved in integrating relational and graph databases with vector search.\n\nAlong the way, we'll share lessons learned from operating search infrastructure at scale and discuss how open-source software powers every layer of the platform. We'll also discuss how Seqout's MCP server enables large language models and AI agents to move beyond answering biology questions to directly discover and interact with relevant scientific datasets.",
+    "keyTakeaways": [
+      "How to build a low-latency search engine from scratch",
+      "Combining PostgreSQL, Neo4j, and semantic search to improve dataset discovery",
+      "Lessons learned from building and operating an open-source scientific search platform"
+    ],
+    "references": [
+      {
+        "label": "https://seqout.org/",
+        "url": "https://seqout.org/"
+      },
+      {
+        "label": "https://github.com/saketlab/seqout",
+        "url": "https://github.com/saketlab/seqout"
+      },
+      {
+        "label": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing",
+        "url": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://seqout.org",
+        "url": "https://seqout.org/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "89tt0o6uio": {
+    "proposalId": "89tt0o6uio",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/89tt0o6uio",
+    "description": "New year of 2025 we launched tamilnadu.tech a tech event listing platform built by the souls of FOSS United Chennai, what started as a simple project was ultimately taken by the community and upgraded and updated with tons of improvements. Built after listening to the problems faced by the community, tamilnadu.tech was instantly a hit and in a short span grew to nearly 300+ github stars with 100+ contributors where more than half of them are first time contributors to open source.But not stopping with 1 project, in the New year of 2026 the same team of FOSS United Chennai launched another project called podu.pics a FOSS imgbb alternative because the images used in tamilnadu.tech were from imgbb and we had to build our own ;)Again the community responded positively and took the product and used it and contributed to it. with the latest product that we launched for ChennaiFOSS 2026being kuruk.am a project again from the FU Chennai team being a url shortener which is also used by IndiaFOSS for their social media marketing.",
+    "keyTakeaways": [
+      "Build community driven projects that put the community in the driver seat",
+      "How much importance it is to listen to the community for the problems and not build a made up solution to a problem that doesn’t exist",
+      "As a maintainer how to be sure and take right decisions for the project’s growth and direction."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/FOSSUChennai/Communities",
+        "url": "https://github.com/FOSSUChennai/Communities"
+      },
+      {
+        "label": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/"
+      },
+      {
+        "label": "https://kuruk.am/justin-cfp-tt",
+        "url": "https://kuruk.am/justin-cfp-tt"
+      }
+    ],
+    "links": [
+      {
+        "label": "tamilnadu.tech",
+        "url": "https://tamilnadu.tech/"
+      },
+      {
+        "label": "podu.pics",
+        "url": "https://podu.pics/"
+      },
+      {
+        "label": "kuruk.am",
+        "url": "https://kuruk.am/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "96goef7o3q": {
+    "proposalId": "96goef7o3q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
+    "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
+    "keyTakeaways": [
+      "How open source interacts with the ecosystem of non consensual intimate imagery",
+      "The human impact of non consensual intimate imagery",
+      "The distinct challenge for India, as a country that doesn’t control the AI value chain",
+      "Risk mitigation strategies for open weight models",
+      "The effect of policies on model hosting platforms"
+    ],
+    "references": [
+      {
+        "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
+        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+      },
+      {
+        "label": "https://arxiv.org/abs/2602.04759",
+        "url": "https://arxiv.org/abs/2602.04759"
+      },
+      {
+        "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
+        "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
+      }
+    ],
+    "links": [
+      {
+        "label": "recent research",
+        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5pig94v0sa": {
+    "proposalId": "5pig94v0sa",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
+    "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
+    "keyTakeaways": [
+      "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
+      "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/tattle-made/archive-annotation",
+        "url": "https://github.com/tattle-made/archive-annotation"
+      },
+      {
+        "label": "https://milli.link/",
+        "url": "https://milli.link/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "fefrvv4n7q": {
+    "proposalId": "fefrvv4n7q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
+    "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
+    "keyTakeaways": [
+      "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
+      "A design system is more than components. Give products an opinionated way to load and save data too.",
+      "Make correct usage the path of least resistance, and mistakes hard to miss.",
+      "A predictable API serves new teammates and AI agents alike."
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
+        "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
+      },
+      {
+        "label": "https://github.com/frappe/frappe-ui",
+        "url": "https://github.com/frappe/frappe-ui"
+      },
+      {
+        "label": "https://ui.frappe.io",
+        "url": "https://ui.frappe.io/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "6pb727vn12": {
+    "proposalId": "6pb727vn12",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
+    "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nTBA",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
+        "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
       }
     ],
     "links": [
@@ -2494,228 +2725,349 @@
       }
     ]
   },
-  "4llmgcq50k": {
-    "proposalId": "4llmgcq50k",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4llmgcq50k",
-    "description": "I’d like to present the Telangana State MeeSeva Oracle-to-PostgreSQL migration as a factual, replicable case study to an audience spanning government IT leadership, enterprise database teams, and the global open-source community. The talk would accomplish three things:\n\nFor the open-source community: Contribute a significant government migration case study to the PostgreSQL and Ora2Pg ecosystem, reinforcing the viability of open-source databases at national scale.\n\nFor database professionals: Provide a technically honest account of the migration process, the role of Ora2Pg, what required manual effort, and what they should plan for in their own migrations.\n\nFor government CIOs and IT directors: Demonstrate that PostgreSQL is production-ready for large-scale, mission-critical citizen services, with real numbers, real challenges, and real cost savings.\n\nI’ll keep it factual, technical and honest. A practitioner’s account of what happened, what went wrong, what went right, and what others can learn from it.",
+  "a45o8u74jv": {
+    "proposalId": "a45o8u74jv",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/a45o8u74jv",
+    "description": "Note: The idea for this project stems from this unfinished IndiaFOSS project (https://archive.fossunited.org/fosshack/2023/project?project=e-PAN%20QR%20Reader) by Nemo.India’s newer PAN cards contain an embedded QR code that is advertised to be “encrypted” and readable through only verified scanners. However, information regarding this specification is totally non-existent. Starting with the official Android PAN QR Code reader application by NSDL, I reverse engineer the obfuscated app and build a fully open-source implementation capable of parsing and verifying these QR codes.The talk is a case study in practical reverse engineering and discusses broader lessons for government-issued digital credentials: security through obscurity, undocumented formats and the importance of publicly auditable implementations.",
+    "keyTakeaways": [
+      "Tips on reversing obfuscated android applications.",
+      "Techniques for static and dynamic analysis of proprietary formats.",
+      "A real-world case study on security through obscurity in public infrastructure."
+    ],
+    "references": [
+      {
+        "label": "https://desrever.dev/posts/opanqr/",
+        "url": "https://desrever.dev/posts/opanqr/"
+      },
+      {
+        "label": "https://github.com/serv0id/OPANqr/",
+        "url": "https://github.com/serv0id/OPANqr/"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://archive.fossunited.org/fosshack/2023/project?project=e-PAN%20QR%20Reader",
+        "url": "https://archive.fossunited.org/fosshack/2023/project?project=e-PAN%20QR%20Reader"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "cmc3ntipr8": {
+    "proposalId": "cmc3ntipr8",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/cmc3ntipr8",
+    "description": "In this talk, I’ll walk through how I analyzed a security fix in Axios and found that the patch still left a bypass route open through IPv4-mapped IPv6 addresses. The original issue had already taught Axios to normalize some hostname edge cases for NO_PROXY, but the fix still relied on string comparisons after partial normalization. That left a gap where the same host could be represented differently enough to evade policy checks.\n\nI’ll show how this happens in practice, why the Node/WHATWG URL stack turns mapped addresses into canonical IPv6 forms, and how that breaks exact NO_PROXY matching in a way that is easy to miss during patch review. The session will include a small, reproducible demo using a local proxy and a safe local target, and then walk through the remediation strategy to properly close the issue.\n\nThis is a case study in patch-bypass hunting for open-source software, reviewing a fix, reasoning about representation mismatches, and turning a tiny edge case into a maintainable engineering lesson for security-sensitive code.\n\nThe GHSA I reported has been accepted and fixed in the latest Axios. GitHub has issued CVE-2026-44492.\n\nRef. link: https://github.com/advisories/GHSA-pjwm-pj3p-43mv",
+    "keyTakeaways": [
+      "How NO_PROXY, URL parsing, and host canonicalization interact in Node.js applications",
+      "Why IPv4-mapped IPv6 is a practical security problem and not just a formatting oddity",
+      "A repeatable methodology for finding patch bypasses by reviewing what a fix normalized and what it still compared as raw text",
+      "Concrete lessons maintainers can apply when enforcing network policy in OSS libraries"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/axios/axios/security/advisories/GHSA-pjwm-pj3p-43mv",
+        "url": "https://github.com/axios/axios/security/advisories/GHSA-pjwm-pj3p-43mv"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv",
+        "url": "https://github.com/advisories/GHSA-pjwm-pj3p-43mv"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "erphckugi7": {
+    "proposalId": "erphckugi7",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/erphckugi7",
+    "description": "Embedded devices can unintentionally leak secrets through their physical behaviour, allowing attackers to recover cryptographic keys without exploiting software vulnerabilities.The talk mainly focuses on the demo of how power analysis is done against an AES encryption within embedded devices using the open-source ChipWhisperer platform.The talk will be covering an introduction into side channel attacks, a key extraction demo using chipWhisperer hardware and practical ways of defence against these kinds of attacks.For the demo, power analysis will be done on an embedded device, the AES secret key will be extracted and this will be used to decrypt the encrypted data within the device.",
+    "keyTakeaways": [
+      "Learn the fundamentals of Power analysis techniques.",
+      "Explore the ChipWhisperer and related tools and how it enables practical side-channel research using open-source hardware and software.",
+      "See a live demonstration of recovering an AES key from an embedded device through power analysis."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/newaetech/chipwhisperer",
+        "url": "https://github.com/newaetech/chipwhisperer"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "9611q7a3nk": {
+    "proposalId": "9611q7a3nk",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9611q7a3nk",
+    "description": "A whirlwind tour of building userspace sandboxes on Linux using various primitives provided by the Linux kernel like namespaces, seccomp, capabilities, landlock, userspace networking. We will go through how to combine these primitives to create sandboxes which have defense in depth against various attacks. We will understand how modern rootless container engines and sandboxes make use of these primitives.\n\nCode: https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b",
+    "keyTakeaways": [
+      "Linux has powerful primitives which allow unprivileged users to run code in an isolated environment.",
+      "This talk aims to help understand the limitations and risks of each primitive and how to layer them securely.",
+      "Understanding the benefits and drawbacks of shared kernel isolation using userspace-only primitives"
+    ],
+    "references": [
+      {
+        "label": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b",
+        "url": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b"
+      },
+      {
+        "label": "https://docs.google.com/presentation/d/1-ei99tTA8ds_H8mL1c5xAlyPDIu1b3QV2eIuhOSO19s/edit?usp=sharing",
+        "url": "https://docs.google.com/presentation/d/1-ei99tTA8ds_H8mL1c5xAlyPDIu1b3QV2eIuhOSO19s/edit?usp=sharing"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b",
+        "url": "https://gist.github.com/rrampage/92f0eb6bf56d7bb403aff069cc8f1d6b"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "anvlvjqect": {
+    "proposalId": "anvlvjqect",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/anvlvjqect",
+    "description": "Malware analysis is essential for understanding the behaviour of malicious software. While tools like capa can identify capabilities in native executables, extending similar analysis to scripts such as Python, Bash, JavaScript and C# broadens its support beyond binaries.\n\nCapa is an open-source malware analysis tool that identifies the capabilities of executable files, including PE, ELF, .NET module, shellcode and sandbox reports. It extracts low-level features from the input like API calls, strings and instruction sequence, matches them against the capa-rules and reports the detected behaviours in a structured format.\n\nThis talk is about my Google Summer of Code project with FLARE organization where I am integrating a new feature in the capa tool. Currently, capa supports the analysis of the executable files and sandbox reports. My work extends capa to support analysis of scripting languages such as Python, Bash, JavaScript and C# using Tree-Sitter library. Tree-Sitter is an open source parser generator library which builds concrete syntax trees of the source file to extract language-specific features.\n\nThe talk will begin with a brief introduction of my journey into open source and Google Summer of Code. I will then explain capa's architecture and capability analysis workflow, followed by the design and implementation of the Tree-sitter integration. The session will cover the architectural decisions behind the implementation and how Tree-sitter enables capability extraction from scripting languages.\n\nThe talk will conclude with a live demonstration of capa's binary analysis along with the newly added script analysis support. By the end of the session, attendees will understand capa's architecture, its analysis workflow and the benefits of extending it with scripting language support.",
+    "keyTakeaways": [
+      "Understand how capa identifies the capabilities of malware.",
+      "Learn how Tree-sitter enables analysis of scripting languages in capa.",
+      "Explore the architecture of capa and integration of the Tree-sitter library.",
+      "See a live demonstration of binary and script analysis in capa."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/mandiant/capa",
+        "url": "https://github.com/mandiant/capa"
+      },
+      {
+        "label": "https://github.com/mandiant/capa-rules",
+        "url": "https://github.com/mandiant/capa-rules"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "edu2vnri2u": {
+    "proposalId": "edu2vnri2u",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/edu2vnri2u",
+    "description": "You purchased a Smart IP Camera and use it just as a simple consumer device. Assuming you are a security enthusiast and think like an attacker, you'll know about the hidden layered stack of hardware, bootloaders, filesystems, services, and often years-old third-party code.\n\nIn this talk, we'll walk through a real-world firmware reverse engineering workflow for smart IP cameras, starting from PCB inspection to analyze and identify all the components, and then moving into UART probing, SPI flash extraction, firmware carving, filesystem mapping, and binary analysis.\n\nThe talk begins with the physical layer: identifying the SoC (System-on-Chip), SPI NOR flash, motor driver ICs, transistors and diodes, and other support components on the PCB. We'll then explain UART as the first communication surface we try to discover, how to identify VCC, TX, RX, and GND, and how vendors intentionally disable console access to stop people like us from accessing it. From there, we'll move on to how firmware can actually be dumped using the CH341A programmer, SOIC8 clips, and flashrom, including when desoldering becomes necessary and how to avoid damaging the board during extraction.\n\nOnce the dump is obtained, we'll move on to mapping the firmware using binwalk, interpreting magic numbers and compression markers, and distinguishing between readable and encrypted partitions. We'll talk about certain case studies to explain why some devices yield standard JFFS2, SquashFS, or MiniFS filesystems that are easy to unpack, whereas proprietary platforms like Anyka often customize them and add much more friction.\n\nThe final stage is to analyze and triage ELF binaries using tools like Ghidra, IDA Pro, Radare2, etc., search for risky patterns, and reason about vulnerability exposure in embedded services. Case studies will contain examples such as exposed root MD5crypt password hashes and vulnerable C programming functions like strcpy(), strcat(), sprintf(), etc., which can lead to buffer overflows, command injections, and all the way up to RCEs (Remote Code Executions).\n\nThe talk will close with the practical challenges of reassembling the hardware: keeping the device functional after desoldering, dumping, and analysis, while preserving the board and making sure the extraction process itself doesn't become the reason for our device getting completely fried.\n\nThis session is aimed at beginner-to-intermediate-level students, researchers, hobbyists, and practitioners who want a grounded introduction to firmware reverse engineering from the hardware side up. It's not a \"magic exploit\" talk; it's a guide to understanding the security posture of embedded systems, where each layer leaves a clue about the next.",
+    "keyTakeaways": [
+      "Learn how firmware is extracted from real-world IoT devices using UART, SPI flash, and hardware debugging techniques.",
+      "Understand how a smart camera's hardware, bootloader, operating system, and applications fit together beneath the surface.",
+      "Follow a practical workflow for moving from a physical device to an extracted and analyzed firmware image.",
+      "Discover how reverse engineers identify attack surfaces hidden inside embedded devices.",
+      "Understand why proprietary firmware formats and custom filesystems often become the biggest roadblocks during research.",
+      "Learn how common insecure coding practices in embedded software can lead to serious vulnerabilities.",
+      "Gain a practical methodology for assessing the security posture of embedded systems, starting from the PCB and ending at the firmware binaries.",
+      "Walk away with a repeatable process for approaching firmware reverse engineering without relying on proprietary tools or vendor documentation."
+    ],
+    "references": [
+      {
+        "label": "https://www.crac-learning.com/post/smart-security-research-diaries-defending-the-internet-of-things",
+        "url": "https://www.crac-learning.com/post/smart-security-research-diaries-defending-the-internet-of-things"
+      },
+      {
+        "label": "https://www.crac-learning.com/post/smart-security-research-diaries-attacking-the-internet-of-things",
+        "url": "https://www.crac-learning.com/post/smart-security-research-diaries-attacking-the-internet-of-things"
+      },
+      {
+        "label": "https://www.crac-learning.com/post/smart-home-security-research-cve-2026-0918-assigned",
+        "url": "https://www.crac-learning.com/post/smart-home-security-research-cve-2026-0918-assigned"
+      },
+      {
+        "label": "https://www.crac-learning.com/post/smart-home-security-research-cve-2025-14300-assigned",
+        "url": "https://www.crac-learning.com/post/smart-home-security-research-cve-2025-14300-assigned"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "2pgiaujhvm": {
+    "proposalId": "2pgiaujhvm",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2pgiaujhvm",
+    "description": "Hi, I want to give a talk on how I hacked India's largest exam system (CBSE). i'll walk through how i found the vulnerability, the technical mistakes that made exploitation possible, the disclosure process with cert-in and relevant stakeholders, and the challenges researchers face when reporting security flaws in public institutions.\n\nthe talk will also explore larger questions: why do critical systems continue to fail basic security reviews? what incentives exist for researchers to report vulnerabilities responsibly? and how can india build a healthier relationship between security researchers and public-sector organizations?\n\nalso would like to highlight my usage of open source tools and how critical infrastructure can benefit from FOSS.\n\nA major focus of the session is demonstrating how accessible open source tooling can be used to evaluate the security of large-scale public infrastructure. Throughout the assessment I relied primarily on FOSS tools for reconnaissance, enumeration, testing and validation, highlighting how developers, students and organizations can build effective security workflows without expensive commercial software.\n\nLink: https://ni5arga.com/blog/posts/hacking-cbse\n\ni will walk the audience through various vulnerabilities like hardcoded master password in JS bundle, client-side OTP validation, missing route guards, bypassing auth with fake tokens into localStorage, password reset without old password verification, systemic IDOR across the entire API, SQL injection to RCE via xp_cmdshell, publicly listable S3 bucket, re-evaluation portal PII leak etc.\n\nA lot of famous personalities and organizations like [Deedy Das](https://x.com/deedydas/status/2059131444346425354), [Satish Acharya](https://x.com/satishacharya/status/2059224148845768781), [Internet Freedom Foundation](https://x.com/internetfreedom/status/2059267815690088454) tweeted about it & this blog has been featured in news reports by multiple media outlets:\n\n- [India Today](https://www.indiatoday.in/education-today/news/story/cbse-osm-portal-vulnerability-claims-surface-with-teens-detailed-blog-post-2917243-2026-05-26)\n\n- [BBC News](https://www.bbc.com/news/articles/cy42e8eljpno)\n\n- [NDTV](https://www.ndtv.com/education/cbse-osm-portal-had-critical-vulnerabilities-ethical-hacker-told-ndtv-he-alerted-board-months-earlier-11550090)\n\n- [Times of India](https://timesofindia.indiatimes.com/education/news/cbse-faces-fresh-scrutiny-after-teen-researcher-alleges-critical-flaws-in-osm-portal-claims-class-12-marks-could-be-altered/articleshow/131330616.cms)\n\n- [The Hindu BusinessLine](https://www.thehindubusinessline.com/news/education/government-should-take-cybersecurity-more-seriously-says-ethical-hacker-on-cbse-osm-flaws/article71024371.ece)\n\n- [ThePrint](https://theprint.in/feature/19-student-hacked-cbses-osm-portal-vulnerabilities/2942305/)\n\n- [News18](https://www.news18.com/viral/ex-google-engineer-calls-out-cbses-osm-portal-absolute-embarrassment-after-hacker-exposes-major-security-flaws-ws-l-10113830.html)\n\n- [Hindustan Times](https://www.hindustantimes.com/htcity/leisure/this-teen-hacked-into-cbse-s-osm-portal-while-preparing-for-boards-says-this-is-just-a-hobby-101779875877374.html)\n\n- [Financial Express](https://www.financialexpress.com/india-news/cbse-portal-very-easy-to-exploit-class-12-hacker-says-he-didnt-expect-amateur-vulnerabilities-exclusivenbsp/4252095/)\n\n- [Times Now](https://www.timesnownews.com/education/exclusive-i-have-enough-proof-19-year-old-defends-claims-of-security-flaws-in-cbse-osm-portal-article-154408591)\n\n- [CNBC TV18](https://www.cnbctv18.com/videos/education/cbse-on-screen-marking-controversy-hacker-security-claims-experts-divided-19914723.htm)\n\n- [Moneycontrol](https://www.moneycontrol.com/technology/big-blunder-how-a-cbse-student-uncovered-a-security-flaw-in-a-national-exam-portal-article-13932552.html)\n\n- [IFF Blog](https://internetfreedom.in/when-the-exam-itself-can-be-hacked-iff-writes-to-the-ministry-of-education-and-cert-in-on-the-cbse-on-screen-marking-disclosure/)\n\n- [Medianama](https://www.medianama.com/2026/05/223-cert-in-vulnerabilities-cbse-online-marking-portal/)\n\n- [Free Press Journal](https://www.freepressjournal.in/education/fpj-exclusive-meet-nisarga-the-19-year-old-ethical-hacker-who-flagged-alleged-cbse-portal-issues-in-february-2026)\n\n- [Careers360](https://news.careers360.com/cbse-osm-portal-hacker-nisarga-adhikary-vulnerabilities-report-meaning-class-12-checking-result-onmark-co-in-cybersecurity)",
+    "keyTakeaways": [
+      "Learn how multiple individually exploitable flaws can combine into a complete attack chain.",
+      "Understand common authentication, authorization and access control failures seen in production web applications.",
+      "See practical applications of open source security tools for reconnaissance, testing and validation.",
+      "Learn responsible vulnerability disclosure practices through a real-world case study involving CERT-In and public institutions.",
+      "Take away concrete recommendations for building and reviewing secure applications, especially those handling sensitive public data and critical infrastructure.",
+      "How the researcher <> government team reporting pipeline is broken."
+    ],
+    "references": [
+      {
+        "label": "https://ni5arga.com/blog/posts/hacking-cbse",
+        "url": "https://ni5arga.com/blog/posts/hacking-cbse"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://ni5arga.com/blog/posts/hacking-cbse",
+        "url": "https://ni5arga.com/blog/posts/hacking-cbse"
+      },
+      {
+        "label": "https://x.com/deedydas/status/2059131444346425354",
+        "url": "https://x.com/deedydas/status/2059131444346425354"
+      },
+      {
+        "label": "https://x.com/satishacharya/status/2059224148845768781",
+        "url": "https://x.com/satishacharya/status/2059224148845768781"
+      },
+      {
+        "label": "https://x.com/internetfreedom/status/2059267815690088454",
+        "url": "https://x.com/internetfreedom/status/2059267815690088454"
+      },
+      {
+        "label": "https://www.indiatoday.in/education-today/news/story/cbse-osm-portal-vulnerability-claims-surface-with-teens-detailed-blog-post-2917243-2026-05-26",
+        "url": "https://www.indiatoday.in/education-today/news/story/cbse-osm-portal-vulnerability-claims-surface-with-teens-detailed-blog-post-2917243-2026-05-26"
+      },
+      {
+        "label": "https://www.bbc.com/news/articles/cy42e8eljpno",
+        "url": "https://www.bbc.com/news/articles/cy42e8eljpno"
+      },
+      {
+        "label": "https://www.ndtv.com/education/cbse-osm-portal-had-critical-vulnerabilities-ethical-hacker-told-ndtv-he-alerted-board-months-earlier-11550090",
+        "url": "https://www.ndtv.com/education/cbse-osm-portal-had-critical-vulnerabilities-ethical-hacker-told-ndtv-he-alerted-board-months-earlier-11550090"
+      },
+      {
+        "label": "https://timesofindia.indiatimes.com/education/news/cbse-faces-fresh-scrutiny-after-teen-researcher-alleges-critical-flaws-in-osm-portal-claims-class-12-marks-could-be-altered/articleshow/131330616.cms",
+        "url": "https://timesofindia.indiatimes.com/education/news/cbse-faces-fresh-scrutiny-after-teen-researcher-alleges-critical-flaws-in-osm-portal-claims-class-12-marks-could-be-altered/articleshow/131330616.cms"
+      },
+      {
+        "label": "https://www.thehindubusinessline.com/news/education/government-should-take-cybersecurity-more-seriously-says-ethical-hacker-on-cbse-osm-flaws/article71024371.ece",
+        "url": "https://www.thehindubusinessline.com/news/education/government-should-take-cybersecurity-more-seriously-says-ethical-hacker-on-cbse-osm-flaws/article71024371.ece"
+      },
+      {
+        "label": "https://theprint.in/feature/19-student-hacked-cbses-osm-portal-vulnerabilities/2942305/",
+        "url": "https://theprint.in/feature/19-student-hacked-cbses-osm-portal-vulnerabilities/2942305"
+      },
+      {
+        "label": "https://www.news18.com/viral/ex-google-engineer-calls-out-cbses-osm-portal-absolute-embarrassment-after-hacker-exposes-major-security-flaws-ws-l-10113830.html",
+        "url": "https://www.news18.com/viral/ex-google-engineer-calls-out-cbses-osm-portal-absolute-embarrassment-after-hacker-exposes-major-security-flaws-ws-l-10113830.html"
+      },
+      {
+        "label": "https://www.hindustantimes.com/htcity/leisure/this-teen-hacked-into-cbse-s-osm-portal-while-preparing-for-boards-says-this-is-just-a-hobby-101779875877374.html",
+        "url": "https://www.hindustantimes.com/htcity/leisure/this-teen-hacked-into-cbse-s-osm-portal-while-preparing-for-boards-says-this-is-just-a-hobby-101779875877374.html"
+      },
+      {
+        "label": "https://www.financialexpress.com/india-news/cbse-portal-very-easy-to-exploit-class-12-hacker-says-he-didnt-expect-amateur-vulnerabilities-exclusivenbsp/4252095/",
+        "url": "https://www.financialexpress.com/india-news/cbse-portal-very-easy-to-exploit-class-12-hacker-says-he-didnt-expect-amateur-vulnerabilities-exclusivenbsp/4252095"
+      },
+      {
+        "label": "https://www.timesnownews.com/education/exclusive-i-have-enough-proof-19-year-old-defends-claims-of-security-flaws-in-cbse-osm-portal-article-154408591",
+        "url": "https://www.timesnownews.com/education/exclusive-i-have-enough-proof-19-year-old-defends-claims-of-security-flaws-in-cbse-osm-portal-article-154408591"
+      },
+      {
+        "label": "https://www.cnbctv18.com/videos/education/cbse-on-screen-marking-controversy-hacker-security-claims-experts-divided-19914723.htm",
+        "url": "https://www.cnbctv18.com/videos/education/cbse-on-screen-marking-controversy-hacker-security-claims-experts-divided-19914723.htm"
+      },
+      {
+        "label": "https://www.moneycontrol.com/technology/big-blunder-how-a-cbse-student-uncovered-a-security-flaw-in-a-national-exam-portal-article-13932552.html",
+        "url": "https://www.moneycontrol.com/technology/big-blunder-how-a-cbse-student-uncovered-a-security-flaw-in-a-national-exam-portal-article-13932552.html"
+      },
+      {
+        "label": "https://internetfreedom.in/when-the-exam-itself-can-be-hacked-iff-writes-to-the-ministry-of-education-and-cert-in-on-the-cbse-on-screen-marking-disclosure/",
+        "url": "https://internetfreedom.in/when-the-exam-itself-can-be-hacked-iff-writes-to-the-ministry-of-education-and-cert-in-on-the-cbse-on-screen-marking-disclosure"
+      },
+      {
+        "label": "https://www.medianama.com/2026/05/223-cert-in-vulnerabilities-cbse-online-marking-portal/",
+        "url": "https://www.medianama.com/2026/05/223-cert-in-vulnerabilities-cbse-online-marking-portal"
+      },
+      {
+        "label": "https://www.freepressjournal.in/education/fpj-exclusive-meet-nisarga-the-19-year-old-ethical-hacker-who-flagged-alleged-cbse-portal-issues-in-february-2026",
+        "url": "https://www.freepressjournal.in/education/fpj-exclusive-meet-nisarga-the-19-year-old-ethical-hacker-who-flagged-alleged-cbse-portal-issues-in-february-2026"
+      },
+      {
+        "label": "https://news.careers360.com/cbse-osm-portal-hacker-nisarga-adhikary-vulnerabilities-report-meaning-class-12-checking-result-onmark-co-in-cybersecurity",
+        "url": "https://news.careers360.com/cbse-osm-portal-hacker-nisarga-adhikary-vulnerabilities-report-meaning-class-12-checking-result-onmark-co-in-cybersecurity"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "b6m7iu49t2": {
+    "proposalId": "b6m7iu49t2",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/b6m7iu49t2",
+    "description": "I would like to share the findings of our research paper, Papers, Please: A First Look at Age Verification on the Web [1]. We measured the prevalence of third-party age verification providers on the web as visible from different US states, and performed a security and privacy analysis of age verification methods offered by the top provider, Yoti.\n\nFierce debates on age verification, such as for social media access, and its impact on Internet freedom and digital privacy are active in India and abroad. Although our work focuses on the US, we lay a foundation for broader analyses of the privacy impact and effectiveness of age verification (AV) technology. My goal with a talk at IndiaFOSS would be to engage Indian technologists in this important discussion.\n\nBackground: State AV laws were challenged on free speech grounds; ultimately the US Supreme Court set a precedent for their constitutionality.\n\nAge Verification Provider Prevalence\n\nWe crawled the top 1 million websites from three US states—two with AV laws and one without.\n\nWe estimated that less than 20% of self-tagged adult websites use AV providers in states that require age verification.\n\nWe found that the laws created unprecedented state-wise differences in access (and, ultimately, privacy).\n\nWe estimated that Yoti was the most commonly-used third-party AV provider.\n\nYoti Privacy\n\nWe analysed three age verification methods (as observed in the browser) and found\n\ncollection of high-entropy browser metadata, and\n\nthe sharing of some sensitive data (e.g., IP address, the original website) with third parties.\n\nAfter reverse-engineering the selfie-based age estimation method, we demonstrated that it could be bypassed on the browser-side.\n\n[1] S. Minocha, I. Sheridan, H. Oppenheimer, P. Pearce, and M. A. Specter, “Papers, Please: A First Look at Age Verification on the Web,” in 2026 IEEE Symposium on Security and Privacy (SP), May 2026. [Online]. Available: https://shreyasminocha.me/papers/papers-please.pdf",
+    "keyTakeaways": [
+      "Age verification laws in the US have created new state-level access differences contingent on third-party age verification providers.",
+      "Age verification technology deployed in the wild causes privacy issues due to overcollection of data and sharing with other upstream parties.",
+      "Age verification laws may be ineffective due to incomplete compliance from websites and circumvention of age verification technology."
+    ],
+    "references": [
+      {
+        "label": "https://spdr.cc.gatech.edu/blog/AgeVerification/",
+        "url": "https://spdr.cc.gatech.edu/blog/AgeVerification/"
+      },
+      {
+        "label": "https://shreyasminocha.me/papers/papers-please.pdf",
+        "url": "https://shreyasminocha.me/papers/papers-please.pdf"
+      },
+      {
+        "label": "https://www.cc.gatech.edu/news/online-age-checks-create-pointless-privacy-risk",
+        "url": "https://www.cc.gatech.edu/news/online-age-checks-create-pointless-privacy-risk"
+      },
+      {
+        "label": "https://github.com/shreyasminocha/papers-please",
+        "url": "https://github.com/shreyasminocha/papers-please"
+      }
+    ],
+    "links": [
+      {
+        "label": "are active in India",
+        "url": "https://sflc.in/statement-on-age-gating/"
+      },
+      {
+        "label": "abroad",
+        "url": "https://www.eff.org/pages/age-gates-threaten-expressive-rights-every-internet-user#main-content"
+      },
+      {
+        "label": "https://shreyasminocha.me/papers/papers-please.pdf",
+        "url": "https://shreyasminocha.me/papers/papers-please.pdf"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5sktsu12a4": {
+    "proposalId": "5sktsu12a4",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5sktsu12a4",
+    "description": "Be it in India, Europe or the US, vulnerability management for open source packages is an imperative. And right when we need it most, the CVE ecosystem is falling apart, a problem made ever more critical with AI-mediated attacks on the open source software supply chain. Let’s look at the problems, the solutions elements and walk through a concrete plan towards making vulnerability management a straight forward process because we feed it with correct, open, current, quality data about open source package security bugs, and their fixes, beyond CVE.",
     "keyTakeaways": [],
     "references": [
       {
-        "label": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx",
-        "url": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx"
+        "label": "https://github.com/CVEProject/cvelistV5/",
+        "url": "https://github.com/CVEProject/cvelistV5/"
       },
       {
-        "label": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl",
-        "url": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8dso3avp9l": {
-    "proposalId": "8dso3avp9l",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8dso3avp9l",
-    "description": "Every online tutorial and blog on “how to contribute to OSS” or “how to make your first PR” teaches the mechanics and commands, but almost none teach the etiquette: when it's okay to ping a maintainer, how to take a rejected proposal gracefully, why a half-finished AI-generated PR adds to stress and overload for the maintainers. Now that open source sits on the student resume(s) right next to internships and projects, this missing gap of education has real consequences: maintainers across GSoC, LFX and Hacktoberfest have publicly described waves of low-effort and spam contributions, with many OSS projects shutting down for new contributions.\n\nThis talk is about the cultural layer underneath a pipeline: the norms that decide whether a student community produces thoughtful contributors or AI spammers. A pipeline tells you how to get more students contributing; it says nothing about whether those contributions are any good for the projects on the receiving end.\n\nAt Point Blank, an OSS community we have been running for the last 7 years, we've spent the last few years turning that culture into something teachable, and we’ll walk through what actually worked:\n\nA peer proposal-review gate : our \"war rooms\" so that of the ~40 GSoC proposals our members write in a season, none reach a maintainer as unreviewed slop. Every draft is torn apart by people who've been selected before it goes anywhere near an org.\n\nA \"contribute before you apply\" norm, anchored by a Hacktoberfest kickoff and weekly sync-ups, so contribution is a sustained relationship with a project rather than a March résumé sprint.\n\nAn explicit etiquette curriculum covering what contributing.md leaves out: how to ask for help in public without spamming, how to treat a maintainer's time as the scarcest resource in the project, and how to behave when your contributions are rejected.\n\nA mentor-handoff model: every contributor who gets selected comes back to coach the next batch, so etiquette is transmitted by example, not preached from a slide.\n\nWe will be honest about what didn't work, and about the awkward cases, including what we do with the member who openly just wants the T-shirt. We will close with a short, concrete checklist that maintainers and student-club organizers can adopt to keep their contribution spaces both welcoming to newcomers and resistant to spam.",
-    "keyTakeaways": [
-      "A repeatable way to teach contribution etiquette, not just mechanics and why that distinction matters more in a hyper-competitive student culture.",
-      "A concrete proposal-review process that cuts low-effort and spam submissions at the source, including the trade-offs of running it at scale.",
-      "How to coach contributors through rejection so they stay civil and keep contributing.",
-      "A short checklist maintainers can use to set norms that invite newcomers without inviting spam."
-    ],
-    "references": [
-      {
-        "label": "https://www.pointblank.club/oss",
-        "url": "https://www.pointblank.club/oss"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "f4ko2mik8q": {
-    "proposalId": "f4ko2mik8q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4ko2mik8q",
-    "description": "DNA is the molecular blueprint of life. Modern sequencing technologies allow us to read DNA and RNA at unprecedented scale, generating vast amounts of biological data from organisms, tissues, and individual cells. Today, public repositories host millions of sequencing experiments comprising petabytes of data that power discoveries in medicine, drug development, agriculture, and fundamental biology.\n\nYet finding the right dataset is often harder than analysing it. Researchers must navigate fragmented repositories, heterogeneous metadata standards, and incomplete descriptions, making dataset discovery a time-consuming and frustrating process. With Seqout (https://seqout.org), we set out to build a genomics search engine that is fast, comprehensive, and lean enough to run on modest hardware while serving hundreds of thousands of researchers worldwide. Seqout is built entirely on open-source software: PostgreSQL and Neo4j power keyword and graph-based search, while embedding-based retrieval is enabled by open-source models and libraries from Hugging Face.\n\nIn this talk, we will discuss the engineering challenges involved in building a low-latency search engine over millions of biological datasets with limited resources (aka compute and GPUs). We will cover data ingestion, metadata normalisation, indexing strategies, typo tolerance, semantic search, and the trade-offs involved in integrating relational and graph databases with vector search.\n\nAlong the way, we'll share lessons learned from operating search infrastructure at scale and discuss how open-source software powers every layer of the platform. We'll also discuss how Seqout's MCP server enables large language models and AI agents to move beyond answering biology questions to directly discover and interact with relevant scientific datasets.",
-    "keyTakeaways": [
-      "How to build a low-latency search engine from scratch",
-      "Combining PostgreSQL, Neo4j, and semantic search to improve dataset discovery",
-      "Lessons learned from building and operating an open-source scientific search platform"
-    ],
-    "references": [
-      {
-        "label": "https://seqout.org/",
-        "url": "https://seqout.org/"
+        "label": "https://public.vulnerablecode.io/",
+        "url": "https://public.vulnerablecode.io/"
       },
       {
-        "label": "https://github.com/saketlab/seqout",
-        "url": "https://github.com/saketlab/seqout"
-      },
-      {
-        "label": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing",
-        "url": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing"
-      }
-    ],
-    "links": [
-      {
-        "label": "https://seqout.org",
-        "url": "https://seqout.org/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "89tt0o6uio": {
-    "proposalId": "89tt0o6uio",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/89tt0o6uio",
-    "description": "New year of 2025 we launched tamilnadu.tech a tech event listing platform built by the souls of FOSS United Chennai, what started as a simple project was ultimately taken by the community and upgraded and updated with tons of improvements. Built after listening to the problems faced by the community, tamilnadu.tech was instantly a hit and in a short span grew to nearly 300+ github stars with 100+ contributors where more than half of them are first time contributors to open source.But not stopping with 1 project, in the New year of 2026 the same team of FOSS United Chennai launched another project called podu.pics a FOSS imgbb alternative because the images used in tamilnadu.tech were from imgbb and we had to build our own ;)Again the community responded positively and took the product and used it and contributed to it. with the latest product that we launched for ChennaiFOSS 2026being kuruk.am a project again from the FU Chennai team being a url shortener which is also used by IndiaFOSS for their social media marketing.",
-    "keyTakeaways": [
-      "Build community driven projects that put the community in the driver seat",
-      "How much importance it is to listen to the community for the problems and not build a made up solution to a problem that doesn’t exist",
-      "As a maintainer how to be sure and take right decisions for the project’s growth and direction."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/FOSSUChennai/Communities",
-        "url": "https://github.com/FOSSUChennai/Communities"
-      },
-      {
-        "label": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/",
-        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/"
-      },
-      {
-        "label": "https://kuruk.am/justin-cfp-tt",
-        "url": "https://kuruk.am/justin-cfp-tt"
-      }
-    ],
-    "links": [
-      {
-        "label": "tamilnadu.tech",
-        "url": "https://tamilnadu.tech/"
-      },
-      {
-        "label": "podu.pics",
-        "url": "https://podu.pics/"
-      },
-      {
-        "label": "kuruk.am",
-        "url": "https://kuruk.am/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "96goef7o3q": {
-    "proposalId": "96goef7o3q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
-    "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
-    "keyTakeaways": [
-      "How open source interacts with the ecosystem of non consensual intimate imagery",
-      "The human impact of non consensual intimate imagery",
-      "The distinct challenge for India, as a country that doesn’t control the AI value chain",
-      "Risk mitigation strategies for open weight models",
-      "The effect of policies on model hosting platforms"
-    ],
-    "references": [
-      {
-        "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
-        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-      },
-      {
-        "label": "https://arxiv.org/abs/2602.04759",
-        "url": "https://arxiv.org/abs/2602.04759"
-      },
-      {
-        "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
-        "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
-      }
-    ],
-    "links": [
-      {
-        "label": "recent research",
-        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5pig94v0sa": {
-    "proposalId": "5pig94v0sa",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
-    "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
-    "keyTakeaways": [
-      "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
-      "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/tattle-made/archive-annotation",
-        "url": "https://github.com/tattle-made/archive-annotation"
-      },
-      {
-        "label": "https://milli.link/",
-        "url": "https://milli.link/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "fefrvv4n7q": {
-    "proposalId": "fefrvv4n7q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
-    "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
-    "keyTakeaways": [
-      "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
-      "A design system is more than components. Give products an opinionated way to load and save data too.",
-      "Make correct usage the path of least resistance, and mistakes hard to miss.",
-      "A predictable API serves new teammates and AI agents alike."
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
-        "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
-      },
-      {
-        "label": "https://github.com/frappe/frappe-ui",
-        "url": "https://github.com/frappe/frappe-ui"
-      },
-      {
-        "label": "https://ui.frappe.io",
-        "url": "https://ui.frappe.io/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "6pb727vn12": {
-    "proposalId": "6pb727vn12",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
-    "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nTBA",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
-        "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
+        "label": "https://github.com/aboutcode-org/vulnerablecode",
+        "url": "https://github.com/aboutcode-org/vulnerablecode"
       }
     ],
     "links": [
@@ -3479,50 +3831,6 @@
       }
     ]
   },
-  "4eh569dvq9": {
-    "proposalId": "4eh569dvq9",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4eh569dvq9",
-    "description": "As community-generated datasets become increasingly important for training AI systems, there is a growing need to explore whether existing open data licenses adequately protect community contributions. This session will examine whether copyleft principles, which have successfully supported open source software ecosystems, can be adapted to datasets used for AI development. The discussion will focus on attribution, reciprocity, data provenance, community ownership, and the governance of data commons.\n\nCommunity-led initiatives across India and the world are creating datasets that support language technologies, accessibility tools, and AI research. However, many of these datasets are released without licensing frameworks specifically designed for AI use. This creates a risk that community-generated data may be incorporated into proprietary AI systems without attribution, transparency, or any meaningful contribution back to the communities that created them. Open source software have relied on copyleft licenses such as the GNU GPL to ensure that software and improvements remain available to the community. As community-generated datasets become increasingly important for training AI systems, a similar question is emerging for data i.e. can copyleft principles and licence be applied to datasets used for machine learning?\n\nA draft Community Data License has been developed by Viswam.ai and SFLC.in to address these concerns by applying copyleft principles to datasets. The proposed license seeks to ensure that community-generated datasets remain part of a shared commons by requiring attribution to original contributors, transparency regarding data provenance, and the sharing of modified or derived datasets under the same licence terms.\n\nThis session will use the draft license as a starting point for a broader discussion on the future of community data governance, open AI, and digital commons. The objective is to gather perspectives from developers, researchers, open-source contributors, civil society organisations, policymakers, and dataset creators on whether new licensing and governance approaches are needed to protect community data commons and how such a license could work in practice.\n\nOpen discussion with participants. The session will begin with a brief introduction to the problem statement and the draft Community Data License, followed by a moderated discussion. Participants will be encouraged to share experiences, concerns, use cases, and perspectives from technical, legal, policy, research, and community viewpoints. The moderator will guide the discussion around key questions and explore broad conversation focused on the topic.",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "82fbs78uua": {
-    "proposalId": "82fbs78uua",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/82fbs78uua",
-    "description": "I am Thejesh GN. In 2018, I started a yearly micro-grant of ₹1,00,000 in memory of my mother, called the Nagarathna Memorial Grant (NMG). The idea was to support meaningful work with no strings attached.\n\nThe reason for the grant can be anything that matters to the applicant and the people around them. While I personally prefer Free and Open Source Software, Creative Commons, and public-interest work, that is not a requirement.\n\nOver the years, the size of the grant has grown from ₹1 lakh to several lakhs, thanks to friends and supporters joining in. In 2026, the grant reached its largest size yet ₹5.6 lakhs with many people contributing and supporting the process.The idea is also not to grow beyond ₹10 lakhs as of now. Personally, I would consider any grant handling more than ₹10 lakhs/year in 2026 is not a micro grant. Even with the growth, the core idea remains unchanged, small, direct, trust-based support for meaningful work.\n\n2027 will mark the 10th year of the grant. This BoF is an opportunity to discuss how we can encourage more micro-grants in India.\n\nIn India, most funding for creative, public-interest, and open projects comes through large institutional grants. While those are important, micro-grants ( small, decentralized, peer-to-peer gifts or funding ) can often be more accessible, flexible, and liberating for both the giver and the receiver.\n\nThis BoF is an open discussion for FOSS contributors, creators, artists, writers, researchers, and community organizers to discuss about\n\nRound-table discussion.\n\nWe will begin with a short introduction to micro-funding and why it matters, followed by an overview of how NMG has worked, lessons learned, and challenges faced over the years.\n\nThe session will then open into a broader discussion and brainstorming on possible discussion points mentioned above.",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1f9ett9bgj": {
-    "proposalId": "1f9ett9bgj",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1f9ett9bgj",
-    "description": "A lot of FOSS events, meetups, devrooms, and community spaces describe themselves as community-driven. But what does that actually mean?\n\nIs a community-driven event just an event organized for a community, or should the community also have a say in what gets selected, what gets discussed, and what direction the space takes?\n\nThis BoF is intended to discuss how much involvement the community should have in shaping community events. This could include talk selection, CFP review, public voting, deciding meetup themes, choosing discussion topics, setting the long-term direction of a local chapter, and generally deciding who gets to steer the space.\n\nThere are several things we could discuss.\n\nShould talks and sessions be selected entirely by a small internal review group, or should the wider community have a visible role in the process? When does private review help maintain quality, and when does it become opaque gatekeeping? How do we balance expert curation with community participation? What are the risks of public voting becoming a popularity contest? What are the risks of everything being decided quietly in the background by a few people?\n\nThe key thing to resolve in this BoF is what “community-driven” should practically mean for FOSS and adjacent community spaces. I don’t think every decision can or should be made by public vote, but I also don’t think community spaces should become places where the community is only expected to attend, clap, and leave.\n\nIdeally, we discuss models that actually work. This could include open voting, hybrid review, published review criteria, community feedback loops, public roadmaps for meetups, first-time speaker support, and ways for new volunteers to have a real say without making the organizer’s job impossible.\n\nThis BoF is not meant to be a complaint session about any one event or organizing team. The goal is to discuss how we can build healthier, more transparent, and more participatory community spaces.\n\nIf you organize meetups, run a local chapter, review CFPs, volunteer at events, submit talks, attend community events, or just have opinions on how community spaces should be run, this BoF is for you.\n\nRound Table Discussion. Ideally we’d spend at least 60% of the time discussing practical models and ideas that communities can actually use.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://x.com/AskBaluBabu",
-        "url": "https://x.com/AskBaluBabu"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
   "5inuh3i6co": {
     "proposalId": "5inuh3i6co",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5inuh3i6co",
@@ -3587,6 +3895,50 @@
       {
         "label": "https://www.linkedin.com/in/smita-mutt/",
         "url": "https://www.linkedin.com/in/smita-mutt/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4eh569dvq9": {
+    "proposalId": "4eh569dvq9",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4eh569dvq9",
+    "description": "As community-generated datasets become increasingly important for training AI systems, there is a growing need to explore whether existing open data licenses adequately protect community contributions. This session will examine whether copyleft principles, which have successfully supported open source software ecosystems, can be adapted to datasets used for AI development. The discussion will focus on attribution, reciprocity, data provenance, community ownership, and the governance of data commons.\n\nCommunity-led initiatives across India and the world are creating datasets that support language technologies, accessibility tools, and AI research. However, many of these datasets are released without licensing frameworks specifically designed for AI use. This creates a risk that community-generated data may be incorporated into proprietary AI systems without attribution, transparency, or any meaningful contribution back to the communities that created them. Open source software have relied on copyleft licenses such as the GNU GPL to ensure that software and improvements remain available to the community. As community-generated datasets become increasingly important for training AI systems, a similar question is emerging for data i.e. can copyleft principles and licence be applied to datasets used for machine learning?\n\nA draft Community Data License has been developed by Viswam.ai and SFLC.in to address these concerns by applying copyleft principles to datasets. The proposed license seeks to ensure that community-generated datasets remain part of a shared commons by requiring attribution to original contributors, transparency regarding data provenance, and the sharing of modified or derived datasets under the same licence terms.\n\nThis session will use the draft license as a starting point for a broader discussion on the future of community data governance, open AI, and digital commons. The objective is to gather perspectives from developers, researchers, open-source contributors, civil society organisations, policymakers, and dataset creators on whether new licensing and governance approaches are needed to protect community data commons and how such a license could work in practice.\n\nOpen discussion with participants. The session will begin with a brief introduction to the problem statement and the draft Community Data License, followed by a moderated discussion. Participants will be encouraged to share experiences, concerns, use cases, and perspectives from technical, legal, policy, research, and community viewpoints. The moderator will guide the discussion around key questions and explore broad conversation focused on the topic.",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "82fbs78uua": {
+    "proposalId": "82fbs78uua",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/82fbs78uua",
+    "description": "I am Thejesh GN. In 2018, I started a yearly micro-grant of ₹1,00,000 in memory of my mother, called the Nagarathna Memorial Grant (NMG). The idea was to support meaningful work with no strings attached.\n\nThe reason for the grant can be anything that matters to the applicant and the people around them. While I personally prefer Free and Open Source Software, Creative Commons, and public-interest work, that is not a requirement.\n\nOver the years, the size of the grant has grown from ₹1 lakh to several lakhs, thanks to friends and supporters joining in. In 2026, the grant reached its largest size yet ₹5.6 lakhs with many people contributing and supporting the process.The idea is also not to grow beyond ₹10 lakhs as of now. Personally, I would consider any grant handling more than ₹10 lakhs/year in 2026 is not a micro grant. Even with the growth, the core idea remains unchanged, small, direct, trust-based support for meaningful work.\n\n2027 will mark the 10th year of the grant. This BoF is an opportunity to discuss how we can encourage more micro-grants in India.\n\nIn India, most funding for creative, public-interest, and open projects comes through large institutional grants. While those are important, micro-grants ( small, decentralized, peer-to-peer gifts or funding ) can often be more accessible, flexible, and liberating for both the giver and the receiver.\n\nThis BoF is an open discussion for FOSS contributors, creators, artists, writers, researchers, and community organizers to discuss about\n\nRound-table discussion.\n\nWe will begin with a short introduction to micro-funding and why it matters, followed by an overview of how NMG has worked, lessons learned, and challenges faced over the years.\n\nThe session will then open into a broader discussion and brainstorming on possible discussion points mentioned above.",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1f9ett9bgj": {
+    "proposalId": "1f9ett9bgj",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1f9ett9bgj",
+    "description": "A lot of FOSS events, meetups, devrooms, and community spaces describe themselves as community-driven. But what does that actually mean?\n\nIs a community-driven event just an event organized for a community, or should the community also have a say in what gets selected, what gets discussed, and what direction the space takes?\n\nThis BoF is intended to discuss how much involvement the community should have in shaping community events. This could include talk selection, CFP review, public voting, deciding meetup themes, choosing discussion topics, setting the long-term direction of a local chapter, and generally deciding who gets to steer the space.\n\nThere are several things we could discuss.\n\nShould talks and sessions be selected entirely by a small internal review group, or should the wider community have a visible role in the process? When does private review help maintain quality, and when does it become opaque gatekeeping? How do we balance expert curation with community participation? What are the risks of public voting becoming a popularity contest? What are the risks of everything being decided quietly in the background by a few people?\n\nThe key thing to resolve in this BoF is what “community-driven” should practically mean for FOSS and adjacent community spaces. I don’t think every decision can or should be made by public vote, but I also don’t think community spaces should become places where the community is only expected to attend, clap, and leave.\n\nIdeally, we discuss models that actually work. This could include open voting, hybrid review, published review criteria, community feedback loops, public roadmaps for meetups, first-time speaker support, and ways for new volunteers to have a real say without making the organizer’s job impossible.\n\nThis BoF is not meant to be a complaint session about any one event or organizing team. The goal is to discuss how we can build healthier, more transparent, and more participatory community spaces.\n\nIf you organize meetups, run a local chapter, review CFPs, volunteer at events, submit talks, attend community events, or just have opinions on how community spaces should be run, this BoF is for you.\n\nRound Table Discussion. Ideally we’d spend at least 60% of the time discussing practical models and ideas that communities can actually use.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://x.com/AskBaluBabu",
+        "url": "https://x.com/AskBaluBabu"
       }
     ],
     "links": [
