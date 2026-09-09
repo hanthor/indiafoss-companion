@@ -18,12 +18,19 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import SessionCard from '$lib/components/SessionCard.svelte';
   import TimelineGrid from '$lib/components/TimelineGrid.svelte';
+  import { onMount } from 'svelte';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
   let view: 'list' | 'grid' = $state('list');
+
+  // A wide screen has room for every hall side by side, so it opens on the
+  // room grid (#205). Phones keep the list; the toggle still works on both.
+  onMount(() => {
+    if (window.matchMedia('(min-width: 1024px)').matches) view = 'grid';
+  });
   let query = $state('');
   let selectedRoom = $state('');
   let devroomsOnly = $state(false);
@@ -388,6 +395,25 @@
     grid-template-columns: 5rem 1fr;
     gap: 0.75rem;
     margin-bottom: 0.25rem;
+  }
+  @media (min-width: 1024px) {
+    .controls {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: 1.5rem;
+    }
+    .room-filters,
+    .filters {
+      grid-column: 1 / -1;
+    }
+    /* Sessions that start together sit beside each other, one per room. */
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+      gap: 0 1rem;
+      align-items: start;
+    }
   }
   .time {
     text-align: right;

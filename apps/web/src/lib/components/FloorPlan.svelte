@@ -1028,6 +1028,23 @@
   .sheet > * {
     flex-shrink: 0;
   }
+  /* Desktop (issue 205): the plan fills the height beside the rail and the room
+     sheet stands to its right as a panel, so opening a room hides no map. */
+  @media (min-width: 1024px) {
+    .sheet,
+    .sheet:not(.expanded) {
+      position: static;
+      flex: 0 0 24rem;
+      max-height: calc(100dvh - var(--appbar-height) - var(--safe-top));
+      border-top: none;
+      border-left: 2px solid var(--ink);
+      box-shadow: none;
+      padding-top: 1rem;
+    }
+    .grabber {
+      display: none;
+    }
+  }
   .sheet header {
     display: flex;
     justify-content: space-between;
