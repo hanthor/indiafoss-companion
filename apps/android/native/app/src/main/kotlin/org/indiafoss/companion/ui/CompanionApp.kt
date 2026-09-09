@@ -253,6 +253,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     activityId = entry.arguments?.getString("id").orEmpty(),
                     onBookmark = viewModel::toggleBookmark,
                     onMustAttend = viewModel::toggleMustAttend,
+                    onOpenSpeaker = { navController.navigate("speaker/$it") },
                     onBack = { navController.popBackStack() },
                 )
             }
