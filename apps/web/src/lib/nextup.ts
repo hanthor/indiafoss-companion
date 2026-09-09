@@ -33,6 +33,8 @@ export interface NextUpInput {
   bufferSeconds: number;
   /** Ignore sessions further out than this. */
   horizonMinutes?: number;
+  /** When present, only upcoming entries in this resolved plan may be selected. */
+  plannedIds?: ReadonlySet<string>;
 }
 
 /**
@@ -49,12 +51,19 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
     .filter((a) => !a.cancelled && a.start && a.end && parseInstant(a.start) >= nowMs)
     .filter((a) => parseInstant(a.start!) - nowMs <= horizon)
     .sort((a, b) => parseInstant(a.start!) - parseInstant(b.start!));
-  const must = input.mustAttend ? upcoming.find((a) => input.mustAttend!(a.id)) : undefined;
-  const planned = must ?? upcoming.find((a) => input.bookmarked(a.id));
+  const must = input.plannedIds
+    ? undefined
+    : input.mustAttend
+      ? upcoming.find((a) => input.mustAttend!(a.id))
+      : undefined;
+  const planned = input.plannedIds
+    ? upcoming.find((a) => input.plannedIds!.has(a.id))
+    : (must ?? upcoming.find((a) => input.bookmarked(a.id)));
   // Nothing planned: the programme's next talk. Not a break or a meal, which
   // nobody needs to be told to leave for; those still count when bookmarked.
-  const activity =
-    planned ?? upcoming.find((a) => !isPause(a)) ?? computeNowState(bundle, now).next ?? null;
+  const activity = input.plannedIds
+    ? (planned ?? null)
+    : (planned ?? upcoming.find((a) => !isPause(a)) ?? computeNowState(bundle, now).next ?? null);
   if (!activity?.start || parseInstant(activity.start) - nowMs > horizon) return null;
 
   const startsInMinutes = Math.ceil((parseInstant(activity.start) - nowMs) / 60_000);
@@ -84,7 +93,7 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
   return {
     activity,
     planned: !!planned,
-    mustAttend: !!must,
+    mustAttend: input.mustAttend?.(activity.id) ?? false,
     startsInMinutes,
     travelSeconds,
     leaveBy,

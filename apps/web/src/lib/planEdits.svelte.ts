@@ -28,6 +28,19 @@ export const planEdits = $state<{ eventId: string | null; day: string | null; ed
   edits: structuredClone(EMPTY_PLAN_EDITS),
 });
 
+/** Read another day's edits without changing the editor's active day. */
+export async function readPlanEdits(eventId: string, day: string): Promise<PlanEdits> {
+  const saved = await getStorage().getSetting(key(eventId, day));
+  if (!saved) return structuredClone(EMPTY_PLAN_EDITS);
+  const parsed = JSON.parse(saved) as Partial<PlanEdits>;
+  return {
+    locked: parsed.locked ?? [],
+    removed: parsed.removed ?? [],
+    replacements: parsed.replacements ?? {},
+    customBlocks: parsed.customBlocks ?? [],
+  };
+}
+
 let hydration: Promise<void> = Promise.resolve();
 let hydrationVersion = 0;
 

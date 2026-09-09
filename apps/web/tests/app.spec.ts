@@ -595,3 +595,61 @@ test('2026 fresh and whole-devroom plans do not invent travel between same-room 
     page.locator('.itinerary').getByRole('link', { name: /Your first open source contribution/ }),
   ).toBeVisible();
 });
+
+test('Now follows a removed session and a saved personal block across reloads', async ({
+  page,
+}) => {
+  const planUrl = appUrl('/plan?event=indiafoss-2026');
+  const nowUrl = appUrl('/now?event=indiafoss-2026&now=2026-09-26T09:31:00%2B05:30');
+  await page.goto(nowUrl);
+  const personal = page.getByRole('region', { name: 'Your plan now' });
+  await expect(personal.getByRole('link', { name: 'Welcome Note', exact: true })).toBeVisible();
+  await page.goto(planUrl);
+  const row = page
+    .locator('.itinerary li')
+    .filter({ has: page.getByRole('link', { name: 'Welcome Note', exact: true }) });
+  await row.locator('summary').click();
+  await row.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Removed', exact: true })).toBeVisible();
+  await page.goto(nowUrl);
+  await expect(personal.getByText('Loading your plan…')).toHaveCount(0);
+  await expect(personal.getByRole('link', { name: 'Welcome Note', exact: true })).toHaveCount(0);
+  await page.goto(planUrl);
+  const form = page.locator('.add-block');
+  await form.getByLabel('What').fill('Meet the booth team');
+  await form.getByLabel('Start', { exact: true }).fill('09:30');
+  await form.getByLabel('End', { exact: true }).fill('09:35');
+  await form.getByRole('button', { name: 'Add block' }).click();
+  await expect(form.getByLabel('What')).toHaveValue('');
+  await page.goto(nowUrl);
+  await expect(personal.getByText('Meet the booth team', { exact: true })).toBeVisible();
+  await expect(personal.getByText(/In progress/)).toBeVisible();
+  await page.reload();
+  await expect(personal.getByText('Meet the booth team', { exact: true })).toBeVisible();
+  await expect(personal.getByRole('link', { name: 'Show on map' })).toHaveCount(0);
+});
+
+test('Now opens the plan on the current event day', async ({ page }) => {
+  await page.goto(appUrl('/now?event=indiafoss-2026&now=2026-09-27T10:00:00%2B05:30'));
+  await page
+    .getByRole('region', { name: 'Your plan now' })
+    .getByRole('link', { name: 'Open your plan' })
+    .click();
+  await expect(page.locator('.days button.active')).toContainText('Day 2');
+});
+
+test('Now asks to resolve an overlapping personal block instead of choosing a destination', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  const form = page.locator('.add-block');
+  await form.getByLabel('What').fill('Conflicting meeting');
+  await form.getByLabel('Start', { exact: true }).fill('09:31');
+  await form.getByLabel('End', { exact: true }).fill('09:40');
+  await form.getByRole('button', { name: 'Add block' }).click();
+  await expect(form.getByLabel('What')).toHaveValue('');
+  await page.goto(appUrl('/now?event=indiafoss-2026&now=2026-09-26T09:32:00%2B05:30'));
+  const personal = page.getByRole('region', { name: 'Your plan now' });
+  await expect(personal.getByText(/Your plan has conflicting choices/)).toBeVisible();
+  await expect(personal.getByRole('link', { name: 'Show on map' })).toHaveCount(0);
+});

@@ -1,4 +1,10 @@
 <script lang="ts">
+  import { nowPlanState, resolveDayPlan } from '$lib/resolved-plan.svelte';
+  import { eventDay, nextPlannedItem } from '$lib/resolved-plan';
+  import { planEdits, readPlanEdits } from '$lib/planEdits.svelte';
+  import { preferenceFor } from '$lib/prefs.svelte';
+  import { roomPreferences } from '$lib/roomPrefs.svelte';
+  import { routingPrefs } from '$lib/routingPrefs.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type { Activity } from '@indiafoss/model';
@@ -22,13 +28,13 @@
   import TypeBadge from '$lib/components/TypeBadge.svelte';
   import { sessionRoomLink } from '$lib/element-links';
 
-  const clock = clockFromParams(
-    page.url.searchParams.get('now'),
-    page.url.searchParams.get('speed'),
+  const clock = $derived(
+    clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
   );
-  let now: string = $state(clock.now());
+  let now = $state('');
 
   $effect(() => {
+    now = clock.now();
     if (isFixedClock(clock)) return;
     const timer = setInterval(() => {
       now = clock.now();
@@ -37,7 +43,55 @@
   });
 
   const bundle = $derived(eventState.bundle);
-  const nowState = $derived(bundle ? computeNowState(bundle, now) : null);
+  const nowState = $derived(bundle && now ? computeNowState(bundle, now) : null);
+
+  const day = $derived(bundle && now ? eventDay(now, bundle.timezone) : null);
+  let personalPlan = $state<Awaited<ReturnType<typeof resolveDayPlan>> | null>(null);
+  let planStatus = $state<'loading' | 'ready' | 'error'>('loading');
+  $effect(() => {
+    const currentBundle = bundle;
+    const currentDay = day;
+    if (!currentBundle || !currentDay) return;
+    // Subscribe to local choices, edits and route changes without polling every clock tick.
+    void JSON.stringify(currentBundle.activities.map((a) => preferenceFor(a.id)));
+    void JSON.stringify(roomPreferences());
+    void JSON.stringify(planEdits.edits);
+    void routingPrefs.profile;
+    let active = true;
+    personalPlan = null;
+    nowPlanState.eventId = currentBundle.id;
+    nowPlanState.day = currentDay;
+    nowPlanState.activityIds = [];
+    planStatus = 'loading';
+    void readPlanEdits(currentBundle.id, currentDay)
+      .then((edits) => resolveDayPlan(currentBundle, currentDay, edits))
+      .then((resolved) => {
+        if (!active) return;
+        personalPlan = resolved;
+        nowPlanState.activityIds =
+          resolved.edited.feasible && resolved.mustAttendConflicts.length === 0
+            ? resolved.edited.items.map((item) => item.id)
+            : [];
+        planStatus = 'ready';
+      })
+      .catch(() => {
+        if (active) planStatus = 'error';
+      });
+    return () => {
+      active = false;
+      nowPlanState.activityIds = [];
+    };
+  });
+  const planConflicted = $derived(
+    Boolean(
+      personalPlan &&
+      (!personalPlan.edited.feasible || personalPlan.mustAttendConflicts.length > 0),
+    ),
+  );
+  const personalNext = $derived(
+    personalPlan && !planConflicted ? nextPlannedItem(personalPlan.edited, now) : null,
+  );
+  const personalActivity = $derived(bundle?.activities.find((a) => a.id === personalNext?.id));
 
   const venueKey = $derived(bundle ? venueKeyForEvent(bundle.id) : 'synthetic');
   let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
@@ -97,6 +151,38 @@
       <p>The conference has ended. See you at the next one!</p>
     </section>
   {:else}
+    <section class="card" aria-labelledby="personal-heading">
+      <h2 id="personal-heading">Your plan now</h2>
+      {#if planStatus === 'loading'}
+        <p class="muted" role="status">Loading your plan…</p>
+      {:else if planStatus === 'error'}
+        <p>Your plan could not be loaded. Open Plan to try again.</p>
+      {:else if planConflicted}
+        <p>Your plan has conflicting choices. Resolve them before choosing where to go.</p>
+      {:else if personalNext}
+        <p class="muted">
+          {Date.parse(personalNext.start) <= Date.parse(now) ? 'In progress' : 'Up next'} · {formatTime(
+            personalNext.start,
+          )}–{formatTime(personalNext.end)}
+        </p>
+        {#if personalActivity}
+          <a href={resolve(`/activity/${personalActivity.id}`)}>{personalActivity.title}</a>
+        {:else}
+          <strong>{personalNext.label ?? 'Personal time'}</strong>
+        {/if}
+        {#if personalNext.locationId}
+          <p>
+            <a href={resolve(`/map/to/${personalNext.locationId}`)}>Show on map</a> · {bundle?.locations.find(
+              (l) => l.id === personalNext.locationId,
+            )?.name ?? personalNext.locationId}
+          </p>
+        {/if}
+      {:else}
+        <p>No more items in your plan today. Browse what's on or make time for a break.</p>
+      {/if}
+      <p><a href={resolve(`/plan?day=${day}`)}>Open your plan</a></p>
+    </section>
+
     <section class="card" aria-labelledby="now-heading">
       <h2 id="now-heading">Happening now</h2>
       {#if nowState!.current.length === 0}
@@ -148,7 +234,7 @@
 
     {#if nowState!.next}
       <section class="card" aria-labelledby="next-heading">
-        <h2 id="next-heading">Next</h2>
+        <h2 id="next-heading">Next in the programme</h2>
         <div class="row big">
           <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
           <TypeBadge type={nowState!.next.type} />
