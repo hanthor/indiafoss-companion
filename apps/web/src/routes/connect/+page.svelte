@@ -528,18 +528,23 @@
     </p>
   </section>
 
-  <ProfileImport
-    onimport={(imported) => {
-      const before = JSON.stringify(profileState.profile);
-      const changes = applyImportedProfile(profileState.profile, imported);
-      if (changes.length > 0) {
-        importSnapshot = before;
-        snapshotFrom = 'identity';
-      }
-      contactMessage = acceptChanges(changes, 'GitHub');
-      scheduleCard();
-    }}
-  />
+  {#snippet profileImporter()}
+    <ProfileImport
+      onimport={(imported) => {
+        const before = JSON.stringify(profileState.profile);
+        const changes = applyImportedProfile(profileState.profile, imported);
+        if (changes.length > 0) {
+          importSnapshot = before;
+          snapshotFrom = 'identity';
+        }
+        contactMessage = acceptChanges(changes, 'GitHub');
+        scheduleCard();
+      }}
+    />
+  {/snippet}
+  {#if !profileState.profile.socials.github}
+    {@render profileImporter()}
+  {/if}
 
   <!-- Hero: the QR is always live -->
   <section class="card hero" aria-label="Your contact QR code">
@@ -611,6 +616,13 @@
     verifies your key badge and lets them message you. A QR can be photographed — email and phone
     stay off unless you switch them on.
   </p>
+
+  {#if profileState.profile.socials.github}
+    <details class="profile-reimport">
+      <summary>Import another GitHub profile</summary>
+      {@render profileImporter()}
+    </details>
+  {/if}
 
   <!-- Field groups -->
   {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}
