@@ -232,6 +232,9 @@ importers:
 
   packages/solver:
     dependencies:
+      '@indiafoss/elo':
+        specifier: workspace:*
+        version: link:../elo
       '@indiafoss/model':
         specifier: workspace:*
         version: link:../model

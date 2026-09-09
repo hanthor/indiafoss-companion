@@ -11,6 +11,7 @@ import {
   dispositionOf,
   ratingOf,
   triageOf,
+  yieldedTo,
 } from '$lib/prefs.svelte';
 import { roomPreferences } from '$lib/roomPrefs.svelte';
 
@@ -33,6 +34,7 @@ export function rankedOf(activity: Activity): RankedActivity {
     comparisons: comparisonsOf(activity.id),
     disposition: dispositionOf(activity.id),
     interest: triageOf(activity.id),
+    yieldedTo: yieldedTo(activity.id),
   };
 }
 

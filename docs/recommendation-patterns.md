@@ -30,7 +30,7 @@ The current every-fourth-presentation policy is a deterministic baseline, **not 
 
 ## What to build next
 
-Use optional topic/devroom seeds rather than a mandatory onboarding questionnaire. Add a user-facing “Why this talk?” and editable interests, with a neutral “Skip for now” separate from explicit dislike. Keep the whole-devroom reservation as a scheduling choice that saves answering every member.
+Use optional topic/devroom seeds rather than a mandatory onboarding questionnaire. Add a user-facing “Why this talk?” and editable interests, with a neutral “Skip for now” separate from explicit dislike. Keep the whole-devroom reservation as a scheduling choice that saves answering every member. Scheduling clashes are already kept apart from dislike (#271): a talk that loses a clash “stands aside” for the winner and its comparison is flagged `clash`, so the learner votes for the winner without voting against the loser.
 
 If tag/track matching misses obvious similarities across devrooms, evaluate title/abstract similarity against a small curated set of talk pairs. A publisher-generated, versioned embedding sidecar can keep attendee preferences local; an on-device LLM is not required for the first useful system. Adopt this only if it improves held-out examples over the simple baseline. Do not call the current tag model semantic understanding.
 

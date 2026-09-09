@@ -1,4 +1,5 @@
 import type { Activity, EventBundle } from '@indiafoss/model';
+import { activeAfterYields } from '@indiafoss/elo';
 
 /**
  * Itinerary solver (§18–§21).
@@ -36,6 +37,12 @@ export interface SolverPreferences {
   ratingOf(activityId: string): number;
   dispositionOf(activityId: string): Disposition;
   bookmarked(activityId: string): boolean;
+  /**
+   * The session this one stood aside for in a clash (#271), if any. A
+   * scheduling loss, not a dislike: the session is left out only while its
+   * winner is a live candidate on the day, and never when it is must-go.
+   */
+  yieldsTo?(activityId: string): string | undefined;
 }
 
 /** Travel time between locations; the venue engine (Phase 5) supplies real values. */
@@ -288,17 +295,54 @@ export function solveDay(input: SolveDayInput): SolverResult {
     ];
   });
   const byId = new Map(bundle.activities.map((a) => [a.id, a]));
+  const timedOnDay = (a: Activity): boolean =>
+    !a.cancelled &&
+    a.type !== 'meal' &&
+    a.start?.startsWith(day) === true &&
+    a.end?.startsWith(day) === true;
+  // Clash losses (#271): a session that stood aside is out while its winner
+  // is live on the day. `leftFor` maps each winner to the devroom tracks the
+  // attendee left for it, so a reserved block can be left for one talk
+  // without dropping the reservation.
+  const yieldsTo = originalPreferences.yieldsTo;
+  const eligible = bundle.activities.filter(
+    (a) => timedOnDay(a) && originalPreferences.dispositionOf(a.id) !== 'not-interested',
+  );
+  const stoodAside = new Set<string>();
+  const leftFor = new Map<string, Set<string>>();
+  if (yieldsTo) {
+    const live = activeAfterYields(
+      eligible,
+      (a) => a.id,
+      (a) => yieldsTo(a.id),
+      (a) => originalPreferences.dispositionOf(a.id) === 'must-attend',
+    );
+    for (const a of eligible) {
+      if (live.has(a.id)) continue;
+      stoodAside.add(a.id);
+      const winner = yieldsTo(a.id);
+      if (winner && a.trackId && stays.has(a.trackId)) {
+        const tracks = leftFor.get(winner) ?? new Set<string>();
+        tracks.add(a.trackId);
+        leftFor.set(winner, tracks);
+      }
+    }
+  }
   const preferences: SolverPreferences = {
     ...originalPreferences,
     dispositionOf: (id) => {
       const own = originalPreferences.dispositionOf(id);
       const a = byId.get(id);
       if (!a || own === 'not-interested' || own === 'must-attend') return own;
+      if (stoodAside.has(id)) return 'not-interested';
       if (stays.has(a.trackId ?? '') && a.type !== 'meal') return 'must-attend';
       if (
         a.start &&
         a.end &&
-        ranges.some((r) => parse(a.start!) < r.end && parse(a.end!) > r.start)
+        ranges.some(
+          (r) =>
+            parse(a.start!) < r.end && parse(a.end!) > r.start && !leftFor.get(id)?.has(r.trackId),
+        )
       )
         return 'not-interested';
       return own;
@@ -306,12 +350,7 @@ export function solveDay(input: SolveDayInput): SolverResult {
   };
 
   const candidates = bundle.activities.filter(
-    (a) =>
-      !a.cancelled &&
-      a.type !== 'meal' &&
-      a.start?.startsWith(day) === true &&
-      a.end?.startsWith(day) === true &&
-      preferences.dispositionOf(a.id) !== 'not-interested',
+    (a) => timedOnDay(a) && preferences.dispositionOf(a.id) !== 'not-interested',
   );
 
   const watchLater = candidates
@@ -331,7 +370,9 @@ export function solveDay(input: SolveDayInput): SolverResult {
       if (
         a.trackId === range.trackId ||
         parse(a.start!) >= range.end ||
-        parse(a.end!) <= range.start
+        parse(a.end!) <= range.start ||
+        // The attendee chose this talk over the devroom's own: not a silent conflict.
+        leftFor.get(a.id)?.has(range.trackId)
       )
         continue;
       if (
