@@ -1,4 +1,6 @@
 import type { EventBundle } from '@indiafoss/model';
+import type { PersonalDataFile } from '@indiafoss/model/contracts';
+import { personalDataFromSnapshot } from './personal-data.js';
 import Dexie, { type Table } from 'dexie';
 
 /** Initial Elo rating (§14). */
@@ -255,6 +257,58 @@ export function defaultPreference(activityId: string): ActivityPreference {
 /** Storage facade over IndexedDB. All attendee state stays on device (§45). */
 export class CompanionStorage {
   constructor(private readonly db: CompanionDatabase = new CompanionDatabase()) {}
+
+  /** One consistent read transaction across the explicit personal-data allowlist. */
+  async exportPersonalData(exportedAt = new Date().toISOString()): Promise<PersonalDataFile> {
+    return this.db.transaction(
+      'r',
+      [
+        this.db.events,
+        this.db.preferences,
+        this.db.comparisons,
+        this.db.notes,
+        this.db.itineraries,
+        this.db.settings,
+      ],
+      async () => {
+        const [
+          events,
+          preferences,
+          comparisons,
+          notes,
+          itineraries,
+          contact,
+          plans,
+          resolved,
+          rooms,
+        ] = await Promise.all([
+          this.db.events.toArray(),
+          this.db.preferences.toArray(),
+          this.db.comparisons.toArray(),
+          this.db.notes.toArray(),
+          this.db.itineraries.toArray(),
+          this.db.settings
+            .where('key')
+            .anyOf('attendee-profile', 'attendee-share-selection')
+            .toArray(),
+          this.db.settings.where('key').startsWith('plan-edits-').toArray(),
+          this.db.settings.where('key').startsWith('resolved-plan-').toArray(),
+          this.db.settings.where('key').startsWith('room-prefs-').toArray(),
+        ]);
+        return personalDataFromSnapshot(
+          {
+            bundles: events.map((record) => record.bundle),
+            preferences,
+            comparisons,
+            notes,
+            itineraries,
+            settings: [...contact, ...plans, ...resolved, ...rooms],
+          },
+          exportedAt,
+        );
+      },
+    );
+  }
 
   async saveEventBundle(bundle: EventBundle): Promise<void> {
     await this.db.events.put({ eventId: bundle.id, bundle, savedAt: new Date().toISOString() });

@@ -254,6 +254,10 @@
       {
         "file": "unknown-field.json",
         "describes": "unknown optional fields and sections survive a round trip"
+      },
+      {
+        "file": "pwa-export.json",
+        "describes": "a real PWA export retains personal sections and explicit sharing-off fields through native codec round-trip"
       }
     ],
     "invalid": [

@@ -10,13 +10,33 @@ Resolution uses CFP identity first. A unique CFP match survives a recreated row.
 
 The version-1 transport codec is implemented in both languages. It validates the envelope, unique event/activity references, canonical UTC export timestamp, a 5 MiB UTF-8 limit and maximum nesting of 64. Shared fixtures cover valid files, unknown fields and rejection cases. Unknown optional JSON sections survive decoding and encoding.
 
-This is not a shipped export/import flow. A valid envelope does not mean its section contents are safe to apply: storage adapters must validate their records and identity references before mutation. Those adapters and the attendee UI remain to implement.
+The PWA Settings page can export personal data from one consistent IndexedDB read transaction. It projects an explicit allowlist of personal record fields, including private contact fields regardless of the contact card's sharing selection. The UI explains this and states that import is not available yet. Credentials, device keys, chat caches, scanned contacts, passport stamps and general device settings are excluded.
+
+This is not a complete migration flow. A valid envelope does not mean its section contents are safe to apply: import adapters must validate their records and identity references before mutation. Native export, both import adapters and their attendee UI remain to implement.
 
 ## Versioned file design
 
 The transport uses one JSON document with format `indiafoss-personal-data`, integer `schemaVersion: 1`, export time (for example `2026-09-09T00:00:00.000Z`), and separately scoped event records. Each event record has `eventId`, an `activities` reference table, and a `sections` object. Device-independent contact data is carried in an optional top-level `contact` object.
 
-Section record schemas will be validated by their owning adapters; envelope decoding deliberately preserves unsupported optional sections. The required personal sections are:
+Section record schemas must be validated by their owning import adapters; envelope decoding deliberately preserves unsupported optional sections. The PWA exporter currently writes:
+
+| Location                                   | Contents                                                                                             |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `events[].sections.preferences`            | Activity ID, rating, comparison count, disposition, bookmark and optional triage answer              |
+| `events[].sections.comparisons`            | Comparison ID, both activity IDs, score and creation time                                            |
+| `events[].sections.notes`                  | Activity ID, note body and update time                                                               |
+| `events[].sections.plans`                  | Day, locked/removed IDs, both sides of replacements and custom blocks                                |
+| `events[].sections.resolvedPlans`          | Last saved activity IDs per day; recompute against the destination schedule before using             |
+| `events[].sections.itinerary`              | Legacy saved itinerary activity IDs and generation time                                              |
+| `events[].sections.rooms` / `roomsDecided` | Devroom preferences (including `stay`), IDs skipped by the room choice and onboarding decision state |
+| `contact.profile` / `contact.selection`    | Allowlisted contact fields/socials and the explicit sharing selection                                |
+| `unassigned`                               | Legacy preferences, notes and comparisons whose event cannot be uniquely determined                  |
+
+Every event-scoped activity reference used by these sections is included in the event's reference table, with CFP proposal identity when present in the cached programme. Custom-block IDs remain local plan IDs. Plan keys explicitly retain their event even if the programme has been removed.
+
+Legacy preferences, notes and comparisons have no event ID in IndexedDB. They are scoped only when all referenced activities belong uniquely to the same cached event. Removed IDs, IDs shared by cached events and cross-event comparisons go into `unassigned`; never discard them or infer the year from the ID/title. Importers must preserve this optional section for re-export and require an explicit event-resolution flow before applying it. Native's codec already preserves it, but native storage does not apply it yet.
+
+The required personal sections are:
 
 - Preferences: dispositions, bookmarks, ratings, comparison counts and triage answers.
 - Comparison history and devroom preferences, including whole-devroom reservations.
