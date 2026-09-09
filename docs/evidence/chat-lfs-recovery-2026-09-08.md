@@ -50,7 +50,7 @@ pins changed. Only the fork's missing LFS objects were restored.
 [Test run, attempt 3](https://github.com/hanthor/indiafoss-chat-android/actions/runs/34195657764/attempts/3)
 was restarted after verification. Its result must be assessed separately: repaired
 asset availability does not establish that Gradle, unit tests, screenshot tests
-or coverage thresholds pass. Chat #44 stays open until that evidence is recorded.
+or coverage thresholds pass. The subsequent completed gate is recorded below.
 
 Follow-up execution evidence:
 
@@ -61,7 +61,25 @@ Follow-up execution evidence:
   passed compilation and reached `:appnav:testDebugUnitTest`: 66 of 67 tests passed.
 - The remaining assertion expected `%21abc%3Ahs` rather than Android's valid
   `!abc%3Ahs` permalink encoding. PR #55 corrects the expected string without
-  altering room-join behaviour. The new full execution gate is still pending.
+  altering room-join behaviour. Later failures and their repairs are recorded below.
+
+## Completed execution gate — 9 September
+
+[PR #55](https://github.com/hanthor/indiafoss-chat-android/pull/55) merged at
+`952b87a9b06d3d16a6a1d70e3e89ab328c997a34` after all 14 checks passed. Beyond the
+first two repairs above, it updates an enterprise localhost expectation,
+waits for settled asynchronous capture states and adds/updates 66 reviewed
+screenshot baselines. The Chat repository's
+`docs/indiafoss/snapshot-recovery-2026-09-08.md` records the source run and hashes.
+These were baseline repairs after exact LFS restoration, not substitute LFS objects.
+
+[Main run 34291085872](https://github.com/hanthor/indiafoss-chat-android/actions/runs/34291085872)
+completed successfully: the full unit/screenshot/coverage command reported
+`BUILD SUCCESSFUL in 34m 52s`, with 7359 actionable tasks, 5225 executed and
+2134 from cache. Chat #44 is closed. Chat #20 is also closed after checking the
+merged DiffCache invariants and confirming the androidutils test task executed.
+The successful run predates report-retention changes and has no uploaded test
+report archive; its execution evidence is the workflow log, not an invented artifact.
 
 This restores assets referenced by the current main tree. It does not assert
 that every historical commit or pending PR has all of its distinct LFS objects.

@@ -12,4 +12,4 @@ Tests added:
 - Repository: HTTP boundary tests exercise corrupt legacy cache plus high revision stamp, APK-seed fallback, refresh/restart/no redundant asset fetch, and wrong bytes followed by a successful retry of the same revision.
 - Existing atomic-write failure test now forces replacement failure after complete temporary bytes are written, asserting the prior file remains byte-identical and the temporary file is cleaned up.
 
-No local JDK/SDK is available. Kotlin execution and Android validation run in CI; do not infer a pass from source inspection. PWA asset-digest verification and real device power-loss testing remain separate follow-ups under #190 and the readiness gates.
+No local JDK/SDK is available. Kotlin execution and Android validation run in CI; do not infer a pass from source inspection. All four CI gates passed in run 34299563987, including the core/repository tests and Android emulator. PWA asset-digest verification followed in PR #252. Physical-device rehearsal remains part of #191 and the readiness gates.

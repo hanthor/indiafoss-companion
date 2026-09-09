@@ -1,5 +1,7 @@
 # C-12 — Specify the mesh↔Matrix identity binding before anything routes on it
 
+> Status, 9 September 2026: ADR 0006 now distinguishes the shipped public-profile string comparison from the proposed cryptographic binding. #188 still owns the protocol review and implementation gate. Do not treat the legacy `verified` result from #111 as account-key verification; historical excerpts below are not evidence that this protocol exists.
+
 - Status: Blocked — maintainer decision (the choices in
   [#181](https://github.com/hanthor/indiafoss-companion/issues/181))
 - Repository: indiafoss-companion

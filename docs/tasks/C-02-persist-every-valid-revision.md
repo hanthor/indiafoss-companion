@@ -1,5 +1,7 @@
 # C-02 — A reinstated talk stops showing as cancelled, and valid data is never dropped
 
+> Status, 9 September 2026: Current implementation: web persistence and reinstatement landed in PR #235; native coherent cache and reinstatement landed in #251. PWA digest verification landed in #252. The pre-fix excerpts below are historical context, not code to restore. See #190 for remaining acceptance.
+
 - Status: Implemented in the web client; broader native/digest gates remain in #190
 - Repository: indiafoss-companion
 - Tracks: [#190](https://github.com/hanthor/indiafoss-companion/issues/190)
