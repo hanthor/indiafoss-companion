@@ -42,16 +42,17 @@ class AtomicFileTest {
 
     @Test
     fun `a failed write leaves the previous contents byte-identical`() {
-        // The #190 failure: an interrupted write used to truncate the real
-        // file. Simulate the interruption by making the temp path
-        // unwritable — a directory of that name cannot be written as a file.
         val target = File(dir, "bundle.json")
         target.writeText("the good schedule")
-        File(dir, "bundle.json.tmp").mkdir()
-
-        assertFailsWith<Exception> { writeFileAtomically(target, "half a sched") }
+        assertFailsWith<Exception> {
+            writeFileAtomically(target, "half a sched") { temp, _ ->
+                assertEquals("half a sched", temp.readText())
+                throw java.nio.file.AtomicMoveNotSupportedException(temp.path, target.path, "simulated failure")
+            }
+        }
 
         assertEquals("the good schedule", target.readText())
+        assertEquals(listOf("bundle.json"), dir.list()!!.sorted())
     }
 
     @Test
