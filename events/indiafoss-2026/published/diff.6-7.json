@@ -1,0 +1,15 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 7,
+  "from": 6,
+  "changes": [
+    {
+      "activityId": "act-cfp-doht3bggkm",
+      "title": "United by (Free) F&B – Food & Books",
+      "type": "title-changed"
+    }
+  ],
+  "summary": {
+    "title-changed": 1
+  }
+}
