@@ -99,7 +99,7 @@ class ScreenshotTest {
         shoot("session-long-title") {
             ActivityScreen(
                 state().copy(bundle = bundle.copy(activities = listOf(activity))),
-                activity.id, {}, {}, {},
+                activity.id, {}, {}, onBack = {},
             )
         }
         compose.onNodeWithText(title).assertIsDisplayed()
@@ -124,6 +124,11 @@ class ScreenshotTest {
         )
         MapScreen(state().copy(bundle = bundle.copy(activities = listOf(talk))), {}) {}
     }
+    @Test fun speakerDetail() = shoot("speaker-detail") {
+        val person = bundle.people.first { !it.bio.isNullOrBlank() }
+        org.indiafoss.companion.ui.screens.SpeakerScreen(state(), person.id, {}) {}
+    }
+
     @Test fun speakerOpensFromTalk() {
         val talk = bundle.activities.first { it.speakerIds.isNotEmpty() }
         val person = bundle.person(talk.speakerIds.first())!!
