@@ -45,9 +45,14 @@ def main():
             "--key-pass", "env:NIGHTLY_KEYSTORE_PASSWORD",
             "--out", str(signed), str(aligned))
         report = run(os.environ["APKSIGNER"], "verify", "--verbose", "--print-certs", str(signed))
-        fingerprints = re.findall(r"Signer #\d+ certificate SHA-256 digest: ([0-9a-fA-F]+)", report)
-        if [fingerprint.lower() for fingerprint in fingerprints] != [expected]:
-            raise ValueError("APK signer does not match the configured certificate")
+        fingerprints = re.findall(
+            r"^Signer (?:#\d+|\(minSdkVersion=[^\n]+\)) certificate SHA-256 digest: ([0-9a-fA-F]{64})$",
+            report, re.MULTILINE,
+        )
+        # New build-tools report SDK-ranged v3.1 signers. Every range must use
+        # the expected identity; a source-stamp certificate is not an APK signer.
+        if set(fingerprint.lower() for fingerprint in fingerprints) != {expected}:
+            raise ValueError(f"APK signer does not match configured certificate (found {len(fingerprints)} signer records)")
         run(os.environ["ZIPALIGN"], "-c", "-p", "4", str(signed))
         destination.write_bytes(signed.read_bytes())
     digest = hashlib.sha256(destination.read_bytes()).hexdigest()
