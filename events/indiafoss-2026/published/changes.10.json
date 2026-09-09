@@ -1,0 +1,32 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 10,
+  "from": 9,
+  "changes": [
+    {
+      "activityId": "act-28la54hqh4",
+      "title": "Ctrl+F for 34 Years of India's GovTech (Building a Public Commons for India's Digital Governance History)",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lar2a71m",
+      "title": "Developer Experience is the New Open Source Contribution. Here's Why",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-5fhpunas6r",
+      "title": "Communi-Con : 7 Community Voted Flash Talks",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tm8dp26",
+      "title": "Communi-Con",
+      "type": "cancelled"
+    }
+  ],
+  "summary": {
+    "time-changed": 2,
+    "added": 1,
+    "cancelled": 1
+  }
+}

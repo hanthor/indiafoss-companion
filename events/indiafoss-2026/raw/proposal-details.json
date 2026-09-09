@@ -1899,60 +1899,6 @@
       }
     ]
   },
-  "1vj5aoro8u": {
-    "proposalId": "1vj5aoro8u",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
-    "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
-    "keyTakeaways": [
-      "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
-      "Feasibility of eco-cost standard for interfaces",
-      "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
-      "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
-      "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
-    ],
-    "references": [
-      {
-        "label": "https://gooey.ai/sovereignty",
-        "url": "https://gooey.ai/sovereignty"
-      },
-      {
-        "label": "https://gooey.ai/agriculture",
-        "url": "https://gooey.ai/agriculture"
-      },
-      {
-        "label": "https://gooey.ai/model-trainer",
-        "url": "https://gooey.ai/model-trainer"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "dagd2l28tm": {
-    "proposalId": "dagd2l28tm",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
-    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://fosstodon.org/@badrihippo",
-        "url": "https://fosstodon.org/@badrihippo"
-      }
-    ],
-    "links": [
-      {
-        "label": "@Muneer_S’s thread",
-        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
   "37sjgknrj3": {
     "proposalId": "37sjgknrj3",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/37sjgknrj3",
@@ -2033,6 +1979,60 @@
       }
     ],
     "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1vj5aoro8u": {
+    "proposalId": "1vj5aoro8u",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
+    "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
+    "keyTakeaways": [
+      "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
+      "Feasibility of eco-cost standard for interfaces",
+      "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
+      "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
+      "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
+    ],
+    "references": [
+      {
+        "label": "https://gooey.ai/sovereignty",
+        "url": "https://gooey.ai/sovereignty"
+      },
+      {
+        "label": "https://gooey.ai/agriculture",
+        "url": "https://gooey.ai/agriculture"
+      },
+      {
+        "label": "https://gooey.ai/model-trainer",
+        "url": "https://gooey.ai/model-trainer"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "dagd2l28tm": {
+    "proposalId": "dagd2l28tm",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
+    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://fosstodon.org/@badrihippo",
+        "url": "https://fosstodon.org/@badrihippo"
+      }
+    ],
+    "links": [
+      {
+        "label": "@Muneer_S’s thread",
+        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
+      },
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"
@@ -3831,6 +3831,50 @@
       }
     ]
   },
+  "4eh569dvq9": {
+    "proposalId": "4eh569dvq9",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4eh569dvq9",
+    "description": "As community-generated datasets become increasingly important for training AI systems, there is a growing need to explore whether existing open data licenses adequately protect community contributions. This session will examine whether copyleft principles, which have successfully supported open source software ecosystems, can be adapted to datasets used for AI development. The discussion will focus on attribution, reciprocity, data provenance, community ownership, and the governance of data commons.\n\nCommunity-led initiatives across India and the world are creating datasets that support language technologies, accessibility tools, and AI research. However, many of these datasets are released without licensing frameworks specifically designed for AI use. This creates a risk that community-generated data may be incorporated into proprietary AI systems without attribution, transparency, or any meaningful contribution back to the communities that created them. Open source software have relied on copyleft licenses such as the GNU GPL to ensure that software and improvements remain available to the community. As community-generated datasets become increasingly important for training AI systems, a similar question is emerging for data i.e. can copyleft principles and licence be applied to datasets used for machine learning?\n\nA draft Community Data License has been developed by Viswam.ai and SFLC.in to address these concerns by applying copyleft principles to datasets. The proposed license seeks to ensure that community-generated datasets remain part of a shared commons by requiring attribution to original contributors, transparency regarding data provenance, and the sharing of modified or derived datasets under the same licence terms.\n\nThis session will use the draft license as a starting point for a broader discussion on the future of community data governance, open AI, and digital commons. The objective is to gather perspectives from developers, researchers, open-source contributors, civil society organisations, policymakers, and dataset creators on whether new licensing and governance approaches are needed to protect community data commons and how such a license could work in practice.\n\nOpen discussion with participants. The session will begin with a brief introduction to the problem statement and the draft Community Data License, followed by a moderated discussion. Participants will be encouraged to share experiences, concerns, use cases, and perspectives from technical, legal, policy, research, and community viewpoints. The moderator will guide the discussion around key questions and explore broad conversation focused on the topic.",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "82fbs78uua": {
+    "proposalId": "82fbs78uua",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/82fbs78uua",
+    "description": "I am Thejesh GN. In 2018, I started a yearly micro-grant of ₹1,00,000 in memory of my mother, called the Nagarathna Memorial Grant (NMG). The idea was to support meaningful work with no strings attached.\n\nThe reason for the grant can be anything that matters to the applicant and the people around them. While I personally prefer Free and Open Source Software, Creative Commons, and public-interest work, that is not a requirement.\n\nOver the years, the size of the grant has grown from ₹1 lakh to several lakhs, thanks to friends and supporters joining in. In 2026, the grant reached its largest size yet ₹5.6 lakhs with many people contributing and supporting the process.The idea is also not to grow beyond ₹10 lakhs as of now. Personally, I would consider any grant handling more than ₹10 lakhs/year in 2026 is not a micro grant. Even with the growth, the core idea remains unchanged, small, direct, trust-based support for meaningful work.\n\n2027 will mark the 10th year of the grant. This BoF is an opportunity to discuss how we can encourage more micro-grants in India.\n\nIn India, most funding for creative, public-interest, and open projects comes through large institutional grants. While those are important, micro-grants ( small, decentralized, peer-to-peer gifts or funding ) can often be more accessible, flexible, and liberating for both the giver and the receiver.\n\nThis BoF is an open discussion for FOSS contributors, creators, artists, writers, researchers, and community organizers to discuss about\n\nRound-table discussion.\n\nWe will begin with a short introduction to micro-funding and why it matters, followed by an overview of how NMG has worked, lessons learned, and challenges faced over the years.\n\nThe session will then open into a broader discussion and brainstorming on possible discussion points mentioned above.",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1f9ett9bgj": {
+    "proposalId": "1f9ett9bgj",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1f9ett9bgj",
+    "description": "A lot of FOSS events, meetups, devrooms, and community spaces describe themselves as community-driven. But what does that actually mean?\n\nIs a community-driven event just an event organized for a community, or should the community also have a say in what gets selected, what gets discussed, and what direction the space takes?\n\nThis BoF is intended to discuss how much involvement the community should have in shaping community events. This could include talk selection, CFP review, public voting, deciding meetup themes, choosing discussion topics, setting the long-term direction of a local chapter, and generally deciding who gets to steer the space.\n\nThere are several things we could discuss.\n\nShould talks and sessions be selected entirely by a small internal review group, or should the wider community have a visible role in the process? When does private review help maintain quality, and when does it become opaque gatekeeping? How do we balance expert curation with community participation? What are the risks of public voting becoming a popularity contest? What are the risks of everything being decided quietly in the background by a few people?\n\nThe key thing to resolve in this BoF is what “community-driven” should practically mean for FOSS and adjacent community spaces. I don’t think every decision can or should be made by public vote, but I also don’t think community spaces should become places where the community is only expected to attend, clap, and leave.\n\nIdeally, we discuss models that actually work. This could include open voting, hybrid review, published review criteria, community feedback loops, public roadmaps for meetups, first-time speaker support, and ways for new volunteers to have a real say without making the organizer’s job impossible.\n\nThis BoF is not meant to be a complaint session about any one event or organizing team. The goal is to discuss how we can build healthier, more transparent, and more participatory community spaces.\n\nIf you organize meetups, run a local chapter, review CFPs, volunteer at events, submit talks, attend community events, or just have opinions on how community spaces should be run, this BoF is for you.\n\nRound Table Discussion. Ideally we’d spend at least 60% of the time discussing practical models and ideas that communities can actually use.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://x.com/AskBaluBabu",
+        "url": "https://x.com/AskBaluBabu"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "5inuh3i6co": {
     "proposalId": "5inuh3i6co",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5inuh3i6co",
@@ -3895,50 +3939,6 @@
       {
         "label": "https://www.linkedin.com/in/smita-mutt/",
         "url": "https://www.linkedin.com/in/smita-mutt/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "4eh569dvq9": {
-    "proposalId": "4eh569dvq9",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4eh569dvq9",
-    "description": "As community-generated datasets become increasingly important for training AI systems, there is a growing need to explore whether existing open data licenses adequately protect community contributions. This session will examine whether copyleft principles, which have successfully supported open source software ecosystems, can be adapted to datasets used for AI development. The discussion will focus on attribution, reciprocity, data provenance, community ownership, and the governance of data commons.\n\nCommunity-led initiatives across India and the world are creating datasets that support language technologies, accessibility tools, and AI research. However, many of these datasets are released without licensing frameworks specifically designed for AI use. This creates a risk that community-generated data may be incorporated into proprietary AI systems without attribution, transparency, or any meaningful contribution back to the communities that created them. Open source software have relied on copyleft licenses such as the GNU GPL to ensure that software and improvements remain available to the community. As community-generated datasets become increasingly important for training AI systems, a similar question is emerging for data i.e. can copyleft principles and licence be applied to datasets used for machine learning?\n\nA draft Community Data License has been developed by Viswam.ai and SFLC.in to address these concerns by applying copyleft principles to datasets. The proposed license seeks to ensure that community-generated datasets remain part of a shared commons by requiring attribution to original contributors, transparency regarding data provenance, and the sharing of modified or derived datasets under the same licence terms.\n\nThis session will use the draft license as a starting point for a broader discussion on the future of community data governance, open AI, and digital commons. The objective is to gather perspectives from developers, researchers, open-source contributors, civil society organisations, policymakers, and dataset creators on whether new licensing and governance approaches are needed to protect community data commons and how such a license could work in practice.\n\nOpen discussion with participants. The session will begin with a brief introduction to the problem statement and the draft Community Data License, followed by a moderated discussion. Participants will be encouraged to share experiences, concerns, use cases, and perspectives from technical, legal, policy, research, and community viewpoints. The moderator will guide the discussion around key questions and explore broad conversation focused on the topic.",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "82fbs78uua": {
-    "proposalId": "82fbs78uua",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/82fbs78uua",
-    "description": "I am Thejesh GN. In 2018, I started a yearly micro-grant of ₹1,00,000 in memory of my mother, called the Nagarathna Memorial Grant (NMG). The idea was to support meaningful work with no strings attached.\n\nThe reason for the grant can be anything that matters to the applicant and the people around them. While I personally prefer Free and Open Source Software, Creative Commons, and public-interest work, that is not a requirement.\n\nOver the years, the size of the grant has grown from ₹1 lakh to several lakhs, thanks to friends and supporters joining in. In 2026, the grant reached its largest size yet ₹5.6 lakhs with many people contributing and supporting the process.The idea is also not to grow beyond ₹10 lakhs as of now. Personally, I would consider any grant handling more than ₹10 lakhs/year in 2026 is not a micro grant. Even with the growth, the core idea remains unchanged, small, direct, trust-based support for meaningful work.\n\n2027 will mark the 10th year of the grant. This BoF is an opportunity to discuss how we can encourage more micro-grants in India.\n\nIn India, most funding for creative, public-interest, and open projects comes through large institutional grants. While those are important, micro-grants ( small, decentralized, peer-to-peer gifts or funding ) can often be more accessible, flexible, and liberating for both the giver and the receiver.\n\nThis BoF is an open discussion for FOSS contributors, creators, artists, writers, researchers, and community organizers to discuss about\n\nRound-table discussion.\n\nWe will begin with a short introduction to micro-funding and why it matters, followed by an overview of how NMG has worked, lessons learned, and challenges faced over the years.\n\nThe session will then open into a broader discussion and brainstorming on possible discussion points mentioned above.",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1f9ett9bgj": {
-    "proposalId": "1f9ett9bgj",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1f9ett9bgj",
-    "description": "A lot of FOSS events, meetups, devrooms, and community spaces describe themselves as community-driven. But what does that actually mean?\n\nIs a community-driven event just an event organized for a community, or should the community also have a say in what gets selected, what gets discussed, and what direction the space takes?\n\nThis BoF is intended to discuss how much involvement the community should have in shaping community events. This could include talk selection, CFP review, public voting, deciding meetup themes, choosing discussion topics, setting the long-term direction of a local chapter, and generally deciding who gets to steer the space.\n\nThere are several things we could discuss.\n\nShould talks and sessions be selected entirely by a small internal review group, or should the wider community have a visible role in the process? When does private review help maintain quality, and when does it become opaque gatekeeping? How do we balance expert curation with community participation? What are the risks of public voting becoming a popularity contest? What are the risks of everything being decided quietly in the background by a few people?\n\nThe key thing to resolve in this BoF is what “community-driven” should practically mean for FOSS and adjacent community spaces. I don’t think every decision can or should be made by public vote, but I also don’t think community spaces should become places where the community is only expected to attend, clap, and leave.\n\nIdeally, we discuss models that actually work. This could include open voting, hybrid review, published review criteria, community feedback loops, public roadmaps for meetups, first-time speaker support, and ways for new volunteers to have a real say without making the organizer’s job impossible.\n\nThis BoF is not meant to be a complaint session about any one event or organizing team. The goal is to discuss how we can build healthier, more transparent, and more participatory community spaces.\n\nIf you organize meetups, run a local chapter, review CFPs, volunteer at events, submit talks, attend community events, or just have opinions on how community spaces should be run, this BoF is for you.\n\nRound Table Discussion. Ideally we’d spend at least 60% of the time discussing practical models and ideas that communities can actually use.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://x.com/AskBaluBabu",
-        "url": "https://x.com/AskBaluBabu"
       }
     ],
     "links": [
