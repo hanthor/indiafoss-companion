@@ -107,7 +107,6 @@ test('onboarding can create a card from a profile without a phone contact', asyn
   );
   await page.goto(appUrl('/welcome'));
   await page.getByRole('button', { name: 'Not now', exact: true }).click();
-  await page.getByRole('button', { name: 'No ticket yet →', exact: true }).click();
   await page.getByLabel('Username or profile URL').fill('asha');
   await page.getByRole('button', { name: 'Find profile', exact: true }).click();
   await page.getByRole('button', { name: 'Use this profile', exact: true }).click();
