@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
   "eventId": "indiafoss-2026",
-  "revision": 5,
-  "generatedAt": "2026-09-08T17:47:44.940Z",
+  "revision": 14,
+  "generatedAt": "2026-09-09T23:28:00.626Z",
   "timezone": "Asia/Kolkata",
-  "sourceUpdatedAt": "2026-09-08 23:17:05.653269",
+  "sourceUpdatedAt": "2026-09-09 22:43:49.137373",
   "assets": {
-    "event": "event.d2af1edf.json",
-    "schedule": "schedule.8e5cb185.json",
-    "people": "people.d4572b80.json",
-    "booths": "booths.ff990a0d.json"
+    "event": "event.3834aa40.json",
+    "schedule": "schedule.b65ed98f.json",
+    "people": "people.33cd1998.json",
+    "booths": "booths.6c87cf33.json"
   }
 }

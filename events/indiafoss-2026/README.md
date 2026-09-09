@@ -24,6 +24,19 @@ The schedule importer merges `booths.json` on every refresh. **It does not fetch
 
 The PWA planner honours availability dates and does not schedule unassigned booths. Day selection/filtering in the booth directory, explicit booth map positions, automatic sheet ingestion and native booth-visit planning remain follow-up work. Matrix room assignments also require a real directory; no booth rooms are fabricated.
 
+## Venue (getting there)
+
+`venue-arrival.json` is the reviewed outdoor arrival block (issue #278), merged into the bundle as `venue` by the schedule importer on every refresh. It repeats the organiser's own wording and links; nothing in it was physically verified.
+
+| Field                    | Value                                                     | Source (checked 10 September 2026)                                                            |
+| ------------------------ | --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Name, city, region       | NIMHANS Convention Centre, Bengaluru, Karnataka           | [Event page](https://fossunited.org/indiafoss/2026) FAQ                                       |
+| Map link and coordinates | `https://osmapp.org/way/1219285692#18.89/12.9431/77.5961` | Event page hero ("Open in OSM Maps"); same `map_link`/`map_coordinate` in `raw/event.json`    |
+| Address                  | NIMHANS Convention Centre, Hosur Road, Bengaluru          | [Participant Guidelines](https://fossunited.org/indiafoss/guide), "Venue and Facilities"      |
+| Travel guide             | linked as-is                                              | [Travel and Accommodation Guide](https://fossunited.org/indiafoss/guide/travel); not imported |
+
+The OpenStreetMap feature is the building destination the organiser selected. It is not evidence of an accessible entrance, a walking route, parking or transport, and the app does not present it as one; indoor routing is tracked separately (#223). Update the file and `checkedAt` when the organiser pages change, then regenerate the bundle.
+
 ## Reproduce and publish
 
 ```sh

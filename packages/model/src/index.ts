@@ -12,6 +12,7 @@
  */
 
 import type { MessagingConfig } from './messaging.js';
+import type { EventVenue } from './venue.js';
 
 /** Everything an attendee can deliberately spend conference time doing. */
 export type ActivityType =
@@ -174,6 +175,12 @@ export interface EventBundle {
   /** Optional Matrix rooms for the event; absent when organizers publish none. */
   messaging?: MessagingConfig;
 
+  /**
+   * Organiser-published venue name, address and map destination for the
+   * outdoor arrival flow (#278); absent until an organiser page confirms it.
+   */
+  venue?: EventVenue;
+
   sourceMetadata: SourceMetadata;
 }
 
@@ -274,6 +281,8 @@ export type {
   MessagingRoom,
 } from './messaging.js';
 export { collectBundleIssues, collectBundleWarnings, isValidEventBundle } from './validation.js';
+export { EVENT_VENUE_VERSION, collectVenueIssues, venueAddressLine, venueGeoUri } from './venue.js';
+export type { EventVenue, VenueCoordinates } from './venue.js';
 
 export {
   CONTACT_BOOK_VERSION,

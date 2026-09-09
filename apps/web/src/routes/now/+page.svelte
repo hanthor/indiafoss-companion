@@ -21,6 +21,7 @@
     setCurrentLocation,
   } from '$lib/location.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
+  import GettingThere from '$lib/components/GettingThere.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
   import { sessionRoomLink } from '$lib/element-links';
 
@@ -118,6 +119,9 @@
         <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
       {/if}
     </section>
+    {#if bundle?.venue}
+      <GettingThere venue={bundle.venue} />
+    {/if}
   {:else if nowState!.phase === 'after'}
     <section class="card">
       <h2>That's a wrap</h2>
@@ -251,6 +255,10 @@
           </label>
         {/if}
       </section>
+    {/if}
+
+    {#if bundle?.venue}
+      <GettingThere venue={bundle.venue} compact />
     {/if}
   {/if}
 </EventGate>

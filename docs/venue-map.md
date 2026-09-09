@@ -4,6 +4,16 @@ The `/map` tab is the NIMHANS Convention Centre floor plan, not a generic
 viewer. It answers two questions: what is happening around me now, and when do
 I need to move.
 
+## Getting there
+
+Outdoor arrival is a separate, smaller thing: `GettingThere.svelte` shows the
+organiser's venue name and address from `bundle.venue`, a copy-address button,
+an "Open in OpenStreetMap" link to the organiser-selected feature and a `geo:`
+link for whichever maps app the phone has. It appears on Home, Now and the
+welcome wizard, reads from the cached bundle, and deliberately says nothing
+about entrances, routes or transport (#278). Indoor navigation starts at the
+plan below.
+
 ## Drawing
 
 `apps/web/src/lib/venue-floors.ts` holds both floors extracted from the

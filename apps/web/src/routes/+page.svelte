@@ -7,6 +7,7 @@
   import DevroomBanner from '$lib/components/DevroomBanner.svelte';
   import { devroomArt } from '$lib/devroom-art';
   import EventGate from '$lib/components/EventGate.svelte';
+  import GettingThere from '$lib/components/GettingThere.svelte';
 
   const bundle = $derived(eventState.bundle);
 
@@ -114,6 +115,10 @@
       <span>Routing profile, privacy, data</span>
     </a>
   </nav>
+
+  {#if bundle?.venue}
+    <GettingThere venue={bundle.venue} />
+  {/if}
 
   {#if bundle?.id === 'indiafoss-2026'}
     <section class="devrooms" aria-labelledby="devrooms-heading">

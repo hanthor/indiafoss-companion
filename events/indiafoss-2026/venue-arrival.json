@@ -1,0 +1,41 @@
+{
+  "provenance": {
+    "checkedAt": "2026-09-10",
+    "sources": [
+      {
+        "url": "https://fossunited.org/indiafoss/2026",
+        "supplies": ["name", "city", "region", "mapUrl", "coordinates"],
+        "evidence": "Hero meta links 'Bengaluru' to the OpenStreetMap feature (title 'Open in OSM Maps'); FAQ: 'held on 26th and 27th September, 2026 at the NIMHANS Convention Centre at Bengaluru, Karnataka'. The public FOSS United event document (raw/event.json) carries the same map_link and map_coordinate."
+      },
+      {
+        "url": "https://fossunited.org/indiafoss/guide",
+        "supplies": ["address"],
+        "evidence": "Participant Guidelines, 'Venue and Facilities': 'Location: NIMHANS Convention Centre, Hosur Road, Bengaluru.'"
+      },
+      {
+        "url": "https://fossunited.org/indiafoss/guide/travel",
+        "supplies": ["travelGuideUrl"],
+        "evidence": "Organiser Travel and Accommodation Guide, linked as-is. None of its transport advice is imported."
+      }
+    ],
+    "notes": [
+      "Maintainer selected the OpenStreetMap feature link on 9 September 2026 (issue #278).",
+      "The map destination is the building feature the organiser chose. It is not evidence of an entrance, an accessible route, parking or transport; none of those are claimed here.",
+      "No physical verification of the venue is claimed. Re-check the source pages and update checkedAt when the organiser changes them."
+    ]
+  },
+  "venue": {
+    "version": 1,
+    "name": "NIMHANS Convention Centre",
+    "address": "NIMHANS Convention Centre, Hosur Road, Bengaluru",
+    "city": "Bengaluru",
+    "region": "Karnataka",
+    "country": "India",
+    "mapUrl": "https://osmapp.org/way/1219285692#18.89/12.9431/77.5961",
+    "coordinates": { "latitude": 12.9431, "longitude": 77.5961 },
+    "sourceUrl": "https://fossunited.org/indiafoss/2026",
+    "travelGuideUrl": "https://fossunited.org/indiafoss/guide/travel",
+    "checkedAt": "2026-09-10",
+    "note": "The map link marks the venue building as the organiser published it, not a specific entrance."
+  }
+}
