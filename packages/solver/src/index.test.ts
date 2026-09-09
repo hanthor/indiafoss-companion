@@ -3,6 +3,8 @@ import fc from 'fast-check';
 import type { Activity, EventBundle } from '@indiafoss/model';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from '@indiafoss/model';
 import {
+  applyItineraryEdits,
+  EMPTY_PLAN_EDITS,
   activityUtility,
   canFollow,
   DEFAULT_FLEXIBLE_GOALS,
@@ -365,4 +367,62 @@ describe('per-room lunch availability', () => {
       'afternoon',
     ]);
   });
+});
+
+describe('generated devroom plans after edit validation', () => {
+  it.each([false, true])('keeps consecutive talks feasible (reserved: %s)', (reserved) => {
+    const activities = [
+      act('a', '10:00', '10:30', { locationId: 'room', devroomId: 'docs', trackId: 'docs' }),
+      act('b', '10:30', '11:00', { locationId: 'room', devroomId: 'docs', trackId: 'docs' }),
+    ];
+    const generated = solveDay({
+      bundle: bundle(activities),
+      day: DAY,
+      preferences: prefs(),
+      travel,
+      flexibleGoals: [],
+      stayTrackIds: reserved ? ['docs'] : [],
+    });
+    expect(generated.itinerary.items.map((item) => item.activityId)).toEqual(['a', 'b']);
+    const edited = applyItineraryEdits({
+      base: generated.itinerary.items,
+      edits: EMPTY_PLAN_EDITS,
+      activities: new Map(activities.map((a) => [a.id, a])),
+      travel,
+    });
+    expect(edited.conflicts).toEqual([]);
+  });
+});
+
+it('leaves travel time on both sides of a fixed commitment', () => {
+  const activities = [
+    act('too-late-before', '09:00', '09:59', { locationId: 'other' }),
+    act('reachable-before', '09:00', '09:50', { locationId: 'other' }),
+    act('fixed', '10:00', '11:00', { locationId: 'room' }),
+    act('too-early-after', '11:01', '12:00', { locationId: 'other' }),
+    act('reachable-after', '11:10', '12:00', { locationId: 'other' }),
+  ];
+  const generated = solveDay({
+    bundle: bundle(activities),
+    day: DAY,
+    preferences: prefs(
+      { 'too-late-before': 2000, 'too-early-after': 2000 },
+      { fixed: 'must-attend' },
+    ),
+    travel,
+    flexibleGoals: [],
+  });
+  expect(generated.itinerary.items.map((i) => i.activityId)).toEqual([
+    'reachable-before',
+    'fixed',
+    'reachable-after',
+  ]);
+  expect(
+    applyItineraryEdits({
+      base: generated.itinerary.items,
+      edits: EMPTY_PLAN_EDITS,
+      activities: new Map(activities.map((a) => [a.id, a])),
+      travel,
+    }).conflicts,
+  ).toEqual([]);
 });

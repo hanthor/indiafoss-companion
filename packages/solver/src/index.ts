@@ -139,15 +139,26 @@ export function canFollow(
   bufferSeconds: number,
 ): boolean {
   if (!prev.end || !next.start) return false;
+  return (
+    parse(prev.end) + transitionSeconds(prev, next, travel, bufferSeconds) * 1000 <=
+    parse(next.start)
+  );
+}
+
+/** Shared travel/settling requirement for generation and edited-plan validation. */
+export function transitionSeconds(
+  prev: Pick<Activity, 'devroomId' | 'locationId'>,
+  next: Pick<Activity, 'devroomId' | 'locationId'>,
+  travel: TravelTimeProvider,
+  bufferSeconds: number,
+): number {
   const sameDevroom = Boolean(
     prev.devroomId &&
     prev.devroomId === next.devroomId &&
     prev.locationId &&
     prev.locationId === next.locationId,
   );
-  const travelSeconds = sameDevroom ? 0 : travel.seconds(prev.locationId, next.locationId);
-  if (sameDevroom) bufferSeconds = 0;
-  return parse(prev.end) + (travelSeconds + bufferSeconds) * 1000 <= parse(next.start);
+  return sameDevroom ? 0 : travel.seconds(prev.locationId, next.locationId) + bufferSeconds;
 }
 
 /**
@@ -345,13 +356,20 @@ export function solveDay(input: SolveDayInput): SolverResult {
   }
 
   const dayEnd = 24 * 60;
-  const segments: { fromMin: number; toMin: number }[] = [];
+  const segments: { fromMin: number; toMin: number; before?: Activity; after?: Activity }[] = [];
   let prevEnd = 0;
+  let previousCommitment: Activity | undefined;
   for (const m of mustAttends) {
-    segments.push({ fromMin: prevEnd, toMin: minutesOfDay(m.start!) });
+    segments.push({
+      fromMin: prevEnd,
+      toMin: minutesOfDay(m.start!),
+      before: previousCommitment,
+      after: m,
+    });
     prevEnd = minutesOfDay(m.end!);
+    previousCommitment = m;
   }
-  segments.push({ fromMin: prevEnd, toMin: dayEnd });
+  segments.push({ fromMin: prevEnd, toMin: dayEnd, before: previousCommitment });
 
   const chosen: Activity[] = [...mustAttends];
   let totalUtility = mustAttends.reduce((sum, m) => sum + activityUtility(m, preferences), 0);
@@ -362,6 +380,8 @@ export function solveDay(input: SolveDayInput): SolverResult {
       if (seen.has(a.id)) return false;
       if (minutesOfDay(a.start!) < segment.fromMin) return false;
       if (minutesOfDay(a.end!) > segment.toMin) return false;
+      if (segment.before && !canFollow(segment.before, a, travel, bufferSeconds)) return false;
+      if (segment.after && !canFollow(a, segment.after, travel, bufferSeconds)) return false;
       return true;
     });
     const { order } = longestPathInDag(inside, preferences, travel, bufferSeconds);
