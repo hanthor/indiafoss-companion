@@ -8,6 +8,8 @@
   import { journeyRoute, ROUTING_LABELS } from '$lib/journey';
   import { routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
   import type { RoutingProfile } from '@indiafoss/venue';
+  import { eventDay } from '$lib/resolved-plan';
+  import { livePlanState } from '$lib/resolved-plan.svelte';
   import { bookmarked } from '$lib/prefs.svelte';
   import {
     currentLocation,
@@ -28,12 +30,12 @@
 
   const BUFFER_SECONDS = DEFAULT_NOTIFICATION_WINDOW.leaveBufferMinutes * 60;
 
-  const clock = clockFromParams(
-    page.url.searchParams.get('now'),
-    page.url.searchParams.get('speed'),
+  const clock = $derived(
+    clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
   );
-  let now = $state(clock.now());
+  let now = $state('');
   $effect(() => {
+    now = clock.now();
     if (isFixedClock(clock)) return;
     const timer = setInterval(() => {
       now = clock.now();
@@ -90,7 +92,7 @@
 
   // ---- what's on ---------------------------------------------------------
 
-  const nowMs = $derived(parseInstant(now));
+  const nowMs = $derived(now ? parseInstant(now) : 0);
 
   const liveByRoom = $derived.by<Map<string, Activity[]>>(() => {
     // eslint-disable-next-line svelte/prefer-svelte-reactivity
@@ -144,11 +146,16 @@
   }
 
   const nextUp = $derived(
-    bundle && routingPrefs.loaded
+    bundle && now && routingPrefs.loaded
       ? computeNextUp({
           bundle,
           now,
           bookmarked,
+          plannedIds: new Set(
+            livePlanState.bundle === bundle && livePlanState.day === eventDay(now, bundle.timezone)
+              ? livePlanState.activityIds
+              : [],
+          ),
           venue,
           currentLocation: currentLocation.value,
           profile: routingPrefs.profile,
@@ -494,16 +501,20 @@
         {@const heading = labelHeading(room)}
         <button
           class="roomlabel {roomState(room.id)}"
+          data-planned-destination={room.id === nextRoom}
           class:compact={!zoomed}
           class:selected={selected === room.id}
           style={labelStyle(room)}
           aria-label="{roomTitle(room)}{first
             ? `${heading.devroom ? `, ${heading.text} devroom` : ''}, live: ${first.title}, ${minutesLeft(first)} min left`
-            : ''}{room.id === hereRoom ? ', you are here' : ''}"
+            : ''}{room.id === nextRoom ? ', next in your plan' : ''}{room.id === hereRoom
+            ? ', you are here'
+            : ''}"
           aria-pressed={selected === room.id}
           onclick={() => select(room.id)}
         >
           <span class="name">{roomTitle(room)}</span>
+          {#if room.id === nextRoom}<span class="talk">Next in your plan</span>{/if}
           {#if heading.devroom}<span class="talk">{truncate(heading.text, zoomed ? 34 : 24)}</span
             >{/if}
           {#if first}

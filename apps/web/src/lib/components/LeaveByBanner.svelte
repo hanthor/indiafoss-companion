@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { nowPlanState } from '$lib/resolved-plan.svelte';
+  import { livePlanState } from '$lib/resolved-plan.svelte';
   import { eventDay } from '$lib/resolved-plan';
   import { untrack } from 'svelte';
   import { resolve } from '$app/paths';
@@ -59,14 +59,11 @@
           bundle,
           now,
           bookmarked,
-          plannedIds: page.url.pathname.endsWith('/now')
-            ? new Set(
-                nowPlanState.eventId === bundle.id &&
-                  nowPlanState.day === eventDay(now, bundle.timezone)
-                  ? nowPlanState.activityIds
-                  : [],
-              )
-            : undefined,
+          plannedIds: new Set(
+            livePlanState.bundle === bundle && livePlanState.day === eventDay(now, bundle.timezone)
+              ? livePlanState.activityIds
+              : [],
+          ),
           mustAttend: (id) => dispositionOf(id) === 'must-attend',
           venue,
           currentLocation: currentLocation.value,
@@ -143,7 +140,7 @@
       {:else if currentLocation.value}· Route unavailable for {ROUTING_LABELS[
           routingPrefs.profile
         ].toLowerCase()}{/if}
-      {#if next.planned && !next.mustAttend}· bookmarked{/if}
+      {#if next.planned && !next.mustAttend}· in your plan{/if}
     </span>
   </a>
   <!-- eslint-enable svelte/no-navigation-without-resolve -->

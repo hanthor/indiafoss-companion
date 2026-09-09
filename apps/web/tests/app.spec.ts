@@ -317,7 +317,7 @@ test('sessions hand off to a Matrix client, offline-capable link first', async (
   await expect(web).toHaveAttribute('href', /matrix\.to\/#\/%23indiafoss-2025-room-devroom-1-aosp/);
 });
 
-test('must attend pins a talk in the plan and leads the leave-by banner', async ({ page }) => {
+test('must attend stays pinned while the banner follows plan order', async ({ page }) => {
   await page.goto(appUrl('/activity/act-c8ak0iov2l'));
   const must = page.getByRole('button', { name: 'Must attend' });
   await must.click();
@@ -326,9 +326,13 @@ test('must attend pins a talk in the plan and leads the leave-by banner', async 
   await page.goto(appUrl('/plan'));
   const list = page.getByRole('region', { name: /Must attend/ });
   await expect(list.getByRole('link', { name: /First Step into Open Source/ })).toBeVisible();
-  // The banner picks it over the programme order and says so.
+  // The banner follows the earlier planned talk rather than skipping to the must-go.
   const before = '2025-09-20T09:50:00+05:30';
   await page.goto(appUrl(`/schedule?now=${encodeURIComponent(before)}`));
+  await expect(page.locator('.leaveby')).toContainText(
+    'Strengthening the AOSP Developer Community',
+  );
+  await page.goto(appUrl('/schedule?now=2025-09-20T10:14:00%2B05:30'));
   const banner = page.getByRole('link', { name: /Must attend.*First Step into Open Source/ });
   await expect(banner).toBeVisible();
   await expect(banner).toContainText('MUST ATTEND');
@@ -652,4 +656,52 @@ test('Now asks to resolve an overlapping personal block instead of choosing a de
   const personal = page.getByRole('region', { name: 'Your plan now' });
   await expect(personal.getByText(/Your plan has conflicting choices/)).toBeVisible();
   await expect(personal.getByRole('link', { name: 'Show on map' })).toHaveCount(0);
+});
+
+test('map and every route banner use the edited plan without visiting Now', async ({ page }) => {
+  const time = '?event=indiafoss-2026&now=2026-09-26T09:29:00%2B05:30';
+  await page.goto(appUrl('/map' + time));
+  await expect(page.locator('.leaveby')).toContainText('Welcome Note');
+  await expect(page.locator('.roomlabel[data-planned-destination=true]')).toHaveCount(1);
+
+  await page.goto(appUrl('/plan' + time));
+  const row = page.locator('.itinerary li').filter({
+    has: page.getByRole('link', { name: 'Welcome Note', exact: true }),
+  });
+  await row.locator('summary').click();
+  await row.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Removed', exact: true })).toBeVisible();
+  await expect(page.locator('.leaveby')).not.toContainText('Welcome Note');
+
+  await page.goto(appUrl('/schedule' + time));
+  await expect(page.locator('.leaveby')).toBeVisible();
+  await expect(page.locator('.leaveby')).not.toContainText('Welcome Note');
+  await expect(page.locator('.leaveby')).toContainText('in your plan');
+  await page.reload();
+  await expect(page.locator('.leaveby')).toBeVisible();
+  await expect(page.locator('.leaveby')).not.toContainText('Welcome Note');
+});
+
+test('a conflicting plan clears map recommendations and banners on every route', async ({
+  page,
+}) => {
+  const time = '?event=indiafoss-2026&now=2026-09-26T09:29:00%2B05:30';
+  await page.goto(appUrl('/plan' + time));
+  await expect(page.locator('.leaveby')).toBeVisible();
+  const form = page.locator('.add-block');
+  await form.getByLabel('What').fill('Conflicting meeting');
+  await form.getByLabel('Start', { exact: true }).fill('09:31');
+  await form.getByLabel('End', { exact: true }).fill('09:40');
+  await form.getByRole('button', { name: 'Add block' }).click();
+  await expect(form.getByLabel('What')).toHaveValue('');
+  await expect(page.getByTestId('edit-conflicts')).toBeVisible();
+  await expect(page.locator('.leaveby')).toHaveCount(0);
+
+  await page.goto(appUrl('/map' + time));
+  await expect(page.getByRole('group', { name: 'Floor', exact: true })).toBeVisible();
+  await expect(page.locator('.roomlabel')).not.toHaveCount(0);
+  await expect(page.locator('.roomlabel[data-planned-destination=true]')).toHaveCount(0);
+  await expect(page.locator('.leaveby')).toHaveCount(0);
+  await page.goto(appUrl('/now' + time));
+  await expect(page.getByText(/Your plan has conflicting choices/)).toBeVisible();
 });

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { planInputs } from '$lib/resolved-plan.svelte';
   import { boothRoomLink } from '$lib/element-links';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { linksFromUrls } from '@indiafoss/model';
@@ -27,12 +28,14 @@
     if (!booth) return;
     await storage.setSetting(`booth-visit-${booth.id}`, String(minutes));
     scheduled = String(minutes);
+    planInputs.revision += 1;
   }
 
   async function cancelVisit(): Promise<void> {
     if (!booth) return;
     await storage.setSetting(`booth-visit-${booth.id}`, '');
     scheduled = null;
+    planInputs.revision += 1;
   }
 </script>
 
