@@ -73,8 +73,8 @@
     void goto(resolve('/welcome'));
   });
 
-  // Reminders are re-armed once a minute of app time: every real minute, or
-  // much more often while the day simulator runs the clock fast. A run
+  // Extend the reminder window once a minute without cancelling due deliveries.
+  // This happens more often while the day simulator runs the clock fast. A run
   // starting or stopping moves the clock, so everything armed is dropped and
   // re-armed on the new one.
   $effect(() => {
@@ -92,7 +92,7 @@
     void currentLocation.value;
     const every = run ? untrack(() => tickInterval(60_000)) : 60_000;
     const timer = setInterval(() => {
-      void armNotifications().catch(() => {});
+      void armNotifications(true).catch(() => {});
     }, every);
     void armNotifications().catch(() => {});
     return () => clearInterval(timer);

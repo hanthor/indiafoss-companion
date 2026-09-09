@@ -1,4 +1,5 @@
 <script lang="ts">
+  import NativeDownload from '$lib/components/NativeDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { base, resolve } from '$app/paths';
   import { formatDayLabel } from '@indiafoss/schedule';
@@ -64,6 +65,8 @@
       <a class="button gray" href={resolve('/now')}>What's on now</a>
     </div>
   </section>
+
+  <NativeDownload />
 
   <a class="rank-hero" href={resolve('/plan/rank')}>
     <span class="rank-kicker">Make the most of your day</span>

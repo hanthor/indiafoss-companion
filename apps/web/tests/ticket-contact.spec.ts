@@ -4,8 +4,7 @@ import { appUrl } from './app-url.js';
 
 const ticketUrl = 'https://fossunited.org/get_tickets?id=6k1ha138pb';
 test.beforeEach(async ({ page }) => {
-  await page.goto(appUrl('/welcome'));
-  await page.getByRole('button', { name: 'Not now' }).click();
+  await page.goto(appUrl('/connect?setup=done'));
 });
 
 test('PDF QR is decoded locally, reviewed, and explicitly saved', async ({ page, context }) => {
@@ -18,7 +17,6 @@ test('PDF QR is decoded locally, reviewed, and explicitly saved', async ({ page,
   await page.evaluate(() => navigator.serviceWorker.ready);
   await context.setOffline(true);
   await page.reload();
-  await page.getByRole('button', { name: 'Not now' }).click();
   let openedTicket = false;
   page.on('request', (request) => {
     if (request.url().startsWith('https://fossunited.org/get_tickets')) openedTicket = true;
@@ -26,13 +24,11 @@ test('PDF QR is decoded locally, reviewed, and explicitly saved', async ({ page,
   await page
     .getByLabel('Upload ticket PDF or image')
     .setInputFiles({ name: 'ticket.pdf', mimeType: 'application/pdf', buffer: pdf });
-  const use = page.getByRole('button', { name: 'Use ticket::6k1ha138pb' });
+  const use = page.getByRole('button', { name: 'Save ticket::6k1ha138pb' });
   await expect(use).toBeVisible();
-  await expect(page.getByLabel('Ticket reference')).toHaveValue('');
+  await expect(page.getByLabel('Ticket reference', { exact: true })).toHaveValue('');
   await use.click();
-  await page.getByRole('button', { name: 'Save ticket →' }).click();
   await expect(page.getByRole('heading', { name: 'Your contact card', exact: true })).toBeVisible();
-  await page.goto(appUrl('/connect'));
   await expect(page.getByLabel('Ticket reference', { exact: true })).toHaveValue(
     'ticket::6k1ha138pb',
   );
@@ -45,7 +41,7 @@ test('PDF QR is decoded locally, reviewed, and explicitly saved', async ({ page,
 test('image upload can retry after an unrelated QR without replacing the reference', async ({
   page,
 }) => {
-  await page.getByLabel('Ticket reference').fill('ticket::existing');
+  await page.getByLabel('Ticket reference', { exact: true }).fill('ticket::existing');
   const upload = page.getByLabel('Upload ticket PDF or image');
   await upload.setInputFiles({
     name: 'other.png',
@@ -53,20 +49,25 @@ test('image upload can retry after an unrelated QR without replacing the referen
     buffer: await QRCode.toBuffer('https://example.com'),
   });
   await expect(page.getByRole('status').filter({ hasText: 'No readable IndiaFOSS' })).toBeVisible();
-  await expect(page.getByLabel('Ticket reference')).toHaveValue('ticket::existing');
+  await expect(page.getByLabel('Ticket reference', { exact: true })).toHaveValue(
+    'ticket::existing',
+  );
   await upload.setInputFiles({
     name: 'ticket.png',
     mimeType: 'image/png',
     buffer: await QRCode.toBuffer(ticketUrl),
   });
-  await page.getByRole('button', { name: 'Use ticket::6k1ha138pb' }).click();
-  await expect(page.getByLabel('Ticket reference')).toHaveValue('ticket::6k1ha138pb');
+  await page.getByRole('button', { name: 'Save ticket::6k1ha138pb' }).click();
+  await expect(page.getByLabel('Ticket reference', { exact: true })).toHaveValue(
+    'ticket::6k1ha138pb',
+  );
 });
 
 test('contact file fills blanks, preserves typed name, and keeps private fields unshared', async ({
   page,
 }) => {
-  await page.getByRole('button', { name: 'No ticket yet →' }).click();
+  await page.goto(appUrl('/welcome'));
+  await page.getByRole('button', { name: 'Not now' }).click();
   await expect(page.getByRole('heading', { name: 'Your contact card', exact: true })).toBeVisible();
   await page.getByLabel('Name', { exact: true }).fill('Chosen name');
   await page.getByLabel('Import my contact (.vcf)').setInputFiles({
@@ -101,7 +102,7 @@ test('contact file fills blanks, preserves typed name, and keeps private fields 
 });
 
 test('native contact picker imports just the selected entry', async ({ page }) => {
-  await page.evaluate(() =>
+  await page.addInitScript(() =>
     Object.defineProperty(navigator, 'contacts', {
       configurable: true,
       value: {
@@ -113,17 +114,16 @@ test('native contact picker imports just the selected entry', async ({ page }) =
       },
     }),
   );
-  await page.getByRole('button', { name: 'No ticket yet →' }).click();
+  await page.goto(appUrl('/welcome'));
+  await page.getByRole('button', { name: 'Not now' }).click();
   await page.getByRole('button', { name: 'From my contacts' }).click();
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('My name');
   await expect(page.getByLabel('Phone', { exact: true })).toHaveValue('+919876543210');
 });
 
 test('pasted official ticket URL saves the normalized reference', async ({ page }) => {
-  await page.getByLabel('Ticket reference').fill(ticketUrl);
-  await page.getByRole('button', { name: 'Save ticket →' }).click();
+  await page.getByLabel('Ticket reference', { exact: true }).fill(ticketUrl);
   await expect(page.getByRole('heading', { name: 'Your contact card', exact: true })).toBeVisible();
-  await page.goto(appUrl('/connect'));
   await expect(page.getByLabel('Ticket reference', { exact: true })).toHaveValue(
     'ticket::6k1ha138pb',
   );
@@ -137,6 +137,12 @@ test('camera/manual scan preview can save an official ticket link', async ({ pag
   await expect(
     page.getByText('Ticket reference saved. This does not verify admission.'),
   ).toBeVisible();
+  await page.goto(appUrl('/welcome'));
+  await page.getByRole('button', { name: 'Not now' }).click();
+  await expect(page.getByLabel('Ticket reference', { exact: true })).toHaveCount(0);
+  await page.getByLabel('Name', { exact: true }).fill('Attendee');
+  await page.getByRole('button', { name: 'Save →', exact: true }).click();
+  await page.getByRole('button', { name: 'Later, show me around' }).click();
   await page.goto(appUrl('/connect'));
   await expect(page.getByLabel('Ticket reference', { exact: true })).toHaveValue(
     'ticket::6k1ha138pb',

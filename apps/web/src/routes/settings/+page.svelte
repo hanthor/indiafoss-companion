@@ -1,4 +1,5 @@
 <script lang="ts">
+  import NativeDownload from '$lib/components/NativeDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
   import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
@@ -89,6 +90,8 @@
     </p>
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
   </section>
+  <NativeDownload />
+
   <PersonalDataExport />
   <section class="card">
     <h2>Schedule updates</h2>
@@ -209,8 +212,8 @@
   <section class="card">
     <h2>Setup</h2>
     <p class="muted">
-      The welcome steps from the first run: reminders, ticket, your card, ranking. Nothing is reset
-      by running them again.
+      The welcome steps from the first run: reminders, your card, ranking. Nothing is reset by
+      running them again.
     </p>
     <a class="button secondary" href={resolve('/welcome')}>Run setup again</a>
   </section>

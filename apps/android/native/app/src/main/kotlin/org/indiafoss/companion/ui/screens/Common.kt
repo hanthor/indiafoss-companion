@@ -17,6 +17,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +55,13 @@ fun SessionCard(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    val track = bundle?.tracks?.firstOrNull { it.id == activity.devroomId }
+                        ?: bundle?.tracks?.firstOrNull { it.id == activity.trackId }
+                    track?.let {
+                        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small, modifier = Modifier.padding(vertical = 4.dp)) {
+                            Text(it.name, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
                     Text(
                         text = activity.title,
                         style = MaterialTheme.typography.titleMedium,

@@ -234,7 +234,6 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     state = state,
                     onReminders = viewModel::setRemindersEnabled,
                     onSave = viewModel::saveProfile,
-                    onScan = scan,
                     onDone = { rank ->
                         viewModel.setOnboardingDone()
                         navController.navigate(if (rank) "rank" else "now") { popUpTo("welcome") { inclusive = true } }
@@ -253,6 +252,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     activityId = entry.arguments?.getString("id").orEmpty(),
                     onBookmark = viewModel::toggleBookmark,
                     onMustAttend = viewModel::toggleMustAttend,
+                    onOpenSpeaker = { navController.navigate("speaker/$it") },
                     onBack = { navController.popBackStack() },
                 )
             }

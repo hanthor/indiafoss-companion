@@ -48,6 +48,8 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (S
     val roomStates = bundle?.locations.orEmpty().associate { room ->
         val running = live[room.id].orEmpty().firstOrNull()
         room.id to RoomState(
+            title = running?.title,
+            name = room.name,
             live = running?.end?.let { "${Schedule.minutesUntil(it, state.now)} min left" },
             here = state.currentLocation == room.id,
             next = next?.locationId == room.id,
@@ -67,7 +69,7 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (S
                 }
                 val floor = floors[floorIndex.coerceIn(0, floors.lastIndex)]
                 Box(Modifier.fillMaxWidth().weight(1f)) {
-                    FloorPlanView(floor, roomStates, onRoomTap = { room -> sheet = room.key ?: room.id })
+                    FloorPlanView(floor, roomStates, onRoomTap = { room -> sheet = room.programmeLocationId(bundle) })
                 }
                 sheet?.let { id ->
                     val room = bundle?.location(id) ?: bundle?.locations?.firstOrNull { it.id == id }

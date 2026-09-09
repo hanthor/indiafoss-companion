@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
+import org.indiafoss.companion.ui.Avatar
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.Schedule
 
@@ -43,6 +44,7 @@ fun ActivityScreen(
     activityId: String,
     onBookmark: (String) -> Unit,
     onMustAttend: (String) -> Unit,
+    onOpenSpeaker: ((String) -> Unit)? = null,
     onBack: () -> Unit,
 ) {
     val activity = state.activity(activityId)
@@ -169,6 +171,8 @@ fun ActivityScreen(
                 item { SectionHeader(if (speakers.size == 1) "Speaker" else "Speakers") }
                 items(speakers) { person ->
                     ListItem(
+                        modifier = if (onOpenSpeaker != null) Modifier.clickable { onOpenSpeaker(person.id) } else Modifier,
+                        leadingContent = { Avatar(person.name, person.avatarUrl, size = 48.dp) },
                         headlineContent = { Text(person.name) },
                         supportingContent = {
                             val affiliation = listOfNotNull(person.designation, person.organization)
