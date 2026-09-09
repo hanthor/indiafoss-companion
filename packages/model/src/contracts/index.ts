@@ -127,3 +127,16 @@ export const CONTRACT_VERSIONS = {
   appHandoff: 1,
   capabilityRecord: 1,
 } as const;
+
+export {
+  PERSONAL_DATA_SCHEMA_VERSION,
+  PERSONAL_DATA_MAX_BYTES,
+  collectPersonalDataIssues,
+  decodePersonalData,
+  encodePersonalData,
+} from './personal-data.js';
+export type {
+  PersonalDataFile,
+  PersonalDataEvent,
+  PersonalDataDecodeResult,
+} from './personal-data.js';

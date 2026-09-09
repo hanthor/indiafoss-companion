@@ -41,7 +41,8 @@ export type ContractName =
   | 'contact-card'
   | 'identity-binding'
   | 'app-handoff'
-  | 'capability-record';
+  | 'capability-record'
+  | 'personal-data';
 
 /** One fixture case as listed in `index.json`. */
 export interface FixtureCase {
