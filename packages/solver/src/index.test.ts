@@ -3,6 +3,8 @@ import fc from 'fast-check';
 import type { Activity, EventBundle } from '@indiafoss/model';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from '@indiafoss/model';
 import {
+  applyItineraryEdits,
+  EMPTY_PLAN_EDITS,
   activityUtility,
   canFollow,
   DEFAULT_FLEXIBLE_GOALS,
@@ -364,5 +366,30 @@ describe('per-room lunch availability', () => {
       `flex-lunch-${DAY}`,
       'afternoon',
     ]);
+  });
+});
+
+describe('generated devroom plans after edit validation', () => {
+  it.each([false, true])('keeps consecutive talks feasible (reserved: %s)', (reserved) => {
+    const activities = [
+      act('a', '10:00', '10:30', { locationId: 'room', devroomId: 'docs', trackId: 'docs' }),
+      act('b', '10:30', '11:00', { locationId: 'room', devroomId: 'docs', trackId: 'docs' }),
+    ];
+    const generated = solveDay({
+      bundle: bundle(activities),
+      day: DAY,
+      preferences: prefs(),
+      travel,
+      flexibleGoals: [],
+      stayTrackIds: reserved ? ['docs'] : [],
+    });
+    expect(generated.itinerary.items.map((item) => item.activityId)).toEqual(['a', 'b']);
+    const edited = applyItineraryEdits({
+      base: generated.itinerary.items,
+      edits: EMPTY_PLAN_EDITS,
+      activities: new Map(activities.map((a) => [a.id, a])),
+      travel,
+    });
+    expect(edited.conflicts).toEqual([]);
   });
 });

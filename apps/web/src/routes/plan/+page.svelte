@@ -231,7 +231,7 @@
 
     {#if edited.conflicts.length > 0}
       <section class="conflict warn" role="alert" data-testid="edit-conflicts">
-        <h2>Some edits don't fit</h2>
+        <h2>Some plan items conflict</h2>
         <p class="muted small">
           These items stay in your plan so you can fix them — nothing was silently removed.
         </p>

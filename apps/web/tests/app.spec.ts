@@ -578,3 +578,23 @@ test('2026 booth directory preserves showcasing days and unassigned availability
   await expect(page.getByRole('button', { name: 'Schedule 15 min' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Find on map' })).toHaveCount(0);
 });
+
+test('2026 fresh and whole-devroom plans do not invent travel between same-room talks', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible();
+  await expect(page.getByTestId('edit-conflicts')).toHaveCount(0);
+  await page.goto(appUrl('/plan/rank?event=indiafoss-2026&mode=rooms'));
+  await page.getByRole('button', { name: 'Stay for this devroom', exact: true }).first().click();
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible();
+  // A real transfer after the reserved block may still conflict; same-room talks must not.
+  await expect(page.getByTestId('edit-conflicts')).not.toContainText(
+    'Not enough time to reach "Your first open source contribution',
+  );
+
+  await expect(
+    page.locator('.itinerary').getByRole('link', { name: /Your first open source contribution/ }),
+  ).toBeVisible();
+});
