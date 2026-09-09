@@ -78,6 +78,15 @@ class EventRepositoryTest {
     }
 
     @Test
+    fun packagedSeedMatchesTheCanonicalProgrammeWithoutRunningTheWebBuild() {
+        val root = generateSequence(File(System.getProperty("user.dir"))) { it.parentFile }
+            .first { File(it, "pnpm-workspace.yaml").isFile }
+        val expected = File(root, "events/indiafoss-2026/normalized/event-bundle.json").readText()
+        val packaged = context.assets.open("event-bundle.json").bufferedReader().use { it.readText() }
+        assertEquals(expected, packaged)
+    }
+
+    @Test
     fun corruptLegacyCacheAndHighStampDoNotPreventRepairThenRestartSkipsRedownload() = runBlocking {
         File(context.filesDir, "indiafoss-2026-bundle.json").writeText("{broken")
         File(context.filesDir, "indiafoss-2026-revision").writeText("999")
