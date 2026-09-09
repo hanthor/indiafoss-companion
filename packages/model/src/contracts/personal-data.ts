@@ -120,7 +120,7 @@ export function decodePersonalData(text: string): PersonalDataDecodeResult {
 }
 
 export function encodePersonalData(data: PersonalDataFile): string {
-  const text = JSON.stringify(data, null, 2);
+  const text = JSON.stringify(data);
   const result = decodePersonalData(text);
   if (!result.ok) throw new Error(result.issues.join('; '));
   return text;
