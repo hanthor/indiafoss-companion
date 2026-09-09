@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ContactChecks from '$lib/components/ContactChecks.svelte';
   import { resolve } from '$app/paths';
   import { identiconSvg, shortFingerprint } from '@indiafoss/model';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
@@ -25,8 +26,10 @@
 <h1>Compare badges</h1>
 <p class="lead">
   Hold the phones together. The badge on your screen must match the badge they see for you, and
-  theirs must match what you saved. Same pixels and same digits: you scanned each other's real key.
+  theirs must match what you saved. Matching badges mean the card keys match.
 </p>
+
+<ContactChecks />
 
 <div class="pair">
   <section class="side" aria-label="Your key badge">

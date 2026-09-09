@@ -1,3 +1,4 @@
+import { showBrowserNotification } from './browser-notification';
 import { CompanionStorage } from '@indiafoss/storage';
 import { base } from '$app/paths';
 import {
@@ -129,11 +130,15 @@ export async function testReminder(): Promise<void> {
       await hydrateNotifications();
       return;
     }
-    const shown = new Notification('IndiaFOSS reminder test', {
-      body: 'This is a test while the Companion is open.',
-      tag: 'indiafoss-reminder-test',
-    });
-    setTimeout(() => shown.close(), 10_000);
+    await showBrowserNotification(
+      'IndiaFOSS reminder test',
+      {
+        body: 'This is a test while the Companion is open.',
+        tag: 'indiafoss-reminder-test',
+        icon: `${base}/icons/icon-192.png`,
+      },
+      `${window.location.origin}${base}/plan`,
+    );
     reminderState.testMessage =
       'Test sent to your browser. Check whether it appeared; this does not test delivery with the app closed.';
   } catch {
@@ -144,10 +149,14 @@ export async function testReminder(): Promise<void> {
 
 /**
  * All alerts come from feasible edited plans, including removals/replacements.
- * Reconciliation cancels old timers before resolving and serialises transport writes.
+ * Input changes cancel old timers before resolving. Clock-only refreshes extend
+ * the lookahead window without interrupting timers or browser deliveries.
  */
-export async function armNotifications(): Promise<void> {
-  await reconciler.replace(async () => {
+export async function armNotifications(clockRefresh = false): Promise<void> {
+  const reconcile = clockRefresh
+    ? reconciler.refresh.bind(reconciler)
+    : reconciler.replace.bind(reconciler);
+  await reconcile(async () => {
     const bundle = eventState.bundle;
     if (!notificationsEnabled.value || !bundle) return null;
     await hydrateRoutingProfile();

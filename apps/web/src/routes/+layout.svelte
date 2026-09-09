@@ -73,8 +73,8 @@
     void goto(resolve('/welcome'));
   });
 
-  // Reminders are re-armed once a minute of app time: every real minute, or
-  // much more often while the day simulator runs the clock fast. A run
+  // Extend the reminder window once a minute without cancelling due deliveries.
+  // This happens more often while the day simulator runs the clock fast. A run
   // starting or stopping moves the clock, so everything armed is dropped and
   // re-armed on the new one.
   $effect(() => {
@@ -92,7 +92,7 @@
     void currentLocation.value;
     const every = run ? untrack(() => tickInterval(60_000)) : 60_000;
     const timer = setInterval(() => {
-      void armNotifications().catch(() => {});
+      void armNotifications(true).catch(() => {});
     }, every);
     void armNotifications().catch(() => {});
     return () => clearInterval(timer);
@@ -196,7 +196,19 @@
       <img src={logoSrc} alt="IndiaFOSS 2026" />
       <span class="brand-sub">Companion</span>
     </a>
-    <nav class="toplinks" aria-label="Account">
+    <nav class="toplinks" aria-label="App actions">
+      <a
+        href="https://github.com/hanthor/indiafoss-companion/releases/download/nightly/indiafoss-companion-nightly.apk"
+        aria-label="Download Android app"
+        title="Download the native Android Companion APK"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"
+          ><path
+            d="M11 3h2v10l3-3 1.4 1.4L12 17l-5.4-5.6L8 10l3 3V3zM4 17h2v3h12v-3h2v5H4v-5z"
+          /></svg
+        >
+        <span>Android</span>
+      </a>
       <a
         class="scancta"
         href={resolve('/scan')}
@@ -405,6 +417,16 @@
   .toplinks a.scancta[aria-current='page'] {
     background: color-mix(in srgb, var(--amber) 82%, var(--on-ink));
     color: var(--ink);
+  }
+  @media (max-width: 380px) {
+    .brand img {
+      width: 28vw;
+    }
+    .toplinks a.scancta {
+      flex-direction: column;
+      gap: 0.05rem;
+      padding: 0.25rem 0.45rem;
+    }
   }
   .pixelstripe {
     position: sticky;

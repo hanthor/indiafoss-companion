@@ -140,9 +140,6 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         },
     ) { padding ->
         Column(Modifier.padding(padding)) {
-        if (state.bundle?.sourceMetadata?.scheduleStatus == "draft") {
-            Text("Draft schedule · Times and sessions may change.")
-        }
         val route = backStack?.destination?.route
         // The countdown strip sits under every tab's app bar, not over detail screens.
         if (route != null && destinations.any { it.route == route }) {
@@ -234,7 +231,6 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     state = state,
                     onReminders = viewModel::setRemindersEnabled,
                     onSave = viewModel::saveProfile,
-                    onScan = scan,
                     onDone = { rank ->
                         viewModel.setOnboardingDone()
                         navController.navigate(if (rank) "rank" else "now") { popUpTo("welcome") { inclusive = true } }
@@ -253,6 +249,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     activityId = entry.arguments?.getString("id").orEmpty(),
                     onBookmark = viewModel::toggleBookmark,
                     onMustAttend = viewModel::toggleMustAttend,
+                    onOpenSpeaker = { navController.navigate("speaker/$it") },
                     onBack = { navController.popBackStack() },
                 )
             }

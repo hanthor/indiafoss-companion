@@ -62,6 +62,7 @@ export default defineConfig({
         ],
       },
       workbox: {
+        importScripts: [`${base}/notification-events.js`],
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,json,woff2}'],
         // Update manifests are freshness checks, never offline data.
         globIgnores: ['**/events/*/manifest.json'],

@@ -512,6 +512,38 @@
       }
     ]
   },
+  "8knf7bja7g": {
+    "proposalId": "8knf7bja7g",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8knf7bja7g",
+    "description": "Many developers see open source as a destination: get your first pull request merged, participate in Hacktoberfest, maybe even crack Google Summer of Code. But in reality, open source is a journey - one that evolves from curiosity to contribution, from contribution to ownership, and from ownership to leadership.\n\nIn this talk, I will share my unconventional path through the FOSS ecosystem. What started as participation in FOSS Hack (India's largest open-source hackathon) eventually led to building and maintaining projects used by thousands of developers, and growing it into an official Google Summer of Code organization, mentoring contributors worldwide.\n\nThrough stories of first contributions, rejected pull requests, community building, mentorship, and project stewardship, this session will explore what it really takes to grow in open source. We'll discuss how contributors can find projects they genuinely care about, navigate complex codebases, build credibility within communities, and transition from being \"someone who contributes\" to someone who creates opportunities for others.\n\nWe will also cover how contributing to large-scale industry led open source projects requires a slightly different approach.\n\nWhether you're wondering how to make your first contribution or thinking about becoming a maintainer, this talk offers practical lessons, hard-earned insights, and a roadmap for building a meaningful and sustainable open-source journey.",
+    "keyTakeaways": [
+      "A practical roadmap for getting started in FOSS.",
+      "How documentation, testing, design, community support, and issue triage are also valuable entry points into open source.",
+      "How long-term contributions come from genuine interest and alignment with a project's mission and community.",
+      "Open source is a people-first ecosystem where communication, collaboration, and empathy often have a bigger impact than technical expertise alone.",
+      "How consistent participation can lead to maintainer responsibilities, mentorship opportunities, and leadership roles.",
+      "How to evolve projects that begin as weekend experiments into thriving open-source communities with global contributors.",
+      "Lessons on growing from contributor to maintainer and the required skills.",
+      "Insights into building and sustaining open-source communities.",
+      "and more.."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/ashitaprasad",
+        "url": "https://github.com/ashitaprasad"
+      },
+      {
+        "label": "https://ashitaprasad.github.io/",
+        "url": "https://ashitaprasad.github.io/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "ck74mbe1ds": {
     "proposalId": "ck74mbe1ds",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/ck74mbe1ds",
@@ -1899,32 +1931,17 @@
       }
     ]
   },
-  "1vj5aoro8u": {
-    "proposalId": "1vj5aoro8u",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
-    "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
-    "keyTakeaways": [
-      "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
-      "Feasibility of eco-cost standard for interfaces",
-      "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
-      "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
-      "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
-    ],
-    "references": [
-      {
-        "label": "https://gooey.ai/sovereignty",
-        "url": "https://gooey.ai/sovereignty"
-      },
-      {
-        "label": "https://gooey.ai/agriculture",
-        "url": "https://gooey.ai/agriculture"
-      },
-      {
-        "label": "https://gooey.ai/model-trainer",
-        "url": "https://gooey.ai/model-trainer"
-      }
-    ],
+  "92adqrmbh1": {
+    "proposalId": "92adqrmbh1",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
+    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
+    "keyTakeaways": [],
+    "references": [],
     "links": [
+      {
+        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
+        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
+      },
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"
@@ -2007,237 +2024,6 @@
         "label": "Co-operatives",
         "url": "https://en.wikipedia.org/wiki/Cooperative"
       },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "4llmgcq50k": {
-    "proposalId": "4llmgcq50k",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4llmgcq50k",
-    "description": "I’d like to present the Telangana State MeeSeva Oracle-to-PostgreSQL migration as a factual, replicable case study to an audience spanning government IT leadership, enterprise database teams, and the global open-source community. The talk would accomplish three things:\n\nFor the open-source community: Contribute a significant government migration case study to the PostgreSQL and Ora2Pg ecosystem, reinforcing the viability of open-source databases at national scale.\n\nFor database professionals: Provide a technically honest account of the migration process, the role of Ora2Pg, what required manual effort, and what they should plan for in their own migrations.\n\nFor government CIOs and IT directors: Demonstrate that PostgreSQL is production-ready for large-scale, mission-critical citizen services, with real numbers, real challenges, and real cost savings.\n\nI’ll keep it factual, technical and honest. A practitioner’s account of what happened, what went wrong, what went right, and what others can learn from it.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx",
-        "url": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx"
-      },
-      {
-        "label": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl",
-        "url": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8dso3avp9l": {
-    "proposalId": "8dso3avp9l",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8dso3avp9l",
-    "description": "Every online tutorial and blog on “how to contribute to OSS” or “how to make your first PR” teaches the mechanics and commands, but almost none teach the etiquette: when it's okay to ping a maintainer, how to take a rejected proposal gracefully, why a half-finished AI-generated PR adds to stress and overload for the maintainers. Now that open source sits on the student resume(s) right next to internships and projects, this missing gap of education has real consequences: maintainers across GSoC, LFX and Hacktoberfest have publicly described waves of low-effort and spam contributions, with many OSS projects shutting down for new contributions.\n\nThis talk is about the cultural layer underneath a pipeline: the norms that decide whether a student community produces thoughtful contributors or AI spammers. A pipeline tells you how to get more students contributing; it says nothing about whether those contributions are any good for the projects on the receiving end.\n\nAt Point Blank, an OSS community we have been running for the last 7 years, we've spent the last few years turning that culture into something teachable, and we’ll walk through what actually worked:\n\nA peer proposal-review gate : our \"war rooms\" so that of the ~40 GSoC proposals our members write in a season, none reach a maintainer as unreviewed slop. Every draft is torn apart by people who've been selected before it goes anywhere near an org.\n\nA \"contribute before you apply\" norm, anchored by a Hacktoberfest kickoff and weekly sync-ups, so contribution is a sustained relationship with a project rather than a March résumé sprint.\n\nAn explicit etiquette curriculum covering what contributing.md leaves out: how to ask for help in public without spamming, how to treat a maintainer's time as the scarcest resource in the project, and how to behave when your contributions are rejected.\n\nA mentor-handoff model: every contributor who gets selected comes back to coach the next batch, so etiquette is transmitted by example, not preached from a slide.\n\nWe will be honest about what didn't work, and about the awkward cases, including what we do with the member who openly just wants the T-shirt. We will close with a short, concrete checklist that maintainers and student-club organizers can adopt to keep their contribution spaces both welcoming to newcomers and resistant to spam.",
-    "keyTakeaways": [
-      "A repeatable way to teach contribution etiquette, not just mechanics and why that distinction matters more in a hyper-competitive student culture.",
-      "A concrete proposal-review process that cuts low-effort and spam submissions at the source, including the trade-offs of running it at scale.",
-      "How to coach contributors through rejection so they stay civil and keep contributing.",
-      "A short checklist maintainers can use to set norms that invite newcomers without inviting spam."
-    ],
-    "references": [
-      {
-        "label": "https://www.pointblank.club/oss",
-        "url": "https://www.pointblank.club/oss"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "f4ko2mik8q": {
-    "proposalId": "f4ko2mik8q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4ko2mik8q",
-    "description": "DNA is the molecular blueprint of life. Modern sequencing technologies allow us to read DNA and RNA at unprecedented scale, generating vast amounts of biological data from organisms, tissues, and individual cells. Today, public repositories host millions of sequencing experiments comprising petabytes of data that power discoveries in medicine, drug development, agriculture, and fundamental biology.\n\nYet finding the right dataset is often harder than analysing it. Researchers must navigate fragmented repositories, heterogeneous metadata standards, and incomplete descriptions, making dataset discovery a time-consuming and frustrating process. With Seqout (https://seqout.org), we set out to build a genomics search engine that is fast, comprehensive, and lean enough to run on modest hardware while serving hundreds of thousands of researchers worldwide. Seqout is built entirely on open-source software: PostgreSQL and Neo4j power keyword and graph-based search, while embedding-based retrieval is enabled by open-source models and libraries from Hugging Face.\n\nIn this talk, we will discuss the engineering challenges involved in building a low-latency search engine over millions of biological datasets with limited resources (aka compute and GPUs). We will cover data ingestion, metadata normalisation, indexing strategies, typo tolerance, semantic search, and the trade-offs involved in integrating relational and graph databases with vector search.\n\nAlong the way, we'll share lessons learned from operating search infrastructure at scale and discuss how open-source software powers every layer of the platform. We'll also discuss how Seqout's MCP server enables large language models and AI agents to move beyond answering biology questions to directly discover and interact with relevant scientific datasets.",
-    "keyTakeaways": [
-      "How to build a low-latency search engine from scratch",
-      "Combining PostgreSQL, Neo4j, and semantic search to improve dataset discovery",
-      "Lessons learned from building and operating an open-source scientific search platform"
-    ],
-    "references": [
-      {
-        "label": "https://seqout.org/",
-        "url": "https://seqout.org/"
-      },
-      {
-        "label": "https://github.com/saketlab/seqout",
-        "url": "https://github.com/saketlab/seqout"
-      },
-      {
-        "label": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing",
-        "url": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing"
-      }
-    ],
-    "links": [
-      {
-        "label": "https://seqout.org",
-        "url": "https://seqout.org/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "89tt0o6uio": {
-    "proposalId": "89tt0o6uio",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/89tt0o6uio",
-    "description": "New year of 2025 we launched tamilnadu.tech a tech event listing platform built by the souls of FOSS United Chennai, what started as a simple project was ultimately taken by the community and upgraded and updated with tons of improvements. Built after listening to the problems faced by the community, tamilnadu.tech was instantly a hit and in a short span grew to nearly 300+ github stars with 100+ contributors where more than half of them are first time contributors to open source.But not stopping with 1 project, in the New year of 2026 the same team of FOSS United Chennai launched another project called podu.pics a FOSS imgbb alternative because the images used in tamilnadu.tech were from imgbb and we had to build our own ;)Again the community responded positively and took the product and used it and contributed to it. with the latest product that we launched for ChennaiFOSS 2026being kuruk.am a project again from the FU Chennai team being a url shortener which is also used by IndiaFOSS for their social media marketing.",
-    "keyTakeaways": [
-      "Build community driven projects that put the community in the driver seat",
-      "How much importance it is to listen to the community for the problems and not build a made up solution to a problem that doesn’t exist",
-      "As a maintainer how to be sure and take right decisions for the project’s growth and direction."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/FOSSUChennai/Communities",
-        "url": "https://github.com/FOSSUChennai/Communities"
-      },
-      {
-        "label": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/",
-        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/"
-      },
-      {
-        "label": "https://kuruk.am/justin-cfp-tt",
-        "url": "https://kuruk.am/justin-cfp-tt"
-      }
-    ],
-    "links": [
-      {
-        "label": "tamilnadu.tech",
-        "url": "https://tamilnadu.tech/"
-      },
-      {
-        "label": "podu.pics",
-        "url": "https://podu.pics/"
-      },
-      {
-        "label": "kuruk.am",
-        "url": "https://kuruk.am/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "96goef7o3q": {
-    "proposalId": "96goef7o3q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
-    "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
-    "keyTakeaways": [
-      "How open source interacts with the ecosystem of non consensual intimate imagery",
-      "The human impact of non consensual intimate imagery",
-      "The distinct challenge for India, as a country that doesn’t control the AI value chain",
-      "Risk mitigation strategies for open weight models",
-      "The effect of policies on model hosting platforms"
-    ],
-    "references": [
-      {
-        "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
-        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-      },
-      {
-        "label": "https://arxiv.org/abs/2602.04759",
-        "url": "https://arxiv.org/abs/2602.04759"
-      },
-      {
-        "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
-        "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
-      }
-    ],
-    "links": [
-      {
-        "label": "recent research",
-        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5pig94v0sa": {
-    "proposalId": "5pig94v0sa",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
-    "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
-    "keyTakeaways": [
-      "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
-      "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/tattle-made/archive-annotation",
-        "url": "https://github.com/tattle-made/archive-annotation"
-      },
-      {
-        "label": "https://milli.link/",
-        "url": "https://milli.link/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "fefrvv4n7q": {
-    "proposalId": "fefrvv4n7q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
-    "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
-    "keyTakeaways": [
-      "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
-      "A design system is more than components. Give products an opinionated way to load and save data too.",
-      "Make correct usage the path of least resistance, and mistakes hard to miss.",
-      "A predictable API serves new teammates and AI agents alike."
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
-        "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
-      },
-      {
-        "label": "https://github.com/frappe/frappe-ui",
-        "url": "https://github.com/frappe/frappe-ui"
-      },
-      {
-        "label": "https://ui.frappe.io",
-        "url": "https://ui.frappe.io/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "6pb727vn12": {
-    "proposalId": "6pb727vn12",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
-    "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nTBA",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
-        "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
-      }
-    ],
-    "links": [
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"
@@ -2693,6 +2479,685 @@
         "label": "https://friedso.com/apps/jem/",
         "url": "https://friedso.com/apps/jem/"
       },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4llmgcq50k": {
+    "proposalId": "4llmgcq50k",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4llmgcq50k",
+    "description": "I’d like to present the Telangana State MeeSeva Oracle-to-PostgreSQL migration as a factual, replicable case study to an audience spanning government IT leadership, enterprise database teams, and the global open-source community. The talk would accomplish three things:\n\nFor the open-source community: Contribute a significant government migration case study to the PostgreSQL and Ora2Pg ecosystem, reinforcing the viability of open-source databases at national scale.\n\nFor database professionals: Provide a technically honest account of the migration process, the role of Ora2Pg, what required manual effort, and what they should plan for in their own migrations.\n\nFor government CIOs and IT directors: Demonstrate that PostgreSQL is production-ready for large-scale, mission-critical citizen services, with real numbers, real challenges, and real cost savings.\n\nI’ll keep it factual, technical and honest. A practitioner’s account of what happened, what went wrong, what went right, and what others can learn from it.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx",
+        "url": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx"
+      },
+      {
+        "label": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl",
+        "url": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8dso3avp9l": {
+    "proposalId": "8dso3avp9l",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8dso3avp9l",
+    "description": "Every online tutorial and blog on “how to contribute to OSS” or “how to make your first PR” teaches the mechanics and commands, but almost none teach the etiquette: when it's okay to ping a maintainer, how to take a rejected proposal gracefully, why a half-finished AI-generated PR adds to stress and overload for the maintainers. Now that open source sits on the student resume(s) right next to internships and projects, this missing gap of education has real consequences: maintainers across GSoC, LFX and Hacktoberfest have publicly described waves of low-effort and spam contributions, with many OSS projects shutting down for new contributions.\n\nThis talk is about the cultural layer underneath a pipeline: the norms that decide whether a student community produces thoughtful contributors or AI spammers. A pipeline tells you how to get more students contributing; it says nothing about whether those contributions are any good for the projects on the receiving end.\n\nAt Point Blank, an OSS community we have been running for the last 7 years, we've spent the last few years turning that culture into something teachable, and we’ll walk through what actually worked:\n\nA peer proposal-review gate : our \"war rooms\" so that of the ~40 GSoC proposals our members write in a season, none reach a maintainer as unreviewed slop. Every draft is torn apart by people who've been selected before it goes anywhere near an org.\n\nA \"contribute before you apply\" norm, anchored by a Hacktoberfest kickoff and weekly sync-ups, so contribution is a sustained relationship with a project rather than a March résumé sprint.\n\nAn explicit etiquette curriculum covering what contributing.md leaves out: how to ask for help in public without spamming, how to treat a maintainer's time as the scarcest resource in the project, and how to behave when your contributions are rejected.\n\nA mentor-handoff model: every contributor who gets selected comes back to coach the next batch, so etiquette is transmitted by example, not preached from a slide.\n\nWe will be honest about what didn't work, and about the awkward cases, including what we do with the member who openly just wants the T-shirt. We will close with a short, concrete checklist that maintainers and student-club organizers can adopt to keep their contribution spaces both welcoming to newcomers and resistant to spam.",
+    "keyTakeaways": [
+      "A repeatable way to teach contribution etiquette, not just mechanics and why that distinction matters more in a hyper-competitive student culture.",
+      "A concrete proposal-review process that cuts low-effort and spam submissions at the source, including the trade-offs of running it at scale.",
+      "How to coach contributors through rejection so they stay civil and keep contributing.",
+      "A short checklist maintainers can use to set norms that invite newcomers without inviting spam."
+    ],
+    "references": [
+      {
+        "label": "https://www.pointblank.club/oss",
+        "url": "https://www.pointblank.club/oss"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "f4ko2mik8q": {
+    "proposalId": "f4ko2mik8q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4ko2mik8q",
+    "description": "DNA is the molecular blueprint of life. Modern sequencing technologies allow us to read DNA and RNA at unprecedented scale, generating vast amounts of biological data from organisms, tissues, and individual cells. Today, public repositories host millions of sequencing experiments comprising petabytes of data that power discoveries in medicine, drug development, agriculture, and fundamental biology.\n\nYet finding the right dataset is often harder than analysing it. Researchers must navigate fragmented repositories, heterogeneous metadata standards, and incomplete descriptions, making dataset discovery a time-consuming and frustrating process. With Seqout (https://seqout.org), we set out to build a genomics search engine that is fast, comprehensive, and lean enough to run on modest hardware while serving hundreds of thousands of researchers worldwide. Seqout is built entirely on open-source software: PostgreSQL and Neo4j power keyword and graph-based search, while embedding-based retrieval is enabled by open-source models and libraries from Hugging Face.\n\nIn this talk, we will discuss the engineering challenges involved in building a low-latency search engine over millions of biological datasets with limited resources (aka compute and GPUs). We will cover data ingestion, metadata normalisation, indexing strategies, typo tolerance, semantic search, and the trade-offs involved in integrating relational and graph databases with vector search.\n\nAlong the way, we'll share lessons learned from operating search infrastructure at scale and discuss how open-source software powers every layer of the platform. We'll also discuss how Seqout's MCP server enables large language models and AI agents to move beyond answering biology questions to directly discover and interact with relevant scientific datasets.",
+    "keyTakeaways": [
+      "How to build a low-latency search engine from scratch",
+      "Combining PostgreSQL, Neo4j, and semantic search to improve dataset discovery",
+      "Lessons learned from building and operating an open-source scientific search platform"
+    ],
+    "references": [
+      {
+        "label": "https://seqout.org/",
+        "url": "https://seqout.org/"
+      },
+      {
+        "label": "https://github.com/saketlab/seqout",
+        "url": "https://github.com/saketlab/seqout"
+      },
+      {
+        "label": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing",
+        "url": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://seqout.org",
+        "url": "https://seqout.org/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "89tt0o6uio": {
+    "proposalId": "89tt0o6uio",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/89tt0o6uio",
+    "description": "New year of 2025 we launched tamilnadu.tech a tech event listing platform built by the souls of FOSS United Chennai, what started as a simple project was ultimately taken by the community and upgraded and updated with tons of improvements. Built after listening to the problems faced by the community, tamilnadu.tech was instantly a hit and in a short span grew to nearly 300+ github stars with 100+ contributors where more than half of them are first time contributors to open source.But not stopping with 1 project, in the New year of 2026 the same team of FOSS United Chennai launched another project called podu.pics a FOSS imgbb alternative because the images used in tamilnadu.tech were from imgbb and we had to build our own ;)Again the community responded positively and took the product and used it and contributed to it. with the latest product that we launched for ChennaiFOSS 2026being kuruk.am a project again from the FU Chennai team being a url shortener which is also used by IndiaFOSS for their social media marketing.",
+    "keyTakeaways": [
+      "Build community driven projects that put the community in the driver seat",
+      "How much importance it is to listen to the community for the problems and not build a made up solution to a problem that doesn’t exist",
+      "As a maintainer how to be sure and take right decisions for the project’s growth and direction."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/FOSSUChennai/Communities",
+        "url": "https://github.com/FOSSUChennai/Communities"
+      },
+      {
+        "label": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/"
+      },
+      {
+        "label": "https://kuruk.am/justin-cfp-tt",
+        "url": "https://kuruk.am/justin-cfp-tt"
+      }
+    ],
+    "links": [
+      {
+        "label": "tamilnadu.tech",
+        "url": "https://tamilnadu.tech/"
+      },
+      {
+        "label": "podu.pics",
+        "url": "https://podu.pics/"
+      },
+      {
+        "label": "kuruk.am",
+        "url": "https://kuruk.am/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "96goef7o3q": {
+    "proposalId": "96goef7o3q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
+    "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
+    "keyTakeaways": [
+      "How open source interacts with the ecosystem of non consensual intimate imagery",
+      "The human impact of non consensual intimate imagery",
+      "The distinct challenge for India, as a country that doesn’t control the AI value chain",
+      "Risk mitigation strategies for open weight models",
+      "The effect of policies on model hosting platforms"
+    ],
+    "references": [
+      {
+        "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
+        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+      },
+      {
+        "label": "https://arxiv.org/abs/2602.04759",
+        "url": "https://arxiv.org/abs/2602.04759"
+      },
+      {
+        "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
+        "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
+      }
+    ],
+    "links": [
+      {
+        "label": "recent research",
+        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5pig94v0sa": {
+    "proposalId": "5pig94v0sa",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
+    "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
+    "keyTakeaways": [
+      "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
+      "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/tattle-made/archive-annotation",
+        "url": "https://github.com/tattle-made/archive-annotation"
+      },
+      {
+        "label": "https://milli.link/",
+        "url": "https://milli.link/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "fefrvv4n7q": {
+    "proposalId": "fefrvv4n7q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
+    "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
+    "keyTakeaways": [
+      "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
+      "A design system is more than components. Give products an opinionated way to load and save data too.",
+      "Make correct usage the path of least resistance, and mistakes hard to miss.",
+      "A predictable API serves new teammates and AI agents alike."
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
+        "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
+      },
+      {
+        "label": "https://github.com/frappe/frappe-ui",
+        "url": "https://github.com/frappe/frappe-ui"
+      },
+      {
+        "label": "https://ui.frappe.io",
+        "url": "https://ui.frappe.io/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "6pb727vn12": {
+    "proposalId": "6pb727vn12",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
+    "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nTBA",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
+        "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "2tsmo50knt": {
+    "proposalId": "2tsmo50knt",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2tsmo50knt",
+    "description": "This talk is a case study of building and maintaining a design system at an open-source company. I'll share why we decided to invest in a design system, the process we followed, the challenges we encountered, and the lessons we learned along the way.\n\nAs our design system matured, another interesting shift emerged. The same structure that helped humans collaborate more effectively also made it easier to integrate AI-assisted workflows into our product development process.\n\nTopics covered:\n\nWhy we decided to build a design system\n\nThe process of creating and maintaining it\n\nChallenges, trade-offs, and mistakes we made\n\nHow design systems improve collaboration between designers and engineers\n\nWhy design systems encourage designers to think more like engineers and engineers to think more like product builders\n\nThe impact of a design system on product development velocity\n\nHow structured systems naturally support AI-assisted workflows\n\nLessons learned from evolving the system over time\n\nWhy the design and design system at Ente is FOSS\n\nPros and cons of an open source figma file",
+    "keyTakeaways": [
+      "Understand the process of building and maintaining a design system in an open-source company",
+      "Learn the challenges, trade-offs, and mistakes involved in creating a design system",
+      "Understand how design systems improve collaboration between designers and engineers",
+      "Learn why open-source design systems require different considerations than internal systems",
+      "Gain insights into maintaining an open-source Figma file and engaging with the community",
+      "Understand how structured systems influence product development workflows",
+      "Learn how design systems can support AI-assisted prototyping and experimentation",
+      "Explore how the boundaries between design and engineering are becoming increasingly blurred"
+    ],
+    "references": [
+      {
+        "label": "https://ente.com/blog/ente-design-system/",
+        "url": "https://ente.com/blog/ente-design-system/"
+      },
+      {
+        "label": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1",
+        "url": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1"
+      },
+      {
+        "label": "https://ente.com/blog/making-our-figma-public/",
+        "url": "https://ente.com/blog/making-our-figma-public/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "an3ot6c0v0": {
+    "proposalId": "an3ot6c0v0",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/an3ot6c0v0",
+    "description": "While the digital ecosystem for Latin scripts thrives with thousands of open-source typefaces, Indic typography - particularly for languages such as Kannada - remains severely underrepresented. Most contemporary Indic fonts are designed for modern publishing and do not preserve the historical letterforms, ligatures, and typographic variations found in nineteenth- and early twentieth-century print traditions.\n\nAt Sanchaya (Sanchaya.org), we are exploring how the extensive digital archives created through the Servants of Knowledge initiative can help revive early print heritage. We have developed Shaili Sanchaya, an open-source toolchain for revival font development that extracts historical glyphs and letterforms from scanned public-domain books and pre-computer-era print collections to create modern, standards-compliant Unicode typefaces.\n\nBeyond preserving typographic heritage, revival fonts are essential for improving OCR accuracy on historical documents. By digitally recreating legacy typefaces, we enable better recognition of older publications and help unlock vast collections of Indic knowledge that remain inaccessible to search, research, and dissemination.\n\nWe will present our open-source workflow - from archival scanning and character extraction to glyph normalization, vectorization, and font engineering—and discuss the challenges of revival font development, as well as how such efforts can lay the foundation for large-scale Indic glyph datasets and future machine learning applications.",
+    "keyTakeaways": [
+      "The Indic Typography Gap: The lay man’s understanding the design and technical constraints of digital Indic typefaces.",
+      "Archival to Digital Pipeline: How to leverage community-digitized public archives (like Servants of Knowledge) for historical font revival.",
+      "FOSS Font Engineering: Talk about open-source tools? or tell the story of what help was out there to start thinking about unicode-compliant Indic fonts.",
+      "The Bigger Picture: How opening up glyph datasets can revolutionize OCR, archival indexing, and accessibility across regional Indic languages"
+    ],
+    "references": [
+      {
+        "label": "https://fonts.sanchaya.ent",
+        "url": "https://fonts.sanchaya.ent/"
+      },
+      {
+        "label": "https://sanchaya.org",
+        "url": "https://sanchaya.org/"
+      },
+      {
+        "label": "https://archive.org/details/ServantsOfKnowledge",
+        "url": "https://archive.org/details/ServantsOfKnowledge"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "f89n581n5c": {
+    "proposalId": "f89n581n5c",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f89n581n5c",
+    "description": "Modern interfaces are often designed around ideal scenarios: users are focused, connected, and interacting within predictable digital environments. However, real-world products exist in a far messier context, (trust me, I have had a lot of such situations while testing), where physical inputs, environment, interruptions, connectivity issues, and hardware limitations influence the experience. This talk explores what happens when design moves beyond screens and into the physical world, examining the gap between software assumptions and hardware reality.",
+    "keyTakeaways": [
+      "Understand the gap between ideal user flows and real-world user behavior.",
+      "Learn how physical environments, interruptions, and hardware constraints shape UX decisions.",
+      "Explore the role of feedback, system status, and recoverability in product design.",
+      "Understand why designing for edge cases and failure scenarios is critical for real-world products.",
+      "Gain a framework for building interfaces that work beyond controlled digital environments."
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001",
+        "url": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5fle5u3fll": {
+    "proposalId": "5fle5u3fll",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5fle5u3fll",
+    "description": "A brand that needs to communicate with its audience today, needs to do so on many channels (instagram, youtube, blogs, newsletter etc) and at a high speed. The available solutions to keep up with this requirement - canva templates and AI generated imagery, fall short on few things. Canva templates all look and feel the same and while you might be able to tweak the layout, typography and colors to match your brand guidelines, its actually the other visual elements (photographs, illustrations etc) that establish your identity. AI generated posters on the other hand are generic and lack the levers and controls you need to adapt it to your brand's visual identity.\n\nIn this talk, I will share a software and workflow that I have built over p5js to help create visual assets collaboratively with my team. This tool brings the power of p5js and the javascript ecosystem to bring in flexibility needed for any computational design and provide additional primitives needed to make it convenient for visual design work. I will demonstrate examples of use of this tool with case studies from my work.\n\nUses p5js syntax. No custom syntax or DSL to learn. Comes with an ecosystem of books, guides and community to learn from.\n\nFrameworks bundles support for visual design helpers like design tokens (colors, typography, size), grids, cells, layers etc\n\nEverything is code. This makes it possible to collaboratively edit and track changes.\n\nEverything is code. You can bring in your choice of coding agent if needed.\n\nFile path to codify meaning - each drawn item on a canvas is defined in a javascript file that is grouped into layers and projects as per their file system location\n\nLinks to the visuals in case the images don’t get embedded in the proposal :\n\nScreenshot of p5js based custom tools to generate templated designs\n\nVisual Design made using these tools\n\nOther visuals created using the tool",
+    "keyTakeaways": [
+      "Using p5js for visual design with case studies shared from our work",
+      "Introduction to Creative Coding, Generative Systems and Computational Design",
+      "Works of key artists and designers that influence this"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/dennyabrain/p5js-for-visual-design/",
+        "url": "https://github.com/dennyabrain/p5js-for-visual-design/"
+      }
+    ],
+    "links": [
+      {
+        "label": "p5js",
+        "url": "https://p5js.org/"
+      },
+      {
+        "label": "Screenshot of p5js based custom tools to generate templated designs",
+        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDY0MC9vcmlnaW5hbF81YzJiYzI3ZmI4NTI3MmZlMGRmYjdkNmViYTM0MzcyMi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
+      },
+      {
+        "label": "Visual Design made using these tools",
+        "url": "https://d2w9rnfcy7mm78.cloudfront.net/47370642/original_86a83c04800efcbb369571f4a7ff8c7d.png"
+      },
+      {
+        "label": "Other visuals created using the tool",
+        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDYzOS9vcmlnaW5hbF85YzYyY2Q1OGI5MjA5NjlmYzMxNjFlNGVkZjlmZjlmOS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1vuu1c1ma7": {
+    "proposalId": "1vuu1c1ma7",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vuu1c1ma7",
+    "description": "In IndiaFOSS 2025, I introduced KaiOS feature phones, which are capable of many things a smartphone can do including (theoretically) opening websites and webapps. Hearing this, people often assume that any webapp can be used on KaiOS. However, this is usually not the case.\n\nEven if an app or website technically works (without breaking due to using modern JavaScript features that the old KaiOS engine doesn’t support) webapps often expect touch or mouse interaction rather than the keypad interaction that KaiOS devices provide. This requires design that is—not more or less difficult, but different from what most people are used to. If you have used any old Nokia phone, you may have an idea what kind of design and interaction I am talking about!\n\nOver the past year, I have been redoing the user interface of Convo, my XMPP powered messaging app for KaiOS. Along the way, I have been paying a bit more attention to how other KaiOS apps handle user interaction.\n\nIn this talk, I will briefly go over some common design patterns that feature phone apps use to make KaiOS more pleasurable to navigate.",
+    "keyTakeaways": [
+      "Keypad-operated phones have their own form of user interaction that is different from touchscreen or mouse based interaction.",
+      "Softkeys let the user select between primary options",
+      "Use keypad shortcuts to make sure each key is used to the maximum! (But also a more traditional dropdown menu so the less shortcut-inclined can still navigate)",
+      "Designing for small screens tends to have less focus on how something should look and more on what should be presented when and where"
+    ],
+    "references": [
+      {
+        "label": "https://convo.fsci.in",
+        "url": "https://convo.fsci.in/"
+      },
+      {
+        "label": "https://wiki.bananahackers.net/",
+        "url": "https://wiki.bananahackers.net/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "0rlqb6s6lb": {
+    "proposalId": "0rlqb6s6lb",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0rlqb6s6lb",
+    "description": "Linux desktop interfaces are typically built from rectangles and predefined transitions. While functional, these constraints make it difficult to create interfaces with the kind of expressive motion and fluid geometry commonly seen in modern design systems.\n\nIn this talk, I will demonstrate how I brought Bézier-driven animation and procedural shape generation to GTK3 using my open-source geometry library, expressive-shapes, along with a series of runtime modifications to GTK's animation pipeline.\n\nThe talk explores two complementary ideas:\n\nOverriding Time: Bézier Transitions\n\nGTK widgets such as stacks and revealers rely on fixed interpolation models. I will begin with a quick overview of GTK's widget lifecycle (mapping, allocation, drawing, and frame clock updates) to establish where animations fit into the rendering pipeline. From there, I will show how native transition timelines can be intercepted and redirected through a custom animation manager synchronized with the display refresh cycle enabling smooth Bézier-based motion and expressive transitions.\n\nOverriding Form: Geometry Engine\n\nBeyond animation, I wanted widgets themselves to become dynamic shapes rather than static rectangles. I will talk about the evolution of expressive-shapes into a geometry engine capable of generating rounded polygons and performing real-time shape morphing. Along the way, I will discuss the underlying algorithms, the architectural decisions that shaped the library.\n\nThroughout the talk, I will present implementation examples and live demonstrations using PyGObject, showing how these techniques can be combined to create fluid animations, shape morphing, and visually expressive GTK3 interfaces.",
+    "keyTakeaways": [
+      "A simple understanding of GTK's widget lifecycle.",
+      "Techniques for replacing GTK3's built-in widget transitions with custom Bézier-driven animations.",
+      "How geometry and Bézier curves can be used to generate, round, and morph shapes in real time.",
+      "Inspiration and implementation ideas for creating more expressive desktop interfaces with GTK3."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/amansxcalibur/expressive-shapes",
+        "url": "https://github.com/amansxcalibur/expressive-shapes"
+      },
+      {
+        "label": "https://github.com/amansxcalibur/zenith-shell",
+        "url": "https://github.com/amansxcalibur/zenith-shell"
+      },
+      {
+        "label": "https://www.gtk.org/",
+        "url": "https://www.gtk.org/"
+      },
+      {
+        "label": "https://pygobject.gnome.org/",
+        "url": "https://pygobject.gnome.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "expressive-shapes",
+        "url": "https://github.com/amansxcalibur/expressive-shapes"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1qugujs7o0": {
+    "proposalId": "1qugujs7o0",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1qugujs7o0",
+    "description": "So when we think about great design what comes to our mind is great visuals, sleek UI, futuristic interfaces. But here's something we don't really think about, vision is directional, it demands your full attention, while sound is omnidirectional, it works in the background. And yet sound is probably the most ignored detail in design today.\n\nAs we all know the devil lies in the details, and sound is that detail. Remove it and things fall apart. Add it back and everything clicks, literally. We have seen this so many times, every time something physical gets replaced by something digital, sound comes for the rescue. iPhone replaced the physical keyboard, so they added haptic and sound. Apple Pencil replaced pen on paper, so it started emitting the sound of pen rubbing against paper. Google Maps plays a reroute chime because no pop-up could do that job safely while driving.\n\nNow as AI evolves from text to voice and VR removes all physical surfaces, sound is going to become even more essential because when there is no physical surface we need to give the user something to hold onto. But more sound isn't better sound, there's a point where every ping becomes noise and users stop hearing anything, including the alerts that actually matter.\n\nThis lightning talk covers what HCI research tells us about sound in interaction design, when it helps, when it becomes noise, and what open-source tools already exist for developers who want to stop treating sound as an afterthought.",
+    "keyTakeaways": [
+      "You'll understand why sound isn't decoration but a functional design layer, it confirms actions, communicates system state, and reduces cognitive load on the user's eyes",
+      "You'll see real HCI case studies showing what happens when you remove sound (performance drops) and what happens when you add too much (users start ignoring critical alerts)",
+      "You'll discover open-source tools like freedesktop Sound Theme Spec, libcanberra, and snd-lib that most developers today aren't even aware exist, ready to use in your own projects",
+      "You'll walk away with a practical sense of when to add sound, what kind, and when to stay silent"
+    ],
+    "references": [
+      {
+        "label": "https://nsuworks.nova.edu/gscis_etd/1148/",
+        "url": "https://nsuworks.nova.edu/gscis_etd/1148/"
+      },
+      {
+        "label": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/",
+        "url": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/"
+      },
+      {
+        "label": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf",
+        "url": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5ua576fg9k": {
+    "proposalId": "5ua576fg9k",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5ua576fg9k",
+    "description": "Zephyr RTOS separates system configuration into multiple layers, primarily using Kconfig for feature selection and Device Tree for hardware description. Real world embedded product needs more like deployment specific parameters such as communication endpoints, timing constants, and board-specific behavioural settings. Today, these parameters are inconsistently handled across Kconfig symbols, Device Tree overlays, and application code, leading to duplication and reduced portability.\n\nThis talk looks at the boundary between Kconfig and Device Tree, and at how system configuration gets fragmented in Zephyr applications today. We introduce the idea of using Device Tree for static “system configuration nodes” representing logical or virtual system components such as service endpoints and application parameters. The goal is not to replace existing mechanisms, but to evaluate some common system configuration can also be handled in a more structured way using Device Tree.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=7qj0OM0Ak24",
+        "url": "https://www.youtube.com/watch?v=7qj0OM0Ak24"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "9qp8u3f894": {
+    "proposalId": "9qp8u3f894",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9qp8u3f894",
+    "description": "Modern display hardware is increasingly modular, combining SoC display controllers, interfaces such as DPI and MIPI DSI, protocol-conversion bridges, and a variety of display panels. Zephyr's current display subsystem is largely vendor-specific, making it difficult to support diverse display pipelines in a scalable way.This talk presents a modular display architecture for Zephyr inspired by Linux DRM framework. Display controllers, bridge devices, and panel drivers are implemented as independent layers connected through Devicetree. Pipelines are assembled dynamically at runtime, allowing display controllers to remain agnostic of downstream hardware.The talk will show how a single display controller driver can support both MIPI DSI and DPI-through-HDMI by attaching different downstream components, and show how the driver is capable for even eDP and MIPI DBI interfaces.Finally, the talk covers hot-plug detection and key design trade-offs while developing the driver for Zephyr.",
+    "keyTakeaways": [
+      "Learn how modern display pipelines are structured, including display controllers, protocol bridges, and display panels, and how these components interact.",
+      "See how a modular, layered display architecture enables reusable drivers that are independent of downstream display hardware.",
+      "Understand how Devicetree can describe complete display pipelines, allowing hardware configurations to be assembled without modifying controller drivers."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110013",
+        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110013"
+      },
+      {
+        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110061",
+        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110061"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1s4iem9t8a": {
+    "proposalId": "1s4iem9t8a",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1s4iem9t8a",
+    "description": "Infineon's AURIX family of automotive microcontrollers is based on the TriCore architecture and is widely used across automotive systems, from powertrain and chassis control to safety-critical ECUs. This talk presents the upstream effort to add TriCore architecture support and enable Infineon AURIX TC3x and TC4x devices in Zephyr (https://github.com/zephyrproject-rtos/zephyr/pull/107516).Starting from CPU reset, we will walk through the key architecture bring-up steps required to reach the first Zephyr thread, including trap and interrupt handling, Context Save Area (CSA)-based context switching, and system timer integration. We will also cover the work required beyond the architecture layer, including SoC support, board enablement, and QEMU-based development and testing.Finally, we will discuss the challenges of upstreaming a new architecture into Zephyr, from toolchain and CI integration to HAL dependencies and ecosystem support, along with the remaining work needed for automotive and safety-critical systems.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/107516",
+        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/107516"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "6r7akaieb8": {
+    "proposalId": "6r7akaieb8",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6r7akaieb8",
+    "description": "Integrating camera capture and display subsystems on embedded SoCs presents significant software design challenges due to competing buffer ownership models across independent hardware subsystems. This talk presents a practical implementation of a zero-copy video pipeline on a TI Jacinto SoCs running FreeRTOS, coordinating three drivers: a CSI2-DPHY receiver, a UDMA engine, and a Display Subsystem driver.\n\nThe implementation uses FVID2, TI's unified video interface, to apply a consistent queue/dequeue buffer model to both capture and display operations. We examine the initialization sequence where the application transfers UDMA ownership to the CSIRX driver, enabling the DSS driver direct visibility into captured buffers.\n\nCritical gaps in single-task designs are identified, specifically the absence of mechanisms preventing capture from overwriting buffers during display scanout. We present a corrected two-task producer-consumer design using counting semaphores to enforce mutual exclusion, with explicit analysis of task priorities and frame timing implications.\n\nThis work bridges the gap between pipelines that function nominally and those structured to remain correct under timing pressure, illustrating the complexity beneath seemingly solved problems in embedded systems integration.",
+    "keyTakeaways": [
+      "How FVID2's queue/dequeue model provides a unified buffer-ownership interface across CSIRX and DSS drivers",
+      "What a proper FreeRTOS producer-consumer pipeline for this use case would look like"
+    ],
+    "references": [
+      {
+        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html",
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html"
+      },
+      {
+        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html",
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8fc48rj2g2": {
+    "proposalId": "8fc48rj2g2",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8fc48rj2g2",
+    "description": "Heterogeneous SoCs often employ a common pattern - Run Linux on the primary processor for system management tasks like boot sequencing, power management, firmware loading, and resource allocation, while Zephyr runs on auxiliary cores.\n\nMCUBoot, as of now, lacks the ability to load or control cores other than the one that it is running on.\n\nThis can be tackled by porting remote processor framework (remoteproc) to Zephyr - to provide firmware lifecycle management, resource table handling, and capabilities to load binaries. We can also employ OpenAMP using RPMsg for communication.\n\nWe will use TI's AM2434 as our reference SoC. This presentation will cover the remoteproc framework architecture, reference driver and reference examples demonstrating peer-to-peer processor management.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=8yAT-miihvY",
+        "url": "https://www.youtube.com/watch?v=8yAT-miihvY"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "eofh2kev0d": {
+    "proposalId": "eofh2kev0d",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eofh2kev0d",
+    "description": "The session begins with the model almost every embedded developer starts from, the setup and loop loops that runs continuously, polling sensors, driving outputs, and relying on delay() to manage its timing. This sequential approach is easy to reason about and serves small projects well, but it starts to strain the moment a device has to respond to several things at once. From there the talk introduces the real-time operating system as the answer to that strain, explaining the shift from one continuous loop to a set of independent tasks coordinated by a scheduler that allocates processor time and can preempt lower-priority work whenever something more urgent comes up. With the concept in place, the focus turns to the practical advantages: running multiple jobs concurrently, holding predictable response times under varying load, keeping unrelated parts of the firmware cleanly separated, and maintaining a codebase that stays workable as a product grows in complexity. The talk then looks at why real-time development has become a broadly valuable skill rather than a niche one, given how much of today's embedded and IoT hardware now runs on an RTOS and how steadily demand for that expertise keeps rising. It closes by introducing Zephyr, a modern, vendor-backed open-source RTOS released under the permissive Apache 2.0 license, as a concrete and increasingly standard platform on which to put everything the talk has covered into practice.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.freertos.org/",
+        "url": "https://www.freertos.org/"
+      },
+      {
+        "label": "https://micro.ros.org/docs/concepts/rtos/comparison/",
+        "url": "https://micro.ros.org/docs/concepts/rtos/comparison/"
+      },
+      {
+        "label": "https://www.zephyrproject.org/",
+        "url": "https://www.zephyrproject.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5h4d5uhuro": {
+    "proposalId": "5h4d5uhuro",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5h4d5uhuro",
+    "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
+    "keyTakeaways": [
+      "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
+      "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
+      "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
+      "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
+    ],
+    "references": [
+      {
+        "label": "https://redkill.in/",
+        "url": "https://redkill.in/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "2sfmvkhrrg": {
+    "proposalId": "2sfmvkhrrg",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2sfmvkhrrg",
+    "description": "People are now familirized to rich UI hence the embedded devices are required to meet those standards. Many embedded products today need two very different things at once: a rich user interface, connectivity, and application logic and a hard real-time behavior with strict timing guarantees (best served by a dedicated MCU running an RTOS or bare-metal firmware). In this talk I want to walk through a real heterogeneous multi-processing (HMP) architecture built around this split: an STM32MP1 running Linux for display and application-level functionality, paired with an STM32H7 microcontroller handling the real-time subsystem, including sensor data acquisition, motor control data management and other periphearl activities.\n\nWe'll start by examining why this split was the right call, then go inside the custom IPC layer connecting the two chips: how the protocol was designed (framing, message types, error handling), and how failures like an independent reset on either side are managed.\n\nThe next section zooms into the H7 firmware, covering RTOS task design patterns that keep the real-time subsystem deterministic: ISR-to-task deferral for sensor sampling, event-driven patterns and command queue architectures that decouple incoming Linux-side commands from time-critical control loops.\n\nFinally, we'll discuss how designing the IPC layer around a stable, well-defined protocol enables a modular hardware architecture. the real-time subsystem can remain unchanged while the application processor side is swapped for a different MPU or APU (for example, one better suited to display or AI workloads), as long as it speaks the same protocol.",
+    "keyTakeaways": [
+      "When and why to split a product's compute across an APU (Linux, display/connectivity/application logic) and an MCU and how to evaluate that tradeoff for your own designs",
+      "Practical RTOS task design patterns for the real-time subsystem:",
+      "How a well-defined IPC protocol enables a modular hardware architecture, allowing the application processor (APU/MPU) to be swapped or upgraded independently without touching the real-time subsystem",
+      "A reusable framework for thinking through HMP and RTOS architecture decisions on future products, balancing real-time guarantees, scalability, and long-term flexibility"
+    ],
+    "references": [
+      {
+        "label": "https://www.linkedin.com/in/udhayadhithan/",
+        "url": "https://www.linkedin.com/in/udhayadhithan/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8gv11r0ga6": {
+    "proposalId": "8gv11r0ga6",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8gv11r0ga6",
+    "description": "Modern automotive DMS/OMS demand deterministic, real-time camera processing undersafety-critical constraints, a requirement that goes beyond real-time performance. While RT-Linux can deliver real-time performance, the ISO 26262 compliance requires predictable resource isolation, deterministic scheduling guarantees, and functional safety certification. This work consolidates CSIRX capture, sensor drivers, and VPAC control into a FreeRTOS-based safety-critical firmware on AM62A's Device Manager R5F core, eliminating A53 real-time burden. Linux-based capture remains viable for general-purpose and industrial applications that do not require safety-critical deterministic requirements.\n\nAM62A is a heterogeneous SoC featuring A53 (Linux/applications), C7x NPU (AI/ML),VPAC accelerators (VISS → LDC → MSC), and two R5F cores: MCU R5F (AUTOSAR/safety) and DM R5F (Device Manager). Rather than competing for MCU R5F reserved for safety, the entire vision stack consisting of CSIRX camera, sensor drivers, VPAC control, 2A algorithms consolidates onto DM R5F under FreeRTOS. This: (1) frees A53 from real-time duties; (2) makes capture HLOS-agnostic; (3) enables concurrent execution of camera capture, VPAC, Device Manager, EthFW (with gPTP stack) on one safety-critical core.\n\nTIOVX (TI OpenVx) middleware layer controls the overall graph execution, node/kerneldispatch on different target cores over RPMsg-based communication in the present use case. The R5F controls VPAC via memory-mapped registers and interrupt-driven completion, ensuring deterministic processing. DMR5 runs all services at ~40% peak load, leaving 60% headroom. Future work targets On-The-Fly CSI-RX to VPAC path to eliminate DDR roundtrips.",
+    "keyTakeaways": [
+      "Bridges the gap - between general-purpose Linux and dedicated safety systems",
+      "Solves A53 Overloading as mixing camera capture with application logic on main processor causes unacceptable latency due to IPC overhead",
+      "Proper utilization of DM R5F core by consolidating different tasks and functionalities on one single core.",
+      "40% Load, 60% Headroom - all services (capture + VPAC + DM + EthFW + gPTP) run at only ~40% peak, leaving room for future workloads",
+      "HLOS-Agnostic Capture - A53 running Linux is completely decoupled from real-time camera duties"
+    ],
+    "references": [
+      {
+        "label": "https://www.ti.com/product/AM62A7",
+        "url": "https://www.ti.com/product/AM62A7"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "aqenkb8ktb": {
+    "proposalId": "aqenkb8ktb",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/aqenkb8ktb",
+    "description": "Lightweight cryptography is the solution for resource-constrained embedded devices. Ascon was the finalists in NIST Lightweight Cryptography Standardization Process, chosen from a set of finalists that includes Romulus, built on the SKINNY block cipher. But standardizing an algorithm is not the same as making it cheap to run on a microcontroller.\n\nIn this talk, the author shows a fully open path from hardware to Zephyr RTOS: a lightweight crypto co-processor written in VHDL, integrated into the open NeoRV32 RISC-V soft-core, and exposed to applications through Zephyr RTOS. The author walks through one working example end to end, a SKINNY-AEAD accelerator on an FPGA board, validated on real hardware against the reference test vectors, and driven from Zephyr over a memory-mapped register.\n\nThe author then generalize it into a repeatable recipe register interface, devicetree binding, driver, crypto API integration, that applies to Ascon and the other NIST Lightweight cryptography finalists.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=P-JX_taGZYI",
+        "url": "https://www.youtube.com/watch?v=P-JX_taGZYI"
+      },
+      {
+        "label": "https://doi.org/10.1016/j.micpro.2020.103202",
+        "url": "https://doi.org/10.1016/j.micpro.2020.103202"
+      }
+    ],
+    "links": [
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"
@@ -3379,505 +3844,6 @@
       }
     ]
   },
-  "2tsmo50knt": {
-    "proposalId": "2tsmo50knt",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2tsmo50knt",
-    "description": "This talk is a case study of building and maintaining a design system at an open-source company. I'll share why we decided to invest in a design system, the process we followed, the challenges we encountered, and the lessons we learned along the way.\n\nAs our design system matured, another interesting shift emerged. The same structure that helped humans collaborate more effectively also made it easier to integrate AI-assisted workflows into our product development process.\n\nTopics covered:\n\nWhy we decided to build a design system\n\nThe process of creating and maintaining it\n\nChallenges, trade-offs, and mistakes we made\n\nHow design systems improve collaboration between designers and engineers\n\nWhy design systems encourage designers to think more like engineers and engineers to think more like product builders\n\nThe impact of a design system on product development velocity\n\nHow structured systems naturally support AI-assisted workflows\n\nLessons learned from evolving the system over time\n\nWhy the design and design system at Ente is FOSS\n\nPros and cons of an open source figma file",
-    "keyTakeaways": [
-      "Understand the process of building and maintaining a design system in an open-source company",
-      "Learn the challenges, trade-offs, and mistakes involved in creating a design system",
-      "Understand how design systems improve collaboration between designers and engineers",
-      "Learn why open-source design systems require different considerations than internal systems",
-      "Gain insights into maintaining an open-source Figma file and engaging with the community",
-      "Understand how structured systems influence product development workflows",
-      "Learn how design systems can support AI-assisted prototyping and experimentation",
-      "Explore how the boundaries between design and engineering are becoming increasingly blurred"
-    ],
-    "references": [
-      {
-        "label": "https://ente.com/blog/ente-design-system/",
-        "url": "https://ente.com/blog/ente-design-system/"
-      },
-      {
-        "label": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1",
-        "url": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1"
-      },
-      {
-        "label": "https://ente.com/blog/making-our-figma-public/",
-        "url": "https://ente.com/blog/making-our-figma-public/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "an3ot6c0v0": {
-    "proposalId": "an3ot6c0v0",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/an3ot6c0v0",
-    "description": "While the digital ecosystem for Latin scripts thrives with thousands of open-source typefaces, Indic typography - particularly for languages such as Kannada - remains severely underrepresented. Most contemporary Indic fonts are designed for modern publishing and do not preserve the historical letterforms, ligatures, and typographic variations found in nineteenth- and early twentieth-century print traditions.\n\nAt Sanchaya (Sanchaya.org), we are exploring how the extensive digital archives created through the Servants of Knowledge initiative can help revive early print heritage. We have developed Shaili Sanchaya, an open-source toolchain for revival font development that extracts historical glyphs and letterforms from scanned public-domain books and pre-computer-era print collections to create modern, standards-compliant Unicode typefaces.\n\nBeyond preserving typographic heritage, revival fonts are essential for improving OCR accuracy on historical documents. By digitally recreating legacy typefaces, we enable better recognition of older publications and help unlock vast collections of Indic knowledge that remain inaccessible to search, research, and dissemination.\n\nWe will present our open-source workflow - from archival scanning and character extraction to glyph normalization, vectorization, and font engineering—and discuss the challenges of revival font development, as well as how such efforts can lay the foundation for large-scale Indic glyph datasets and future machine learning applications.",
-    "keyTakeaways": [
-      "The Indic Typography Gap: The lay man’s understanding the design and technical constraints of digital Indic typefaces.",
-      "Archival to Digital Pipeline: How to leverage community-digitized public archives (like Servants of Knowledge) for historical font revival.",
-      "FOSS Font Engineering: Talk about open-source tools? or tell the story of what help was out there to start thinking about unicode-compliant Indic fonts.",
-      "The Bigger Picture: How opening up glyph datasets can revolutionize OCR, archival indexing, and accessibility across regional Indic languages"
-    ],
-    "references": [
-      {
-        "label": "https://fonts.sanchaya.ent",
-        "url": "https://fonts.sanchaya.ent/"
-      },
-      {
-        "label": "https://sanchaya.org",
-        "url": "https://sanchaya.org/"
-      },
-      {
-        "label": "https://archive.org/details/ServantsOfKnowledge",
-        "url": "https://archive.org/details/ServantsOfKnowledge"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "f89n581n5c": {
-    "proposalId": "f89n581n5c",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f89n581n5c",
-    "description": "Modern interfaces are often designed around ideal scenarios: users are focused, connected, and interacting within predictable digital environments. However, real-world products exist in a far messier context, (trust me, I have had a lot of such situations while testing), where physical inputs, environment, interruptions, connectivity issues, and hardware limitations influence the experience. This talk explores what happens when design moves beyond screens and into the physical world, examining the gap between software assumptions and hardware reality.",
-    "keyTakeaways": [
-      "Understand the gap between ideal user flows and real-world user behavior.",
-      "Learn how physical environments, interruptions, and hardware constraints shape UX decisions.",
-      "Explore the role of feedback, system status, and recoverability in product design.",
-      "Understand why designing for edge cases and failure scenarios is critical for real-world products.",
-      "Gain a framework for building interfaces that work beyond controlled digital environments."
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001",
-        "url": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5fle5u3fll": {
-    "proposalId": "5fle5u3fll",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5fle5u3fll",
-    "description": "A brand that needs to communicate with its audience today, needs to do so on many channels (instagram, youtube, blogs, newsletter etc) and at a high speed. The available solutions to keep up with this requirement - canva templates and AI generated imagery, fall short on few things. Canva templates all look and feel the same and while you might be able to tweak the layout, typography and colors to match your brand guidelines, its actually the other visual elements (photographs, illustrations etc) that establish your identity. AI generated posters on the other hand are generic and lack the levers and controls you need to adapt it to your brand's visual identity.\n\nIn this talk, I will share a software and workflow that I have built over p5js to help create visual assets collaboratively with my team. This tool brings the power of p5js and the javascript ecosystem to bring in flexibility needed for any computational design and provide additional primitives needed to make it convenient for visual design work. I will demonstrate examples of use of this tool with case studies from my work.\n\nUses p5js syntax. No custom syntax or DSL to learn. Comes with an ecosystem of books, guides and community to learn from.\n\nFrameworks bundles support for visual design helpers like design tokens (colors, typography, size), grids, cells, layers etc\n\nEverything is code. This makes it possible to collaboratively edit and track changes.\n\nEverything is code. You can bring in your choice of coding agent if needed.\n\nFile path to codify meaning - each drawn item on a canvas is defined in a javascript file that is grouped into layers and projects as per their file system location\n\nLinks to the visuals in case the images don’t get embedded in the proposal :\n\nScreenshot of p5js based custom tools to generate templated designs\n\nVisual Design made using these tools\n\nOther visuals created using the tool",
-    "keyTakeaways": [
-      "Using p5js for visual design with case studies shared from our work",
-      "Introduction to Creative Coding, Generative Systems and Computational Design",
-      "Works of key artists and designers that influence this"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/dennyabrain/p5js-for-visual-design/",
-        "url": "https://github.com/dennyabrain/p5js-for-visual-design/"
-      }
-    ],
-    "links": [
-      {
-        "label": "p5js",
-        "url": "https://p5js.org/"
-      },
-      {
-        "label": "Screenshot of p5js based custom tools to generate templated designs",
-        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDY0MC9vcmlnaW5hbF81YzJiYzI3ZmI4NTI3MmZlMGRmYjdkNmViYTM0MzcyMi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
-      },
-      {
-        "label": "Visual Design made using these tools",
-        "url": "https://d2w9rnfcy7mm78.cloudfront.net/47370642/original_86a83c04800efcbb369571f4a7ff8c7d.png"
-      },
-      {
-        "label": "Other visuals created using the tool",
-        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDYzOS9vcmlnaW5hbF85YzYyY2Q1OGI5MjA5NjlmYzMxNjFlNGVkZjlmZjlmOS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1vuu1c1ma7": {
-    "proposalId": "1vuu1c1ma7",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vuu1c1ma7",
-    "description": "In IndiaFOSS 2025, I introduced KaiOS feature phones, which are capable of many things a smartphone can do including (theoretically) opening websites and webapps. Hearing this, people often assume that any webapp can be used on KaiOS. However, this is usually not the case.\n\nEven if an app or website technically works (without breaking due to using modern JavaScript features that the old KaiOS engine doesn’t support) webapps often expect touch or mouse interaction rather than the keypad interaction that KaiOS devices provide. This requires design that is—not more or less difficult, but different from what most people are used to. If you have used any old Nokia phone, you may have an idea what kind of design and interaction I am talking about!\n\nOver the past year, I have been redoing the user interface of Convo, my XMPP powered messaging app for KaiOS. Along the way, I have been paying a bit more attention to how other KaiOS apps handle user interaction.\n\nIn this talk, I will briefly go over some common design patterns that feature phone apps use to make KaiOS more pleasurable to navigate.",
-    "keyTakeaways": [
-      "Keypad-operated phones have their own form of user interaction that is different from touchscreen or mouse based interaction.",
-      "Softkeys let the user select between primary options",
-      "Use keypad shortcuts to make sure each key is used to the maximum! (But also a more traditional dropdown menu so the less shortcut-inclined can still navigate)",
-      "Designing for small screens tends to have less focus on how something should look and more on what should be presented when and where"
-    ],
-    "references": [
-      {
-        "label": "https://convo.fsci.in",
-        "url": "https://convo.fsci.in/"
-      },
-      {
-        "label": "https://wiki.bananahackers.net/",
-        "url": "https://wiki.bananahackers.net/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "0rlqb6s6lb": {
-    "proposalId": "0rlqb6s6lb",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0rlqb6s6lb",
-    "description": "Linux desktop interfaces are typically built from rectangles and predefined transitions. While functional, these constraints make it difficult to create interfaces with the kind of expressive motion and fluid geometry commonly seen in modern design systems.\n\nIn this talk, I will demonstrate how I brought Bézier-driven animation and procedural shape generation to GTK3 using my open-source geometry library, expressive-shapes, along with a series of runtime modifications to GTK's animation pipeline.\n\nThe talk explores two complementary ideas:\n\nOverriding Time: Bézier Transitions\n\nGTK widgets such as stacks and revealers rely on fixed interpolation models. I will begin with a quick overview of GTK's widget lifecycle (mapping, allocation, drawing, and frame clock updates) to establish where animations fit into the rendering pipeline. From there, I will show how native transition timelines can be intercepted and redirected through a custom animation manager synchronized with the display refresh cycle enabling smooth Bézier-based motion and expressive transitions.\n\nOverriding Form: Geometry Engine\n\nBeyond animation, I wanted widgets themselves to become dynamic shapes rather than static rectangles. I will talk about the evolution of expressive-shapes into a geometry engine capable of generating rounded polygons and performing real-time shape morphing. Along the way, I will discuss the underlying algorithms, the architectural decisions that shaped the library.\n\nThroughout the talk, I will present implementation examples and live demonstrations using PyGObject, showing how these techniques can be combined to create fluid animations, shape morphing, and visually expressive GTK3 interfaces.",
-    "keyTakeaways": [
-      "A simple understanding of GTK's widget lifecycle.",
-      "Techniques for replacing GTK3's built-in widget transitions with custom Bézier-driven animations.",
-      "How geometry and Bézier curves can be used to generate, round, and morph shapes in real time.",
-      "Inspiration and implementation ideas for creating more expressive desktop interfaces with GTK3."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/amansxcalibur/expressive-shapes",
-        "url": "https://github.com/amansxcalibur/expressive-shapes"
-      },
-      {
-        "label": "https://github.com/amansxcalibur/zenith-shell",
-        "url": "https://github.com/amansxcalibur/zenith-shell"
-      },
-      {
-        "label": "https://www.gtk.org/",
-        "url": "https://www.gtk.org/"
-      },
-      {
-        "label": "https://pygobject.gnome.org/",
-        "url": "https://pygobject.gnome.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "expressive-shapes",
-        "url": "https://github.com/amansxcalibur/expressive-shapes"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1qugujs7o0": {
-    "proposalId": "1qugujs7o0",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1qugujs7o0",
-    "description": "So when we think about great design what comes to our mind is great visuals, sleek UI, futuristic interfaces. But here's something we don't really think about, vision is directional, it demands your full attention, while sound is omnidirectional, it works in the background. And yet sound is probably the most ignored detail in design today.\n\nAs we all know the devil lies in the details, and sound is that detail. Remove it and things fall apart. Add it back and everything clicks, literally. We have seen this so many times, every time something physical gets replaced by something digital, sound comes for the rescue. iPhone replaced the physical keyboard, so they added haptic and sound. Apple Pencil replaced pen on paper, so it started emitting the sound of pen rubbing against paper. Google Maps plays a reroute chime because no pop-up could do that job safely while driving.\n\nNow as AI evolves from text to voice and VR removes all physical surfaces, sound is going to become even more essential because when there is no physical surface we need to give the user something to hold onto. But more sound isn't better sound, there's a point where every ping becomes noise and users stop hearing anything, including the alerts that actually matter.\n\nThis lightning talk covers what HCI research tells us about sound in interaction design, when it helps, when it becomes noise, and what open-source tools already exist for developers who want to stop treating sound as an afterthought.",
-    "keyTakeaways": [
-      "You'll understand why sound isn't decoration but a functional design layer, it confirms actions, communicates system state, and reduces cognitive load on the user's eyes",
-      "You'll see real HCI case studies showing what happens when you remove sound (performance drops) and what happens when you add too much (users start ignoring critical alerts)",
-      "You'll discover open-source tools like freedesktop Sound Theme Spec, libcanberra, and snd-lib that most developers today aren't even aware exist, ready to use in your own projects",
-      "You'll walk away with a practical sense of when to add sound, what kind, and when to stay silent"
-    ],
-    "references": [
-      {
-        "label": "https://nsuworks.nova.edu/gscis_etd/1148/",
-        "url": "https://nsuworks.nova.edu/gscis_etd/1148/"
-      },
-      {
-        "label": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/",
-        "url": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/"
-      },
-      {
-        "label": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf",
-        "url": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5ua576fg9k": {
-    "proposalId": "5ua576fg9k",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5ua576fg9k",
-    "description": "Zephyr RTOS separates system configuration into multiple layers, primarily using Kconfig for feature selection and Device Tree for hardware description. Real world embedded product needs more like deployment specific parameters such as communication endpoints, timing constants, and board-specific behavioural settings. Today, these parameters are inconsistently handled across Kconfig symbols, Device Tree overlays, and application code, leading to duplication and reduced portability.\n\nThis talk looks at the boundary between Kconfig and Device Tree, and at how system configuration gets fragmented in Zephyr applications today. We introduce the idea of using Device Tree for static “system configuration nodes” representing logical or virtual system components such as service endpoints and application parameters. The goal is not to replace existing mechanisms, but to evaluate some common system configuration can also be handled in a more structured way using Device Tree.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=7qj0OM0Ak24",
-        "url": "https://www.youtube.com/watch?v=7qj0OM0Ak24"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "9qp8u3f894": {
-    "proposalId": "9qp8u3f894",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9qp8u3f894",
-    "description": "Modern display hardware is increasingly modular, combining SoC display controllers, interfaces such as DPI and MIPI DSI, protocol-conversion bridges, and a variety of display panels. Zephyr's current display subsystem is largely vendor-specific, making it difficult to support diverse display pipelines in a scalable way.This talk presents a modular display architecture for Zephyr inspired by Linux DRM framework. Display controllers, bridge devices, and panel drivers are implemented as independent layers connected through Devicetree. Pipelines are assembled dynamically at runtime, allowing display controllers to remain agnostic of downstream hardware.The talk will show how a single display controller driver can support both MIPI DSI and DPI-through-HDMI by attaching different downstream components, and show how the driver is capable for even eDP and MIPI DBI interfaces.Finally, the talk covers hot-plug detection and key design trade-offs while developing the driver for Zephyr.",
-    "keyTakeaways": [
-      "Learn how modern display pipelines are structured, including display controllers, protocol bridges, and display panels, and how these components interact.",
-      "See how a modular, layered display architecture enables reusable drivers that are independent of downstream display hardware.",
-      "Understand how Devicetree can describe complete display pipelines, allowing hardware configurations to be assembled without modifying controller drivers."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110013",
-        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110013"
-      },
-      {
-        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110061",
-        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110061"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1s4iem9t8a": {
-    "proposalId": "1s4iem9t8a",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1s4iem9t8a",
-    "description": "Infineon's AURIX family of automotive microcontrollers is based on the TriCore architecture and is widely used across automotive systems, from powertrain and chassis control to safety-critical ECUs. This talk presents the upstream effort to add TriCore architecture support and enable Infineon AURIX TC3x and TC4x devices in Zephyr (https://github.com/zephyrproject-rtos/zephyr/pull/107516).Starting from CPU reset, we will walk through the key architecture bring-up steps required to reach the first Zephyr thread, including trap and interrupt handling, Context Save Area (CSA)-based context switching, and system timer integration. We will also cover the work required beyond the architecture layer, including SoC support, board enablement, and QEMU-based development and testing.Finally, we will discuss the challenges of upstreaming a new architecture into Zephyr, from toolchain and CI integration to HAL dependencies and ecosystem support, along with the remaining work needed for automotive and safety-critical systems.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/107516",
-        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/107516"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "6r7akaieb8": {
-    "proposalId": "6r7akaieb8",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6r7akaieb8",
-    "description": "Integrating camera capture and display subsystems on embedded SoCs presents significant software design challenges due to competing buffer ownership models across independent hardware subsystems. This talk presents a practical implementation of a zero-copy video pipeline on a TI Jacinto SoCs running FreeRTOS, coordinating three drivers: a CSI2-DPHY receiver, a UDMA engine, and a Display Subsystem driver.\n\nThe implementation uses FVID2, TI's unified video interface, to apply a consistent queue/dequeue buffer model to both capture and display operations. We examine the initialization sequence where the application transfers UDMA ownership to the CSIRX driver, enabling the DSS driver direct visibility into captured buffers.\n\nCritical gaps in single-task designs are identified, specifically the absence of mechanisms preventing capture from overwriting buffers during display scanout. We present a corrected two-task producer-consumer design using counting semaphores to enforce mutual exclusion, with explicit analysis of task priorities and frame timing implications.\n\nThis work bridges the gap between pipelines that function nominally and those structured to remain correct under timing pressure, illustrating the complexity beneath seemingly solved problems in embedded systems integration.",
-    "keyTakeaways": [
-      "How FVID2's queue/dequeue model provides a unified buffer-ownership interface across CSIRX and DSS drivers",
-      "What a proper FreeRTOS producer-consumer pipeline for this use case would look like"
-    ],
-    "references": [
-      {
-        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html",
-        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html"
-      },
-      {
-        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html",
-        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8fc48rj2g2": {
-    "proposalId": "8fc48rj2g2",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8fc48rj2g2",
-    "description": "Heterogeneous SoCs often employ a common pattern - Run Linux on the primary processor for system management tasks like boot sequencing, power management, firmware loading, and resource allocation, while Zephyr runs on auxiliary cores.\n\nMCUBoot, as of now, lacks the ability to load or control cores other than the one that it is running on.\n\nThis can be tackled by porting remote processor framework (remoteproc) to Zephyr - to provide firmware lifecycle management, resource table handling, and capabilities to load binaries. We can also employ OpenAMP using RPMsg for communication.\n\nWe will use TI's AM2434 as our reference SoC. This presentation will cover the remoteproc framework architecture, reference driver and reference examples demonstrating peer-to-peer processor management.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=8yAT-miihvY",
-        "url": "https://www.youtube.com/watch?v=8yAT-miihvY"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "eofh2kev0d": {
-    "proposalId": "eofh2kev0d",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eofh2kev0d",
-    "description": "The session begins with the model almost every embedded developer starts from, the setup and loop loops that runs continuously, polling sensors, driving outputs, and relying on delay() to manage its timing. This sequential approach is easy to reason about and serves small projects well, but it starts to strain the moment a device has to respond to several things at once. From there the talk introduces the real-time operating system as the answer to that strain, explaining the shift from one continuous loop to a set of independent tasks coordinated by a scheduler that allocates processor time and can preempt lower-priority work whenever something more urgent comes up. With the concept in place, the focus turns to the practical advantages: running multiple jobs concurrently, holding predictable response times under varying load, keeping unrelated parts of the firmware cleanly separated, and maintaining a codebase that stays workable as a product grows in complexity. The talk then looks at why real-time development has become a broadly valuable skill rather than a niche one, given how much of today's embedded and IoT hardware now runs on an RTOS and how steadily demand for that expertise keeps rising. It closes by introducing Zephyr, a modern, vendor-backed open-source RTOS released under the permissive Apache 2.0 license, as a concrete and increasingly standard platform on which to put everything the talk has covered into practice.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.freertos.org/",
-        "url": "https://www.freertos.org/"
-      },
-      {
-        "label": "https://micro.ros.org/docs/concepts/rtos/comparison/",
-        "url": "https://micro.ros.org/docs/concepts/rtos/comparison/"
-      },
-      {
-        "label": "https://www.zephyrproject.org/",
-        "url": "https://www.zephyrproject.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5h4d5uhuro": {
-    "proposalId": "5h4d5uhuro",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5h4d5uhuro",
-    "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
-    "keyTakeaways": [
-      "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
-      "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
-      "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
-      "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
-    ],
-    "references": [
-      {
-        "label": "https://redkill.in/",
-        "url": "https://redkill.in/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "2sfmvkhrrg": {
-    "proposalId": "2sfmvkhrrg",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2sfmvkhrrg",
-    "description": "People are now familirized to rich UI hence the embedded devices are required to meet those standards. Many embedded products today need two very different things at once: a rich user interface, connectivity, and application logic and a hard real-time behavior with strict timing guarantees (best served by a dedicated MCU running an RTOS or bare-metal firmware). In this talk I want to walk through a real heterogeneous multi-processing (HMP) architecture built around this split: an STM32MP1 running Linux for display and application-level functionality, paired with an STM32H7 microcontroller handling the real-time subsystem, including sensor data acquisition, motor control data management and other periphearl activities.\n\nWe'll start by examining why this split was the right call, then go inside the custom IPC layer connecting the two chips: how the protocol was designed (framing, message types, error handling), and how failures like an independent reset on either side are managed.\n\nThe next section zooms into the H7 firmware, covering RTOS task design patterns that keep the real-time subsystem deterministic: ISR-to-task deferral for sensor sampling, event-driven patterns and command queue architectures that decouple incoming Linux-side commands from time-critical control loops.\n\nFinally, we'll discuss how designing the IPC layer around a stable, well-defined protocol enables a modular hardware architecture. the real-time subsystem can remain unchanged while the application processor side is swapped for a different MPU or APU (for example, one better suited to display or AI workloads), as long as it speaks the same protocol.",
-    "keyTakeaways": [
-      "When and why to split a product's compute across an APU (Linux, display/connectivity/application logic) and an MCU and how to evaluate that tradeoff for your own designs",
-      "Practical RTOS task design patterns for the real-time subsystem:",
-      "How a well-defined IPC protocol enables a modular hardware architecture, allowing the application processor (APU/MPU) to be swapped or upgraded independently without touching the real-time subsystem",
-      "A reusable framework for thinking through HMP and RTOS architecture decisions on future products, balancing real-time guarantees, scalability, and long-term flexibility"
-    ],
-    "references": [
-      {
-        "label": "https://www.linkedin.com/in/udhayadhithan/",
-        "url": "https://www.linkedin.com/in/udhayadhithan/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8gv11r0ga6": {
-    "proposalId": "8gv11r0ga6",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8gv11r0ga6",
-    "description": "Modern automotive DMS/OMS demand deterministic, real-time camera processing undersafety-critical constraints, a requirement that goes beyond real-time performance. While RT-Linux can deliver real-time performance, the ISO 26262 compliance requires predictable resource isolation, deterministic scheduling guarantees, and functional safety certification. This work consolidates CSIRX capture, sensor drivers, and VPAC control into a FreeRTOS-based safety-critical firmware on AM62A's Device Manager R5F core, eliminating A53 real-time burden. Linux-based capture remains viable for general-purpose and industrial applications that do not require safety-critical deterministic requirements.\n\nAM62A is a heterogeneous SoC featuring A53 (Linux/applications), C7x NPU (AI/ML),VPAC accelerators (VISS → LDC → MSC), and two R5F cores: MCU R5F (AUTOSAR/safety) and DM R5F (Device Manager). Rather than competing for MCU R5F reserved for safety, the entire vision stack consisting of CSIRX camera, sensor drivers, VPAC control, 2A algorithms consolidates onto DM R5F under FreeRTOS. This: (1) frees A53 from real-time duties; (2) makes capture HLOS-agnostic; (3) enables concurrent execution of camera capture, VPAC, Device Manager, EthFW (with gPTP stack) on one safety-critical core.\n\nTIOVX (TI OpenVx) middleware layer controls the overall graph execution, node/kerneldispatch on different target cores over RPMsg-based communication in the present use case. The R5F controls VPAC via memory-mapped registers and interrupt-driven completion, ensuring deterministic processing. DMR5 runs all services at ~40% peak load, leaving 60% headroom. Future work targets On-The-Fly CSI-RX to VPAC path to eliminate DDR roundtrips.",
-    "keyTakeaways": [
-      "Bridges the gap - between general-purpose Linux and dedicated safety systems",
-      "Solves A53 Overloading as mixing camera capture with application logic on main processor causes unacceptable latency due to IPC overhead",
-      "Proper utilization of DM R5F core by consolidating different tasks and functionalities on one single core.",
-      "40% Load, 60% Headroom - all services (capture + VPAC + DM + EthFW + gPTP) run at only ~40% peak, leaving room for future workloads",
-      "HLOS-Agnostic Capture - A53 running Linux is completely decoupled from real-time camera duties"
-    ],
-    "references": [
-      {
-        "label": "https://www.ti.com/product/AM62A7",
-        "url": "https://www.ti.com/product/AM62A7"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5inuh3i6co": {
-    "proposalId": "5inuh3i6co",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5inuh3i6co",
-    "description": "Discussion will explore how free and open-source technologies can be developed and sustained in collaboration with communities rather than simply deployed for them. Drawing on Janastu's experiences working with rural and marginalized communities, we will discuss projects including community-owned mesh networks, local-first applications for low-connectivity environments, community radio, and AI-based voice anonymization for protecting vulnerable voices. And also about 3 month residential course for IT related people. The session will invite participants to reflect on the technical, social, and organizational challenges of building community-owned digital infrastructure. Through an open discussion, attendees will share experiences, exchange ideas, and explore how FOSS can better support local autonomy, privacy, participation, and long-term sustainability in community-driven initiatives.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://open.janastu.org",
-        "url": "https://open.janastu.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "92adqrmbh1": {
-    "proposalId": "92adqrmbh1",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
-    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
-        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "doht3bggkm": {
-    "proposalId": "doht3bggkm",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/doht3bggkm",
-    "description": "Anything goes. Free here is free as in “your” food… And feel free to get any books you want to pass onto others.\n\nFree software + Free Food + Books = Great conference !\n\nSo what is this ? It’s a pre-lunch potluck, with books thrown in !\n\nEach attendee (that’s your entry ticket!) needs to get a dish, which will be shared with everyone. Ideally the dish is home cooked, but we understand if that’s not feasible for everyone. We’ll probably make exceptions for store bought sweets and savouries. Let’s unite the diversity of your food and stories onto our combined table!\n\nThe menu will be coordinated on this forum thread, where we’ll keep track of the actual dish attendees are gonna bring.\n\nSimilarly for books. Want to get a book and share with others (as in give it away)? Post on the forum thread !\n\nPS: Our *Takeaways* are *real* - have a look !",
-    "keyTakeaways": [
-      "Wheat Halwa",
-      "The Nitopadesha - translated by Nitin Pai"
-    ],
-    "references": [],
-    "links": [
-      {
-        "label": "forum thread",
-        "url": "https://forum.fossunited.org/t/united-by-free-f-b-food-books-indiafoss-2026/9049"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "2p9brsg91r": {
-    "proposalId": "2p9brsg91r",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2p9brsg91r",
-    "description": "India’s judiciary carries one of the largest case backlogs in the world, with over 5.5 crore pending cases. The government’s eCourts mission is pushing digital transformation, but the gap between policy intent and effective, resilient technology remains considerable. This BoF hopes to bring together builders, civic tech contributors, and open data advocates for a conversation that doesn’t happen often enough.\n\nWe’ll open by taking stock of what open-source tools and infrastructure already exist — in India and globally — for justice systems and public institutions, and where the FOSS community has significantly shaped outcomes. Earlier phases of digital policy programmes actively centred open-source tools and development processes to drive innovation and reduce proprietary dependencies. But as technology evolves and AI/ML solutions enter the picture, new questions arise: what should institutional stakeholders — such as judges, court administrators, and policymakers — understand about open-source as a community, how it works, and what it can deliver? How do we communicate open approaches to problem framing, requirements building, and tooling to public decision-makers encountering these ideas for the first time?\n\nFrom there, the conversation opens up. We want to explore where the FOSS community can play a stronger, more deliberate role in Indian public sector innovation — not just as implementers, but as shapers of what gets built and how. A key goal is to develop specific, actionable problem statements from broad policy challenges, and to explore how a technical community can help craft a message and vocabulary that actually lands with decision-makers.\n\nThe details will develop as the conversation does — we see this BoF as much about figuring out the right questions as it is about answering them. If you work on civic tech, legal tech, open data, or e-governance — or simply care about access to justice — come argue, share, and help us figure this out.\n\nBrief context-setting (~10–15 mins), followed by open, moderator-steered discussion. No formal presentations — just people in a room who care about the same problem.\n\nDAKSH - a Bangalore-based think-tank focused on law and justice system reforms and access to justice.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.linkedin.com/in/smita-mutt/",
-        "url": "https://www.linkedin.com/in/smita-mutt/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
   "4eh569dvq9": {
     "proposalId": "4eh569dvq9",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4eh569dvq9",
@@ -3913,6 +3879,94 @@
       {
         "label": "https://x.com/AskBaluBabu",
         "url": "https://x.com/AskBaluBabu"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5inuh3i6co": {
+    "proposalId": "5inuh3i6co",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5inuh3i6co",
+    "description": "Discussion will explore how free and open-source technologies can be developed and sustained in collaboration with communities rather than simply deployed for them. Drawing on Janastu's experiences working with rural and marginalized communities, we will discuss projects including community-owned mesh networks, local-first applications for low-connectivity environments, community radio, and AI-based voice anonymization for protecting vulnerable voices. And also about 3 month residential course for IT related people. The session will invite participants to reflect on the technical, social, and organizational challenges of building community-owned digital infrastructure. Through an open discussion, attendees will share experiences, exchange ideas, and explore how FOSS can better support local autonomy, privacy, participation, and long-term sustainability in community-driven initiatives.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://open.janastu.org",
+        "url": "https://open.janastu.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1vj5aoro8u": {
+    "proposalId": "1vj5aoro8u",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
+    "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
+    "keyTakeaways": [
+      "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
+      "Feasibility of eco-cost standard for interfaces",
+      "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
+      "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
+      "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
+    ],
+    "references": [
+      {
+        "label": "https://gooey.ai/sovereignty",
+        "url": "https://gooey.ai/sovereignty"
+      },
+      {
+        "label": "https://gooey.ai/agriculture",
+        "url": "https://gooey.ai/agriculture"
+      },
+      {
+        "label": "https://gooey.ai/model-trainer",
+        "url": "https://gooey.ai/model-trainer"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "doht3bggkm": {
+    "proposalId": "doht3bggkm",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/doht3bggkm",
+    "description": "Anything goes. Free here is free as in “your” food… And feel free to get any books you want to pass onto others.\n\nFree software + Free Food + Books = Great conference !\n\nSo what is this ? It’s a pre-lunch potluck, with books thrown in !\n\nEach attendee (that’s your entry ticket!) needs to get a dish, which will be shared with everyone. Ideally the dish is home cooked, but we understand if that’s not feasible for everyone. We’ll probably make exceptions for store bought sweets and savouries. Let’s unite the diversity of your food and stories onto our combined table!\n\nThe menu will be coordinated on this forum thread, where we’ll keep track of the actual dish attendees are gonna bring.\n\nSimilarly for books. Want to get a book and share with others (as in give it away)? Post on the forum thread !\n\nPS: Our *Takeaways* are *real* - have a look !",
+    "keyTakeaways": [
+      "Wheat Halwa",
+      "The Nitopadesha - translated by Nitin Pai"
+    ],
+    "references": [],
+    "links": [
+      {
+        "label": "forum thread",
+        "url": "https://forum.fossunited.org/t/united-by-free-f-b-food-books-indiafoss-2026/9049"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "2p9brsg91r": {
+    "proposalId": "2p9brsg91r",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2p9brsg91r",
+    "description": "India’s judiciary carries one of the largest case backlogs in the world, with over 5.5 crore pending cases. The government’s eCourts mission is pushing digital transformation, but the gap between policy intent and effective, resilient technology remains considerable. This BoF hopes to bring together builders, civic tech contributors, and open data advocates for a conversation that doesn’t happen often enough.\n\nWe’ll open by taking stock of what open-source tools and infrastructure already exist — in India and globally — for justice systems and public institutions, and where the FOSS community has significantly shaped outcomes. Earlier phases of digital policy programmes actively centred open-source tools and development processes to drive innovation and reduce proprietary dependencies. But as technology evolves and AI/ML solutions enter the picture, new questions arise: what should institutional stakeholders — such as judges, court administrators, and policymakers — understand about open-source as a community, how it works, and what it can deliver? How do we communicate open approaches to problem framing, requirements building, and tooling to public decision-makers encountering these ideas for the first time?\n\nFrom there, the conversation opens up. We want to explore where the FOSS community can play a stronger, more deliberate role in Indian public sector innovation — not just as implementers, but as shapers of what gets built and how. A key goal is to develop specific, actionable problem statements from broad policy challenges, and to explore how a technical community can help craft a message and vocabulary that actually lands with decision-makers.\n\nThe details will develop as the conversation does — we see this BoF as much about figuring out the right questions as it is about answering them. If you work on civic tech, legal tech, open data, or e-governance — or simply care about access to justice — come argue, share, and help us figure this out.\n\nBrief context-setting (~10–15 mins), followed by open, moderator-steered discussion. No formal presentations — just people in a room who care about the same problem.\n\nDAKSH - a Bangalore-based think-tank focused on law and justice system reforms and access to justice.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.linkedin.com/in/smita-mutt/",
+        "url": "https://www.linkedin.com/in/smita-mutt/"
       }
     ],
     "links": [

@@ -8,7 +8,7 @@
   "activities": [
     {
       "id": "act-543a71asfp",
-      "sourceId": "543a71asfp",
+      "sourceId": "chg3oh0klv",
       "type": "meal",
       "title": "Registrations and Breakfast (Food Area)",
       "subtitle": "Other",
@@ -25,7 +25,7 @@
     },
     {
       "id": "act-aq5t2bsj44",
-      "sourceId": "543au52mip",
+      "sourceId": "chg34kmrb1",
       "type": "talk",
       "title": "Welcome Note",
       "subtitle": "Other",
@@ -42,7 +42,7 @@
     },
     {
       "id": "act-cfp-062rh0sg2r",
-      "sourceId": "543abu2o0g",
+      "sourceId": "chg3nhf65l",
       "proposalId": "062rh0sg2r",
       "type": "talk",
       "title": "From Pull Requests to Patients: Building Open Healthcare Infrastructure in the Open",
@@ -105,7 +105,7 @@
     },
     {
       "id": "act-aq5to9iht3",
-      "sourceId": "543agohrka",
+      "sourceId": "chg3cr2708",
       "type": "talk",
       "title": "Opening Note",
       "subtitle": "Other",
@@ -122,7 +122,7 @@
     },
     {
       "id": "act-cfp-advandigma",
-      "sourceId": "543a636lo7",
+      "sourceId": "chg31ram81",
       "proposalId": "advandigma",
       "type": "talk",
       "title": "Building Zasper: Inception to Growth",
@@ -175,7 +175,7 @@
     },
     {
       "id": "act-aq5tc0pju4",
-      "sourceId": "543amc2vf8",
+      "sourceId": "chg3sj5rg7",
       "type": "talk",
       "title": "Devroom Intro: Documentation & Technical Writing",
       "subtitle": "Other",
@@ -193,7 +193,7 @@
     },
     {
       "id": "act-28latk6vs1",
-      "sourceId": "543acfean0",
+      "sourceId": "chg34b4cnc",
       "type": "talk",
       "title": "Devroom Intro: Open Hardware",
       "subtitle": "Other",
@@ -211,7 +211,7 @@
     },
     {
       "id": "act-28la68il6o",
-      "sourceId": "543aj9gdph",
+      "sourceId": "chg3f343cf",
       "proposalId": "7pt1ibasdd",
       "type": "talk",
       "title": "Minnow: An Open Platform for Ground Swarm Robotics",
@@ -259,7 +259,7 @@
     },
     {
       "id": "act-28lagehf47",
-      "sourceId": "543a203cum",
+      "sourceId": "chg3dhu18d",
       "proposalId": "96gh03hfud",
       "type": "lightning-talk",
       "title": "Your first open source contribution does not have to be code",
@@ -312,7 +312,7 @@
     },
     {
       "id": "act-cfp-2bfslonj72",
-      "sourceId": "543a2tetk7",
+      "sourceId": "chg3oen36n",
       "proposalId": "2bfslonj72",
       "type": "talk",
       "title": "From Institution to Community: Building COSH and a Culture of Open Source",
@@ -360,7 +360,7 @@
     },
     {
       "id": "act-28laimsqbf",
-      "sourceId": "543a0094rk",
+      "sourceId": "chg3ua8h98",
       "proposalId": "clniq3em1j",
       "type": "lightning-talk",
       "title": "Why Documentation Shouldn't Feel Like Plain Text",
@@ -407,7 +407,7 @@
     },
     {
       "id": "act-28la7k72kp",
-      "sourceId": "543aq41lp4",
+      "sourceId": "chg3fackhs",
       "proposalId": "db4ufng84v",
       "type": "talk",
       "title": "Documentation That Drives OSS Adoption: Lessons From Bruno",
@@ -455,7 +455,7 @@
     },
     {
       "id": "act-28la7s63ku",
-      "sourceId": "543adr4ur0",
+      "sourceId": "chg36pt0k3",
       "proposalId": "32f9jjkob0",
       "type": "talk",
       "title": "Build your own open source keyboard with ZMK/QMK",
@@ -509,7 +509,7 @@
     },
     {
       "id": "act-cfp-0k2f61lkrj",
-      "sourceId": "543agvl1h8",
+      "sourceId": "chg34pnd0s",
       "proposalId": "0k2f61lkrj",
       "type": "talk",
       "title": "Repub: Launching the Open Post-Processing Workflow for Digital Archiving in India",
@@ -565,7 +565,7 @@
     },
     {
       "id": "act-28la54hqh4",
-      "sourceId": "543algqqcu",
+      "sourceId": "chg344a81p",
       "proposalId": "en28h8l81s",
       "type": "lightning-talk",
       "title": "Ctrl+F for 34 Years of India's GovTech (Building a Public Commons for India's Digital Governance History)",
@@ -618,7 +618,7 @@
     },
     {
       "id": "act-cfp-8s4g5qj3oq",
-      "sourceId": "543anp4b6n",
+      "sourceId": "chg3e83iv6",
       "proposalId": "8s4g5qj3oq",
       "type": "talk",
       "title": "Textbooks that run: interactive, zero-install CS education in the browser",
@@ -672,7 +672,7 @@
     },
     {
       "id": "act-28lar2a71m",
-      "sourceId": "543a71e2v3",
+      "sourceId": "chg3tdl45j",
       "proposalId": "9cl0lf8t0j",
       "type": "talk",
       "title": "Developer Experience is the New Open Source Contribution. Here's Why",
@@ -729,7 +729,7 @@
     },
     {
       "id": "act-28la283qdf",
-      "sourceId": "543aitmvas",
+      "sourceId": "chg3sbqlfq",
       "proposalId": "3nr9benq94",
       "type": "talk",
       "title": "Building Open Source Music Hardware in India - Tarab Instruments",
@@ -793,7 +793,7 @@
     },
     {
       "id": "act-cfp-37sjgknrj3",
-      "sourceId": "543arfn86p",
+      "sourceId": "chg3nrjolo",
       "proposalId": "37sjgknrj3",
       "type": "bof",
       "title": "Do Open Source Companies Pay Competitively?",
@@ -848,35 +848,18 @@
       "source": "fossunited"
     },
     {
-      "id": "act-cfp-1vj5aoro8u",
-      "sourceId": "543a4v4qn2",
-      "proposalId": "1vj5aoro8u",
+      "id": "act-cfp-92adqrmbh1",
+      "sourceId": "chg379qc8r",
+      "proposalId": "92adqrmbh1",
       "type": "bof",
-      "title": "How do we scale and sustain AI adoption without burning the planet?",
+      "title": "FOSS4Good - Techies in the social sector",
       "subtitle": "",
-      "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
-      "keyTakeaways": [
-        "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
-        "Feasibility of eco-cost standard for interfaces",
-        "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
-        "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
-        "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
-      ],
-      "references": [
-        {
-          "label": "https://gooey.ai/sovereignty",
-          "url": "https://gooey.ai/sovereignty"
-        },
-        {
-          "label": "https://gooey.ai/agriculture",
-          "url": "https://gooey.ai/agriculture"
-        },
-        {
-          "label": "https://gooey.ai/model-trainer",
-          "url": "https://gooey.ai/model-trainer"
-        }
-      ],
+      "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
       "links": [
+        {
+          "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
+          "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
+        },
         {
           "label": "Source code",
           "url": "https://github.com/fossunited/fossunited"
@@ -884,17 +867,16 @@
       ],
       "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
       "start": "2026-09-26T11:00:00+05:30",
       "end": "2026-09-26T12:00:00+05:30",
       "flexible": false,
       "locationId": "room-3",
       "speakerIds": [
-        "person-dev-aggarwal"
+        "person-ansh-arora"
       ],
       "tags": [
         "Birds of Feather(BoF)",
-        "Technology architecture",
         "Intermediate"
       ],
       "trackId": "room-3",
@@ -902,7 +884,7 @@
     },
     {
       "id": "act-cfp-42vnv417j4",
-      "sourceId": "543a3culun",
+      "sourceId": "chg3on0hn4",
       "proposalId": "42vnv417j4",
       "type": "talk",
       "title": "How to Build Long-Lasting Tech Communities That Thrive — A Playbook",
@@ -950,7 +932,7 @@
     },
     {
       "id": "act-28la2f67h1",
-      "sourceId": "543a567jam",
+      "sourceId": "chg3q3pkam",
       "proposalId": "6dpd2lbkma",
       "type": "lightning-talk",
       "title": "Refactoring documentation without breaking it",
@@ -1027,7 +1009,7 @@
     },
     {
       "id": "act-cfp-44no6v1fbb",
-      "sourceId": "543alsgqth",
+      "sourceId": "chg3ro6la7",
       "proposalId": "44no6v1fbb",
       "type": "talk",
       "title": "Tracking-free and hackable network cameras - powered by libre software",
@@ -1076,7 +1058,7 @@
     },
     {
       "id": "act-28ladjk67i",
-      "sourceId": "543ai3fg90",
+      "sourceId": "chg3rcgd6o",
       "type": "talk",
       "title": "Group Photo",
       "subtitle": "Other",
@@ -1094,7 +1076,7 @@
     },
     {
       "id": "act-28la2b9bfd",
-      "sourceId": "543a9e7ddk",
+      "sourceId": "chg34gkjcn",
       "proposalId": "76r6ku6p9h",
       "type": "lightning-talk",
       "title": "Changelogs Are Not Enough: Writing Community Memory for Kubernetes",
@@ -1166,7 +1148,7 @@
     },
     {
       "id": "act-28lahhqhja",
-      "sourceId": "543at5vv5d",
+      "sourceId": "chg3p0n7ft",
       "proposalId": "1cbj5bhfhf",
       "type": "talk",
       "title": "CNC4Everyone - How we built a CNC machine for every classroom, college and makerspace",
@@ -1223,7 +1205,7 @@
     },
     {
       "id": "act-cfp-9ojc3pnp7u",
-      "sourceId": "543ah4gc9o",
+      "sourceId": "chg3g2i9ha",
       "proposalId": "9ojc3pnp7u",
       "type": "talk",
       "title": "Optimizing Performance of GUIs",
@@ -1261,7 +1243,7 @@
     },
     {
       "id": "act-28lafff71r",
-      "sourceId": "543af58ju7",
+      "sourceId": "chg3m6a9hf",
       "proposalId": "eqr1r1mp5b",
       "type": "talk",
       "title": "Writing Docs for Two Readers: Humans and AI Agents",
@@ -1310,7 +1292,7 @@
     },
     {
       "id": "act-cfp-4svti9mp47",
-      "sourceId": "543aheruq0",
+      "sourceId": "chg3nho510",
       "proposalId": "4svti9mp47",
       "type": "lightning-talk",
       "title": "Fork Around and Find Out: How I Built a GNOME Extension Used by 200K+ People",
@@ -1370,7 +1352,7 @@
     },
     {
       "id": "act-cfp-658mrgdc1b",
-      "sourceId": "543auo7dge",
+      "sourceId": "chg3vva7d6",
       "proposalId": "658mrgdc1b",
       "type": "lightning-talk",
       "title": "FQ-PIE: Contributing to Open Standards by Contributing to FOSS",
@@ -1447,7 +1429,7 @@
     },
     {
       "id": "act-cfp-0dkd3hateq",
-      "sourceId": "543a8eqc5n",
+      "sourceId": "chg3efjb3t",
       "proposalId": "0dkd3hateq",
       "type": "lightning-talk",
       "title": "It takes a village to raise a repo",
@@ -1499,7 +1481,7 @@
     },
     {
       "id": "act-aq5t5c8t57",
-      "sourceId": "543a6332eu",
+      "sourceId": "chg32php2f",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
       "subtitle": "Other",
@@ -1516,7 +1498,7 @@
     },
     {
       "id": "act-aq5tk8jgaa",
-      "sourceId": "543aekb70q",
+      "sourceId": "chg3kjogli",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
       "subtitle": "Other",
@@ -1533,7 +1515,7 @@
     },
     {
       "id": "act-28lai08gg0",
-      "sourceId": "543asq2sqe",
+      "sourceId": "chg3pmq53o",
       "proposalId": "9e9bajmm07",
       "type": "talk",
       "title": "My zero-to-hero journey deploying a fiber-optic and wireless community mesh",
@@ -1578,7 +1560,7 @@
     },
     {
       "id": "act-28la6nvldv",
-      "sourceId": "543a05av9l",
+      "sourceId": "chg30jqqa0",
       "proposalId": "7dfgb98p8p",
       "type": "lightning-talk",
       "title": "Python Now Speaks Tamil: Getting Official Docs Translated for a Mother Tongue",
@@ -1620,7 +1602,7 @@
     },
     {
       "id": "act-28la8gj1tt",
-      "sourceId": "543a129uo1",
+      "sourceId": "chg3a55lk8",
       "proposalId": "c9kecg3h9i",
       "type": "talk",
       "title": "404: Empathy Not Found",
@@ -1685,7 +1667,7 @@
     },
     {
       "id": "act-aq5t2pjeqp",
-      "sourceId": "543a71pf3t",
+      "sourceId": "chg3mqo7e8",
       "type": "talk",
       "title": "2026 GB Elections. Meet the Candidates",
       "subtitle": "Other",
@@ -1702,7 +1684,7 @@
     },
     {
       "id": "act-cfp-bemvjh2dac",
-      "sourceId": "543ar5ba97",
+      "sourceId": "chg30gitfq",
       "proposalId": "bemvjh2dac",
       "type": "lightning-talk",
       "title": "Mapping India in seconds, for one and all",
@@ -1765,7 +1747,7 @@
     },
     {
       "id": "act-28lap89l42",
-      "sourceId": "543aha5irr",
+      "sourceId": "chg358sduk",
       "proposalId": "4pm3u3odmn",
       "type": "talk",
       "title": "HackerFab IITB: democratizing semiconductor fabrication",
@@ -1822,7 +1804,7 @@
     },
     {
       "id": "act-28lapvjakp",
-      "sourceId": "543a3rrjuq",
+      "sourceId": "chg3q1ijia",
       "proposalId": "0hs9gpkgp4",
       "type": "lightning-talk",
       "title": "Printable, Downloadable, Forever: An Ode to Offline Documentation",
@@ -1930,7 +1912,7 @@
     },
     {
       "id": "act-aq5tc1ppib",
-      "sourceId": "543a8ke3kk",
+      "sourceId": "chg3cl24n4",
       "type": "talk",
       "title": "Devroom Wrap-Up",
       "subtitle": "Other",
@@ -1948,7 +1930,7 @@
     },
     {
       "id": "act-28laq0mp6c",
-      "sourceId": "543alqmh76",
+      "sourceId": "chg3n5sh79",
       "proposalId": "1oleu7iev5",
       "type": "talk",
       "title": "Telling India's story through data",
@@ -1986,7 +1968,7 @@
     },
     {
       "id": "act-aq5t1o9k38",
-      "sourceId": "543a415rrm",
+      "sourceId": "chg3ookra4",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -2003,7 +1985,7 @@
     },
     {
       "id": "act-aq5tu34gje",
-      "sourceId": "543aamlocq",
+      "sourceId": "chg3u74n8c",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -2020,7 +2002,7 @@
     },
     {
       "id": "act-aq5t091a1i",
-      "sourceId": "543afm1tum",
+      "sourceId": "chg3b4f11d",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -2037,7 +2019,7 @@
     },
     {
       "id": "act-aq5t6vl7ef",
-      "sourceId": "543ab6ve52",
+      "sourceId": "chg3e530fu",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
       "subtitle": "Other",
@@ -2054,7 +2036,7 @@
     },
     {
       "id": "act-aq5t6oijso",
-      "sourceId": "543at557qc",
+      "sourceId": "chg340p4pv",
       "type": "talk",
       "title": "Devroom Intro: Android Open Source Project (AOSP)",
       "subtitle": "Other",
@@ -2072,7 +2054,7 @@
     },
     {
       "id": "act-aq5tapk6u7",
-      "sourceId": "543algfk74",
+      "sourceId": "chg3qr4l10",
       "type": "talk",
       "title": "Devroom Intro: Compilers, Programming Languages & Systems",
       "subtitle": "Other",
@@ -2089,7 +2071,7 @@
     },
     {
       "id": "act-cfp-dticdhpupe",
-      "sourceId": "543a998rbp",
+      "sourceId": "chg3gdap45",
       "proposalId": "dticdhpupe",
       "type": "talk",
       "title": "FOSS for the Forgotten Middle: Open-Sourcing Finance Software for India's 50,000 Microgyms",
@@ -2144,7 +2126,7 @@
     },
     {
       "id": "act-28la93vrf8",
-      "sourceId": "543atrp65q",
+      "sourceId": "chg3f46npq",
       "proposalId": "4v0vd3g01j",
       "type": "lightning-talk",
       "title": "Inside Android Keyboards: Building an Open Source IME",
@@ -2202,7 +2184,7 @@
     },
     {
       "id": "act-28lapes3il",
-      "sourceId": "543ag5rsrd",
+      "sourceId": "chg31mse54",
       "proposalId": "381kk089so",
       "type": "lightning-talk",
       "title": "Semantic Quantization in KV Cache Eviction",
@@ -2260,7 +2242,7 @@
     },
     {
       "id": "act-28la1ogl62",
-      "sourceId": "543ahjcdds",
+      "sourceId": "chg36n0pq2",
       "proposalId": "3ni2uq8bkg",
       "type": "lightning-talk",
       "title": "Databases in Ethereum Nodes",
@@ -2321,7 +2303,7 @@
     },
     {
       "id": "act-28la55ehov",
-      "sourceId": "543actn4ej",
+      "sourceId": "chg3t74et4",
       "proposalId": "41r3mau7ga",
       "type": "lightning-talk",
       "title": "From HIDL to Stable AIDL: Modernizing Android HAL Interfaces",
@@ -2368,7 +2350,7 @@
     },
     {
       "id": "act-cfp-0j48rt6d3s",
-      "sourceId": "543a0o60ci",
+      "sourceId": "chg3u9adp2",
       "proposalId": "0j48rt6d3s",
       "type": "bof",
       "title": "FOSS and Co-operatives",
@@ -2413,7 +2395,7 @@
     },
     {
       "id": "act-cfp-dagd2l28tm",
-      "sourceId": "543aj6r2f4",
+      "sourceId": "chg39cbd90",
       "proposalId": "dagd2l28tm",
       "type": "bof",
       "title": "FOSS in the Public Consciousness",
@@ -2454,10 +2436,10 @@
     },
     {
       "id": "act-cfp-9lmiio7p5b",
-      "sourceId": "543a8vfnvf",
+      "sourceId": "chg3ee11td",
       "proposalId": "9lmiio7p5b",
       "type": "panel",
-      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for ensuring Democratic Accountability",
+      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for Democratic Accountability",
       "subtitle": "",
       "description": "To explore how the Free and Open Source Software (FOSS) community can work alongside social movements, peoples campaigns and networks working with unorganised workers, the poor and the historically marginalised to enhance peoples’ rights to a more just and dignified economic order. While this process entails the necessary constructing and rebuilding of modes which enables political participation of people beyond voting, there is a clear need for such modes and platforms to be complemented by digital infrastructures which are built to serve the goals of transparency towards the people and accountability of the powerful. The discussion aims to introduce the need for such a peoples’ digital infrastructure, and identify opportunities for demonstration of alternatives to move the conversation from conception to practice.\n\nThe discussion will explore:\n\nModerated roundtable discussion with opening remarks, followed by a moderated conversation among panelists and audience Q&A.\n\nTBA",
       "references": [
@@ -2490,8 +2472,61 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-8knf7bja7g",
+      "sourceId": "chg3vh07tb",
+      "proposalId": "8knf7bja7g",
+      "type": "talk",
+      "title": "Navigating the FOSS Contribution Journey",
+      "subtitle": "",
+      "description": "Many developers see open source as a destination: get your first pull request merged, participate in Hacktoberfest, maybe even crack Google Summer of Code. But in reality, open source is a journey - one that evolves from curiosity to contribution, from contribution to ownership, and from ownership to leadership.\n\nIn this talk, I will share my unconventional path through the FOSS ecosystem. What started as participation in FOSS Hack (India's largest open-source hackathon) eventually led to building and maintaining projects used by thousands of developers, and growing it into an official Google Summer of Code organization, mentoring contributors worldwide.\n\nThrough stories of first contributions, rejected pull requests, community building, mentorship, and project stewardship, this session will explore what it really takes to grow in open source. We'll discuss how contributors can find projects they genuinely care about, navigate complex codebases, build credibility within communities, and transition from being \"someone who contributes\" to someone who creates opportunities for others.\n\nWe will also cover how contributing to large-scale industry led open source projects requires a slightly different approach.\n\nWhether you're wondering how to make your first contribution or thinking about becoming a maintainer, this talk offers practical lessons, hard-earned insights, and a roadmap for building a meaningful and sustainable open-source journey.",
+      "keyTakeaways": [
+        "A practical roadmap for getting started in FOSS.",
+        "How documentation, testing, design, community support, and issue triage are also valuable entry points into open source.",
+        "How long-term contributions come from genuine interest and alignment with a project's mission and community.",
+        "Open source is a people-first ecosystem where communication, collaboration, and empathy often have a bigger impact than technical expertise alone.",
+        "How consistent participation can lead to maintainer responsibilities, mentorship opportunities, and leadership roles.",
+        "How to evolve projects that begin as weekend experiments into thriving open-source communities with global contributors.",
+        "Lessons on growing from contributor to maintainer and the required skills.",
+        "Insights into building and sustaining open-source communities.",
+        "and more.."
+      ],
+      "references": [
+        {
+          "label": "https://github.com/ashitaprasad",
+          "url": "https://github.com/ashitaprasad"
+        },
+        {
+          "label": "https://ashitaprasad.github.io/",
+          "url": "https://ashitaprasad.github.io/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Screening",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8knf7bja7g",
+      "start": "2026-09-26T14:30:00+05:30",
+      "end": "2026-09-26T15:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-2",
+      "speakerIds": [
+        "person-ashita-prasad"
+      ],
+      "tags": [
+        "Talk",
+        "Contributing to FOSS",
+        "Beginner"
+      ],
+      "trackId": "hall-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28laigg511",
-      "sourceId": "543a7ucvds",
+      "sourceId": "chg3pqd4vk",
       "proposalId": "d8b9uvdntg",
       "type": "talk",
       "title": "Bend, don't Break. Modern Techniques for Flexibility in Strongly Typed Functional Programming",
@@ -2540,7 +2575,7 @@
     },
     {
       "id": "act-28laau6e4o",
-      "sourceId": "543agpcdvp",
+      "sourceId": "chg36plpvf",
       "proposalId": "3ltumiotgu",
       "type": "lightning-talk",
       "title": "Living With a DeGoogled Phone: Privacy, Trade-offs, and Daily Use",
@@ -2583,7 +2618,7 @@
     },
     {
       "id": "act-28lahmuq69",
-      "sourceId": "543a1oc9so",
+      "sourceId": "chg3rdek2f",
       "proposalId": "dojgnoj06v",
       "type": "lightning-talk",
       "title": "Volume Controller using Knob (Potentiometer)",
@@ -2639,7 +2674,7 @@
     },
     {
       "id": "act-28lam87dir",
-      "sourceId": "543aeofatu",
+      "sourceId": "chg3rpmuvh",
       "proposalId": "09lln6s8nq",
       "type": "talk",
       "title": "PeerDAS: Erasure Coding When You Can't Trust the Storage",
@@ -2697,7 +2732,7 @@
     },
     {
       "id": "act-cfp-ck74mbe1ds",
-      "sourceId": "543aq7uqa4",
+      "sourceId": "chg30qubnu",
       "proposalId": "ck74mbe1ds",
       "type": "talk",
       "title": "How FOSS and AI are Changing Government Workflows at NHAI",
@@ -2774,7 +2809,7 @@
     },
     {
       "id": "act-28la3ltjcq",
-      "sourceId": "543aldiffu",
+      "sourceId": "chg361u199",
       "proposalId": "beqsttjcbn",
       "type": "lightning-talk",
       "title": "Under the Hood of Android , What Really Happens When You Open an App?",
@@ -2827,7 +2862,7 @@
     },
     {
       "id": "act-28lauslk84",
-      "sourceId": "543adsd1an",
+      "sourceId": "chg3vifu5a",
       "proposalId": "6aasju7noq",
       "type": "lightning-talk",
       "title": "Benchmarking can be hard, here's why we're still creating a new one for OCaml",
@@ -2871,7 +2906,7 @@
     },
     {
       "id": "act-28laibfej4",
-      "sourceId": "543ali6uq0",
+      "sourceId": "chg3q9355o",
       "proposalId": "coqs2rc43i",
       "type": "lightning-talk",
       "title": "Rust in Android: Building Secure HALs for the Next Generation of AOSP",
@@ -2918,7 +2953,7 @@
     },
     {
       "id": "act-cfp-ab8viuj62q",
-      "sourceId": "543a39vtbd",
+      "sourceId": "chg3j2koku",
       "proposalId": "ab8viuj62q",
       "type": "talk",
       "title": "Building OpenSpeaks tools for language documentation and archiving",
@@ -2965,7 +3000,7 @@
     },
     {
       "id": "act-cfp-dmsksuju3d",
-      "sourceId": "543a0arka3",
+      "sourceId": "chg3vvp28a",
       "proposalId": "dmsksuju3d",
       "type": "talk",
       "title": "Offline-first mobile apps on Frappe: a metadata-driven Flutter SDK with server-side control",
@@ -3023,7 +3058,7 @@
     },
     {
       "id": "act-28la1809t3",
-      "sourceId": "543a0tc735",
+      "sourceId": "chg3j99h96",
       "proposalId": "33ogils4n5",
       "type": "lightning-talk",
       "title": "What LLVM Does Differently When The Target Is CPU VS GPU",
@@ -3082,7 +3117,7 @@
     },
     {
       "id": "act-28lar6l8ag",
-      "sourceId": "543ai1emc3",
+      "sourceId": "chg3qth90r",
       "proposalId": "bb06npb4u0",
       "type": "lightning-talk",
       "title": "Launcher3 Internals: Understanding Android's Home Screen, Google Feed Integration, and Custom -1 Panels",
@@ -3132,7 +3167,7 @@
     },
     {
       "id": "act-28lar32res",
-      "sourceId": "543aj3mi77",
+      "sourceId": "chg3agpe4e",
       "proposalId": "299lpkmuqh",
       "type": "talk",
       "title": "PythonBPF - now with loops, custom funcs, and more maps!",
@@ -3190,7 +3225,7 @@
     },
     {
       "id": "act-28laeusjrp",
-      "sourceId": "543a2f2af3",
+      "sourceId": "chg3cmect8",
       "proposalId": "0le8m0bk3i",
       "type": "lightning-talk",
       "title": "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast storage analysis",
@@ -3240,7 +3275,7 @@
     },
     {
       "id": "act-28lad7fd91",
-      "sourceId": "543ackofj4",
+      "sourceId": "chg3ud5amu",
       "proposalId": "8cbv4mpi6o",
       "type": "lightning-talk",
       "title": "LGTM Is Not A Theorem",
@@ -3282,7 +3317,7 @@
     },
     {
       "id": "act-cfp-cpno9khavs",
-      "sourceId": "543a1voq04",
+      "sourceId": "chg3g57kmv",
       "proposalId": "cpno9khavs",
       "type": "talk",
       "title": "Open Code, Curated Data: Building Open Water Intelligence for Indian Cities",
@@ -3335,7 +3370,7 @@
     },
     {
       "id": "act-cfp-5jvkd5u7mk",
-      "sourceId": "543ani7ofa",
+      "sourceId": "chg37bejkr",
       "proposalId": "5jvkd5u7mk",
       "type": "talk",
       "title": "Physics at 60FPS",
@@ -3377,7 +3412,7 @@
     },
     {
       "id": "act-28laung17t",
-      "sourceId": "543ar79dp0",
+      "sourceId": "chg370jaml",
       "proposalId": "armmpc3k1l",
       "type": "lightning-talk",
       "title": "Zero Trust, Zero TEE: Porting Android 16 to a Device Whose Security Stack Doesn't Exist Yet",
@@ -3433,7 +3468,7 @@
     },
     {
       "id": "act-28la91lu3s",
-      "sourceId": "543aae1q1e",
+      "sourceId": "chg37cdiqo",
       "proposalId": "3akfugngg7",
       "type": "lightning-talk",
       "title": "One Language, All GPU: How Julia Targets different GPU backends from a Single Kernel.",
@@ -3492,7 +3527,7 @@
     },
     {
       "id": "act-28laqr9ecm",
-      "sourceId": "543a84o72b",
+      "sourceId": "chg3qnfrcv",
       "proposalId": "4etfsdh6i4",
       "type": "lightning-talk",
       "title": "Keeping up with the AOSP",
@@ -3534,7 +3569,7 @@
     },
     {
       "id": "act-28labhid7f",
-      "sourceId": "543aklsmkh",
+      "sourceId": "chg3ad3gaf",
       "proposalId": "0p3ti1uq2b",
       "type": "talk",
       "title": "Rust Is Not an HDL, So I Built a Tiny One.",
@@ -3614,7 +3649,7 @@
     },
     {
       "id": "act-aq5t5e261u",
-      "sourceId": "543aertqck",
+      "sourceId": "chg3je4h28",
       "type": "talk",
       "title": "What's new at FOSS United Foundation",
       "subtitle": "Other",
@@ -3631,7 +3666,7 @@
     },
     {
       "id": "act-28lajt6fl6",
-      "sourceId": "543aka7q7u",
+      "sourceId": "chg39tpp3f",
       "proposalId": "e08r7fa8ja",
       "type": "talk",
       "title": "Adapting Generic Boot Loader on Android platforms",
@@ -3669,7 +3704,7 @@
     },
     {
       "id": "act-28lak6c90f",
-      "sourceId": "543arpcjde",
+      "sourceId": "chg3m2e4ph",
       "proposalId": "9qjtkvb2gi",
       "type": "talk",
       "title": "Formal Verification: An Introduction through Elementary Arithmetic",
@@ -3716,7 +3751,7 @@
     },
     {
       "id": "act-28lap8q3re",
-      "sourceId": "543akf7f2l",
+      "sourceId": "chg32furf9",
       "proposalId": "d883e2uauk",
       "type": "talk",
       "title": "Porting AOSP to Allwinner Sunxi platform",
@@ -3764,7 +3799,7 @@
     },
     {
       "id": "act-28la7q52h1",
-      "sourceId": "543ak8d48e",
+      "sourceId": "chg3426k01",
       "type": "talk",
       "title": "FOSS Awards",
       "subtitle": "Other",
@@ -3781,7 +3816,7 @@
     },
     {
       "id": "act-28laqivva5",
-      "sourceId": "543acukch1",
+      "sourceId": "chg36l8uj1",
       "type": "talk",
       "title": "Reflections from GB Members",
       "subtitle": "Other",
@@ -3798,7 +3833,7 @@
     },
     {
       "id": "act-cfp-4llmgcq50k",
-      "sourceId": "543a1p10nv",
+      "sourceId": "chg3qkv5k7",
       "proposalId": "4llmgcq50k",
       "type": "talk",
       "title": "How India’s Largest G2C Platform Migrated to FOSS and Broke Free from Oracle",
@@ -3840,7 +3875,7 @@
     },
     {
       "id": "act-aq5tg0077i",
-      "sourceId": "543a2vq5j2",
+      "sourceId": "chg3q91i1i",
       "type": "talk",
       "title": "Opening Note",
       "subtitle": "Other",
@@ -3857,7 +3892,7 @@
     },
     {
       "id": "act-28laac7vdq",
-      "sourceId": "543atsbo3t",
+      "sourceId": "chg3ir75bu",
       "type": "talk",
       "title": "Devroom Intro: Open Design",
       "subtitle": "Other",
@@ -3875,7 +3910,7 @@
     },
     {
       "id": "act-28lat7k13l",
-      "sourceId": "543aq9qmuj",
+      "sourceId": "chg3vidbbb",
       "type": "talk",
       "title": "Devroom Intro: Security",
       "subtitle": "Other",
@@ -3893,7 +3928,7 @@
     },
     {
       "id": "act-cfp-ccd7lpdj1o",
-      "sourceId": "543ajof712",
+      "sourceId": "chg3ej8uo8",
       "proposalId": "ccd7lpdj1o",
       "type": "lightning-talk",
       "title": "Don't Model Every Leaf: The Magic of Blender Geometry Nodes",
@@ -3936,7 +3971,7 @@
     },
     {
       "id": "act-cfp-a45o8u74jv",
-      "sourceId": "543ac5ilcp",
+      "sourceId": "chg3mbosda",
       "proposalId": "a45o8u74jv",
       "type": "lightning-talk",
       "title": "Reverse Engineering the PAN QR Code",
@@ -3988,7 +4023,7 @@
     },
     {
       "id": "act-28lajil88v",
-      "sourceId": "543a2h8hf5",
+      "sourceId": "chg31odbhh",
       "proposalId": "2tsmo50knt",
       "type": "talk",
       "title": "Forkable design",
@@ -4046,7 +4081,7 @@
     },
     {
       "id": "act-cfp-8dso3avp9l",
-      "sourceId": "543ao4u049",
+      "sourceId": "chg3j3phre",
       "proposalId": "8dso3avp9l",
       "type": "talk",
       "title": "How exactly can we teach students the right FOSS etiquette?",
@@ -4092,7 +4127,7 @@
     },
     {
       "id": "act-cfp-84efmkj2n3",
-      "sourceId": "543aeh3ab6",
+      "sourceId": "chg3oe9joa",
       "proposalId": "84efmkj2n3",
       "type": "lightning-talk",
       "title": "Property-based testing for UIs",
@@ -4140,7 +4175,7 @@
     },
     {
       "id": "act-cfp-cmc3ntipr8",
-      "sourceId": "543acktltl",
+      "sourceId": "chg352d9l2",
       "proposalId": "cmc3ntipr8",
       "type": "lightning-talk",
       "title": "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
@@ -4190,10 +4225,10 @@
     },
     {
       "id": "act-cfp-4eh569dvq9",
-      "sourceId": "543avr80c1",
+      "sourceId": "chg3po7044",
       "proposalId": "4eh569dvq9",
       "type": "bof",
-      "title": "Can We Build a Copyleft License for Community Data in the Age of AI?",
+      "title": "Can We Build a Copyleft License for Community Data in the Age of AI",
       "subtitle": "",
       "description": "As community-generated datasets become increasingly important for training AI systems, there is a growing need to explore whether existing open data licenses adequately protect community contributions. This session will examine whether copyleft principles, which have successfully supported open source software ecosystems, can be adapted to datasets used for AI development. The discussion will focus on attribution, reciprocity, data provenance, community ownership, and the governance of data commons.\n\nCommunity-led initiatives across India and the world are creating datasets that support language technologies, accessibility tools, and AI research. However, many of these datasets are released without licensing frameworks specifically designed for AI use. This creates a risk that community-generated data may be incorporated into proprietary AI systems without attribution, transparency, or any meaningful contribution back to the communities that created them. Open source software have relied on copyleft licenses such as the GNU GPL to ensure that software and improvements remain available to the community. As community-generated datasets become increasingly important for training AI systems, a similar question is emerging for data i.e. can copyleft principles and licence be applied to datasets used for machine learning?\n\nA draft Community Data License has been developed by Viswam.ai and SFLC.in to address these concerns by applying copyleft principles to datasets. The proposed license seeks to ensure that community-generated datasets remain part of a shared commons by requiring attribution to original contributors, transparency regarding data provenance, and the sharing of modified or derived datasets under the same licence terms.\n\nThis session will use the draft license as a starting point for a broader discussion on the future of community data governance, open AI, and digital commons. The objective is to gather perspectives from developers, researchers, open-source contributors, civil society organisations, policymakers, and dataset creators on whether new licensing and governance approaches are needed to protect community data commons and how such a license could work in practice.\n\nOpen discussion with participants. The session will begin with a brief introduction to the problem statement and the draft Community Data License, followed by a moderated discussion. Participants will be encouraged to share experiences, concerns, use cases, and perspectives from technical, legal, policy, research, and community viewpoints. The moderator will guide the discussion around key questions and explore broad conversation focused on the topic.",
       "links": [
@@ -4221,7 +4256,7 @@
     },
     {
       "id": "act-cfp-5inuh3i6co",
-      "sourceId": "543arfdmae",
+      "sourceId": "chg3tpjp2p",
       "proposalId": "5inuh3i6co",
       "type": "bof",
       "title": "Community-Centred Technology",
@@ -4261,7 +4296,7 @@
     },
     {
       "id": "act-28lamk3q73",
-      "sourceId": "543a796qpl",
+      "sourceId": "chg3u63m19",
       "proposalId": "an3ot6c0v0",
       "type": "talk",
       "title": "Shaili Sanchaya: Reviving Indic Typography from Archival Metadata",
@@ -4317,7 +4352,7 @@
     },
     {
       "id": "act-cfp-2git32fbo6",
-      "sourceId": "543ack31r3",
+      "sourceId": "chg3n2f0jf",
       "proposalId": "2git32fbo6",
       "type": "talk",
       "title": "Surviving as an Open Source Startup : Xeneva",
@@ -4381,7 +4416,7 @@
     },
     {
       "id": "act-cfp-erphckugi7",
-      "sourceId": "543a2mif8t",
+      "sourceId": "chg3kbm3i0",
       "proposalId": "erphckugi7",
       "type": "lightning-talk",
       "title": "Extracting AES Keys from Embedded Devices Using Open Source Hardware",
@@ -4429,7 +4464,7 @@
     },
     {
       "id": "act-cfp-f4ko2mik8q",
-      "sourceId": "543agiose5",
+      "sourceId": "chg3fa24ai",
       "proposalId": "f4ko2mik8q",
       "type": "talk",
       "title": "Seqout: search engine for the world’s genomic data",
@@ -4485,7 +4520,7 @@
     },
     {
       "id": "act-28lai8vuts",
-      "sourceId": "543ad33bgu",
+      "sourceId": "chg3h8qme0",
       "proposalId": "f89n581n5c",
       "type": "talk",
       "title": "Designing for Reality: Where UI Meets the Physical World",
@@ -4531,7 +4566,7 @@
     },
     {
       "id": "act-cfp-9611q7a3nk",
-      "sourceId": "543a9o9f6j",
+      "sourceId": "chg3vpq0vo",
       "proposalId": "9611q7a3nk",
       "type": "talk",
       "title": "The Art of Userspace Sandboxing on Linux",
@@ -4584,7 +4619,7 @@
     },
     {
       "id": "act-cfp-66qapl9qoe",
-      "sourceId": "543atc4qvt",
+      "sourceId": "chg3qohig1",
       "proposalId": "66qapl9qoe",
       "type": "lightning-talk",
       "title": "OpenTCAD: A FOSS Python Pipeline for Semiconductor Process and Device Simulation",
@@ -4629,7 +4664,7 @@
     },
     {
       "id": "act-28latubece",
-      "sourceId": "543am4bllu",
+      "sourceId": "chg3jhd8hf",
       "proposalId": "5fle5u3fll",
       "type": "talk",
       "title": "Creating Design Systems in p5JS to accelerate Content Creation",
@@ -4689,7 +4724,7 @@
     },
     {
       "id": "act-cfp-89tt0o6uio",
-      "sourceId": "543aj2um01",
+      "sourceId": "chg37bilq2",
       "proposalId": "89tt0o6uio",
       "type": "talk",
       "title": "How we build Community Projects from the Community for the Community",
@@ -4753,7 +4788,7 @@
     },
     {
       "id": "act-cfp-6565fh5jve",
-      "sourceId": "543amh21v1",
+      "sourceId": "chg38rjd2h",
       "proposalId": "6565fh5jve",
       "type": "lightning-talk",
       "title": "Open, decentralized language assessment software for the public school system",
@@ -4795,7 +4830,7 @@
     },
     {
       "id": "act-cfp-anvlvjqect",
-      "sourceId": "543a5157m2",
+      "sourceId": "chg3r2iaq9",
       "proposalId": "anvlvjqect",
       "type": "lightning-talk",
       "title": "Extending Capa for Malicious Script Analysis",
@@ -4845,7 +4880,7 @@
     },
     {
       "id": "act-cfp-9c2a8js5lj",
-      "sourceId": "543ag0aim4",
+      "sourceId": "chg3p8ch8l",
       "proposalId": "9c2a8js5lj",
       "type": "talk",
       "title": "Computationalizing landscapes: The CoRE stack data structure for social-ecological diagnostics and planning",
@@ -4892,18 +4927,35 @@
       "source": "fossunited"
     },
     {
-      "id": "act-cfp-92adqrmbh1",
-      "sourceId": "543amubn9r",
-      "proposalId": "92adqrmbh1",
+      "id": "act-cfp-1vj5aoro8u",
+      "sourceId": "chg39nsk0k",
+      "proposalId": "1vj5aoro8u",
       "type": "bof",
-      "title": "FOSS4Good - Techies in the social sector",
+      "title": "How do we scale and sustain AI adoption without burning the planet?",
       "subtitle": "",
-      "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
-      "links": [
+      "description": "Every AI inference call comes with an energy cost. However, these costs remain invisible and neglected. As AI access and adoption accelerates, the current trajectory is likely to accelerate climate change. Additionally, the compute burdens of AI falls disproportionately on regions least equipped to bear it. However, without any labelling (and measurement) mechanisms, development trajectories are unlikely to change: what gets measured, gets built. As the SDG and Paris Agreement deadline looms closer, this BoF is structured around a simple, uncomfortable question: Can we build an eco-cost standard for AI inference APIs and who would actually enforce it?\n\nWe'll unpack few forces in tension:\n\nEco-labelling AI APIs & Standards: What would a meaningful standard look like? How can we coordinate between developers, hyperscalers, governments, and civil society? What is technically feasible today vs. what requires new infrastructure.\n\nStakeholder Landscape of Who Cares: Who are the prominent players, bodies and funders interested in enabling climate-conscious AI development and reducing carbon footprint?\n\nOther sub-topics brought by the room:\n\nEg. Geopolitics of Compute & Jevon’s Paradox: US export controls on advanced chips are reshaping who can build AI and where. China's domestic ecosystem workarounds (Huawei Ascend, domestic fabs) are accelerating for more energy-efficient compute. Yet, as models get cheaper and more efficient, usage explodes and net energy consumption rises, not falls. Efficiency is not always a solution. How to work around this?",
+      "keyTakeaways": [
+        "The distinction between AI-driven tools for climate change vs reducing AI’s own carbon footprint. Our focus will be on the latter",
+        "Feasibility of eco-cost standard for interfaces",
+        "Importance of emission disclosure and energy labelling on AI inference APIs for consumers and businesses to make climate-conscious decisions (like Fairtrade standards for food industries)",
+        "Enabling architecture for consumers to judge tradeoffs between cost, latency, accuracy and environment impact of their AI purchases",
+        "Geopolitical implications of AI and energy-use amidst middle east crisis and Jevon’s Paradox"
+      ],
+      "references": [
         {
-          "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
-          "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
+          "label": "https://gooey.ai/sovereignty",
+          "url": "https://gooey.ai/sovereignty"
         },
+        {
+          "label": "https://gooey.ai/agriculture",
+          "url": "https://gooey.ai/agriculture"
+        },
+        {
+          "label": "https://gooey.ai/model-trainer",
+          "url": "https://gooey.ai/model-trainer"
+        }
+      ],
+      "links": [
         {
           "label": "Source code",
           "url": "https://github.com/fossunited/fossunited"
@@ -4911,16 +4963,17 @@
       ],
       "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vj5aoro8u",
       "start": "2026-09-27T11:30:00+05:30",
       "end": "2026-09-27T12:30:00+05:30",
       "flexible": false,
       "locationId": "room-3",
       "speakerIds": [
-        "person-ansh-arora"
+        "person-dev-aggarwal"
       ],
       "tags": [
         "Birds of Feather(BoF)",
+        "Technology architecture",
         "Intermediate"
       ],
       "trackId": "room-3",
@@ -4928,7 +4981,7 @@
     },
     {
       "id": "act-28la1p92o8",
-      "sourceId": "543ari0nmv",
+      "sourceId": "chg32p3h6j",
       "proposalId": "1vuu1c1ma7",
       "type": "talk",
       "title": "KaiOS Design Notes: UX observations from a feature phone",
@@ -4978,7 +5031,7 @@
     },
     {
       "id": "act-28la3jufi5",
-      "sourceId": "543aba2er3",
+      "sourceId": "chg3ussph7",
       "proposalId": "82fbs78uua",
       "type": "bof",
       "title": "Micro-granting in India",
@@ -5009,7 +5062,7 @@
     },
     {
       "id": "act-cfp-edu2vnri2u",
-      "sourceId": "543a7q0i7p",
+      "sourceId": "chg39a9ttd",
       "proposalId": "edu2vnri2u",
       "type": "talk",
       "title": "Keeping an Eye on your Eye: Disassembling and Reassembling Smart Camera Hardware to breach YOUR Security",
@@ -5072,7 +5125,7 @@
     },
     {
       "id": "act-cfp-96goef7o3q",
-      "sourceId": "543ab5bnge",
+      "sourceId": "chg3227gta",
       "proposalId": "96goef7o3q",
       "type": "lightning-talk",
       "title": "What can we do about open weight models enabling non consensual intimate imagery?",
@@ -5129,7 +5182,7 @@
     },
     {
       "id": "act-28labsaguc",
-      "sourceId": "543alnb98v",
+      "sourceId": "chg3jn1ddm",
       "proposalId": "0rlqb6s6lb",
       "type": "talk",
       "title": "Making Desktops Expressive: Introducing Bézier Curves to GTK",
@@ -5191,7 +5244,7 @@
     },
     {
       "id": "act-cfp-c6qld2dc77",
-      "sourceId": "543aeu59tj",
+      "sourceId": "chg3ogfqah",
       "proposalId": "c6qld2dc77",
       "type": "lightning-talk",
       "title": "Bad Internet, Good Software",
@@ -5248,7 +5301,7 @@
     },
     {
       "id": "act-cfp-5pig94v0sa",
-      "sourceId": "543aa12pe3",
+      "sourceId": "chg3htmn70",
       "proposalId": "5pig94v0sa",
       "type": "lightning-talk",
       "title": "Opening the Archives: Building Digital Infrastructure for Public Participation in Archival Records",
@@ -5295,7 +5348,7 @@
     },
     {
       "id": "act-cfp-2pgiaujhvm",
-      "sourceId": "543a0bprgt",
+      "sourceId": "chg3ugp7gg",
       "proposalId": "2pgiaujhvm",
       "type": "lightning-talk",
       "title": "Hacking India's Largest Exam System",
@@ -5422,7 +5475,7 @@
     },
     {
       "id": "act-28lamb58kk",
-      "sourceId": "543akd4ht3",
+      "sourceId": "chg33733vn",
       "proposalId": "1qugujs7o0",
       "type": "talk",
       "title": "Sound Is All You Need: From Good UX to Great UX",
@@ -5476,7 +5529,7 @@
     },
     {
       "id": "act-cfp-fefrvv4n7q",
-      "sourceId": "543a1il2lu",
+      "sourceId": "chg3mahpf7",
       "proposalId": "fefrvv4n7q",
       "type": "talk",
       "title": "Flexibility is complexity in disguise: Building frappe-ui for 10+ Products",
@@ -5528,7 +5581,7 @@
     },
     {
       "id": "act-cfp-e981trm7r1",
-      "sourceId": "543ajftlm9",
+      "sourceId": "chg3as8ush",
       "proposalId": "e981trm7r1",
       "type": "lightning-talk",
       "title": "Open Standards in XR - A current overview of OpenXR and WebXR",
@@ -5585,7 +5638,7 @@
     },
     {
       "id": "act-cfp-b6m7iu49t2",
-      "sourceId": "543atkeidp",
+      "sourceId": "chg3dio4vd",
       "proposalId": "b6m7iu49t2",
       "type": "talk",
       "title": "Papers, Please: A First Look at Age Verification on the Web",
@@ -5656,7 +5709,7 @@
     },
     {
       "id": "act-cfp-4rfojd08rd",
-      "sourceId": "543a23pq35",
+      "sourceId": "chg3u3keke",
       "proposalId": "4rfojd08rd",
       "type": "talk",
       "title": "Freedom to code - Community's role in tech Policy",
@@ -5703,7 +5756,7 @@
     },
     {
       "id": "act-aq5ti5f6jv",
-      "sourceId": "543appibce",
+      "sourceId": "chg3vbv82s",
       "type": "meal",
       "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
       "subtitle": "Other",
@@ -5720,7 +5773,7 @@
     },
     {
       "id": "act-28lao4nnm4",
-      "sourceId": "543a7650om",
+      "sourceId": "chg330ogi7",
       "type": "talk",
       "title": "Unconference",
       "subtitle": "Other",
@@ -5738,7 +5791,7 @@
     },
     {
       "id": "act-cfp-doht3bggkm",
-      "sourceId": "543agunonm",
+      "sourceId": "chg319o747",
       "proposalId": "doht3bggkm",
       "type": "bof",
       "title": "United by (Free) F&B – Food & Books",
@@ -5778,7 +5831,7 @@
     },
     {
       "id": "act-cfp-5sktsu12a4",
-      "sourceId": "543as554ha",
+      "sourceId": "chg3mmmhts",
       "proposalId": "5sktsu12a4",
       "type": "lightning-talk",
       "title": "A plan to sort out this CVE mess",
@@ -5828,7 +5881,7 @@
     },
     {
       "id": "act-aq5tm1051s",
-      "sourceId": "543al4kcao",
+      "sourceId": "chg38kbsti",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -5844,25 +5897,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5tidiu4b",
-      "sourceId": "543aocdgn4",
-      "type": "meal",
-      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "subtitle": "Other",
-      "start": "2026-09-27T13:00:00+05:30",
-      "end": "2026-09-27T14:00:00+05:30",
-      "flexible": false,
-      "locationId": "hall-3",
-      "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
-      "trackId": "hall-3",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5td49n4f",
-      "sourceId": "543aid6tdl",
+      "sourceId": "chg3dtlnhi",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "subtitle": "Other",
@@ -5878,8 +5914,25 @@
       "source": "fossunited"
     },
     {
+      "id": "act-aq5tidiu4b",
+      "sourceId": "chg3bkdkp8",
+      "type": "meal",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "subtitle": "Other",
+      "start": "2026-09-27T13:00:00+05:30",
+      "end": "2026-09-27T14:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [],
+      "tags": [
+        "Other"
+      ],
+      "trackId": "hall-3",
+      "source": "fossunited"
+    },
+    {
       "id": "act-aq5t7ni20b",
-      "sourceId": "543ae7blvs",
+      "sourceId": "chg3bjsg0d",
       "type": "meal",
       "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
       "subtitle": "Other",
@@ -5896,7 +5949,7 @@
     },
     {
       "id": "act-aq5t8uuiph",
-      "sourceId": "543abnk8d0",
+      "sourceId": "chg35jgovm",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
       "subtitle": "Other",
@@ -5913,7 +5966,7 @@
     },
     {
       "id": "act-28la4pp2q4",
-      "sourceId": "543ad2p08u",
+      "sourceId": "chg3vn1prp",
       "type": "talk",
       "title": "Devroom Intro: Cloud & DevOps",
       "subtitle": "Other",
@@ -5931,7 +5984,7 @@
     },
     {
       "id": "act-aq5tf2jbhq",
-      "sourceId": "543ac3cmd1",
+      "sourceId": "chg39lc2s0",
       "type": "talk",
       "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
       "subtitle": "Other",
@@ -5949,7 +6002,7 @@
     },
     {
       "id": "act-cfp-391e59gb72",
-      "sourceId": "543am5jm16",
+      "sourceId": "chg3msefg0",
       "proposalId": "391e59gb72",
       "type": "lightning-talk",
       "title": "Software Patents - AI and the Future of Open Innovation",
@@ -6002,7 +6055,7 @@
     },
     {
       "id": "act-28la6c24j6",
-      "sourceId": "543at10nj0",
+      "sourceId": "chg3qu065g",
       "proposalId": "5ua576fg9k",
       "type": "lightning-talk",
       "title": "Beyond Hardware Description: Using Device Tree for System-Level Configuration in Zephyr RTOS",
@@ -6043,7 +6096,7 @@
     },
     {
       "id": "act-28lablklmc",
-      "sourceId": "543apqsigg",
+      "sourceId": "chg3nfdh6a",
       "proposalId": "9i6peimmer",
       "type": "lightning-talk",
       "title": "How OpenTelemetry Instrumentation Works Under the Hood",
@@ -6091,7 +6144,7 @@
     },
     {
       "id": "act-28laiujb0d",
-      "sourceId": "543a7bcqe5",
+      "sourceId": "chg36csj8h",
       "proposalId": "9qp8u3f894",
       "type": "lightning-talk",
       "title": "From Display Controller to Panel: A Modular Display Pipeline Architecture for Zephyr",
@@ -6141,7 +6194,7 @@
     },
     {
       "id": "act-28la11nd7m",
-      "sourceId": "543apfgggh",
+      "sourceId": "chg343mpid",
       "proposalId": "d6mltdb2aq",
       "type": "talk",
       "title": "Remote Execution by Design: Sandboxing AI Agents with gVisor & Pipelock",
@@ -6186,7 +6239,7 @@
     },
     {
       "id": "act-cfp-1f9ett9bgj",
-      "sourceId": "543a95levh",
+      "sourceId": "chg39jqol9",
       "proposalId": "1f9ett9bgj",
       "type": "bof",
       "title": "Community-Driven or Community-Branded? Who Gets to Shape Community Events?",
@@ -6223,7 +6276,7 @@
     },
     {
       "id": "act-cfp-2p9brsg91r",
-      "sourceId": "543akehmrj",
+      "sourceId": "chg3pf725b",
       "proposalId": "2p9brsg91r",
       "type": "bof",
       "title": "FOSS for Justice — What can Open Source do for India’s Courts?",
@@ -6260,7 +6313,7 @@
     },
     {
       "id": "act-cfp-6pb727vn12",
-      "sourceId": "543ar1a3p1",
+      "sourceId": "chg3nn5773",
       "proposalId": "6pb727vn12",
       "type": "panel",
       "title": "The future of FOSS, SWE and Technical Education",
@@ -6297,7 +6350,7 @@
     },
     {
       "id": "act-28lar927u4",
-      "sourceId": "543a4i3erm",
+      "sourceId": "chg30fvtgn",
       "proposalId": "1s4iem9t8a",
       "type": "talk",
       "title": "From Reset to main(): Porting Infineon TriCore AURIX to Zephyr",
@@ -6319,7 +6372,7 @@
       "proposalStatus": "Approved",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1s4iem9t8a",
       "start": "2026-09-27T14:35:00+05:30",
-      "end": "2026-09-27T15:05:00+05:30",
+      "end": "2026-09-27T15:00:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
@@ -6339,7 +6392,7 @@
     },
     {
       "id": "act-cfp-7vvvus5cp0",
-      "sourceId": "543actpv23",
+      "sourceId": "chg3t4urmi",
       "proposalId": "7vvvus5cp0",
       "type": "talk",
       "title": "Calibrate: A framework for continuously evaluating and improving AI agents within non-profits",
@@ -6405,7 +6458,7 @@
     },
     {
       "id": "act-28lacdbph1",
-      "sourceId": "543aj60iql",
+      "sourceId": "chg3uafu2i",
       "proposalId": "b8josvurds",
       "type": "lightning-talk",
       "title": "From Prompts to Production: Building an Open-Source AI On-Call Agent with MCP and Multi-Agent Workflows",
@@ -6459,8 +6512,55 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28laeodjb3",
+      "sourceId": "chg3fnj1fu",
+      "proposalId": "6r7akaieb8",
+      "type": "lightning-talk",
+      "title": "Real-Time Video Pipelines on Embedded SoCs: A FreeRTOS Case Study",
+      "subtitle": "",
+      "description": "Integrating camera capture and display subsystems on embedded SoCs presents significant software design challenges due to competing buffer ownership models across independent hardware subsystems. This talk presents a practical implementation of a zero-copy video pipeline on a TI Jacinto SoCs running FreeRTOS, coordinating three drivers: a CSI2-DPHY receiver, a UDMA engine, and a Display Subsystem driver.\n\nThe implementation uses FVID2, TI's unified video interface, to apply a consistent queue/dequeue buffer model to both capture and display operations. We examine the initialization sequence where the application transfers UDMA ownership to the CSIRX driver, enabling the DSS driver direct visibility into captured buffers.\n\nCritical gaps in single-task designs are identified, specifically the absence of mechanisms preventing capture from overwriting buffers during display scanout. We present a corrected two-task producer-consumer design using counting semaphores to enforce mutual exclusion, with explicit analysis of task priorities and frame timing implications.\n\nThis work bridges the gap between pipelines that function nominally and those structured to remain correct under timing pressure, illustrating the complexity beneath seemingly solved problems in embedded systems integration.",
+      "keyTakeaways": [
+        "How FVID2's queue/dequeue model provides a unified buffer-ownership interface across CSIRX and DSS drivers",
+        "What a proper FreeRTOS producer-consumer pipeline for this use case would look like"
+      ],
+      "references": [
+        {
+          "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html",
+          "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html"
+        },
+        {
+          "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html",
+          "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6r7akaieb8",
+      "start": "2026-09-27T15:00:00+05:30",
+      "end": "2026-09-27T15:15:00+05:30",
+      "flexible": false,
+      "locationId": "room-1",
+      "speakerIds": [
+        "person-hariesh-varshan"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Technology architecture",
+        "Beginner"
+      ],
+      "trackId": "devroom-real-time-operating-systems-rtos",
+      "devroomId": "devroom-real-time-operating-systems-rtos",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lac636ge",
-      "sourceId": "543acf8ljj",
+      "sourceId": "chg3ervl1h",
       "proposalId": "76tid1o2lg",
       "type": "lightning-talk",
       "title": "Long live outbox : Outbox is dead",
@@ -6516,55 +6616,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28laeodjb3",
-      "sourceId": "543a2bapg2",
-      "proposalId": "6r7akaieb8",
-      "type": "lightning-talk",
-      "title": "Real-Time Video Pipelines on Embedded SoCs: A FreeRTOS Case Study",
-      "subtitle": "",
-      "description": "Integrating camera capture and display subsystems on embedded SoCs presents significant software design challenges due to competing buffer ownership models across independent hardware subsystems. This talk presents a practical implementation of a zero-copy video pipeline on a TI Jacinto SoCs running FreeRTOS, coordinating three drivers: a CSI2-DPHY receiver, a UDMA engine, and a Display Subsystem driver.\n\nThe implementation uses FVID2, TI's unified video interface, to apply a consistent queue/dequeue buffer model to both capture and display operations. We examine the initialization sequence where the application transfers UDMA ownership to the CSIRX driver, enabling the DSS driver direct visibility into captured buffers.\n\nCritical gaps in single-task designs are identified, specifically the absence of mechanisms preventing capture from overwriting buffers during display scanout. We present a corrected two-task producer-consumer design using counting semaphores to enforce mutual exclusion, with explicit analysis of task priorities and frame timing implications.\n\nThis work bridges the gap between pipelines that function nominally and those structured to remain correct under timing pressure, illustrating the complexity beneath seemingly solved problems in embedded systems integration.",
-      "keyTakeaways": [
-        "How FVID2's queue/dequeue model provides a unified buffer-ownership interface across CSIRX and DSS drivers",
-        "What a proper FreeRTOS producer-consumer pipeline for this use case would look like"
-      ],
-      "references": [
-        {
-          "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html",
-          "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html"
-        },
-        {
-          "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html",
-          "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Beginner",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6r7akaieb8",
-      "start": "2026-09-27T15:05:00+05:30",
-      "end": "2026-09-27T15:20:00+05:30",
-      "flexible": false,
-      "locationId": "room-1",
-      "speakerIds": [
-        "person-hariesh-varshan"
-      ],
-      "tags": [
-        "Lightning Talk",
-        "Technology architecture",
-        "Beginner"
-      ],
-      "trackId": "devroom-real-time-operating-systems-rtos",
-      "devroomId": "devroom-real-time-operating-systems-rtos",
-      "source": "fossunited"
-    },
-    {
       "id": "act-cfp-dglc657qff",
-      "sourceId": "543av8fhcv",
+      "sourceId": "chg304rbcv",
       "proposalId": "dglc657qff",
       "type": "talk",
       "title": "Being Bayesian: Stress-testing India's Loudest Stories with FOSS & Open Data",
@@ -6614,8 +6667,48 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28lad4q6q5",
+      "sourceId": "chg3voi8tg",
+      "proposalId": "8fc48rj2g2",
+      "type": "lightning-talk",
+      "title": "Tackling core lifecycle management in heterogeneous SoCs",
+      "subtitle": "",
+      "description": "Heterogeneous SoCs often employ a common pattern - Run Linux on the primary processor for system management tasks like boot sequencing, power management, firmware loading, and resource allocation, while Zephyr runs on auxiliary cores.\n\nMCUBoot, as of now, lacks the ability to load or control cores other than the one that it is running on.\n\nThis can be tackled by porting remote processor framework (remoteproc) to Zephyr - to provide firmware lifecycle management, resource table handling, and capabilities to load binaries. We can also employ OpenAMP using RPMsg for communication.\n\nWe will use TI's AM2434 as our reference SoC. This presentation will cover the remoteproc framework architecture, reference driver and reference examples demonstrating peer-to-peer processor management.",
+      "references": [
+        {
+          "label": "https://www.youtube.com/watch?v=8yAT-miihvY",
+          "url": "https://www.youtube.com/watch?v=8yAT-miihvY"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8fc48rj2g2",
+      "start": "2026-09-27T15:15:00+05:30",
+      "end": "2026-09-27T15:30:00+05:30",
+      "flexible": false,
+      "locationId": "room-1",
+      "speakerIds": [
+        "person-soumya-tripathy",
+        "person-amneesh"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Technology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-real-time-operating-systems-rtos",
+      "devroomId": "devroom-real-time-operating-systems-rtos",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28laurq10s",
-      "sourceId": "543a8utheq",
+      "sourceId": "chg3dlqfci",
       "proposalId": "bl0i7u8nno",
       "type": "lightning-talk",
       "title": "Kubernetes Native Observability Dashboards with Perses, without the YAML/JSON Hell",
@@ -6708,48 +6801,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28lad4q6q5",
-      "sourceId": "543a1sn51m",
-      "proposalId": "8fc48rj2g2",
-      "type": "lightning-talk",
-      "title": "Tackling core lifecycle management in heterogeneous SoCs",
-      "subtitle": "",
-      "description": "Heterogeneous SoCs often employ a common pattern - Run Linux on the primary processor for system management tasks like boot sequencing, power management, firmware loading, and resource allocation, while Zephyr runs on auxiliary cores.\n\nMCUBoot, as of now, lacks the ability to load or control cores other than the one that it is running on.\n\nThis can be tackled by porting remote processor framework (remoteproc) to Zephyr - to provide firmware lifecycle management, resource table handling, and capabilities to load binaries. We can also employ OpenAMP using RPMsg for communication.\n\nWe will use TI's AM2434 as our reference SoC. This presentation will cover the remoteproc framework architecture, reference driver and reference examples demonstrating peer-to-peer processor management.",
-      "references": [
-        {
-          "label": "https://www.youtube.com/watch?v=8yAT-miihvY",
-          "url": "https://www.youtube.com/watch?v=8yAT-miihvY"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Intermediate",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8fc48rj2g2",
-      "start": "2026-09-27T15:20:00+05:30",
-      "end": "2026-09-27T15:35:00+05:30",
-      "flexible": false,
-      "locationId": "room-1",
-      "speakerIds": [
-        "person-soumya-tripathy",
-        "person-amneesh"
-      ],
-      "tags": [
-        "Lightning Talk",
-        "Technology architecture",
-        "Intermediate"
-      ],
-      "trackId": "devroom-real-time-operating-systems-rtos",
-      "devroomId": "devroom-real-time-operating-systems-rtos",
-      "source": "fossunited"
-    },
-    {
       "id": "act-5fhpunas6r",
-      "sourceId": "543aimiqlh",
+      "sourceId": "chg3gk2bff",
       "type": "talk",
       "title": "Communi-Con : 7 Community Voted Flash Talks",
       "subtitle": "Other",
@@ -6765,8 +6818,56 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28lak5j8nt",
+      "sourceId": "chg3gfv5g7",
+      "proposalId": "eofh2kev0d",
+      "type": "lightning-talk",
+      "title": "Loops to real time",
+      "subtitle": "",
+      "description": "The session begins with the model almost every embedded developer starts from, the setup and loop loops that runs continuously, polling sensors, driving outputs, and relying on delay() to manage its timing. This sequential approach is easy to reason about and serves small projects well, but it starts to strain the moment a device has to respond to several things at once. From there the talk introduces the real-time operating system as the answer to that strain, explaining the shift from one continuous loop to a set of independent tasks coordinated by a scheduler that allocates processor time and can preempt lower-priority work whenever something more urgent comes up. With the concept in place, the focus turns to the practical advantages: running multiple jobs concurrently, holding predictable response times under varying load, keeping unrelated parts of the firmware cleanly separated, and maintaining a codebase that stays workable as a product grows in complexity. The talk then looks at why real-time development has become a broadly valuable skill rather than a niche one, given how much of today's embedded and IoT hardware now runs on an RTOS and how steadily demand for that expertise keeps rising. It closes by introducing Zephyr, a modern, vendor-backed open-source RTOS released under the permissive Apache 2.0 license, as a concrete and increasingly standard platform on which to put everything the talk has covered into practice.",
+      "references": [
+        {
+          "label": "https://www.freertos.org/",
+          "url": "https://www.freertos.org/"
+        },
+        {
+          "label": "https://micro.ros.org/docs/concepts/rtos/comparison/",
+          "url": "https://micro.ros.org/docs/concepts/rtos/comparison/"
+        },
+        {
+          "label": "https://www.zephyrproject.org/",
+          "url": "https://www.zephyrproject.org/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eofh2kev0d",
+      "start": "2026-09-27T15:30:00+05:30",
+      "end": "2026-09-27T15:45:00+05:30",
+      "flexible": false,
+      "locationId": "room-1",
+      "speakerIds": [
+        "person-mohammed-shan"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Technology architecture",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "devroom-real-time-operating-systems-rtos",
+      "devroomId": "devroom-real-time-operating-systems-rtos",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28la635lu7",
-      "sourceId": "543aumji58",
+      "sourceId": "chg39u41tm",
       "proposalId": "5i25u6dfnv",
       "type": "lightning-talk",
       "title": "Cilium Network Policy Anti-Patterns I Learned the Hard Way",
@@ -6805,56 +6906,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28lak5j8nt",
-      "sourceId": "543a1gcelk",
-      "proposalId": "eofh2kev0d",
-      "type": "lightning-talk",
-      "title": "Loops to real time",
-      "subtitle": "",
-      "description": "The session begins with the model almost every embedded developer starts from, the setup and loop loops that runs continuously, polling sensors, driving outputs, and relying on delay() to manage its timing. This sequential approach is easy to reason about and serves small projects well, but it starts to strain the moment a device has to respond to several things at once. From there the talk introduces the real-time operating system as the answer to that strain, explaining the shift from one continuous loop to a set of independent tasks coordinated by a scheduler that allocates processor time and can preempt lower-priority work whenever something more urgent comes up. With the concept in place, the focus turns to the practical advantages: running multiple jobs concurrently, holding predictable response times under varying load, keeping unrelated parts of the firmware cleanly separated, and maintaining a codebase that stays workable as a product grows in complexity. The talk then looks at why real-time development has become a broadly valuable skill rather than a niche one, given how much of today's embedded and IoT hardware now runs on an RTOS and how steadily demand for that expertise keeps rising. It closes by introducing Zephyr, a modern, vendor-backed open-source RTOS released under the permissive Apache 2.0 license, as a concrete and increasingly standard platform on which to put everything the talk has covered into practice.",
-      "references": [
-        {
-          "label": "https://www.freertos.org/",
-          "url": "https://www.freertos.org/"
-        },
-        {
-          "label": "https://micro.ros.org/docs/concepts/rtos/comparison/",
-          "url": "https://micro.ros.org/docs/concepts/rtos/comparison/"
-        },
-        {
-          "label": "https://www.zephyrproject.org/",
-          "url": "https://www.zephyrproject.org/"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Beginner",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eofh2kev0d",
-      "start": "2026-09-27T15:35:00+05:30",
-      "end": "2026-09-27T15:50:00+05:30",
-      "flexible": false,
-      "locationId": "room-1",
-      "speakerIds": [
-        "person-mohammed-shan"
-      ],
-      "tags": [
-        "Lightning Talk",
-        "Technology architecture",
-        "Introducing a FOSS project or a new version of a popular project",
-        "Beginner"
-      ],
-      "trackId": "devroom-real-time-operating-systems-rtos",
-      "devroomId": "devroom-real-time-operating-systems-rtos",
-      "source": "fossunited"
-    },
-    {
       "id": "act-cfp-62ntegtu09",
-      "sourceId": "543a3qo133",
+      "sourceId": "chg3r2cno4",
       "proposalId": "62ntegtu09",
       "type": "lightning-talk",
       "title": "Building Open Source Digital Infrastructure for a University",
@@ -6926,8 +6979,55 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28lamtpeiu",
+      "sourceId": "chg3iddmse",
+      "proposalId": "5h4d5uhuro",
+      "type": "lightning-talk",
+      "title": "Indigenous, High-Performance, Safety-Critical RTOS",
+      "subtitle": "",
+      "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
+      "keyTakeaways": [
+        "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
+        "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
+        "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
+        "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
+      ],
+      "references": [
+        {
+          "label": "https://redkill.in/",
+          "url": "https://redkill.in/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Advanced",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5h4d5uhuro",
+      "start": "2026-09-27T15:45:00+05:30",
+      "end": "2026-09-27T16:00:00+05:30",
+      "flexible": false,
+      "locationId": "room-1",
+      "speakerIds": [
+        "person-neeraj-upadhyay",
+        "person-prathu-baronia",
+        "person-armaan-chowfin"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Technology architecture",
+        "Advanced"
+      ],
+      "trackId": "devroom-real-time-operating-systems-rtos",
+      "devroomId": "devroom-real-time-operating-systems-rtos",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lacdroo3",
-      "sourceId": "543aunccj2",
+      "sourceId": "chg31jr2vb",
       "proposalId": "8ne6l7qetc",
       "type": "lightning-talk",
       "title": "Escaping Cron Hell: Building and Contributing to Dagu, an Open Source Workflow Orchestrator",
@@ -6981,23 +7081,23 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28lamtpeiu",
-      "sourceId": "543aft9ua1",
-      "proposalId": "5h4d5uhuro",
+      "id": "act-28lakfdugu",
+      "sourceId": "chg35hnail",
+      "proposalId": "2sfmvkhrrg",
       "type": "lightning-talk",
-      "title": "Indigenous, High-Performance, Safety-Critical RTOS",
+      "title": "From Architecture to Tasks: Designing Real-Time MCU Firmware in Heterogeneous APU-MCU Systems",
       "subtitle": "",
-      "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
+      "description": "People are now familirized to rich UI hence the embedded devices are required to meet those standards. Many embedded products today need two very different things at once: a rich user interface, connectivity, and application logic and a hard real-time behavior with strict timing guarantees (best served by a dedicated MCU running an RTOS or bare-metal firmware). In this talk I want to walk through a real heterogeneous multi-processing (HMP) architecture built around this split: an STM32MP1 running Linux for display and application-level functionality, paired with an STM32H7 microcontroller handling the real-time subsystem, including sensor data acquisition, motor control data management and other periphearl activities.\n\nWe'll start by examining why this split was the right call, then go inside the custom IPC layer connecting the two chips: how the protocol was designed (framing, message types, error handling), and how failures like an independent reset on either side are managed.\n\nThe next section zooms into the H7 firmware, covering RTOS task design patterns that keep the real-time subsystem deterministic: ISR-to-task deferral for sensor sampling, event-driven patterns and command queue architectures that decouple incoming Linux-side commands from time-critical control loops.\n\nFinally, we'll discuss how designing the IPC layer around a stable, well-defined protocol enables a modular hardware architecture. the real-time subsystem can remain unchanged while the application processor side is swapped for a different MPU or APU (for example, one better suited to display or AI workloads), as long as it speaks the same protocol.",
       "keyTakeaways": [
-        "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
-        "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
-        "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
-        "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
+        "When and why to split a product's compute across an APU (Linux, display/connectivity/application logic) and an MCU and how to evaluate that tradeoff for your own designs",
+        "Practical RTOS task design patterns for the real-time subsystem:",
+        "How a well-defined IPC protocol enables a modular hardware architecture, allowing the application processor (APU/MPU) to be swapped or upgraded independently without touching the real-time subsystem",
+        "A reusable framework for thinking through HMP and RTOS architecture decisions on future products, balancing real-time guarantees, scalability, and long-term flexibility"
       ],
       "references": [
         {
-          "label": "https://redkill.in/",
-          "url": "https://redkill.in/"
+          "label": "https://www.linkedin.com/in/udhayadhithan/",
+          "url": "https://www.linkedin.com/in/udhayadhithan/"
         }
       ],
       "links": [
@@ -7006,22 +7106,21 @@
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Advanced",
+      "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5h4d5uhuro",
-      "start": "2026-09-27T15:50:00+05:30",
-      "end": "2026-09-27T16:05:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2sfmvkhrrg",
+      "start": "2026-09-27T16:00:00+05:30",
+      "end": "2026-09-27T16:15:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-neeraj-upadhyay",
-        "person-prathu-baronia",
-        "person-armaan-chowfin"
+        "person-udhayadhithan-pa"
       ],
       "tags": [
         "Lightning Talk",
+        "Engineering practice - productivity, debugging",
         "Technology architecture",
-        "Advanced"
+        "Intermediate"
       ],
       "trackId": "devroom-real-time-operating-systems-rtos",
       "devroomId": "devroom-real-time-operating-systems-rtos",
@@ -7029,7 +7128,7 @@
     },
     {
       "id": "act-cfp-ajdpfpbh5a",
-      "sourceId": "543a5mbvds",
+      "sourceId": "chg34vekek",
       "proposalId": "ajdpfpbh5a",
       "type": "talk",
       "title": "Judiciary Entity Map: How open source can make India’s courts legible",
@@ -7103,7 +7202,7 @@
     },
     {
       "id": "act-28lag29fko",
-      "sourceId": "543a2n1ip1",
+      "sourceId": "chg3aehcl2",
       "proposalId": "2rg09ct89v",
       "type": "lightning-talk",
       "title": "15 Years, One Server, 8GB RAM and 500,000 Linux Learners: Lessons from Running Webminal",
@@ -7149,54 +7248,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28lakfdugu",
-      "sourceId": "543a5otgok",
-      "proposalId": "2sfmvkhrrg",
-      "type": "lightning-talk",
-      "title": "From Architecture to Tasks: Designing Real-Time MCU Firmware in Heterogeneous APU-MCU Systems",
-      "subtitle": "",
-      "description": "People are now familirized to rich UI hence the embedded devices are required to meet those standards. Many embedded products today need two very different things at once: a rich user interface, connectivity, and application logic and a hard real-time behavior with strict timing guarantees (best served by a dedicated MCU running an RTOS or bare-metal firmware). In this talk I want to walk through a real heterogeneous multi-processing (HMP) architecture built around this split: an STM32MP1 running Linux for display and application-level functionality, paired with an STM32H7 microcontroller handling the real-time subsystem, including sensor data acquisition, motor control data management and other periphearl activities.\n\nWe'll start by examining why this split was the right call, then go inside the custom IPC layer connecting the two chips: how the protocol was designed (framing, message types, error handling), and how failures like an independent reset on either side are managed.\n\nThe next section zooms into the H7 firmware, covering RTOS task design patterns that keep the real-time subsystem deterministic: ISR-to-task deferral for sensor sampling, event-driven patterns and command queue architectures that decouple incoming Linux-side commands from time-critical control loops.\n\nFinally, we'll discuss how designing the IPC layer around a stable, well-defined protocol enables a modular hardware architecture. the real-time subsystem can remain unchanged while the application processor side is swapped for a different MPU or APU (for example, one better suited to display or AI workloads), as long as it speaks the same protocol.",
-      "keyTakeaways": [
-        "When and why to split a product's compute across an APU (Linux, display/connectivity/application logic) and an MCU and how to evaluate that tradeoff for your own designs",
-        "Practical RTOS task design patterns for the real-time subsystem:",
-        "How a well-defined IPC protocol enables a modular hardware architecture, allowing the application processor (APU/MPU) to be swapped or upgraded independently without touching the real-time subsystem",
-        "A reusable framework for thinking through HMP and RTOS architecture decisions on future products, balancing real-time guarantees, scalability, and long-term flexibility"
-      ],
-      "references": [
-        {
-          "label": "https://www.linkedin.com/in/udhayadhithan/",
-          "url": "https://www.linkedin.com/in/udhayadhithan/"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Intermediate",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2sfmvkhrrg",
-      "start": "2026-09-27T16:05:00+05:30",
-      "end": "2026-09-27T16:20:00+05:30",
-      "flexible": false,
-      "locationId": "room-1",
-      "speakerIds": [
-        "person-udhayadhithan-pa"
-      ],
-      "tags": [
-        "Lightning Talk",
-        "Engineering practice - productivity, debugging",
-        "Technology architecture",
-        "Intermediate"
-      ],
-      "trackId": "devroom-real-time-operating-systems-rtos",
-      "devroomId": "devroom-real-time-operating-systems-rtos",
-      "source": "fossunited"
-    },
-    {
       "id": "act-28laqe1pg1",
-      "sourceId": "543amaohed",
+      "sourceId": "chg3h5a4ts",
       "proposalId": "8gv11r0ga6",
       "type": "lightning-talk",
       "title": "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
@@ -7224,8 +7277,8 @@
       "audience": "Intermediate",
       "proposalStatus": "Approved",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8gv11r0ga6",
-      "start": "2026-09-27T16:20:00+05:30",
-      "end": "2026-09-27T16:35:00+05:30",
+      "start": "2026-09-27T16:15:00+05:30",
+      "end": "2026-09-27T16:30:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
@@ -7243,7 +7296,7 @@
     },
     {
       "id": "act-28laedc93i",
-      "sourceId": "543a6nbtti",
+      "sourceId": "chg3kaoc1h",
       "proposalId": "f4pdfg9qvh",
       "type": "lightning-talk",
       "title": "Unused Is Not a Kubernetes Field: Platform Hygiene Is Not Cleanup",
@@ -7317,8 +7370,51 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-aqenkb8ktb",
+      "sourceId": "chg3nui6au",
+      "proposalId": "aqenkb8ktb",
+      "type": "talk",
+      "title": "RTL to Zephyr RTOS: Lightweight-Crypto Acceleration on Open RISC-V",
+      "subtitle": "",
+      "description": "Lightweight cryptography is the solution for resource-constrained embedded devices. Ascon was the finalists in NIST Lightweight Cryptography Standardization Process, chosen from a set of finalists that includes Romulus, built on the SKINNY block cipher. But standardizing an algorithm is not the same as making it cheap to run on a microcontroller.\n\nIn this talk, the author shows a fully open path from hardware to Zephyr RTOS: a lightweight crypto co-processor written in VHDL, integrated into the open NeoRV32 RISC-V soft-core, and exposed to applications through Zephyr RTOS. The author walks through one working example end to end, a SKINNY-AEAD accelerator on an FPGA board, validated on real hardware against the reference test vectors, and driven from Zephyr over a memory-mapped register.\n\nThe author then generalize it into a repeatable recipe register interface, devicetree binding, driver, crypto API integration, that applies to Ascon and the other NIST Lightweight cryptography finalists.",
+      "references": [
+        {
+          "label": "https://www.youtube.com/watch?v=P-JX_taGZYI",
+          "url": "https://www.youtube.com/watch?v=P-JX_taGZYI"
+        },
+        {
+          "label": "https://doi.org/10.1016/j.micpro.2020.103202",
+          "url": "https://doi.org/10.1016/j.micpro.2020.103202"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/aqenkb8ktb",
+      "start": "2026-09-27T16:30:00+05:30",
+      "end": "2026-09-27T16:45:00+05:30",
+      "flexible": false,
+      "locationId": "room-1",
+      "speakerIds": [
+        "person-bharathiraja"
+      ],
+      "tags": [
+        "Talk",
+        "Technology architecture",
+        "Intermediate"
+      ],
+      "trackId": "devroom-real-time-operating-systems-rtos",
+      "devroomId": "devroom-real-time-operating-systems-rtos",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28la409p82",
-      "sourceId": "543aakctuh",
+      "sourceId": "chg3lg748g",
       "proposalId": "av9de7vsu8",
       "type": "lightning-talk",
       "title": "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
@@ -7362,7 +7458,7 @@
     },
     {
       "id": "act-28laa2io5q",
-      "sourceId": "543ackvq62",
+      "sourceId": "chg3bdilap",
       "type": "talk",
       "title": "GB Election Results",
       "subtitle": "Other",
@@ -7379,7 +7475,7 @@
     },
     {
       "id": "act-28lam1ecee",
-      "sourceId": "543aje6c41",
+      "sourceId": "chg3m05ctc",
       "type": "talk",
       "title": "Closing Remarks, Feedback Session",
       "subtitle": "Other",
@@ -7634,7 +7730,7 @@
     {
       "id": "person-ansh-arora",
       "name": "Ansh Arora",
-      "designation": "Programs & Partnerships Manager",
+      "designation": "Program & Partnerships Manager",
       "organization": "FOSS United",
       "links": []
     },
@@ -7755,6 +7851,20 @@
         {
           "label": "social",
           "url": "https://www.linkedin.com/in/ashishjoy-mr/"
+        }
+      ]
+    },
+    {
+      "id": "person-ashita-prasad",
+      "name": "Ashita Prasad",
+      "bio": "Ashita works as a developer advocate at AWS with a strong focus on frontend, open source and AI technologies. With 10+ years of experience in full stack development, she is passionate about building impactful products and equally loves empowering &amp; engaging with fellow developers in the community. She is the co-creator of an award-winning open source, cross-platform agentic API client (GitHub -&nbsp; https://github.com/ashitaprasad ) and has delivered more than 100 talks &amp; workshops in reputed international conferences such as AI Devcon, AI India, PyML, SciPy, MCP Dev Summit India, etc.",
+      "designation": "SDE / Dev Advocate",
+      "organization": "AWS",
+      "avatarUrl": "https://fossunited.org/files/ashita_profile.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ashitaprasad/"
         }
       ]
     },
@@ -10396,7 +10506,7 @@
   ],
   "sourceMetadata": {
     "source": "fossunited",
-    "sourceUpdatedAt": "2026-09-09 09:50:52.102096",
+    "sourceUpdatedAt": "2026-09-09 22:43:49.137373",
     "normalizerVersion": "0.2.0",
     "scheduleStatus": "draft"
   }

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ContactChecks from '$lib/components/ContactChecks.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
@@ -45,6 +46,7 @@
   let cameraStarting = $state(true);
   let error = $state('');
   let status = $state('');
+  let savedContactId = $state<string | null>(null);
   let pending = $state<Pending | null>(null);
   /** Signature check + key badge for a scanned friend card. */
   let cardIdentity = $state<{
@@ -119,6 +121,8 @@
 
   function handlePayload(raw: string): void {
     error = '';
+    status = '';
+    savedContactId = null;
     const result = parseScannedPayload(raw);
     if (result.kind === 'error') {
       error = result.message;
@@ -192,6 +196,7 @@
     cameraStarting = true;
     error = '';
     status = '';
+    savedContactId = null;
     // Lazy-load the scanner engine (and request camera permission) only on demand.
     const { default: QrScannerCtor } = await import('qr-scanner');
     try {
@@ -255,12 +260,13 @@
     } else if (draft) {
       // Contact import is local: keep it in the on-device contact list (unverified).
       const result = await saveScannedContact(draft);
+      savedContactId = result.contact.id;
       status =
         result.outcome === 'updated'
-          ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Identities stay unverified until compared in person.`
+          ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Card signatures do not verify linked accounts.`
           : result.outcome === 'key-changed'
             ? `Saved ${result.contact.fullName} as a new entry: the card's key differs from the one you saved before, so the earlier contact was kept. Compare key badges in person before trusting either.`
-            : `Saved ${result.contact.fullName} to your contacts. Identities stay unverified until compared in person.`;
+            : `Saved ${result.contact.fullName} to your contacts. Card signatures do not verify linked accounts.`;
     }
     pending = null;
     manualLocation = '';
@@ -322,6 +328,14 @@
 
   {#if error}<p class="error" role="alert">{error}</p>{/if}
   {#if status}<p class="ok" role="status">{status}</p>{/if}
+  {#if savedContactId}
+    <div class="actions">
+      <a class="button" href={resolve(`/connect?contact=${encodeURIComponent(savedContactId)}`)}
+        >View contact</a
+      >
+      <button class="button secondary" onclick={startCamera}>Scan another</button>
+    </div>
+  {/if}
 
   {#if pending}
     <section class="card preview" aria-live="polite">
@@ -359,6 +373,7 @@
           </p>
         {/if}
         <p class="muted">These fields were shared with you. Nothing is uploaded.</p>
+        <ContactChecks />
         <p class="unverified">
           Unverified — a QR code exchanges identifiers, it does not prove who someone is.
         </p>
@@ -372,13 +387,13 @@
               {#if !cardIdentity}
                 <span class="muted small">Checking signature…</span>
               {:else if cardIdentity.signature === 'valid'}
-                <strong class="sig-ok">✔ Signed card</strong>
+                <strong class="sig-ok">Card signature valid</strong>
                 <span class="muted small">
                   Badge <code>{shortFingerprint(cardIdentity.fingerprint ?? '')}</code> — ask them to
                   show their badge on the Connect screen; if it matches, you scanned their device's key.
                 </span>
               {:else if cardIdentity.signature === 'invalid'}
-                <strong class="sig-bad">✖ Signature does not match</strong>
+                <strong class="sig-bad">Card signature does not match</strong>
                 <span class="muted small"
                   >The card was altered or re-encoded. Ask for a fresh code.</span
                 >
@@ -432,6 +447,12 @@
           </p>
           <SocialLinks links={contactDeepLinks(contactPreview)} />
         {/if}
+      {/if}
+      {#if draft}
+        <p class="muted">
+          Saving keeps this person in People I met inside this app. It does not add them to your
+          phone's contacts.
+        </p>
       {/if}
       <div class="preview-actions">
         {#if pending.kind === 'location'}

@@ -1,9 +1,12 @@
 <script lang="ts">
   import ChatDownload from '$lib/components/ChatDownload.svelte';
+  import ContactChecks from '$lib/components/ContactChecks.svelte';
   import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
   import { meshLinkLabel } from '@indiafoss/matrix';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
+  import { page } from '$app/state';
+  import { afterNavigate } from '$app/navigation';
   import { SvelteSet } from 'svelte/reactivity';
   import { resolve } from '$app/paths';
   import {
@@ -488,17 +491,37 @@
   }
 
   let openContact = $state<string | null>(null);
+  let openedRequest: string | null = null;
+  let navigationReady = $state(false);
+  afterNavigate(() => {
+    navigationReady = true;
+  });
+  $effect(() => {
+    const requested = page.url.searchParams.get('contact');
+    if (!requested) {
+      openedRequest = null;
+      return;
+    }
+    if (
+      !navigationReady ||
+      eventState.status !== 'ready' ||
+      !eventState.bundle ||
+      openedRequest === requested ||
+      !contactsState.contacts.some((c) => c.id === requested)
+    )
+      return;
+    openedRequest = requested;
+    contactSearch = '';
+    openContact = requested;
+    void tick().then(() => {
+      const row = document.getElementById(`contact-${requested}`);
+      row?.focus({ preventScroll: true });
+      row?.scrollIntoView({ block: 'center' });
+    });
+  });
 </script>
 
-<EventGate>
-  <section class="intro">
-    <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
-    <h1>Your contact card</h1>
-    <p class="muted">
-      Show this to someone. Only the fields switched on below are encoded in your QR code.
-    </p>
-  </section>
-
+{#snippet profileImporter()}
   <ProfileImport
     onimport={(imported) => {
       const before = JSON.stringify(profileState.profile);
@@ -511,6 +534,20 @@
       scheduleCard();
     }}
   />
+{/snippet}
+
+<EventGate>
+  <section class="intro">
+    <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
+    <h1>Your contact card</h1>
+    <p class="muted">
+      Show this to someone. Only the fields switched on below are encoded in your QR code.
+    </p>
+  </section>
+
+  {#if !profileState.profile.socials.github}
+    {@render profileImporter()}
+  {/if}
 
   <!-- Hero: the QR is always live -->
   <section class="card hero" aria-label="Your contact QR code">
@@ -578,10 +615,18 @@
   </section>
 
   <p class="muted small explain">
-    Any phone camera saves you straight to Contacts. Scanned with the Companion, the same code also
-    verifies your key badge and lets them message you. A QR can be photographed — email and phone
-    stay off unless you switch them on.
+    A phone camera can open your contact card. The Companion can save it in People I met and check
+    its signature. A QR can be photographed — email and phone stay off unless you switch them on.
   </p>
+
+  {#if profileState.profile.socials.github}
+    <details class="profile-reimport">
+      <summary>Import another GitHub profile</summary>
+      {@render profileImporter()}
+    </details>
+  {/if}
+
+  <ContactChecks />
 
   <ChatDownload />
 
@@ -879,6 +924,7 @@
             {#each g.contacts as c (c.id)}
               <div class="person" class:open={openContact === c.id}>
                 <button
+                  id={`contact-${c.id}`}
                   class="personrow"
                   onclick={() => (openContact = openContact === c.id ? null : c.id)}
                   aria-expanded={openContact === c.id}

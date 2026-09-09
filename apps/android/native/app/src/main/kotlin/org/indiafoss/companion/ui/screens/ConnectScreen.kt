@@ -93,6 +93,7 @@ fun ConnectScreen(
     onImportVcard: (String) -> Unit = {},
     onBack: () -> Unit,
 ) {
+    var showContactChecks by remember { mutableStateOf(false) }
     val context = LocalContext.current
     // Your own contact, from the phone's address book (one picked contact, read as a vCard) or a .vcf file (#110).
     val pickContact = rememberLauncherForActivityResult(ActivityResultContracts.PickContact()) { uri ->
@@ -158,6 +159,15 @@ fun ConnectScreen(
                                     Text(org.indiafoss.companion.core.Handshake.shortFingerprint(fingerprint), style = MaterialTheme.typography.labelLarge)
                                 }
                             }
+                        }
+                        TextButton(onClick = { showContactChecks = !showContactChecks }) {
+                            Text(if (showContactChecks) "Hide contact check explanation" else "What do contact checks mean?")
+                        }
+                        if (showContactChecks) {
+                            Text(
+                                "You can save and export people without checking their card. A valid card signature matches the included signing key; it does not verify their name or linked accounts. Compare the saved key badge with the one they show on their own phone to check that the card keys match. Verify Matrix accounts and devices separately in your Matrix chat app.",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
                         }
                         Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = {

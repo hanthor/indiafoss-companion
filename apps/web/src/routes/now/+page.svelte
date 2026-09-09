@@ -84,7 +84,16 @@
     if (mins < 1) return 'under a minute';
     return `${mins} min`;
   }
+  const trackName = (activity: Activity): string | undefined =>
+    (
+      bundle?.tracks.find((track) => track.id === activity.devroomId) ??
+      bundle?.tracks.find((track) => track.id === activity.trackId)
+    )?.name;
 </script>
+
+{#snippet trackTag(activity: Activity)}
+  {#if trackName(activity)}<span class="track-tag">{trackName(activity)}</span>{/if}
+{/snippet}
 
 <EventGate>
   <h1>Now</h1>
@@ -105,6 +114,7 @@
       </p>
       {#if nowState!.next}
         <h3>First up</h3>
+        {@render trackTag(nowState!.next)}
         <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
       {/if}
     </section>
@@ -129,6 +139,7 @@
           )}–{formatTime(personalNext.end)}
         </p>
         {#if personalActivity}
+          {@render trackTag(personalActivity)}
           <a href={resolve(`/activity/${personalActivity.id}`)}>{personalActivity.title}</a>
         {:else}
           <strong>{personalNext.label ?? 'Personal time'}</strong>
@@ -154,6 +165,7 @@
         {#each nowState!.current as activity (activity.id)}
           {@const room = sessionRoomLink(bundle, activity.id, activity.locationId, activity.title)}
           <div class="session">
+            {@render trackTag(activity)}
             <div class="row">
               <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
               <TypeBadge type={activity.type} />
@@ -198,6 +210,7 @@
     {#if nowState!.next}
       <section class="card" aria-labelledby="next-heading">
         <h2 id="next-heading">Next in the programme</h2>
+        {@render trackTag(nowState!.next)}
         <div class="row big">
           <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
           <TypeBadge type={nowState!.next.type} />
@@ -243,6 +256,17 @@
 </EventGate>
 
 <style>
+  .track-tag {
+    display: inline-block;
+    margin-block: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    font-size: 0.8rem;
+    overflow-wrap: anywhere;
+  }
+
   .devtime {
     display: inline-flex;
     align-items: center;
