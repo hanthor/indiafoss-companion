@@ -11,3 +11,5 @@ Validation includes event-sync idempotence, availability unit tests and browser 
 Remaining work: automatic spreadsheet refresh with header validation and stable rename reconciliation; day filters and clearer availability labels in the directory; organiser-approved booth map locations; native visit planning; and visit preferences in portable personal-data exports. Keep these attached to #191/#221/#240 rather than claiming complete booth parity.
 
 Local results: 88 web unit tests and six event-sync tests passed; Svelte check passed with four existing warnings, lint/build passed, and the focused browser regression passed. Compared the complete bundles: only `booths` changed. Reviewed [mobile directory](booth-directory-2026-09-09/mobile-directory.png) and [unassigned booth](booth-directory-2026-09-09/mobile-unassigned.png) screenshots at 390px.
+
+At the maintainer's request, a contribution notice on the PWA home and Settings pages and native Settings invites attendees to fork, improve code/design/docs and report issues. Links go to the Companion fork and issue pages. It is an inline section, with no persistent banner or prompt over discovery/planning.
