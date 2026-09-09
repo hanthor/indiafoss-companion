@@ -109,16 +109,20 @@ No test baselines or application code changed. See
 [Chat #44](https://github.com/hanthor/indiafoss-chat-android/issues/44);
 test execution remains a separate gate.
 
-The recovered test run reached Kotlin compilation and exposed two calls to the
-removed `indices` property in `DiffCacheTest`.
-[Chat PR #55](https://github.com/hanthor/indiafoss-chat-android/pull/55) changes those
-assertions to the current `indices()` function. The next run passed compilation
-and reached the app-navigation tests: 66 of 67 passed, with one expected-string
-mismatch (`%21` versus Android's valid literal `!` in a room permalink). PR #55
-also corrects that expectation. It changes no runtime code or screenshot baselines.
-The updated full unit/screenshot/coverage and quality gates remain pending; the local review environment has no Java runtime. This is the concrete
-follow-up to the existing test work in Chat #20/#21, not a new test-suite proposal.
+**Executed CI restored, 9 September 2026:**
+[Chat PR #55](https://github.com/hanthor/indiafoss-chat-android/pull/55) merged as
+`952b87a9` after all 14 checks passed. It repairs the `indices()` calls,
+permalink and enterprise test expectations, and asynchronous capture tests.
+It also supplies 66 reviewed screenshot baselines with provenance in
+`docs/indiafoss/snapshot-recovery-2026-09-08.md` in the Chat repository; the initial
+LFS restoration itself did not change baselines.
 
+The [main test run](https://github.com/hanthor/indiafoss-chat-android/actions/runs/34291085872)
+passed the complete unit/screenshot/coverage command in 34m52s, with 7359 Gradle
+tasks (5225 executed, 2134 from cache). Chat #44 and #20 are closed with that
+execution evidence. This is not evidence for venue reachability, attachment
+delivery, account coexistence or real-device recovery: Chat #45/#46/#48/#49
+remain independently scoped.
 Forked from Element X Android. Beyond branding and the embedded-Neutrino
 wiring it inherits, ours adds:
 

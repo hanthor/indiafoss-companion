@@ -1,5 +1,7 @@
 # C-04 — Both clients open on the real IndiaFOSS 2026 schedule, not last year's fixture
 
+> Status, 9 September 2026: Publication is implemented: both clients seed IndiaFOSS 2026; PRs #242/#243 demonstrated automatic import, full candidate CI, merge and deployment. Issues #239/#213 are closed. The remaining #191 work is event/venue rehearsal, not another 2026 cutover. Read the current event-sync implementation before using historical excerpts below.
+
 - Status: Draft published on 8 September; cutover implementation in progress. The maintainer explicitly requests current draft data with a visible draft label.
 - Repository: indiafoss-companion
 - Tracks: [#191](https://github.com/hanthor/indiafoss-companion/issues/191)

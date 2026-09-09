@@ -1,5 +1,7 @@
 # X-01 — A photo and a voice message actually arrive on the other phone
 
+> Status, 9 September 2026: The build/test checkout prerequisite is complete: Chat PR #55 and main run 34291085872 passed; Chat #44 is closed. This does not satisfy the two-phone media/offline/recovery checks in this spec. Continue under Chat #45/#49 and Companion #182 without redoing LFS recovery.
+
 - Status: Needs hardware
 - Repository: **indiafoss-chat-android** (with a dependency on
   **hanthor/neutrino**)

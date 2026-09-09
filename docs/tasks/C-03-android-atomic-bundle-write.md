@@ -1,5 +1,7 @@
 # C-03 — An interrupted write cannot leave the Android app with no schedule
 
+> Status, 9 September 2026: Implemented in PR #251, building on the initial helper in #209. Current code is EventRevisionCache.kt plus AtomicFile.kt: one manifest/body record, validated digest and event/schema, flushed bytes and atomic replacement with no delete fallback. Core restart/failure tests and repository HTTP tests passed in CI, as did the Android emulator. Do not reintroduce the separate trusted revision stamp shown in historical excerpts below.
+
 - Status: Ready
 - Repository: indiafoss-companion
 - Tracks: [#190](https://github.com/hanthor/indiafoss-companion/issues/190)

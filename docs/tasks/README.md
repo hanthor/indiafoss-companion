@@ -51,13 +51,20 @@ records the decision. Do not open new issues for these.
 
 These are the work that makes a conference day trustworthy. Do these first.
 
-| ID                                           | Task                                                     | Status                         | Tracks                                                            |
-| -------------------------------------------- | -------------------------------------------------------- | ------------------------------ | ----------------------------------------------------------------- |
-| [C-01](C-01-update-check-latch.md)           | Schedule updates can be missed for a whole session       | Web implemented — see evidence | [#189](https://github.com/hanthor/indiafoss-companion/issues/189) |
-| [C-02](C-02-persist-every-valid-revision.md) | A reinstated talk stays cancelled; valid data is dropped | Implemented (web), PR #235     | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
-| [C-03](C-03-android-atomic-bundle-write.md)  | An interrupted write can truncate the cached schedule    | Ready                          | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
-| [C-04](C-04-publish-2026-bundle.md)          | Ship the real 2026 bundle, not the 2025 fixture          | Ready                          | [#191](https://github.com/hanthor/indiafoss-companion/issues/191) |
-| [C-05](C-05-plan-without-ranking.md)         | A useful plan without ranking every talk                 | Ready                          | [#192](https://github.com/hanthor/indiafoss-companion/issues/192) |
+| ID                                           | Task                                           | Status                                                                      | Tracks                                                            |
+| -------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [C-01](C-01-update-check-latch.md)           | Update checks and truthful freshness           | Implemented, PR #238; #189 closed                                           | [#189](https://github.com/hanthor/indiafoss-companion/issues/189) |
+| [C-02](C-02-persist-every-valid-revision.md) | Metadata-only adoption and reinstatement       | Implemented, PRs #235/#251/#252                                             | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
+| [C-03](C-03-android-atomic-bundle-write.md)  | Coherent, verified native cache recovery       | Implemented, PR #251                                                        | [#190](https://github.com/hanthor/indiafoss-companion/issues/190) |
+| [C-04](C-04-publish-2026-bundle.md)          | Publish the real 2026 schedule                 | Published and automatically updated, PRs #242/#243; venue rehearsal remains | [#191](https://github.com/hanthor/indiafoss-companion/issues/191) |
+| [C-05](C-05-plan-without-ranking.md)         | Three-choice discovery and whole-devroom plans | Discovery/planning implemented; shared consumers remain in #221             | [#192](https://github.com/hanthor/indiafoss-companion/issues/192) |
+
+Personal-data migration is tracked by [#240](https://github.com/hanthor/indiafoss-companion/issues/240),
+with its current contract and remaining work in
+[personal-data transfer](../architecture/personal-data-transfer.md). CFP reference
+resolution, shared file codecs and the PWA export are merged (#247/#249/#250).
+Import previews, validated storage application and native file entry points remain.
+Do not mark migration complete based on the codec or download alone.
 
 ## Companion — contracts and handoff
 
@@ -91,11 +98,11 @@ These specs live here because the architecture does, but the work happens in
 [`indiafoss-chat-android`](https://github.com/hanthor/indiafoss-chat-android).
 **Do not create Kotlin or Swift files in this repository for them.**
 
-| ID                                       | Task                                                     | Status         | Tracks                                                                              |
-| ---------------------------------------- | -------------------------------------------------------- | -------------- | ----------------------------------------------------------------------------------- |
-| [X-01](X-01-chat-media-pin-and-proof.md) | Build the media fix into an installable APK and prove it | Needs hardware | Chat #44/#45/#49, [#182](https://github.com/hanthor/indiafoss-companion/issues/182) |
-| [X-02](X-02-chat-durable-outbox.md)      | A durable logical outbox with honest delivery states     | Ready          | Chat #48                                                                            |
-| [X-03](X-03-chat-account-coordinator.md) | Account coexistence without one session erasing another  | Ready          | Chat #46/#47                                                                        |
+| ID                                       | Task                                                     | Status                                                   | Tracks                                                                          |
+| ---------------------------------------- | -------------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| [X-01](X-01-chat-media-pin-and-proof.md) | Build the media fix into an installable APK and prove it | Needs hardware; build/test checkout restored in Chat #55 | Chat #45/#49, [#182](https://github.com/hanthor/indiafoss-companion/issues/182) |
+| [X-02](X-02-chat-durable-outbox.md)      | A durable logical outbox with honest delivery states     | Ready                                                    | Chat #48                                                                        |
+| [X-03](X-03-chat-account-coordinator.md) | Account coexistence without one session erasing another  | Ready                                                    | Chat #46/#47                                                                    |
 
 ## Dependency order
 
