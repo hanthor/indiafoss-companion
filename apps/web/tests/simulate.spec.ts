@@ -204,18 +204,22 @@ test('every reminder names the session, the room and the walk, and opens it when
   await expect
     .poll(
       () =>
-        page.evaluate(() => (window as unknown as { __fired: { title: string }[] }).__fired.length),
+        page.evaluate(
+          () =>
+            (window as unknown as { __fired: { title: string }[] }).__fired.filter((n) =>
+              n.title.includes('First Step into Open Source'),
+            ).length,
+        ),
       { timeout: 60_000 },
     )
     .toBeGreaterThanOrEqual(3);
 
-  const fired = await page.evaluate(
-    () =>
-      (
-        window as unknown as {
-          __fired: { title: string; body: string; tag: string; icon: string; hasClick: boolean }[];
-        }
-      ).__fired,
+  const fired = await page.evaluate(() =>
+    (
+      window as unknown as {
+        __fired: { title: string; body: string; tag: string; icon: string; hasClick: boolean }[];
+      }
+    ).__fired.filter((n) => n.title.includes('First Step into Open Source')),
   );
 
   for (const shown of fired) {
@@ -234,4 +238,38 @@ test('every reminder names the session, the room and the walk, and opens it when
   // Starting-soon lands within minutes of leave-now for a near room, so it is
   // merged away rather than firing twice about the same talk.
   expect(fired.filter((n) => n.title.startsWith('In 15 min'))).toHaveLength(0);
+});
+
+test('removing a must-go from the edited plan suppresses its reminders', async ({ page }) => {
+  await page.addInitScript(() => {
+    class SimNotification {
+      static permission = 'granted';
+      close() {}
+    }
+    Object.defineProperty(window, 'Notification', { value: SimNotification });
+  });
+  await page.goto(appUrl('/activity/' + SESSION));
+  await page.getByRole('button', { name: /Must attend/ }).click();
+  await preferenceSaved(page, SESSION);
+  await page.goto(appUrl('/plan'));
+  const row = page.locator('.itinerary li').filter({
+    has: page.getByRole('link', { name: 'First Step into Open Source with AOSP', exact: true }),
+  });
+  await row.locator('summary').click();
+  await row.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Removed', exact: true })).toBeVisible();
+  await page.goto(appUrl('/settings'));
+  await page.getByRole('switch', { name: /Enable reminders/ }).click();
+  await settingSaved(page, 'notifications-enabled', 'true');
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}&at=audi-1`));
+  await page.waitForFunction(
+    () => (window.__indiafossSim?.state().now ?? '') >= '2025-09-20T10:16:00+05:30',
+    null,
+    { timeout: 20_000 },
+  );
+  const notifications = await page.evaluate(() =>
+    window.__indiafossSim!.log().filter((e) => e.kind === 'notification'),
+  );
+  expect(notifications.length).toBeGreaterThan(0);
+  expect(notifications.some((e) => e.title.includes('First Step into Open Source'))).toBe(false);
 });

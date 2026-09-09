@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { loadPlanned, plannedKey, plannedState } from '$lib/planned.svelte';
+  import { loadPlanned, plannedKey, planExists } from '$lib/planned.svelte';
+  import { resolveSavedDayPlan, trackPlanInputs } from '$lib/resolved-plan.svelte';
   import type { ActivityType } from '@indiafoss/model';
   import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
@@ -57,7 +58,7 @@
   );
 
   $effect(() => {
-    if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
+    if (days.length > 0 && (!selectedDay || !days.includes(selectedDay))) selectedDay = days[0]!;
   });
 
   const typesOn = $derived(
@@ -70,12 +71,30 @@
 
   const dayActivities = $derived(selectedDay ? activitiesForDay(bundle, selectedDay) : []);
 
+  let resolvedIds = $state<string[]>([]);
   $effect(() => {
-    if (bundle && selectedDay) void loadPlanned(bundle.id, selectedDay);
+    const source = bundle;
+    const day = selectedDay;
+    trackPlanInputs(source);
+    const exists = source && day ? planExists[plannedKey(source.id, day)] : false;
+    resolvedIds = [];
+    let active = true;
+    if (!source || !day) return;
+    void loadPlanned(source.id, day);
+    // A fresh browser has interests, not a confirmed plan. Preserve that distinction.
+    if (exists) {
+      void resolveSavedDayPlan(source, day)
+        .then((plan) => {
+          if (active && plan.edited.feasible && plan.mustAttendConflicts.length === 0)
+            resolvedIds = plan.edited.items.map((item) => item.id);
+        })
+        .catch(() => {});
+    }
+    return () => {
+      active = false;
+    };
   });
-  const plannedIds = $derived(
-    new Set(bundle && selectedDay ? (plannedState[plannedKey(bundle.id, selectedDay)] ?? []) : []),
-  );
+  const plannedIds = $derived(new Set(resolvedIds));
 
   const searchIds = $derived(
     query.trim().length >= 2 ? new Set(searchActivities(bundle, query, 60).map((h) => h.id)) : null,
