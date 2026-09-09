@@ -2,7 +2,10 @@
 
 > Status, 9 September 2026: Publication is implemented: both clients seed IndiaFOSS 2026; PRs #242/#243 demonstrated automatic import, full candidate CI, merge and deployment. Issues #239/#213 are closed. The remaining #191 work is event/venue rehearsal, not another 2026 cutover. Read the current event-sync implementation before using historical excerpts below.
 
-- Status: Draft published on 8 September; cutover implementation in progress. The maintainer explicitly requests current draft data with a visible draft label.
+- Status: Implemented. Persistent draft banner removed at the maintainer’s request; editorial source status is retained in data. See the [current event data](../../events/indiafoss-2026/README.md) and [verified nightly seed](../reviews/native-seed-2026-09-09.md).
+
+The implementation narrative below records the original cutover problem; its 2025 defaults are historical, not the current client behaviour.
+
 - Repository: indiafoss-companion
 - Tracks: [#191](https://github.com/hanthor/indiafoss-companion/issues/191)
 - Size: M

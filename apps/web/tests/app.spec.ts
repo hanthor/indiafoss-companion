@@ -564,3 +564,17 @@ test('the who-I-met recap groups the people and makes a shareable card (#31)', a
   await page.getByRole('button', { name: 'Save the image' }).click();
   expect((await download).suggestedFilename()).toBe('indiafoss-who-i-met.png');
 });
+
+test('2026 booth directory preserves showcasing days and unassigned availability', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/explore/booths?event=indiafoss-2026'));
+  await expect(page.getByRole('status').filter({ hasText: '71 booths' })).toBeVisible();
+  await page.getByRole('link', { name: 'openSUSE project' }).click();
+  await expect(page.getByText(/Showcasing: Unassigned/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Schedule 15 min' })).toHaveCount(0);
+  await page.goto(appUrl('/booth/booth-2026-altsendme?event=indiafoss-2026'));
+  await expect(page.getByText(/Showcasing: Day 2/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Schedule 15 min' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Find on map' })).toHaveCount(0);
+});

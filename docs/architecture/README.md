@@ -12,6 +12,12 @@ recommends something, the acceptance record lives in
 | [ios.md](ios.md)                             | Companion and Chat paths on iOS, upstream findings, notifications, permissions, device validation              | [#199](https://github.com/hanthor/indiafoss-companion/issues/199) |
 | [review-2026-09-07.md](review-2026-09-07.md) | The project review both documents extend                                                                       | [#195](https://github.com/hanthor/indiafoss-companion/issues/195) |
 
+## Current implementation evidence
+
+Use the [task status index](../tasks/README.md) for merged work and remaining gates, the [event README](../../events/indiafoss-2026/README.md) for schedule and booth source maintenance, and the [personal-data transfer contract](personal-data-transfer.md) for migration. The PWA exports personal data; import and native transfer UI remain unfinished. A stock Matrix client plus the PWA remains the iOS baseline pending device rehearsal. These implementation records do not waive the protocol or native iOS admission gates below.
+
+The [attendee persona walkthrough](../reviews/attendee-personas-2026-09-09.md) maps eight hypothetical event journeys to observed friction, proposed features and existing issues. It prioritizes plan consistency, navigation and trust before more recommendation machinery; it is not a substitute for real-attendee/device testing.
+
 ## How to use these when implementing
 
 Do not implement directly from these documents. They are deliberately dense and

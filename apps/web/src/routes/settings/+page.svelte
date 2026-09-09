@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
   import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
   import ReminderStatus from '$lib/components/ReminderStatus.svelte';
@@ -219,6 +220,7 @@
       {#each privacyRules as rule (rule)}<li>{rule}</li>{/each}
     </ul>
   </section>
+  <ContributeNotice />
 </section>
 
 <style>

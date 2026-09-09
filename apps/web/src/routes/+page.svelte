@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { base, resolve } from '$app/paths';
   import { formatDayLabel } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
@@ -143,6 +144,7 @@
       {bundle.timezone}
     </p>
   {/if}
+  <ContributeNotice />
 </EventGate>
 
 <style>

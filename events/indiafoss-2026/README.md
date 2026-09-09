@@ -1,19 +1,35 @@
-# IndiaFOSS 2026 draft programme
+# IndiaFOSS 2026 event data
 
-Captured from the [published draft](https://fossunited.org/dashboard/schedule/indiafoss/2026) on 8 September 2026. This is current **draft** data, not the final timetable. Web and Android display its draft status from `publication.json` through `sourceMetadata.scheduleStatus`.
+The current bundle covers 26–27 September 2026. At the 9 September capture it contains **162 programme entries, 148 people and 71 booths**. Programme entries include breaks and ceremonies; they are not all talks. Counts change with future source updates. The normalized bundle and published manifest are authoritative for the current capture.
 
-The capture contains 111 programme entries, 90 speakers, six physical rooms and eight named devrooms on 26–27 September. It includes breaks and ceremonies; those counts are not 111 accepted talks. Separate 25 September workshops are not in this capture. Booths and Matrix rooms have not been fabricated.
+## Schedule
 
-`provenance.json` records endpoints, sanitisation, input hashes and actual same-room overlaps. Repeated lunch/opening entries in different rooms are retained. The RTOS overlap is preserved so full-devroom planning can flag it.
+The public FOSS United schedule is refreshed hourly by `.github/workflows/schedule-sync.yml`, or on workflow dispatch. The pipeline captures, normalizes and validates a candidate, runs web/native/emulator checks, and only publishes if the reviewed base has not changed. A successful import triggers Pages and nightly builds. A failed fetch or validation must retain the previous publication.
 
-Reproduce locally without network:
+`raw/` contains the captured schedule and proposal inputs. `provenance.json` describes the initial capture; its original counts and hashes are historical, not proof of later captures. `publication.json` retains the source's editorial status. The app no longer shows a persistent draft banner.
+
+CFP proposal IDs preserve choices through time and room changes. `activity-ids.json` retains existing IDs; repeated occurrences need their own row identity. Never match a user's choice by title or datetime alone. Physical rooms remain independent of devroom tracks. Repeated room lunch rows are retained as source data and interpreted as lunch windows by the planner.
+
+## Booths
+
+The organiser supplied this [spreadsheet](https://docs.google.com/spreadsheets/d/12_CJE84LOk19pzjfHyNWXKWUHML1Fjpi3G2Be9Nvt4U/edit) and an identical [pinned CSV snapshot](https://gist.githubusercontent.com/hanthor/561e363e56f425625fe6140728b99015/raw/0f0284ecdf8481fef862628bb89503d9bb3ca036/gistfile1.txt). Both contained 71 identical records on 9 September. `booths.json` records source provenance and the imported public directory. The source spreadsheet is read-only for this workflow.
+
+- 52 booths showcase on both days, nine on Day 1, nine on Day 2; openSUSE is unassigned.
+- Day 1 maps to `2026-09-26`, Day 2 to `2026-09-27`. `availableDates: []` means unassigned; an absent field preserves legacy directory behaviour.
+- Original domains and day labels are retained in tags. Descriptions show showcasing days in PWA and Android. Categories map to the app's existing category vocabulary.
+- Organiser suggestions in the Notes column are not published as attendee descriptions. Website links and map positions are not inferred from prose.
+- Preserve booth IDs when correcting names. Do not regenerate an existing ID from a renamed project.
+
+The schedule importer merges `booths.json` on every refresh. **It does not fetch spreadsheet changes automatically.** Update this reviewed fixture when organisers change the sheet, compare against the previous records, then regenerate and validate the bundle. Missing rows or renamed projects require review before deletion or ID changes.
+
+The PWA planner honours availability dates and does not schedule unassigned booths. Day selection/filtering in the booth directory, explicit booth map positions, automatic sheet ingestion and native booth-visit planning remain follow-up work. Matrix room assignments also require a real directory; no booth rooms are fabricated.
+
+## Reproduce and publish
 
 ```sh
 pnpm --filter @indiafoss/event-sync exec tsx src/index.ts sync indiafoss-2026 --source fixture
-pnpm --filter @indiafoss/sources test
+pnpm --filter @indiafoss/event-sync test
 pnpm --filter @indiafoss/event-sync exec tsx src/index.ts publish indiafoss-2026
 ```
 
-Refresh from the public source with `sync indiafoss-2026 --source live`; update captured inputs/provenance together before accepting a new revision. Keep `publication.json` as draft until the organiser actually confirms otherwise. The 2025 fixture remains available explicitly as an archived programme.
-
-`custom_question_1` on the 2026 linked proposals supplies programme identity. Intro rows supply the start of each devroom; following unlinked programme rows inherit it until the meal break. Physical `locationId` remains independent. Preserve stable upstream row IDs across edits. Review new or renamed intro labels on every capture.
+Use `--source live` to refresh the official schedule. Review generated changes and pass CI before merging. The web build copies published assets; Android packages the canonical normalized bundle directly. Keep `publication.json` unchanged until the organiser confirms a status change. The 2025 fixture remains an explicit archive.

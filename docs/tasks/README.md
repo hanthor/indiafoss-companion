@@ -66,6 +66,11 @@ resolution, shared file codecs and the PWA export are merged (#247/#249/#250).
 Import previews, validated storage application and native file entry points remain.
 Do not mark migration complete based on the codec or download alone.
 
+Current event-data maintenance is documented in the [2026 event README](../../events/indiafoss-2026/README.md).
+The [booth import review](../reviews/booth-directory-2026-09-09.md) records the organiser's 71-booth snapshot and day-aware PWA visit planning.
+Automatic spreadsheet refresh, booth map positions and native visit planning remain under #191/#221; portable booth preferences remain under #240.
+The [native seed evidence](../reviews/native-seed-2026-09-09.md) records the actual downloaded revision 7 APK verification after #255/#256.
+
 ## Companion — contracts and handoff
 
 | ID                                                 | Task                                              | Status | Tracks                                                                                                                             |
