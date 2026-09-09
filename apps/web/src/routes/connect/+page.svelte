@@ -519,15 +519,7 @@
   });
 </script>
 
-<EventGate>
-  <section class="intro">
-    <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
-    <h1>Your contact card</h1>
-    <p class="muted">
-      Show this to someone. Only the fields switched on below are encoded in your QR code.
-    </p>
-  </section>
-
+{#snippet profileImporter()}
   <ProfileImport
     onimport={(imported) => {
       const before = JSON.stringify(profileState.profile);
@@ -540,6 +532,20 @@
       scheduleCard();
     }}
   />
+{/snippet}
+
+<EventGate>
+  <section class="intro">
+    <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
+    <h1>Your contact card</h1>
+    <p class="muted">
+      Show this to someone. Only the fields switched on below are encoded in your QR code.
+    </p>
+  </section>
+
+  {#if !profileState.profile.socials.github}
+    {@render profileImporter()}
+  {/if}
 
   <!-- Hero: the QR is always live -->
   <section class="card hero" aria-label="Your contact QR code">
@@ -611,6 +617,13 @@
     verifies your key badge and lets them message you. A QR can be photographed — email and phone
     stay off unless you switch them on.
   </p>
+
+  {#if profileState.profile.socials.github}
+    <details class="profile-reimport">
+      <summary>Import another GitHub profile</summary>
+      {@render profileImporter()}
+    </details>
+  {/if}
 
   <!-- Field groups -->
   {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}
