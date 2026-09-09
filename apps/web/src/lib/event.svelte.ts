@@ -1,6 +1,6 @@
 import { base } from '$app/paths';
 import { CompanionStorage } from '@indiafoss/storage';
-import type { EventBundle } from '@indiafoss/model';
+import { collectBundleIssues, type EventBundle } from '@indiafoss/model';
 
 export const DEFAULT_EVENT_ID = 'indiafoss-2026';
 /** Static, hash-less asset; precached by the service worker (§34). */
@@ -50,6 +50,11 @@ async function doLoad(eventId: string): Promise<EventBundle | null> {
       throw new Error(`Event bundle request failed (HTTP ${res.status})`);
     }
     const bundle = (await res.json()) as EventBundle;
+    if (bundle.id !== eventId || collectBundleIssues(bundle).length > 0) {
+      throw new Error(
+        'The downloaded schedule is invalid or belongs to another event. Please try again.',
+      );
+    }
     await getStorage().saveEventBundle(bundle);
     eventState.bundle = bundle;
     eventState.status = 'ready';

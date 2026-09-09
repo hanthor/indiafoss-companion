@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 import { appUrl } from './app-url.js';
 import { preferenceSaved, settingSaved } from './preference-saved.js';
@@ -36,7 +37,9 @@ const RENAMED = 'act-akru0m7eqk';
 test.use({ serviceWorkers: 'block' });
 
 const MANIFEST = /\/events\/indiafoss-2025\/manifest\.json/;
-const NEW_ASSET = /\/events\/indiafoss-2025\/event\.deadbeef\.json/;
+const NEW_ASSET = /\/events\/indiafoss-2025\/event\.[0-9a-f]{8}\.json/;
+const assetName = (bundle: unknown) =>
+  `event.${createHash('sha256').update(JSON.stringify(bundle)).digest('hex').slice(0, 8)}.json`;
 
 /**
  * The published bundle, read from Node rather than the page: the page may be
@@ -57,7 +60,7 @@ async function publish(page: Page, revision: number, bundle: unknown): Promise<v
         eventId: 'indiafoss-2025',
         generatedAt: '2026-09-08T12:00:00Z',
         revision,
-        assets: { event: 'event.deadbeef.json' },
+        assets: { event: assetName(bundle) },
       },
     }),
   );
@@ -209,8 +212,13 @@ test('an unreachable manifest leaves the cached schedule usable', async ({ page,
   });
 });
 
-test('an open foreground schedule polls again and pauses while hidden', async ({ page }) => {
+test('an open foreground schedule polls again and pauses while hidden', async ({
+  page,
+  request,
+}) => {
   await page.clock.install({ time: new Date('2025-09-20T10:00:00+05:30') });
+  const bundle = await publishedBundle(request);
+  await page.route(NEW_ASSET, (route) => route.fulfill({ json: bundle }));
   let checks = 0;
   await page.route(MANIFEST, (route) => {
     checks += 1;
@@ -220,7 +228,7 @@ test('an open foreground schedule polls again and pauses while hidden', async ({
         eventId: 'indiafoss-2025',
         generatedAt: '2026-09-08T12:00:00Z',
         revision: 1,
-        assets: { event: 'event.deadbeef.json' },
+        assets: { event: assetName(bundle) },
       },
     });
   });
@@ -502,7 +510,7 @@ test.describe('service-worker recovery', () => {
     // Inject the newly published network responses at the page fetch boundary:
     // page.route cannot intercept requests handled by a service worker.
     await page.evaluate(
-      ({ next }) => {
+      ({ next, asset }) => {
         const original = window.fetch.bind(window);
         window.fetch = async (input, init) => {
           const url = String(input);
@@ -513,14 +521,13 @@ test.describe('service-worker recovery', () => {
               eventId: 'indiafoss-2025',
               generatedAt: '2026-09-08T12:00:00Z',
               revision: 9999,
-              assets: { event: 'event.deadbeef.json' },
+              assets: { event: asset },
             });
-          if (url.endsWith('/events/indiafoss-2025/event.deadbeef.json'))
-            return Response.json(next);
+          if (url.endsWith(`/events/indiafoss-2025/${asset}`)) return Response.json(next);
           return original(input, init);
         };
       },
-      { next },
+      { next, asset: assetName(next) },
     );
     await context.setOffline(false);
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
@@ -532,3 +539,63 @@ test.describe('service-worker recovery', () => {
     expect(await readPersonal()).toEqual(before);
   });
 });
+
+for (const source of ['immutable asset', 'hashless fallback'] as const) {
+  test(`a digest mismatch in the ${source} preserves the saved revision and allows retry`, async ({
+    page,
+    request,
+  }) => {
+    await page.goto(appUrl('/settings?setup=done'));
+    await expect(page.getByTestId('refresh-success')).toContainText('Last successful check:');
+    const before = await savedEvent(page);
+    const next = (await publishedBundle(request)) as { name: string };
+    next.name = 'Verified updated event name';
+    await publish(page, 9999, next);
+    let corrupt = true;
+    if (source === 'hashless fallback') {
+      await page.route(NEW_ASSET, (route) => route.fulfill({ status: 404 }));
+      await page.route(/\/events\/indiafoss-2025\/event-bundle\.json/, (route) =>
+        route.fulfill({ json: corrupt ? { ...next, name: 'Wrong cached body' } : next }),
+      );
+    } else {
+      await page.route(NEW_ASSET, (route) =>
+        route.fulfill({ json: corrupt ? { ...next, name: 'Wrong cached body' } : next }),
+      );
+    }
+    await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+    await expect(page.getByText(/does not match the published revision/)).toBeVisible();
+    expect(await savedEvent(page)).toEqual(before);
+    corrupt = false;
+    await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+    await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
+    expect((await savedEvent(page)).bundle.name).toBe(next.name);
+    await expect(page.getByText(/Last check failed:/)).toHaveCount(0);
+  });
+}
+
+for (const invalid of ['event identity', 'schema version'] as const) {
+  test(`first load rejects a wrong ${invalid} before saving and can retry`, async ({
+    page,
+    request,
+  }) => {
+    const bundle = await publishedBundle(request);
+    let bad = true;
+    await page.route(/\/events\/indiafoss-2025\/event-bundle\.json/, (route) =>
+      route.fulfill({
+        json: bad
+          ? {
+              ...bundle,
+              ...(invalid === 'event identity' ? { id: 'another-event' } : { schemaVersion: 99 }),
+            }
+          : bundle,
+      }),
+    );
+    await page.goto(appUrl('/schedule?setup=done'));
+    await expect(page.getByRole('alert')).toContainText('invalid or belongs to another event');
+    expect(await savedEvent(page)).toBeUndefined();
+    bad = false;
+    await page.getByRole('button', { name: 'Retry', exact: true }).click();
+    await expect(page.getByRole('article').first()).toBeVisible();
+    expect((await savedEvent(page)).bundle.id).toBe('indiafoss-2025');
+  });
+}

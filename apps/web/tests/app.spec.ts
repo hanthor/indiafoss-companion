@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
 
@@ -487,6 +488,7 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
   });
   const changed = structuredClone(current);
   changed.activities[0].title = 'Renamed by the organisers';
+  const asset = `event.${createHash('sha256').update(JSON.stringify(changed)).digest('hex').slice(0, 8)}.json`;
   // A manifest one revision ahead, naming a new immutable asset.
   await page.route(/\/events\/indiafoss-2025\/manifest\.json/, (route) =>
     route.fulfill({
@@ -495,11 +497,11 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
         eventId: 'indiafoss-2025',
         generatedAt: '2026-09-08T12:00:00Z',
         revision: 999,
-        assets: { event: 'event.deadbeef.json' },
+        assets: { event: asset },
       },
     }),
   );
-  await page.route(/\/events\/indiafoss-2025\/event\.deadbeef\.json/, (route) =>
+  await page.route(/\/events\/indiafoss-2025\/event\.[0-9a-f]{8}\.json/, (route) =>
     route.fulfill({ json: changed }),
   );
   await page.goto(appUrl('/schedule'));
