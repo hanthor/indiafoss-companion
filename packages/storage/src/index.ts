@@ -1,6 +1,14 @@
 import type { EventBundle } from '@indiafoss/model';
 import type { PersonalDataFile } from '@indiafoss/model/contracts';
-import { personalDataFromSnapshot } from './personal-data.js';
+import { personalDataFromSnapshot, type PersonalDataSnapshot } from './personal-data.js';
+import { validatePersonalData } from './personal-data-validation.js';
+import {
+  PersonalDataImportStaleError,
+  planPersonalDataImport,
+  storedValue,
+  type ImportChange,
+  type PersonalDataImportPreview,
+} from './personal-data-import.js';
 import Dexie, { type Table } from 'dexie';
 
 /** Initial Elo rating (§14). */
@@ -258,56 +266,92 @@ export function defaultPreference(activityId: string): ActivityPreference {
 export class CompanionStorage {
   constructor(private readonly db: CompanionDatabase = new CompanionDatabase()) {}
 
+  private personalStores() {
+    return [
+      this.db.events,
+      this.db.preferences,
+      this.db.comparisons,
+      this.db.notes,
+      this.db.itineraries,
+      this.db.settings,
+    ];
+  }
+
+  /** Only the explicit personal-data allowlist; credentials, keys and caches never enter it. */
+  private async personalSnapshot(): Promise<PersonalDataSnapshot> {
+    const [
+      events,
+      preferences,
+      comparisons,
+      notes,
+      itineraries,
+      contact,
+      plans,
+      resolved,
+      rooms,
+      booths,
+    ] = await Promise.all([
+      this.db.events.toArray(),
+      this.db.preferences.toArray(),
+      this.db.comparisons.toArray(),
+      this.db.notes.toArray(),
+      this.db.itineraries.toArray(),
+      this.db.settings.where('key').anyOf('attendee-profile', 'attendee-share-selection').toArray(),
+      this.db.settings.where('key').startsWith('plan-edits-').toArray(),
+      this.db.settings.where('key').startsWith('resolved-plan-').toArray(),
+      this.db.settings.where('key').startsWith('room-prefs-').toArray(),
+      this.db.settings.where('key').startsWith('booth-visit-').toArray(),
+    ]);
+    return {
+      bundles: events.map((record) => record.bundle),
+      preferences,
+      comparisons,
+      notes,
+      itineraries,
+      settings: [...contact, ...plans, ...resolved, ...rooms, ...booths],
+    };
+  }
+
   /** One consistent read transaction across the explicit personal-data allowlist. */
   async exportPersonalData(exportedAt = new Date().toISOString()): Promise<PersonalDataFile> {
-    return this.db.transaction(
-      'r',
-      [
-        this.db.events,
-        this.db.preferences,
-        this.db.comparisons,
-        this.db.notes,
-        this.db.itineraries,
-        this.db.settings,
-      ],
-      async () => {
-        const [
-          events,
-          preferences,
-          comparisons,
-          notes,
-          itineraries,
-          contact,
-          plans,
-          resolved,
-          rooms,
-        ] = await Promise.all([
-          this.db.events.toArray(),
-          this.db.preferences.toArray(),
-          this.db.comparisons.toArray(),
-          this.db.notes.toArray(),
-          this.db.itineraries.toArray(),
-          this.db.settings
-            .where('key')
-            .anyOf('attendee-profile', 'attendee-share-selection')
-            .toArray(),
-          this.db.settings.where('key').startsWith('plan-edits-').toArray(),
-          this.db.settings.where('key').startsWith('resolved-plan-').toArray(),
-          this.db.settings.where('key').startsWith('room-prefs-').toArray(),
-        ]);
-        return personalDataFromSnapshot(
-          {
-            bundles: events.map((record) => record.bundle),
-            preferences,
-            comparisons,
-            notes,
-            itineraries,
-            settings: [...contact, ...plans, ...resolved, ...rooms],
-          },
-          exportedAt,
-        );
-      },
+    return this.db.transaction('r', this.personalStores(), async () =>
+      personalDataFromSnapshot(await this.personalSnapshot(), exportedAt),
     );
+  }
+
+  /**
+   * Validate a file and compare it with this device in one read transaction.
+   * Nothing is written; unresolved and unsupported data is reported, not dropped.
+   */
+  async previewPersonalDataImport(raw: string): Promise<PersonalDataImportPreview> {
+    const validated = validatePersonalData(raw);
+    return this.db.transaction('r', this.personalStores(), async () =>
+      planPersonalDataImport(validated, await this.personalSnapshot()),
+    );
+  }
+
+  /**
+   * Apply selected preview changes in one write transaction. Every value is
+   * re-read first: a record edited since the preview aborts the whole import
+   * (Dexie rolls back), so a stale preview cannot overwrite a newer choice.
+   */
+  async applyPersonalDataImport(changes: ImportChange[]): Promise<{ applied: number }> {
+    return this.db.transaction('rw', this.personalStores(), async () => {
+      const stale: string[] = [];
+      for (const change of changes) {
+        const stored = await this.db.table(change.write.store).get(change.write.key);
+        if (storedValue(change.write, stored) !== change.current) stale.push(change.label);
+      }
+      if (stale.length) throw new PersonalDataImportStaleError(stale);
+      for (const { write } of changes) {
+        if (write.store === 'settings') {
+          await this.db.settings.put({ key: write.key, value: write.value as string });
+        } else {
+          await this.db.table(write.store).put(write.value);
+        }
+      }
+      return { applied: changes.length };
+    });
   }
 
   async saveEventBundle(bundle: EventBundle): Promise<void> {
@@ -502,3 +546,20 @@ export class CompanionStorage {
     );
   }
 }
+
+export {
+  PersonalDataImportStaleError,
+  canonical,
+  planPersonalDataImport,
+} from './personal-data-import.js';
+export type {
+  ImportChange,
+  ImportSkip,
+  ImportSkipReason,
+  ImportStore,
+  ImportWrite,
+  PersonalDataImportPreview,
+} from './personal-data-import.js';
+export { validatePersonalData } from './personal-data-validation.js';
+export type { ValidatedPersonalData } from './personal-data-validation.js';
+export type { PersonalDataSnapshot } from './personal-data.js';
