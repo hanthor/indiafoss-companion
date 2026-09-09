@@ -1,0 +1,21 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 11,
+  "from": 10,
+  "changes": [
+    {
+      "activityId": "act-543a71asfp",
+      "title": "Registrations and Breakfast (Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-5773rhdk21",
+      "title": "Who Governs the Internet? An Open Floor for India's FOSS Community",
+      "type": "cancelled"
+    }
+  ],
+  "summary": {
+    "added": 1,
+    "cancelled": 1
+  }
+}
