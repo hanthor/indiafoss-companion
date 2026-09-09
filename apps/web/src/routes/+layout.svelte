@@ -20,6 +20,7 @@
   import { untrack } from 'svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
   import { installNativeDeepLinks } from '$lib/native';
+  import LivePlan from '$lib/components/LivePlan.svelte';
   import LeaveByBanner from '$lib/components/LeaveByBanner.svelte';
   import SimulatorStrip from '$lib/components/SimulatorStrip.svelte';
   import { goto } from '$app/navigation';
@@ -225,6 +226,7 @@
   </header>
   <div class="pixelstripe" aria-hidden="true"></div>
   <SimulatorStrip />
+  <LivePlan />
   <LeaveByBanner />
   {#if eventState.bundle && eventState.bundle.id !== DEFAULT_EVENT_ID}
     <p class="event-notice">Archived programme · This is not the current IndiaFOSS schedule.</p>
