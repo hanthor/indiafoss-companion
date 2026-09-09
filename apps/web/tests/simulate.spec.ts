@@ -28,7 +28,8 @@ const EARLY_START = '2025-09-20T09:00:00+05:30';
 /** Five simulated minutes a real second: slow enough that load jitter cannot skip an alert. */
 const SLOW_SPEED = 300;
 
-test.use({ permissions: ['notifications'] });
+// This suite inspects the desktop constructor; mobile-reminders covers real worker delivery.
+test.use({ permissions: ['notifications'], serviceWorkers: 'block' });
 
 test('the simulator fires every reminder tier and logs the banner', async ({ page }) => {
   // Simulated delivery needs explicit Notification API permission. Chromium's

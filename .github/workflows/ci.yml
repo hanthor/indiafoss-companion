@@ -104,6 +104,10 @@ jobs:
       - name: Run browser E2E tests
         run: pnpm --filter @indiafoss/web exec playwright test tests/app.spec.ts tests/discovery.spec.ts tests/personal-data.spec.ts
 
+      # Headless Chromium denies OS notifications even with a permission override.
+      - name: Test mobile notification delivery with a real service worker
+        run: xvfb-run -a pnpm --filter @indiafoss/web exec playwright test tests/mobile-reminders.spec.ts --headed
+
       - name: Run accessibility checks
         run: pnpm --filter @indiafoss/web exec playwright test tests/a11y.spec.ts
 
