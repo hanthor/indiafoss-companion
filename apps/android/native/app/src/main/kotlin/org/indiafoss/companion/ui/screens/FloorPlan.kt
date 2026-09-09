@@ -22,17 +22,23 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
+import org.indiafoss.companion.core.EventBundle
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 /** The floor plans the web map draws (`venue-floors.ts`), exported to `floors.json`. */
 @Serializable
-data class FloorRoom(val id: String, val name: String, val key: String? = null, val cap: Int? = null, val cx: Double, val cy: Double, val d: String)
+data class FloorRoom(val id: String, val name: String, val key: String? = null, val cap: Int? = null, val cx: Double, val cy: Double, val d: String) {
+    fun programmeLocationId(bundle: EventBundle?): String =
+        if (bundle?.location(id) != null) id else key?.takeIf { bundle?.location(it) != null } ?: id
+}
 
 @Serializable
 data class FloorWall(val d: String, val s: String, val w: Double)
@@ -68,7 +74,7 @@ object FloorPlans {
 }
 
 /** What a room is drawn with: lit while a session runs, marked where the attendee is. */
-data class RoomState(val live: String? = null, val here: Boolean = false, val next: Boolean = false)
+data class RoomState(val live: String? = null, val here: Boolean = false, val next: Boolean = false, val title: String? = null, val name: String? = null)
 
 /**
  * One floor as vectors, pinch-to-zoom and drag, rooms lit while sessions
@@ -151,15 +157,23 @@ fun FloorPlanView(floor: Floor, states: Map<String, RoomState>, modifier: Modifi
             }
         }
         // Labels are drawn in screen space so they stay legible at any zoom.
-        for ((room, _) in paths.rooms) {
+        for ((room, path) in paths.rooms) {
             val state = states[room.id] ?: states[room.key ?: ""]
             val sx = ((room.cx.toFloat() - vx) * base + ox - size.width / 2f) * scale + size.width / 2f + offset.x
             val sy = ((room.cy.toFloat() - vy) * base + oy - size.height / 2f) * scale + size.height / 2f + offset.y
-            val label = measurer.measure(room.name, labelStyle)
+            val textWidth = (path.getBounds().width * base * scale * 0.85f).toInt().coerceAtLeast(1)
+            val constraints = Constraints(maxWidth = textWidth)
+            val label = measurer.measure(state?.name ?: room.name, labelStyle, maxLines = 2, overflow = TextOverflow.Ellipsis, constraints = constraints)
             drawText(label, topLeft = Offset(sx - label.size.width / 2f, sy - label.size.height / 2f))
+            var detailY = sy + label.size.height / 2f
+            state?.title?.let { title ->
+                val talk = measurer.measure(title, minutesStyle, maxLines = 2, overflow = TextOverflow.Ellipsis, constraints = constraints)
+                drawText(talk, topLeft = Offset(sx - talk.size.width / 2f, detailY))
+                detailY += talk.size.height
+            }
             state?.live?.let { live ->
-                val sub = measurer.measure(live, minutesStyle)
-                drawText(sub, topLeft = Offset(sx - sub.size.width / 2f, sy + label.size.height / 2f))
+                val sub = measurer.measure(live, minutesStyle, maxLines = 1, overflow = TextOverflow.Ellipsis, constraints = constraints)
+                drawText(sub, topLeft = Offset(sx - sub.size.width / 2f, detailY))
             }
             if (state?.here == true) {
                 drawCircle(scheme.tertiary, radius = 14f, center = Offset(sx, sy - label.size.height))

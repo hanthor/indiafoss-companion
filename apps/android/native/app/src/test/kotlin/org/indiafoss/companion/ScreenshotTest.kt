@@ -7,6 +7,11 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.test.performClick
+import org.junit.Assert.assertEquals
 import org.indiafoss.companion.ui.screens.ActivityScreen
 import androidx.test.core.app.ApplicationProvider
 import org.indiafoss.companion.core.ContactCard
@@ -97,7 +102,7 @@ class ScreenshotTest {
         shoot("session-long-title") {
             ActivityScreen(
                 state().copy(bundle = bundle.copy(activities = listOf(activity))),
-                activity.id, {}, {}, {},
+                activity.id, {}, {}, onBack = {},
             )
         }
         compose.onNodeWithText(title).assertIsDisplayed()
@@ -115,6 +120,30 @@ class ScreenshotTest {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
+    @Test fun mapLongCurrentTalk() = shoot("map-long-current-talk") {
+        val talk = bundle.activities.first().copy(
+            id = "map-long", title = "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast file transfers",
+            locationId = "hall-1", start = "2026-09-26T10:00:00+05:30", end = "2026-09-26T11:00:00+05:30",
+        )
+        MapScreen(state().copy(bundle = bundle.copy(activities = listOf(talk))), {}) {}
+    }
+    @Test fun speakerDetail() = shoot("speaker-detail") {
+        val person = bundle.people.first { !it.bio.isNullOrBlank() }
+        org.indiafoss.companion.ui.screens.SpeakerScreen(state(), person.id, {}) {}
+    }
+
+    @Test fun speakerOpensFromTalk() {
+        val talk = bundle.activities.first { it.speakerIds.isNotEmpty() }
+        val person = bundle.person(talk.speakerIds.first())!!
+        var opened: String? = null
+        shoot("talk-speaker-link") {
+            ActivityScreen(state(), talk.id, {}, {}, onOpenSpeaker = { opened = it }) {}
+        }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText(person.name))
+        compose.onNodeWithText(person.name).performClick()
+        assertEquals(person.id, opened)
+    }
+
     @Test fun explore() = shoot("explore") { ExploreScreen(state(), {}, {}, {}) {} }
     @Test fun booth() = shoot("booth") {
         // The published draft has no booth catalogue; this is test-only content.
