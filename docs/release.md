@@ -69,6 +69,13 @@ Debug APKs are produced in CI with a sha256 checksum. For release builds:
 - F-Droid / core distribution must contain **no mandatory Google Play Services
   or FCM** dependencies (local notifications only).
 
+### Our F-Droid repository
+
+The [repository implementation plan](tasks/own-fdroid-repository.md) specifies a
+shared Companion/Chat update catalogue using the existing signed APKs and a
+separate index key. It is not deployed yet; direct APK downloads remain the
+available distribution path.
+
 ### Nightly signing and upgrades
 
 The nightly workflow builds a non-debuggable release APK, signs it outside
