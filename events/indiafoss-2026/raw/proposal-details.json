@@ -1931,6 +1931,45 @@
       }
     ]
   },
+  "92adqrmbh1": {
+    "proposalId": "92adqrmbh1",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
+    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
+        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "dagd2l28tm": {
+    "proposalId": "dagd2l28tm",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
+    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://fosstodon.org/@badrihippo",
+        "url": "https://fosstodon.org/@badrihippo"
+      }
+    ],
+    "links": [
+      {
+        "label": "@Muneer_S’s thread",
+        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "37sjgknrj3": {
     "proposalId": "37sjgknrj3",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/37sjgknrj3",
@@ -1985,276 +2024,6 @@
         "label": "Co-operatives",
         "url": "https://en.wikipedia.org/wiki/Cooperative"
       },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "92adqrmbh1": {
-    "proposalId": "92adqrmbh1",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
-    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
-        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "dagd2l28tm": {
-    "proposalId": "dagd2l28tm",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
-    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://fosstodon.org/@badrihippo",
-        "url": "https://fosstodon.org/@badrihippo"
-      }
-    ],
-    "links": [
-      {
-        "label": "@Muneer_S’s thread",
-        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "4llmgcq50k": {
-    "proposalId": "4llmgcq50k",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4llmgcq50k",
-    "description": "I’d like to present the Telangana State MeeSeva Oracle-to-PostgreSQL migration as a factual, replicable case study to an audience spanning government IT leadership, enterprise database teams, and the global open-source community. The talk would accomplish three things:\n\nFor the open-source community: Contribute a significant government migration case study to the PostgreSQL and Ora2Pg ecosystem, reinforcing the viability of open-source databases at national scale.\n\nFor database professionals: Provide a technically honest account of the migration process, the role of Ora2Pg, what required manual effort, and what they should plan for in their own migrations.\n\nFor government CIOs and IT directors: Demonstrate that PostgreSQL is production-ready for large-scale, mission-critical citizen services, with real numbers, real challenges, and real cost savings.\n\nI’ll keep it factual, technical and honest. A practitioner’s account of what happened, what went wrong, what went right, and what others can learn from it.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx",
-        "url": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx"
-      },
-      {
-        "label": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl",
-        "url": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8dso3avp9l": {
-    "proposalId": "8dso3avp9l",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8dso3avp9l",
-    "description": "Every online tutorial and blog on “how to contribute to OSS” or “how to make your first PR” teaches the mechanics and commands, but almost none teach the etiquette: when it's okay to ping a maintainer, how to take a rejected proposal gracefully, why a half-finished AI-generated PR adds to stress and overload for the maintainers. Now that open source sits on the student resume(s) right next to internships and projects, this missing gap of education has real consequences: maintainers across GSoC, LFX and Hacktoberfest have publicly described waves of low-effort and spam contributions, with many OSS projects shutting down for new contributions.\n\nThis talk is about the cultural layer underneath a pipeline: the norms that decide whether a student community produces thoughtful contributors or AI spammers. A pipeline tells you how to get more students contributing; it says nothing about whether those contributions are any good for the projects on the receiving end.\n\nAt Point Blank, an OSS community we have been running for the last 7 years, we've spent the last few years turning that culture into something teachable, and we’ll walk through what actually worked:\n\nA peer proposal-review gate : our \"war rooms\" so that of the ~40 GSoC proposals our members write in a season, none reach a maintainer as unreviewed slop. Every draft is torn apart by people who've been selected before it goes anywhere near an org.\n\nA \"contribute before you apply\" norm, anchored by a Hacktoberfest kickoff and weekly sync-ups, so contribution is a sustained relationship with a project rather than a March résumé sprint.\n\nAn explicit etiquette curriculum covering what contributing.md leaves out: how to ask for help in public without spamming, how to treat a maintainer's time as the scarcest resource in the project, and how to behave when your contributions are rejected.\n\nA mentor-handoff model: every contributor who gets selected comes back to coach the next batch, so etiquette is transmitted by example, not preached from a slide.\n\nWe will be honest about what didn't work, and about the awkward cases, including what we do with the member who openly just wants the T-shirt. We will close with a short, concrete checklist that maintainers and student-club organizers can adopt to keep their contribution spaces both welcoming to newcomers and resistant to spam.",
-    "keyTakeaways": [
-      "A repeatable way to teach contribution etiquette, not just mechanics and why that distinction matters more in a hyper-competitive student culture.",
-      "A concrete proposal-review process that cuts low-effort and spam submissions at the source, including the trade-offs of running it at scale.",
-      "How to coach contributors through rejection so they stay civil and keep contributing.",
-      "A short checklist maintainers can use to set norms that invite newcomers without inviting spam."
-    ],
-    "references": [
-      {
-        "label": "https://www.pointblank.club/oss",
-        "url": "https://www.pointblank.club/oss"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "f4ko2mik8q": {
-    "proposalId": "f4ko2mik8q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4ko2mik8q",
-    "description": "DNA is the molecular blueprint of life. Modern sequencing technologies allow us to read DNA and RNA at unprecedented scale, generating vast amounts of biological data from organisms, tissues, and individual cells. Today, public repositories host millions of sequencing experiments comprising petabytes of data that power discoveries in medicine, drug development, agriculture, and fundamental biology.\n\nYet finding the right dataset is often harder than analysing it. Researchers must navigate fragmented repositories, heterogeneous metadata standards, and incomplete descriptions, making dataset discovery a time-consuming and frustrating process. With Seqout (https://seqout.org), we set out to build a genomics search engine that is fast, comprehensive, and lean enough to run on modest hardware while serving hundreds of thousands of researchers worldwide. Seqout is built entirely on open-source software: PostgreSQL and Neo4j power keyword and graph-based search, while embedding-based retrieval is enabled by open-source models and libraries from Hugging Face.\n\nIn this talk, we will discuss the engineering challenges involved in building a low-latency search engine over millions of biological datasets with limited resources (aka compute and GPUs). We will cover data ingestion, metadata normalisation, indexing strategies, typo tolerance, semantic search, and the trade-offs involved in integrating relational and graph databases with vector search.\n\nAlong the way, we'll share lessons learned from operating search infrastructure at scale and discuss how open-source software powers every layer of the platform. We'll also discuss how Seqout's MCP server enables large language models and AI agents to move beyond answering biology questions to directly discover and interact with relevant scientific datasets.",
-    "keyTakeaways": [
-      "How to build a low-latency search engine from scratch",
-      "Combining PostgreSQL, Neo4j, and semantic search to improve dataset discovery",
-      "Lessons learned from building and operating an open-source scientific search platform"
-    ],
-    "references": [
-      {
-        "label": "https://seqout.org/",
-        "url": "https://seqout.org/"
-      },
-      {
-        "label": "https://github.com/saketlab/seqout",
-        "url": "https://github.com/saketlab/seqout"
-      },
-      {
-        "label": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing",
-        "url": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing"
-      }
-    ],
-    "links": [
-      {
-        "label": "https://seqout.org",
-        "url": "https://seqout.org/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "89tt0o6uio": {
-    "proposalId": "89tt0o6uio",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/89tt0o6uio",
-    "description": "New year of 2025 we launched tamilnadu.tech a tech event listing platform built by the souls of FOSS United Chennai, what started as a simple project was ultimately taken by the community and upgraded and updated with tons of improvements. Built after listening to the problems faced by the community, tamilnadu.tech was instantly a hit and in a short span grew to nearly 300+ github stars with 100+ contributors where more than half of them are first time contributors to open source.But not stopping with 1 project, in the New year of 2026 the same team of FOSS United Chennai launched another project called podu.pics a FOSS imgbb alternative because the images used in tamilnadu.tech were from imgbb and we had to build our own ;)Again the community responded positively and took the product and used it and contributed to it. with the latest product that we launched for ChennaiFOSS 2026being kuruk.am a project again from the FU Chennai team being a url shortener which is also used by IndiaFOSS for their social media marketing.",
-    "keyTakeaways": [
-      "Build community driven projects that put the community in the driver seat",
-      "How much importance it is to listen to the community for the problems and not build a made up solution to a problem that doesn’t exist",
-      "As a maintainer how to be sure and take right decisions for the project’s growth and direction."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/FOSSUChennai/Communities",
-        "url": "https://github.com/FOSSUChennai/Communities"
-      },
-      {
-        "label": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/",
-        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/"
-      },
-      {
-        "label": "https://kuruk.am/justin-cfp-tt",
-        "url": "https://kuruk.am/justin-cfp-tt"
-      }
-    ],
-    "links": [
-      {
-        "label": "tamilnadu.tech",
-        "url": "https://tamilnadu.tech/"
-      },
-      {
-        "label": "podu.pics",
-        "url": "https://podu.pics/"
-      },
-      {
-        "label": "kuruk.am",
-        "url": "https://kuruk.am/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "96goef7o3q": {
-    "proposalId": "96goef7o3q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
-    "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
-    "keyTakeaways": [
-      "How open source interacts with the ecosystem of non consensual intimate imagery",
-      "The human impact of non consensual intimate imagery",
-      "The distinct challenge for India, as a country that doesn’t control the AI value chain",
-      "Risk mitigation strategies for open weight models",
-      "The effect of policies on model hosting platforms"
-    ],
-    "references": [
-      {
-        "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
-        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-      },
-      {
-        "label": "https://arxiv.org/abs/2602.04759",
-        "url": "https://arxiv.org/abs/2602.04759"
-      },
-      {
-        "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
-        "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
-      }
-    ],
-    "links": [
-      {
-        "label": "recent research",
-        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5pig94v0sa": {
-    "proposalId": "5pig94v0sa",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
-    "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
-    "keyTakeaways": [
-      "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
-      "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/tattle-made/archive-annotation",
-        "url": "https://github.com/tattle-made/archive-annotation"
-      },
-      {
-        "label": "https://milli.link/",
-        "url": "https://milli.link/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "fefrvv4n7q": {
-    "proposalId": "fefrvv4n7q",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
-    "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
-    "keyTakeaways": [
-      "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
-      "A design system is more than components. Give products an opinionated way to load and save data too.",
-      "Make correct usage the path of least resistance, and mistakes hard to miss.",
-      "A predictable API serves new teammates and AI agents alike."
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
-        "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
-      },
-      {
-        "label": "https://github.com/frappe/frappe-ui",
-        "url": "https://github.com/frappe/frappe-ui"
-      },
-      {
-        "label": "https://ui.frappe.io",
-        "url": "https://ui.frappe.io/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "6pb727vn12": {
-    "proposalId": "6pb727vn12",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
-    "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nTBA",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
-        "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
-      }
-    ],
-    "links": [
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"
@@ -2710,6 +2479,237 @@
         "label": "https://friedso.com/apps/jem/",
         "url": "https://friedso.com/apps/jem/"
       },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4llmgcq50k": {
+    "proposalId": "4llmgcq50k",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4llmgcq50k",
+    "description": "I’d like to present the Telangana State MeeSeva Oracle-to-PostgreSQL migration as a factual, replicable case study to an audience spanning government IT leadership, enterprise database teams, and the global open-source community. The talk would accomplish three things:\n\nFor the open-source community: Contribute a significant government migration case study to the PostgreSQL and Ora2Pg ecosystem, reinforcing the viability of open-source databases at national scale.\n\nFor database professionals: Provide a technically honest account of the migration process, the role of Ora2Pg, what required manual effort, and what they should plan for in their own migrations.\n\nFor government CIOs and IT directors: Demonstrate that PostgreSQL is production-ready for large-scale, mission-critical citizen services, with real numbers, real challenges, and real cost savings.\n\nI’ll keep it factual, technical and honest. A practitioner’s account of what happened, what went wrong, what went right, and what others can learn from it.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx",
+        "url": "https://youtu.be/v5Ojx0zWWyY?si=apeTrrS1ixa_lZbx"
+      },
+      {
+        "label": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl",
+        "url": "https://youtu.be/5XYBiYg9CcE?si=W9zMFGfbNYdFlwcl"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8dso3avp9l": {
+    "proposalId": "8dso3avp9l",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8dso3avp9l",
+    "description": "Every online tutorial and blog on “how to contribute to OSS” or “how to make your first PR” teaches the mechanics and commands, but almost none teach the etiquette: when it's okay to ping a maintainer, how to take a rejected proposal gracefully, why a half-finished AI-generated PR adds to stress and overload for the maintainers. Now that open source sits on the student resume(s) right next to internships and projects, this missing gap of education has real consequences: maintainers across GSoC, LFX and Hacktoberfest have publicly described waves of low-effort and spam contributions, with many OSS projects shutting down for new contributions.\n\nThis talk is about the cultural layer underneath a pipeline: the norms that decide whether a student community produces thoughtful contributors or AI spammers. A pipeline tells you how to get more students contributing; it says nothing about whether those contributions are any good for the projects on the receiving end.\n\nAt Point Blank, an OSS community we have been running for the last 7 years, we've spent the last few years turning that culture into something teachable, and we’ll walk through what actually worked:\n\nA peer proposal-review gate : our \"war rooms\" so that of the ~40 GSoC proposals our members write in a season, none reach a maintainer as unreviewed slop. Every draft is torn apart by people who've been selected before it goes anywhere near an org.\n\nA \"contribute before you apply\" norm, anchored by a Hacktoberfest kickoff and weekly sync-ups, so contribution is a sustained relationship with a project rather than a March résumé sprint.\n\nAn explicit etiquette curriculum covering what contributing.md leaves out: how to ask for help in public without spamming, how to treat a maintainer's time as the scarcest resource in the project, and how to behave when your contributions are rejected.\n\nA mentor-handoff model: every contributor who gets selected comes back to coach the next batch, so etiquette is transmitted by example, not preached from a slide.\n\nWe will be honest about what didn't work, and about the awkward cases, including what we do with the member who openly just wants the T-shirt. We will close with a short, concrete checklist that maintainers and student-club organizers can adopt to keep their contribution spaces both welcoming to newcomers and resistant to spam.",
+    "keyTakeaways": [
+      "A repeatable way to teach contribution etiquette, not just mechanics and why that distinction matters more in a hyper-competitive student culture.",
+      "A concrete proposal-review process that cuts low-effort and spam submissions at the source, including the trade-offs of running it at scale.",
+      "How to coach contributors through rejection so they stay civil and keep contributing.",
+      "A short checklist maintainers can use to set norms that invite newcomers without inviting spam."
+    ],
+    "references": [
+      {
+        "label": "https://www.pointblank.club/oss",
+        "url": "https://www.pointblank.club/oss"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "f4ko2mik8q": {
+    "proposalId": "f4ko2mik8q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f4ko2mik8q",
+    "description": "DNA is the molecular blueprint of life. Modern sequencing technologies allow us to read DNA and RNA at unprecedented scale, generating vast amounts of biological data from organisms, tissues, and individual cells. Today, public repositories host millions of sequencing experiments comprising petabytes of data that power discoveries in medicine, drug development, agriculture, and fundamental biology.\n\nYet finding the right dataset is often harder than analysing it. Researchers must navigate fragmented repositories, heterogeneous metadata standards, and incomplete descriptions, making dataset discovery a time-consuming and frustrating process. With Seqout (https://seqout.org), we set out to build a genomics search engine that is fast, comprehensive, and lean enough to run on modest hardware while serving hundreds of thousands of researchers worldwide. Seqout is built entirely on open-source software: PostgreSQL and Neo4j power keyword and graph-based search, while embedding-based retrieval is enabled by open-source models and libraries from Hugging Face.\n\nIn this talk, we will discuss the engineering challenges involved in building a low-latency search engine over millions of biological datasets with limited resources (aka compute and GPUs). We will cover data ingestion, metadata normalisation, indexing strategies, typo tolerance, semantic search, and the trade-offs involved in integrating relational and graph databases with vector search.\n\nAlong the way, we'll share lessons learned from operating search infrastructure at scale and discuss how open-source software powers every layer of the platform. We'll also discuss how Seqout's MCP server enables large language models and AI agents to move beyond answering biology questions to directly discover and interact with relevant scientific datasets.",
+    "keyTakeaways": [
+      "How to build a low-latency search engine from scratch",
+      "Combining PostgreSQL, Neo4j, and semantic search to improve dataset discovery",
+      "Lessons learned from building and operating an open-source scientific search platform"
+    ],
+    "references": [
+      {
+        "label": "https://seqout.org/",
+        "url": "https://seqout.org/"
+      },
+      {
+        "label": "https://github.com/saketlab/seqout",
+        "url": "https://github.com/saketlab/seqout"
+      },
+      {
+        "label": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing",
+        "url": "https://docs.google.com/document/d/1XDOsgmhY0g_jEE67zE_5eZdJ_hSTlySTFBrTXBuxpIc/edit?usp=sharing"
+      }
+    ],
+    "links": [
+      {
+        "label": "https://seqout.org",
+        "url": "https://seqout.org/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "89tt0o6uio": {
+    "proposalId": "89tt0o6uio",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/89tt0o6uio",
+    "description": "New year of 2025 we launched tamilnadu.tech a tech event listing platform built by the souls of FOSS United Chennai, what started as a simple project was ultimately taken by the community and upgraded and updated with tons of improvements. Built after listening to the problems faced by the community, tamilnadu.tech was instantly a hit and in a short span grew to nearly 300+ github stars with 100+ contributors where more than half of them are first time contributors to open source.But not stopping with 1 project, in the New year of 2026 the same team of FOSS United Chennai launched another project called podu.pics a FOSS imgbb alternative because the images used in tamilnadu.tech were from imgbb and we had to build our own ;)Again the community responded positively and took the product and used it and contributed to it. with the latest product that we launched for ChennaiFOSS 2026being kuruk.am a project again from the FU Chennai team being a url shortener which is also used by IndiaFOSS for their social media marketing.",
+    "keyTakeaways": [
+      "Build community driven projects that put the community in the driver seat",
+      "How much importance it is to listen to the community for the problems and not build a made up solution to a problem that doesn’t exist",
+      "As a maintainer how to be sure and take right decisions for the project’s growth and direction."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/FOSSUChennai/Communities",
+        "url": "https://github.com/FOSSUChennai/Communities"
+      },
+      {
+        "label": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/",
+        "url": "https://www.linkedin.com/feed/update/urn:li:activity:7280544393260908546/"
+      },
+      {
+        "label": "https://kuruk.am/justin-cfp-tt",
+        "url": "https://kuruk.am/justin-cfp-tt"
+      }
+    ],
+    "links": [
+      {
+        "label": "tamilnadu.tech",
+        "url": "https://tamilnadu.tech/"
+      },
+      {
+        "label": "podu.pics",
+        "url": "https://podu.pics/"
+      },
+      {
+        "label": "kuruk.am",
+        "url": "https://kuruk.am/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "96goef7o3q": {
+    "proposalId": "96goef7o3q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
+    "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
+    "keyTakeaways": [
+      "How open source interacts with the ecosystem of non consensual intimate imagery",
+      "The human impact of non consensual intimate imagery",
+      "The distinct challenge for India, as a country that doesn’t control the AI value chain",
+      "Risk mitigation strategies for open weight models",
+      "The effect of policies on model hosting platforms"
+    ],
+    "references": [
+      {
+        "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
+        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+      },
+      {
+        "label": "https://arxiv.org/abs/2602.04759",
+        "url": "https://arxiv.org/abs/2602.04759"
+      },
+      {
+        "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
+        "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
+      }
+    ],
+    "links": [
+      {
+        "label": "recent research",
+        "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5pig94v0sa": {
+    "proposalId": "5pig94v0sa",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
+    "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
+    "keyTakeaways": [
+      "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
+      "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/tattle-made/archive-annotation",
+        "url": "https://github.com/tattle-made/archive-annotation"
+      },
+      {
+        "label": "https://milli.link/",
+        "url": "https://milli.link/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "fefrvv4n7q": {
+    "proposalId": "fefrvv4n7q",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
+    "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
+    "keyTakeaways": [
+      "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
+      "A design system is more than components. Give products an opinionated way to load and save data too.",
+      "Make correct usage the path of least resistance, and mistakes hard to miss.",
+      "A predictable API serves new teammates and AI agents alike."
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
+        "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
+      },
+      {
+        "label": "https://github.com/frappe/frappe-ui",
+        "url": "https://github.com/frappe/frappe-ui"
+      },
+      {
+        "label": "https://ui.frappe.io",
+        "url": "https://ui.frappe.io/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "6pb727vn12": {
+    "proposalId": "6pb727vn12",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
+    "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nTBA",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
+        "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
+      }
+    ],
+    "links": [
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"

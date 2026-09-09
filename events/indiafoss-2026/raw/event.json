@@ -2,7 +2,7 @@
   "name": "ek0supi1tu",
   "owner": "dilip@fossunited.org",
   "creation": "2026-03-20 10:32:07.649250",
-  "modified": "2026-09-09 20:40:33.694689",
+  "modified": "2026-09-09 22:43:49.137373",
   "modified_by": "shree.shree@gmail.com",
   "docstatus": 0,
   "idx": 797,
@@ -50,7 +50,7 @@
       "name": "dd6ov829ep",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 1,
@@ -66,7 +66,7 @@
       "name": "aadai8j1ge",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 2,
@@ -82,7 +82,7 @@
       "name": "5eif15uien",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 3,
@@ -100,7 +100,7 @@
       "name": "as85i2lblc",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 1,
@@ -117,10 +117,10 @@
   ],
   "event_schedule": [
     {
-      "name": "dvqb21aoaq",
+      "name": "chg340p4pv",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 1,
@@ -140,10 +140,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbrjti1k",
+      "name": "chg3f46npq",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 2,
@@ -163,10 +163,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbprfnj1",
+      "name": "chg3t74et4",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 3,
@@ -186,10 +186,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb2egtdi",
+      "name": "chg36plpvf",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 4,
@@ -209,10 +209,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbatc3ff",
+      "name": "chg3rdek2f",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 5,
@@ -232,10 +232,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbaanbum",
+      "name": "chg361u199",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 6,
@@ -255,10 +255,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb3ssfqi",
+      "name": "chg3q9355o",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 7,
@@ -278,10 +278,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbv723cg",
+      "name": "chg3qth90r",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 8,
@@ -301,10 +301,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb356phs",
+      "name": "chg3cmect8",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 9,
@@ -324,10 +324,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbg7sa2k",
+      "name": "chg370jaml",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 10,
@@ -347,10 +347,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb79c1sj",
+      "name": "chg3qnfrcv",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 11,
@@ -370,10 +370,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb1ub4nv",
+      "name": "chg39tpp3f",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 12,
@@ -393,10 +393,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbj69gou",
+      "name": "chg32furf9",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 13,
@@ -416,10 +416,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbhovs10",
+      "name": "chg3vn1prp",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 14,
@@ -439,10 +439,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbd468n6",
+      "name": "chg3nfdh6a",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 15,
@@ -462,10 +462,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbjvs69q",
+      "name": "chg343mpid",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 16,
@@ -485,10 +485,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbae2taj",
+      "name": "chg3uafu2i",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 17,
@@ -508,10 +508,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbk75pl4",
+      "name": "chg3ervl1h",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 18,
@@ -531,10 +531,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb2eo0s9",
+      "name": "chg3dlqfci",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 19,
@@ -554,10 +554,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbfaefde",
+      "name": "chg39u41tm",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 20,
@@ -577,10 +577,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbn05ac5",
+      "name": "chg31jr2vb",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 21,
@@ -600,10 +600,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb3u5q8t",
+      "name": "chg3aehcl2",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 22,
@@ -623,10 +623,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb6qs0dv",
+      "name": "chg3kaoc1h",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 23,
@@ -646,10 +646,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb0a1s8g",
+      "name": "chg3lg748g",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 24,
@@ -669,10 +669,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqblr1uug",
+      "name": "chg3qr4l10",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 25,
@@ -692,10 +692,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb3b855u",
+      "name": "chg31mse54",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 26,
@@ -715,10 +715,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbqo1tnh",
+      "name": "chg36n0pq2",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 27,
@@ -738,10 +738,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb3h3nt6",
+      "name": "chg3pqd4vk",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 28,
@@ -761,10 +761,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb1ircn9",
+      "name": "chg3rpmuvh",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 29,
@@ -784,10 +784,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb8erp6r",
+      "name": "chg3vifu5a",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 30,
@@ -807,10 +807,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbn0oaeg",
+      "name": "chg3j99h96",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 31,
@@ -830,10 +830,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbqahmgk",
+      "name": "chg3agpe4e",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 32,
@@ -853,10 +853,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbe9kv14",
+      "name": "chg3ud5amu",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 33,
@@ -876,10 +876,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbtgce7j",
+      "name": "chg37cdiqo",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 34,
@@ -899,10 +899,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbqlsljp",
+      "name": "chg3ad3gaf",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 35,
@@ -922,10 +922,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbtp4577",
+      "name": "chg3m2e4ph",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 36,
@@ -945,10 +945,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbr1f4u2",
+      "name": "chg3sj5rg7",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 37,
@@ -968,10 +968,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbv10rr1",
+      "name": "chg3dhu18d",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 38,
@@ -991,10 +991,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbodafvt",
+      "name": "chg3ua8h98",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 39,
@@ -1014,10 +1014,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb4jshft",
+      "name": "chg3fackhs",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 40,
@@ -1037,10 +1037,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbpb94dp",
+      "name": "chg344a81p",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 41,
@@ -1060,10 +1060,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb58vobo",
+      "name": "chg3tdl45j",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 42,
@@ -1083,10 +1083,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbpumqs9",
+      "name": "chg3q3pkam",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 43,
@@ -1106,10 +1106,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbejp4s2",
+      "name": "chg3rcgd6o",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 44,
@@ -1129,10 +1129,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbrinm7q",
+      "name": "chg34gkjcn",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 45,
@@ -1152,10 +1152,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbr30u7r",
+      "name": "chg3m6a9hf",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 46,
@@ -1175,10 +1175,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb3jirh7",
+      "name": "chg30jqqa0",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 47,
@@ -1198,10 +1198,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqba9vmtt",
+      "name": "chg3a55lk8",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 48,
@@ -1221,10 +1221,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbe1pmbn",
+      "name": "chg3q1ijia",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 49,
@@ -1244,10 +1244,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbkdm6vd",
+      "name": "chg3cl24n4",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 50,
@@ -1267,10 +1267,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbgtg3ng",
+      "name": "chg3oh0klv",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 51,
@@ -1290,10 +1290,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbb7t6v0",
+      "name": "chg3e530fu",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 52,
@@ -1313,10 +1313,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb2jgr42",
+      "name": "chg3ookra4",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 53,
@@ -1336,10 +1336,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb4cfn45",
+      "name": "chg3u74n8c",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 54,
@@ -1359,10 +1359,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbn8sddc",
+      "name": "chg3b4f11d",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 55,
@@ -1382,10 +1382,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbrjlpd9",
+      "name": "chg3kjogli",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 56,
@@ -1405,10 +1405,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb9q3fgk",
+      "name": "chg32php2f",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 57,
@@ -1428,10 +1428,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbu6uh49",
+      "name": "chg35jgovm",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 58,
@@ -1451,10 +1451,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb8d4o5g",
+      "name": "chg38kbsti",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 59,
@@ -1474,10 +1474,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbj9bpfd",
+      "name": "chg3bkdkp8",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 60,
@@ -1497,10 +1497,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbob838h",
+      "name": "chg3dtlnhi",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 61,
@@ -1520,10 +1520,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbesdu18",
+      "name": "chg3vbv82s",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 62,
@@ -1543,10 +1543,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbpkh46l",
+      "name": "chg3bjsg0d",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 63,
@@ -1566,10 +1566,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbq8ru4r",
+      "name": "chg34kmrb1",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 64,
@@ -1589,10 +1589,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbaa4s2m",
+      "name": "chg3nhf65l",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 65,
@@ -1612,10 +1612,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbfkoec5",
+      "name": "chg3oen36n",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 66,
@@ -1635,10 +1635,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb35imqr",
+      "name": "chg3e83iv6",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 67,
@@ -1658,10 +1658,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbc33v22",
+      "name": "chg3ro6la7",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 68,
@@ -1681,10 +1681,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb76k7t0",
+      "name": "chg3nho510",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 69,
@@ -1704,10 +1704,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbl2vkou",
+      "name": "chg3efjb3t",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 70,
@@ -1727,10 +1727,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbd40fpt",
+      "name": "chg3mqo7e8",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 71,
@@ -1750,10 +1750,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbvlvo1s",
+      "name": "chg3n5sh79",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 72,
@@ -1773,15 +1773,15 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb5d7fb8",
+      "name": "chg3ee11td",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 73,
       "linked_cfp": "9lmiio7p5b",
-      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for ensuring Democratic Accountability",
+      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for Democratic Accountability",
       "hall": "Hall 1",
       "talk_video": null,
       "category": "Panel Discussion",
@@ -1796,10 +1796,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbora1g1",
+      "name": "chg3j2koku",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 74,
@@ -1819,10 +1819,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbl8se1f",
+      "name": "chg3g57kmv",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 75,
@@ -1842,10 +1842,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbfqmh54",
+      "name": "chg3je4h28",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 76,
@@ -1865,10 +1865,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbr9a8f6",
+      "name": "chg3426k01",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 77,
@@ -1888,10 +1888,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbdvpr0i",
+      "name": "chg36l8uj1",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 78,
@@ -1911,10 +1911,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbvscaf0",
+      "name": "chg3cr2708",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 79,
@@ -1934,10 +1934,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbuqqjp7",
+      "name": "chg31ram81",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 80,
@@ -1957,10 +1957,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb5l9v8n",
+      "name": "chg34pnd0s",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 81,
@@ -1980,10 +1980,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb6qcpo6",
+      "name": "chg3on0hn4",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 82,
@@ -2003,10 +2003,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbulde7p",
+      "name": "chg3g2i9ha",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 83,
@@ -2026,10 +2026,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbspjmv9",
+      "name": "chg3vva7d6",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 84,
@@ -2049,10 +2049,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbg8obtg",
+      "name": "chg30gitfq",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 85,
@@ -2072,10 +2072,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbitjfuk",
+      "name": "chg3gdap45",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 86,
@@ -2095,10 +2095,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbal9674",
+      "name": "chg3vh07tb",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 87,
@@ -2118,10 +2118,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbhd7vgu",
+      "name": "chg30qubnu",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 88,
@@ -2141,10 +2141,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbe20nlr",
+      "name": "chg3vvp28a",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 89,
@@ -2164,10 +2164,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbvnalb0",
+      "name": "chg37bejkr",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 90,
@@ -2187,10 +2187,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbanea7s",
+      "name": "chg3qkv5k7",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 91,
@@ -2210,10 +2210,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb193ude",
+      "name": "chg3j3phre",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 92,
@@ -2233,10 +2233,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbearnh6",
+      "name": "chg3fa24ai",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 93,
@@ -2256,10 +2256,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqblkod49",
+      "name": "chg37bilq2",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 94,
@@ -2279,10 +2279,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbvt21l3",
+      "name": "chg3227gta",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 95,
@@ -2302,10 +2302,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb4k6979",
+      "name": "chg3htmn70",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 96,
@@ -2325,10 +2325,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb5t2t4i",
+      "name": "chg3mahpf7",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 97,
@@ -2348,10 +2348,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb6co3p6",
+      "name": "chg3nn5773",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 98,
@@ -2371,10 +2371,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbvjvc2j",
+      "name": "chg3gk2bff",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 99,
@@ -2394,10 +2394,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbs117qd",
+      "name": "chg3bdilap",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 100,
@@ -2417,10 +2417,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb39ekn7",
+      "name": "chg3m05ctc",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 101,
@@ -2440,10 +2440,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbheuki8",
+      "name": "chg3q91i1i",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 102,
@@ -2463,10 +2463,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbdsvete",
+      "name": "chg3ej8uo8",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 103,
@@ -2486,10 +2486,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbh4edkq",
+      "name": "chg3oe9joa",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 104,
@@ -2509,10 +2509,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbetui2n",
+      "name": "chg3n2f0jf",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 105,
@@ -2532,10 +2532,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbdbfltn",
+      "name": "chg3qohig1",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 106,
@@ -2555,10 +2555,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbf0jomi",
+      "name": "chg38rjd2h",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 107,
@@ -2578,10 +2578,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb10628b",
+      "name": "chg3p8ch8l",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 108,
@@ -2601,10 +2601,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbtjnj00",
+      "name": "chg3ogfqah",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 109,
@@ -2624,10 +2624,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbrv6mvr",
+      "name": "chg3as8ush",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 110,
@@ -2647,10 +2647,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbfreqd9",
+      "name": "chg3u3keke",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 111,
@@ -2670,10 +2670,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb4fkqss",
+      "name": "chg3msefg0",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 112,
@@ -2693,10 +2693,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbchs93u",
+      "name": "chg3t4urmi",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 113,
@@ -2716,10 +2716,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbkm1932",
+      "name": "chg304rbcv",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 114,
@@ -2739,10 +2739,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb3g2bvd",
+      "name": "chg3r2cno4",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 115,
@@ -2762,10 +2762,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbfa9ldp",
+      "name": "chg34vekek",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 116,
@@ -2785,10 +2785,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbi2v67n",
+      "name": "chg3nrjolo",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 117,
@@ -2808,10 +2808,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbr8qha4",
+      "name": "chg3u9adp2",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 118,
@@ -2831,10 +2831,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbo7098v",
+      "name": "chg379qc8r",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 119,
@@ -2854,10 +2854,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbfhjq7k",
+      "name": "chg39cbd90",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 120,
@@ -2877,15 +2877,15 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbiah6vi",
+      "name": "chg3po7044",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 121,
       "linked_cfp": "4eh569dvq9",
-      "title": "Can We Build a Copyleft License for Community Data in the Age of AI?",
+      "title": "Can We Build a Copyleft License for Community Data in the Age of AI",
       "hall": "Room 2",
       "talk_video": null,
       "category": "Birds of Feather(BoF)",
@@ -2900,10 +2900,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb0r5j6p",
+      "name": "chg3ussph7",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 122,
@@ -2923,10 +2923,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb3fn3h7",
+      "name": "chg39jqol9",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 123,
@@ -2946,10 +2946,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbo87it5",
+      "name": "chg3tpjp2p",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 124,
@@ -2969,10 +2969,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbnss62m",
+      "name": "chg39nsk0k",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 125,
@@ -2992,10 +2992,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbj85bnp",
+      "name": "chg319o747",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 126,
@@ -3015,10 +3015,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbefltks",
+      "name": "chg3pf725b",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 127,
@@ -3038,10 +3038,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb1sou24",
+      "name": "chg3ir75bu",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 128,
@@ -3061,10 +3061,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbgoa7ja",
+      "name": "chg31odbhh",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 129,
@@ -3084,10 +3084,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb467phb",
+      "name": "chg3u63m19",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 130,
@@ -3107,10 +3107,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbed08cg",
+      "name": "chg3h8qme0",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 131,
@@ -3130,10 +3130,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbmpvqfc",
+      "name": "chg3jhd8hf",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 132,
@@ -3153,10 +3153,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqblot236",
+      "name": "chg32p3h6j",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 133,
@@ -3176,10 +3176,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb7m481j",
+      "name": "chg3jn1ddm",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 134,
@@ -3199,10 +3199,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbfp8lbq",
+      "name": "chg33733vn",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 135,
@@ -3222,10 +3222,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb1oj2eq",
+      "name": "chg330ogi7",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 136,
@@ -3245,10 +3245,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbpf9pop",
+      "name": "chg34b4cnc",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 137,
@@ -3268,10 +3268,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbhsqpu2",
+      "name": "chg3f343cf",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 138,
@@ -3291,10 +3291,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb56922j",
+      "name": "chg36pt0k3",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 139,
@@ -3314,10 +3314,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbn88ho3",
+      "name": "chg3sbqlfq",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 140,
@@ -3337,10 +3337,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbb3693p",
+      "name": "chg3p0n7ft",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 141,
@@ -3360,10 +3360,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbmrtsal",
+      "name": "chg3pmq53o",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 142,
@@ -3383,10 +3383,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbt028g1",
+      "name": "chg358sduk",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 143,
@@ -3406,10 +3406,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbtssef3",
+      "name": "chg39lc2s0",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 144,
@@ -3429,10 +3429,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbaev2n9",
+      "name": "chg3qu065g",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 145,
@@ -3452,10 +3452,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbma41eg",
+      "name": "chg36csj8h",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 146,
@@ -3475,10 +3475,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbk7c628",
+      "name": "chg30fvtgn",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 147,
@@ -3498,10 +3498,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbrirja1",
+      "name": "chg3fnj1fu",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 148,
@@ -3521,10 +3521,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqblcq3ur",
+      "name": "chg3voi8tg",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 149,
@@ -3544,10 +3544,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqblkvcbr",
+      "name": "chg3gfv5g7",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 150,
@@ -3567,10 +3567,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb5vv7tr",
+      "name": "chg3iddmse",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 151,
@@ -3590,10 +3590,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb1cg296",
+      "name": "chg35hnail",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 152,
@@ -3613,10 +3613,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb41h0ej",
+      "name": "chg3h5a4ts",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 153,
@@ -3636,10 +3636,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbgkcdnb",
+      "name": "chg3nui6au",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 154,
@@ -3659,10 +3659,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbkl1ifu",
+      "name": "chg3vidbbb",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 155,
@@ -3682,10 +3682,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbaqqvfr",
+      "name": "chg3mbosda",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 156,
@@ -3705,10 +3705,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbe8ablu",
+      "name": "chg352d9l2",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 157,
@@ -3728,10 +3728,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb269mim",
+      "name": "chg3kbm3i0",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 158,
@@ -3751,10 +3751,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb2n4dks",
+      "name": "chg3vpq0vo",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 159,
@@ -3774,10 +3774,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbgfcr7c",
+      "name": "chg3r2iaq9",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 160,
@@ -3797,10 +3797,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbadk3lv",
+      "name": "chg39a9ttd",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 161,
@@ -3820,10 +3820,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb4gldpo",
+      "name": "chg3ugp7gg",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 162,
@@ -3843,10 +3843,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqb299lbh",
+      "name": "chg3dio4vd",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 163,
@@ -3866,10 +3866,10 @@
       "doctype": "FOSS Event Schedule"
     },
     {
-      "name": "dvqbbvoa7r",
+      "name": "chg3mmmhts",
       "owner": "shree.shree@gmail.com",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 164,
@@ -3895,7 +3895,7 @@
       "name": "0bacqf77fd",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 1,
@@ -3914,7 +3914,7 @@
       "name": "3bnc4r3gtj",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 2,
@@ -3933,7 +3933,7 @@
       "name": "bc1aqpaooa",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 3,
@@ -3952,7 +3952,7 @@
       "name": "bbrealig4m",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 4,
@@ -3971,7 +3971,7 @@
       "name": "bbrepvfene",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 5,
@@ -3990,7 +3990,7 @@
       "name": "80sgbdfe43",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 6,
@@ -4009,7 +4009,7 @@
       "name": "9qj2o5m5l0",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 7,
@@ -4028,7 +4028,7 @@
       "name": "5djjta6584",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 8,
@@ -4047,7 +4047,7 @@
       "name": "621mtaqf5t",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 9,
@@ -4068,7 +4068,7 @@
       "name": "ariabmfhe5",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 1,
@@ -4090,7 +4090,7 @@
       "name": "72259dbemp",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 2,
@@ -4112,7 +4112,7 @@
       "name": "7225k7or81",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 3,
@@ -4133,7 +4133,7 @@
       "name": "an5a6j8pba",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 4,
@@ -4155,7 +4155,7 @@
       "name": "d0nkb1bs49",
       "owner": "dilip@fossunited.org",
       "creation": "2026-03-20 10:32:07.649250",
-      "modified": "2026-09-09 20:40:33.694689",
+      "modified": "2026-09-09 22:43:49.137373",
       "modified_by": "shree.shree@gmail.com",
       "docstatus": 0,
       "idx": 5,
