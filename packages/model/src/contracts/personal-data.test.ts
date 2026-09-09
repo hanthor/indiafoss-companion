@@ -40,6 +40,21 @@ describe('personal data file codec', () => {
       issues: ['personal data exceeds the 5 MiB limit'],
     });
   });
+  it('can re-export a compact valid file without expanding it past the byte limit', () => {
+    const text = JSON.stringify({
+      format: 'indiafoss-personal-data',
+      schemaVersion: 1,
+      exportedAt: '2026-09-09T00:00:00.000Z',
+      events: [],
+      futureSection: Array<number>(1_000_000).fill(0),
+    });
+    const decoded = decodePersonalData(text);
+    expect(decoded.ok).toBe(true);
+    if (!decoded.ok) throw new Error('fixture rejected');
+    expect(new TextEncoder().encode(encodePersonalData(decoded.data)).byteLength).toBeLessThan(
+      PERSONAL_DATA_MAX_BYTES,
+    );
+  });
   it('rejects excessive nesting before parsing', () => {
     expect(decodePersonalData('['.repeat(65) + '0' + ']'.repeat(65))).toEqual({
       ok: false,
