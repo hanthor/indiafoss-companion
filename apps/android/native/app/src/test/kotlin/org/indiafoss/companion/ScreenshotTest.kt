@@ -132,7 +132,7 @@ class ScreenshotTest {
         ) {}
     }
     @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}, {}) {} }
-    @Test fun welcome() = shoot("welcome") { WelcomeScreen(state(), {}, {}, {}) {} }
+    @Test fun welcome() = shoot("welcome") { WelcomeScreen(state(), {}, {}) {} }
     @Test fun banner() = shoot("banner") { LeaveByBanner(state("2026-09-26T09:58:00+05:30")) {} }
 }
 

@@ -23,3 +23,12 @@ appId: org.indiafoss.companion.nativeapp
 - assertVisible: '.*Skip setup.*'
 
 - takeScreenshot: 01-launched
+
+# Onboarding goes straight from reminders to the optional contact card.
+- scrollUntilVisible:
+    element: 'Not now'
+    direction: DOWN
+- tapOn: 'Not now'
+- assertVisible: 'Who is on your card'
+- assertNotVisible: 'Your ticket reference'
+- takeScreenshot: 02-contact-setup

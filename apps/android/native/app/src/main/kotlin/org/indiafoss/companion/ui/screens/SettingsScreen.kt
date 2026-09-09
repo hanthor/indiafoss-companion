@@ -155,7 +155,7 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("Setup", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "The welcome steps from the first run: reminders, ticket, your card, ranking. Nothing is reset by running them again.",
+                        "The welcome steps from the first run: reminders, your card, ranking. Nothing is reset by running them again.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),

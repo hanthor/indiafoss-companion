@@ -2,7 +2,7 @@
   import ProfileImport from '$lib/components/ProfileImport.svelte';
   import { resolve } from '$app/paths';
   import { goto } from '$app/navigation';
-  import { parseScannedPayload, type AttendeeSocial } from '@indiafoss/model';
+  import { type AttendeeSocial } from '@indiafoss/model';
   import { eventState } from '$lib/event.svelte';
   import ReminderStatus from '$lib/components/ReminderStatus.svelte';
   import {
@@ -13,17 +13,16 @@
   import { hydrateProfile, profileState, saveProfile, setSocial } from '$lib/profile.svelte';
   import { LINK_LABELS, LINK_PLACEHOLDERS } from '$lib/card-fields';
   import { markOnboardingDone } from '$lib/onboarding.svelte';
-  import TicketUpload from '$lib/components/TicketUpload.svelte';
   import { hasContactPicker, pickContact, profileFromContactFile } from '$lib/contact-import';
   import { applyImportedProfile, type ImportedProfile } from '$lib/fossunited';
   import EventGate from '$lib/components/EventGate.svelte';
 
   /**
-   * The welcome wizard (#107): reminders, ticket, who you are, then ranking.
+   * The welcome wizard (#107): reminders, who you are, then ranking.
    * Every step can be skipped; nothing here cannot be changed later from
    * Settings, Your contact card or the Rank screen.
    */
-  const STEPS = ['reminders', 'ticket', 'you', 'rank'] as const;
+  const STEPS = ['reminders', 'you', 'rank'] as const;
   type Step = (typeof STEPS)[number];
   let step = $state<Step>('reminders');
   const index = $derived(STEPS.indexOf(step));
@@ -36,19 +35,6 @@
   // Reminders
   async function turnOnReminders(): Promise<void> {
     await setNotificationsEnabled(true);
-  }
-
-  // Ticket
-  let ticket = $state('');
-  const parsedTicket = $derived(parseScannedPayload(ticket));
-  const ticketOk = $derived(!ticket.trim() || parsedTicket.kind === 'ticket');
-  async function saveTicket(): Promise<void> {
-    if (!ticketOk) return;
-    if (parsedTicket.kind === 'ticket') {
-      profileState.profile.ticketRef = parsedTicket.ticketRef;
-      await saveProfile();
-    }
-    next();
   }
 
   // Contact imports fill blanks and never change sharing switches.
@@ -107,8 +93,8 @@
     <span class="tagline">Set up in a minute</span>
     <h1 id="welcome-title">Welcome to {bundle?.name ?? 'IndiaFOSS'}</h1>
     <p class="hero-desc">
-      Four quick questions, all optional, so the app can remind you, know your ticket, put your name
-      on a contact card and plan your day. Everything stays on this device.
+      Three quick steps, all optional, so the app can remind you, put your name on a contact card
+      and plan your day. Everything stays on this device.
     </p>
   </section>
 
@@ -148,38 +134,8 @@
           <button class="button secondary" onclick={next}>Not now</button>
         </div>
       {/if}
-    {:else if step === 'ticket'}
-      <div class="eyebrow">2 · TICKET</div>
-      <h2>Your ticket reference</h2>
-      <p class="muted">
-        Upload your ticket PDF or a screenshot to read its QR code, or paste the FOSS United ticket
-        link. Review the reference before saving. Ticket sharing stays off unless you enable it.
-      </p>
-      <TicketUpload onselect={(reference) => (ticket = reference)} />
-      <label class="field">
-        <span>Ticket reference</span>
-        <input
-          type="text"
-          class="mono"
-          placeholder="ticket::…"
-          bind:value={ticket}
-          aria-invalid={!ticketOk}
-          autocapitalize="off"
-          autocomplete="off"
-        />
-        {#if !ticketOk}<span class="hint warn"
-            >Paste a FOSS United ticket link or ticket::… reference</span
-          >{/if}
-      </label>
-      <div class="actions">
-        <button class="button dark" onclick={saveTicket} disabled={!ticketOk}
-          >{ticket.trim() ? 'Save ticket →' : 'No ticket yet →'}</button
-        >
-        <a class="button secondary" href={resolve('/scan')}>Scan my ticket</a>
-        <button class="linkbtn" onclick={back}>← Back</button>
-      </div>
     {:else if step === 'you'}
-      <div class="eyebrow">3 · YOU</div>
+      <div class="eyebrow">2 · YOU</div>
       <h2>Your contact card</h2>
       <p class="muted">
         Your name and a few public profiles make the contact card people scan when you meet. Add
@@ -277,7 +233,7 @@
         </div>
       </form>
     {:else}
-      <div class="eyebrow">4 · YOUR DAY</div>
+      <div class="eyebrow">3 · YOUR DAY</div>
       <h2>Rank the sessions</h2>
       <p class="muted">
         Say which devrooms are for you, swipe through the talks, settle the overlaps: a few minutes
@@ -358,13 +314,6 @@
     line-height: 1.5;
     text-wrap: pretty;
   }
-  .ok {
-    color: var(--mint-ink);
-    font-weight: 600;
-  }
-  .warn {
-    color: var(--amber-ink);
-  }
   .field {
     display: flex;
     flex-direction: column;
@@ -380,16 +329,6 @@
     border-radius: 10px;
     background: var(--surface-raised);
     color: var(--text);
-  }
-  .field input.mono {
-    font-family: var(--font-mono);
-  }
-  .field input[aria-invalid='true'] {
-    border-color: var(--amber-ink);
-  }
-  .hint {
-    font-weight: 400;
-    font-size: 0.78rem;
   }
   .actions {
     display: flex;
