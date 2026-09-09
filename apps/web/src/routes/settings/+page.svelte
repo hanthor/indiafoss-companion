@@ -1,4 +1,5 @@
 <script lang="ts">
+  import NativeDownload from '$lib/components/NativeDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
   import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
@@ -89,6 +90,8 @@
     </p>
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
   </section>
+  <NativeDownload />
+
   <PersonalDataExport />
   <section class="card">
     <h2>Schedule updates</h2>
