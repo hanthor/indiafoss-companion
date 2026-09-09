@@ -102,7 +102,7 @@ jobs:
         run: pnpm --filter @indiafoss/web build
 
       - name: Run browser E2E tests
-        run: pnpm --filter @indiafoss/web exec playwright test tests/app.spec.ts tests/discovery.spec.ts tests/personal-data.spec.ts
+        run: pnpm --filter @indiafoss/web exec playwright test tests/app.spec.ts tests/discovery.spec.ts tests/personal-data.spec.ts tests/chat-download.spec.ts
 
       - name: Run accessibility checks
         run: pnpm --filter @indiafoss/web exec playwright test tests/a11y.spec.ts

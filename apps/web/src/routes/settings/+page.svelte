@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ChatDownload from '$lib/components/ChatDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
   import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
@@ -90,6 +91,7 @@
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
   </section>
   <PersonalDataExport />
+  <ChatDownload />
   <section class="card">
     <h2>Schedule updates</h2>
     <p class="muted">

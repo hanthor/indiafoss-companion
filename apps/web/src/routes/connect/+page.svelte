@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ChatDownload from '$lib/components/ChatDownload.svelte';
   import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
   import { meshLinkLabel } from '@indiafoss/matrix';
@@ -581,6 +582,8 @@
     verifies your key badge and lets them message you. A QR can be photographed — email and phone
     stay off unless you switch them on.
   </p>
+
+  <ChatDownload />
 
   <!-- Field groups -->
   {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}
