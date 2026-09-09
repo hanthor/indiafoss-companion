@@ -2,7 +2,6 @@ package org.indiafoss.companion.data
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
-import com.sun.net.httpserver.HttpServer
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import org.indiafoss.companion.core.EventManifest
@@ -14,7 +13,11 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import java.io.File
-import java.net.InetSocketAddress
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
@@ -24,7 +27,9 @@ import kotlin.test.assertIs
 @Config(sdk = [34])
 class EventRepositoryTest {
     private lateinit var context: Context
-    private lateinit var server: HttpServer
+    private lateinit var server: ServerSocket
+    private val executor = Executors.newSingleThreadExecutor()
+    private lateinit var serving: Future<*>
     private lateinit var baseUrl: String
     @Volatile private var manifestText = ""
     @Volatile private var downloadedBody = ""
@@ -42,22 +47,35 @@ class EventRepositoryTest {
     @Before
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
-        server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
-        server.createContext("/events/indiafoss-2026/") { exchange ->
-            val manifest = exchange.requestURI.path.endsWith("manifest.json")
-            if (!manifest) assetRequests.incrementAndGet()
-            val bytes = (if (manifest) manifestText else downloadedBody).toByteArray(Charsets.UTF_8)
-            exchange.responseHeaders.add("Content-Type", "application/json")
-            exchange.sendResponseHeaders(200, bytes.size.toLong())
-            exchange.responseBody.use { it.write(bytes) }
-            exchange.close()
+        server = ServerSocket(0, 50, InetAddress.getByName("127.0.0.1"))
+        serving = executor.submit {
+            while (!server.isClosed) {
+                runCatching {
+                    server.accept().use { socket ->
+                        socket.soTimeout = 2_000
+                        val reader = socket.getInputStream().bufferedReader()
+                        val request = reader.readLine() ?: error("Missing HTTP request")
+                        while (!reader.readLine().isNullOrEmpty()) { /* consume request headers */ }
+                        val manifest = request.contains("/manifest.json ")
+                        if (!manifest) assetRequests.incrementAndGet()
+                        val bytes = (if (manifest) manifestText else downloadedBody).toByteArray(Charsets.UTF_8)
+                        val output = socket.getOutputStream()
+                        output.write("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: ${bytes.size}\r\nConnection: close\r\n\r\n".toByteArray(Charsets.US_ASCII))
+                        output.write(bytes)
+                        output.flush()
+                    }
+                }.onFailure { if (!server.isClosed) throw it }
+            }
         }
-        server.start()
-        baseUrl = "http://127.0.0.1:${server.address.port}"
+        baseUrl = "http://127.0.0.1:${server.localPort}"
     }
 
     @After
-    fun tearDown() { server.stop(0) }
+    fun tearDown() {
+        server.close()
+        executor.shutdown()
+        serving.get(5, TimeUnit.SECONDS)
+    }
 
     @Test
     fun corruptLegacyCacheAndHighStampDoNotPreventRepairThenRestartSkipsRedownload() = runBlocking {
