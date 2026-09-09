@@ -130,6 +130,8 @@ export interface Booth {
   website?: string;
 
   locationId?: string;
+  /** Local event dates; empty means unassigned, absent preserves legacy availability. */
+  availableDates?: string[];
   tags: string[];
 }
 

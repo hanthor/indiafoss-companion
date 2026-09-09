@@ -1,3 +1,4 @@
+import { boothAvailableOn } from './booth-availability';
 import type { EventBundle } from '@indiafoss/model';
 import { solveDay, DefaultTravelTime, DEFAULT_FLEXIBLE_GOALS } from '@indiafoss/solver';
 import type { FlexibleGoal, SolverPreferences, TravelTimeProvider } from '@indiafoss/solver';
@@ -29,9 +30,13 @@ const preferences: SolverPreferences = {
 };
 
 /** Planned booth visits (settings key `booth-visit-<id>` -> minutes). */
-export async function plannedBoothVisits(bundle: EventBundle): Promise<FlexibleGoal[]> {
+export async function plannedBoothVisits(
+  bundle: EventBundle,
+  day: string,
+): Promise<FlexibleGoal[]> {
   const goals: FlexibleGoal[] = [];
   for (const booth of bundle.booths) {
+    if (!boothAvailableOn(booth, day)) continue;
     const minutes = await getStorage().getSetting(`booth-visit-${booth.id}`);
     if (minutes) {
       goals.push({
@@ -76,7 +81,7 @@ export async function travelForEvent(bundle: EventBundle): Promise<TravelTimePro
 export async function solveForDay(bundle: EventBundle, day: string, lockedIds: string[] = []) {
   await Promise.all([hydratePreferences(), hydrateComparisons(), hydrateRoomPrefs(bundle.id)]);
   const [boothGoals, travel] = await Promise.all([
-    plannedBoothVisits(bundle),
+    plannedBoothVisits(bundle, day),
     travelForEvent(bundle),
   ]);
   // Sessions the attendee has not ranked yet borrow the taste learnt from the

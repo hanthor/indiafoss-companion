@@ -88,6 +88,7 @@ data class Booth(
     val description: String? = null,
     val website: String? = null,
     val locationId: String? = null,
+    val availableDates: List<String>? = null,
     val tags: List<String> = emptyList(),
 )
 
