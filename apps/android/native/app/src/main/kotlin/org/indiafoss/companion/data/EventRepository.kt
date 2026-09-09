@@ -6,8 +6,7 @@ import kotlinx.coroutines.withContext
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.EventManifest
 import org.indiafoss.companion.core.bundleJson
-import org.indiafoss.companion.core.writeFileAtomically
-import java.io.File
+import org.indiafoss.companion.core.EventRevisionCache
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -21,8 +20,7 @@ class EventRepository(
     private val baseUrl: String = DEFAULT_BASE_URL,
     private val eventId: String = DEFAULT_EVENT_ID,
 ) {
-    private val cacheFile: File get() = File(context.filesDir, "$eventId-bundle.json")
-    private val revisionFile: File get() = File(context.filesDir, "$eventId-revision")
+    private val cache = EventRevisionCache(context.filesDir, eventId)
 
     /** Cached bundle, or the copy seeded into assets at build time. */
     suspend fun cached(): EventBundle? = cachedWithSource()?.bundle
@@ -36,14 +34,12 @@ class EventRepository(
      * refreshed schedule.
      */
     suspend fun cachedWithSource(): CachedBundle? = withContext(Dispatchers.IO) {
-        val refreshed = runCatching {
-            bundleJson.decodeFromString<EventBundle>(cacheFile.readText())
-        }.getOrNull()
+        val refreshed = cache.read()?.bundle
         if (refreshed != null) return@withContext CachedBundle(refreshed, BundleSource.REFRESHED)
 
         val seed = runCatching {
             context.assets.open("event-bundle.json").bufferedReader().use { reader ->
-                bundleJson.decodeFromString<EventBundle>(reader.readText())
+                EventRevisionCache.decodeBundle(reader.readText(), eventId)
             }
         }.getOrNull()
         if (seed == null) null else CachedBundle(seed, BundleSource.SEED)
@@ -59,22 +55,13 @@ class EventRepository(
             val manifest = bundleJson.decodeFromString<EventManifest>(
                 get("$baseUrl/events/$eventId/manifest.json"),
             )
-            val known = runCatching { revisionFile.readText().trim().toInt() }.getOrNull()
+            val asset = cache.validateManifest(manifest)
+            val known = cache.read()?.revision
             if (known != null && manifest.revision <= known) return@withContext RefreshResult.UpToDate
-            val asset = manifest.assets["event"]
-            val url = if (asset != null) "$baseUrl/events/$eventId/$asset"
-            else "$baseUrl/events/$eventId/event-bundle.json"
-            val body = get(url)
-            // Parse before writing: a malformed download must not evict a good cache.
-            val bundle = bundleJson.decodeFromString<EventBundle>(body)
+            val body = get("$baseUrl/events/$eventId/$asset")
             val previous = cached()
-            // Atomic: an interrupted write leaves the previous cache readable
-            // rather than truncated (#190). The revision is written only after
-            // the bundle is in place, so a crash between the two re-downloads
-            // this revision rather than skipping it.
-            writeFileAtomically(cacheFile, body)
-            writeFileAtomically(revisionFile, manifest.revision.toString())
-            RefreshResult.Updated(bundle, manifest.revision, previous)
+            val adopted = cache.adopt(manifest, body)
+            RefreshResult.Updated(adopted.bundle, requireNotNull(adopted.revision), previous)
         } catch (error: Exception) {
             RefreshResult.Failed(error.message ?: "network error")
         }
