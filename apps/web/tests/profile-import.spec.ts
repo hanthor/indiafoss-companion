@@ -31,6 +31,45 @@ test('profile preview fills blanks without replacing edits or enabling email sha
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('My chosen name');
   await expect(page.getByLabel('Email', { exact: true })).toHaveValue('asha@example.org');
   await expect(page.getByRole('switch', { name: /Share Email/i })).not.toBeChecked();
+  await expect(page.getByLabel('Username or profile URL')).toBeHidden();
+  await expect(
+    page.getByRole('img', { name: 'Your selected contact details as a QR code' }),
+  ).toBeVisible();
+  // Card edits are debounced; check the durable record before simulating a later visit.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          new Promise<string>((resolve, reject) => {
+            const open = indexedDB.open('indiafoss-companion');
+            open.onerror = () => reject(open.error);
+            open.onsuccess = () => {
+              const db = open.result;
+              const request = db
+                .transaction('settings')
+                .objectStore('settings')
+                .get('attendee-profile');
+              request.onsuccess = () => {
+                db.close();
+                resolve(request.result?.value ?? '');
+              };
+              request.onerror = () => {
+                db.close();
+                reject(request.error);
+              };
+            };
+          }),
+      ),
+    )
+    .toContain('asha@example.org');
+  await page.reload();
+  await expect(page.getByLabel('Email', { exact: true })).toHaveValue('asha@example.org');
+  await expect(page.getByLabel('Username or profile URL')).toBeHidden();
+  const reopen = page.getByText('Import another GitHub profile', { exact: true });
+  await reopen.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByLabel('Username or profile URL')).toBeVisible();
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('My chosen name');
 });
 
 test('a failed lookup can be retried and preview cancelled without changing the card', async ({

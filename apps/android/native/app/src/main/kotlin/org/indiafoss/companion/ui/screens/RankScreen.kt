@@ -61,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.indiafoss.companion.core.isDiscoveryActivity
 import org.indiafoss.companion.CompanionViewModel
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.ui.Avatar
@@ -101,7 +102,7 @@ fun RankScreen(
     var undo by remember { mutableStateOf<CompanionViewModel.Undo?>(null) }
 
     val sessions = if (days.isEmpty()) emptyList() else
-        state.activitiesFor(days[day.coerceIn(0, days.lastIndex)]).filter { !it.cancelled && it.type != "meal" }
+        state.activitiesFor(days[day.coerceIn(0, days.lastIndex)]).filter { it.isDiscoveryActivity() }
     val untriaged = state.affinity.discoveryDeck(sessions.filter { state.ranking.rooms[it.trackId] != "stay" }.map(state::ranked))
     val answered = state.ranking.answeredPairs
     val model = state.affinity

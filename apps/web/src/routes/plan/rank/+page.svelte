@@ -4,7 +4,7 @@
   import { page } from '$app/state';
   import { tick, untrack } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
-  import type { Activity, Person } from '@indiafoss/model';
+  import { isDiscoveryActivity, type Activity, type Person } from '@indiafoss/model';
   import { activitiesForDay, formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
   import {
     discoveryDeck,
@@ -91,9 +91,7 @@
 
   // ---------- The day's sessions ----------
   const daySessions = $derived<Activity[]>(
-    (selectedDay ? activitiesForDay(bundle, selectedDay) : []).filter(
-      (a) => !a.cancelled && a.type !== 'meal',
-    ),
+    (selectedDay ? activitiesForDay(bundle, selectedDay) : []).filter(isDiscoveryActivity),
   );
 
   /** Stored ratings, the source of truth for updates. */

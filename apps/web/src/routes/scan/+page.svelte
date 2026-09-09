@@ -45,6 +45,7 @@
   let cameraStarting = $state(true);
   let error = $state('');
   let status = $state('');
+  let savedContactId = $state<string | null>(null);
   let pending = $state<Pending | null>(null);
   /** Signature check + key badge for a scanned friend card. */
   let cardIdentity = $state<{
@@ -119,6 +120,8 @@
 
   function handlePayload(raw: string): void {
     error = '';
+    status = '';
+    savedContactId = null;
     const result = parseScannedPayload(raw);
     if (result.kind === 'error') {
       error = result.message;
@@ -192,6 +195,7 @@
     cameraStarting = true;
     error = '';
     status = '';
+    savedContactId = null;
     // Lazy-load the scanner engine (and request camera permission) only on demand.
     const { default: QrScannerCtor } = await import('qr-scanner');
     try {
@@ -255,6 +259,7 @@
     } else if (draft) {
       // Contact import is local: keep it in the on-device contact list (unverified).
       const result = await saveScannedContact(draft);
+      savedContactId = result.contact.id;
       status =
         result.outcome === 'updated'
           ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Identities stay unverified until compared in person.`
@@ -322,6 +327,14 @@
 
   {#if error}<p class="error" role="alert">{error}</p>{/if}
   {#if status}<p class="ok" role="status">{status}</p>{/if}
+  {#if savedContactId}
+    <div class="actions">
+      <a class="button" href={resolve(`/connect?contact=${encodeURIComponent(savedContactId)}`)}
+        >View contact</a
+      >
+      <button class="button secondary" onclick={startCamera}>Scan another</button>
+    </div>
+  {/if}
 
   {#if pending}
     <section class="card preview" aria-live="polite">
@@ -432,6 +445,12 @@
           </p>
           <SocialLinks links={contactDeepLinks(contactPreview)} />
         {/if}
+      {/if}
+      {#if draft}
+        <p class="muted">
+          Saving keeps this person in People I met inside this app. It does not add them to your
+          phone's contacts.
+        </p>
       {/if}
       <div class="preview-actions">
         {#if pending.kind === 'location'}
