@@ -1,5 +1,6 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
+  import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
   import ReminderStatus from '$lib/components/ReminderStatus.svelte';
   import {
     notificationsEnabled,
@@ -87,6 +88,7 @@
     </p>
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
   </section>
+  <PersonalDataExport />
   <section class="card">
     <h2>Schedule updates</h2>
     <p class="muted">
