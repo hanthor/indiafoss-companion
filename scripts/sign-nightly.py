@@ -52,6 +52,8 @@ def main():
         # New build-tools report SDK-ranged v3.1 signers. Every range must use
         # the expected identity; a source-stamp certificate is not an APK signer.
         if set(fingerprint.lower() for fingerprint in fingerprints) != {expected}:
+            # Certificate reports are public metadata, never signing credentials.
+            print(report, file=sys.stderr)
             raise ValueError(f"APK signer does not match configured certificate (found {len(fingerprints)} signer records)")
         run(os.environ["ZIPALIGN"], "-c", "-p", "4", str(signed))
         destination.write_bytes(signed.read_bytes())
