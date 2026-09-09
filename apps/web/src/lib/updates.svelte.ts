@@ -6,6 +6,7 @@ import { collectBundleIssues } from '@indiafoss/model';
 import { CompanionStorage } from '@indiafoss/storage';
 import { isValidEventManifest } from '@indiafoss/model/contracts';
 import { UpdateGate } from '$lib/update-gate';
+import { eventAssetMatches } from '$lib/event-asset';
 import { eventState, storedRevision } from '$lib/event.svelte';
 
 let storage: CompanionStorage | null = null;
@@ -174,7 +175,13 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
         'The updated schedule could not be downloaded. Your saved schedule is unchanged. Try again.';
       return false;
     }
-    const next = (await bundleRes.json()) as EventBundle;
+    const body = await bundleRes.text();
+    if (!(await eventAssetMatches(manifest.assets.event, body))) {
+      updateState.error =
+        'The downloaded schedule does not match the published revision. Your saved schedule is unchanged. Try again.';
+      return false;
+    }
+    const next = JSON.parse(body) as EventBundle;
 
     // A download that is not a usable bundle for this event must never evict
     // the good one already stored. Leave both bundle and revision untouched
