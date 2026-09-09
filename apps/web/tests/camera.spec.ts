@@ -38,6 +38,7 @@ test('saved and updated scans open the exact contact, including after reload', a
     await expect(page.getByRole('status').filter({ hasText: outcome })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Scan another', exact: true })).toBeVisible();
     await page.getByRole('link', { name: 'View contact', exact: true }).click();
+    await expect(page).toHaveURL(/\/connect\?contact=/);
     if (contactUrl) expect(page.url()).toBe(contactUrl);
     contactUrl = page.url();
     const row = page.getByRole('button', { name: /Scan followup/ });
