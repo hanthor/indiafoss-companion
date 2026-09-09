@@ -5,7 +5,7 @@
   import { formatDayLabel, formatTime, getEventDays, itineraryToIcs } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
   import { savePlanned } from '$lib/planned.svelte';
-  import { resolveDayPlan } from '$lib/resolved-plan.svelte';
+  import { resolveDayPlan, trackPlanInputs } from '$lib/resolved-plan.svelte';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import {
     addCustomBlock,
@@ -47,6 +47,7 @@
 
   $effect(() => {
     if (!bundle || !selectedDay) return;
+    trackPlanInputs(bundle);
     // All edits participate in the same resolved projection consumed by Now.
     void JSON.stringify(planEdits.edits);
     let cancelled = false;

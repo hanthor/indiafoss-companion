@@ -705,3 +705,25 @@ test('a conflicting plan clears map recommendations and banners on every route',
   await page.goto(appUrl('/now' + time));
   await expect(page.getByText(/Your plan has conflicting choices/)).toBeVisible();
 });
+
+test('schedule re-resolves a saved plan when choices change without reopening Plan', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible();
+  await page.goto(appUrl('/schedule?event=indiafoss-2026'));
+  const welcome = page.locator('.session').filter({
+    has: page.getByRole('link', { name: 'Welcome Note', exact: true }),
+  });
+  await expect(welcome.getByText('Planned', { exact: true })).toBeVisible();
+  await welcome.getByRole('link', { name: 'Welcome Note', exact: true }).click();
+  const exclude = page.getByRole('button', { name: /Not interested/ });
+  await exclude.click();
+  await expect(exclude).toHaveAttribute('aria-pressed', 'true');
+  await page.goto(appUrl('/schedule?event=indiafoss-2026'));
+  await expect(welcome).toBeVisible();
+  await expect(welcome.getByText('Planned', { exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(welcome).toBeVisible();
+  await expect(welcome.getByText('Planned', { exact: true })).toHaveCount(0);
+});

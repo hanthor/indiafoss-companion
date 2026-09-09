@@ -13,7 +13,6 @@
   import type { ScheduleChangeType } from '@indiafoss/schedule';
   import {
     armNotifications,
-    disarmNotifications,
     hydrateNotifications,
     notificationsEnabled,
   } from '$lib/notifications.svelte';
@@ -31,6 +30,7 @@
     startSimulationFromParams,
     tickInterval,
   } from '$lib/simulator.svelte';
+  import { trackPlanInputs } from '$lib/resolved-plan.svelte';
   import { simulationSpeed } from '$lib/clock';
   import { hydrateOnboarding, markOnboardingDone, onboardingState } from '$lib/onboarding.svelte';
 
@@ -85,16 +85,16 @@
     // effect would not re-run when they land, so the first alerts would wait
     // out the rest of the interval — a whole minute of a conference day in
     // which nothing can fire (#159).
-    void eventState.bundle;
+    trackPlanInputs(eventState.bundle);
     void notificationsEnabled.value;
     void routingPrefs.profile;
     void routingPrefs.loaded;
     void currentLocation.value;
     const every = run ? untrack(() => tickInterval(60_000)) : 60_000;
     const timer = setInterval(() => {
-      void armNotifications();
+      void armNotifications().catch(() => {});
     }, every);
-    void disarmNotifications().then(() => armNotifications());
+    void armNotifications().catch(() => {});
     return () => clearInterval(timer);
   });
 
