@@ -67,6 +67,9 @@ fun ExploreScreen(
                     }
                     items(hits, key = { "${it.kind}-${it.id}" }) { hit ->
                         ListItem(
+                            leadingContent = if (hit.kind == Search.Kind.PERSON) ({
+                                bundle?.person(hit.id)?.let { Avatar(it.name, it.avatarUrl) }
+                            }) else null,
                             headlineContent = { Text(hit.title) },
                             supportingContent = { hit.subtitle?.let { Text(it, maxLines = 2) } },
                             overlineContent = {
