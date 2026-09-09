@@ -28,13 +28,13 @@
   import TypeBadge from '$lib/components/TypeBadge.svelte';
   import { sessionRoomLink } from '$lib/element-links';
 
-  const clock = clockFromParams(
-    page.url.searchParams.get('now'),
-    page.url.searchParams.get('speed'),
+  const clock = $derived(
+    clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
   );
-  let now: string = $state(clock.now());
+  let now = $state('');
 
   $effect(() => {
+    now = clock.now();
     if (isFixedClock(clock)) return;
     const timer = setInterval(() => {
       now = clock.now();
@@ -43,7 +43,7 @@
   });
 
   const bundle = $derived(eventState.bundle);
-  const nowState = $derived(bundle ? computeNowState(bundle, now) : null);
+  const nowState = $derived(bundle && now ? computeNowState(bundle, now) : null);
 
   const day = $derived(bundle && now ? eventDay(now, bundle.timezone) : null);
   let personalPlan = $state<Awaited<ReturnType<typeof resolveDayPlan>> | null>(null);

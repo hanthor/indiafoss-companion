@@ -10,6 +10,8 @@ The global leave-by banner, while on Now, selects only upcoming activities in th
 
 Validation: 93 web unit tests and 67 browser/accessibility tests passed locally; Svelte check has zero errors and four existing warnings; lint/build passed. Coverage includes in-progress/end boundaries, venue-date rollover from UTC, empty/conflicting plan selection, removed-session reload, custom-block reload, conflicting custom blocks, current-day navigation, and existing Plan editing behaviour. Reviewed the [390px mobile screen](now-resolved-plan-2026-09-09/mobile.png).
 
+The first full CI run caught a simulator clock mismatch: Now initialized before the run started and kept the wall clock while the banner followed simulated time. Now reacts to clock changes; all three simulation tests pass locally with reminder-tier/delivery checks retained and an explicit assertion that Now displays the simulated event day. The warm-cache offline reload also passed after service-worker installation/control; cutting connectivity before installation did not.
+
 ## Remaining #221 work
 
 - Map selection and the global banner on other routes still use their existing preference-based logic. Move them to the current projection with consistent loading/error/conflict handling.
