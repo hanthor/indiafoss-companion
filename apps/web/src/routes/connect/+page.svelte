@@ -519,20 +519,20 @@
   });
 </script>
 
-  {#snippet profileImporter()}
-    <ProfileImport
-      onimport={(imported) => {
-        const before = JSON.stringify(profileState.profile);
-        const changes = applyImportedProfile(profileState.profile, imported);
-        if (changes.length > 0) {
-          importSnapshot = before;
-          snapshotFrom = 'identity';
-        }
-        contactMessage = acceptChanges(changes, 'GitHub');
-        scheduleCard();
-      }}
-    />
-  {/snippet}
+{#snippet profileImporter()}
+  <ProfileImport
+    onimport={(imported) => {
+      const before = JSON.stringify(profileState.profile);
+      const changes = applyImportedProfile(profileState.profile, imported);
+      if (changes.length > 0) {
+        importSnapshot = before;
+        snapshotFrom = 'identity';
+      }
+      contactMessage = acceptChanges(changes, 'GitHub');
+      scheduleCard();
+    }}
+  />
+{/snippet}
 
 <EventGate>
   <section class="intro">
@@ -542,7 +542,6 @@
       Show this to someone. Only the fields switched on below are encoded in your QR code.
     </p>
   </section>
-
 
   {#if !profileState.profile.socials.github}
     {@render profileImporter()}
