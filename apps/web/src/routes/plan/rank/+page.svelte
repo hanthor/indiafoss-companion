@@ -1,10 +1,13 @@
 <script lang="ts">
+  import DevroomBanner from '$lib/components/DevroomBanner.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
+  import { tick, untrack } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
-  import type { Activity, Person } from '@indiafoss/model';
+  import { isDiscoveryActivity, type Activity, type Person } from '@indiafoss/model';
   import { activitiesForDay, formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
   import {
+    discoveryDeck,
     applyComparison,
     applyPriors,
     conflictProgress,
@@ -30,7 +33,7 @@
     recordComparison,
     setDisposition,
     setRating,
-    setTriage,
+    setTalkChoice,
     triageOf,
   } from '$lib/prefs.svelte';
   import { affinityModel } from '$lib/priors.svelte';
@@ -39,7 +42,6 @@
     hydrateRoomPrefs,
     markRoomsDecided,
     roomPreference,
-    roomPrefsState,
     setRoomPreference,
   } from '$lib/roomPrefs.svelte';
   import { roomSummary } from '$lib/roomInfo';
@@ -58,6 +60,7 @@
   let busy = $state(false);
   let entering = $state(false);
   let ready = $state(false);
+  let saveError = $state('');
   /** Answered talks are folded away; this unfolds them to change an answer. */
   let showAnswered = $state(false);
 
@@ -78,7 +81,7 @@
   // ---------- Step 1: devrooms ----------
   const rooms = $derived(devrooms(bundle));
   const roomsOut = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'skip').length);
-  const roomsMust = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'love').length);
+  const roomsStay = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'stay').length);
   /** Which devroom's programme is unfolded. */
   let openRoom = $state<string | null>(null);
   async function roomsDone(): Promise<void> {
@@ -88,9 +91,7 @@
 
   // ---------- The day's sessions ----------
   const daySessions = $derived<Activity[]>(
-    (selectedDay ? activitiesForDay(bundle, selectedDay) : []).filter(
-      (a) => !a.cancelled && a.type !== 'meal',
-    ),
+    (selectedDay ? activitiesForDay(bundle, selectedDay) : []).filter(isDiscoveryActivity),
   );
 
   /** Stored ratings, the source of truth for updates. */
@@ -100,6 +101,7 @@
       rating: ratingOf(a.id),
       comparisons: comparisonsOf(a.id),
       disposition: dispositionOf(a.id),
+      interest: triageOf(a.id),
     })),
   );
 
@@ -128,7 +130,13 @@
   });
 
   // ---------- Step 2: one talk at a time ----------
-  const untriaged = $derived(daySessions.filter((a) => !triageOf(a.id)));
+  const suggestions = $derived(
+    discoveryDeck(
+      stored.filter((r) => roomPreference(r.activity.trackId ?? '') !== 'stay'),
+      model,
+    ),
+  );
+  const untriaged = $derived(suggestions.map((s) => s.activity));
   const triaged = $derived(daySessions.filter((a) => !!triageOf(a.id)));
   const keptCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'yes').length);
   const droppedCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'no').length);
@@ -141,26 +149,58 @@
   let dragX = $state(0);
   let dragging = $state(false);
   let leaving = $state<'left' | 'right' | null>(null);
-  const SWIPE_COMMIT = 90;
+  const SWIPE_COMMIT = 96;
   let pointerStartX = 0;
+  let pointerStartY = 0;
+  let activePointer: number | null = null;
+  let lastAnswered: Activity | null = $state(null);
 
   function onCardDown(event: PointerEvent): void {
-    if (busy || !card) return;
+    if (busy || !card || !event.isPrimary || event.button !== 0 || activePointer !== null) return;
     const target = event.target as HTMLElement | null;
-    if (target?.closest('button, a')) return; // reading about a talk is not an answer
+    if (target?.closest('button, a, input, select, textarea')) return;
     pointerStartX = event.clientX;
-    dragging = true;
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    pointerStartY = event.clientY;
+    activePointer = event.pointerId;
   }
   function onCardMove(event: PointerEvent): void {
-    if (!dragging) return;
-    dragX = event.clientX - pointerStartX;
+    if (event.pointerId !== activePointer) return;
+    const dx = event.clientX - pointerStartX;
+    const dy = event.clientY - pointerStartY;
+    if (!dragging) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        onCardCancel(event);
+        return;
+      }
+      dragging = true;
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    }
+    dragX = dx;
   }
-  function onCardUp(): void {
-    if (!dragging) return;
+  function releasePointer(event: PointerEvent): void {
+    activePointer = null;
     dragging = false;
-    if (dragX > SWIPE_COMMIT) void answerCard('yes');
-    else if (dragX < -SWIPE_COMMIT) void answerCard('no');
+    const target = event.currentTarget as HTMLElement;
+    if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  }
+  function onCardCancel(event: PointerEvent): void {
+    if (event.pointerId !== activePointer) return;
+    releasePointer(event);
+    dragX = 0;
+  }
+  function onCardLostCapture(event: PointerEvent): void {
+    // Touch starts implicitly captured by the description/title. Taking
+    // capture on the card makes that child's lost event bubble here; only
+    // losing the card's own capture cancels this gesture.
+    if (event.target !== event.currentTarget) return;
+    onCardCancel(event);
+  }
+  function onCardUp(event: PointerEvent): void {
+    if (event.pointerId !== activePointer) return;
+    const answer = dragging && Math.abs(dragX) >= SWIPE_COMMIT ? (dragX > 0 ? 'yes' : 'no') : null;
+    releasePointer(event);
+    if (answer) void answerCard(answer);
     else dragX = 0;
   }
 
@@ -171,21 +211,51 @@
    */
   async function answerCard(answer: 'yes' | 'no' | 'must'): Promise<void> {
     if (!card || busy) return;
+    const restoreFocus = document.activeElement?.matches('[data-testid="talk-card"]');
     busy = true;
     chosenMode = 'cards';
-    const id = card.id;
+    const answeredCard = card;
+    const id = answeredCard.id;
     leaving = answer === 'no' ? 'left' : 'right';
     await new Promise((r) => setTimeout(r, 180));
-    await setTriage(id, answer === 'no' ? 'no' : 'yes');
-    if (answer === 'must') await setDisposition(id, 'must-attend');
-    leaving = null;
-    dragX = 0;
-    readMore = false;
-    busy = false;
+    try {
+      await setTalkChoice(id, answer);
+      lastAnswered = answeredCard;
+      saveError = '';
+      readMore = false;
+    } catch {
+      saveError = 'Your choice could not be saved. Please try again.';
+    } finally {
+      leaving = null;
+      dragX = 0;
+      busy = false;
+      if (restoreFocus) await focusDiscovery();
+    }
+  }
+  async function focusDiscovery(): Promise<void> {
+    await tick();
+    (
+      document.querySelector<HTMLElement>('[data-testid="talk-card"]') ??
+      document.querySelector<HTMLElement>('[data-testid="discovery-undo"]')
+    )?.focus({ preventScroll: true });
   }
   async function clearAnswer(activity: Activity): Promise<void> {
+    if (busy) return;
+    const restoreFocus = document.activeElement?.matches(
+      '[data-testid="talk-card"], [data-testid="discovery-undo"]',
+    );
+    busy = true;
     chosenMode = 'cards';
-    await setTriage(activity.id, undefined);
+    try {
+      await setTalkChoice(activity.id, undefined);
+      if (lastAnswered?.id === activity.id) lastAnswered = null;
+      saveError = '';
+    } catch {
+      saveError = 'Your choice could not be saved. Please try again.';
+    } finally {
+      busy = false;
+      if (restoreFocus) await focusDiscovery();
+    }
   }
 
   /** Sessions that clash with a given one, for the card's hint. */
@@ -370,38 +440,65 @@
   // first answer must not flip the screen to the next step.
   $effect(() => {
     if (!ready || chosenMode !== null || daySessions.length === 0) return;
-    chosenMode =
-      forcedMode ??
-      (!roomPrefsState.decided && rooms.length > 0
-        ? 'rooms'
-        : untriaged.length > 0 && choicesMade === 0
-          ? 'cards'
-          : 'slots');
+    chosenMode = forcedMode ?? 'cards';
   });
   const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'slots');
+  $effect(() => {
+    if (
+      ready &&
+      mode === 'cards' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    )
+      untrack(() => {
+        void focusDiscovery();
+      });
+  });
 
   // Keyboard: the cards are buttons, so Tab + Enter already works; these are shortcuts.
   function onKeydown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
-    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    if (
+      event.defaultPrevented ||
+      event.repeat ||
+      event.isComposing ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey
+    )
+      return;
+    if (
+      target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+    )
+      return;
     if (busy) return;
     if (mode === 'cards') {
+      if (target?.closest('button, a, [role="tab"], [role="button"], [role="dialog"], summary'))
+        return;
+      // Arrows work immediately; character aliases stay scoped to the card.
+      if (!event.key.startsWith('Arrow') && !target?.matches('[data-testid="talk-card"]')) return;
       switch (event.key) {
         case 'ArrowRight':
         case 'y':
         case 'Y':
           event.preventDefault();
-          void answerCard('yes');
+          void answerCard('yes').then(() => focusDiscovery());
           break;
         case 'ArrowLeft':
         case 'n':
         case 'N':
           event.preventDefault();
-          void answerCard('no');
+          void answerCard('no').then(() => focusDiscovery());
           break;
+        case 'ArrowUp':
         case 'm':
         case 'M':
-          void answerCard('must');
+          event.preventDefault();
+          void answerCard('must').then(() => focusDiscovery());
+          break;
+        case 'z':
+        case 'Z':
+          event.preventDefault();
+          if (lastAnswered) void clearAnswer(lastAnswered);
           break;
         default:
           break;
@@ -492,7 +589,7 @@
   <div class="head">
     <div>
       <a class="eyebrow back" href={resolve('/plan')}>← PLAN</a>
-      <h1>Rank your day</h1>
+      <h1>Find your talks</h1>
     </div>
     <div class="days" role="tablist" aria-label="Day">
       {#each days as day, i (day)}
@@ -516,8 +613,8 @@
       class:active={mode === 'rooms'}
       onclick={() => (chosenMode = 'rooms')}
     >
-      1 · Devrooms
-      {#if roomsOut + roomsMust > 0}<span class="count">{roomsOut + roomsMust}</span>{/if}
+      Devrooms
+      {#if roomsOut + roomsStay > 0}<span class="count">{roomsOut + roomsStay}</span>{/if}
     </button>
     <button
       role="tab"
@@ -525,7 +622,7 @@
       class:active={mode === 'cards'}
       onclick={() => (chosenMode = 'cards')}
     >
-      2 · Talks
+      Talks for you
       {#if untriaged.length > 0}<span class="count">{untriaged.length}</span>{/if}
     </button>
     <button
@@ -534,7 +631,7 @@
       class:active={mode === 'slots'}
       onclick={() => (chosenMode = 'slots')}
     >
-      3 · Overlaps
+      Compare overlaps (optional)
       <!-- The count means little before the talks step has thinned the day. -->
       {#if openSlots.length > 0 && (untriaged.length === 0 || choicesMade > 0)}
         <span class="count">{openSlots.length}</span>
@@ -545,7 +642,8 @@
   {#if mode === 'rooms'}
     <p class="muted small lead">
       Which devrooms are for you? <b>Not interested</b> takes a room's talks out of the day,
-      <b>Must go</b> puts them ahead of the rest. The main halls are always in.
+      <b>Stay for this devroom</b> reserves its whole block. Conflicting must-go choices are shown in
+      your plan.
     </p>
     {#if rooms.length === 0}
       <section class="done" aria-live="polite">
@@ -559,7 +657,13 @@
           {@const pref = roomPreference(r.track.id)}
           {@const info = roomSummary(bundle, r.sessions)}
           {@const named = splitTrackName(r.track.name)}
-          <li class="roomrow" data-testid="room-row" class:out={pref === 'skip'}>
+          <li
+            class="roomrow"
+            id="devroom-{r.track.id}"
+            data-testid="room-row"
+            class:out={pref === 'skip'}
+          >
+            <DevroomBanner trackId={r.track.id} eventId={bundle.id} />
             <div class="roomtext">
               <span class="roomname">{named.title}</span>
               {#if named.subtitle}
@@ -568,7 +672,15 @@
               {#if r.track.description}
                 <span class="roomabout">{r.track.description}</span>
               {/if}
-              <span class="muted small">{info.line}</span>
+              <span class="muted small">
+                {info.line}
+                {#each info.kinds as k (k.label)}
+                  <!-- BoFs and workshops ask something of the attendee that a
+                       talk does not, so they are called out here rather than
+                       left to be discovered in the room (#132). -->
+                  <span class="kind">{k.count} {k.label}</span>
+                {/each}
+              </span>
               {#if info.speakers.length > 0}
                 <span class="muted small speakers"
                   >{info.speakers
@@ -609,17 +721,16 @@
                 >Not interested</button
               >
               <button
-                class:on={!pref}
-                aria-pressed={!pref}
+                class:on={!pref || pref === 'love'}
+                aria-pressed={!pref || pref === 'love'}
                 onclick={() => setRoomPreference(bundle, r.track.id, undefined)}>Interested</button
               >
               <button
-                class:on={pref === 'love'}
-                class="love"
-                aria-pressed={pref === 'love'}
+                class:on={pref === 'stay'}
+                aria-pressed={pref === 'stay'}
                 onclick={() =>
-                  setRoomPreference(bundle, r.track.id, pref === 'love' ? undefined : 'love')}
-                >Must go</button
+                  setRoomPreference(bundle, r.track.id, pref === 'stay' ? undefined : 'stay')}
+                >Stay for this devroom</button
               >
             </div>
           </li>
@@ -627,27 +738,26 @@
       </ul>
       <div class="roomsdone">
         <button class="button dark" onclick={roomsDone}>
-          {roomsOut > 0 || roomsMust > 0
-            ? `Done · ${roomsOut} out, ${roomsMust} must go →`
+          {roomsOut > 0 || roomsStay > 0
+            ? `Done · ${roomsOut} out, ${roomsStay} staying →`
             : 'All devrooms are fine →'}
         </button>
       </div>
     {/if}
   {:else if mode === 'cards'}
-    <div class="progress" role="status">
-      <div class="progresstext">
-        <span class="ok">{keptCount} IN · {droppedCount} OUT</span>
-        <span>{untriaged.length} TO GO</span>
-      </div>
-      <div class="track">
-        <div
-          class="fill"
-          style="width:{daySessions.length
-            ? Math.round((triaged.length / daySessions.length) * 100)
-            : 0}%"
-        ></div>
-      </div>
-    </div>
+    <p class="muted small" role="status">
+      {triaged.length} choices saved ·
+      <a href={resolve('/plan')}>See my plan →</a>
+    </p>
+    {#if lastAnswered}
+      <button
+        class="linkbtn small"
+        data-testid="discovery-undo"
+        disabled={busy}
+        onclick={() => lastAnswered && clearAnswer(lastAnswered)}>Undo last choice</button
+      >
+    {/if}
+    {#if saveError}<p role="alert">{saveError}</p>{/if}
 
     {#if !ready}
       <p class="muted" role="status">Loading your picks…</p>
@@ -673,9 +783,8 @@
       </section>
     {:else}
       {@const clashes = clashCount(card)}
-      <p class="muted small lead center">
-        Swipe right if you might go, left if not. Only the Yeses that overlap need settling
-        afterwards.
+      <p class="sr-only" id="discovery-keys">
+        Left: not interested · Right: want to go · Up: must go · Z: undo.
       </p>
       <div class="stack" aria-live="polite">
         {#if nextCard}
@@ -688,29 +797,33 @@
           </article>
         {/if}
         {#key card.id}
-          <!-- The buttons below are the keyboard and screen-reader path; the drag is a shortcut. -->
+          <!-- Choice buttons remain available alongside immediate arrow-key shortcuts. -->
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <article
             class="talkcard"
             class:dragging
             class:leaving-left={leaving === 'left'}
             class:leaving-right={leaving === 'right'}
             data-testid="talk-card"
+            tabindex="0"
+            aria-describedby="discovery-keys"
             aria-label={card.title}
             style="--dx:{dragX}px;--rot:{dragX / 18}deg"
             onpointerdown={onCardDown}
             onpointermove={onCardMove}
             onpointerup={onCardUp}
-            onpointercancel={onCardUp}
+            onpointercancel={onCardCancel}
+            onlostpointercapture={onCardLostCapture}
           >
             <span
               class="stamp yes"
               aria-hidden="true"
-              style="opacity:{Math.min(1, Math.max(0, dragX) / SWIPE_COMMIT)}">INTERESTED</span
+              style="opacity:{Math.min(1, Math.max(0, dragX) / SWIPE_COMMIT)}">WANT TO GO</span
             >
             <span
               class="stamp no"
               aria-hidden="true"
-              style="opacity:{Math.min(1, Math.max(0, -dragX) / SWIPE_COMMIT)}">NOT FOR ME</span
+              style="opacity:{Math.min(1, Math.max(0, -dragX) / SWIPE_COMMIT)}">NOT INTERESTED</span
             >
             <span class="talkhead">
               <TypeBadge type={card.type} />
@@ -743,6 +856,7 @@
                 </span>
               </div>
             {/each}
+            {#if card.scheduleNote}<p role="status">{card.scheduleNote}</p>{/if}
             {#if card.description}
               <div class="abstract" class:open={readMore}>
                 <p>{card.description}</p>
@@ -771,22 +885,40 @@
       </div>
       <div class="cardbtns">
         <button
-          class="button secondary no"
-          aria-label={`Not for me: ${card.title}`}
-          onclick={() => answerCard('no')}
-          disabled={busy}>✕ Not for me</button
+          class="button must"
+          aria-label={`Must go: ${card.title}`}
+          onclick={() => answerCard('must')}
+          disabled={busy}
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"><path d="m3 6 5 4 4-7 4 7 5-4-2 12H5Z" /><path d="M5 21h14" /></svg
+          > Must go</button
         >
         <button
           class="button secondary yes"
-          aria-label={`Interested: ${card.title}`}
+          aria-label={`Want to go: ${card.title}`}
           onclick={() => answerCard('yes')}
-          disabled={busy}>✓ Interested</button
+          disabled={busy}
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg
+          > Want to go</button
         >
         <button
-          class="button dark must"
-          aria-label={`Must go: ${card.title}`}
-          onclick={() => answerCard('must')}
-          disabled={busy}>★ Must go</button
+          class="button secondary no"
+          aria-label={`Not interested: ${card.title}`}
+          onclick={() => answerCard('no')}
+          disabled={busy}>Not interested</button
         >
       </div>
     {/if}
@@ -935,6 +1067,18 @@
 </EventGate>
 
 <style>
+  .cardbtns .must {
+    background: var(--choice-must);
+    color: var(--choice-must-text);
+  }
+  .cardbtns .yes {
+    background: var(--choice-want);
+    color: var(--choice-want-text);
+  }
+  .cardbtns .no {
+    background: var(--choice-no);
+    color: var(--choice-no-text);
+  }
   /* Steps */
   .modes {
     display: grid;
@@ -947,10 +1091,10 @@
     align-items: center;
     justify-content: center;
     gap: 0.3rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 0.5rem 0.3rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -988,7 +1132,7 @@
     flex-direction: column;
     gap: 0.6rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 14px;
     padding: 0.8rem 0.9rem;
     transition: opacity 0.15s;
@@ -1076,7 +1220,7 @@
   .roomchoice button {
     min-height: 2.4rem;
     padding: 0 0.4rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 999px;
     background: var(--surface);
     color: var(--text-muted);
@@ -1089,11 +1233,6 @@
     background: var(--ink);
     border-color: var(--ink);
     color: var(--on-ink);
-  }
-  .roomchoice button.love.on {
-    background: var(--mint);
-    border-color: var(--mint);
-    color: var(--ink);
   }
   .roomchoice button.skip.on {
     background: var(--amber-soft);
@@ -1110,22 +1249,31 @@
     line-height: 1.5;
     text-wrap: pretty;
   }
-  .lead.center {
-    text-align: center;
-  }
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
   }
   .tag {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.6rem;
     letter-spacing: 0.04em;
     padding: 0.15rem 0.45rem;
     border-radius: 999px;
     background: color-mix(in srgb, var(--text-muted) 12%, transparent);
     color: var(--text-muted);
+  }
+
+  .kind {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.85em;
+    /* Not a colour of its own: the row already carries the skipped/kept state
+       and a second colour here would compete with it. */
+    opacity: 0.85;
   }
 
   /* Step 2: the card stack */
@@ -1143,7 +1291,7 @@
     flex-direction: column;
     gap: 0.55rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 18px;
     padding: 1rem 1rem 0.9rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -1231,7 +1379,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.8rem;
     font-weight: 700;
     color: var(--mint-ink);
@@ -1308,7 +1456,7 @@
     align-items: center;
     gap: 0.6rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 14px;
     padding: 0.45rem 0.8rem;
   }
@@ -1327,7 +1475,7 @@
     text-wrap: pretty;
   }
   .clash {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     letter-spacing: 0.04em;
     color: var(--amber-ink);
@@ -1340,7 +1488,7 @@
     flex: none;
   }
   .answer {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1401,7 +1549,7 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.66rem;
     letter-spacing: 0.06em;
     color: var(--text-muted);
@@ -1457,7 +1605,7 @@
     flex-wrap: wrap;
   }
   .pill {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1477,7 +1625,7 @@
   .talk {
     position: relative;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 16px;
     padding: 0 1rem 0.7rem;
     display: flex;
@@ -1527,7 +1675,7 @@
     gap: 0.5rem;
   }
   .when {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.7rem;
     color: var(--text-muted);
     text-align: right;
@@ -1545,7 +1693,7 @@
   }
   .mustpill {
     align-self: flex-start;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1555,7 +1703,7 @@
     align-self: flex-end;
     border: 0;
     background: transparent;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -1648,7 +1796,7 @@
     padding: 0;
     margin: 0.5rem 0 0;
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 16px;
     overflow: hidden;
   }
@@ -1688,7 +1836,7 @@
     font-size: 0.64rem;
   }
   .rating {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.72rem;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;

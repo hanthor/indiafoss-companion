@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "action": "open-dm",
+  "ref": "@asha:indiafoss.org",
+  "access_token": "syt_secret"
+}

@@ -99,6 +99,8 @@ export interface RankedActivity {
   rating: number;
   comparisons: number;
   disposition: Disposition;
+  /** Direct card choice; independent of historical pairwise ratings. */
+  interest?: 'yes' | 'no';
 }
 
 export interface ComparisonSelectionInput {
@@ -337,7 +339,7 @@ const AFFINITY_SHRINKAGE = 3;
  * so one pick cannot demote a whole track.
  */
 /** What the attendee said about a room (track) before ranking: skip it, or love it. */
-export type RoomPreference = 'skip' | 'love';
+export type RoomPreference = 'skip' | 'love' | 'stay';
 
 /** Votes a loved room is given up front: enough to lift its talks by ~40 points, well under a settled gap. */
 export const LOVED_ROOM_VOTES = 6;
@@ -367,20 +369,22 @@ export function learnAffinity(
   }
   for (const r of byId.values()) {
     if (r.disposition === 'not-interested') vote(r.activity.id, -1);
+    else if (r.disposition === 'must-attend') vote(r.activity.id, 3);
+    else if (r.interest === 'yes') vote(r.activity.id, 1);
   }
   // A loved room starts with a head of votes; a skipped one is already out of
   // the pool, and gets the same weight against for anything that slips in.
   for (const [trackId, pref] of Object.entries(rooms)) {
     if (!pref) continue;
     const key = `track:${trackId}`;
-    const weight = pref === 'love' ? LOVED_ROOM_VOTES : -LOVED_ROOM_VOTES;
+    const weight = pref === 'skip' ? -LOVED_ROOM_VOTES : LOVED_ROOM_VOTES;
     votes.set(key, (votes.get(key) ?? 0) + weight);
     evidence.set(key, (evidence.get(key) ?? 0) + LOVED_ROOM_VOTES);
   }
   const affinity = new Map<AffinityKey, number>();
   for (const [key, total] of votes) {
     const n = evidence.get(key) ?? 0;
-    affinity.set(key, total / (n + AFFINITY_SHRINKAGE));
+    affinity.set(key, Math.max(-1, Math.min(1, total / (n + AFFINITY_SHRINKAGE))));
   }
   return { affinity, evidence };
 }
@@ -416,4 +420,123 @@ export function ratingWithPrior(rated: RankedActivity, model: AffinityModel): nu
 /** The pool with priors applied, ready for `selectNextComparison`. */
 export function applyPriors(pool: RankedActivity[], model: AffinityModel): RankedActivity[] {
   return pool.map((r) => ({ ...r, rating: ratingWithPrior(r, model) }));
+}
+
+/** A session the learnt taste predicts, with the reasons it was picked. */
+export interface Recommendation {
+  activity: Activity;
+  /** The prior, in rating points; always positive here. */
+  score: number;
+  /** The facets that pulled it up, strongest first — `track:…`, `tag:…`, `type:…`. */
+  because: AffinityKey[];
+}
+
+export interface RecommendationOptions {
+  /** How many to return. */
+  limit?: number;
+  /**
+   * Comparisons a facet needs before it may justify a recommendation.
+   * Deliberately higher than the shrinkage the prior itself uses: nudging a
+   * rating on thin evidence is cheap and invisible, but telling someone "you
+   * liked Rust" on the strength of one swipe is a claim about them.
+   */
+  minEvidence?: number;
+}
+
+/**
+ * Sessions the attendee has not judged, ordered by what their answers so far
+ * predict — the recommender for #162.
+ *
+ * There is no new model here, and deliberately so. The taste already learnt
+ * for ranking (`affinityModel`) is a content-based recommender: it scores
+ * every session by the tracks, tags and formats the attendee's own
+ * comparisons pulled up or down. Surfacing it costs a sort, runs offline on a
+ * phone, needs no server, and can say *why* — which matters more than accuracy
+ * here, because an attendee has one shot at each slot and no way to check a
+ * recommendation except by walking to the room.
+ *
+ * Skipped: anything already decided (must-attend, not-interested) and anything
+ * with enough comparisons of its own that the prior no longer applies. A
+ * recommendation for a session someone has already ranked is not a
+ * recommendation, it is a reminder of their own opinion.
+ */
+export function recommendations(
+  pool: RankedActivity[],
+  model: AffinityModel,
+  options: RecommendationOptions = {},
+): Recommendation[] {
+  const limit = options.limit ?? 5;
+  const minEvidence = options.minEvidence ?? 2;
+  const out: Recommendation[] = [];
+  for (const rated of pool) {
+    if (rated.disposition === 'must-attend' || rated.disposition === 'not-interested') continue;
+    if (rated.activity.cancelled) continue;
+    // The prior has already faded out by three comparisons, so beyond that
+    // there is nothing left to recommend on.
+    if (rated.comparisons >= 3) continue;
+    const because = affinityKeysOf(rated.activity)
+      .filter((key) => (model.affinity.get(key) ?? 0) > 0)
+      .filter((key) => (model.evidence.get(key) ?? 0) >= minEvidence)
+      .sort((a, b) => (model.affinity.get(b) ?? 0) - (model.affinity.get(a) ?? 0));
+    if (because.length === 0) continue;
+    const score = priorOffset(rated.activity, model);
+    if (score <= 0) continue;
+    out.push({ activity: rated.activity, score, because });
+  }
+  return out
+    .sort((a, b) => b.score - a.score || a.activity.id.localeCompare(b.activity.id))
+    .slice(0, limit);
+}
+
+/**
+ * Local discovery deck. Explicit choices leave the deck; each fourth card
+ * explores another track. Cold start samples tracks instead of presenting
+ * the schedule chronologically. A reason is always an observed positive facet.
+ */
+export function discoveryDeck(pool: RankedActivity[], model: AffinityModel): Recommendation[] {
+  const remaining = pool.filter(
+    (r) =>
+      !r.interest &&
+      r.disposition === 'normal' &&
+      !r.activity.cancelled &&
+      r.activity.type !== 'meal',
+  );
+  const selected: Recommendation[] = [];
+  const usedTracks = new Map<string, number>();
+  const decided = pool.filter((r) => r.interest || r.disposition !== 'normal');
+  for (const r of decided) {
+    const track = r.activity.trackId ?? '';
+    usedTracks.set(track, (usedTracks.get(track) ?? 0) + 1);
+  }
+  const candidates = remaining.map((r) => {
+    const topics = affinityKeysOf(r.activity).filter(
+      (k) =>
+        !k.startsWith('type:') &&
+        !/^tag:(talk|lightning talk|other|beginner|intermediate|advanced)$/i.test(k),
+    );
+    const because = topics.filter((k) => (model.affinity.get(k) ?? 0) > 0);
+    // Format/audience is not a topic: liking one talk must not boost every talk equally.
+    const score =
+      topics.reduce((sum, key) => sum + (model.affinity.get(key) ?? 0), 0) /
+      Math.max(1, topics.length);
+    return { activity: r.activity, score, because };
+  });
+  while (candidates.length) {
+    const explore =
+      (decided.length + selected.length) % 4 === 3 || candidates.every((c) => c.score <= 0);
+    candidates.sort((a, b) => {
+      const diversity =
+        (usedTracks.get(a.activity.trackId ?? '') ?? 0) -
+        (usedTracks.get(b.activity.trackId ?? '') ?? 0);
+      return (
+        (explore ? diversity || b.score - a.score : b.score - a.score || diversity) ||
+        a.activity.id.localeCompare(b.activity.id)
+      );
+    });
+    const next = candidates.shift()!;
+    const track = next.activity.trackId ?? '';
+    usedTracks.set(track, (usedTracks.get(track) ?? 0) + 1);
+    selected.push(next);
+  }
+  return selected;
 }

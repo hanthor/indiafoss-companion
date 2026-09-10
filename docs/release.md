@@ -6,15 +6,24 @@ native Compose client (Android), and P2P chat as its own dedicated app.
 
 ## Quality gate (must be green before release)
 
-CI runs on every push and PR (`.github/workflows/ci.yml`), three jobs:
+CI runs on every push and PR (`.github/workflows/ci.yml`), four jobs:
 
 **checks** — format, lint, typecheck, unit + property tests, fixture
 verification, venue validation (synthetic + 2026), PWA build, dependency audit
 (report-only), and a CycloneDX SBOM (uploaded as the `sbom` artifact).
 
-**e2e** — browser E2E (`tests/app.spec.ts`), accessibility checks
-(`tests/a11y.spec.ts`, axe-core WCAG A/AA), and the release-blocking offline
-gate (`tests/offline.spec.ts`).
+**e2e** — every Playwright suite, each named explicitly in `ci.yml`:
+`tests/app.spec.ts` (browser E2E, via `test:e2e`), `tests/a11y.spec.ts`
+(axe-core WCAG A/AA), `tests/camera.spec.ts` (the QR scanner, against
+Chromium's fake capture device), `tests/offline.spec.ts` (the release-blocking
+offline gate), `tests/simulate.spec.ts` (the day simulator), and
+`tests/design.spec.ts` + `tests/updates.spec.ts` (design tokens and revision
+handling).
+
+`test:e2e` runs `app.spec.ts` alone, so **a spec that is not named in `ci.yml`
+never runs at all**. `camera.spec.ts` was in that position — present, passing,
+and executed by nothing — until it was added here. Adding a spec file is
+therefore two steps, and this list is the check that the second one happened.
 
 **native** — runs the Kotlin `:core` unit tests, Robolectric screen-render
 tests, assembles a debug APK, checksums it (sha256), and uploads both.
@@ -55,9 +64,66 @@ through the `404.html` fallback and are base-path aware.
 Debug APKs are produced in CI with a sha256 checksum. For release builds:
 
 - an AAB and signed release APK require a signing keystore configured in the
-  Gradle build; CI currently produces **clearly identified debug** artifacts.
+  Gradle build; ordinary PR CI produces **clearly identified debug** artifacts; the rolling
+  nightly uses the persistent signing procedure below.
 - F-Droid / core distribution must contain **no mandatory Google Play Services
   or FCM** dependencies (local notifications only).
+
+### Our F-Droid repository
+
+The [repository implementation plan](tasks/own-fdroid-repository.md) specifies a
+shared Companion/Chat update catalogue using the existing signed APKs and a
+separate index key. It is not deployed yet; direct APK downloads remain the
+available distribution path.
+
+### Nightly signing and upgrades
+
+The nightly workflow builds a non-debuggable release APK, signs it outside
+Gradle, and verifies its certificate before moving the nightly tag or publishing.
+PR CI uses a disposable test key; it never receives the distribution key.
+Missing credentials, an invalid signature or a certificate mismatch stop
+publication and leave the previous nightly available.
+
+Configure these once, using an existing recoverable signing identity if one is
+available:
+
+| GitHub setting                     | Value                                          |
+| ---------------------------------- | ---------------------------------------------- |
+| Secret `NIGHTLY_KEYSTORE_BASE64`   | Base64 of an encrypted PKCS12 keystore         |
+| Secret `NIGHTLY_KEYSTORE_PASSWORD` | Store and private-key password (same password) |
+| Variable `NIGHTLY_KEY_ALIAS`       | Alias of the signing private key               |
+| Variable `NIGHTLY_CERT_SHA256`     | SHA-256 of the DER signing certificate         |
+
+Keep an encrypted keystore backup and its password in maintainer-controlled
+storage separate from GitHub Actions. Record the owner and verify that the
+backup opens before configuring publication. Never commit the key, print its
+base64/password, put it in build artifacts, or store it in Gradle caches.
+Repository secrets cannot serve as the only recoverable backup. Do not rotate
+the key to resolve a workflow failure.
+
+The workflow emits `*.apk.signing.json` containing the certificate fingerprint,
+APK checksum, source revision and version. Compare the installed certificate
+with that fingerprint before advising an upgrade. The application ID stays
+`org.indiafoss.companion.nativeapp`; version codes increase with nightly runs.
+
+**Existing runner-signed installations:** previous nightlies used disposable
+debug keys. A new persistent certificate does not authorise updates to those
+installations. Keep the old app installed with its data; do not uninstall or
+clear storage to bypass Android's signature check. Export any data the installed
+version can export and retain the original files. Complete native/PWA transfer
+is tracked in #240; an export alone is not a proven restoration path. Unless the
+original key can be recovered, those installations need a separately verified
+migration before replacement.
+
+Acceptance has two levels:
+
+- CI signs the release APK twice with one disposable identity, verifies the
+  certificate, and rejects missing-key and wrong-certificate configurations.
+  This tests signing, not an on-device upgrade.
+- Before closing #226, build two successive actual nightlies, record both
+  fingerprints/version codes, then upgrade on a phone without uninstalling.
+  Confirm saved choices, edited plans, ticket, contacts and card identity remain
+  intact. Record the exact APKs and device evidence; do not substitute CI APKs.
 
 ### Accrescent
 
@@ -105,7 +171,7 @@ cancelled, time, room, title, speaker, recording) are unit-tested in
 
 ## Release checklist
 
-- [ ] `just ci` green locally and in CI (all three jobs).
+- [ ] `just ci` green locally and in CI (all four jobs).
 - [ ] Accessibility suite passes; core flows operable by keyboard.
 - [ ] Event data published and verified for the target event; stable ids
       preserved (see [event onboarding](./event-onboarding.md)).

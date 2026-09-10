@@ -136,3 +136,18 @@ export async function setDisposition(activityId: string, disposition: Dispositio
   await getStorage().setPreference(next);
   preferences.set(activityId, next);
 }
+
+/** One explicit card answer, persisted in one write. Clearing also clears its must mark. */
+export async function setTalkChoice(
+  activityId: string,
+  answer: 'yes' | 'no' | 'must' | undefined,
+): Promise<void> {
+  const next = {
+    ...preferenceFor(activityId),
+    disposition: answer === 'must' ? 'must-attend' : answer === 'no' ? 'not-interested' : 'normal',
+  } satisfies ActivityPreference;
+  if (answer) next.triage = answer === 'no' ? 'no' : 'yes';
+  else delete next.triage;
+  await getStorage().setPreference(next);
+  preferences.set(activityId, next);
+}

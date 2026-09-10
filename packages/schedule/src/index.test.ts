@@ -5,6 +5,7 @@ import {
   activityProgress,
   computeNowState,
   FixedClock,
+  describeChangeCount,
   diffBundles,
   formatDayLabel,
   formatTime,
@@ -13,8 +14,10 @@ import {
   groupByStart,
   isBefore,
   RunningClock,
+  summarizeChanges,
   SystemClock,
 } from './index.js';
+import type { ScheduleChangeType } from './index.js';
 
 function act(
   overrides: Partial<Activity> & { id: string; title: string; start: string; end: string },
@@ -185,6 +188,40 @@ describe('diffBundles', () => {
     expect(changes.some((c) => c.type === 'cancelled' && c.activityId === 'a')).toBe(true);
   });
 
+  it('reports a reinstated talk, not silence — the #190 regression', () => {
+    // Detecting cancellation only in the false-to-true direction made a
+    // reinstatement an empty diff, which the update path read as "nothing to
+    // apply". The attendee kept a cancelled talk that was back on.
+    const cancelled = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        cancelled: true,
+      },
+    ]);
+    const backOn = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        cancelled: false,
+      },
+    ]);
+    expect(diffBundles(cancelled, backOn)).toEqual([
+      { activityId: 'a', title: 'A', type: 'reinstated' },
+    ]);
+  });
+
+  it('still reports a newly cancelled talk as cancelled', () => {
+    const base = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const off = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        cancelled: true,
+      },
+    ]);
+    expect(diffBundles(base, off)).toEqual([{ activityId: 'a', title: 'A', type: 'cancelled' }]);
+  });
+
   it('ignores irrelevant metadata edits', () => {
     const base = bundle([
       act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
@@ -196,6 +233,41 @@ describe('diffBundles', () => {
       },
     ]);
     expect(diffBundles(base, withTags)).toEqual([]);
+  });
+});
+
+describe('describeChangeCount', () => {
+  it('reads as English for every change type, singular and plural', () => {
+    // The banner used to interpolate the raw type and append an "s", giving
+    // "2 room-changeds". Every type must be sayable, so a new one cannot be
+    // added without a label.
+    const types: ScheduleChangeType[] = [
+      'added',
+      'cancelled',
+      'reinstated',
+      'time-changed',
+      'room-changed',
+      'title-changed',
+      'speaker-changed',
+      'recording-added',
+    ];
+    for (const type of types) {
+      expect(describeChangeCount(type, 1)).not.toContain(type);
+      expect(describeChangeCount(type, 2)).not.toContain(type);
+    }
+    expect(describeChangeCount('room-changed', 1)).toBe('1 room change');
+    expect(describeChangeCount('room-changed', 2)).toBe('2 room changes');
+    expect(describeChangeCount('reinstated', 1)).toBe('1 session back on');
+  });
+
+  it('summarizes the new type alongside the others', () => {
+    expect(
+      summarizeChanges([
+        { activityId: 'a', title: 'A', type: 'reinstated' },
+        { activityId: 'b', title: 'B', type: 'reinstated' },
+        { activityId: 'c', title: 'C', type: 'cancelled' },
+      ]),
+    ).toEqual({ reinstated: 2, cancelled: 1 });
   });
 });
 

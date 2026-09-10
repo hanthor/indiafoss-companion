@@ -16,6 +16,7 @@ export interface GithubImportResult {
 interface GithubUser {
   name?: string | null;
   company?: string | null;
+  email?: string | null;
   blog?: string | null;
   avatar_url?: string | null;
   twitter_username?: string | null;
@@ -25,6 +26,7 @@ interface GithubUser {
 export function profileFromGithubUser(user: GithubUser): ImportedProfile {
   const profile: ImportedProfile = { socials: {} };
   if (user.name?.trim()) profile.fullName = user.name.trim();
+  if (user.email?.trim()) profile.email = user.email.trim();
   // "@fossunited" is how people write their org on GitHub.
   if (user.company?.trim()) profile.organization = user.company.trim().replace(/^@/, '');
   const blog = user.blog?.trim();

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { planInputs } from '$lib/resolved-plan.svelte';
   import { boothRoomLink } from '$lib/element-links';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { linksFromUrls } from '@indiafoss/model';
@@ -27,12 +28,14 @@
     if (!booth) return;
     await storage.setSetting(`booth-visit-${booth.id}`, String(minutes));
     scheduled = String(minutes);
+    planInputs.revision += 1;
   }
 
   async function cancelVisit(): Promise<void> {
     if (!booth) return;
     await storage.setSetting(`booth-visit-${booth.id}`, '');
     scheduled = null;
+    planInputs.revision += 1;
   }
 </script>
 
@@ -62,20 +65,24 @@
         <!-- eslint-enable svelte/no-navigation-without-resolve -->
       </p>
     {/if}
-    <section class="visit" aria-label="Schedule a booth visit">
-      <h2>Plan a visit</h2>
-      {#if scheduled}
-        <p class="muted">
-          Scheduled: {scheduled} min — your plan will place it in a gap.
-        </p>
-        <button class="ghost" onclick={cancelVisit}>Cancel</button>
-      {:else}
-        <div class="row">
-          <button onclick={() => scheduleVisit(15)}>Schedule 15 min</button>
-          <button onclick={() => scheduleVisit(30)}>Schedule 30 min</button>
-        </div>
-      {/if}
-    </section>
+    {#if booth.availableDates?.length === 0}
+      <p class="muted">Visit planning will be available once a showcasing day is assigned.</p>
+    {:else}
+      <section class="visit" aria-label="Schedule a booth visit">
+        <h2>Plan a visit</h2>
+        {#if scheduled}
+          <p class="muted">
+            Scheduled: {scheduled} min — your plan will place it in a gap.
+          </p>
+          <button class="ghost" onclick={cancelVisit}>Cancel</button>
+        {:else}
+          <div class="row">
+            <button onclick={() => scheduleVisit(15)}>Schedule 15 min</button>
+            <button onclick={() => scheduleVisit(30)}>Schedule 30 min</button>
+          </div>
+        {/if}
+      </section>
+    {/if}
   {/if}
 </EventGate>
 

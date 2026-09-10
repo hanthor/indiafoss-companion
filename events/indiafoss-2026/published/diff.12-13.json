@@ -1,0 +1,20 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 13,
+  "from": 12,
+  "changes": [
+    {
+      "activityId": "act-cfp-9lmiio7p5b",
+      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for Democratic Accountability",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-cfp-4eh569dvq9",
+      "title": "Can We Build a Copyleft License for Community Data in the Age of AI",
+      "type": "title-changed"
+    }
+  ],
+  "summary": {
+    "title-changed": 2
+  }
+}

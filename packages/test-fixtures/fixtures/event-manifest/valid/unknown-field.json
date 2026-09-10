@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "eventId": "indiafoss-2026",
+  "revision": 2,
+  "generatedAt": "2026-09-01T09:00:00.000Z",
+  "assets": {
+    "event": "event.683f9fc4.json"
+  },
+  "publisherNote": "added by a newer publisher than this client"
+}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ContactChecks from '$lib/components/ContactChecks.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
   import type QrScanner from 'qr-scanner';
@@ -17,7 +18,15 @@
   } from '@indiafoss/model';
   import { computeNowState } from '@indiafoss/schedule';
   import { matrixToUrl } from '@indiafoss/matrix';
+  import {
+    chatLabel,
+    deriveContactTrust,
+    inPersonLabel,
+    NO_ROUTE_LABEL,
+    profileLabel,
+  } from '$lib/contact-trust';
   import type { ContactRecord } from '@indiafoss/storage';
+  import { hydrateProfile, profileState, saveProfile } from '$lib/profile.svelte';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState, loadEvent } from '$lib/event.svelte';
   import { currentLocation, hydrateLocation, setCurrentLocation } from '$lib/location.svelte';
@@ -44,6 +53,8 @@
   let cameraStarting = $state(true);
   let error = $state('');
   let status = $state('');
+  let savedContactId = $state<string | null>(null);
+  let savedHadBadge = $state(false);
   let pending = $state<Pending | null>(null);
   /** Signature check + key badge for a scanned friend card. */
   let cardIdentity = $state<{
@@ -118,6 +129,8 @@
 
   function handlePayload(raw: string): void {
     error = '';
+    status = '';
+    savedContactId = null;
     const result = parseScannedPayload(raw);
     if (result.kind === 'error') {
       error = result.message;
@@ -191,6 +204,7 @@
     cameraStarting = true;
     error = '';
     status = '';
+    savedContactId = null;
     // Lazy-load the scanner engine (and request camera permission) only on demand.
     const { default: QrScannerCtor } = await import('qr-scanner');
     try {
@@ -246,15 +260,22 @@
       }
       await setCurrentLocation(pending.locationId);
       status = `Location set to ${labelForLocation(pending.locationId)}.`;
+    } else if (pending.kind === 'ticket') {
+      await hydrateProfile();
+      profileState.profile.ticketRef = pending.ticketRef;
+      await saveProfile();
+      status = 'Ticket reference saved. This does not verify admission.';
     } else if (draft) {
       // Contact import is local: keep it in the on-device contact list (unverified).
       const result = await saveScannedContact(draft);
+      savedContactId = result.contact.id;
+      savedHadBadge = !!result.contact.fingerprint;
       status =
         result.outcome === 'updated'
-          ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Identities stay unverified until compared in person.`
+          ? `Updated ${result.contact.fullName} (met ${result.contact.metCount ?? 1} times). Saving is not verification: compare badges in person, and verify accounts in your chat app.`
           : result.outcome === 'key-changed'
             ? `Saved ${result.contact.fullName} as a new entry: the card's key differs from the one you saved before, so the earlier contact was kept. Compare key badges in person before trusting either.`
-            : `Saved ${result.contact.fullName} to your contacts. Identities stay unverified until compared in person.`;
+            : `Saved ${result.contact.fullName} to your contacts. Saving is not verification: compare badges in person, and verify accounts in your chat app.`;
     }
     pending = null;
     manualLocation = '';
@@ -271,6 +292,8 @@
   }
 
   const contactPreview = $derived(draft);
+  /** The separate trust facts for the card on screen (#31, #188). */
+  const previewTrust = $derived(draft ? deriveContactTrust(draft) : null);
   /** What saving this card would do against the existing contact list (key continuity). */
   const continuity = $derived(draft ? reconcileContact(draft, contactsState.contacts) : null);
 </script>
@@ -316,6 +339,21 @@
 
   {#if error}<p class="error" role="alert">{error}</p>{/if}
   {#if status}<p class="ok" role="status">{status}</p>{/if}
+  {#if savedContactId}
+    <div class="actions">
+      <a class="button" href={resolve(`/connect?contact=${encodeURIComponent(savedContactId)}`)}
+        >View contact</a
+      >
+      {#if savedHadBadge}
+        <a
+          class="button secondary"
+          href={resolve(`/connect/compare?contact=${encodeURIComponent(savedContactId)}`)}
+          >Compare badges</a
+        >
+      {/if}
+      <button class="button secondary" onclick={startCamera}>Scan another</button>
+    </div>
+  {/if}
 
   {#if pending}
     <section class="card preview" aria-live="polite">
@@ -353,8 +391,11 @@
           </p>
         {/if}
         <p class="muted">These fields were shared with you. Nothing is uploaded.</p>
+        <ContactChecks />
         <p class="unverified">
-          Unverified — a QR code exchanges identifiers, it does not prove who someone is.
+          A QR code exchanges identifiers. It does not prove who is showing it, and saving it does
+          not verify anyone. Three separate things, each its own step: save the contact, compare
+          badges in person, and open a chat in your own chat app.
         </p>
         {#if pending.kind === 'friend'}
           <div class="handshake">
@@ -366,13 +407,14 @@
               {#if !cardIdentity}
                 <span class="muted small">Checking signature…</span>
               {:else if cardIdentity.signature === 'valid'}
-                <strong class="sig-ok">✔ Signed card</strong>
+                <strong class="sig-ok">Card signature valid</strong>
                 <span class="muted small">
-                  Badge <code>{shortFingerprint(cardIdentity.fingerprint ?? '')}</code> — ask them to
-                  show their badge on the Connect screen; if it matches, you scanned their device's key.
+                  Badge <code>{shortFingerprint(cardIdentity.fingerprint ?? '')}</code> — the card came
+                  from a phone holding this key. A photographed QR carries the same signature, so ask
+                  them to show their badge on their Connect screen and compare after saving.
                 </span>
               {:else if cardIdentity.signature === 'invalid'}
-                <strong class="sig-bad">✖ Signature does not match</strong>
+                <strong class="sig-bad">Card signature does not match</strong>
                 <span class="muted small"
                   >The card was altered or re-encoded. Ask for a fresh code.</span
                 >
@@ -420,12 +462,44 @@
             <dd>{url}</dd>
           {/each}
         </dl>
+        {#if previewTrust}
+          <dl class="trust" aria-label="What saving this card would and would not establish">
+            <dt>In person</dt>
+            <dd>
+              {inPersonLabel(previewTrust.inPerson)}
+              {#if previewTrust.inPerson === 'unconfirmed'}
+                <span class="muted">— compare badges after saving.</span>
+              {/if}
+            </dd>
+            {#if previewTrust.profile !== 'no-claim'}
+              <dt>Account link</dt>
+              <dd>
+                {profileLabel(previewTrust.profile)}
+                <span class="muted"
+                  >— the card's Matrix id is checked against that account's public profile once
+                  saved and online. A match is the homeserver's word, not proof.</span
+                >
+              </dd>
+            {/if}
+            <dt>Chat</dt>
+            <dd>
+              {chatLabel(previewTrust.chat)}
+              <span class="muted">— verify accounts and devices in your chat app, not here.</span>
+            </dd>
+          </dl>
+        {/if}
         {#if contactDeepLinks(contactPreview).length > 0}
           <p class="muted small">
             Tap to reach them (opens the app or site, nothing is sent automatically):
           </p>
           <SocialLinks links={contactDeepLinks(contactPreview)} />
         {/if}
+      {/if}
+      {#if draft}
+        <p class="muted">
+          Saving keeps this person in People I met inside this app. It does not add them to your
+          phone's contacts.
+        </p>
       {/if}
       <div class="preview-actions">
         {#if pending.kind === 'location'}
@@ -442,28 +516,31 @@
           <a class="button primary" href={matrixToUrl(pending.idOrAlias)} rel="noreferrer"
             >Open in Element</a
           >
-        {:else if pending.kind !== 'ticket'}
+        {:else if pending.kind === 'ticket'}
+          <button class="button primary" onclick={confirmPending}>Save my ticket reference</button>
+        {:else}
           <button class="button primary" onclick={confirmPending}>Save contact</button>
-          {#if contactPreview?.matrixId}
-            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-            <a class="button secondary" href={matrixToUrl(contactPreview.matrixId)} rel="noreferrer"
-              >Open in Element</a
-            >
-          {:else if contactPreview?.neutrinoServerName}
-            <!-- eslint-disable svelte/no-navigation-without-resolve -->
-            <a
-              class="button secondary"
-              href={matrixToUrl(neutrinoMatrixId(contactPreview.neutrinoServerName))}
-              rel="noreferrer">Open P2P id in a Neutrino client</a
-            >
-            <!-- eslint-enable svelte/no-navigation-without-resolve -->
-          {/if}
           <button class="button secondary" onclick={downloadDraft}>Download .vcf</button>
         {/if}
         <button class="button secondary" onclick={cancelPending}>
           {pending.kind === 'ticket' ? 'Dismiss' : 'Cancel'}
         </button>
       </div>
+      {#if previewTrust && pending.kind !== 'location' && pending.kind !== 'ticket' && pending.kind !== 'matrix-room'}
+        <!-- Opening a chat is a separate step from saving, and a handoff to whatever
+             client the OS has (ADR 0004). A web page cannot see what is installed. -->
+        <div class="routes">
+          {#if previewTrust.routes.length === 0}
+            <span class="muted small">{NO_ROUTE_LABEL} on this card.</span>
+          {:else}
+            {#each previewTrust.routes as route (route.kind)}
+              <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+              <a class="button secondary small" href={route.href} rel="noreferrer">{route.label}</a>
+              <span class="muted small">{route.caveat}</span>
+            {/each}
+          {/if}
+        </div>
+      {/if}
     </section>
   {/if}
 
@@ -705,6 +782,31 @@
     border-radius: var(--radius);
     padding: 0.4rem 0.7rem;
     font-size: 0.85rem;
+  }
+  .trust {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.25rem 0.7rem;
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+  .trust dt {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-top: 0.15rem;
+  }
+  .trust dd {
+    margin: 0;
+  }
+  .routes {
+    display: grid;
+    gap: 0.3rem;
+    justify-items: start;
+    margin-top: 0.6rem;
   }
   code {
     font-size: 0.8rem;

@@ -53,6 +53,8 @@ class AffinityModel(val affinity: Map<String, Double>, val evidence: Map<String,
             }
             for (ranked in byId.values) {
                 if (ranked.disposition == Disposition.NOT_INTERESTED) vote(ranked.activity.id, -1.0)
+                else if (ranked.disposition == Disposition.MUST_ATTEND) vote(ranked.activity.id, 3.0)
+                else if (ranked.interest == "yes") vote(ranked.activity.id, 1.0)
             }
             for ((trackId, pref) in rooms) {
                 val key = "track:$trackId"
@@ -60,7 +62,7 @@ class AffinityModel(val affinity: Map<String, Double>, val evidence: Map<String,
                 votes[key] = (votes[key] ?: 0.0) + weight
                 evidence[key] = (evidence[key] ?: 0) + LOVED_ROOM_VOTES
             }
-            val affinity = votes.mapValues { (key, total) -> total / ((evidence[key] ?: 0) + SHRINKAGE) }
+            val affinity = votes.mapValues { (key, total) -> (total / ((evidence[key] ?: 0) + SHRINKAGE)).coerceIn(-1.0, 1.0) }
             return AffinityModel(affinity, evidence)
         }
     }
@@ -82,6 +84,33 @@ class AffinityModel(val affinity: Map<String, Double>, val evidence: Map<String,
 
     fun apply(pool: List<RankedActivity>): List<RankedActivity> =
         pool.map { it.copy(rating = ratingWithPrior(it)) }
+
+    /** Local discovery order with periodic track exploration; no model download or network. */
+    fun discoveryDeck(pool: List<RankedActivity>): List<Activity> {
+        val remaining = pool.filter { it.interest == null && it.disposition == Disposition.NORMAL && !it.activity.cancelled && it.activity.type != "meal" }.toMutableList()
+        val out = ArrayList<Activity>()
+        val used = HashMap<String, Int>()
+        val decided = pool.filter { it.interest != null || it.disposition != Disposition.NORMAL }
+        decided.forEach { used[it.activity.trackId.orEmpty()] = (used[it.activity.trackId.orEmpty()] ?: 0) + 1 }
+        fun score(r: RankedActivity): Double {
+            val topics = keysOf(r.activity).filter { !it.startsWith("type:") && !Regex("tag:(talk|lightning talk|other|beginner|intermediate|advanced)", RegexOption.IGNORE_CASE).matches(it) }
+            return topics.sumOf { affinity[it] ?: 0.0 } / topics.size.coerceAtLeast(1)
+        }
+        while (remaining.isNotEmpty()) {
+            val explore = (decided.size + out.size) % 4 == 3 || remaining.all { score(it) <= 0 }
+            remaining.sortWith { a, b ->
+                val diversity = (used[a.activity.trackId.orEmpty()] ?: 0).compareTo(used[b.activity.trackId.orEmpty()] ?: 0)
+                val relevance = score(b).compareTo(score(a))
+                val first = if (explore) diversity else relevance
+                val second = if (explore) relevance else diversity
+                if (first != 0) first else if (second != 0) second else a.activity.id.compareTo(b.activity.id)
+            }
+            val next = remaining.removeAt(0).activity
+            used[next.trackId.orEmpty()] = (used[next.trackId.orEmpty()] ?: 0) + 1
+            out += next
+        }
+        return out
+    }
 
     /** Tracks pulling up or down, for the "learning your taste" line. */
     fun tasteLine(tracks: List<Track>): String {

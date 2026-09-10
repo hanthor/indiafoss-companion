@@ -1,3 +1,4 @@
+import { boothAvailableOn } from './booth-availability';
 import type { EventBundle } from '@indiafoss/model';
 import { solveDay, DefaultTravelTime, DEFAULT_FLEXIBLE_GOALS } from '@indiafoss/solver';
 import type { FlexibleGoal, SolverPreferences, TravelTimeProvider } from '@indiafoss/solver';
@@ -10,6 +11,8 @@ import {
   hydratePreferences,
   ratingOf,
 } from '$lib/prefs.svelte';
+import { hydrateRoomPrefs, roomPreferences } from '$lib/roomPrefs.svelte';
+import { triageOf } from '$lib/prefs.svelte';
 import { affinityModel, effectiveRating } from '$lib/priors.svelte';
 import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
 import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
@@ -27,9 +30,13 @@ const preferences: SolverPreferences = {
 };
 
 /** Planned booth visits (settings key `booth-visit-<id>` -> minutes). */
-export async function plannedBoothVisits(bundle: EventBundle): Promise<FlexibleGoal[]> {
+export async function plannedBoothVisits(
+  bundle: EventBundle,
+  day: string,
+): Promise<FlexibleGoal[]> {
   const goals: FlexibleGoal[] = [];
   for (const booth of bundle.booths) {
+    if (!boothAvailableOn(booth, day)) continue;
     const minutes = await getStorage().getSetting(`booth-visit-${booth.id}`);
     if (minutes) {
       goals.push({
@@ -46,7 +53,8 @@ export async function plannedBoothVisits(bundle: EventBundle): Promise<FlexibleG
 /**
  * Build a schedule-aware travel provider from the event's venue graph, honouring
  * the attendee's routing profile (§29). Falls back to the flat default when the
- * venue asset cannot be loaded (e.g. offline before the first fetch).
+ * venue asset cannot be loaded (e.g. offline before the first fetch). Restricted
+ * profiles never substitute a made-up transfer for a missing route.
  */
 export async function travelForEvent(bundle: EventBundle): Promise<TravelTimeProvider> {
   await hydrateRoutingProfile();
@@ -54,9 +62,14 @@ export async function travelForEvent(bundle: EventBundle): Promise<TravelTimePro
     const venue = await loadVenue(venueKeyForEvent(bundle.id));
     return createGraphTravelTime(venue.graph, venue.metadata, {
       profile: routingPrefs.profile,
+      defaultSeconds: routingPrefs.profile === 'fastest' ? 300 : Infinity,
     });
   } catch {
-    return DefaultTravelTime;
+    return routingPrefs.profile === 'fastest'
+      ? DefaultTravelTime
+      : {
+          seconds: (from, to) => (from && to && from !== to ? Infinity : 0),
+        };
   }
 }
 
@@ -66,9 +79,9 @@ export async function travelForEvent(bundle: EventBundle): Promise<TravelTimePro
  * venue route durations under the attendee's routing profile (§29).
  */
 export async function solveForDay(bundle: EventBundle, day: string, lockedIds: string[] = []) {
-  await Promise.all([hydratePreferences(), hydrateComparisons()]);
+  await Promise.all([hydratePreferences(), hydrateComparisons(), hydrateRoomPrefs(bundle.id)]);
   const [boothGoals, travel] = await Promise.all([
-    plannedBoothVisits(bundle),
+    plannedBoothVisits(bundle, day),
     travelForEvent(bundle),
   ]);
   // Sessions the attendee has not ranked yet borrow the taste learnt from the
@@ -79,7 +92,10 @@ export async function solveForDay(bundle: EventBundle, day: string, lockedIds: s
   const activityById = new Map(bundle.activities.map((a) => [a.id, a]));
   const ratingWithTaste = (id: string): number => {
     const activity = activityById.get(id);
-    return activity ? effectiveRating(activity, model) : ratingOf(id);
+    return (
+      (activity ? effectiveRating(activity, model) : ratingOf(id)) +
+      (triageOf(id) === 'yes' ? 120 : 0)
+    );
   };
   // Locked itinerary rows are hard constraints: the solver must keep them (§18).
   // Plain lookup set for one solve; nothing observes it.
@@ -95,6 +111,9 @@ export async function solveForDay(bundle: EventBundle, day: string, lockedIds: s
   const result = solveDay({
     bundle,
     day,
+    stayTrackIds: Object.entries(roomPreferences())
+      .filter(([, value]) => value === 'stay')
+      .map(([id]) => id),
     preferences: prefs,
     travel,
     flexibleGoals: [...DEFAULT_FLEXIBLE_GOALS, ...boothGoals],

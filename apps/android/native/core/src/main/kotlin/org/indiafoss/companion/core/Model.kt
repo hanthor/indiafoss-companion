@@ -20,6 +20,7 @@ data class EventBundle(
     val locations: List<Location> = emptyList(),
     val booths: List<Booth> = emptyList(),
     val tracks: List<Track> = emptyList(),
+    val sourceMetadata: SourceMetadata = SourceMetadata(),
 ) {
     private val peopleById by lazy { people.associateBy { it.id } }
     private val locationsById by lazy { locations.associateBy { it.id } }
@@ -30,6 +31,9 @@ data class EventBundle(
 
     fun speakersOf(activity: Activity): List<Person> = activity.speakerIds.mapNotNull(::person)
 }
+
+@Serializable
+data class SourceMetadata(val scheduleStatus: String? = null)
 
 @Serializable
 data class Activity(
@@ -49,6 +53,8 @@ data class Activity(
     val flexible: Boolean = false,
     val audience: String? = null,
     val sourceUrl: String? = null,
+    val proposalId: String? = null,
+    val scheduleNote: String? = null,
     val keyTakeaways: List<String> = emptyList(),
     val links: List<ExternalLink> = emptyList(),
     val references: List<ExternalLink> = emptyList(),
@@ -82,6 +88,7 @@ data class Booth(
     val description: String? = null,
     val website: String? = null,
     val locationId: String? = null,
+    val availableDates: List<String>? = null,
     val tags: List<String> = emptyList(),
 )
 

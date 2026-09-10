@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "cardKey": "k3Yb64url",
+  "issuedAt": "2026-09-26T10:00:00.000Z",
+  "expiresAt": "2026-10-26T10:00:00.000Z",
+  "signature": "sIgb64url",
+  "eventId": "indiafoss-2026",
+  "profile": {
+    "displayName": "Asha",
+    "pronouns": "they/them",
+    "organisation": "FOSS United",
+    "links": [
+      "https://example.org/asha",
+      "mailto:asha@example.org"
+    ]
+  },
+  "accounts": [
+    {
+      "userId": "@asha:indiafoss.org",
+      "kind": "classic",
+      "trust": "claimed"
+    },
+    {
+      "userId": "@n:845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+      "kind": "mesh",
+      "trust": "claimed"
+    }
+  ]
+}

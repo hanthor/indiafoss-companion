@@ -12,6 +12,49 @@ assignment — and nothing in the build or the screenshot tests caught it.
 So there are now two layers on an emulator, and they exist for different
 reasons.
 
+## Local core and app gate
+
+`just android-test` runs both `:core:test` and `:app:testDebugUnitTest`, including
+compilation of the app and Robolectric screen renders. CI runs the same
+`scripts/android-test.sh` entry point. Missing prerequisites fail the command;
+it never falls back to a smaller test suite.
+
+`just android-core-test` runs only the pure Kotlin engines. It needs JDK 21 but
+no Android SDK, and says nothing about whether `:app` compiles or runs. Report
+which command actually passed. A PR touching native code must pass the native
+CI and emulator gates before merge, even if its local core tests pass.
+
+### Set up the toolchain
+
+Install JDK 21 and set `JAVA_HOME` to its installation directory. Install the
+Android SDK using Android Studio's SDK Manager, or download the
+[Android command-line tools](https://developer.android.com/tools) and follow
+the [sdkmanager setup instructions](https://developer.android.com/tools/sdkmanager).
+Keep toolchains in a persistent directory rather than `/tmp`.
+
+Set `ANDROID_HOME` to the SDK directory; alternatively set `sdk.dir` in the
+ignored `apps/android/native/local.properties`. The
+[Android environment-variable reference](https://developer.android.com/tools/variables)
+describes SDK path configuration. With command-line tools installed, install
+the packages required by the current `app/build.gradle.kts`:
+
+```bash
+export ANDROID_HOME="$HOME/Android/Sdk"
+"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+just android-test
+```
+
+Review and accept the SDK licences interactively. Android Studio can install
+the same SDK packages. The Gradle wrapper downloads the pinned Gradle version;
+no global Gradle installation is needed. Invalid SDK paths, missing packages,
+or incompatible Java versions remain failures reported by Gradle.
+
+Screen renders are written to `apps/android/native/app/build/screenshots/`.
+This gate needs no emulator, but passing it does not prove notification delivery
+or installed-device lifecycle behavior. Use the emulator gate below for launch
+and navigation, and retain physical-device rehearsal for release readiness.
+
 ## The gate: Maestro on an emulator
 
 Runs on every push and pull request, as the **Android emulator (Maestro)** job

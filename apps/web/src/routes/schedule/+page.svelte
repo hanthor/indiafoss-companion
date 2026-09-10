@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { loadPlanned, plannedKey, planExists } from '$lib/planned.svelte';
+  import { resolveSavedDayPlan, trackPlanInputs } from '$lib/resolved-plan.svelte';
   import type { ActivityType } from '@indiafoss/model';
   import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
@@ -21,8 +23,13 @@
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
+  // The list is the default at every width: it is the searchable, filterable
+  // view the browser tests and attendees know. On a wide screen it still uses
+  // the width (co-starting sessions sit side by side), and the room grid,
+  // one tap away, lays every room out beside the others (issue 205).
   let view: 'list' | 'grid' = $state('list');
   let query = $state('');
+  let selectedRoom = $state('');
   let devroomsOnly = $state(false);
   let bookmarkedOnly = $state(false);
   let calendarMessage = $state('');
@@ -48,6 +55,8 @@
     'workshop',
     'panel',
     'bof',
+    'ceremony',
+    'intro',
     'meal',
   ];
   const typeToggles = $state<Record<string, boolean>>(
@@ -55,7 +64,7 @@
   );
 
   $effect(() => {
-    if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
+    if (days.length > 0 && (!selectedDay || !days.includes(selectedDay))) selectedDay = days[0]!;
   });
 
   const typesOn = $derived(
@@ -68,12 +77,41 @@
 
   const dayActivities = $derived(selectedDay ? activitiesForDay(bundle, selectedDay) : []);
 
+  let resolvedIds = $state<string[]>([]);
+  $effect(() => {
+    const source = bundle;
+    const day = selectedDay;
+    trackPlanInputs(source);
+    const exists = source && day ? planExists[plannedKey(source.id, day)] : false;
+    resolvedIds = [];
+    let active = true;
+    if (!source || !day) return;
+    void loadPlanned(source.id, day);
+    // A fresh browser has interests, not a confirmed plan. Preserve that distinction.
+    if (exists) {
+      void resolveSavedDayPlan(source, day)
+        .then((plan) => {
+          if (active && plan.edited.feasible && plan.mustAttendConflicts.length === 0)
+            resolvedIds = plan.edited.items.map((item) => item.id);
+        })
+        .catch(() => {});
+    }
+    return () => {
+      active = false;
+    };
+  });
+  const plannedIds = $derived(new Set(resolvedIds));
+
   const searchIds = $derived(
     query.trim().length >= 2 ? new Set(searchActivities(bundle, query, 60).map((h) => h.id)) : null,
   );
 
+  const rooms = $derived(
+    bundle?.locations.filter((room) => dayActivities.some((a) => a.locationId === room.id)) ?? [],
+  );
   const filtered = $derived(
     dayActivities.filter((a) => {
+      if (selectedRoom && a.locationId !== selectedRoom) return false;
       if (!typesOn.has(a.type)) return false;
       if (devroomsOnly && !a.devroomId) return false;
       if (bookmarkedOnly) {
@@ -111,7 +149,10 @@
           aria-selected={selectedDay === day}
           class="daytab"
           class:active={selectedDay === day}
-          onclick={() => (selectedDay = day)}
+          onclick={() => {
+            selectedDay = day;
+            selectedRoom = '';
+          }}
         >
           Day {i + 1}<br /><small>{formatDayLabel(day)}</small>
         </button>
@@ -124,11 +165,33 @@
         <input type="search" placeholder="Search sessions…" bind:value={query} />
       </label>
       <div class="seg" role="group" aria-label="View">
-        <button class:active={view === 'list'} onclick={() => (view = 'list')}>List</button>
-        <button class:active={view === 'grid'} onclick={() => (view = 'grid')}>Timeline</button>
+        <button
+          aria-pressed={view === 'list'}
+          class:active={view === 'list'}
+          onclick={() => (view = 'list')}>List</button
+        >
+        <button
+          aria-pressed={view === 'grid'}
+          class:active={view === 'grid'}
+          onclick={() => (view = 'grid')}>Room grid</button
+        >
       </div>
     </div>
 
+    <div class="room-filters" role="group" aria-label="Filter by room">
+      <button
+        class:active={!selectedRoom}
+        aria-pressed={!selectedRoom}
+        onclick={() => (selectedRoom = '')}>All rooms</button
+      >
+      {#each rooms as room (room.id)}
+        <button
+          class:active={selectedRoom === room.id}
+          aria-pressed={selectedRoom === room.id}
+          onclick={() => (selectedRoom = room.id)}>{room.name}</button
+        >
+      {/each}
+    </div>
     <details class="filters">
       <summary>Filters</summary>
       <div class="filters-inner">
@@ -158,6 +221,7 @@
     {filtered.length} session{filtered.length === 1 ? '' : 's'}
   </p>
 
+  {#if filtered.length === 0}<p>No sessions match these filters.</p>{/if}
   {#if view === 'list'}
     <div class="list">
       {#each groupByStart(filtered) as group (group.start)}
@@ -169,18 +233,40 @@
           </div>
           <div class="items">
             {#each group.activities as activity (activity.id)}
-              <SessionCard {activity} {bundle} compactTime />
+              <SessionCard {activity} {bundle} compactTime planned={plannedIds.has(activity.id)} />
             {/each}
           </div>
         </div>
       {/each}
     </div>
   {:else}
-    <TimelineGrid activities={filtered} {bundle} day={selectedDay ?? ''} />
+    <TimelineGrid activities={filtered} {plannedIds} {bundle} day={selectedDay ?? ''} />
   {/if}
 </EventGate>
 
 <style>
+  .room-filters {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding-block: 0.25rem;
+  }
+  .room-filters button {
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--text);
+    min-height: 40px;
+    padding: 0.4rem 0.8rem;
+  }
+  .room-filters button.active {
+    background: var(--mint-soft);
+    color: var(--mint-dark);
+    border-color: var(--mint-dark);
+    font-weight: 700;
+  }
+
   .pagehead {
     display: flex;
     align-items: end;
@@ -308,6 +394,25 @@
     grid-template-columns: 5rem 1fr;
     gap: 0.75rem;
     margin-bottom: 0.25rem;
+  }
+  @media (min-width: 1024px) {
+    .controls {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: 1.5rem;
+    }
+    .room-filters,
+    .filters {
+      grid-column: 1 / -1;
+    }
+    /* Sessions that start together sit beside each other, one per room. */
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+      gap: 0 1rem;
+      align-items: start;
+    }
   }
   .time {
     text-align: right;

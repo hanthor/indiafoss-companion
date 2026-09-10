@@ -8,7 +8,7 @@ package org.indiafoss.companion.core
  */
 object ScheduleDiff {
     enum class Kind(val label: String) {
-        ADDED("added"), CANCELLED("cancelled"), TIME("moved"), ROOM("room changed"),
+        ADDED("added"), CANCELLED("cancelled"), REINSTATED("reinstated"), TIME("moved"), ROOM("room changed"),
         TITLE("retitled"), SPEAKERS("speakers changed"),
     }
 
@@ -21,6 +21,7 @@ object ScheduleDiff {
             val old = before[a.id]
             if (old == null) { out += Change(a.id, a.title, Kind.ADDED); continue }
             if (a.cancelled && !old.cancelled) out += Change(a.id, a.title, Kind.CANCELLED)
+            if (!a.cancelled && old.cancelled) out += Change(a.id, a.title, Kind.REINSTATED)
             if (a.start != old.start || a.end != old.end) {
                 val detail = listOfNotNull(old.start?.let(Schedule::formatTime), a.start?.let(Schedule::formatTime)).joinToString(" → ")
                 out += Change(a.id, a.title, Kind.TIME, detail.ifBlank { null })

@@ -156,7 +156,12 @@ export class NeutrinoNode {
   async destroy(): Promise<void> {
     this.stop();
     await this.link.close();
-    if (this.ownsDir) rmSync(this.storageDir, { recursive: true, force: true });
+    // `SWARM_KEEP=1` preserves every node's storage and log for a post-mortem.
+    // The alternative when a run fails is re-running it with print statements,
+    // which for a 5-minute 24-node run is a poor debugger.
+    if (this.ownsDir && !process.env.SWARM_KEEP) {
+      rmSync(this.storageDir, { recursive: true, force: true });
+    }
   }
 
   /** Authenticated (or anonymous) client-server request against the backend. */

@@ -1,6 +1,6 @@
 name: Nightly APK
 
-# Publishes the latest main's native Android client as an installable debug
+# Publishes the latest main's native Android client as an signed preview
 # APK on the rolling "nightly" pre-release so testers never need a GitHub
 # login for artifacts.
 on:
@@ -19,28 +19,61 @@ jobs:
   apk:
     name: Build and publish nightly APK
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Assemble debug APK
-        run: cd apps/android/native && ./gradlew :app:assembleDebug
-
-      - name: Name and checksum the APK
+      - name: Identify the build
+        id: build
         run: |
-          mkdir -p dist
-          cp apps/android/native/app/build/outputs/apk/debug/app-debug.apk dist/indiafoss-companion-nightly.apk
-          cd dist && sha256sum indiafoss-companion-nightly.apk > indiafoss-companion-nightly.apk.sha256
-          cat indiafoss-companion-nightly.apk.sha256
+          {
+            echo "date=$(date -u +%Y-%m-%d)"
+            echo "built_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "version=2026.$GITHUB_RUN_NUMBER-${GITHUB_SHA:0:7}"
+            echo "code=$((1000 + GITHUB_RUN_NUMBER))"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Require signing configuration
+        env:
+          SIGNING_KEY: ${{ secrets.NIGHTLY_KEYSTORE_BASE64 }}
+          SIGNING_PASSWORD: ${{ secrets.NIGHTLY_KEYSTORE_PASSWORD }}
+          SIGNING_ALIAS: ${{ vars.NIGHTLY_KEY_ALIAS }}
+          SIGNING_CERT: ${{ vars.NIGHTLY_CERT_SHA256 }}
+        run: |
+          test -n "$SIGNING_KEY" && test -n "$SIGNING_PASSWORD" && test -n "$SIGNING_ALIAS" && test -n "$SIGNING_CERT" || {
+            echo "::error::Configure persistent nightly signing before publishing. See docs/release.md."
+            exit 1
+          }
+
+      - name: Assemble unsigned release APK
+        working-directory: apps/android/native
+        env:
+          NIGHTLY_VERSION: ${{ steps.build.outputs.version }}
+          NIGHTLY_CODE: ${{ steps.build.outputs.code }}
+        run: ./gradlew :app:assembleRelease -PnightlyVersionName="$NIGHTLY_VERSION" -PnightlyVersionCode="$NIGHTLY_CODE"
+
+      - name: Sign and verify the APK
+        env:
+          NIGHTLY_KEYSTORE_BASE64: ${{ secrets.NIGHTLY_KEYSTORE_BASE64 }}
+          NIGHTLY_KEYSTORE_PASSWORD: ${{ secrets.NIGHTLY_KEYSTORE_PASSWORD }}
+          NIGHTLY_KEY_ALIAS: ${{ vars.NIGHTLY_KEY_ALIAS }}
+          NIGHTLY_CERT_SHA256: ${{ vars.NIGHTLY_CERT_SHA256 }}
+          NIGHTLY_VERSION: ${{ steps.build.outputs.version }}
+          NIGHTLY_CODE: ${{ steps.build.outputs.code }}
+        run: |
+          build_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          export APKSIGNER="$build_tools/apksigner" ZIPALIGN="$build_tools/zipalign"
+          python3 scripts/sign-nightly.py apps/android/native/app/build/outputs/apk/release/app-release-unsigned.apk dist/indiafoss-companion-nightly.apk
 
       - name: Move the nightly tag to this commit
         run: |
@@ -51,10 +84,23 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: nightly
-          name: Nightly build
+          name: IndiaFOSS 2026 nightly · ${{ steps.build.outputs.date }} · ${{ steps.build.outputs.version }}
           prerelease: true
           body: |
-            Latest `main` (${{ github.sha }}) as a debug APK. Install over the previous nightly.
+            Android preview built **${{ steps.build.outputs.built_at }}** from [${{ github.sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }}).
+
+            **[Download the Android APK](https://github.com/${{ github.repository }}/releases/download/nightly/indiafoss-companion-nightly.apk)** · [Open the PWA](https://hanthor.github.io/indiafoss-companion/)
+
+            Includes the IndiaFOSS 2026 programme. In the Android app, Settings → About should show **${{ steps.build.outputs.version }}** (build ${{ steps.build.outputs.code }}).
+
+            This is a rolling preview: the release's original publication date is not the APK build date. The timestamp and build identifier above describe the current download. Draft sessions and times may change.
+
+            Signed preview APK. Subsequent previews using this signing identity support in-place updates. Older runner-signed debug builds may have a different certificate and cannot be upgraded with this APK. Keep the existing installation and its data; do not uninstall to bypass a signing mismatch. See [upgrade guidance](https://github.com/hanthor/indiafoss-companion/blob/main/docs/release.md#nightly-signing-and-upgrades).
+
+            Signing certificate SHA-256: ${{ vars.NIGHTLY_CERT_SHA256 }}. The attached signing manifest records the APK checksum and source revision.
+
+            [Build log](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) · SHA-256 checksum attached below.
           files: |
             dist/indiafoss-companion-nightly.apk
             dist/indiafoss-companion-nightly.apk.sha256
+            dist/indiafoss-companion-nightly.apk.signing.json

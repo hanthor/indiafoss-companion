@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
 
@@ -6,6 +7,7 @@ const DURING = '2025-09-20T10:20:00+05:30';
 const NOW_URL = appUrl(`/now?event=indiafoss-2025&now=${encodeURIComponent(DURING)}`);
 
 test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
   // The event bundle is fetched from a static asset and cached in IndexedDB.
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
@@ -17,23 +19,16 @@ test('home shows event facts', async ({ page }) => {
   await expect(page.getByText(/117 speakers/)).toBeVisible();
 });
 
-test('first run opens the welcome wizard once: reminders, ticket, you, then rank', async ({
-  page,
-}) => {
+test('first run opens the welcome wizard once: reminders, you, then rank', async ({ page }) => {
   // beforeEach landed on `/`, which hands over to the wizard on a fresh device.
   await expect(page).toHaveURL(/\/welcome$/);
   await expect(page.getByRole('heading', { name: /Welcome to IndiaFOSS 2025/ })).toBeVisible();
   await page.getByRole('button', { name: 'Not now' }).click();
-  // A ticket must look like ticket::…
-  const ticket = page.getByLabel('Ticket reference');
-  await ticket.fill('nope');
-  await expect(page.getByRole('button', { name: /Save ticket/ })).toBeDisabled();
-  await ticket.fill('ticket::abc123');
-  await page.getByRole('button', { name: /Save ticket/ }).click();
+  await expect(page.getByLabel('Ticket reference')).toHaveCount(0);
   await page.getByLabel('Name', { exact: true }).fill('Asha Menon');
   await page.getByLabel('GitHub').fill('https://github.com/asha');
   await page.getByRole('button', { name: /Save →/ }).click();
-  await page.getByRole('button', { name: /Rank my sessions/ }).click();
+  await page.getByRole('button', { name: /Find talks for me/ }).click();
   await expect(page).toHaveURL(/\/plan\/rank$/);
   // What was entered is on the card; the wizard does not come back.
   await page.goto(appUrl('/connect'));
@@ -69,6 +64,21 @@ test('activity detail shows speakers and toggles bookmark', async ({ page }) => 
   await expect(bookmark).toHaveAttribute('aria-pressed', 'true');
   await bookmark.click();
   await expect(bookmark).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('an organiser ceremony shows its source instead of an invented abstract', async ({ page }) => {
+  await page.goto(appUrl('/activity/act-28la7q52h1?event=indiafoss-2026'));
+  await expect(page.getByRole('heading', { name: 'FOSS Awards' })).toBeVisible();
+  await expect(page.getByText('ceremony', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Other$/)).toHaveCount(0);
+  const fallback = page.getByTestId('no-description');
+  await expect(fallback).toContainText('No description published by the organiser yet');
+  await expect(fallback.getByRole('link', { name: /fossunited\.org/ })).toHaveAttribute(
+    'href',
+    'https://fossunited.org/c/indiafoss/2026/schedule',
+  );
+  await expect(page.getByRole('link', { name: 'View the official schedule' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Speakers' })).toHaveCount(0);
 });
 
 test('now screen uses developer time to show current session and next', async ({ page }) => {
@@ -146,86 +156,49 @@ test('ranking supports keyboard choices and undo', async ({ page }) => {
   await expect(page.getByText(SOME_CHOICES)).toBeVisible();
 });
 
-test('ranking starts with the devrooms; not interested takes their talks out', async ({ page }) => {
-  await page.goto(appUrl('/plan/rank'));
+test('devroom preferences are an optional path and remain editable', async ({ page }) => {
+  await page.goto(appUrl('/plan/rank?mode=rooms'));
   await expect(page.getByRole('tab', { name: /Devrooms/ })).toHaveAttribute(
     'aria-selected',
     'true',
   );
   const rows = page.getByTestId('room-row');
   expect(await rows.count()).toBeGreaterThan(3);
-  // Only devrooms are asked about; the main halls never appear here.
-  await expect(rows.filter({ hasText: /^Audi/ })).toHaveCount(0);
-  await expect(rows.filter({ hasText: 'main hall' })).toHaveCount(0);
-  // Each devroom says what it is about and can unfold its programme.
-  await expect(rows.first()).toContainText(/\d+ talks? · /);
-  await rows
-    .first()
-    .getByRole('button', { name: /What's on/ })
-    .click();
-  await expect(rows.first().getByRole('link').first()).toBeVisible();
-  // Not interested in AOSP, must go to the last one.
   const aosp = rows.filter({ hasText: 'AOSP' });
-  await aosp.getByRole('button', { name: 'Not interested' }).click();
-  await rows.last().getByRole('button', { name: 'Must go' }).click();
-  await page.getByRole('button', { name: /Done · 1 out, 1 must go/ }).click();
-  // The talks follow, without the room's talks.
+  await aosp.getByRole('button', { name: 'Not interested', exact: true }).click();
+  await expect(aosp.getByRole('button', { name: 'Not interested', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await rows.last().getByRole('button', { name: 'Stay for this devroom', exact: true }).click();
+  await page.getByRole('button', { name: /Done · 1 out, 1 staying/ }).click();
   await expect(page.getByRole('tab', { name: /Talks/ })).toHaveAttribute('aria-selected', 'true');
-  const toGo = async () =>
-    Number((await page.getByText(/\d+ TO GO/).textContent())?.match(/\d+/)?.[0]);
-  const without = await toGo();
-  // Interested again brings them back.
   await page.getByRole('tab', { name: /Devrooms/ }).click();
   await aosp.getByRole('button', { name: 'Interested', exact: true }).click();
-  await page.getByRole('tab', { name: /Talks/ }).click();
-  expect(await toGo()).toBeGreaterThan(without);
+  await expect(aosp.getByRole('button', { name: 'Not interested', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
 });
 
-test('the talks step deals one rich card at a time and remembers the answers', async ({ page }) => {
+test('talk discovery keeps archived preferences and pairwise history compatible', async ({
+  page,
+}) => {
   await page.goto(appUrl('/plan/rank?mode=quick'));
-  await expect(page.getByRole('tab', { name: /Talks/ })).toHaveAttribute('aria-selected', 'true');
   const card = page.getByTestId('talk-card');
   await expect(card).toBeVisible();
-  const toGo = async () =>
-    Number((await page.getByText(/\d+ TO GO/).textContent())?.match(/\d+/)?.[0]);
-  const before = await toGo();
-  expect(before).toBeGreaterThan(5);
-  // "Not for me" deals the next card; the opening notes go until a talk with a speaker is up.
-  let dropped = 0;
-  while (!/First Step into Open Source/.test((await card.getAttribute('aria-label')) ?? '')) {
-    await page.getByRole('button', { name: /^Not for me/ }).click();
-    dropped++;
-    expect(dropped).toBeLessThan(8);
-    await page.waitForTimeout(250);
-  }
-  // The card carries the speaker and the abstract, not just a title.
-  await expect(card.getByRole('link').first()).toBeVisible();
-  await expect(card.getByRole('button', { name: /Read more/ })).toBeVisible();
-  // "Interested" keeps it.
-  await page.getByRole('button', { name: /^Interested/ }).click();
-  await expect(page.getByText(new RegExp(`1 IN · ${dropped} OUT`))).toBeVisible();
-  expect(await toGo()).toBe(before - dropped - 1);
-  // A swipe to the right is an "Interested" too.
-  const box = (await card.boundingBox())!;
-  await page.mouse.move(box.x + box.width / 2, box.y + 40);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 + 120, box.y + 40, { steps: 6 });
-  await page.mouse.move(box.x + box.width / 2 + 220, box.y + 40, { steps: 6 });
-  await page.mouse.up();
-  await expect(page.getByText(new RegExp(`2 IN · ${dropped} OUT`))).toBeVisible();
-  // Answers survive a reload and can be changed.
+  const first = await card.getAttribute('aria-label');
+  await page.getByRole('button', { name: /^Want to go:/ }).click();
+  await expect(card).not.toHaveAttribute('aria-label', first!);
+  await expect(page.getByText(/1 choices saved/)).toBeVisible();
   await page.reload();
-  await expect(page.getByText(new RegExp(`2 IN · ${dropped} OUT`))).toBeVisible();
+  await expect(card).not.toHaveAttribute('aria-label', first!);
+  await expect(page.getByText(/1 choices saved/)).toBeVisible();
   await page.getByRole('button', { name: /Change answered/ }).click();
-  await page.getByRole('button', { name: 'Undo' }).first().click();
-  await expect(
-    page.getByText(new RegExp(`(2 IN · ${dropped - 1} OUT|1 IN · ${dropped} OUT)`)),
-  ).toBeVisible();
-  // The overlaps step is one tap away and shows a slot's sessions.
-  await page.getByRole('tab', { name: /Overlaps/ }).click();
-  await expect(page.getByText(/SLOT 1 OF \d+/)).toBeVisible();
+  await page.getByRole('button', { name: 'Undo', exact: true }).click();
+  await expect(page.getByText(/0 choices saved/)).toBeVisible();
+  await page.getByRole('tab', { name: /Compare overlaps/ }).click();
   await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await expect(page.getByTestId('candidate-b')).toBeVisible();
 });
 
 test('answered pairs are not asked again after a reload', async ({ page }) => {
@@ -243,6 +216,7 @@ test('answered pairs are not asked again after a reload', async ({ page }) => {
 
 test('ranking respects reduced motion while still recording choices', async ({ browser }) => {
   const context = await browser.newContext({ reducedMotion: 'reduce' });
+  await context.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
   const page = await context.newPage();
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
@@ -269,8 +243,10 @@ test('plan supports editing: lock, remove/restore, and a persistent custom block
   page,
 }) => {
   await page.goto(appUrl('/plan'));
-  const firstRow = page.locator('.itinerary li').first();
-  await expect(firstRow).toBeVisible({ timeout: 10_000 });
+  const firstLink = page.locator('.itinerary li:not(.flex) a').first();
+  await expect(firstLink).toBeVisible({ timeout: 10_000 });
+  const href = await firstLink.getAttribute('href');
+  const firstRow = page.locator('.itinerary li').filter({ has: page.locator(`a[href="${href}"]`) });
 
   // Lock the first item.
   await firstRow.locator('summary', { hasText: 'Adjust' }).click();
@@ -280,8 +256,14 @@ test('plan supports editing: lock, remove/restore, and a persistent custom block
   // Remove the second item and restore it from the Removed list.
   const before = await page.locator('.itinerary li').count();
   // Filler blocks carry no controls, so pick the second real session.
-  const secondRow = page.locator('.itinerary li:not(.flex)').nth(1);
-  await secondRow.locator('summary', { hasText: 'Adjust' }).click();
+  const removableLink = page.locator('.itinerary li:not(.flex):not(.locked) a').first();
+  const removableHref = await removableLink.getAttribute('href');
+  const secondRow = page
+    .locator('.itinerary li')
+    .filter({ has: page.locator(`a[href="${removableHref}"]`) });
+  if (!(await secondRow.locator('details').evaluate((el) => (el as HTMLDetailsElement).open))) {
+    await secondRow.locator('summary', { hasText: 'Adjust' }).click();
+  }
   await secondRow.getByRole('button', { name: 'Remove' }).click();
   await expect(page.locator('.itinerary li')).toHaveCount(before - 1);
   await expect(page.getByRole('heading', { name: 'Removed' })).toBeVisible();
@@ -296,6 +278,8 @@ test('plan supports editing: lock, remove/restore, and a persistent custom block
   await addBlock.getByRole('button', { name: 'Add block' }).click();
   await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible();
 
+  // The form clears only after IndexedDB has committed the custom block.
+  await expect(addBlock.getByLabel('What')).toHaveValue('');
   await page.reload();
   await expect(page.locator('.itinerary .flabel', { hasText: 'Lunch with friends' })).toBeVisible({
     timeout: 10_000,
@@ -341,7 +325,7 @@ test('sessions hand off to a Matrix client, offline-capable link first', async (
   await expect(web).toHaveAttribute('href', /matrix\.to\/#\/%23indiafoss-2025-room-devroom-1-aosp/);
 });
 
-test('must attend pins a talk in the plan and leads the leave-by banner', async ({ page }) => {
+test('must attend stays pinned while the banner follows plan order', async ({ page }) => {
   await page.goto(appUrl('/activity/act-c8ak0iov2l'));
   const must = page.getByRole('button', { name: 'Must attend' });
   await must.click();
@@ -350,9 +334,13 @@ test('must attend pins a talk in the plan and leads the leave-by banner', async 
   await page.goto(appUrl('/plan'));
   const list = page.getByRole('region', { name: /Must attend/ });
   await expect(list.getByRole('link', { name: /First Step into Open Source/ })).toBeVisible();
-  // The banner picks it over the programme order and says so.
+  // The banner follows the earlier planned talk rather than skipping to the must-go.
   const before = '2025-09-20T09:50:00+05:30';
   await page.goto(appUrl(`/schedule?now=${encodeURIComponent(before)}`));
+  await expect(page.locator('.leaveby')).toContainText(
+    'Strengthening the AOSP Developer Community',
+  );
+  await page.goto(appUrl('/schedule?now=2025-09-20T10:14:00%2B05:30'));
   const banner = page.getByRole('link', { name: /Must attend.*First Step into Open Source/ });
   await expect(banner).toBeVisible();
   await expect(banner).toContainText('MUST ATTEND');
@@ -386,7 +374,7 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
   // With a known location the NEXT card says where you are and opens the map on the next room.
   await expect(page.getByText(/You are at/)).toBeVisible({ timeout: 10_000 });
   await page.getByRole('link', { name: 'Show on map' }).click();
-  await expect(page.getByText('DESTINATION')).toBeVisible();
+  await expect(page.getByText('DESTINATION', { exact: true })).toBeVisible();
 });
 
 test('booth directory lists and schedules a visit', async ({ page }) => {
@@ -407,7 +395,7 @@ test('activity calendar action downloads a portable ICS file', async ({ page }) 
 
 test('connect keeps a live QR card and downloads a vCard', async ({ page }) => {
   await page.goto(appUrl('/connect'));
-  await expect(page.getByRole('heading', { name: 'Your card' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Your contact card' })).toBeVisible();
   // An empty card shows a prompt, not a code that encodes nothing.
   await expect(page.getByRole('img', { name: /contact details as a QR code/ })).toHaveCount(0);
   await expect(page.getByText(/Add your name below/)).toBeVisible();
@@ -512,24 +500,28 @@ test('a newer published revision is offered, downloaded first, then applied (#7)
   });
   const changed = structuredClone(current);
   changed.activities[0].title = 'Renamed by the organisers';
+  const asset = `event.${createHash('sha256').update(JSON.stringify(changed)).digest('hex').slice(0, 8)}.json`;
   // A manifest one revision ahead, naming a new immutable asset.
   await page.route(/\/events\/indiafoss-2025\/manifest\.json/, (route) =>
     route.fulfill({
       json: {
         schemaVersion: 1,
         eventId: 'indiafoss-2025',
+        generatedAt: '2026-09-08T12:00:00Z',
         revision: 999,
-        assets: { event: 'event.deadbeef.json' },
+        assets: { event: asset },
       },
     }),
   );
-  await page.route(/\/events\/indiafoss-2025\/event\.deadbeef\.json/, (route) =>
+  await page.route(/\/events\/indiafoss-2025\/event\.[0-9a-f]{8}\.json/, (route) =>
     route.fulfill({ json: changed }),
   );
   await page.goto(appUrl('/schedule'));
   const banner = page.getByRole('status', { name: 'Schedule update available' });
   await expect(banner).toBeVisible({ timeout: 10_000 });
-  await expect(banner).toContainText(/title-changed/);
+  // Human wording, not the raw change type — the banner used to render
+  // "1 title-changed" and, for a plural, "2 title-changeds".
+  await expect(banner).toContainText('1 title change');
   await banner.getByRole('button', { name: 'Update' }).click();
   await expect(banner).toBeHidden();
   await expect(page.getByText('Renamed by the organisers')).toBeVisible();
@@ -583,4 +575,163 @@ test('the who-I-met recap groups the people and makes a shareable card (#31)', a
   const download = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Save the image' }).click();
   expect((await download).suggestedFilename()).toBe('indiafoss-who-i-met.png');
+});
+
+test('2026 booth directory preserves showcasing days and unassigned availability', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/explore/booths?event=indiafoss-2026'));
+  await expect(page.getByRole('status').filter({ hasText: '71 booths' })).toBeVisible();
+  await page.getByRole('link', { name: 'openSUSE project' }).click();
+  await expect(page.getByText(/Showcasing: Unassigned/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Schedule 15 min' })).toHaveCount(0);
+  await page.goto(appUrl('/booth/booth-2026-altsendme?event=indiafoss-2026'));
+  await expect(page.getByText(/Showcasing: Day 2/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Schedule 15 min' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Find on map' })).toHaveCount(0);
+});
+
+test('2026 fresh and whole-devroom plans do not invent travel between same-room talks', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible();
+  await expect(page.getByTestId('edit-conflicts')).toHaveCount(0);
+  await page.goto(appUrl('/plan/rank?event=indiafoss-2026&mode=rooms'));
+  await page.getByRole('button', { name: 'Stay for this devroom', exact: true }).first().click();
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible();
+  await expect(page.getByTestId('edit-conflicts')).toHaveCount(0);
+
+  await expect(
+    page.locator('.itinerary').getByRole('link', { name: /Your first open source contribution/ }),
+  ).toBeVisible();
+});
+
+test('Now follows a removed session and a saved personal block across reloads', async ({
+  page,
+}) => {
+  const planUrl = appUrl('/plan?event=indiafoss-2026');
+  const nowUrl = appUrl('/now?event=indiafoss-2026&now=2026-09-26T09:31:00%2B05:30');
+  await page.goto(nowUrl);
+  const personal = page.getByRole('region', { name: 'Your plan now' });
+  await expect(personal.getByRole('link', { name: 'Welcome Note', exact: true })).toBeVisible();
+  await page.goto(planUrl);
+  const row = page
+    .locator('.itinerary li')
+    .filter({ has: page.getByRole('link', { name: 'Welcome Note', exact: true }) });
+  await row.locator('summary').click();
+  await row.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Removed', exact: true })).toBeVisible();
+  await page.goto(nowUrl);
+  await expect(personal.getByText('Loading your plan…')).toHaveCount(0);
+  await expect(personal.getByRole('link', { name: 'Welcome Note', exact: true })).toHaveCount(0);
+  await page.goto(planUrl);
+  const form = page.locator('.add-block');
+  await form.getByLabel('What').fill('Meet the booth team');
+  await form.getByLabel('Start', { exact: true }).fill('09:30');
+  await form.getByLabel('End', { exact: true }).fill('09:35');
+  await form.getByRole('button', { name: 'Add block' }).click();
+  await expect(form.getByLabel('What')).toHaveValue('');
+  await page.goto(nowUrl);
+  await expect(personal.getByText('Meet the booth team', { exact: true })).toBeVisible();
+  await expect(personal.getByText(/In progress/)).toBeVisible();
+  await page.reload();
+  await expect(personal.getByText('Meet the booth team', { exact: true })).toBeVisible();
+  await expect(personal.getByRole('link', { name: 'Show on map' })).toHaveCount(0);
+});
+
+test('Now opens the plan on the current event day', async ({ page }) => {
+  await page.goto(appUrl('/now?event=indiafoss-2026&now=2026-09-27T10:00:00%2B05:30'));
+  await page
+    .getByRole('region', { name: 'Your plan now' })
+    .getByRole('link', { name: 'Open your plan' })
+    .click();
+  await expect(page.locator('.days button.active')).toContainText('Day 2');
+});
+
+test('Now asks to resolve an overlapping personal block instead of choosing a destination', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  const form = page.locator('.add-block');
+  await form.getByLabel('What').fill('Conflicting meeting');
+  await form.getByLabel('Start', { exact: true }).fill('09:31');
+  await form.getByLabel('End', { exact: true }).fill('09:40');
+  await form.getByRole('button', { name: 'Add block' }).click();
+  await expect(form.getByLabel('What')).toHaveValue('');
+  await page.goto(appUrl('/now?event=indiafoss-2026&now=2026-09-26T09:32:00%2B05:30'));
+  const personal = page.getByRole('region', { name: 'Your plan now' });
+  await expect(personal.getByText(/Your plan has conflicting choices/)).toBeVisible();
+  await expect(personal.getByRole('link', { name: 'Show on map' })).toHaveCount(0);
+});
+
+test('map and every route banner use the edited plan without visiting Now', async ({ page }) => {
+  const time = '?event=indiafoss-2026&now=2026-09-26T09:29:00%2B05:30';
+  await page.goto(appUrl('/map' + time));
+  await expect(page.locator('.leaveby')).toContainText('Welcome Note');
+  await expect(page.locator('.roomlabel[data-planned-destination=true]')).toHaveCount(1);
+
+  await page.goto(appUrl('/plan' + time));
+  const row = page.locator('.itinerary li').filter({
+    has: page.getByRole('link', { name: 'Welcome Note', exact: true }),
+  });
+  await row.locator('summary').click();
+  await row.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Removed', exact: true })).toBeVisible();
+  await expect(page.locator('.leaveby')).not.toContainText('Welcome Note');
+
+  await page.goto(appUrl('/schedule' + time));
+  await expect(page.locator('.leaveby')).toBeVisible();
+  await expect(page.locator('.leaveby')).not.toContainText('Welcome Note');
+  await expect(page.locator('.leaveby')).toContainText('in your plan');
+  await page.reload();
+  await expect(page.locator('.leaveby')).toBeVisible();
+  await expect(page.locator('.leaveby')).not.toContainText('Welcome Note');
+});
+
+test('a conflicting plan clears map recommendations and banners on every route', async ({
+  page,
+}) => {
+  const time = '?event=indiafoss-2026&now=2026-09-26T09:29:00%2B05:30';
+  await page.goto(appUrl('/plan' + time));
+  await expect(page.locator('.leaveby')).toBeVisible();
+  const form = page.locator('.add-block');
+  await form.getByLabel('What').fill('Conflicting meeting');
+  await form.getByLabel('Start', { exact: true }).fill('09:31');
+  await form.getByLabel('End', { exact: true }).fill('09:40');
+  await form.getByRole('button', { name: 'Add block' }).click();
+  await expect(form.getByLabel('What')).toHaveValue('');
+  await expect(page.getByTestId('edit-conflicts')).toBeVisible();
+  await expect(page.locator('.leaveby')).toHaveCount(0);
+
+  await page.goto(appUrl('/map' + time));
+  await expect(page.getByRole('group', { name: 'Floor', exact: true })).toBeVisible();
+  await expect(page.locator('.roomlabel')).not.toHaveCount(0);
+  await expect(page.locator('.roomlabel[data-planned-destination=true]')).toHaveCount(0);
+  await expect(page.locator('.leaveby')).toHaveCount(0);
+  await page.goto(appUrl('/now' + time));
+  await expect(page.getByText(/Your plan has conflicting choices/)).toBeVisible();
+});
+
+test('schedule re-resolves a saved plan when choices change without reopening Plan', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan?event=indiafoss-2026'));
+  await expect(page.locator('.itinerary li').first()).toBeVisible();
+  await page.goto(appUrl('/schedule?event=indiafoss-2026'));
+  const welcome = page.locator('.session').filter({
+    has: page.getByRole('link', { name: 'Welcome Note', exact: true }),
+  });
+  await expect(welcome.getByText('Planned', { exact: true })).toBeVisible();
+  await welcome.getByRole('link', { name: 'Welcome Note', exact: true }).click();
+  const exclude = page.getByRole('button', { name: /Not interested/ });
+  await exclude.click();
+  await expect(exclude).toHaveAttribute('aria-pressed', 'true');
+  await page.goto(appUrl('/schedule?event=indiafoss-2026'));
+  await expect(welcome).toBeVisible();
+  await expect(welcome.getByText('Planned', { exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(welcome).toBeVisible();
+  await expect(welcome.getByText('Planned', { exact: true })).toHaveCount(0);
 });

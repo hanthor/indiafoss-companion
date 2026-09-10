@@ -7,6 +7,12 @@ import type { SyncResponse } from './types.js';
 class FakeHomeserver {
   /** How many joins answer 504 before one succeeds (#120). */
   stallJoins = 0;
+  /** Aliases this server has no room for, so a join 404s. */
+  unknownAliases = new Set<string>();
+  /** `room_alias_name` values seen by createRoom, in order. */
+  createdAliases: (string | null)[] = [];
+  /** Model a server that ignores `room_alias_name` and says nothing. */
+  dropAlias = false;
   joinAttempts = 0;
   online = true;
   sent: { roomId: string; txnId: string; body: string }[] = [];
@@ -68,13 +74,27 @@ class FakeHomeserver {
         this.stallJoins -= 1;
         return json({ errcode: 'M_UNKNOWN', error: 'timed out applying room state' }, 504);
       }
+      if (this.unknownAliases.has(alias))
+        return json({ errcode: 'M_NOT_FOUND', error: 'no such room' }, 404);
       return json({
         room_id: alias === '#hallway:hs.test' ? '!hallway:hs.test' : '!joined:hs.test',
       });
     }
     if (path.endsWith('/account_data/m.direct') && method === 'GET') return json({}, 404);
     if (path.endsWith('/account_data/m.direct') && method === 'PUT') return json({});
-    if (path.endsWith('/createRoom')) return json({ room_id: '!dm:hs.test' });
+    if (path.endsWith('/createRoom')) {
+      const body = JSON.parse(String(init?.body ?? '{}')) as {
+        room_alias_name?: string;
+        is_direct?: boolean;
+      };
+      this.createdAliases.push(body.room_alias_name ?? null);
+      // A real server appends its *own* name to the localpart. `dropAlias`
+      // models one with no directory support: 200, no alias, no complaint.
+      const alias =
+        body.room_alias_name && !this.dropAlias ? `#${body.room_alias_name}:hs.test` : undefined;
+      const roomId = body.is_direct ? '!dm:hs.test' : '!created:hs.test';
+      return json({ room_id: roomId, ...(alias ? { room_alias: alias } : {}) });
+    }
     if (path.endsWith('/logout')) return json({});
     if (path.includes('/receipt/')) return json({});
     return json({ errcode: 'M_UNRECOGNIZED', error: path }, 404);
@@ -298,9 +318,47 @@ describe('MatrixSessionManager', () => {
     // A room that is simply not there is created instead of retried.
     hs.stallJoins = 0;
     hs.joinAttempts = 0;
+    hs.unknownAliases.add('#missing:hs.test');
     const created = await m.joinOrCreateRoom({ alias: '#missing:hs.test', name: 'Missing' });
-    expect(created).toBe('!joined:hs.test');
+    expect(created).toBe('!created:hs.test');
     expect(hs.joinAttempts).toBe(1);
+    expect(hs.createdAliases).toEqual(['missing']);
+    await m.stop();
+  });
+
+  it('will not seed a room in a namespace it does not own', async () => {
+    // The mesh case. `room_alias_name` is a localpart and the server appends
+    // its *own* name, so a node asked to create `#keynote:organiser.example`
+    // makes `#keynote:<its own name>` instead — and every attendee that tries
+    // ends up alone in a room named after the session they wanted to be in,
+    // with a 200 on every request. The client must decline and wait for the
+    // server that owns the alias.
+    const hs = new FakeHomeserver();
+    const { m } = manager(hs);
+    await m.signInWithPassword('https://hs.test', 'alice', 'pw');
+    hs.unknownAliases.add('#keynote:organiser.example');
+
+    await expect(
+      m.joinOrCreateRoom({ alias: '#keynote:organiser.example', name: 'Keynote' }),
+    ).rejects.toMatchObject({ errcode: 'M_NOT_FOUND' });
+    expect(hs.createdAliases).toEqual([]);
+    await m.stop();
+  });
+
+  it('refuses a created room whose alias the server quietly dropped', async () => {
+    // A homeserver without directory support answers 200 with a room and no
+    // alias. Recording the alias we asked for would make the room look joined
+    // under a name it does not carry, so every later lookup finds it and the
+    // client never joins the real room. Nothing would ever report an error.
+    const hs = new FakeHomeserver();
+    hs.dropAlias = true;
+    const { m } = manager(hs);
+    await m.signInWithPassword('https://hs.test', 'alice', 'pw');
+    hs.unknownAliases.add('#missing:hs.test');
+
+    await expect(
+      m.joinOrCreateRoom({ alias: '#missing:hs.test', name: 'Missing' }),
+    ).rejects.toThrow(/did not claim #missing:hs.test/);
     await m.stop();
   });
 });

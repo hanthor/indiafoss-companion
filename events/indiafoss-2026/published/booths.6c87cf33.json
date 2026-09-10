@@ -1,0 +1,1039 @@
+{
+  "booths": [
+    {
+      "id": "booth-2026-debian",
+      "name": "Debian",
+      "category": "project",
+      "description": "Flagship community Linux distro (debian.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Linux & Core OS",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-opensuse",
+      "name": "openSUSE",
+      "category": "project",
+      "description": "Tumbleweed/Leap distros, OBS, openQA (opensuse.org)\n\nShowcasing: Unassigned (not yet scheduled on site).",
+      "tags": [
+        "Linux & Core OS",
+        "Unassigned (not yet scheduled on site)",
+        "indiafoss-2026"
+      ],
+      "availableDates": []
+    },
+    {
+      "id": "booth-2026-freebsd-project",
+      "name": "FreeBSD Project",
+      "category": "project",
+      "description": "Unix-like OS with ZFS, jails, bhyve (freebsd.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Linux & Core OS",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-xeneva-xenevaos",
+      "name": "Xeneva (XenevaOS)",
+      "category": "project",
+      "description": "Indigenous OS built from scratch, focused on XR/AR/VR with a custom kernel (github.com/manaskamal/XenevaOS)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Linux & Core OS",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-api-dash",
+      "name": "API Dash",
+      "category": "project",
+      "description": "AI-powered open-source API dev tool, GSoC org (github.com/foss42/apidash)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Dev Tools & Infra",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-jupyter",
+      "name": "Jupyter",
+      "category": "project",
+      "description": "Notebooks/JupyterLab/JupyterHub ecosystem (jupyter.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Dev Tools & Infra",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-circuitverse",
+      "name": "CircuitVerse",
+      "category": "project",
+      "description": "Browser-based digital logic circuit simulator (circuitverse.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Dev Tools & Infra",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-aboutcode",
+      "name": "AboutCode",
+      "category": "project",
+      "description": "Software supply chain / license / SBOM tooling (aboutcode.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Dev Tools & Infra",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-altsendme",
+      "name": "Altsendme",
+      "category": "project",
+      "description": "Send files and folders anywhere in the world without storing in the cloud\n\nShowcasing: Day 2.",
+      "tags": [
+        "Good Tools/Utilities",
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-cs17-bwh-foss-projects-buzz",
+      "name": "CS17 / BWH FOSS Projects (Buzz)",
+      "category": "project",
+      "description": "Open source, powerful and comprehensive event management platform\n\nShowcasing: Day 1.",
+      "tags": [
+        "Good Tools/Utilities",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-foss4g-in",
+      "name": "FOSS4G.IN",
+      "category": "project",
+      "description": "Open Source GIS and geospatial FOSS, QGIS India (foss4g.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Good Tools/Utilities",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-tiles-privacy",
+      "name": "Tiles Privacy",
+      "category": "project",
+      "description": "Local-first AI assistant with encrypted P2P sync that works for you (tiles.run)\n\nShowcasing: Day 1.",
+      "tags": [
+        "Privacy, Security & Trust",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-rethink-dns-firewall",
+      "name": "Rethink DNS + Firewall",
+      "category": "project",
+      "description": "Android network sandbox/firewall (github.com/celzero/rethink-app)\n\nShowcasing: Day 1.",
+      "tags": [
+        "Privacy, Security & Trust",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-tattle",
+      "name": "Tattle",
+      "category": "project",
+      "description": "Tools and datasets against online harms - misinfo, GBV, AI risks (tattle.co.in)\n\nShowcasing: Day 1.",
+      "tags": [
+        "Privacy, Security & Trust",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-sflc-in",
+      "name": "SFLC.in",
+      "category": "project",
+      "description": "Digital rights legal aid, FOSS licensing policy (sflc.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Privacy, Security & Trust",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-opencity",
+      "name": "OpenCity",
+      "category": "project",
+      "description": "Public urban data platform (opencity.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-bharat-digital",
+      "name": "Bharat Digital",
+      "category": "project",
+      "description": "Works with governments, nonprofits and community organisations to modernise and humanise how technology is designed, built and used for social good\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-data-for-india",
+      "name": "Data For India",
+      "category": "project",
+      "description": "Physical, interactive public-data explainer (dataforindia.com)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-samaajdata",
+      "name": "Samaajdata",
+      "category": "project",
+      "description": "WhatsApp-based hyperlocal civic data collection (new.samaajdata.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-constitutional-observer",
+      "name": "Constitutional Observer",
+      "category": "project",
+      "description": "Legislative/executive record archive, multilingual (constitutional.observer)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-daksh-judicial-data-collaborative",
+      "name": "DAKSH & Judicial Data Collaborative",
+      "category": "project",
+      "description": "Open judicial/court data, legal knowledge commons (lawandjusticewiki.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-diagram-chasing",
+      "name": "Diagram Chasing",
+      "category": "project",
+      "description": "Independent publication turning public data into visual stories and tools worth looking at (diagramchasing.fun)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-open-data-kerala",
+      "name": "Open Data Kerala",
+      "category": "project",
+      "description": "Umbrella collective - OSM Kerala, SMC, Wikipedia Kerala, KeralaFOSS, CODDK (opendatakerala.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-openstreetmap",
+      "name": "OpenStreetMap",
+      "category": "project",
+      "description": "Open mapping project (welcome.openstreetmap.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Social good / govtech",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-neervazhvu",
+      "name": "Neervazhvu",
+      "category": "project",
+      "description": "Open-source platform making India's water systems legible - reservoirs, groundwater, rivers, floods and water bodies, city by city and district by district\n\nShowcasing: Day 1.",
+      "tags": [
+        "Social good / govtech",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-future-of-the-commons-wikimedia-oki",
+      "name": "Future of the Commons / Wikimedia / OKI",
+      "category": "project",
+      "description": "Digital commons research, Wikimedia India (foc.oki-india.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Language & Knowledge Commons",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-indic-mediawiki-developers-ug",
+      "name": "Indic MediaWiki Developers UG",
+      "category": "project",
+      "description": "MediaWiki tooling for Indic languages (meta.wikimedia.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Language & Knowledge Commons",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-wikimedians-of-kerala",
+      "name": "Wikimedians of Kerala",
+      "category": "project",
+      "description": "Malayalam Wikimedia community (meta.wikimedia.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Language & Knowledge Commons",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-chitra-and-sanka",
+      "name": "Chitra and Sanka",
+      "category": "project",
+      "description": "Programming language for Kannada ASCII to Unicode conversion, plus a D graphics library (github.com/aravindavk/chitra-d)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Language & Knowledge Commons",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-storyweaver-pratham-books",
+      "name": "StoryWeaver (Pratham Books)",
+      "category": "project",
+      "description": "Open-source, multilingual children's storybooks (storyweaver.org.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Language & Knowledge Commons",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-bengawalk",
+      "name": "Bengawalk",
+      "category": "project",
+      "description": "Works on urban design, public transport and public spaces to make cities more liveable\n\nShowcasing: Day 2.",
+      "tags": [
+        "Language & Knowledge Commons",
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-bahmni-thoughtworks",
+      "name": "Bahmni (Thoughtworks)",
+      "category": "project",
+      "description": "Open Hospital Information System/EMR, a Digital Public Good (bahmni.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Health & Public Infrastructure Software",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-open-healthcare-network-care",
+      "name": "Open Healthcare Network (CARE)",
+      "category": "project",
+      "description": "Modular health system platform (ohc.network)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Health & Public Infrastructure Software",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-harp",
+      "name": "HARP",
+      "category": "project",
+      "description": "Private healthcare tool that maintains curated personal health records stored as cross-platform plain text files, fully under your control\n\nShowcasing: Day 1.",
+      "tags": [
+        "Health & Public Infrastructure Software",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-takshashila-institution",
+      "name": "Takshashila Institution",
+      "category": "project",
+      "description": "Public policy research and education (takshashila.org.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Legal, Policy & Governance",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-soch-and-bci",
+      "name": "SOCH and BCI",
+      "category": "project",
+      "description": "Student fellowship documenting India's legal system - court complexes and legal aid\n\nShowcasing: Both Days.",
+      "tags": [
+        "Legal, Policy & Governance",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-earthlore-lorekeepers-arpo",
+      "name": "Earthlore & LoreKeepers (ARPO)",
+      "category": "project",
+      "description": "Folk/tribal culture digital archive (arpo.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Culture, Heritage & Environment",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-wetland-learning-center",
+      "name": "Wetland Learning Center",
+      "category": "project",
+      "description": "Citizen science and biodiversity monitoring in Kerala (facebook.com/kolebirder)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Culture, Heritage & Environment",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-gosh",
+      "name": "GOSH",
+      "category": "project",
+      "description": "Gathering for Open Science Hardware - global open science hardware community (openhardware.science)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Culture, Heritage & Environment",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-vglug-foundation",
+      "name": "VGLUG Foundation",
+      "category": "community",
+      "description": "Villupuram GNU/Linux users group focused on rural tech access (vglug.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Regional User Groups & Standards Bodies",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-janastu-anthillhacks",
+      "name": "Janastu Anthillhacks",
+      "category": "community",
+      "description": "Mesh networks and low-literacy-inclusive platforms for archives, annotations and media making/retrieval (open.janastu.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Regional User Groups & Standards Bodies",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-xmpp-standards-foundation",
+      "name": "XMPP Standards Foundation",
+      "category": "community",
+      "description": "Decentralized messaging standard with a multi-device demo, now paired with F-droid (xmpp.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Regional User Groups & Standards Bodies",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-scipy-india",
+      "name": "SciPy India",
+      "category": "community",
+      "description": "Scientific computing community revival (scipy.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Regional User Groups & Standards Bodies",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-fossee",
+      "name": "FOSSEE",
+      "category": "project",
+      "description": "FLOSS in academia, backed by the Govt of India ICT mission and Ministry of Education (fosseee.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Education, Online Safety & Youth",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-citizen-digital-foundation",
+      "name": "Citizen Digital Foundation",
+      "category": "project",
+      "description": "Promoting safe and responsible navigation and innovation in the digital ecosystem (citizendigitalfoundation.org)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Education, Online Safety & Youth",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-amfoss",
+      "name": "amFOSS",
+      "category": "student",
+      "description": "17-year-old student open source community at Amrita Amritapuri (github.com/amfoss)\n\nShowcasing: Day 1.",
+      "tags": [
+        "Student Community",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-tinkerqubits",
+      "name": "tinkerqubits",
+      "category": "student",
+      "description": "IIM Bangalore incubated children's education programs, ensuring no child is left behind in a digital-first world\n\nShowcasing: Day 1.",
+      "tags": [
+        "Student Community",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-cosh-nitk",
+      "name": "COSH NITK",
+      "category": "student",
+      "description": "Student-facing open source/hardware center at NITK (cosh.nitk.ac.in)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Student Community",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-fossmec",
+      "name": "FOSSMEC",
+      "category": "student",
+      "description": "FOSS community at Model Engineering College\n\nShowcasing: Day 2.",
+      "tags": [
+        "Student Community",
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-fossunited-mangalore",
+      "name": "FOSSUnited Mangalore",
+      "category": "student",
+      "description": "Local FOSS United chapter in Mangalore\n\nShowcasing: Both Days.",
+      "tags": [
+        "Student Community",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-homebrewfoss",
+      "name": "HomeBrewFOSS",
+      "category": "student",
+      "description": "Student-run FOSS community space from Electronic City\n\nShowcasing: Day 2.",
+      "tags": [
+        "Student Community",
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-makerspace",
+      "name": "MakerSpace",
+      "category": "student",
+      "description": "4,500 sq ft fabrication facility at Ashoka University\n\nShowcasing: Both Days.",
+      "tags": [
+        "Student Community",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-servantsofknowledge-sanchaya",
+      "name": "ServantsOfKnowledge + Sanchaya",
+      "category": "other",
+      "description": "Sanchaya works to enhance the technical capacity of Kannada literary research, without any commercial interest or profit motive\n\nShowcasing: Both Days.",
+      "tags": [
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-folklore",
+      "name": "Folklore",
+      "category": "other",
+      "description": "Confessions, quirks and the occasional rant from India's open source keepers\n\nShowcasing: Both Days.",
+      "tags": [
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-fossunited-grantees",
+      "name": "FOSSUnited grantees",
+      "category": "other",
+      "description": "Browse all FOSS United grantees disbursed for projects, events and fellowships\n\nShowcasing: Both Days.",
+      "tags": [
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-absurd-industries",
+      "name": "absurd.industries",
+      "category": "hardware",
+      "description": "Open technology studio in Bengaluru selling handcrafted, open-source hardware kits and boards for makers, licensed under CERN-OHL-S\n\nShowcasing: Both Days.",
+      "tags": [
+        "Hardware",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-ampere-works",
+      "name": "Ampere Works",
+      "category": "hardware",
+      "description": "DIY hardware studio building open, learning-first tools and kits (wearables, robot kits, prototyping) to make hardware more accessible in India\n\nShowcasing: Both Days.",
+      "tags": [
+        "Hardware",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-open-source-developers-community",
+      "name": "Open Source Developers Community",
+      "category": "other",
+      "description": "Student open-source community at Jaypee Institute of Information Technology, Noida, running workshops, talks and hackathons\n\nShowcasing: Day 2.",
+      "tags": [
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-package-manager-guard-pmg",
+      "name": "Package Manager Guard (PMG)",
+      "category": "other",
+      "description": "Open-source tool by SafeDep for scanning and guarding software package managers against malicious or risky dependencies\n\nShowcasing: Day 2.",
+      "tags": [
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-paper-crane-lab",
+      "name": "Paper Crane Lab",
+      "category": "other",
+      "description": "Non-profit running hands-on STEM education programs (3D printing, electronics, coding) for students, often via community partnerships\n\nShowcasing: Both Days.",
+      "tags": [
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-pcb-cupid",
+      "name": "PCB Cupid",
+      "category": "hardware",
+      "description": "Open-source PCB design and hardware engineering resource, with tutorials on KiCad/EasyEDA and its own open-source hardware modules\n\nShowcasing: Both Days.",
+      "tags": [
+        "Hardware",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-pling-an-open-source-wireless-split-keyboard",
+      "name": "Pling! - An Open Source Wireless Split Keyboard",
+      "category": "hardware",
+      "description": "Open-source wireless split mechanical keyboard project\n\nShowcasing: Day 1.",
+      "tags": [
+        "Hardware",
+        "Day 1",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26"
+      ]
+    },
+    {
+      "id": "booth-2026-pucar",
+      "name": "PUCAR",
+      "category": "other",
+      "description": "Non-profit mission (anchored by Agami) redesigning India's courts around the litigant, building open-source tools like DRISTI for people-centric courts\n\nShowcasing: Both Days.",
+      "tags": [
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-ronin-toys",
+      "name": "Ronin Toys",
+      "category": "other",
+      "description": "Small maker brand designing and 3D-printing durable, playful toys for cats (and their humans)\n\nShowcasing: Both Days.",
+      "tags": [
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-saral-ai",
+      "name": "Saral AI",
+      "category": "project",
+      "description": "AI research tool aimed at simplifying and accelerating research workflows\n\nShowcasing: Day 2.",
+      "tags": [
+        "Social good / govtech",
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-solstone",
+      "name": "solstone",
+      "category": "project",
+      "description": "Open-source, local-first personal memory/journal platform that captures what you see and hear so AI agents can work from your own context\n\nShowcasing: Both Days.",
+      "tags": [
+        "Good Tools/Utilities",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-t-01-the-explorer",
+      "name": "T-01 The Explorer",
+      "category": "hardware",
+      "description": "Tiny desktop robotics kit from whybit, an open-hardware (GPLv3) studio building electronics for curious makers\n\nShowcasing: Both Days.",
+      "tags": [
+        "Hardware",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-tinkerspace",
+      "name": "TinkerSpace",
+      "category": "community",
+      "description": "Community makerspace under TinkerHub for hands-on building, tinkering and hardware projects\n\nShowcasing: Both Days.",
+      "tags": [
+        "Community",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-ubuntu",
+      "name": "Ubuntu",
+      "category": "project",
+      "description": "Widely used, community-driven Linux distribution\n\nShowcasing: Day 2.",
+      "tags": [
+        "Linux & Core OS",
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-webminal-org",
+      "name": "webminal.org",
+      "category": "other",
+      "description": "Free, browser-based Linux terminal for practicing commands, bash scripting and sysadmin skills, running since 2011\n\nShowcasing: Day 2.",
+      "tags": [
+        "Day 2",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-27"
+      ]
+    },
+    {
+      "id": "booth-2026-zephyr-and-nuttx-rtos-automotive-usecase-demo",
+      "name": "Zephyr and NuttX RTOS Automotive Usecase / Demo",
+      "category": "hardware",
+      "description": "Demo of the Zephyr and NuttX real-time operating systems applied to an automotive use case\n\nShowcasing: Both Days.",
+      "tags": [
+        "Hardware",
+        "Both Days",
+        "indiafoss-2026"
+      ],
+      "availableDates": [
+        "2026-09-26",
+        "2026-09-27"
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { isLoopbackHomeserverHost } from '@indiafoss/model';
 import type {
   PublicRoomSummary,
   RawMatrixEvent,
@@ -146,18 +147,13 @@ export function slidingSyncToSyncResponse(response: SlidingSyncResponse): SyncRe
   };
 }
 
-function normalizeBaseUrlHost(url: string): boolean {
-  try {
-    const host = new URL(url).hostname;
-    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
-  } catch {
-    return false;
-  }
-}
-
 /** True for an on-device homeserver (e.g. an embedded Neutrino node). */
 export function isLoopbackHomeserver(url: string): boolean {
-  return normalizeBaseUrlHost(url);
+  // One implementation, in the model, because the bundle validator has to
+  // agree with the client about what counts as loopback: if they disagree, a
+  // config is either rejected for a server that works or accepted for one that
+  // will not connect.
+  return isLoopbackHomeserverHost(url);
 }
 
 /**
@@ -474,7 +470,7 @@ export class MatrixClient {
     return json.room_id;
   }
 
-  async createRoom(options: CreateRoomOptions): Promise<string> {
+  async createRoom(options: CreateRoomOptions): Promise<{ roomId: string; alias?: string }> {
     const body: Record<string, unknown> = {};
     if (options.name) body.name = options.name;
     if (options.topic) body.topic = options.topic;
@@ -493,17 +489,28 @@ export class MatrixClient {
         },
       ];
     }
-    const json = await this.request<{ room_id: string }>('POST', `${CS}/createRoom`, body);
-    return json.room_id;
+    // `room_alias` is read back rather than assumed: `room_alias_name` is a
+    // *localpart* and the server appends its own name, so the alias you get is
+    // only the alias you asked for when you are talking to the server that
+    // owns the namespace. A server with no alias support drops the field
+    // entirely and still answers 200.
+    const json = await this.request<{ room_id: string; room_alias?: string }>(
+      'POST',
+      `${CS}/createRoom`,
+      body,
+    );
+    return { roomId: json.room_id, alias: json.room_alias };
   }
 
   async createDirectRoom(userId: string, encrypted = false): Promise<string> {
-    return this.createRoom({
-      preset: 'trusted_private_chat',
-      isDirect: true,
-      invite: [userId],
-      encrypted,
-    });
+    return (
+      await this.createRoom({
+        preset: 'trusted_private_chat',
+        isDirect: true,
+        invite: [userId],
+        encrypted,
+      })
+    ).roomId;
   }
 
   /** Turn on Megolm encryption for an existing room (irreversible). */

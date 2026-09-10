@@ -1,4 +1,6 @@
 import type { EventBundle } from '@indiafoss/model';
+import type { AccountClaimTrust, PersonalDataFile } from '@indiafoss/model/contracts';
+import { personalDataFromSnapshot } from './personal-data.js';
 import Dexie, { type Table } from 'dexie';
 
 /** Initial Elo rating (§14). */
@@ -32,6 +34,8 @@ export interface ComparisonRecord {
 }
 
 export interface EventBundleRecord {
+  /** Present only when the revision was committed with this exact bundle. */
+  revision?: number;
   eventId: string;
   bundle: EventBundle;
   savedAt: string;
@@ -145,7 +149,12 @@ export interface ContactRecord {
   neutrinoServerName?: string;
   ticketRef?: string;
   socials: Record<string, string>;
-  /** QR exchange is not identity verification; stays false until Matrix verification. */
+  /**
+   * Matrix device verification happened. QR exchange, a card signature, a
+   * badge comparison and a profile match are none of that, so this stays
+   * `false` until the app holds cross-signing evidence — which nothing in
+   * this repository produces yet (#188). Never read off the wire.
+   */
   verified: boolean;
   savedAt: string;
   eventId?: string;
@@ -169,10 +178,46 @@ export interface ContactRecord {
    * checked; only meaningful when both ids are on the card.
    */
   meshLink?: {
-    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable';
+    // `profile-matched` is the homeserver's word, compared as a string — an
+    // account *claim* the profile agrees with, never verification. Records
+    // written by builds that spelled it `verified` are rewritten on read.
+    // `outdated` means one of the two identities was a shape the checking
+    // build did not recognise, so no comparison was possible — kept distinct
+    // from `mismatch`, which is shown as evidence a card is not genuine (#160).
+    state: MeshLinkObservation;
     checkedAt: number;
   };
+  /**
+   * The conclusion drawn from `meshLink` (the raw observation): at most
+   * `profile-matched` today. `binding-valid` and `verified` have no producer
+   * until #188 lands. Reset to `claimed` on every import; never trusted from
+   * a file or a card.
+   */
+  accountTrust?: AccountClaimTrust;
+  /**
+   * The attendee said, explicitly, that they compared this card's key badge
+   * with the one on the other person's phone and it matched (#31). Bound to
+   * the fingerprint it was made for: a later card with a different key does
+   * not inherit it. This is a statement about the *card key*, not about any
+   * account on the card, and nothing sets it but the attendee's own tap.
+   */
+  inPersonConfirmed?: { fingerprint: string; at: string };
   previousFingerprint?: string;
+}
+
+/** What a public-profile read observed; see `@indiafoss/matrix` `MeshLinkState`. */
+export type MeshLinkObservation =
+  'profile-matched' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+
+/**
+ * Bring a record written by an older build up to the current vocabulary.
+ * Builds before #31/#188 stored a profile match as `meshLink.state ===
+ * 'verified'`; it reads back as `profile-matched` — not dropped, not trusted.
+ */
+export function migrateContactRecord(raw: ContactRecord): ContactRecord {
+  const state = (raw.meshLink as { state?: string } | undefined)?.state;
+  if (state !== 'verified') return raw;
+  return { ...raw, meshLink: { ...raw.meshLink!, state: 'profile-matched' } };
 }
 
 /** The device's own handshake key pair (non-extractable CryptoKeys, structured-cloned by IndexedDB). */
@@ -251,8 +296,86 @@ export function defaultPreference(activityId: string): ActivityPreference {
 export class CompanionStorage {
   constructor(private readonly db: CompanionDatabase = new CompanionDatabase()) {}
 
+  /** One consistent read transaction across the explicit personal-data allowlist. */
+  async exportPersonalData(exportedAt = new Date().toISOString()): Promise<PersonalDataFile> {
+    return this.db.transaction(
+      'r',
+      [
+        this.db.events,
+        this.db.preferences,
+        this.db.comparisons,
+        this.db.notes,
+        this.db.itineraries,
+        this.db.settings,
+      ],
+      async () => {
+        const [
+          events,
+          preferences,
+          comparisons,
+          notes,
+          itineraries,
+          contact,
+          plans,
+          resolved,
+          rooms,
+        ] = await Promise.all([
+          this.db.events.toArray(),
+          this.db.preferences.toArray(),
+          this.db.comparisons.toArray(),
+          this.db.notes.toArray(),
+          this.db.itineraries.toArray(),
+          this.db.settings
+            .where('key')
+            .anyOf('attendee-profile', 'attendee-share-selection')
+            .toArray(),
+          this.db.settings.where('key').startsWith('plan-edits-').toArray(),
+          this.db.settings.where('key').startsWith('resolved-plan-').toArray(),
+          this.db.settings.where('key').startsWith('room-prefs-').toArray(),
+        ]);
+        return personalDataFromSnapshot(
+          {
+            bundles: events.map((record) => record.bundle),
+            preferences,
+            comparisons,
+            notes,
+            itineraries,
+            settings: [...contact, ...plans, ...resolved, ...rooms],
+          },
+          exportedAt,
+        );
+      },
+    );
+  }
+
   async saveEventBundle(bundle: EventBundle): Promise<void> {
     await this.db.events.put({ eventId: bundle.id, bundle, savedAt: new Date().toISOString() });
+  }
+
+  /** Commit the bundle and its revision together, without rolling back a newer tab's update. */
+  async saveEventRevision(bundle: EventBundle, revision: number): Promise<boolean> {
+    if (!Number.isSafeInteger(revision) || revision < 1) throw new Error('Invalid event revision');
+    return this.db.transaction('rw', this.db.events, this.db.settings, async () => {
+      const key = `event-revision-${bundle.id}`;
+      const stored = (await this.db.events.get(bundle.id))?.revision;
+      if (stored !== undefined && Number.isSafeInteger(stored) && stored >= revision) return false;
+      await this.db.events.put({
+        eventId: bundle.id,
+        bundle,
+        revision,
+        savedAt: new Date().toISOString(),
+      });
+      await this.db.settings.put({ key, value: String(revision) });
+      return true;
+    });
+  }
+
+  /** Ignore legacy standalone revision stamps, which may not match the stored bundle. */
+  async loadEventRevision(eventId: string): Promise<number | null> {
+    const revision = (await this.db.events.get(eventId))?.revision;
+    return revision !== undefined && Number.isSafeInteger(revision) && revision > 0
+      ? revision
+      : null;
   }
 
   async loadEventBundle(eventId: string): Promise<EventBundle | undefined> {
@@ -338,7 +461,7 @@ export class CompanionStorage {
   }
 
   async listContacts(): Promise<ContactRecord[]> {
-    const rows = await this.db.contacts.toArray();
+    const rows = (await this.db.contacts.toArray()).map(migrateContactRecord);
     return rows.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
   }
 
