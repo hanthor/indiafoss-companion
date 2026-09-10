@@ -249,6 +249,10 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
                     onDynamicColor = viewModel::setDynamicColor,
                     onCalendarSync = viewModel::setCalendarSyncEnabled,
+                    onExportPersonalData = viewModel::exportPersonalData,
+                    onImportPersonalData = viewModel::previewPersonalData,
+                    onApplyImport = viewModel::applyPersonalData,
+                    onCancelImport = viewModel::cancelPersonalDataImport,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->

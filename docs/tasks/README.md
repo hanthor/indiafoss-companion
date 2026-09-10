@@ -63,11 +63,11 @@ These are the work that makes a conference day trustworthy. Do these first.
 Personal-data migration is tracked by [#240](https://github.com/hanthor/indiafoss-companion/issues/240),
 with its current contract and remaining work in
 [personal-data transfer](../architecture/personal-data-transfer.md). CFP reference
-resolution, shared file codecs and the PWA export are merged (#247/#249/#250);
-the PWA import (section validation, CFP-resolved preview with keep-existing
-conflicts, one-transaction apply and cache refresh) is merged in #301. Native
-export, the native import adapter and cross-platform round-trip tests remain.
-Do not mark migration complete based on the PWA alone.
+resolution, shared file codecs, the PWA export and the PWA import are merged
+(#247/#249/#250/#301); the native export, the journaled native import and the
+cross-platform fixture tests follow in the native slice. A transfer between
+real devices and storing unresolved records on the destination remain. Do not
+mark migration complete on test evidence alone.
 
 Current event-data maintenance is documented in the [2026 event README](../../events/indiafoss-2026/README.md).
 The [booth import review](../reviews/booth-directory-2026-09-09.md) records the organiser's 71-booth snapshot and day-aware PWA visit planning.

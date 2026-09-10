@@ -22,13 +22,13 @@ import androidx.test.core.app.ApplicationProvider
 import org.indiafoss.companion.core.ContactCard
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.bundleJson
-import org.indiafoss.companion.data.RankingState
-import org.indiafoss.companion.data.StoredComparison
+import org.indiafoss.companion.core.RankingState
+import org.indiafoss.companion.core.StoredComparison
 import org.indiafoss.companion.ui.LeaveByBanner
 import org.indiafoss.companion.ui.screens.BoothScreen
 import org.indiafoss.companion.ui.screens.ConnectScreen
 import org.indiafoss.companion.core.ScheduleDiff
-import org.indiafoss.companion.data.StoredBlock
+import org.indiafoss.companion.core.StoredBlock
 import org.indiafoss.companion.ui.screens.ExploreScreen
 import org.indiafoss.companion.ui.screens.MapScreen
 import org.indiafoss.companion.ui.screens.NowScreen
@@ -279,6 +279,47 @@ class ScreenshotTest {
             SettingsScreen(state().copy(calendarSyncEnabled = true, calendarSyncStatus = "6 entries in the IndiaFOSS calendar · 2 added"), {}, {}) {}
         }
         compose.onNodeWithText("Disconnect and remove the calendar").performScrollTo().assertIsDisplayed()
+    }
+    /** Settings offers the personal-data file both ways, offline (#240). */
+    @Test fun settingsPersonalData() {
+        shoot("settings-personal-data") { SettingsScreen(state(), {}, {}) {} }
+        compose.onNodeWithText("Save personal data").performScrollTo().assertIsDisplayed()
+        compose.onNodeWithText("Import from a file").assertIsDisplayed()
+    }
+    /** An import preview: new records ticked, what this phone holds differently kept unless ticked, unresolved records named. */
+    @Test fun settingsImportPreview() {
+        val preview = org.indiafoss.companion.core.ImportPreview(
+            exportedAt = "2026-09-09T01:00:00.000Z",
+            changes = listOf(
+                org.indiafoss.companion.core.ImportChange(
+                    "preferences:act-28laimsqbf", "preferences", "indiafoss-2026", "Why Documentation Shouldn't Feel Like Plain Text",
+                    org.indiafoss.companion.core.ImportStatus.ADD, incomingSummary = "must-attend, bookmarked, rating 1200",
+                    write = org.indiafoss.companion.core.ImportWrite.Preference("act-28laimsqbf", org.indiafoss.companion.core.SessionRating(disposition = "must-attend"), true),
+                ),
+                org.indiafoss.companion.core.ImportChange(
+                    "contact.profile", "contact.profile", null, "contact card", org.indiafoss.companion.core.ImportStatus.CONFLICT,
+                    current = org.indiafoss.companion.core.ImportWrite.Profile(mapOf("fullName" to "Asha"), emptyMap()), currentSummary = "1 field, 0 social links",
+                    incomingSummary = "3 fields, 1 social link", write = org.indiafoss.companion.core.ImportWrite.Profile(mapOf("fullName" to "Asha Menon"), emptyMap()),
+                ),
+            ),
+            skipped = listOf(org.indiafoss.companion.core.ImportSkip("preferences", "indiafoss-2026", "talk-old", org.indiafoss.companion.core.ImportSkipReason.AMBIGUOUS, "talk-old (repeated CFP entry)")),
+            unchanged = 3,
+            unsupported = listOf("events[0].sections.settings"),
+        )
+        var applied: Set<String>? = null
+        shoot("settings-import-preview") {
+            SettingsScreen(state().copy(importPreview = preview), {}, {}, onApplyImport = { applied = it }) {}
+        }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("New on this phone (1)"))
+        compose.onNodeWithText("New on this phone (1)").assertIsDisplayed()
+        compose.onNodeWithText("Different on this phone (1) — kept unless ticked").assertIsDisplayed()
+        compose.onNodeWithText("Here: 1 field, 0 social links").assertIsDisplayed()
+        compose.onNodeWithText("Already the same here: 3").assertIsDisplayed()
+        compose.onNode(hasText("talk-old — repeated CFP entry", substring = true)).assertIsDisplayed()
+        compose.onNodeWithText("events[0].sections.settings").assertIsDisplayed()
+        // Only the addition is ticked; importing sends exactly that id.
+        compose.onNodeWithText("Import 1 selected").performClick()
+        assertEquals(setOf("preferences:act-28laimsqbf"), applied)
     }
     @Test fun welcome() = shoot("welcome") { WelcomeScreen(state(), {}, {}) {} }
     @Test fun banner() = shoot("banner") { LeaveByBanner(state("2026-09-26T09:58:00+05:30")) {} }

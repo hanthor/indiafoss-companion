@@ -11,39 +11,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.indiafoss.companion.core.Itinerary
+import org.indiafoss.companion.core.PlanEdits
+import org.indiafoss.companion.core.StoredBlock
 
 private val Context.planStore: DataStore<Preferences> by preferencesDataStore(name = "plan-edits")
-
-/** A block of the attendee's own, as stored; see `Itinerary.CustomBlock`. */
-@Serializable
-data class StoredBlock(
-    val id: String,
-    val label: String,
-    /** The day the block belongs to (YYYY-MM-DD), so a flexible one is placed on the right day. */
-    val day: String,
-    val start: String? = null,
-    val end: String? = null,
-    val durationMinutes: Int = 30,
-    val locationId: String? = null,
-) {
-    fun toBlock() = Itinerary.CustomBlock(id, label, start, end, durationMinutes, locationId)
-}
-
-/**
- * Everything the attendee changed by hand, by stable id only (never by
- * resolved time or room), the same shape as the PWA's `PlanEdits`: blocks of
- * their own, sessions removed from the plan, and replacements chosen for a
- * slot. Resolved against the current bundle by `ResolvedPlan` (#221).
- */
-@Serializable
-data class PlanEdits(
-    val blocks: List<StoredBlock> = emptyList(),
-    val removed: List<String> = emptyList(),
-    /** original activity id → replacement activity id. */
-    val replacements: Map<String, String> = emptyMap(),
-    val locked: List<String> = emptyList(),
-)
 
 /**
  * The attendee's own plan items (#110): custom blocks with a fixed time and
@@ -62,6 +33,15 @@ class PlanEditsStore(private val context: Context) {
         context.planStore.edit { prefs ->
             val current = prefs[key]?.let { runCatching { json.decodeFromString<PlanEdits>(it) }.getOrNull() } ?: PlanEdits()
             prefs[key] = json.encodeToString(transform(current))
+        }
+    }
+
+    /** Replace the whole document, only if it still equals `expected`; null restores unconditionally (see `PersonalDataRepository`). */
+    suspend fun replace(expected: PlanEdits?, next: PlanEdits) {
+        context.planStore.edit { prefs ->
+            val current = prefs[key]?.let { runCatching { json.decodeFromString<PlanEdits>(it) }.getOrNull() } ?: PlanEdits()
+            if (expected != null && current != expected) throw ConcurrentEditException("plan edits")
+            prefs[key] = json.encodeToString(next)
         }
     }
 

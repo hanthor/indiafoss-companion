@@ -17,7 +17,7 @@ client renders natively rather than embedding a WebView.
 | Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo             |
 | Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                                    |
 | Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                                |
-| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), privacy, about                                                                   |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), phone calendar, personal-data export/import (#240), privacy, about               |
 | Session     | detail, bookmark, must attend                                                                                                                                                                  |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
@@ -128,6 +128,45 @@ update. `CalendarSyncTest` in `:core` covers the reconciliation; the
 for the provider under Robolectric. Nothing here has been exercised against
 a real device's calendar provider yet.
 
+## Personal data export and import (#240)
+
+Settings → Personal data saves the versioned `indiafoss-personal-data` file
+through the system file picker (`ACTION_CREATE_DOCUMENT`) and imports one
+(`ACTION_OPEN_DOCUMENT`), both offline; the same file the PWA writes and
+reads (see [the transfer architecture](architecture/personal-data-transfer.md)).
+
+- `core/PersonalState.kt` is the one aggregate the transfer reads and
+  writes: bookmarks and must-attend, `RankingState`, `PlanEdits`, the
+  attendee's `ContactCard` and notes. The record types moved here from
+  `:app` so the logic runs on the JVM; the DataStores in `app/data` persist
+  them.
+- `core/NativePersonalData.kt` projects the explicit export allowlist (the
+  Keystore handshake key, met contacts, identity-envelope bookkeeping and
+  the device switches are never read), and plans an import: every activity
+  reference goes through `PortableActivities.resolve`, records are listed as
+  additions or conflicts (kept unless ticked) with unresolved, unassigned and
+  unsupported ones named, and `apply` folds the chosen changes into a new
+  `PersonalState`. `core/PersonalDataValidation.kt` is the section contract,
+  the same rules as the PWA's `validatePersonalData`.
+- `app/data/PersonalDataRepository.kt` makes the write atomic across the
+  five DataStores: the prior state goes to `files/personal-import.journal`
+  first, each store is written with a compare-and-set against what the
+  preview read, a failure restores every store from the journal, and
+  `recover()` at launch restores a journal a dead process left behind.
+  `PersonalDataRepositoryTest` rehearses all three.
+- The stores' flows feed `UiState`, so the resolved plan, `ReminderScheduler`
+  and the calendar sync re-derive from the imported choices without a restart.
+
+Native-only carriage: blocks without a fixed time travel under
+`sections.flexibleBlocks` (the PWA reports it and imports the rest), booth
+visits also under `boothVisits` by stable ID, notes in a `NotesStore` with
+no UI yet, and `locked` / `yieldedTo` / `clash` are stored and re-exported
+without being read. Saved itineraries and resolved plans are reported, not
+stored: the plan is resolved from the programme here. Nothing has moved a
+file between real devices yet; the evidence is `NativePersonalDataTest`,
+`PersonalDataRepositoryTest`, the `settingsImportPreview` render and the two
+shared fixtures.
+
 Walk times come from the venue graph (`venue.graph.json` and
 `venue.metadata.json`, shipped in assets; `Routing` is the web package's
 shortest-walk logic ported, with the fastest / avoid-stairs / accessible
@@ -141,7 +180,7 @@ Native feel: edge-to-edge, predictive back, pull-to-refresh on Now, the
 system share sheet for cards and calendars, Material You colour on the
 everyday screens (see Theming and branding below).
 
-Not native yet: plan replacements UI, the optional P2P chat.
+Not native yet: plan replacements UI, notes UI, the optional P2P chat.
 
 ## Layout
 

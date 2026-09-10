@@ -79,6 +79,17 @@ class PreferencesStore(private val context: Context) {
         context.dataStore.edit { if (locationId == null) it.remove(locationKey) else it[locationKey] = locationId }
     }
 
+    /** Bookmarks and must-attend together, only if both still equal what the import read; null expectations restore unconditionally (see `PersonalDataRepository`). */
+    suspend fun replaceChoices(expectedBookmarks: Set<String>?, expectedMustAttend: Set<String>?, bookmarks: Set<String>, mustAttend: Set<String>) {
+        context.dataStore.edit { preferences ->
+            val currentBookmarks = preferences[bookmarkKey] ?: emptySet()
+            val currentMust = preferences[mustAttendKey] ?: emptySet()
+            if (expectedBookmarks != null && (currentBookmarks != expectedBookmarks || currentMust != expectedMustAttend)) throw ConcurrentEditException("choices")
+            preferences[bookmarkKey] = bookmarks
+            preferences[mustAttendKey] = mustAttend
+        }
+    }
+
     suspend fun toggleBookmark(id: String) = toggle(bookmarkKey, id)
 
     suspend fun toggleMustAttend(id: String) = toggle(mustAttendKey, id)

@@ -258,6 +258,10 @@
       {
         "file": "pwa-export.json",
         "describes": "a real PWA export retains personal sections and explicit sharing-off fields through native codec round-trip"
+      },
+      {
+        "file": "native-export.json",
+        "describes": "a real native export: flexible blocks travel as a native-only section, booth visits by stable ID, and the PWA imports the rest"
       }
     ],
     "invalid": [

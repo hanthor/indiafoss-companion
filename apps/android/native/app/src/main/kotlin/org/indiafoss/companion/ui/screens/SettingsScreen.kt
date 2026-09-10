@@ -39,6 +39,11 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.platform.testTag
+import org.indiafoss.companion.core.ImportPreview
+import org.indiafoss.companion.core.ImportChange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +56,10 @@ fun SettingsScreen(
     onDynamicColor: (Boolean) -> Unit = {},
     onCalendarSync: (Boolean) -> Unit = {},
     onSetup: () -> Unit = {},
+    onExportPersonalData: (android.net.Uri) -> Unit = {},
+    onImportPersonalData: (android.net.Uri) -> Unit = {},
+    onApplyImport: (Set<String>) -> Unit = {},
+    onCancelImport: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -61,6 +70,13 @@ fun SettingsScreen(
     // The phone's calendar (#272): read and write access to it, asked for only when the switch goes on.
     val askCalendar = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         onCalendarSync(granted.values.all { it } && granted.isNotEmpty())
+    }
+    // The system file picker, both ways (#240): the file never leaves the attendee's choice of place.
+    val createDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) onExportPersonalData(uri)
+    }
+    val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) onImportPersonalData(uri)
     }
     Scaffold(topBar = { TopAppBar(title = { Text("Settings") }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
@@ -225,6 +241,13 @@ fun SettingsScreen(
                     TextButton(onClick = onSetup) { Text("Run setup again") }
                 }
             }
+            PersonalDataCard(
+                state,
+                onExport = { createDocument.launch("indiafoss-personal-data-${state.now.take(10)}.json") },
+                onImport = { openDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+                onApply = onApplyImport,
+                onCancel = onCancelImport,
+            )
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("Privacy", style = MaterialTheme.typography.titleMedium)
@@ -260,6 +283,107 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Export and import of the attendee's personal data (#240): the same
+ * versioned file the PWA writes and reads. Import shows what would change
+ * before anything is written; what this phone already holds differently is
+ * kept unless ticked, and records that cannot be matched to this programme
+ * are listed by name rather than dropped.
+ */
+@Composable
+fun PersonalDataCard(
+    state: UiState,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+    onApply: (Set<String>) -> Unit,
+    onCancel: () -> Unit,
+) {
+    Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp).testTag("personal-data")) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Personal data", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Save your talk choices, ratings, devroom preferences, plan edits, notes and contact card as a file, " +
+                    "or bring them in from the PWA or another phone. The file contains private details, including card fields " +
+                    "you do not share. Nothing is uploaded; the handshake key stays on this phone.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            )
+            val preview = state.importPreview
+            if (preview == null) {
+                Row {
+                    TextButton(onClick = onExport, enabled = !state.personalDataBusy) { Text("Save personal data") }
+                    TextButton(onClick = onImport, enabled = !state.personalDataBusy) { Text("Import from a file") }
+                }
+                if (state.personalDataBusy) Text("Working…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                ImportPreviewSection(preview, busy = state.personalDataBusy, onApply = onApply, onCancel = onCancel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImportPreviewSection(preview: ImportPreview, busy: Boolean, onApply: (Set<String>) -> Unit, onCancel: () -> Unit) {
+    // New records are ticked; what this phone holds differently is kept unless the attendee ticks it.
+    var selected by remember(preview) { mutableStateOf(preview.additions.map { it.id }.toSet()) }
+    Text("From a file exported ${preview.exportedAt.take(10)}", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 4.dp))
+    val additions = preview.additions
+    val conflicts = preview.conflicts
+    if (additions.isEmpty() && conflicts.isEmpty()) {
+        Text("Nothing new to import from this file.", style = MaterialTheme.typography.bodyMedium)
+    }
+    if (additions.isNotEmpty()) {
+        Text("New on this phone (${additions.size})", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        additions.forEach { change ->
+            ChangeRow(change, selected = change.id in selected) { on -> selected = if (on) selected + change.id else selected - change.id }
+        }
+    }
+    if (conflicts.isNotEmpty()) {
+        Text("Different on this phone (${conflicts.size}) — kept unless ticked", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        conflicts.forEach { change ->
+            ChangeRow(change, selected = change.id in selected) { on -> selected = if (on) selected + change.id else selected - change.id }
+        }
+    }
+    if (preview.unchanged > 0) {
+        Text("Already the same here: ${preview.unchanged}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+    }
+    if (preview.skipped.isNotEmpty()) {
+        Text("Not importable (${preview.skipped.size})", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        preview.skipped.forEach { skip ->
+            Text("${skip.label} — ${skip.reason.label}: ${skip.detail}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+        }
+    }
+    if (preview.unsupported.isNotEmpty()) {
+        Text("Not understood by this app (${preview.unsupported.size}), left alone", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        preview.unsupported.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp)) }
+    }
+    HorizontalDivider(Modifier.padding(top = 8.dp))
+    Row(Modifier.padding(top = 4.dp)) {
+        Button(onClick = { onApply(selected) }, enabled = selected.isNotEmpty() && !busy, modifier = Modifier.testTag("import-apply")) {
+            Text("Import ${selected.size} selected")
+        }
+        TextButton(onClick = onCancel, enabled = !busy) { Text("Cancel") }
+    }
+}
+
+@Composable
+private fun ChangeRow(change: ImportChange, selected: Boolean, onSelected: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 2.dp)) {
+        Checkbox(checked = selected, onCheckedChange = onSelected)
+        Column(Modifier.weight(1f)) {
+            Text(change.label, style = MaterialTheme.typography.bodyMedium)
+            val current = change.currentSummary
+            if (current != null) {
+                Text("Here: $current", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("File: ${change.incomingSummary}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                Text(change.incomingSummary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

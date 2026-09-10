@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.core.Schedule
-import org.indiafoss.companion.data.StoredBlock
+import org.indiafoss.companion.core.StoredBlock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedTextField
