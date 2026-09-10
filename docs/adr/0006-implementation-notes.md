@@ -141,3 +141,41 @@ plain per-account switching (already working) remains the fallback.
 Steps 1–4 are individually small and testable on the current base — none of
 them waits for the 26.09.1 port, though landing them _on_ `ex-2609` avoids
 porting them twice.
+
+## Changes since the audit (10 September 2026)
+
+Merged work that touches the anchors above. Each is a merged PR with green CI;
+none is a two-phone or device result.
+
+- **Assumption 16 (`IndiafossLinks.kt`) — partly addressed, still
+  account-blind.** Chat #59 adds `ConferenceLinks.classify` and
+  `ConferenceLinkDispatcher` in `app/…/conference/`: every link the
+  conference surface sees is classified (`InternalConference`, `MatrixLink`,
+  `IndiafossHandoff`, `CompanionRoute`, `ExternalWeb`, `Communication`,
+  `Rejected`) and dispatched with `ActivityNotFoundException` handled;
+  Companion routes go to the installed native Companion
+  (`org.indiafoss.companion.nativeapp`) with a PWA fallback. `IndiafossLinks`
+  remains the parser for `indiafoss://chat|friend`, and `neutrino_server_name`
+  links still resolve to `@n:<hex>` with no session choice — the
+  account-aware routing this note asks for is Chat #46, explicitly out of
+  scope in #59. Chat #61 puts an "Open Companion" action on the same
+  dispatcher.
+- **Assumption 10 (`NeutrinoService`) — grew a discoverability seam, still no
+  `stop()`.** Chat #60/#62 add `setDiscoverable(Boolean): DiscoverableResult`
+  (`Applied` / `Unavailable` / `Failed`), `isDiscoverabilityControlAvailable()`
+  and `start(discoverable)`, which sends `set_discoverable(false)` before
+  `startBle` so a hidden choice survives a restart. The node is still
+  start-once-per-process. The FFI exists because the bindings are now built
+  from `hanthor/neutrino-iroh@15117e9` (Companion #305) and pinned as
+  `0.8.2-e2ee.2d85348-ble.15117e9` in Chat #62.
+- **Fact 3 in the ADR (public profile link, no binding) — corrected in code.**
+  Companion #300 renames `MeshLinkState.verified` to `profile-matched`,
+  migrates stored records on read, and shows card signature, in-person badge
+  comparison, profile match and Chat device verification as four separate
+  states; nothing produces `binding-valid` or `verified`. Companion #315 puts
+  every persisted identity behind `identity.version: 1` and retains unread
+  shapes without routing them. `StartDM.kt`'s `dmWouldBeKeyDead` (assumption 15) is untouched; the Stage 1 router still waits on #188.
+- **Companion side of the seam shrank.** `@indiafoss/matrix` now exports only
+  the profile-field, mesh-link and handoff helpers plus what
+  `tools/neutrino-probe` drives (#314). Nothing in this note's Chat-side plan
+  depends on the removed exports.
