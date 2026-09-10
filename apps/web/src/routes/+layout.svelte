@@ -10,7 +10,7 @@
   import { applyUpdate, checkForUpdates, updateState, refreshStatus } from '$lib/updates.svelte';
   import { UpdatePoller, updatePollInterval, updateRetryDelay } from '$lib/update-poller';
   import { describeChangeCount } from '@indiafoss/schedule';
-  import type { ScheduleChangeType } from '@indiafoss/schedule';
+  import type { ScheduleChangeDetail, ScheduleChangeType } from '@indiafoss/schedule';
   import {
     armNotifications,
     hydrateNotifications,
@@ -30,11 +30,40 @@
     startSimulationFromParams,
     tickInterval,
   } from '$lib/simulator.svelte';
-  import { trackPlanInputs } from '$lib/resolved-plan.svelte';
+  import { livePlanState, trackPlanInputs } from '$lib/resolved-plan.svelte';
   import { simulationSpeed } from '$lib/clock';
   import { hydrateOnboarding, markOnboardingDone, onboardingState } from '$lib/onboarding.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
+
+  /**
+   * The change list inside the update notice (#312). Closed by default: the
+   * notice is an interruption already, and it collapses again whenever a
+   * different revision takes its place.
+   */
+  let changesOpen = $state(false);
+  $effect(() => {
+    void updateState.revision;
+    changesOpen = false;
+  });
+
+  /**
+   * Only claim a change does or does not affect the attendee when the resolved
+   * plan actually says so. `livePlanState.activityIds` is empty while it is
+   * still resolving, and also when the plan is infeasible or has a must-attend
+   * conflict — telling that attendee "nothing in your plan changed" would be a
+   * guess dressed as a fact, so the list stays flat instead.
+   */
+  const planIds = $derived(
+    livePlanState.status === 'ready' ? new Set(livePlanState.activityIds) : new Set<string>(),
+  );
+  const planSplit = $derived(planIds.size > 0);
+  const mineChanges = $derived(
+    planSplit ? updateState.details.filter((d) => planIds.has(d.activityId)) : [],
+  );
+  const otherChanges = $derived(
+    planSplit ? updateState.details.filter((d) => !planIds.has(d.activityId)) : updateState.details,
+  );
 
   const brandHref = resolve('/');
   const logoSrc = `${base}/branding/indiafoss-2026-black.svg`;
@@ -229,6 +258,17 @@
   </a>
 {/snippet}
 
+{#snippet changeList(items: ScheduleChangeDetail[], label: string, mine: boolean)}
+  <ul class="changes" class:mine aria-label={label}>
+    {#each items as change (`${change.activityId}:${change.type}`)}
+      <li>
+        <span class="changetitle">{change.title}</span>
+        <span class="changetext">{change.description}</span>
+      </li>
+    {/each}
+  </ul>
+{/snippet}
+
 <div class="shell">
   <header class="app-bar">
     <a class="brand" href={brandHref} aria-label="IndiaFOSS Companion home">
@@ -289,22 +329,64 @@
           role="status"
           aria-label="Schedule update available"
         >
-          <div class="updatebody">
-            <strong>Schedule changed</strong>
-            {#if updateState.error}<p role="alert">{updateState.error}</p>{/if}
-            <span>
-              {#each Object.entries(updateState.summary) as [type, count] (type)}
-                {describeChangeCount(type as ScheduleChangeType, count)}
-                {#if type === 'room-changed'}
-                  — your route will be recalculated.
-                {/if}
-              {/each}
-            </span>
+          <div class="updatehead">
+            <div class="updatebody">
+              <strong>Schedule changed</strong>
+              {#if updateState.error}<p role="alert">{updateState.error}</p>{/if}
+              {#if updateState.detailsComplete}
+                <span>
+                  {#each Object.entries(updateState.summary) as [type, count] (type)}
+                    {describeChangeCount(type as ScheduleChangeType, count)}
+                    {#if type === 'room-changed'}
+                      — your route will be recalculated.
+                    {/if}
+                  {/each}
+                </span>
+              {:else}
+                <!-- Without the revision this one replaces there is nothing to
+                     compare, and half a list would read as the whole one. -->
+                <span>The programme changed. What changed cannot be listed for this update.</span>
+              {/if}
+            </div>
+            <div class="updateactions">
+              {#if updateState.detailsComplete}
+                <button
+                  class="button ghost small"
+                  aria-expanded={changesOpen}
+                  aria-controls="schedule-change-list"
+                  onclick={() => (changesOpen = !changesOpen)}
+                >
+                  {changesOpen ? 'Hide' : 'See'} what changed
+                </button>
+              {/if}
+              <button
+                class="button primary small"
+                onclick={() => applyUpdate(eventState.bundle?.id ?? DEFAULT_EVENT_ID)}
+                >Update</button
+              >
+            </div>
           </div>
-          <button
-            class="button primary small"
-            onclick={() => applyUpdate(eventState.bundle?.id ?? DEFAULT_EVENT_ID)}>Update</button
-          >
+          {#if changesOpen && updateState.detailsComplete}
+            <!-- The banner is a polite live region so its arrival is announced. The
+                 list is opened deliberately and read by moving into it, so it
+                 opts out rather than being recited in full on every toggle. -->
+            <div id="schedule-change-list" class="changelist" aria-live="off">
+              {#if planSplit}
+                <p class="changegroup">In your plan today</p>
+                {#if mineChanges.length > 0}
+                  {@render changeList(mineChanges, 'Changes to sessions in your plan today', true)}
+                {:else}
+                  <p class="nochange">Nothing in your plan today changed.</p>
+                {/if}
+                {#if otherChanges.length > 0}
+                  <p class="changegroup">Elsewhere in the programme</p>
+                  {@render changeList(otherChanges, 'Other changes to the programme', false)}
+                {/if}
+              {:else}
+                {@render changeList(updateState.details, 'What changed', false)}
+              {/if}
+            </div>
+          {/if}
         </section>
       {/if}
     </div>
@@ -506,10 +588,21 @@
     margin: 0 auto 0.5rem;
     max-width: 40rem;
     display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+  }
+  .updatehead {
+    display: flex;
     gap: 0.8rem;
     align-items: center;
     justify-content: space-between;
-    padding: 0.6rem 0.9rem;
+  }
+  .updateactions {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
   }
   .updatebody {
     display: flex;
@@ -519,6 +612,56 @@
   }
   .updatebody strong {
     color: var(--text);
+  }
+  /* The list can be long on a big re-plan; keep the notice from swallowing
+     the page and let it scroll instead. */
+  .changelist {
+    max-height: 40vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--line);
+    padding-top: 0.5rem;
+  }
+  .changegroup {
+    margin: 0.4rem 0 0.2rem;
+    font-family: var(--font-display);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .changegroup:first-child {
+    margin-top: 0;
+  }
+  .nochange {
+    margin: 0 0 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .changes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+  .changes li {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding: 0.3rem 0.5rem;
+    border-left: 3px solid transparent;
+    background: var(--surface);
+  }
+  /* Changes the attendee is standing in the middle of are marked, not merely
+     sorted first: the rest of the programme is one scroll below. */
+  .changes.mine li {
+    border-left-color: var(--mint);
+  }
+  .changetitle {
+    color: var(--text);
+    font-weight: 600;
   }
 
   /* Phone: the wrappers do not exist as boxes, so the shell's flex column
