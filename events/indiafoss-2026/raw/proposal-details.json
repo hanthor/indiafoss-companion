@@ -1611,6 +1611,84 @@
       }
     ]
   },
+  "4etfsdh6i4": {
+    "proposalId": "4etfsdh6i4",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4etfsdh6i4",
+    "description": "The Android Open Source Project (AOSP) has undergone significant changes over the past year or so. Not just in new features, but also in how the project itself is developed and governed. This lightning talk provides a quick overview of the recent developments in the AOSP ecosystem, including the transition of AOSP main to read-only, introduction to android-latest-release branch, mandatory registration for app developers, the Android Automotive OS (AAOS) Software Defined Vehicle (SDV) release, updates from aosp-devs.org community and other updates shaping Android's future.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd",
+        "url": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd"
+      }
+    ],
+    "links": [
+      {
+        "label": "aosp-devs.org",
+        "url": "https://aosp-devs.org/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "beqsttjcbn": {
+    "proposalId": "beqsttjcbn",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/beqsttjcbn",
+    "description": "Have you ever stopped to think about what actually happens inside your smartphone the second you tap an app icon? Instead of booting up from scratch every single time , our phone uses a shortcut to clone a ready to go template which is why our apps launch in the blink of an eye.We build apps every day , many complex ones as well relying on APIs that make UI magically appear but how many of us actually understand the heavy lifting happening underneath? This talk will cover that black box of Android’s operating system for developers who want to look past the surface layer. Did you know that the app doesn’t boot a fresh JVM every time but instead forks from a pre warmed Zygote process to launch instantly. Most importantly, because this entire operating system is open - source , you never have to just guess how things work , we can actually read the blueprints. I’ll show you how to navigate this massive public codebase so you can look up exactly what happens under the hood whenever you get stuck",
+    "keyTakeaways": [
+      "Understand the Zygote forking model and why Android app startup is fast",
+      "Know the journey from tapping an icon -> process creation -> first frame on screen",
+      "Understand how Compose's compiler plugin + slot table architecture differs from the legacy View system"
+    ],
+    "references": [
+      {
+        "label": "https://source.android.com/docs/core/runtime",
+        "url": "https://source.android.com/docs/core/runtime"
+      },
+      {
+        "label": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java",
+        "url": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java"
+      },
+      {
+        "label": "https://developer.android.com/develop/ui/compose/mental-model",
+        "url": "https://developer.android.com/develop/ui/compose/mental-model"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "bb06npb4u0": {
+    "proposalId": "bb06npb4u0",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bb06npb4u0",
+    "description": "Launcher3 is one of the most frequently used yet least understood applications in the Android ecosystem. Every interaction on an Android device eventually flows through it, unlocking the device, launching applications, accessing widgets, navigating recent tasks, searching for content, or interacting with personalized experiences such as Google Feed.\n\nOver the last year, while maintaining and customizing Launcher3 across multiple Android releases, I repeatedly dived into parts of the launcher that are rarely documented and even less frequently discussed in public. It started from writing features and maintenance and swiftly became a deep exploration into Launcher3's architecture, integration, plugin overlays, feed provider, the mechanism that power the familiar -1 screen experience found on millions of Android devices.\n\nMany Android developers work on Launcher3, but few get the opportunity to understand why it is structured the way it is. This talk aims to bridge that gap.\n\nLauncher3 is not just an app that opens other apps. It is one of the central part of the Android experience, such as navigation, recents, search, widgets and personalisation. This session will cover its core architecture, workspace, states, and integration with SystemUI. We will also examine how OEMs and custom ROMs extend the same codebase to create different launcher experiences\n\nA major focus of the session will be understanding the architecture behind the Google Feed (-1) screen. Through practical examples and analysis, we will explore how overlay provider plugin communicate with Launcher3, how overlay services are implemented, and what developers can learn when building their own custom launcher experiences.\n\nAlong the way, I will also share real-world lessons learned from maintaining Launcher3 customizations, debugging launcher issues across Android releases, and studying the components that make modern Android launchers feel seamless to users.\n\nWhether you maintain a custom ROM, work on the Android platform, or are simply interested in how Android launchers work, this session will help you understand how Launcher3 is structured, how its major components interact, and how modern launcher features are implemented.",
+    "keyTakeaways": [
+      "Understand how Launcher3 evolved from a simple application launcher into a core component of the modern Android user experience.",
+      "Learn how Launcher3 interacts with SystemUI, Recents, Search, and many more platform services.",
+      "Explore the architecture behind Google Feed and the implementation of Android's -1 screen experience.",
+      "Understand launcher overlay plugins and other mechanisms used by libgooglefeed.",
+      "Learn practical techniques for customizing Launcher3 and implementing alternative feed experiences.",
+      "Gain insights for Launcher3 maintenance, debugging, and reverse-engineering efforts across Android releases.",
+      "Walk away with a mental model of Launcher3 that makes future customization and platform development significantly easier."
+    ],
+    "references": [
+      {
+        "label": "https://android.googlesource.com/platform/packages/apps/Launcher3/",
+        "url": "https://android.googlesource.com/platform/packages/apps/Launcher3/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "4v0vd3g01j": {
     "proposalId": "4v0vd3g01j",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4v0vd3g01j",
@@ -1645,21 +1723,41 @@
       }
     ]
   },
-  "41r3mau7ga": {
-    "proposalId": "41r3mau7ga",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/41r3mau7ga",
-    "description": "Android is transitioning from HIDL to Stable AIDL to improve HAL interface stability and long-term maintainability. However, many production devices still depend on legacy HIDL implementations, making upgrades difficult.This talk presents a migration of a HAL from HIDL to Stable AIDL, focusing on real-world challenges. It covers key differences in interface definition, versioning, Binder IPC, and VINTF compatibility. The session walks through a step-by-step migration: rewriting interfaces, updating services, and modifying manifests.Hands-on guide for engineers who must modernize existing HIDL HALs to Stable AIDL in shipping devices.",
+  "e08r7fa8ja": {
+    "proposalId": "e08r7fa8ja",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/e08r7fa8ja",
+    "description": "Bootloaders are an essential block for booting an Android device. They handle tasks from reading the partitions, loading, and authenticating the Android images to preparing the board and finally handing over thec ontrol to kernel. Currently each vendor maintains different bootloader. To address the issue of fragmentation in the Android bootloader implementation across the community, Generic BootLoader (GBL) was introduced by Google.\n\nGBL is an EFI application which supports x86, ARM64 and RISC-V architectures and can be run across various firmware such as U-Boot, EDK2, and LittleKernel. By leveraging RUST memory safety and trusted components such as libufdt and libavb, GBL provides a uniform, secure, and robust environment.\n\nThis session provides a technical breakdown into GBL’s integration within the UEFI ecosystem. We will explore how GBL utilizes standard upstream protocols and interfaces with firmware to select platform-appropriate Device Trees, apply essential DT fixups, and prepare critical data for the Android kernel, including bootconfig and command-line parameters. Overall, the session provides a practical look at the enhancements required to bring GBL into the boot chain along with the challenges that might be encountered, offering a comprehensive roadmap for developers looking to reduce maintenance overhead and accelerate future-ready Android deployments.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/",
+        "url": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "d883e2uauk": {
+    "proposalId": "d883e2uauk",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d883e2uauk",
+    "description": "With our recent efforts to get upstream Linux Kernel support for Allwinner Sunxi A133 and A523 platforms, this also includes the Display Engine. Although the whole upstream effort relies on reverse engineering the vendor blobs, we have managed to get the end-to-end display pipeline working with GPU and got LVDS and MIPI working. In some cases, we are able to get 2 parallel displays working.\n\nAllwinner ships the most affordable SoCs / silicons for gaming consoles and handheld devices including tablets, all running vendor-provided Android. All of the devices come with closed source and proprietary blobs from Imagination Technologies, ARM Mali, and CedarX for the media pipelines.\n\nThis talk walks through our adventurous journey in building AOSP with upstream Linux Kernel 7.1 without any vendor-provided components to run an end-to-end display pipeline. We started our tinkering with Android 16 and easily moved to 17 (only released 6 days ago - relative to the date of this submission).",
     "keyTakeaways": [
-      "Explain the core architectural differences between HIDL and AIDL in the Android HAL stack.",
-      "List the Android version milestones that make AIDL mandatory for new and production devices.",
-      "Execute a step-by-step HIDL → AIDL migration for a real hardware interface.",
-      "Address SELinux policy changes, VINTF manifest updates, and compatibility matrix versioning required by the migration.",
-      "Identify and mitigate common failure, validation."
+      "One doesn't need to get locked in with vendor-provided Android",
+      "How to reverse engineer all the needed components to get an end-to-end working AOSP",
+      "How the community can lead the way to try this for the A733 or any upcoming silicons from Allwinner, or any SoC vendor for that matter"
     ],
     "references": [
       {
-        "label": "https://source.android.com/docs/core/architecture/aidl/stable-aidl",
-        "url": "https://source.android.com/docs/core/architecture/aidl/stable-aidl"
+        "label": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/",
+        "url": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/"
+      },
+      {
+        "label": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/",
+        "url": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/"
       }
     ],
     "links": [
@@ -1724,113 +1822,6 @@
       }
     ]
   },
-  "beqsttjcbn": {
-    "proposalId": "beqsttjcbn",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/beqsttjcbn",
-    "description": "Have you ever stopped to think about what actually happens inside your smartphone the second you tap an app icon? Instead of booting up from scratch every single time , our phone uses a shortcut to clone a ready to go template which is why our apps launch in the blink of an eye.We build apps every day , many complex ones as well relying on APIs that make UI magically appear but how many of us actually understand the heavy lifting happening underneath? This talk will cover that black box of Android’s operating system for developers who want to look past the surface layer. Did you know that the app doesn’t boot a fresh JVM every time but instead forks from a pre warmed Zygote process to launch instantly. Most importantly, because this entire operating system is open - source , you never have to just guess how things work , we can actually read the blueprints. I’ll show you how to navigate this massive public codebase so you can look up exactly what happens under the hood whenever you get stuck",
-    "keyTakeaways": [
-      "Understand the Zygote forking model and why Android app startup is fast",
-      "Know the journey from tapping an icon -> process creation -> first frame on screen",
-      "Understand how Compose's compiler plugin + slot table architecture differs from the legacy View system"
-    ],
-    "references": [
-      {
-        "label": "https://source.android.com/docs/core/runtime",
-        "url": "https://source.android.com/docs/core/runtime"
-      },
-      {
-        "label": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java",
-        "url": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java"
-      },
-      {
-        "label": "https://developer.android.com/develop/ui/compose/mental-model",
-        "url": "https://developer.android.com/develop/ui/compose/mental-model"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "coqs2rc43i": {
-    "proposalId": "coqs2rc43i",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/coqs2rc43i",
-    "description": "As Android continues adopting Rust to improve security and reliability, platform developers are gaining new ways to build safer system components. This talk introduces Android Hardware Abstraction Layers (HALs) developed using Rust and AIDL, covering how Rust integrates with AOSP, Binder IPC, and modern Android architecture.\n\nThrough a practical example, attendees will learn how to create and integrate a Rust-based HAL, understand the benefits of memory safety, and explore why Rust is becoming an important part of Android's future.",
-    "keyTakeaways": [
-      "Understand why Android is adopting Rust for system-level development.",
-      "Explain how AIDL-based HALs fit into the modern Android architecture.",
-      "Create and integrate a Rust-based HAL in AOSP.",
-      "Implement Binder IPC communication between Android services and Rust HALs.",
-      "Identify common challenges when developing and debugging Rust HAL services."
-    ],
-    "references": [
-      {
-        "label": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns",
-        "url": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "bb06npb4u0": {
-    "proposalId": "bb06npb4u0",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bb06npb4u0",
-    "description": "Launcher3 is one of the most frequently used yet least understood applications in the Android ecosystem. Every interaction on an Android device eventually flows through it, unlocking the device, launching applications, accessing widgets, navigating recent tasks, searching for content, or interacting with personalized experiences such as Google Feed.\n\nOver the last year, while maintaining and customizing Launcher3 across multiple Android releases, I repeatedly dived into parts of the launcher that are rarely documented and even less frequently discussed in public. It started from writing features and maintenance and swiftly became a deep exploration into Launcher3's architecture, integration, plugin overlays, feed provider, the mechanism that power the familiar -1 screen experience found on millions of Android devices.\n\nMany Android developers work on Launcher3, but few get the opportunity to understand why it is structured the way it is. This talk aims to bridge that gap.\n\nLauncher3 is not just an app that opens other apps. It is one of the central part of the Android experience, such as navigation, recents, search, widgets and personalisation. This session will cover its core architecture, workspace, states, and integration with SystemUI. We will also examine how OEMs and custom ROMs extend the same codebase to create different launcher experiences\n\nA major focus of the session will be understanding the architecture behind the Google Feed (-1) screen. Through practical examples and analysis, we will explore how overlay provider plugin communicate with Launcher3, how overlay services are implemented, and what developers can learn when building their own custom launcher experiences.\n\nAlong the way, I will also share real-world lessons learned from maintaining Launcher3 customizations, debugging launcher issues across Android releases, and studying the components that make modern Android launchers feel seamless to users.\n\nWhether you maintain a custom ROM, work on the Android platform, or are simply interested in how Android launchers work, this session will help you understand how Launcher3 is structured, how its major components interact, and how modern launcher features are implemented.",
-    "keyTakeaways": [
-      "Understand how Launcher3 evolved from a simple application launcher into a core component of the modern Android user experience.",
-      "Learn how Launcher3 interacts with SystemUI, Recents, Search, and many more platform services.",
-      "Explore the architecture behind Google Feed and the implementation of Android's -1 screen experience.",
-      "Understand launcher overlay plugins and other mechanisms used by libgooglefeed.",
-      "Learn practical techniques for customizing Launcher3 and implementing alternative feed experiences.",
-      "Gain insights for Launcher3 maintenance, debugging, and reverse-engineering efforts across Android releases.",
-      "Walk away with a mental model of Launcher3 that makes future customization and platform development significantly easier."
-    ],
-    "references": [
-      {
-        "label": "https://android.googlesource.com/platform/packages/apps/Launcher3/",
-        "url": "https://android.googlesource.com/platform/packages/apps/Launcher3/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "0le8m0bk3i": {
-    "proposalId": "0le8m0bk3i",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0le8m0bk3i",
-    "description": "We all have been through this tough battle at least once in our lives with MTP (Media Transfer Protocol), which is what every OS uses when you plug an Android phone in via USB. It was designed in 2008 for portable media players and transfers file metadata one item at a time with no caching or parallel requests. It does a round trip every time new info is needed because it works as a request-response protocol, so when you club this with modern tech with 100s of GBs of storage and tens of thousands of files, even calculating folder sizes takes several minutes, and if you are on macOS, the Finder app doesn't even show folder sizes at all. SocketSweep is an open source desktop app that bypasses this agonising MTP entirely. The main source of architectural inspiration is the scrcpy project by Genymobile, the idea of pushing a native binary to an Android device via ADB and communicating over a local socket.\n\nSo here's how it works: we have a cross-compiled C++ daemon (~1MB static binary, built with the Android NDK for aarch64) that gets pushed to the phone via adb push. Now the transferred daemon binds to a TCP socket on port 5050 and scans the filesystem using native POSIX calls like opendir/readdir/stat directly on the device, so there's no MTP bottleneck, it's plain raw system calls. Now the ADB port forwarding tunnels TCP 5050 on the phone to localhost:5050 on the PC, giving us a reliable bidirectional channel through the USB cable (with future scope of making it work over WiFi). Coming to the desktop side, we have a Rust/Tauri backend on the PC which manages the full lifecycle from pushing the daemon, setting up port forwarding, handling scoped storage permissions, and managing the TCP connection. The app uses a React frontend with an interactive treemap visualization.\n\nA full /sdcard scan on my device, which is a Samsung S24 Ultra (256GB, ~47k files), took about 7 seconds.\n\nIn this lightning talk i'll walk through why MTP is slow at the protocol level, how the \"push binary + socket\" pattern from scrcpy can be applied to other problems, cross-compiling C++ for Android with the NDK, and how ADB port forwarding works as a communication layer.",
-    "keyTakeaways": [
-      "Why MTP is slow at the protocol level and why building better file manager apps on top of it doesn't fix the core problem",
-      "How scrcpy's \"push a native binary via ADB, communicate over a local socket\" pattern can be reused to build your own Android tools",
-      "A working example of this pattern: scanning 47k files in ~7 seconds vs several minutes over MTP",
-      "Why this approach is future-proof: it runs through ADB debugging, not sideloading, so it continues to work even as Google tightens sideloading restrictions on Android"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/VishnuSrivatsava/SocketSweep",
-        "url": "https://github.com/VishnuSrivatsava/SocketSweep"
-      },
-      {
-        "label": "https://youtu.be/ttsc6Xf6Xb4",
-        "url": "https://youtu.be/ttsc6Xf6Xb4"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
   "armmpc3k1l": {
     "proposalId": "armmpc3k1l",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/armmpc3k1l",
@@ -1865,63 +1856,30 @@
       }
     ]
   },
-  "4etfsdh6i4": {
-    "proposalId": "4etfsdh6i4",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4etfsdh6i4",
-    "description": "The Android Open Source Project (AOSP) has undergone significant changes over the past year or so. Not just in new features, but also in how the project itself is developed and governed. This lightning talk provides a quick overview of the recent developments in the AOSP ecosystem, including the transition of AOSP main to read-only, introduction to android-latest-release branch, mandatory registration for app developers, the Android Automotive OS (AAOS) Software Defined Vehicle (SDV) release, updates from aosp-devs.org community and other updates shaping Android's future.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd",
-        "url": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd"
-      }
-    ],
-    "links": [
-      {
-        "label": "aosp-devs.org",
-        "url": "https://aosp-devs.org/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "e08r7fa8ja": {
-    "proposalId": "e08r7fa8ja",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/e08r7fa8ja",
-    "description": "Bootloaders are an essential block for booting an Android device. They handle tasks from reading the partitions, loading, and authenticating the Android images to preparing the board and finally handing over thec ontrol to kernel. Currently each vendor maintains different bootloader. To address the issue of fragmentation in the Android bootloader implementation across the community, Generic BootLoader (GBL) was introduced by Google.\n\nGBL is an EFI application which supports x86, ARM64 and RISC-V architectures and can be run across various firmware such as U-Boot, EDK2, and LittleKernel. By leveraging RUST memory safety and trusted components such as libufdt and libavb, GBL provides a uniform, secure, and robust environment.\n\nThis session provides a technical breakdown into GBL’s integration within the UEFI ecosystem. We will explore how GBL utilizes standard upstream protocols and interfaces with firmware to select platform-appropriate Device Trees, apply essential DT fixups, and prepare critical data for the Android kernel, including bootconfig and command-line parameters. Overall, the session provides a practical look at the enhancements required to bring GBL into the boot chain along with the challenges that might be encountered, offering a comprehensive roadmap for developers looking to reduce maintenance overhead and accelerate future-ready Android deployments.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/",
-        "url": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "d883e2uauk": {
-    "proposalId": "d883e2uauk",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d883e2uauk",
-    "description": "With our recent efforts to get upstream Linux Kernel support for Allwinner Sunxi A133 and A523 platforms, this also includes the Display Engine. Although the whole upstream effort relies on reverse engineering the vendor blobs, we have managed to get the end-to-end display pipeline working with GPU and got LVDS and MIPI working. In some cases, we are able to get 2 parallel displays working.\n\nAllwinner ships the most affordable SoCs / silicons for gaming consoles and handheld devices including tablets, all running vendor-provided Android. All of the devices come with closed source and proprietary blobs from Imagination Technologies, ARM Mali, and CedarX for the media pipelines.\n\nThis talk walks through our adventurous journey in building AOSP with upstream Linux Kernel 7.1 without any vendor-provided components to run an end-to-end display pipeline. We started our tinkering with Android 16 and easily moved to 17 (only released 6 days ago - relative to the date of this submission).",
+  "41r3mau7ga": {
+    "proposalId": "41r3mau7ga",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/41r3mau7ga",
+    "description": "Android is transitioning from HIDL to Stable AIDL to improve HAL interface stability and long-term maintainability. However, many production devices still depend on legacy HIDL implementations, making upgrades difficult.\n\nThis talk presents a migration of a HAL from HIDL to Stable AIDL, focusing on real-world challenges. It covers key differences in interface definition, versioning, Binder IPC, and VINTF compatibility. The session walks through a step-by-step migration: rewriting interfaces, updating services, and modifying manifests.\n\nHands-on guide for engineers who must modernize existing HIDL HALs to Stable AIDL in shipping devices.\n\nAs Android continues adopting Rust to improve security and reliability, platform developers are gaining new ways to build safer system components. This talk introduces Android Hardware Abstraction Layers (HALs) developed using Rust and AIDL, covering how Rust integrates with AOSP, Binder IPC, and modern Android architecture.\n\nThrough a practical example, attendees will learn how to create and integrate a Rust-based HAL, understand the benefits of memory safety, and explore why Rust is becoming an important part of Android's future.",
     "keyTakeaways": [
-      "One doesn't need to get locked in with vendor-provided Android",
-      "How to reverse engineer all the needed components to get an end-to-end working AOSP",
-      "How the community can lead the way to try this for the A733 or any upcoming silicons from Allwinner, or any SoC vendor for that matter"
+      "Explain the core architectural differences between HIDL and AIDL in the Android HAL stack.",
+      "List the Android version milestones that make AIDL mandatory for new and production devices.",
+      "Execute a step-by-step HIDL → AIDL migration for a real hardware interface.",
+      "Address SELinux policy changes, VINTF manifest updates, and compatibility matrix versioning required by the migration.",
+      "Identify and mitigate common failure, validation.",
+      "Understand why Android is adopting Rust for system-level development.",
+      "Explain how AIDL-based HALs fit into the modern Android architecture.",
+      "Create and integrate a Rust-based HAL in AOSP.",
+      "Implement Binder IPC communication between Android services and Rust HALs.",
+      "Identify common challenges when developing and debugging Rust HAL services."
     ],
     "references": [
       {
-        "label": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/",
-        "url": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/"
+        "label": "https://source.android.com/docs/core/architecture/aidl/stable-aidl",
+        "url": "https://source.android.com/docs/core/architecture/aidl/stable-aidl"
       },
       {
-        "label": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/",
-        "url": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/"
+        "label": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns",
+        "url": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns"
       }
     ],
     "links": [
@@ -1931,39 +1889,27 @@
       }
     ]
   },
-  "92adqrmbh1": {
-    "proposalId": "92adqrmbh1",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
-    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
-        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "dagd2l28tm": {
-    "proposalId": "dagd2l28tm",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
-    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
-    "keyTakeaways": [],
+  "0le8m0bk3i": {
+    "proposalId": "0le8m0bk3i",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0le8m0bk3i",
+    "description": "We all have been through this tough battle at least once in our lives with MTP (Media Transfer Protocol), which is what every OS uses when you plug an Android phone in via USB. It was designed in 2008 for portable media players and transfers file metadata one item at a time with no caching or parallel requests. It does a round trip every time new info is needed because it works as a request-response protocol, so when you club this with modern tech with 100s of GBs of storage and tens of thousands of files, even calculating folder sizes takes several minutes, and if you are on macOS, the Finder app doesn't even show folder sizes at all. SocketSweep is an open source desktop app that bypasses this agonising MTP entirely. The main source of architectural inspiration is the scrcpy project by Genymobile, the idea of pushing a native binary to an Android device via ADB and communicating over a local socket.\n\nSo here's how it works: we have a cross-compiled C++ daemon (~1MB static binary, built with the Android NDK for aarch64) that gets pushed to the phone via adb push. Now the transferred daemon binds to a TCP socket on port 5050 and scans the filesystem using native POSIX calls like opendir/readdir/stat directly on the device, so there's no MTP bottleneck, it's plain raw system calls. Now the ADB port forwarding tunnels TCP 5050 on the phone to localhost:5050 on the PC, giving us a reliable bidirectional channel through the USB cable (with future scope of making it work over WiFi). Coming to the desktop side, we have a Rust/Tauri backend on the PC which manages the full lifecycle from pushing the daemon, setting up port forwarding, handling scoped storage permissions, and managing the TCP connection. The app uses a React frontend with an interactive treemap visualization.\n\nA full /sdcard scan on my device, which is a Samsung S24 Ultra (256GB, ~47k files), took about 7 seconds.\n\nIn this lightning talk i'll walk through why MTP is slow at the protocol level, how the \"push binary + socket\" pattern from scrcpy can be applied to other problems, cross-compiling C++ for Android with the NDK, and how ADB port forwarding works as a communication layer.",
+    "keyTakeaways": [
+      "Why MTP is slow at the protocol level and why building better file manager apps on top of it doesn't fix the core problem",
+      "How scrcpy's \"push a native binary via ADB, communicate over a local socket\" pattern can be reused to build your own Android tools",
+      "A working example of this pattern: scanning 47k files in ~7 seconds vs several minutes over MTP",
+      "Why this approach is future-proof: it runs through ADB debugging, not sideloading, so it continues to work even as Google tightens sideloading restrictions on Android"
+    ],
     "references": [
       {
-        "label": "https://fosstodon.org/@badrihippo",
-        "url": "https://fosstodon.org/@badrihippo"
+        "label": "https://github.com/VishnuSrivatsava/SocketSweep",
+        "url": "https://github.com/VishnuSrivatsava/SocketSweep"
+      },
+      {
+        "label": "https://youtu.be/ttsc6Xf6Xb4",
+        "url": "https://youtu.be/ttsc6Xf6Xb4"
       }
     ],
     "links": [
-      {
-        "label": "@Muneer_S’s thread",
-        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
-      },
       {
         "label": "Source code",
         "url": "https://github.com/fossunited/fossunited"
@@ -2023,6 +1969,45 @@
       {
         "label": "Co-operatives",
         "url": "https://en.wikipedia.org/wiki/Cooperative"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "92adqrmbh1": {
+    "proposalId": "92adqrmbh1",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
+    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
+        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "dagd2l28tm": {
+    "proposalId": "dagd2l28tm",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
+    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://fosstodon.org/@badrihippo",
+        "url": "https://fosstodon.org/@badrihippo"
+      }
+    ],
+    "links": [
+      {
+        "label": "@Muneer_S’s thread",
+        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
       },
       {
         "label": "Source code",
@@ -2716,454 +2701,6 @@
       }
     ]
   },
-  "2tsmo50knt": {
-    "proposalId": "2tsmo50knt",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2tsmo50knt",
-    "description": "This talk is a case study of building and maintaining a design system at an open-source company. I'll share why we decided to invest in a design system, the process we followed, the challenges we encountered, and the lessons we learned along the way.\n\nAs our design system matured, another interesting shift emerged. The same structure that helped humans collaborate more effectively also made it easier to integrate AI-assisted workflows into our product development process.\n\nTopics covered:\n\nWhy we decided to build a design system\n\nThe process of creating and maintaining it\n\nChallenges, trade-offs, and mistakes we made\n\nHow design systems improve collaboration between designers and engineers\n\nWhy design systems encourage designers to think more like engineers and engineers to think more like product builders\n\nThe impact of a design system on product development velocity\n\nHow structured systems naturally support AI-assisted workflows\n\nLessons learned from evolving the system over time\n\nWhy the design and design system at Ente is FOSS\n\nPros and cons of an open source figma file",
-    "keyTakeaways": [
-      "Understand the process of building and maintaining a design system in an open-source company",
-      "Learn the challenges, trade-offs, and mistakes involved in creating a design system",
-      "Understand how design systems improve collaboration between designers and engineers",
-      "Learn why open-source design systems require different considerations than internal systems",
-      "Gain insights into maintaining an open-source Figma file and engaging with the community",
-      "Understand how structured systems influence product development workflows",
-      "Learn how design systems can support AI-assisted prototyping and experimentation",
-      "Explore how the boundaries between design and engineering are becoming increasingly blurred"
-    ],
-    "references": [
-      {
-        "label": "https://ente.com/blog/ente-design-system/",
-        "url": "https://ente.com/blog/ente-design-system/"
-      },
-      {
-        "label": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1",
-        "url": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1"
-      },
-      {
-        "label": "https://ente.com/blog/making-our-figma-public/",
-        "url": "https://ente.com/blog/making-our-figma-public/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "an3ot6c0v0": {
-    "proposalId": "an3ot6c0v0",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/an3ot6c0v0",
-    "description": "While the digital ecosystem for Latin scripts thrives with thousands of open-source typefaces, Indic typography - particularly for languages such as Kannada - remains severely underrepresented. Most contemporary Indic fonts are designed for modern publishing and do not preserve the historical letterforms, ligatures, and typographic variations found in nineteenth- and early twentieth-century print traditions.\n\nAt Sanchaya (Sanchaya.org), we are exploring how the extensive digital archives created through the Servants of Knowledge initiative can help revive early print heritage. We have developed Shaili Sanchaya, an open-source toolchain for revival font development that extracts historical glyphs and letterforms from scanned public-domain books and pre-computer-era print collections to create modern, standards-compliant Unicode typefaces.\n\nBeyond preserving typographic heritage, revival fonts are essential for improving OCR accuracy on historical documents. By digitally recreating legacy typefaces, we enable better recognition of older publications and help unlock vast collections of Indic knowledge that remain inaccessible to search, research, and dissemination.\n\nWe will present our open-source workflow - from archival scanning and character extraction to glyph normalization, vectorization, and font engineering—and discuss the challenges of revival font development, as well as how such efforts can lay the foundation for large-scale Indic glyph datasets and future machine learning applications.",
-    "keyTakeaways": [
-      "The Indic Typography Gap: The lay man’s understanding the design and technical constraints of digital Indic typefaces.",
-      "Archival to Digital Pipeline: How to leverage community-digitized public archives (like Servants of Knowledge) for historical font revival.",
-      "FOSS Font Engineering: Talk about open-source tools? or tell the story of what help was out there to start thinking about unicode-compliant Indic fonts.",
-      "The Bigger Picture: How opening up glyph datasets can revolutionize OCR, archival indexing, and accessibility across regional Indic languages"
-    ],
-    "references": [
-      {
-        "label": "https://fonts.sanchaya.ent",
-        "url": "https://fonts.sanchaya.ent/"
-      },
-      {
-        "label": "https://sanchaya.org",
-        "url": "https://sanchaya.org/"
-      },
-      {
-        "label": "https://archive.org/details/ServantsOfKnowledge",
-        "url": "https://archive.org/details/ServantsOfKnowledge"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "f89n581n5c": {
-    "proposalId": "f89n581n5c",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f89n581n5c",
-    "description": "Modern interfaces are often designed around ideal scenarios: users are focused, connected, and interacting within predictable digital environments. However, real-world products exist in a far messier context, (trust me, I have had a lot of such situations while testing), where physical inputs, environment, interruptions, connectivity issues, and hardware limitations influence the experience. This talk explores what happens when design moves beyond screens and into the physical world, examining the gap between software assumptions and hardware reality.",
-    "keyTakeaways": [
-      "Understand the gap between ideal user flows and real-world user behavior.",
-      "Learn how physical environments, interruptions, and hardware constraints shape UX decisions.",
-      "Explore the role of feedback, system status, and recoverability in product design.",
-      "Understand why designing for edge cases and failure scenarios is critical for real-world products.",
-      "Gain a framework for building interfaces that work beyond controlled digital environments."
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001",
-        "url": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5fle5u3fll": {
-    "proposalId": "5fle5u3fll",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5fle5u3fll",
-    "description": "A brand that needs to communicate with its audience today, needs to do so on many channels (instagram, youtube, blogs, newsletter etc) and at a high speed. The available solutions to keep up with this requirement - canva templates and AI generated imagery, fall short on few things. Canva templates all look and feel the same and while you might be able to tweak the layout, typography and colors to match your brand guidelines, its actually the other visual elements (photographs, illustrations etc) that establish your identity. AI generated posters on the other hand are generic and lack the levers and controls you need to adapt it to your brand's visual identity.\n\nIn this talk, I will share a software and workflow that I have built over p5js to help create visual assets collaboratively with my team. This tool brings the power of p5js and the javascript ecosystem to bring in flexibility needed for any computational design and provide additional primitives needed to make it convenient for visual design work. I will demonstrate examples of use of this tool with case studies from my work.\n\nUses p5js syntax. No custom syntax or DSL to learn. Comes with an ecosystem of books, guides and community to learn from.\n\nFrameworks bundles support for visual design helpers like design tokens (colors, typography, size), grids, cells, layers etc\n\nEverything is code. This makes it possible to collaboratively edit and track changes.\n\nEverything is code. You can bring in your choice of coding agent if needed.\n\nFile path to codify meaning - each drawn item on a canvas is defined in a javascript file that is grouped into layers and projects as per their file system location\n\nLinks to the visuals in case the images don’t get embedded in the proposal :\n\nScreenshot of p5js based custom tools to generate templated designs\n\nVisual Design made using these tools\n\nOther visuals created using the tool",
-    "keyTakeaways": [
-      "Using p5js for visual design with case studies shared from our work",
-      "Introduction to Creative Coding, Generative Systems and Computational Design",
-      "Works of key artists and designers that influence this"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/dennyabrain/p5js-for-visual-design/",
-        "url": "https://github.com/dennyabrain/p5js-for-visual-design/"
-      }
-    ],
-    "links": [
-      {
-        "label": "p5js",
-        "url": "https://p5js.org/"
-      },
-      {
-        "label": "Screenshot of p5js based custom tools to generate templated designs",
-        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDY0MC9vcmlnaW5hbF81YzJiYzI3ZmI4NTI3MmZlMGRmYjdkNmViYTM0MzcyMi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
-      },
-      {
-        "label": "Visual Design made using these tools",
-        "url": "https://d2w9rnfcy7mm78.cloudfront.net/47370642/original_86a83c04800efcbb369571f4a7ff8c7d.png"
-      },
-      {
-        "label": "Other visuals created using the tool",
-        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDYzOS9vcmlnaW5hbF85YzYyY2Q1OGI5MjA5NjlmYzMxNjFlNGVkZjlmZjlmOS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1vuu1c1ma7": {
-    "proposalId": "1vuu1c1ma7",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vuu1c1ma7",
-    "description": "In IndiaFOSS 2025, I introduced KaiOS feature phones, which are capable of many things a smartphone can do including (theoretically) opening websites and webapps. Hearing this, people often assume that any webapp can be used on KaiOS. However, this is usually not the case.\n\nEven if an app or website technically works (without breaking due to using modern JavaScript features that the old KaiOS engine doesn’t support) webapps often expect touch or mouse interaction rather than the keypad interaction that KaiOS devices provide. This requires design that is—not more or less difficult, but different from what most people are used to. If you have used any old Nokia phone, you may have an idea what kind of design and interaction I am talking about!\n\nOver the past year, I have been redoing the user interface of Convo, my XMPP powered messaging app for KaiOS. Along the way, I have been paying a bit more attention to how other KaiOS apps handle user interaction.\n\nIn this talk, I will briefly go over some common design patterns that feature phone apps use to make KaiOS more pleasurable to navigate.",
-    "keyTakeaways": [
-      "Keypad-operated phones have their own form of user interaction that is different from touchscreen or mouse based interaction.",
-      "Softkeys let the user select between primary options",
-      "Use keypad shortcuts to make sure each key is used to the maximum! (But also a more traditional dropdown menu so the less shortcut-inclined can still navigate)",
-      "Designing for small screens tends to have less focus on how something should look and more on what should be presented when and where"
-    ],
-    "references": [
-      {
-        "label": "https://convo.fsci.in",
-        "url": "https://convo.fsci.in/"
-      },
-      {
-        "label": "https://wiki.bananahackers.net/",
-        "url": "https://wiki.bananahackers.net/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "0rlqb6s6lb": {
-    "proposalId": "0rlqb6s6lb",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0rlqb6s6lb",
-    "description": "Linux desktop interfaces are typically built from rectangles and predefined transitions. While functional, these constraints make it difficult to create interfaces with the kind of expressive motion and fluid geometry commonly seen in modern design systems.\n\nIn this talk, I will demonstrate how I brought Bézier-driven animation and procedural shape generation to GTK3 using my open-source geometry library, expressive-shapes, along with a series of runtime modifications to GTK's animation pipeline.\n\nThe talk explores two complementary ideas:\n\nOverriding Time: Bézier Transitions\n\nGTK widgets such as stacks and revealers rely on fixed interpolation models. I will begin with a quick overview of GTK's widget lifecycle (mapping, allocation, drawing, and frame clock updates) to establish where animations fit into the rendering pipeline. From there, I will show how native transition timelines can be intercepted and redirected through a custom animation manager synchronized with the display refresh cycle enabling smooth Bézier-based motion and expressive transitions.\n\nOverriding Form: Geometry Engine\n\nBeyond animation, I wanted widgets themselves to become dynamic shapes rather than static rectangles. I will talk about the evolution of expressive-shapes into a geometry engine capable of generating rounded polygons and performing real-time shape morphing. Along the way, I will discuss the underlying algorithms, the architectural decisions that shaped the library.\n\nThroughout the talk, I will present implementation examples and live demonstrations using PyGObject, showing how these techniques can be combined to create fluid animations, shape morphing, and visually expressive GTK3 interfaces.",
-    "keyTakeaways": [
-      "A simple understanding of GTK's widget lifecycle.",
-      "Techniques for replacing GTK3's built-in widget transitions with custom Bézier-driven animations.",
-      "How geometry and Bézier curves can be used to generate, round, and morph shapes in real time.",
-      "Inspiration and implementation ideas for creating more expressive desktop interfaces with GTK3."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/amansxcalibur/expressive-shapes",
-        "url": "https://github.com/amansxcalibur/expressive-shapes"
-      },
-      {
-        "label": "https://github.com/amansxcalibur/zenith-shell",
-        "url": "https://github.com/amansxcalibur/zenith-shell"
-      },
-      {
-        "label": "https://www.gtk.org/",
-        "url": "https://www.gtk.org/"
-      },
-      {
-        "label": "https://pygobject.gnome.org/",
-        "url": "https://pygobject.gnome.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "expressive-shapes",
-        "url": "https://github.com/amansxcalibur/expressive-shapes"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1qugujs7o0": {
-    "proposalId": "1qugujs7o0",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1qugujs7o0",
-    "description": "So when we think about great design what comes to our mind is great visuals, sleek UI, futuristic interfaces. But here's something we don't really think about, vision is directional, it demands your full attention, while sound is omnidirectional, it works in the background. And yet sound is probably the most ignored detail in design today.\n\nAs we all know the devil lies in the details, and sound is that detail. Remove it and things fall apart. Add it back and everything clicks, literally. We have seen this so many times, every time something physical gets replaced by something digital, sound comes for the rescue. iPhone replaced the physical keyboard, so they added haptic and sound. Apple Pencil replaced pen on paper, so it started emitting the sound of pen rubbing against paper. Google Maps plays a reroute chime because no pop-up could do that job safely while driving.\n\nNow as AI evolves from text to voice and VR removes all physical surfaces, sound is going to become even more essential because when there is no physical surface we need to give the user something to hold onto. But more sound isn't better sound, there's a point where every ping becomes noise and users stop hearing anything, including the alerts that actually matter.\n\nThis lightning talk covers what HCI research tells us about sound in interaction design, when it helps, when it becomes noise, and what open-source tools already exist for developers who want to stop treating sound as an afterthought.",
-    "keyTakeaways": [
-      "You'll understand why sound isn't decoration but a functional design layer, it confirms actions, communicates system state, and reduces cognitive load on the user's eyes",
-      "You'll see real HCI case studies showing what happens when you remove sound (performance drops) and what happens when you add too much (users start ignoring critical alerts)",
-      "You'll discover open-source tools like freedesktop Sound Theme Spec, libcanberra, and snd-lib that most developers today aren't even aware exist, ready to use in your own projects",
-      "You'll walk away with a practical sense of when to add sound, what kind, and when to stay silent"
-    ],
-    "references": [
-      {
-        "label": "https://nsuworks.nova.edu/gscis_etd/1148/",
-        "url": "https://nsuworks.nova.edu/gscis_etd/1148/"
-      },
-      {
-        "label": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/",
-        "url": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/"
-      },
-      {
-        "label": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf",
-        "url": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5ua576fg9k": {
-    "proposalId": "5ua576fg9k",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5ua576fg9k",
-    "description": "Zephyr RTOS separates system configuration into multiple layers, primarily using Kconfig for feature selection and Device Tree for hardware description. Real world embedded product needs more like deployment specific parameters such as communication endpoints, timing constants, and board-specific behavioural settings. Today, these parameters are inconsistently handled across Kconfig symbols, Device Tree overlays, and application code, leading to duplication and reduced portability.\n\nThis talk looks at the boundary between Kconfig and Device Tree, and at how system configuration gets fragmented in Zephyr applications today. We introduce the idea of using Device Tree for static “system configuration nodes” representing logical or virtual system components such as service endpoints and application parameters. The goal is not to replace existing mechanisms, but to evaluate some common system configuration can also be handled in a more structured way using Device Tree.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=7qj0OM0Ak24",
-        "url": "https://www.youtube.com/watch?v=7qj0OM0Ak24"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "9qp8u3f894": {
-    "proposalId": "9qp8u3f894",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9qp8u3f894",
-    "description": "Modern display hardware is increasingly modular, combining SoC display controllers, interfaces such as DPI and MIPI DSI, protocol-conversion bridges, and a variety of display panels. Zephyr's current display subsystem is largely vendor-specific, making it difficult to support diverse display pipelines in a scalable way.This talk presents a modular display architecture for Zephyr inspired by Linux DRM framework. Display controllers, bridge devices, and panel drivers are implemented as independent layers connected through Devicetree. Pipelines are assembled dynamically at runtime, allowing display controllers to remain agnostic of downstream hardware.The talk will show how a single display controller driver can support both MIPI DSI and DPI-through-HDMI by attaching different downstream components, and show how the driver is capable for even eDP and MIPI DBI interfaces.Finally, the talk covers hot-plug detection and key design trade-offs while developing the driver for Zephyr.",
-    "keyTakeaways": [
-      "Learn how modern display pipelines are structured, including display controllers, protocol bridges, and display panels, and how these components interact.",
-      "See how a modular, layered display architecture enables reusable drivers that are independent of downstream display hardware.",
-      "Understand how Devicetree can describe complete display pipelines, allowing hardware configurations to be assembled without modifying controller drivers."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110013",
-        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110013"
-      },
-      {
-        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110061",
-        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110061"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "1s4iem9t8a": {
-    "proposalId": "1s4iem9t8a",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1s4iem9t8a",
-    "description": "Infineon's AURIX family of automotive microcontrollers is based on the TriCore architecture and is widely used across automotive systems, from powertrain and chassis control to safety-critical ECUs. This talk presents the upstream effort to add TriCore architecture support and enable Infineon AURIX TC3x and TC4x devices in Zephyr (https://github.com/zephyrproject-rtos/zephyr/pull/107516).Starting from CPU reset, we will walk through the key architecture bring-up steps required to reach the first Zephyr thread, including trap and interrupt handling, Context Save Area (CSA)-based context switching, and system timer integration. We will also cover the work required beyond the architecture layer, including SoC support, board enablement, and QEMU-based development and testing.Finally, we will discuss the challenges of upstreaming a new architecture into Zephyr, from toolchain and CI integration to HAL dependencies and ecosystem support, along with the remaining work needed for automotive and safety-critical systems.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/107516",
-        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/107516"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "6r7akaieb8": {
-    "proposalId": "6r7akaieb8",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6r7akaieb8",
-    "description": "Integrating camera capture and display subsystems on embedded SoCs presents significant software design challenges due to competing buffer ownership models across independent hardware subsystems. This talk presents a practical implementation of a zero-copy video pipeline on a TI Jacinto SoCs running FreeRTOS, coordinating three drivers: a CSI2-DPHY receiver, a UDMA engine, and a Display Subsystem driver.\n\nThe implementation uses FVID2, TI's unified video interface, to apply a consistent queue/dequeue buffer model to both capture and display operations. We examine the initialization sequence where the application transfers UDMA ownership to the CSIRX driver, enabling the DSS driver direct visibility into captured buffers.\n\nCritical gaps in single-task designs are identified, specifically the absence of mechanisms preventing capture from overwriting buffers during display scanout. We present a corrected two-task producer-consumer design using counting semaphores to enforce mutual exclusion, with explicit analysis of task priorities and frame timing implications.\n\nThis work bridges the gap between pipelines that function nominally and those structured to remain correct under timing pressure, illustrating the complexity beneath seemingly solved problems in embedded systems integration.",
-    "keyTakeaways": [
-      "How FVID2's queue/dequeue model provides a unified buffer-ownership interface across CSIRX and DSS drivers",
-      "What a proper FreeRTOS producer-consumer pipeline for this use case would look like"
-    ],
-    "references": [
-      {
-        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html",
-        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html"
-      },
-      {
-        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html",
-        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8fc48rj2g2": {
-    "proposalId": "8fc48rj2g2",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8fc48rj2g2",
-    "description": "Heterogeneous SoCs often employ a common pattern - Run Linux on the primary processor for system management tasks like boot sequencing, power management, firmware loading, and resource allocation, while Zephyr runs on auxiliary cores.\n\nMCUBoot, as of now, lacks the ability to load or control cores other than the one that it is running on.\n\nThis can be tackled by porting remote processor framework (remoteproc) to Zephyr - to provide firmware lifecycle management, resource table handling, and capabilities to load binaries. We can also employ OpenAMP using RPMsg for communication.\n\nWe will use TI's AM2434 as our reference SoC. This presentation will cover the remoteproc framework architecture, reference driver and reference examples demonstrating peer-to-peer processor management.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=8yAT-miihvY",
-        "url": "https://www.youtube.com/watch?v=8yAT-miihvY"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "eofh2kev0d": {
-    "proposalId": "eofh2kev0d",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eofh2kev0d",
-    "description": "The session begins with the model almost every embedded developer starts from, the setup and loop loops that runs continuously, polling sensors, driving outputs, and relying on delay() to manage its timing. This sequential approach is easy to reason about and serves small projects well, but it starts to strain the moment a device has to respond to several things at once. From there the talk introduces the real-time operating system as the answer to that strain, explaining the shift from one continuous loop to a set of independent tasks coordinated by a scheduler that allocates processor time and can preempt lower-priority work whenever something more urgent comes up. With the concept in place, the focus turns to the practical advantages: running multiple jobs concurrently, holding predictable response times under varying load, keeping unrelated parts of the firmware cleanly separated, and maintaining a codebase that stays workable as a product grows in complexity. The talk then looks at why real-time development has become a broadly valuable skill rather than a niche one, given how much of today's embedded and IoT hardware now runs on an RTOS and how steadily demand for that expertise keeps rising. It closes by introducing Zephyr, a modern, vendor-backed open-source RTOS released under the permissive Apache 2.0 license, as a concrete and increasingly standard platform on which to put everything the talk has covered into practice.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.freertos.org/",
-        "url": "https://www.freertos.org/"
-      },
-      {
-        "label": "https://micro.ros.org/docs/concepts/rtos/comparison/",
-        "url": "https://micro.ros.org/docs/concepts/rtos/comparison/"
-      },
-      {
-        "label": "https://www.zephyrproject.org/",
-        "url": "https://www.zephyrproject.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "5h4d5uhuro": {
-    "proposalId": "5h4d5uhuro",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5h4d5uhuro",
-    "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
-    "keyTakeaways": [
-      "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
-      "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
-      "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
-      "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
-    ],
-    "references": [
-      {
-        "label": "https://redkill.in/",
-        "url": "https://redkill.in/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "2sfmvkhrrg": {
-    "proposalId": "2sfmvkhrrg",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2sfmvkhrrg",
-    "description": "People are now familirized to rich UI hence the embedded devices are required to meet those standards. Many embedded products today need two very different things at once: a rich user interface, connectivity, and application logic and a hard real-time behavior with strict timing guarantees (best served by a dedicated MCU running an RTOS or bare-metal firmware). In this talk I want to walk through a real heterogeneous multi-processing (HMP) architecture built around this split: an STM32MP1 running Linux for display and application-level functionality, paired with an STM32H7 microcontroller handling the real-time subsystem, including sensor data acquisition, motor control data management and other periphearl activities.\n\nWe'll start by examining why this split was the right call, then go inside the custom IPC layer connecting the two chips: how the protocol was designed (framing, message types, error handling), and how failures like an independent reset on either side are managed.\n\nThe next section zooms into the H7 firmware, covering RTOS task design patterns that keep the real-time subsystem deterministic: ISR-to-task deferral for sensor sampling, event-driven patterns and command queue architectures that decouple incoming Linux-side commands from time-critical control loops.\n\nFinally, we'll discuss how designing the IPC layer around a stable, well-defined protocol enables a modular hardware architecture. the real-time subsystem can remain unchanged while the application processor side is swapped for a different MPU or APU (for example, one better suited to display or AI workloads), as long as it speaks the same protocol.",
-    "keyTakeaways": [
-      "When and why to split a product's compute across an APU (Linux, display/connectivity/application logic) and an MCU and how to evaluate that tradeoff for your own designs",
-      "Practical RTOS task design patterns for the real-time subsystem:",
-      "How a well-defined IPC protocol enables a modular hardware architecture, allowing the application processor (APU/MPU) to be swapped or upgraded independently without touching the real-time subsystem",
-      "A reusable framework for thinking through HMP and RTOS architecture decisions on future products, balancing real-time guarantees, scalability, and long-term flexibility"
-    ],
-    "references": [
-      {
-        "label": "https://www.linkedin.com/in/udhayadhithan/",
-        "url": "https://www.linkedin.com/in/udhayadhithan/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "8gv11r0ga6": {
-    "proposalId": "8gv11r0ga6",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8gv11r0ga6",
-    "description": "Modern automotive DMS/OMS demand deterministic, real-time camera processing undersafety-critical constraints, a requirement that goes beyond real-time performance. While RT-Linux can deliver real-time performance, the ISO 26262 compliance requires predictable resource isolation, deterministic scheduling guarantees, and functional safety certification. This work consolidates CSIRX capture, sensor drivers, and VPAC control into a FreeRTOS-based safety-critical firmware on AM62A's Device Manager R5F core, eliminating A53 real-time burden. Linux-based capture remains viable for general-purpose and industrial applications that do not require safety-critical deterministic requirements.\n\nAM62A is a heterogeneous SoC featuring A53 (Linux/applications), C7x NPU (AI/ML),VPAC accelerators (VISS → LDC → MSC), and two R5F cores: MCU R5F (AUTOSAR/safety) and DM R5F (Device Manager). Rather than competing for MCU R5F reserved for safety, the entire vision stack consisting of CSIRX camera, sensor drivers, VPAC control, 2A algorithms consolidates onto DM R5F under FreeRTOS. This: (1) frees A53 from real-time duties; (2) makes capture HLOS-agnostic; (3) enables concurrent execution of camera capture, VPAC, Device Manager, EthFW (with gPTP stack) on one safety-critical core.\n\nTIOVX (TI OpenVx) middleware layer controls the overall graph execution, node/kerneldispatch on different target cores over RPMsg-based communication in the present use case. The R5F controls VPAC via memory-mapped registers and interrupt-driven completion, ensuring deterministic processing. DMR5 runs all services at ~40% peak load, leaving 60% headroom. Future work targets On-The-Fly CSI-RX to VPAC path to eliminate DDR roundtrips.",
-    "keyTakeaways": [
-      "Bridges the gap - between general-purpose Linux and dedicated safety systems",
-      "Solves A53 Overloading as mixing camera capture with application logic on main processor causes unacceptable latency due to IPC overhead",
-      "Proper utilization of DM R5F core by consolidating different tasks and functionalities on one single core.",
-      "40% Load, 60% Headroom - all services (capture + VPAC + DM + EthFW + gPTP) run at only ~40% peak, leaving room for future workloads",
-      "HLOS-Agnostic Capture - A53 running Linux is completely decoupled from real-time camera duties"
-    ],
-    "references": [
-      {
-        "label": "https://www.ti.com/product/AM62A7",
-        "url": "https://www.ti.com/product/AM62A7"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "aqenkb8ktb": {
-    "proposalId": "aqenkb8ktb",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/aqenkb8ktb",
-    "description": "Lightweight cryptography is the solution for resource-constrained embedded devices. Ascon was the finalists in NIST Lightweight Cryptography Standardization Process, chosen from a set of finalists that includes Romulus, built on the SKINNY block cipher. But standardizing an algorithm is not the same as making it cheap to run on a microcontroller.\n\nIn this talk, the author shows a fully open path from hardware to Zephyr RTOS: a lightweight crypto co-processor written in VHDL, integrated into the open NeoRV32 RISC-V soft-core, and exposed to applications through Zephyr RTOS. The author walks through one working example end to end, a SKINNY-AEAD accelerator on an FPGA board, validated on real hardware against the reference test vectors, and driven from Zephyr over a memory-mapped register.\n\nThe author then generalize it into a repeatable recipe register interface, devicetree binding, driver, crypto API integration, that applies to Ascon and the other NIST Lightweight cryptography finalists.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=P-JX_taGZYI",
-        "url": "https://www.youtube.com/watch?v=P-JX_taGZYI"
-      },
-      {
-        "label": "https://doi.org/10.1016/j.micpro.2020.103202",
-        "url": "https://doi.org/10.1016/j.micpro.2020.103202"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
   "a45o8u74jv": {
     "proposalId": "a45o8u74jv",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/a45o8u74jv",
@@ -3844,12 +3381,34 @@
       }
     ]
   },
-  "4eh569dvq9": {
-    "proposalId": "4eh569dvq9",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4eh569dvq9",
-    "description": "As community-generated datasets become increasingly important for training AI systems, there is a growing need to explore whether existing open data licenses adequately protect community contributions. This session will examine whether copyleft principles, which have successfully supported open source software ecosystems, can be adapted to datasets used for AI development. The discussion will focus on attribution, reciprocity, data provenance, community ownership, and the governance of data commons.\n\nCommunity-led initiatives across India and the world are creating datasets that support language technologies, accessibility tools, and AI research. However, many of these datasets are released without licensing frameworks specifically designed for AI use. This creates a risk that community-generated data may be incorporated into proprietary AI systems without attribution, transparency, or any meaningful contribution back to the communities that created them. Open source software have relied on copyleft licenses such as the GNU GPL to ensure that software and improvements remain available to the community. As community-generated datasets become increasingly important for training AI systems, a similar question is emerging for data i.e. can copyleft principles and licence be applied to datasets used for machine learning?\n\nA draft Community Data License has been developed by Viswam.ai and SFLC.in to address these concerns by applying copyleft principles to datasets. The proposed license seeks to ensure that community-generated datasets remain part of a shared commons by requiring attribution to original contributors, transparency regarding data provenance, and the sharing of modified or derived datasets under the same licence terms.\n\nThis session will use the draft license as a starting point for a broader discussion on the future of community data governance, open AI, and digital commons. The objective is to gather perspectives from developers, researchers, open-source contributors, civil society organisations, policymakers, and dataset creators on whether new licensing and governance approaches are needed to protect community data commons and how such a license could work in practice.\n\nOpen discussion with participants. The session will begin with a brief introduction to the problem statement and the draft Community Data License, followed by a moderated discussion. Participants will be encouraged to share experiences, concerns, use cases, and perspectives from technical, legal, policy, research, and community viewpoints. The moderator will guide the discussion around key questions and explore broad conversation focused on the topic.",
-    "keyTakeaways": [],
-    "references": [],
+  "2tsmo50knt": {
+    "proposalId": "2tsmo50knt",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2tsmo50knt",
+    "description": "This talk is a case study of building and maintaining a design system at an open-source company. I'll share why we decided to invest in a design system, the process we followed, the challenges we encountered, and the lessons we learned along the way.\n\nAs our design system matured, another interesting shift emerged. The same structure that helped humans collaborate more effectively also made it easier to integrate AI-assisted workflows into our product development process.\n\nTopics covered:\n\nWhy we decided to build a design system\n\nThe process of creating and maintaining it\n\nChallenges, trade-offs, and mistakes we made\n\nHow design systems improve collaboration between designers and engineers\n\nWhy design systems encourage designers to think more like engineers and engineers to think more like product builders\n\nThe impact of a design system on product development velocity\n\nHow structured systems naturally support AI-assisted workflows\n\nLessons learned from evolving the system over time\n\nWhy the design and design system at Ente is FOSS\n\nPros and cons of an open source figma file",
+    "keyTakeaways": [
+      "Understand the process of building and maintaining a design system in an open-source company",
+      "Learn the challenges, trade-offs, and mistakes involved in creating a design system",
+      "Understand how design systems improve collaboration between designers and engineers",
+      "Learn why open-source design systems require different considerations than internal systems",
+      "Gain insights into maintaining an open-source Figma file and engaging with the community",
+      "Understand how structured systems influence product development workflows",
+      "Learn how design systems can support AI-assisted prototyping and experimentation",
+      "Explore how the boundaries between design and engineering are becoming increasingly blurred"
+    ],
+    "references": [
+      {
+        "label": "https://ente.com/blog/ente-design-system/",
+        "url": "https://ente.com/blog/ente-design-system/"
+      },
+      {
+        "label": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1",
+        "url": "https://www.figma.com/design/BuBNPPytxlVnqfmCUW0mgz/Ente-Visual-Design?node-id=57-6281&t=WLa154on8GcDuL5P-1"
+      },
+      {
+        "label": "https://ente.com/blog/making-our-figma-public/",
+        "url": "https://ente.com/blog/making-our-figma-public/"
+      }
+    ],
     "links": [
       {
         "label": "Source code",
@@ -3857,12 +3416,30 @@
       }
     ]
   },
-  "82fbs78uua": {
-    "proposalId": "82fbs78uua",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/82fbs78uua",
-    "description": "I am Thejesh GN. In 2018, I started a yearly micro-grant of ₹1,00,000 in memory of my mother, called the Nagarathna Memorial Grant (NMG). The idea was to support meaningful work with no strings attached.\n\nThe reason for the grant can be anything that matters to the applicant and the people around them. While I personally prefer Free and Open Source Software, Creative Commons, and public-interest work, that is not a requirement.\n\nOver the years, the size of the grant has grown from ₹1 lakh to several lakhs, thanks to friends and supporters joining in. In 2026, the grant reached its largest size yet ₹5.6 lakhs with many people contributing and supporting the process.The idea is also not to grow beyond ₹10 lakhs as of now. Personally, I would consider any grant handling more than ₹10 lakhs/year in 2026 is not a micro grant. Even with the growth, the core idea remains unchanged, small, direct, trust-based support for meaningful work.\n\n2027 will mark the 10th year of the grant. This BoF is an opportunity to discuss how we can encourage more micro-grants in India.\n\nIn India, most funding for creative, public-interest, and open projects comes through large institutional grants. While those are important, micro-grants ( small, decentralized, peer-to-peer gifts or funding ) can often be more accessible, flexible, and liberating for both the giver and the receiver.\n\nThis BoF is an open discussion for FOSS contributors, creators, artists, writers, researchers, and community organizers to discuss about\n\nRound-table discussion.\n\nWe will begin with a short introduction to micro-funding and why it matters, followed by an overview of how NMG has worked, lessons learned, and challenges faced over the years.\n\nThe session will then open into a broader discussion and brainstorming on possible discussion points mentioned above.",
-    "keyTakeaways": [],
-    "references": [],
+  "an3ot6c0v0": {
+    "proposalId": "an3ot6c0v0",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/an3ot6c0v0",
+    "description": "While the digital ecosystem for Latin scripts thrives with thousands of open-source typefaces, Indic typography - particularly for languages such as Kannada - remains severely underrepresented. Most contemporary Indic fonts are designed for modern publishing and do not preserve the historical letterforms, ligatures, and typographic variations found in nineteenth- and early twentieth-century print traditions.\n\nAt Sanchaya (Sanchaya.org), we are exploring how the extensive digital archives created through the Servants of Knowledge initiative can help revive early print heritage. We have developed Shaili Sanchaya, an open-source toolchain for revival font development that extracts historical glyphs and letterforms from scanned public-domain books and pre-computer-era print collections to create modern, standards-compliant Unicode typefaces.\n\nBeyond preserving typographic heritage, revival fonts are essential for improving OCR accuracy on historical documents. By digitally recreating legacy typefaces, we enable better recognition of older publications and help unlock vast collections of Indic knowledge that remain inaccessible to search, research, and dissemination.\n\nWe will present our open-source workflow - from archival scanning and character extraction to glyph normalization, vectorization, and font engineering—and discuss the challenges of revival font development, as well as how such efforts can lay the foundation for large-scale Indic glyph datasets and future machine learning applications.",
+    "keyTakeaways": [
+      "The Indic Typography Gap: The lay man’s understanding the design and technical constraints of digital Indic typefaces.",
+      "Archival to Digital Pipeline: How to leverage community-digitized public archives (like Servants of Knowledge) for historical font revival.",
+      "FOSS Font Engineering: Talk about open-source tools? or tell the story of what help was out there to start thinking about unicode-compliant Indic fonts.",
+      "The Bigger Picture: How opening up glyph datasets can revolutionize OCR, archival indexing, and accessibility across regional Indic languages"
+    ],
+    "references": [
+      {
+        "label": "https://fonts.sanchaya.ent",
+        "url": "https://fonts.sanchaya.ent/"
+      },
+      {
+        "label": "https://sanchaya.org",
+        "url": "https://sanchaya.org/"
+      },
+      {
+        "label": "https://archive.org/details/ServantsOfKnowledge",
+        "url": "https://archive.org/details/ServantsOfKnowledge"
+      }
+    ],
     "links": [
       {
         "label": "Source code",
@@ -3870,15 +3447,379 @@
       }
     ]
   },
-  "1f9ett9bgj": {
-    "proposalId": "1f9ett9bgj",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1f9ett9bgj",
-    "description": "A lot of FOSS events, meetups, devrooms, and community spaces describe themselves as community-driven. But what does that actually mean?\n\nIs a community-driven event just an event organized for a community, or should the community also have a say in what gets selected, what gets discussed, and what direction the space takes?\n\nThis BoF is intended to discuss how much involvement the community should have in shaping community events. This could include talk selection, CFP review, public voting, deciding meetup themes, choosing discussion topics, setting the long-term direction of a local chapter, and generally deciding who gets to steer the space.\n\nThere are several things we could discuss.\n\nShould talks and sessions be selected entirely by a small internal review group, or should the wider community have a visible role in the process? When does private review help maintain quality, and when does it become opaque gatekeeping? How do we balance expert curation with community participation? What are the risks of public voting becoming a popularity contest? What are the risks of everything being decided quietly in the background by a few people?\n\nThe key thing to resolve in this BoF is what “community-driven” should practically mean for FOSS and adjacent community spaces. I don’t think every decision can or should be made by public vote, but I also don’t think community spaces should become places where the community is only expected to attend, clap, and leave.\n\nIdeally, we discuss models that actually work. This could include open voting, hybrid review, published review criteria, community feedback loops, public roadmaps for meetups, first-time speaker support, and ways for new volunteers to have a real say without making the organizer’s job impossible.\n\nThis BoF is not meant to be a complaint session about any one event or organizing team. The goal is to discuss how we can build healthier, more transparent, and more participatory community spaces.\n\nIf you organize meetups, run a local chapter, review CFPs, volunteer at events, submit talks, attend community events, or just have opinions on how community spaces should be run, this BoF is for you.\n\nRound Table Discussion. Ideally we’d spend at least 60% of the time discussing practical models and ideas that communities can actually use.",
+  "f89n581n5c": {
+    "proposalId": "f89n581n5c",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/f89n581n5c",
+    "description": "Modern interfaces are often designed around ideal scenarios: users are focused, connected, and interacting within predictable digital environments. However, real-world products exist in a far messier context, (trust me, I have had a lot of such situations while testing), where physical inputs, environment, interruptions, connectivity issues, and hardware limitations influence the experience. This talk explores what happens when design moves beyond screens and into the physical world, examining the gap between software assumptions and hardware reality.",
+    "keyTakeaways": [
+      "Understand the gap between ideal user flows and real-world user behavior.",
+      "Learn how physical environments, interruptions, and hardware constraints shape UX decisions.",
+      "Explore the role of feedback, system status, and recoverability in product design.",
+      "Understand why designing for edge cases and failure scenarios is critical for real-world products.",
+      "Gain a framework for building interfaces that work beyond controlled digital environments."
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001",
+        "url": "https://www.youtube.com/live/iVYvEbxr_HM?si=he9BGSCLvNnJduHN&t=12001"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5fle5u3fll": {
+    "proposalId": "5fle5u3fll",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5fle5u3fll",
+    "description": "A brand that needs to communicate with its audience today, needs to do so on many channels (instagram, youtube, blogs, newsletter etc) and at a high speed. The available solutions to keep up with this requirement - canva templates and AI generated imagery, fall short on few things. Canva templates all look and feel the same and while you might be able to tweak the layout, typography and colors to match your brand guidelines, its actually the other visual elements (photographs, illustrations etc) that establish your identity. AI generated posters on the other hand are generic and lack the levers and controls you need to adapt it to your brand's visual identity.\n\nIn this talk, I will share a software and workflow that I have built over p5js to help create visual assets collaboratively with my team. This tool brings the power of p5js and the javascript ecosystem to bring in flexibility needed for any computational design and provide additional primitives needed to make it convenient for visual design work. I will demonstrate examples of use of this tool with case studies from my work.\n\nUses p5js syntax. No custom syntax or DSL to learn. Comes with an ecosystem of books, guides and community to learn from.\n\nFrameworks bundles support for visual design helpers like design tokens (colors, typography, size), grids, cells, layers etc\n\nEverything is code. This makes it possible to collaboratively edit and track changes.\n\nEverything is code. You can bring in your choice of coding agent if needed.\n\nFile path to codify meaning - each drawn item on a canvas is defined in a javascript file that is grouped into layers and projects as per their file system location\n\nLinks to the visuals in case the images don’t get embedded in the proposal :\n\nScreenshot of p5js based custom tools to generate templated designs\n\nVisual Design made using these tools\n\nOther visuals created using the tool",
+    "keyTakeaways": [
+      "Using p5js for visual design with case studies shared from our work",
+      "Introduction to Creative Coding, Generative Systems and Computational Design",
+      "Works of key artists and designers that influence this"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/dennyabrain/p5js-for-visual-design/",
+        "url": "https://github.com/dennyabrain/p5js-for-visual-design/"
+      }
+    ],
+    "links": [
+      {
+        "label": "p5js",
+        "url": "https://p5js.org/"
+      },
+      {
+        "label": "Screenshot of p5js based custom tools to generate templated designs",
+        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDY0MC9vcmlnaW5hbF81YzJiYzI3ZmI4NTI3MmZlMGRmYjdkNmViYTM0MzcyMi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
+      },
+      {
+        "label": "Visual Design made using these tools",
+        "url": "https://d2w9rnfcy7mm78.cloudfront.net/47370642/original_86a83c04800efcbb369571f4a7ff8c7d.png"
+      },
+      {
+        "label": "Other visuals created using the tool",
+        "url": "https://images.are.na/eyJidWNrZXQiOiJhcmVuYV9pbWFnZXMiLCJrZXkiOiI0NzM3MDYzOS9vcmlnaW5hbF85YzYyY2Q1OGI5MjA5NjlmYzMxNjFlNGVkZjlmZjlmOS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsid2lkdGgiOjEyMDAsImhlaWdodCI6MTIwMCwiZml0IjoiaW5zaWRlIiwid2l0aG91dEVubGFyZ2VtZW50Ijp0cnVlfSwid2VicCI6eyJxdWFsaXR5Ijo3NX0sImpwZWciOnsicXVhbGl0eSI6NzV9LCJyb3RhdGUiOm51bGx9fQ=="
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1vuu1c1ma7": {
+    "proposalId": "1vuu1c1ma7",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1vuu1c1ma7",
+    "description": "In IndiaFOSS 2025, I introduced KaiOS feature phones, which are capable of many things a smartphone can do including (theoretically) opening websites and webapps. Hearing this, people often assume that any webapp can be used on KaiOS. However, this is usually not the case.\n\nEven if an app or website technically works (without breaking due to using modern JavaScript features that the old KaiOS engine doesn’t support) webapps often expect touch or mouse interaction rather than the keypad interaction that KaiOS devices provide. This requires design that is—not more or less difficult, but different from what most people are used to. If you have used any old Nokia phone, you may have an idea what kind of design and interaction I am talking about!\n\nOver the past year, I have been redoing the user interface of Convo, my XMPP powered messaging app for KaiOS. Along the way, I have been paying a bit more attention to how other KaiOS apps handle user interaction.\n\nIn this talk, I will briefly go over some common design patterns that feature phone apps use to make KaiOS more pleasurable to navigate.",
+    "keyTakeaways": [
+      "Keypad-operated phones have their own form of user interaction that is different from touchscreen or mouse based interaction.",
+      "Softkeys let the user select between primary options",
+      "Use keypad shortcuts to make sure each key is used to the maximum! (But also a more traditional dropdown menu so the less shortcut-inclined can still navigate)",
+      "Designing for small screens tends to have less focus on how something should look and more on what should be presented when and where"
+    ],
+    "references": [
+      {
+        "label": "https://convo.fsci.in",
+        "url": "https://convo.fsci.in/"
+      },
+      {
+        "label": "https://wiki.bananahackers.net/",
+        "url": "https://wiki.bananahackers.net/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "0rlqb6s6lb": {
+    "proposalId": "0rlqb6s6lb",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0rlqb6s6lb",
+    "description": "Linux desktop interfaces are typically built from rectangles and predefined transitions. While functional, these constraints make it difficult to create interfaces with the kind of expressive motion and fluid geometry commonly seen in modern design systems.\n\nIn this talk, I will demonstrate how I brought Bézier-driven animation and procedural shape generation to GTK3 using my open-source geometry library, expressive-shapes, along with a series of runtime modifications to GTK's animation pipeline.\n\nThe talk explores two complementary ideas:\n\nOverriding Time: Bézier Transitions\n\nGTK widgets such as stacks and revealers rely on fixed interpolation models. I will begin with a quick overview of GTK's widget lifecycle (mapping, allocation, drawing, and frame clock updates) to establish where animations fit into the rendering pipeline. From there, I will show how native transition timelines can be intercepted and redirected through a custom animation manager synchronized with the display refresh cycle enabling smooth Bézier-based motion and expressive transitions.\n\nOverriding Form: Geometry Engine\n\nBeyond animation, I wanted widgets themselves to become dynamic shapes rather than static rectangles. I will talk about the evolution of expressive-shapes into a geometry engine capable of generating rounded polygons and performing real-time shape morphing. Along the way, I will discuss the underlying algorithms, the architectural decisions that shaped the library.\n\nThroughout the talk, I will present implementation examples and live demonstrations using PyGObject, showing how these techniques can be combined to create fluid animations, shape morphing, and visually expressive GTK3 interfaces.",
+    "keyTakeaways": [
+      "A simple understanding of GTK's widget lifecycle.",
+      "Techniques for replacing GTK3's built-in widget transitions with custom Bézier-driven animations.",
+      "How geometry and Bézier curves can be used to generate, round, and morph shapes in real time.",
+      "Inspiration and implementation ideas for creating more expressive desktop interfaces with GTK3."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/amansxcalibur/expressive-shapes",
+        "url": "https://github.com/amansxcalibur/expressive-shapes"
+      },
+      {
+        "label": "https://github.com/amansxcalibur/zenith-shell",
+        "url": "https://github.com/amansxcalibur/zenith-shell"
+      },
+      {
+        "label": "https://www.gtk.org/",
+        "url": "https://www.gtk.org/"
+      },
+      {
+        "label": "https://pygobject.gnome.org/",
+        "url": "https://pygobject.gnome.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "expressive-shapes",
+        "url": "https://github.com/amansxcalibur/expressive-shapes"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1qugujs7o0": {
+    "proposalId": "1qugujs7o0",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1qugujs7o0",
+    "description": "So when we think about great design what comes to our mind is great visuals, sleek UI, futuristic interfaces. But here's something we don't really think about, vision is directional, it demands your full attention, while sound is omnidirectional, it works in the background. And yet sound is probably the most ignored detail in design today.\n\nAs we all know the devil lies in the details, and sound is that detail. Remove it and things fall apart. Add it back and everything clicks, literally. We have seen this so many times, every time something physical gets replaced by something digital, sound comes for the rescue. iPhone replaced the physical keyboard, so they added haptic and sound. Apple Pencil replaced pen on paper, so it started emitting the sound of pen rubbing against paper. Google Maps plays a reroute chime because no pop-up could do that job safely while driving.\n\nNow as AI evolves from text to voice and VR removes all physical surfaces, sound is going to become even more essential because when there is no physical surface we need to give the user something to hold onto. But more sound isn't better sound, there's a point where every ping becomes noise and users stop hearing anything, including the alerts that actually matter.\n\nThis lightning talk covers what HCI research tells us about sound in interaction design, when it helps, when it becomes noise, and what open-source tools already exist for developers who want to stop treating sound as an afterthought.",
+    "keyTakeaways": [
+      "You'll understand why sound isn't decoration but a functional design layer, it confirms actions, communicates system state, and reduces cognitive load on the user's eyes",
+      "You'll see real HCI case studies showing what happens when you remove sound (performance drops) and what happens when you add too much (users start ignoring critical alerts)",
+      "You'll discover open-source tools like freedesktop Sound Theme Spec, libcanberra, and snd-lib that most developers today aren't even aware exist, ready to use in your own projects",
+      "You'll walk away with a practical sense of when to add sound, what kind, and when to stay silent"
+    ],
+    "references": [
+      {
+        "label": "https://nsuworks.nova.edu/gscis_etd/1148/",
+        "url": "https://nsuworks.nova.edu/gscis_etd/1148/"
+      },
+      {
+        "label": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/",
+        "url": "https://www.freedesktop.org/wiki/Specifications/sound-theme-spec/"
+      },
+      {
+        "label": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf",
+        "url": "https://www.microsoft.com/en-us/research/wp-content/uploads/2015/06/Ma_etal_WHC2015.pdf"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5ua576fg9k": {
+    "proposalId": "5ua576fg9k",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5ua576fg9k",
+    "description": "Zephyr RTOS separates system configuration into multiple layers, primarily using Kconfig for feature selection and Device Tree for hardware description. Real world embedded product needs more like deployment specific parameters such as communication endpoints, timing constants, and board-specific behavioural settings. Today, these parameters are inconsistently handled across Kconfig symbols, Device Tree overlays, and application code, leading to duplication and reduced portability.\n\nThis talk looks at the boundary between Kconfig and Device Tree, and at how system configuration gets fragmented in Zephyr applications today. We introduce the idea of using Device Tree for static “system configuration nodes” representing logical or virtual system components such as service endpoints and application parameters. The goal is not to replace existing mechanisms, but to evaluate some common system configuration can also be handled in a more structured way using Device Tree.",
     "keyTakeaways": [],
     "references": [
       {
-        "label": "https://x.com/AskBaluBabu",
-        "url": "https://x.com/AskBaluBabu"
+        "label": "https://www.youtube.com/watch?v=7qj0OM0Ak24",
+        "url": "https://www.youtube.com/watch?v=7qj0OM0Ak24"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "9qp8u3f894": {
+    "proposalId": "9qp8u3f894",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9qp8u3f894",
+    "description": "Modern display hardware is increasingly modular, combining SoC display controllers, interfaces such as DPI and MIPI DSI, protocol-conversion bridges, and a variety of display panels. Zephyr's current display subsystem is largely vendor-specific, making it difficult to support diverse display pipelines in a scalable way.This talk presents a modular display architecture for Zephyr inspired by Linux DRM framework. Display controllers, bridge devices, and panel drivers are implemented as independent layers connected through Devicetree. Pipelines are assembled dynamically at runtime, allowing display controllers to remain agnostic of downstream hardware.The talk will show how a single display controller driver can support both MIPI DSI and DPI-through-HDMI by attaching different downstream components, and show how the driver is capable for even eDP and MIPI DBI interfaces.Finally, the talk covers hot-plug detection and key design trade-offs while developing the driver for Zephyr.",
+    "keyTakeaways": [
+      "Learn how modern display pipelines are structured, including display controllers, protocol bridges, and display panels, and how these components interact.",
+      "See how a modular, layered display architecture enables reusable drivers that are independent of downstream display hardware.",
+      "Understand how Devicetree can describe complete display pipelines, allowing hardware configurations to be assembled without modifying controller drivers."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110013",
+        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110013"
+      },
+      {
+        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/110061",
+        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/110061"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1s4iem9t8a": {
+    "proposalId": "1s4iem9t8a",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1s4iem9t8a",
+    "description": "Infineon's AURIX family of automotive microcontrollers is based on the TriCore architecture and is widely used across automotive systems, from powertrain and chassis control to safety-critical ECUs. This talk presents the upstream effort to add TriCore architecture support and enable Infineon AURIX TC3x and TC4x devices in Zephyr (https://github.com/zephyrproject-rtos/zephyr/pull/107516).Starting from CPU reset, we will walk through the key architecture bring-up steps required to reach the first Zephyr thread, including trap and interrupt handling, Context Save Area (CSA)-based context switching, and system timer integration. We will also cover the work required beyond the architecture layer, including SoC support, board enablement, and QEMU-based development and testing.Finally, we will discuss the challenges of upstreaming a new architecture into Zephyr, from toolchain and CI integration to HAL dependencies and ecosystem support, along with the remaining work needed for automotive and safety-critical systems.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://github.com/zephyrproject-rtos/zephyr/pull/107516",
+        "url": "https://github.com/zephyrproject-rtos/zephyr/pull/107516"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "6r7akaieb8": {
+    "proposalId": "6r7akaieb8",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6r7akaieb8",
+    "description": "Integrating camera capture and display subsystems on embedded SoCs presents significant software design challenges due to competing buffer ownership models across independent hardware subsystems. This talk presents a practical implementation of a zero-copy video pipeline on a TI Jacinto SoCs running FreeRTOS, coordinating three drivers: a CSI2-DPHY receiver, a UDMA engine, and a Display Subsystem driver.\n\nThe implementation uses FVID2, TI's unified video interface, to apply a consistent queue/dequeue buffer model to both capture and display operations. We examine the initialization sequence where the application transfers UDMA ownership to the CSIRX driver, enabling the DSS driver direct visibility into captured buffers.\n\nCritical gaps in single-task designs are identified, specifically the absence of mechanisms preventing capture from overwriting buffers during display scanout. We present a corrected two-task producer-consumer design using counting semaphores to enforce mutual exclusion, with explicit analysis of task priorities and frame timing implications.\n\nThis work bridges the gap between pipelines that function nominally and those structured to remain correct under timing pressure, illustrating the complexity beneath seemingly solved problems in embedded systems integration.",
+    "keyTakeaways": [
+      "How FVID2's queue/dequeue model provides a unified buffer-ownership interface across CSIRX and DSS drivers",
+      "What a proper FreeRTOS producer-consumer pipeline for this use case would look like"
+    ],
+    "references": [
+      {
+        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html",
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/fvid2.html"
+      },
+      {
+        "label": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html",
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/latest/exports/docs/pdk_jacinto_11_01_00_17/docs/userguide/jacinto/modules/csirx.html"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8fc48rj2g2": {
+    "proposalId": "8fc48rj2g2",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8fc48rj2g2",
+    "description": "Heterogeneous SoCs often employ a common pattern - Run Linux on the primary processor for system management tasks like boot sequencing, power management, firmware loading, and resource allocation, while Zephyr runs on auxiliary cores.\n\nMCUBoot, as of now, lacks the ability to load or control cores other than the one that it is running on.\n\nThis can be tackled by porting remote processor framework (remoteproc) to Zephyr - to provide firmware lifecycle management, resource table handling, and capabilities to load binaries. We can also employ OpenAMP using RPMsg for communication.\n\nWe will use TI's AM2434 as our reference SoC. This presentation will cover the remoteproc framework architecture, reference driver and reference examples demonstrating peer-to-peer processor management.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=8yAT-miihvY",
+        "url": "https://www.youtube.com/watch?v=8yAT-miihvY"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "eofh2kev0d": {
+    "proposalId": "eofh2kev0d",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eofh2kev0d",
+    "description": "The session begins with the model almost every embedded developer starts from, the setup and loop loops that runs continuously, polling sensors, driving outputs, and relying on delay() to manage its timing. This sequential approach is easy to reason about and serves small projects well, but it starts to strain the moment a device has to respond to several things at once. From there the talk introduces the real-time operating system as the answer to that strain, explaining the shift from one continuous loop to a set of independent tasks coordinated by a scheduler that allocates processor time and can preempt lower-priority work whenever something more urgent comes up. With the concept in place, the focus turns to the practical advantages: running multiple jobs concurrently, holding predictable response times under varying load, keeping unrelated parts of the firmware cleanly separated, and maintaining a codebase that stays workable as a product grows in complexity. The talk then looks at why real-time development has become a broadly valuable skill rather than a niche one, given how much of today's embedded and IoT hardware now runs on an RTOS and how steadily demand for that expertise keeps rising. It closes by introducing Zephyr, a modern, vendor-backed open-source RTOS released under the permissive Apache 2.0 license, as a concrete and increasingly standard platform on which to put everything the talk has covered into practice.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.freertos.org/",
+        "url": "https://www.freertos.org/"
+      },
+      {
+        "label": "https://micro.ros.org/docs/concepts/rtos/comparison/",
+        "url": "https://micro.ros.org/docs/concepts/rtos/comparison/"
+      },
+      {
+        "label": "https://www.zephyrproject.org/",
+        "url": "https://www.zephyrproject.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "5h4d5uhuro": {
+    "proposalId": "5h4d5uhuro",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5h4d5uhuro",
+    "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
+    "keyTakeaways": [
+      "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
+      "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
+      "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
+      "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
+    ],
+    "references": [
+      {
+        "label": "https://redkill.in/",
+        "url": "https://redkill.in/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "2sfmvkhrrg": {
+    "proposalId": "2sfmvkhrrg",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2sfmvkhrrg",
+    "description": "People are now familirized to rich UI hence the embedded devices are required to meet those standards. Many embedded products today need two very different things at once: a rich user interface, connectivity, and application logic and a hard real-time behavior with strict timing guarantees (best served by a dedicated MCU running an RTOS or bare-metal firmware). In this talk I want to walk through a real heterogeneous multi-processing (HMP) architecture built around this split: an STM32MP1 running Linux for display and application-level functionality, paired with an STM32H7 microcontroller handling the real-time subsystem, including sensor data acquisition, motor control data management and other periphearl activities.\n\nWe'll start by examining why this split was the right call, then go inside the custom IPC layer connecting the two chips: how the protocol was designed (framing, message types, error handling), and how failures like an independent reset on either side are managed.\n\nThe next section zooms into the H7 firmware, covering RTOS task design patterns that keep the real-time subsystem deterministic: ISR-to-task deferral for sensor sampling, event-driven patterns and command queue architectures that decouple incoming Linux-side commands from time-critical control loops.\n\nFinally, we'll discuss how designing the IPC layer around a stable, well-defined protocol enables a modular hardware architecture. the real-time subsystem can remain unchanged while the application processor side is swapped for a different MPU or APU (for example, one better suited to display or AI workloads), as long as it speaks the same protocol.",
+    "keyTakeaways": [
+      "When and why to split a product's compute across an APU (Linux, display/connectivity/application logic) and an MCU and how to evaluate that tradeoff for your own designs",
+      "Practical RTOS task design patterns for the real-time subsystem:",
+      "How a well-defined IPC protocol enables a modular hardware architecture, allowing the application processor (APU/MPU) to be swapped or upgraded independently without touching the real-time subsystem",
+      "A reusable framework for thinking through HMP and RTOS architecture decisions on future products, balancing real-time guarantees, scalability, and long-term flexibility"
+    ],
+    "references": [
+      {
+        "label": "https://www.linkedin.com/in/udhayadhithan/",
+        "url": "https://www.linkedin.com/in/udhayadhithan/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "8gv11r0ga6": {
+    "proposalId": "8gv11r0ga6",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8gv11r0ga6",
+    "description": "Modern automotive DMS/OMS demand deterministic, real-time camera processing undersafety-critical constraints, a requirement that goes beyond real-time performance. While RT-Linux can deliver real-time performance, the ISO 26262 compliance requires predictable resource isolation, deterministic scheduling guarantees, and functional safety certification. This work consolidates CSIRX capture, sensor drivers, and VPAC control into a FreeRTOS-based safety-critical firmware on AM62A's Device Manager R5F core, eliminating A53 real-time burden. Linux-based capture remains viable for general-purpose and industrial applications that do not require safety-critical deterministic requirements.\n\nAM62A is a heterogeneous SoC featuring A53 (Linux/applications), C7x NPU (AI/ML),VPAC accelerators (VISS → LDC → MSC), and two R5F cores: MCU R5F (AUTOSAR/safety) and DM R5F (Device Manager). Rather than competing for MCU R5F reserved for safety, the entire vision stack consisting of CSIRX camera, sensor drivers, VPAC control, 2A algorithms consolidates onto DM R5F under FreeRTOS. This: (1) frees A53 from real-time duties; (2) makes capture HLOS-agnostic; (3) enables concurrent execution of camera capture, VPAC, Device Manager, EthFW (with gPTP stack) on one safety-critical core.\n\nTIOVX (TI OpenVx) middleware layer controls the overall graph execution, node/kerneldispatch on different target cores over RPMsg-based communication in the present use case. The R5F controls VPAC via memory-mapped registers and interrupt-driven completion, ensuring deterministic processing. DMR5 runs all services at ~40% peak load, leaving 60% headroom. Future work targets On-The-Fly CSI-RX to VPAC path to eliminate DDR roundtrips.",
+    "keyTakeaways": [
+      "Bridges the gap - between general-purpose Linux and dedicated safety systems",
+      "Solves A53 Overloading as mixing camera capture with application logic on main processor causes unacceptable latency due to IPC overhead",
+      "Proper utilization of DM R5F core by consolidating different tasks and functionalities on one single core.",
+      "40% Load, 60% Headroom - all services (capture + VPAC + DM + EthFW + gPTP) run at only ~40% peak, leaving room for future workloads",
+      "HLOS-Agnostic Capture - A53 running Linux is completely decoupled from real-time camera duties"
+    ],
+    "references": [
+      {
+        "label": "https://www.ti.com/product/AM62A7",
+        "url": "https://www.ti.com/product/AM62A7"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "aqenkb8ktb": {
+    "proposalId": "aqenkb8ktb",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/aqenkb8ktb",
+    "description": "Lightweight cryptography is the solution for resource-constrained embedded devices. Ascon was the finalists in NIST Lightweight Cryptography Standardization Process, chosen from a set of finalists that includes Romulus, built on the SKINNY block cipher. But standardizing an algorithm is not the same as making it cheap to run on a microcontroller.\n\nIn this talk, the author shows a fully open path from hardware to Zephyr RTOS: a lightweight crypto co-processor written in VHDL, integrated into the open NeoRV32 RISC-V soft-core, and exposed to applications through Zephyr RTOS. The author walks through one working example end to end, a SKINNY-AEAD accelerator on an FPGA board, validated on real hardware against the reference test vectors, and driven from Zephyr over a memory-mapped register.\n\nThe author then generalize it into a repeatable recipe register interface, devicetree binding, driver, crypto API integration, that applies to Ascon and the other NIST Lightweight cryptography finalists.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=P-JX_taGZYI",
+        "url": "https://www.youtube.com/watch?v=P-JX_taGZYI"
+      },
+      {
+        "label": "https://doi.org/10.1016/j.micpro.2020.103202",
+        "url": "https://doi.org/10.1016/j.micpro.2020.103202"
       }
     ],
     "links": [
@@ -3967,6 +3908,50 @@
       {
         "label": "https://www.linkedin.com/in/smita-mutt/",
         "url": "https://www.linkedin.com/in/smita-mutt/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4eh569dvq9": {
+    "proposalId": "4eh569dvq9",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4eh569dvq9",
+    "description": "As community-generated datasets become increasingly important for training AI systems, there is a growing need to explore whether existing open data licenses adequately protect community contributions. This session will examine whether copyleft principles, which have successfully supported open source software ecosystems, can be adapted to datasets used for AI development. The discussion will focus on attribution, reciprocity, data provenance, community ownership, and the governance of data commons.\n\nCommunity-led initiatives across India and the world are creating datasets that support language technologies, accessibility tools, and AI research. However, many of these datasets are released without licensing frameworks specifically designed for AI use. This creates a risk that community-generated data may be incorporated into proprietary AI systems without attribution, transparency, or any meaningful contribution back to the communities that created them. Open source software have relied on copyleft licenses such as the GNU GPL to ensure that software and improvements remain available to the community. As community-generated datasets become increasingly important for training AI systems, a similar question is emerging for data i.e. can copyleft principles and licence be applied to datasets used for machine learning?\n\nA draft Community Data License has been developed by Viswam.ai and SFLC.in to address these concerns by applying copyleft principles to datasets. The proposed license seeks to ensure that community-generated datasets remain part of a shared commons by requiring attribution to original contributors, transparency regarding data provenance, and the sharing of modified or derived datasets under the same licence terms.\n\nThis session will use the draft license as a starting point for a broader discussion on the future of community data governance, open AI, and digital commons. The objective is to gather perspectives from developers, researchers, open-source contributors, civil society organisations, policymakers, and dataset creators on whether new licensing and governance approaches are needed to protect community data commons and how such a license could work in practice.\n\nOpen discussion with participants. The session will begin with a brief introduction to the problem statement and the draft Community Data License, followed by a moderated discussion. Participants will be encouraged to share experiences, concerns, use cases, and perspectives from technical, legal, policy, research, and community viewpoints. The moderator will guide the discussion around key questions and explore broad conversation focused on the topic.",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "82fbs78uua": {
+    "proposalId": "82fbs78uua",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/82fbs78uua",
+    "description": "I am Thejesh GN. In 2018, I started a yearly micro-grant of ₹1,00,000 in memory of my mother, called the Nagarathna Memorial Grant (NMG). The idea was to support meaningful work with no strings attached.\n\nThe reason for the grant can be anything that matters to the applicant and the people around them. While I personally prefer Free and Open Source Software, Creative Commons, and public-interest work, that is not a requirement.\n\nOver the years, the size of the grant has grown from ₹1 lakh to several lakhs, thanks to friends and supporters joining in. In 2026, the grant reached its largest size yet ₹5.6 lakhs with many people contributing and supporting the process.The idea is also not to grow beyond ₹10 lakhs as of now. Personally, I would consider any grant handling more than ₹10 lakhs/year in 2026 is not a micro grant. Even with the growth, the core idea remains unchanged, small, direct, trust-based support for meaningful work.\n\n2027 will mark the 10th year of the grant. This BoF is an opportunity to discuss how we can encourage more micro-grants in India.\n\nIn India, most funding for creative, public-interest, and open projects comes through large institutional grants. While those are important, micro-grants ( small, decentralized, peer-to-peer gifts or funding ) can often be more accessible, flexible, and liberating for both the giver and the receiver.\n\nThis BoF is an open discussion for FOSS contributors, creators, artists, writers, researchers, and community organizers to discuss about\n\nRound-table discussion.\n\nWe will begin with a short introduction to micro-funding and why it matters, followed by an overview of how NMG has worked, lessons learned, and challenges faced over the years.\n\nThe session will then open into a broader discussion and brainstorming on possible discussion points mentioned above.",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "1f9ett9bgj": {
+    "proposalId": "1f9ett9bgj",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1f9ett9bgj",
+    "description": "A lot of FOSS events, meetups, devrooms, and community spaces describe themselves as community-driven. But what does that actually mean?\n\nIs a community-driven event just an event organized for a community, or should the community also have a say in what gets selected, what gets discussed, and what direction the space takes?\n\nThis BoF is intended to discuss how much involvement the community should have in shaping community events. This could include talk selection, CFP review, public voting, deciding meetup themes, choosing discussion topics, setting the long-term direction of a local chapter, and generally deciding who gets to steer the space.\n\nThere are several things we could discuss.\n\nShould talks and sessions be selected entirely by a small internal review group, or should the wider community have a visible role in the process? When does private review help maintain quality, and when does it become opaque gatekeeping? How do we balance expert curation with community participation? What are the risks of public voting becoming a popularity contest? What are the risks of everything being decided quietly in the background by a few people?\n\nThe key thing to resolve in this BoF is what “community-driven” should practically mean for FOSS and adjacent community spaces. I don’t think every decision can or should be made by public vote, but I also don’t think community spaces should become places where the community is only expected to attend, clap, and leave.\n\nIdeally, we discuss models that actually work. This could include open voting, hybrid review, published review criteria, community feedback loops, public roadmaps for meetups, first-time speaker support, and ways for new volunteers to have a real say without making the organizer’s job impossible.\n\nThis BoF is not meant to be a complaint session about any one event or organizing team. The goal is to discuss how we can build healthier, more transparent, and more participatory community spaces.\n\nIf you organize meetups, run a local chapter, review CFPs, volunteer at events, submit talks, attend community events, or just have opinions on how community spaces should be run, this BoF is for you.\n\nRound Table Discussion. Ideally we’d spend at least 60% of the time discussing practical models and ideas that communities can actually use.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://x.com/AskBaluBabu",
+        "url": "https://x.com/AskBaluBabu"
       }
     ],
     "links": [

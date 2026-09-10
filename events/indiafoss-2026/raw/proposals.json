@@ -385,13 +385,13 @@
       "name": "e08r7fa8ja",
       "route": "c/indiafoss/2026/cfp/e08r7fa8ja",
       "talk_title": "Adapting Generic Boot Loader on Android platforms",
-      "session_type": "Talk",
+      "session_type": "Lightning Talk",
       "status": "Approved",
       "session_categories": null,
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-08-18 05:55:38.786734",
-      "modified": "2026-09-07 17:17:15.133230",
+      "modified": "2026-09-10 14:48:47.374090",
       "_likes": 2,
       "_is_liked_by_user": true,
       "_speaker": [
@@ -1351,6 +1351,43 @@
         }
       ],
       "custom_question_1": "Real Time Operating Systems (RTOS)"
+    },
+    {
+      "name": "41r3mau7ga",
+      "route": "c/indiafoss/2026/cfp/41r3mau7ga",
+      "talk_title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "session_type": "Talk",
+      "status": "Approved",
+      "session_categories": "Technology architecture\nEngineering practice - productivity, debugging",
+      "intended_audience": "Intermediate",
+      "is_first_talk": "Yes",
+      "creation": "2026-06-03 16:48:33.972757",
+      "modified": "2026-09-10 14:46:03.236522",
+      "_likes": 5,
+      "_is_liked_by_user": true,
+      "_speaker": [
+        {
+          "parent": "41r3mau7ga",
+          "photo": "/files/Untitleddbd6fe.png",
+          "full_name": "Ankit Siddhapura",
+          "designation": "Technical Lead - Embedded Software",
+          "organization": "Silicon Signals Pvt. Ltd",
+          "linked_user": "f79h4u7ksk",
+          "social_link": "https://www.linkedin.com/in/ankit-siddhapura/",
+          "bio": "<p>Ankit Siddhapura is a Technical lead in embedded software at Silicon Signals pvt ltd.</p><p>A dedicated contributor to the Android Open Source Project (AOSP) and the Android custom ROM.</p><p>Embedded Software Engineer with expertise in Android/Linux BSP, AOSP camera stack, and IoT solutions. Experienced with Qualcomm, NXP, and Amlogic platforms, camera HAL, and wireless protocols like Wi-Fi, Zigbee, and LoRaWAN.</p>"
+        },
+        {
+          "parent": "41r3mau7ga",
+          "photo": "/files/New_Profil.jpeg",
+          "full_name": "Jaimin Kalariya",
+          "designation": "Senior Embedded Software Engineer",
+          "organization": "Silicon Signals Pvt. Ltd.",
+          "linked_user": null,
+          "social_link": null,
+          "bio": "<div class=\"ql-editor read-mode\"><p>A dedicated Android Custom ROM (LineageOS) Device maintainer &amp; contributor.</p><p><br></p><p>Passionate Android Embedded Software Engineer specializing in open-source development and AOSP contributions. Expert in the Android ecosystem (framework, HALs, Kernel, applications) for developing cutting-edge systems that maximize Android's capabilities.</p></div>"
+        }
+      ],
+      "custom_question_1": "Android Open Source Project (AOSP)"
     },
     {
       "name": "1ebsjdljn1",
@@ -5192,33 +5229,6 @@
         }
       ],
       "custom_question_1": "Main track"
-    },
-    {
-      "name": "41r3mau7ga",
-      "route": "c/indiafoss/2026/cfp/41r3mau7ga",
-      "talk_title": "From HIDL to Stable AIDL: Modernizing Android HAL Interfaces",
-      "session_type": "Lightning Talk",
-      "status": "Approved",
-      "session_categories": "Technology architecture\nEngineering practice - productivity, debugging",
-      "intended_audience": "Intermediate",
-      "is_first_talk": "Yes",
-      "creation": "2026-06-03 16:48:33.972757",
-      "modified": "2026-09-04 11:43:15.650835",
-      "_likes": 5,
-      "_is_liked_by_user": true,
-      "_speaker": [
-        {
-          "parent": "41r3mau7ga",
-          "photo": "/files/Untitleddbd6fe.png",
-          "full_name": "Ankit Siddhapura",
-          "designation": "Technical Lead - Embedded Software",
-          "organization": "Silicon Signals Pvt. Ltd",
-          "linked_user": "f79h4u7ksk",
-          "social_link": "https://www.linkedin.com/in/ankit-siddhapura/",
-          "bio": "<p>Ankit Siddhapura is a Technical lead in embedded software at Silicon Signals pvt ltd.</p><p>A dedicated contributor to the Android Open Source Project (AOSP) and the Android custom ROM.</p><p>Embedded Software Engineer with expertise in Android/Linux BSP, AOSP camera stack, and IoT solutions. Experienced with Qualcomm, NXP, and Amlogic platforms, camera HAL, and wireless protocols like Wi-Fi, Zigbee, and LoRaWAN.</p>"
-        }
-      ],
-      "custom_question_1": "Android Open Source Project (AOSP)"
     },
     {
       "name": "2bfslonj72",
@@ -10687,12 +10697,12 @@
       "route": "c/indiafoss/2026/cfp/coqs2rc43i",
       "talk_title": "Rust in Android: Building Secure HALs for the Next Generation of AOSP",
       "session_type": "Lightning Talk",
-      "status": "Approved",
+      "status": "Withdrawn",
       "session_categories": "Engineering practice - productivity, debugging\nTechnology architecture",
       "intended_audience": "Intermediate",
       "is_first_talk": "Yes",
       "creation": "2026-06-15 10:43:19.639359",
-      "modified": "2026-08-19 00:17:55.894756",
+      "modified": "2026-09-10 14:27:24.901690",
       "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
