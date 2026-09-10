@@ -65,6 +65,32 @@ describe('event-sync', () => {
     expect(() => publishEvent('indiafoss-2026', dir, dir)).toThrow(/no published manifest/);
   });
 
+  it('carries booth websites through as absolute links, not text in the description', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'eventsync-'));
+    const manifest = await syncEvent('indiafoss-2026', 'fixture', dir);
+    const booths = (
+      JSON.parse(readFileSync(join(dir, manifest.assets['booths']!), 'utf8')) as {
+        booths: { name: string; website?: string; description?: string }[];
+      }
+    ).booths;
+
+    const linked = booths.filter((booth) => booth.website);
+    // Both clients render this field; an empty one silently drops every link.
+    expect(linked.length).toBeGreaterThanOrEqual(40);
+
+    for (const booth of linked) {
+      expect(booth.website, booth.name).toMatch(/^https:\/\/[a-z0-9.-]+\.[a-z]{2,}(\/|$)/);
+    }
+
+    // The host used to live in the description. Showing it in both places is
+    // how it silently stops being a link and starts being prose again.
+    for (const booth of booths) {
+      expect(booth.description ?? '', booth.name).not.toMatch(
+        /\((?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/[^)\s]*)?\)/,
+      );
+    }
+  });
+
   it('carries the reviewed venue arrival block into the published bundle', async () => {
     dir = mkdtempSync(join(tmpdir(), 'eventsync-'));
     const manifest = await syncEvent('indiafoss-2026', 'fixture', dir);
