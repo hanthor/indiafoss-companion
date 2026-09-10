@@ -254,13 +254,28 @@ Needs a JDK 17+ and an Android SDK with platform 35. CI builds it on every PR
 ## Data
 
 The app opens on a bundle copied at build time from
-`apps/web/static/events/indiafoss-2025/event-bundle.json` — the Gradle
-`copySeedBundle` task puts it in `assets/`, so the seed can never drift from
-what the web client publishes. On launch it fetches
+`events/indiafoss-2026/normalized/event-bundle.json` — the Gradle
+`copySeedBundle` task puts it in `assets/`, so the seed is the same canonical
+bundle the publishing pipeline reads. On launch it fetches
 `…/events/<id>/manifest.json`, and when that names a newer revision it
 downloads the hash-addressed asset **in full and parses it** before replacing
 the cache, so a half-finished download never evicts a good schedule. A failed
 refresh is silent: offline is the normal case at a conference.
+
+Settings carries a **Schedule data** card (#191) that keeps three facts apart,
+all of them read from the published bundle:
+
+- whether the organisers still call the programme a draft
+  (`sourceMetadata.scheduleStatus`), reported as provisional and never as
+  confirmed when the field is absent;
+- when the programme was last imported upstream
+  (`sourceMetadata.sourceUpdatedAt`), bucketed as current, ageing or stale;
+- when _this device_ last reached the manifest, stated as when it looked rather
+  than as how old the data is.
+
+A bundle still coming from the APK's assets is named as such: it is as old as
+the release. `ScheduleFreshness` in `core` holds the wording and the thresholds;
+`apps/web/src/lib/schedule-freshness.ts` is its web twin.
 
 Bookmarks and must-attend live in `DataStore` preferences, keyed by activity
 id — the same ids the web client uses.

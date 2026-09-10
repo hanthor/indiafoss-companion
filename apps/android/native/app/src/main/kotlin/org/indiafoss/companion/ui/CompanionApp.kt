@@ -254,6 +254,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onImportPersonalData = viewModel::previewPersonalData,
                     onApplyImport = viewModel::applyPersonalData,
                     onCancelImport = viewModel::cancelPersonalDataImport,
+                    onRefresh = viewModel::refresh,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->
