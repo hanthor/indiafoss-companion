@@ -263,9 +263,63 @@ class ScreenshotTest {
         val booth = org.indiafoss.companion.core.Booth("test-booth", "Sample community booth", description = "Meet the community")
         BoothScreen(state().copy(bundle = bundle.copy(booths = listOf(booth))), booth.id, { _, _ -> }, {}) {}
     }
-    @Test fun nowUpdated() = shoot("now-updated") {
-        val update = ScheduleUpdate(7, listOf(ScheduleDiff.Change("act-28laimsqbf", "Why Documentation Shouldn't Feel Like Plain Text", ScheduleDiff.Kind.TIME, "10:15 → 11:00")))
-        NowScreen(state().copy(update = update, blocks = listOf(StoredBlock("visit-1", "Visit the sample booth", "2026-09-26"))), {}, {}) {}
+    private fun detail(id: String, title: String, kind: ScheduleDiff.Kind, description: String) =
+        ScheduleDiff.Detail(ScheduleDiff.Change(id, title, kind), description)
+
+    /**
+     * The notice is openable onto what changed (#312): closed it gives the
+     * counts, and **See what changed** discloses the sentences themselves,
+     * with the attendee's own planned session called out first.
+     */
+    @Test fun nowUpdated() {
+        val update = ScheduleUpdate(
+            7,
+            listOf(
+                detail("act-28laimsqbf", "Why Documentation Shouldn't Feel Like Plain Text", ScheduleDiff.Kind.TIME, "Moved from 10:15–10:30 to 11:15–11:30."),
+                detail("act-elsewhere", "FOSDEM - what it is, why we do it, and how", ScheduleDiff.Kind.CANCELLED, "No longer on the programme."),
+            ),
+        )
+        shoot("now-updated") {
+            NowScreen(state().copy(update = update, blocks = listOf(StoredBlock("visit-1", "Visit the sample booth", "2026-09-26"))), {}, {}) {}
+        }
+        // Closed: the counts, and the way in. No sentence is on screen yet.
+        compose.onNodeWithText("See what changed").assertIsDisplayed()
+        compose.onAllNodesWithText("No longer on the programme.").assertCountEquals(0)
+
+        compose.onNodeWithText("See what changed").performClick()
+        capture("now-updated-open")
+        compose.onNodeWithText("Moved from 10:15–10:30 to 11:15–11:30.").assertIsDisplayed()
+        compose.onNodeWithText("No longer on the programme.").assertIsDisplayed()
+        // The attendee's own must-attend session is grouped first, off the resolved plan.
+        compose.onNodeWithText("In your plan today").assertIsDisplayed()
+        compose.onNodeWithText("Elsewhere in the programme").assertIsDisplayed()
+        compose.onNodeWithText("Hide what changed").assertIsDisplayed()
+    }
+
+    /**
+     * An update whose previous revision could not be diffed says so and
+     * offers no list at all — part of one shown as the whole is worse than
+     * none. Not reachable through the app's own refresh, which returns early
+     * without both sides of the diff; asserted here so a future caller
+     * cannot quietly ship a partial list.
+     */
+    @Test fun nowUpdatedWithoutADiff() {
+        shoot("now-updated-unlistable") { NowScreen(state().copy(update = ScheduleUpdate(7, null)), {}, {}) {} }
+        compose.onNodeWithText("The programme changed. What changed cannot be listed for this update.").assertIsDisplayed()
+        compose.onAllNodesWithText("See what changed").assertCountEquals(0)
+    }
+
+    /**
+     * With no plan to speak for the attendee the list is flat: it never
+     * claims that nothing of theirs changed.
+     */
+    @Test fun nowUpdatedWithoutAPlan() {
+        val update = ScheduleUpdate(7, listOf(detail("act-28laimsqbf", "Why Documentation Shouldn't Feel Like Plain Text", ScheduleDiff.Kind.CANCELLED, "No longer on the programme.")))
+        // Before the conference there is no plan for today at all.
+        shoot("now-updated-no-plan") { NowScreen(state("2026-09-20T10:00:00+05:30").copy(update = update), {}, {}) {} }
+        compose.onNodeWithText("See what changed").performClick()
+        compose.onNodeWithText("No longer on the programme.").assertIsDisplayed()
+        compose.onAllNodesWithText("In your plan today").assertCountEquals(0)
     }
     @Test fun connect() = shoot("connect") {
         ConnectScreen(
