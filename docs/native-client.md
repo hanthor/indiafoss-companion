@@ -17,7 +17,7 @@ client renders natively rather than embedding a WebView.
 | Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo             |
 | Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                                    |
 | Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                                |
-| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                                                                          |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), privacy, about                                                                   |
 | Session     | detail, bookmark, must attend                                                                                                                                                                  |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
@@ -138,7 +138,8 @@ tapped room on the map says how far it is. `indiafoss://activity/<id>`,
 screen from a launch or a running app.
 
 Native feel: edge-to-edge, predictive back, pull-to-refresh on Now, the
-system share sheet for cards and calendars, Material You colour.
+system share sheet for cards and calendars, Material You colour on the
+everyday screens (see Theming and branding below).
 
 Not native yet: plan replacements UI, the optional P2P chat.
 
@@ -165,7 +166,9 @@ are what keeps the two in step.
 
 `./gradlew :app:testDebugUnitTest` renders every screen with the seed bundle
 under Robolectric (`ScreenshotTest`, plus `DarkScreenshotTest` for the dark
-scheme) and writes PNGs to `app/build/screenshots`; CI uploads them as `native-screenshots` on every
+scheme, `LargeTextScreenshotTest` at 1.5× font scale and
+`DynamicColorScreenshotTest` with Material You on) and writes PNGs to
+`app/build/screenshots`; CI uploads them as `native-screenshots` on every
 PR, so a change to a screen can be looked at from the Actions page.
 
 ## Building
@@ -191,10 +194,41 @@ refresh is silent: offline is the normal case at a conference.
 Bookmarks and must-attend live in `DataStore` preferences, keyed by activity
 id — the same ids the web client uses.
 
-## Theming
+## Theming and branding
 
-`CompanionTheme` uses `dynamicLightColorScheme`/`dynamicDarkColorScheme` on
-Android 12+, so the app takes the user's wallpaper palette. Below that it falls
-back to a scheme seeded from mint (`#0fb556`). Typography is stock M3. There is
-deliberately no IndiaFOSS wordmark, pixel font or brand chrome here — that is
-the PWA's identity, not this one's.
+`ui/theme/Theme.kt` carries the IndiaFOSS 2026 tokens with one role each,
+mirroring `apps/web/src/app.css` (`BrandColors`: mint, mint-ink, pale green,
+ink, paper/surface/raised, text/muted/faint, line, amber, and the semantic
+danger/warning/success — never brand green). They are placed in their
+Material 3 roles as `LightScheme`/`DarkScheme`, and exposed unchanged as
+`LocalBrand` / `MaterialTheme.brand`.
+
+On Android 12+ the everyday screens (Schedule, My plan, Map, Explore lists,
+Settings, detail pages) take the user's wallpaper palette by default;
+Settings → Appearance → "Use wallpaper colours" switches that off, and older
+devices use the event scheme. The event surfaces read `LocalBrand` and keep
+their identity under either: the Now masthead (event name, dates, day or
+recap), the welcome flow (`EventIdentity`), the devroom gallery on Explore
+and the devroom cards in Rank. Light or dark follows the system.
+
+Typography (`ui/theme/Type.kt`) is Inter — 600 headings with tight tracking,
+400 body — with Space Mono for compact metadata only (`Typography.meta`,
+`Typography.eyebrow`: time · room lines and capitalised eyebrows), the same
+choice the PWA made in [the 8 September review](reviews/branding-2026-09-08.md).
+Both fonts ship in `res/font` (SIL OFL 1.1) so nothing is fetched at run
+time; the pixel face stays on the official wordmark and is not bundled.
+
+The eight official 2026 devroom patterns ship as WebP in
+`res/drawable-nodpi` (`ui/DevroomArt.kt`, keyed exactly as
+`apps/web/src/lib/devroom-art.ts`) and appear on Explore, Rank and as a
+sliver beside the track chip on session cards, only for the `indiafoss-2026`
+bundle. Provenance, licences, checksums and the render script are in
+[`apps/android/native/branding/README.md`](../apps/android/native/branding/README.md);
+the decisions and CI screenshots are in
+[the native branding review](reviews/native-branding-2026-09-10.md).
+
+The launcher is this project's own calendar-and-pin glyph on the event mint,
+no FOSS United mark; IndiaFOSS Chat keeps its speech-bubble icon, so the two
+apps are told apart by silhouette. The splash plate is the brand paper token
+in both themes. The Settings "About" card keeps the unofficial community
+project disclosure.

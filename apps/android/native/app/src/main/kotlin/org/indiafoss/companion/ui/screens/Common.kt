@@ -27,6 +27,9 @@ import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.PlanMarker
 import org.indiafoss.companion.core.Schedule
+import org.indiafoss.companion.ui.DevroomBanner
+import org.indiafoss.companion.ui.theme.meta
+import androidx.compose.foundation.layout.width
 
 /** One session as an M3 card: time, room, speakers and a bookmark toggle. */
 @Composable
@@ -55,14 +58,18 @@ fun SessionCard(
                 Column(Modifier.weight(1f)) {
                     Text(
                         text = timeAndRoom(activity, bundle),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.meta,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     val track = bundle?.tracks?.firstOrNull { it.id == activity.devroomId }
                         ?: bundle?.tracks?.firstOrNull { it.id == activity.trackId }
                     track?.let {
-                        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small, modifier = Modifier.padding(vertical = 4.dp)) {
-                            Text(it.name, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
+                        Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            // A sliver of the devroom's pattern; the chip carries the name.
+                            DevroomBanner(bundle, it.id, modifier = Modifier.width(56.dp), ratio = 2f)
+                            Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small) {
+                                Text(it.name, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
+                            }
                         }
                     }
                     Text(

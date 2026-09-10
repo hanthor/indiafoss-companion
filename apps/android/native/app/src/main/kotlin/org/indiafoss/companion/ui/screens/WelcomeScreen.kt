@@ -4,9 +4,12 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,17 +36,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.ContactCard
+import org.indiafoss.companion.ui.theme.EventIdentity
+import org.indiafoss.companion.ui.theme.brand
+import org.indiafoss.companion.ui.theme.eyebrow
 
 /**
  * First-run setup (#107): reminders, who you are, then ranking. Every
  * step can be skipped; everything here can be changed later under Settings,
  * Your card or Rank. Shown once, and again from Settings on request.
+ *
+ * A launch surface: it carries the event identity, so it is rendered in the
+ * brand scheme whatever the wallpaper palette (#33).
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun WelcomeScreen(
     state: UiState,
@@ -60,15 +68,18 @@ fun WelcomeScreen(
     }
     val eventName = state.bundle?.name ?: "IndiaFOSS"
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Welcome") }) }) { padding ->
+    EventIdentity { Scaffold(topBar = { TopAppBar(title = { Text("Welcome") }) }) { padding ->
+        val brand = MaterialTheme.brand
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
+            // The hero: ink surface, one mint rule, pale-green eyebrow — the PWA's home hero, at phone size.
             Card(
                 Modifier.fillMaxWidth().padding(16.dp, 8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                colors = CardDefaults.cardColors(containerColor = brand.inkSurface, contentColor = brand.onInk),
             ) {
+                Box(Modifier.fillMaxWidth().height(4.dp).background(brand.mint))
                 Column(Modifier.padding(20.dp)) {
-                    Text("SET UP IN A MINUTE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                    Text("Welcome to $eventName", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                    Text("SET UP IN A MINUTE", style = MaterialTheme.typography.eyebrow, color = brand.mintOnInk)
+                    Text("Welcome to $eventName", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 4.dp))
                     Text(
                         "Three quick steps, all optional, so the app can remind you, put your name on a card and plan your day. Everything stays on this phone.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -82,7 +93,7 @@ fun WelcomeScreen(
             )
             Text(
                 "${step + 1} · ${steps[step].uppercase()}",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.eyebrow,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(20.dp, 8.dp, 20.dp, 0.dp),
             )
@@ -98,7 +109,7 @@ fun WelcomeScreen(
                             if (state.remindersEnabled) {
                                 Text("Reminders are on.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
                                 Button(onClick = { step = 1 }) { Text("Next") }
-                            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            } else FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
                                     else { onReminders(true); step = 1 }
@@ -118,7 +129,8 @@ fun WelcomeScreen(
                             OutlinedTextField(draft.socials["linkedin"].orEmpty(), { draft = draft.copy(socials = draft.socials + ("linkedin" to it)) }, label = { Text("LinkedIn") }, placeholder = { Text("https://linkedin.com/in/you") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(draft.socials["mastodon"].orEmpty(), { draft = draft.copy(socials = draft.socials + ("mastodon" to it)) }, label = { Text("Mastodon") }, placeholder = { Text("https://fosstodon.org/@you") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(draft.fossUnitedUsername, { draft = draft.copy(fossUnitedUsername = it) }, label = { Text("FOSS United username") }, placeholder = { Text("your_username") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Buttons wrap rather than squeeze at large font sizes.
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = { onSave(draft.copy(fullName = draft.fullName.trim())); step = 2 }) {
                                     Text(if (draft.fullName.isBlank()) "Skip for now" else "Save")
                                 }
@@ -131,7 +143,8 @@ fun WelcomeScreen(
                                 "Say which devrooms are for you, swipe through the talks, settle the overlaps: a few minutes now and the app builds a plan around what you would actually go to.",
                                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Buttons wrap rather than squeeze at large font sizes.
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = { onDone(true) }) { Text("Rank my sessions") }
                                 OutlinedButton(onClick = { onDone(false) }) { Text("Later") }
                             }
@@ -143,5 +156,5 @@ fun WelcomeScreen(
             TextButton(onClick = { onDone(false) }, modifier = Modifier.padding(16.dp, 0.dp)) { Text("Skip setup · run it again from Settings") }
             Spacer(Modifier.height(24.dp))
         }
-    }
+    } }
 }

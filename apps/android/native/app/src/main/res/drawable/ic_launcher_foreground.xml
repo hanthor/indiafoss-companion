@@ -3,7 +3,13 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- A neutral calendar-and-pin glyph: no IndiaFOSS wordmark. -->
+    <!--
+      A calendar-and-pin glyph on the mint plate: the schedule-and-venue app.
+      IndiaFOSS Chat (hanthor/indiafoss-chat-android) keeps its Element-derived
+      speech-bubble icon, so the two silhouettes are related by colour and
+      told apart by shape (#33). No IndiaFOSS wordmark: the marks belong to
+      FOSS United and this is an unofficial community app.
+    -->
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M36,30h36a4,4 0 0 1 4,4v40a4,4 0 0 1 -4,4H36a4,4 0 0 1 -4,-4V34a4,4 0 0 1 4,-4zM36,44v30h36V44zM42,26h4v8h-4zM62,26h4v8h-4z" />

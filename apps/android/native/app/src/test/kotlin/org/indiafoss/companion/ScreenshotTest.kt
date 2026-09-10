@@ -189,6 +189,13 @@ class ScreenshotTest {
     }
     @Test fun plan() = shoot("plan") { PlanScreen(state(), {}, {}, { null }, {}) {} }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
+    /** The devroom cards carry the official 2026 patterns (the PWA's planning cards). */
+    @Test fun rankDevrooms() {
+        shoot("rank-devrooms") {
+            RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}, startWithDevrooms = true) {}
+        }
+        compose.onNode(hasText("Which devrooms are for you?", substring = true)).assertIsDisplayed()
+    }
     @Test fun rankTalks() = shoot("rank-talks") {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true)), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
@@ -221,7 +228,36 @@ class ScreenshotTest {
         assertEquals(person.id, opened)
     }
 
-    @Test fun explore() = shoot("explore") { ExploreScreen(state(), {}, {}, {}) {} }
+    @Test fun explore() {
+        shoot("explore") { ExploreScreen(state(), {}, {}, {}) {} }
+        // The 2026 devroom gallery (the PWA's home gallery) sits above booths and speakers.
+        compose.onNodeWithText("Find your devroom").assertIsDisplayed()
+        compose.onNodeWithText("Android Open Source Project (AOSP)").assertIsDisplayed()
+    }
+
+    /** No 2026 artwork for another event: the gallery is absent, nothing inherits a pattern (#33). */
+    @Test fun exploreOtherEventHasNoGallery() {
+        shoot("explore-archive") { ExploreScreen(state().copy(bundle = bundle.copy(id = "indiafoss-2025")), {}, {}, {}) {} }
+        compose.onAllNodesWithText("Find your devroom").assertCountEquals(0)
+    }
+
+    /** The masthead reads the event's dates from the bundle and its phase from the clock. */
+    @Test fun nowBeforeTheConference() {
+        shoot("now-before") { NowScreen(state("2026-09-20T10:00:00+05:30"), {}, {}) {} }
+        compose.onNode(hasText("BEFORE THE CONFERENCE", substring = true)).assertIsDisplayed()
+        compose.onNodeWithText(bundle.name).assertIsDisplayed()
+    }
+
+    @Test fun nowRecap() {
+        shoot("now-recap") { NowScreen(state("2026-10-01T10:00:00+05:30"), {}, {}) {} }
+        compose.onNode(hasText("THAT'S A WRAP", substring = true)).assertIsDisplayed()
+    }
+
+    @Test fun eventDatesFormat() {
+        assertEquals("26–27 September 2026", org.indiafoss.companion.ui.eventDates("2026-09-26T09:00:00+05:30", "2026-09-27T18:00:00+05:30"))
+        assertEquals("26 September 2026", org.indiafoss.companion.ui.eventDates("2026-09-26", "2026-09-26"))
+        assertEquals("30 September – 2 October 2026", org.indiafoss.companion.ui.eventDates("2026-09-30", "2026-10-02"))
+    }
     @Test fun booth() = shoot("booth") {
         // The published draft has no booth catalogue; this is test-only content.
         val booth = org.indiafoss.companion.core.Booth("test-booth", "Sample community booth", description = "Meet the community")
@@ -283,4 +319,115 @@ class DarkScreenshotTest {
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
     @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
+}
+
+/**
+ * The touched screens at 1.5× font scale (Android's "Larger" display size):
+ * nothing clips, the mono metadata and the masthead still fit, buttons wrap.
+ */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
+class LargeTextScreenshotTest {
+    private val noUndo = CompanionViewModel.Undo(emptyMap(), emptyList())
+    @get:Rule
+    val compose = createAndroidComposeRule<ComponentActivity>()
+
+    private val bundle: EventBundle by lazy {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.assets.open("event-bundle.json").bufferedReader().use { bundleJson.decodeFromString(it.readText()) }
+    }
+
+    private fun shoot(name: String, content: @androidx.compose.runtime.Composable () -> Unit) {
+        compose.setContent {
+            val density = androidx.compose.ui.platform.LocalDensity.current
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.ui.platform.LocalDensity provides androidx.compose.ui.unit.Density(density.density, fontScale = 1.5f),
+            ) { CompanionTheme(dynamicColor = false) { content() } }
+        }
+        compose.waitForIdle()
+        val view = compose.activity.window.decorView
+        view.measure(
+            android.view.View.MeasureSpec.makeMeasureSpec(1233, android.view.View.MeasureSpec.EXACTLY),
+            android.view.View.MeasureSpec.makeMeasureSpec(2673, android.view.View.MeasureSpec.EXACTLY),
+        )
+        view.layout(0, 0, 1233, 2673)
+        compose.waitForIdle()
+        val bitmap = Bitmap.createBitmap(1233, 2673, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(bitmap))
+        File("build/screenshots").apply { mkdirs() }
+        File("build/screenshots/$name-large-text.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
+    }
+
+    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"), currentLocation = "audi-1")
+
+    @Test fun now() {
+        shoot("now") { NowScreen(state(), {}, {}) {} }
+        compose.onNodeWithText(bundle.name).assertIsDisplayed()
+    }
+    @Test fun schedule() {
+        shoot("schedule") { ScheduleScreen(state(), {}, {}) {} }
+        compose.onNodeWithText("Day 1").assertIsDisplayed()
+    }
+    @Test fun welcome() {
+        shoot("welcome") { WelcomeScreen(state(), {}, {}) {} }
+        compose.onNodeWithText("SET UP IN A MINUTE").assertIsDisplayed()
+        compose.onNodeWithText("Turn on reminders").assertIsDisplayed()
+    }
+    @Test fun explore() {
+        shoot("explore") { ExploreScreen(state(), {}, {}, {}) {} }
+        compose.onNodeWithText("Find your devroom").assertIsDisplayed()
+    }
+    @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
+    @Test fun settings() {
+        shoot("settings") { SettingsScreen(state(), {}, {}) {} }
+        compose.onNodeWithText("Appearance").assertIsDisplayed()
+    }
+}
+
+/**
+ * Material You on (the launch default on Android 12+): the everyday scheme
+ * comes from the device palette, while the welcome hero and the Now masthead
+ * stay on the ink surface with the mint accent. The PNGs are the evidence;
+ * the assertions only check the event surfaces are still there.
+ */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], qualifiers = "w411dp-h891dp-xxhdpi")
+class DynamicColorScreenshotTest {
+    @get:Rule
+    val compose = createAndroidComposeRule<ComponentActivity>()
+
+    private val bundle: EventBundle by lazy {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        context.assets.open("event-bundle.json").bufferedReader().use { bundleJson.decodeFromString(it.readText()) }
+    }
+
+    private fun shoot(name: String, content: @androidx.compose.runtime.Composable () -> Unit) {
+        compose.setContent { CompanionTheme(dynamicColor = true) { content() } }
+        compose.waitForIdle()
+        val view = compose.activity.window.decorView
+        view.measure(
+            android.view.View.MeasureSpec.makeMeasureSpec(1233, android.view.View.MeasureSpec.EXACTLY),
+            android.view.View.MeasureSpec.makeMeasureSpec(2673, android.view.View.MeasureSpec.EXACTLY),
+        )
+        view.layout(0, 0, 1233, 2673)
+        compose.waitForIdle()
+        val bitmap = Bitmap.createBitmap(1233, 2673, Bitmap.Config.ARGB_8888)
+        view.draw(Canvas(bitmap))
+        File("build/screenshots").apply { mkdirs() }
+        File("build/screenshots/$name-dynamic.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
+    }
+
+    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"), currentLocation = "audi-1")
+
+    @Test fun now() {
+        shoot("now") { NowScreen(state(), {}, {}) {} }
+        compose.onNodeWithText(bundle.name).assertIsDisplayed()
+    }
+    @Test fun welcome() {
+        shoot("welcome") { WelcomeScreen(state(), {}, {}) {} }
+        compose.onNodeWithText("SET UP IN A MINUTE").assertIsDisplayed()
+    }
+    @Test fun schedule() = shoot("schedule") { ScheduleScreen(state(), {}, {}) {} }
 }
