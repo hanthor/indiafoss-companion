@@ -5,7 +5,9 @@ package org.indiafoss.companion.core
  * attendee can actually be in. Must-attend sessions are placed first and
  * never displaced; then bookmarks, then the rest by rating, each taken only
  * when it does not overlap what is already placed. Not-interested sessions
- * and source meal rows are never placed as talks. One lunch opportunity may
+ * and source meal rows are never placed as talks. A talk that stood aside in
+ * a clash (#271, `yieldsTo`) is left out only while its winner is live on the
+ * day, and never when it is must-go. One lunch opportunity may
  * occupy a free official lunch window. This is the greedy core of the web solver
  * (`@indiafoss/solver`), enough for a native plan that agrees with the
  * ranking; walking time between rooms is left to the leave-by logic.
@@ -42,13 +44,19 @@ object Itinerary {
         minimumRating: Double = 0.0,
         blocks: List<CustomBlock> = emptyList(),
         stayTrackIds: Set<String> = emptySet(),
+        yieldsTo: (String) -> String? = { null },
     ): List<Item> {
-        val candidates = Schedule.activitiesForDay(bundle, day)
+        val eligible = Schedule.activitiesForDay(bundle, day)
             .filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null }
             .filter { dispositionOf(it.id) != Disposition.NOT_INTERESTED }
+        val yields = Yields.resolve(eligible, dispositionOf, stayTrackIds, yieldsTo)
+        val candidates = eligible.filter { it.id !in yields.stoodAside }
         val selected = candidates.filter { it.trackId in stayTrackIds }
         val ranges = trackRanges(bundle, day, stayTrackIds)
-        fun reserved(a: Activity): Boolean = ranges.any { (track, range) -> a.trackId != track && a.start!! < range.second && a.end!! > range.first }
+        // A reserved block keeps other talks out, except the one the attendee chose over the devroom's own talk (#271).
+        fun reserved(a: Activity): Boolean = ranges.any { (track, range) ->
+            a.trackId != track && a.start!! < range.second && a.end!! > range.first && track !in yields.leftFor[a.id].orEmpty()
+        }
         val placed = ArrayList<Item>()
         fun free(activity: Activity): Boolean = placed.none { overlaps(it.activity, activity) }
         fun take(items: List<Activity>, reason: Reason) {
@@ -129,18 +137,65 @@ object Itinerary {
         Schedule.activitiesForDay(bundle, day).filter { it.trackId in tracks && !it.cancelled && it.type != "meal" && it.start != null && it.end != null }
             .groupBy { it.trackId!! }.mapValues { (_, sessions) -> sessions.minOf { it.start!! } to sessions.maxOf { it.end!! } }
 
-    /** Conflicts remain visible even where the greedy native plan can place only one item. */
-    fun stayConflicts(bundle: EventBundle, day: String, tracks: Set<String>, dispositionOf: (String) -> Disposition): List<Pair<Activity, Activity>> {
-        val sessions = Schedule.activitiesForDay(bundle, day).filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null && dispositionOf(it.id) != Disposition.NOT_INTERESTED }
+    /**
+     * Conflicts remain visible even where the greedy native plan can place
+     * only one item. A must-go talk the attendee chose over a devroom's own
+     * talk in a clash (#271) is not reported against that devroom.
+     */
+    fun stayConflicts(
+        bundle: EventBundle,
+        day: String,
+        tracks: Set<String>,
+        dispositionOf: (String) -> Disposition,
+        yieldsTo: (String) -> String? = { null },
+    ): List<Pair<Activity, Activity>> {
+        val eligible = Schedule.activitiesForDay(bundle, day).filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null && dispositionOf(it.id) != Disposition.NOT_INTERESTED }
+        val yields = Yields.resolve(eligible, dispositionOf, tracks, yieldsTo)
+        val sessions = eligible.filter { it.id !in yields.stoodAside }
         val ranges = trackRanges(bundle, day, tracks)
         val result = ArrayList<Pair<Activity, Activity>>()
         for ((track, range) in ranges) {
             val selected = sessions.filter { it.trackId == track }
             for (a in selected) for (b in selected) if (a.id < b.id && overlaps(a, b)) result += a to b
             val representative = selected.firstOrNull() ?: continue
-            for (other in sessions) if (other.trackId != track && (dispositionOf(other.id) == Disposition.MUST_ATTEND || other.trackId in tracks) && other.start!! < range.second && other.end!! > range.first) result += representative to other
+            for (other in sessions) {
+                if (other.trackId == track || other.start!! >= range.second || other.end!! <= range.first) continue
+                if (dispositionOf(other.id) != Disposition.MUST_ATTEND && other.trackId !in tracks) continue
+                // The attendee chose this talk over the devroom's own: not a silent conflict.
+                if (track in yields.leftFor[other.id].orEmpty()) continue
+                result += representative to other
+            }
         }
         return result.distinctBy { listOf(it.first.id, it.second.id).sorted() }
+    }
+
+    /**
+     * Clash losses on a day (#271), the solver's `activeAfterYields` pass: a
+     * session that stood aside is out while its winner is live; `leftFor`
+     * maps each winner to the reserved devroom tracks the attendee left for
+     * it, so a block can be left for one talk without dropping the reservation.
+     */
+    object Yields {
+        data class Resolved(val stoodAside: Set<String>, val leftFor: Map<String, Set<String>>)
+
+        fun resolve(
+            eligible: List<Activity>,
+            dispositionOf: (String) -> Disposition,
+            stayTrackIds: Set<String>,
+            yieldsTo: (String) -> String?,
+        ): Resolved {
+            val live = Ranking.activeAfterYields(eligible, { it.id }, { yieldsTo(it.id) }, { dispositionOf(it.id) == Disposition.MUST_ATTEND })
+            val stoodAside = HashSet<String>()
+            val leftFor = HashMap<String, MutableSet<String>>()
+            for (a in eligible) {
+                if (a.id in live) continue
+                stoodAside += a.id
+                val winner = yieldsTo(a.id) ?: continue
+                val track = a.trackId ?: continue
+                if (track in stayTrackIds) leftFor.getOrPut(winner) { HashSet() } += track
+            }
+            return Resolved(stoodAside, leftFor)
+        }
     }
 
     /** The widest free window between placed items, as (startMs, endMs). */

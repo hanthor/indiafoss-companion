@@ -1,4 +1,10 @@
-import type { EventBundle, IdentityMeta } from '@indiafoss/model';
+import type {
+  BindingState,
+  EventBundle,
+  IdentityMeta,
+  MatrixKeyKind,
+  MatrixKeyProvenance,
+} from '@indiafoss/model';
 import { withIdentityEnvelope } from '@indiafoss/model';
 import type { AccountClaimTrust, PersonalDataFile } from '@indiafoss/model/contracts';
 import { personalDataFromSnapshot, type PersonalDataSnapshot } from './personal-data.js';
@@ -213,10 +219,11 @@ export interface ContactRecord {
     checkedAt: number;
   };
   /**
-   * The conclusion drawn from `meshLink` (the raw observation): at most
-   * `profile-matched` today. `binding-valid` and `verified` have no producer
-   * until #188 lands. Reset to `claimed` on every import; never trusted from
-   * a file or a card.
+   * The conclusion drawn from `meshLink` (the profile observation) and
+   * `binding.check` (the binding verification): `profile-matched` from the
+   * former, `binding-valid` or `revoked` from the latter. `verified` has no
+   * producer: it needs Chat's user verification of the Matrix key (#188).
+   * Reset to `claimed` on every import; never trusted from a file or a card.
    */
   accountTrust?: AccountClaimTrust;
   /**
@@ -228,6 +235,32 @@ export interface ContactRecord {
    */
   inPersonConfirmed?: { fingerprint: string; at: string };
   previousFingerprint?: string;
+  /**
+   * A signed mesh↔Matrix binding presented with the card (#188,
+   * `docs/identity-binding.md`). `signed` is wire data, kept as it arrived
+   * and never trusted by itself; `check` is this device's own verification
+   * of it against keys it holds independently, and is dropped on import
+   * like every other local conclusion. No surface writes `signed` yet: the
+   * transport of bindings is a proposal, not a feature.
+   */
+  binding?: {
+    signed: unknown;
+    check?: BindingCheck;
+  };
+}
+
+/** This device's verification of a stored binding: the conclusion, when, and against which key. */
+export interface BindingCheck {
+  state: BindingState;
+  reason?: string;
+  checkedAt: number;
+  matrixKeyId?: string;
+  matrixKeyKind?: MatrixKeyKind;
+  /**
+   * Where the Matrix key came from. Recorded so a later Chat-side user
+   * verification can be matched against it; nothing here reads it as trust.
+   */
+  matrixKeyProvenance?: MatrixKeyProvenance;
 }
 
 /** What a public-profile read observed; see `@indiafoss/matrix` `MeshLinkState`. */

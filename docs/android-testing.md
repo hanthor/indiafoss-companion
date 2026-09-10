@@ -57,9 +57,22 @@ and navigation, and retain physical-device rehearsal for release readiness.
 
 ## The gate: Maestro on an emulator
 
-Runs on every push and pull request, as the **Android emulator (Maestro)** job
-in `ci.yml`. It reuses the debug APK the `Native Compose client` job already
-uploaded, so the cost is an emulator boot rather than a second Gradle run.
+Runs as the **Android emulator (Maestro)** job in `ci.yml`. It reuses the
+debug APK the `Native Compose client` job already uploaded, so the cost is an
+emulator boot rather than a second Gradle run.
+
+Both native jobs run on every push to main and on every pull request that can
+affect the app: `apps/android/**`, the event bundle in `events/**` and the
+venue assets in `apps/web/static/venues/**` (both are copied into the APK),
+`packages/test-fixtures/**`, `packages/model/**`, the flows in `.maestro/**`,
+the scripts they run through, and `ci.yml` itself. A pull request that
+touches none of those — a docs change, a web-only change — skips both jobs,
+and the emulator job additionally requires the native job to have succeeded,
+not merely finished. A skipped job is recorded as **skipped, not passed**: it
+still satisfies the branch ruleset (the ruleset needs a conclusion, and
+skipped is one) but it is not evidence the app launches. The full list of
+paths, and the matching rule for the web gates, is in
+[docs/release.md](./release.md#when-each-gate-runs).
 
 The job does two things, in order, because they fail differently:
 

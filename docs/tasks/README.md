@@ -63,11 +63,11 @@ These are the work that makes a conference day trustworthy. Do these first.
 Personal-data migration is tracked by [#240](https://github.com/hanthor/indiafoss-companion/issues/240),
 with its current contract and remaining work in
 [personal-data transfer](../architecture/personal-data-transfer.md). CFP reference
-resolution, shared file codecs and the PWA export are merged (#247/#249/#250);
-the PWA import (section validation, CFP-resolved preview with keep-existing
-conflicts, one-transaction apply and cache refresh) is merged in #301. Native
-export, the native import adapter and cross-platform round-trip tests remain.
-Do not mark migration complete based on the PWA alone.
+resolution, shared file codecs, the PWA export and the PWA import are merged
+(#247/#249/#250/#301); the native export, the journaled native import and the
+cross-platform fixture tests follow in the native slice. A transfer between
+real devices and storing unresolved records on the destination remain. Do not
+mark migration complete on test evidence alone.
 
 Current event-data maintenance is documented in the [2026 event README](../../events/indiafoss-2026/README.md).
 The [booth import review](../reviews/booth-directory-2026-09-09.md) records the organiser's 71-booth snapshot and day-aware PWA visit planning.
@@ -91,11 +91,11 @@ Merged on 10 September outside the spec list, each with the evidence its PR body
 
 ## Companion — gated work
 
-| ID                                             | Task                                        | Status                                                                                                                                                                                            | Tracks                                                                                                                                                                                                  |
-| ---------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [C-12](C-12-identity-binding-spec.md)          | Specify the mesh↔Matrix identity binding    | Blocked — maintainer decision. #315 versions the persisted identity fields and #300 removed every "Verified" producer, so the binding starts from a clean slate; nothing produces `binding-valid` | [#188](https://github.com/hanthor/indiafoss-companion/issues/188), [#181](https://github.com/hanthor/indiafoss-companion/issues/181)                                                                    |
-| [C-13](C-13-encrypted-seam-protocol-review.md) | Protocol review for the encrypted seam      | Blocked — review before code                                                                                                                                                                      | [#176](https://github.com/hanthor/indiafoss-companion/issues/176)                                                                                                                                       |
-| [C-14](C-14-venue-gateway-rehearsal.md)        | Rehearse the venue gateway and room seeding | Needs hardware                                                                                                                                                                                    | [#163](https://github.com/hanthor/indiafoss-companion/issues/163), [#165](https://github.com/hanthor/indiafoss-companion/issues/165), [#115](https://github.com/hanthor/indiafoss-companion/issues/115) |
+| ID                                             | Task                                        | Status                                                                                                                                                                                                           | Tracks                                                                                                                                                                                                  |
+| ---------------------------------------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [C-12](C-12-identity-binding-spec.md)          | Specify the mesh↔Matrix identity binding    | In review — spec (`docs/identity-binding.md`) and verifier landed on both platforms; `binding-valid` is produced from a verified binding and stops there; #181 decisions assumed, not cited; #188 review pending | [#188](https://github.com/hanthor/indiafoss-companion/issues/188), [#181](https://github.com/hanthor/indiafoss-companion/issues/181)                                                                    |
+| [C-13](C-13-encrypted-seam-protocol-review.md) | Protocol review for the encrypted seam      | Blocked — review before code                                                                                                                                                                                     | [#176](https://github.com/hanthor/indiafoss-companion/issues/176)                                                                                                                                       |
+| [C-14](C-14-venue-gateway-rehearsal.md)        | Rehearse the venue gateway and room seeding | Needs hardware                                                                                                                                                                                                   | [#163](https://github.com/hanthor/indiafoss-companion/issues/163), [#165](https://github.com/hanthor/indiafoss-companion/issues/165), [#115](https://github.com/hanthor/indiafoss-companion/issues/115) |
 
 ## iOS
 
@@ -138,7 +138,7 @@ flowchart TD
   C02 -. both edit tools/event-sync .-> C07
 ```
 
-C-08 and I-01 have no prerequisites and can run alongside anything; C-05 is implemented. C-10 is implemented on the PWA, so C-12 is no longer waiting on it.
+C-08 and I-01 have no prerequisites and can run alongside anything; C-05 is implemented. C-10 is implemented on the PWA, and C-12's specification and verifier landed in #324; C-12 now waits on the #188 review.
 
 Two couplings the arrows understate, both found while writing the specs:
 

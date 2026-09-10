@@ -143,4 +143,8 @@ Data ↓") once a track has two or more votes.
   and by swipe and survives a reload; a slot pick answers several pairs,
   keyboard picks and undo (`/plan/rank?mode=pairs`); answered slots are not
   re-asked after a reload.
-- `apps/android/native/core`: `RankingTest` covers the same slot grouping.
+- `apps/android/native/core`: `RankingTest` covers the same slot grouping and
+  the clash cases above (`resolveClash`, `livePool`); `YieldsTest` the
+  itinerary's stood-aside rules; `AffinityTest` the clash vote.
+  `RankClashTest` (Robolectric) renders the settlement card, the devroom pill
+  and the note, and drives one pick and Undo.

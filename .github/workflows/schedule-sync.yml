@@ -39,6 +39,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Fetch and reconcile the published programme
         run: pnpm --filter @indiafoss/event-sync exec tsx src/index.ts sync indiafoss-2026 --source live
+      - name: Copy the published bundle to what the apps actually serve
+        run: pnpm --filter @indiafoss/event-sync exec tsx src/index.ts publish indiafoss-2026
       - name: Prepare a data-only candidate
         id: candidate
         env:
@@ -47,7 +49,7 @@ jobs:
         run: |
           set -euo pipefail
           base=$(git rev-parse HEAD)
-          git add events/indiafoss-2026/raw events/indiafoss-2026/normalized events/indiafoss-2026/published events/indiafoss-2026/activity-ids.json
+          git add events/indiafoss-2026/raw events/indiafoss-2026/normalized events/indiafoss-2026/published events/indiafoss-2026/activity-ids.json apps/web/static/events/indiafoss-2026
           if git diff --cached --quiet -- events/indiafoss-2026/published/manifest.json; then
             echo 'changed=false' >> "$GITHUB_OUTPUT"
             echo 'The public programme is unchanged.' >> "$GITHUB_STEP_SUMMARY"
@@ -56,8 +58,21 @@ jobs:
           git diff --cached --name-only | while IFS= read -r file; do
             case "$file" in
               events/indiafoss-2026/raw/*.json|events/indiafoss-2026/normalized/*.json|events/indiafoss-2026/published/*.json|events/indiafoss-2026/activity-ids.json) ;;
+              apps/web/static/events/indiafoss-2026/*.json) ;;
               *) echo "Unexpected candidate path: $file"; exit 1 ;;
             esac
+          done
+          # A run whose base moved during validation leaves its candidate open. The
+          # next run re-syncs from live, so that candidate is stale by definition:
+          # close it instead of letting a second PR for the same job pile up (#193).
+          gh pr list --repo "$GH_REPO" --state open --base main --limit 100 \
+            --json number,headRefName \
+            --jq '.[] | select(.headRefName | startswith("automation/schedule-")) | .number' |
+          while IFS= read -r stale; do
+            [ -n "$stale" ] || continue
+            gh pr close "$stale" --repo "$GH_REPO" --delete-branch \
+              --comment 'Superseded: a newer sync run re-imported the published programme from the live APIs. Closing so only one automated schedule candidate is ever open.'
+            echo "Closed superseded candidate #$stale" >> "$GITHUB_STEP_SUMMARY"
           done
           branch="automation/schedule-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git checkout -b "$branch"

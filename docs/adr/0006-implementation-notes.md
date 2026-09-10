@@ -172,10 +172,37 @@ none is a two-phone or device result.
   Companion #300 renames `MeshLinkState.verified` to `profile-matched`,
   migrates stored records on read, and shows card signature, in-person badge
   comparison, profile match and Chat device verification as four separate
-  states; nothing produces `binding-valid` or `verified`. Companion #315 puts
+  states. Companion #324 (below) adds the binding verifier that produces `binding-valid`; nothing produces `verified`. Companion #315 puts
   every persisted identity behind `identity.version: 1` and retains unread
   shapes without routing them. `StartDM.kt`'s `dmWouldBeKeyDead` (assumption 15) is untouched; the Stage 1 router still waits on #188.
 - **Companion side of the seam shrank.** `@indiafoss/matrix` now exports only
   the profile-field, mesh-link and handoff helpers plus what
   `tools/neutrino-probe` drives (#314). Nothing in this note's Chat-side plan
   depends on the removed exports.
+
+## The identity binding (#188), as of 10 September 2026
+
+The trust root of Stage 1 is specified in
+[`docs/identity-binding.md`](../identity-binding.md) and implemented as a
+verifier on both platforms. What Chat would need to do to mint one, and what
+it must not assume:
+
+- **Signing.** `OlmMachine::sign(message)` signs a string with the device
+  key and, when cross-signing is set up, the master key — the preferred
+  `matrixKeyKind`. The message is the exact bytes of
+  `docs/identity-binding.md` §3 (`domain ‖ "\n" ‖ canonical JSON`); the
+  Companion signs the same bytes with the card key. The `Signatures` value
+  the SDK returns is keyed `ed25519:<id>`; the binding takes the raw
+  signature under the master key's id, base64url.
+- **Minting** needs both identities on one device: Stage 0's multi-account
+  is a prerequisite, not a nicety. `matrixKeyId` for the master key is
+  `ed25519:<unpadded base64 of the key>`; for a device key it is
+  `ed25519:<DEVICE_ID>`.
+- **Verifying on the Chat side** needs `/keys/query` for the peer's account,
+  which the SDK already does as part of E2EE; the verifier then records the
+  provenance (`server` at best, `user-verified` after emoji/QR on the master
+  key). Chat's existing user verification flow is what lifts a binding from
+  `binding-valid` to `verified`; nothing else may.
+- **Not in the fork yet:** no signing call, no profile field, no `/keys/query`
+  consumer for bindings, no route selection on a binding. The cross-seam DM
+  guard (chat-android#40) stays a refusal.

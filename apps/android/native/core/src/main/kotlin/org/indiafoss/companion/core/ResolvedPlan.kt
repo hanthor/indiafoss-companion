@@ -15,7 +15,8 @@ package org.indiafoss.companion.core
  * current bundle, never from a cached list of planned ids, so a retimed
  * session moves and a cancelled one leaves (and comes back when reinstated).
  *
- * Conflicts are explicit: overlapping must-attend choices, devroom clashes
+ * Conflicts are explicit: overlapping must-attend choices (a must-go loser
+ * never stands aside in a clash, #271), devroom clashes
  * and overlapping blocks make the plan infeasible, and an infeasible plan
  * names no current/next item, no destination and no reminders — the attendee
  * is asked to resolve it, as on the web. A tight transfer between rooms is a
@@ -118,8 +119,10 @@ object ResolvedPlan {
         stayTrackIds: Set<String> = emptySet(),
         walkSeconds: (String, String) -> Int? = { _, _ -> null },
         minimumRating: Double = 0.0,
+        /** The session a talk stood aside for in a clash (#271), if any; see `Itinerary.forDay`. */
+        yieldsTo: (String) -> String? = { null },
     ): Plan {
-        val base = Itinerary.forDay(bundle, day, ratingOf, dispositionOf, bookmarked, minimumRating, edits.blocks, stayTrackIds)
+        val base = Itinerary.forDay(bundle, day, ratingOf, dispositionOf, bookmarked, minimumRating, edits.blocks, stayTrackIds, yieldsTo)
         val conflicts = ArrayList<Conflict>()
         val sessions = Schedule.activitiesForDay(bundle, day)
             .filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null }
@@ -131,7 +134,7 @@ object ResolvedPlan {
                 "\"${must[i].title}\" and \"${must[j].title}\" are both must attend and overlap.",
             )
         }
-        for ((a, b) in Itinerary.stayConflicts(bundle, day, stayTrackIds, dispositionOf)) {
+        for ((a, b) in Itinerary.stayConflicts(bundle, day, stayTrackIds, dispositionOf, yieldsTo)) {
             if (a.id in edits.removed || b.id in edits.removed) continue
             conflicts += Conflict(ConflictKind.DEVROOM, a.id, b.id, "\"${a.title}\" clashes with \"${b.title}\" in a devroom you are staying for.")
         }

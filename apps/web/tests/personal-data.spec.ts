@@ -117,7 +117,7 @@ test('downloads persisted personal choices and contact sharing selection offline
   expect(raw).not.toContain('SECRET_SESSION');
   await expect(page.getByRole('status').filter({ hasText: 'Export prepared' })).toBeVisible();
   await expect(
-    page.getByText('The native Android app cannot import it yet', { exact: false }),
+    page.getByText('or in the native Android app from its Settings page', { exact: false }),
   ).toBeVisible();
 });
 

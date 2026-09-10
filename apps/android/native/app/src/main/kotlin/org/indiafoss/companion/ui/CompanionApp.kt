@@ -167,6 +167,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onRestore = viewModel::restoreToPlan,
                     onAddBlock = viewModel::addBlock,
                     onRemoveBlock = viewModel::removeBlock,
+                    onReconsider = viewModel::reconsider,
                 ) { navController.navigate("activity/$it") }
             }
             composable("explore") {
@@ -249,6 +250,11 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
                     onDynamicColor = viewModel::setDynamicColor,
                     onCalendarSync = viewModel::setCalendarSyncEnabled,
+                    onExportPersonalData = viewModel::exportPersonalData,
+                    onImportPersonalData = viewModel::previewPersonalData,
+                    onApplyImport = viewModel::applyPersonalData,
+                    onCancelImport = viewModel::cancelPersonalDataImport,
+                    onRefresh = viewModel::refresh,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->

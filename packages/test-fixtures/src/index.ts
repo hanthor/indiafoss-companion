@@ -136,6 +136,8 @@ export interface ContactTrustCase {
   expect: {
     signature: string;
     account: string;
+    /** This device's verification of a presented binding; `none` when the card carried none. */
+    binding: string;
     contradiction: boolean;
     profile: string;
     inPerson: string;
@@ -192,4 +194,55 @@ export function loadIdentityEnvelopeFixtures(): IdentityEnvelopeFixtures {
   return JSON.parse(
     readFileSync(fixturesDir('identity-envelope', 'cases.json'), 'utf8'),
   ) as IdentityEnvelopeFixtures;
+}
+
+/**
+ * One row of `fixtures/identity-binding/vectors.json`: a signed binding as it
+ * would arrive, the keys and identities the verifier independently holds,
+ * the clock, and the outcome every platform must reach (#188,
+ * `docs/identity-binding.md`). `signingBytesHex` pins the canonical encoding
+ * byte for byte wherever the statement parses.
+ */
+export interface IdentityBindingVector {
+  name: string;
+  describes: string;
+  signed: unknown;
+  expected: { meshNodeId: string; matrixUserId: string };
+  /** The card key the verifier holds, `alg:base64url`. */
+  cardKey: string;
+  matrixKey: {
+    id: string;
+    kind: 'master' | 'self-signing' | 'device';
+    publicKey: string;
+    provenance: 'user-verified' | 'cross-signed' | 'server' | 'cached';
+  } | null;
+  revokedIds: string[];
+  now: string;
+  signingBytesHex?: string;
+  expect: { state: string; reason?: string; account: string };
+}
+
+/** Test-only key pairs, so the vectors can be regenerated and the Kotlin side can sign too. */
+export interface IdentityBindingVectorKey {
+  alg: 'ed25519' | 'p256';
+  /** JWK with the private scalar (`d`); never a real person's key. */
+  jwk: Record<string, string>;
+  /** The public key as the binding names it: `alg:base64url` for card keys, `ed25519:<base64>` for Matrix keys. */
+  id: string;
+}
+
+export interface IdentityBindingVectors {
+  describes: string;
+  domain: string;
+  version: number;
+  vocabulary: { state: string[]; account: string[] };
+  keys: Record<string, IdentityBindingVectorKey>;
+  cases: IdentityBindingVector[];
+}
+
+/** Load the binding vectors. A derivation table, not an `index.json` validator suite. */
+export function loadIdentityBindingVectors(): IdentityBindingVectors {
+  return JSON.parse(
+    readFileSync(fixturesDir('identity-binding', 'vectors.json'), 'utf8'),
+  ) as IdentityBindingVectors;
 }

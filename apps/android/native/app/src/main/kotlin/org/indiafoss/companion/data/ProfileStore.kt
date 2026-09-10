@@ -47,6 +47,15 @@ class ProfileStore(private val context: Context) {
         context.contactStore.edit { it[profileKey] = json.encodeToString(card) }
     }
 
+    /** Replace the attendee's own card, only if it still equals `expected`; met contacts are untouched (see `PersonalDataRepository`). */
+    suspend fun replaceProfile(expected: ContactCard?, next: ContactCard) {
+        context.contactStore.edit { prefs ->
+            val current = prefs[profileKey]?.let { runCatching { json.decodeFromString<ContactCard>(it) }.getOrNull() } ?: ContactCard()
+            if (expected != null && current != expected) throw ConcurrentEditException("contact card")
+            prefs[profileKey] = json.encodeToString(next)
+        }
+    }
+
     suspend fun addContact(contact: MetContact) {
         context.contactStore.edit { prefs ->
             val current = prefs[contactsKey]?.let { runCatching { json.decodeFromString<List<MetContact>>(it) }.getOrNull() }

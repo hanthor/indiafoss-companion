@@ -106,3 +106,63 @@ describe('accountTrustOf: what a profile observation is worth (C-10, #188)', () 
     }
   });
 });
+
+describe('accountTrustOf: what a binding check adds (#188)', () => {
+  const at = 1;
+  const binding = (state: string) => ({
+    signed: {},
+    check: { state: state as never, checkedAt: at },
+  });
+
+  it('lifts a valid binding to binding-valid, whatever the profile said', () => {
+    for (const profile of ['profile-matched', 'unlinked', 'unverifiable', 'outdated'] as const) {
+      expect(accountTrustOf({ state: profile, checkedAt: at }, binding('valid')).trust).toBe(
+        'binding-valid',
+      );
+    }
+    expect(accountTrustOf(undefined, binding('valid')).trust).toBe('binding-valid');
+  });
+
+  it('keeps a profile contradiction visible beside a valid binding', () => {
+    expect(accountTrustOf({ state: 'mismatch', checkedAt: at }, binding('valid'))).toEqual({
+      trust: 'binding-valid',
+      contradiction: true,
+    });
+  });
+
+  it('reports a revoked binding above everything else', () => {
+    expect(accountTrustOf({ state: 'profile-matched', checkedAt: at }, binding('revoked'))).toEqual(
+      {
+        trust: 'revoked',
+        contradiction: false,
+      },
+    );
+  });
+
+  it('lets every other binding state fall back to the profile observation', () => {
+    for (const state of [
+      'expired',
+      'not-yet-valid',
+      'invalid-signature',
+      'mismatch',
+      'malformed',
+      'wrong-domain',
+      'unknown-version',
+      'unverifiable',
+    ]) {
+      expect(
+        accountTrustOf({ state: 'profile-matched', checkedAt: at }, binding(state)).trust,
+      ).toBe('profile-matched');
+      expect(accountTrustOf(undefined, binding(state)).trust).toBe('claimed');
+    }
+  });
+
+  it('never yields verified', () => {
+    for (const state of ['valid', 'revoked', 'unverifiable', 'expired']) {
+      for (const profile of ['profile-matched', 'mismatch', undefined] as const) {
+        const check = profile ? { state: profile, checkedAt: at } : undefined;
+        expect(accountTrustOf(check, binding(state)).trust).not.toBe('verified');
+      }
+    }
+  });
+});
