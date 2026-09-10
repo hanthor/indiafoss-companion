@@ -16,6 +16,11 @@ describe('discovery eligibility', () => {
   ])('keeps ordinary programme item %s', (title) => {
     expect(isDiscoveryActivity({ title, type: 'talk' })).toBe(true);
   });
+  it('excludes organiser ceremonies and introductions by source classification', () => {
+    expect(isDiscoveryActivity({ title: 'FOSS Awards', type: 'ceremony' })).toBe(false);
+    expect(isDiscoveryActivity({ title: 'Devroom Wrap-Up', type: 'ceremony' })).toBe(false);
+    expect(isDiscoveryActivity({ title: 'Devroom Intro: Security', type: 'intro' })).toBe(false);
+  });
   it('still excludes meals and cancelled activities', () => {
     expect(isDiscoveryActivity({ title: 'Lunch', type: 'meal' })).toBe(false);
     expect(isDiscoveryActivity({ title: 'Talk', type: 'talk', cancelled: true })).toBe(false);

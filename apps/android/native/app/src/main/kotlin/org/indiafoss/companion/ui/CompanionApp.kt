@@ -143,14 +143,14 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         val route = backStack?.destination?.route
         // The countdown strip sits under every tab's app bar, not over detail screens.
         if (route != null && destinations.any { it.route == route }) {
-            LeaveByBanner(state) { navController.navigate("activity/$it") }
+            LeaveByBanner(state, onOpenPlan = { navController.navigate("plan") }) { navController.navigate("activity/$it") }
         }
         NavHost(
             navController = navController,
             startDestination = "now",
         ) {
             composable("now") {
-                NowScreen(state, topActions, viewModel::refresh, viewModel::dismissUpdate) { navController.navigate("activity/$it") }
+                NowScreen(state, topActions, viewModel::refresh, viewModel::dismissUpdate, onOpenPlan = { navController.navigate("plan") }) { navController.navigate("activity/$it") }
             }
             composable("schedule") {
                 ScheduleScreen(state, topActions, viewModel::toggleBookmark) {
@@ -163,7 +163,8 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     actions = topActions,
                     onRank = { navController.navigate("rank") },
                     onCalendar = viewModel::calendarFor,
-                    onSkip = viewModel::skipSession,
+                    onSkip = viewModel::removeFromPlan,
+                    onRestore = viewModel::restoreToPlan,
                     onAddBlock = viewModel::addBlock,
                     onRemoveBlock = viewModel::removeBlock,
                 ) { navController.navigate("activity/$it") }

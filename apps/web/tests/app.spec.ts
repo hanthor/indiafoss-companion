@@ -66,6 +66,21 @@ test('activity detail shows speakers and toggles bookmark', async ({ page }) => 
   await expect(bookmark).toHaveAttribute('aria-pressed', 'false');
 });
 
+test('an organiser ceremony shows its source instead of an invented abstract', async ({ page }) => {
+  await page.goto(appUrl('/activity/act-28la7q52h1?event=indiafoss-2026'));
+  await expect(page.getByRole('heading', { name: 'FOSS Awards' })).toBeVisible();
+  await expect(page.getByText('ceremony', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Other$/)).toHaveCount(0);
+  const fallback = page.getByTestId('no-description');
+  await expect(fallback).toContainText('No description published by the organiser yet');
+  await expect(fallback.getByRole('link', { name: /fossunited\.org/ })).toHaveAttribute(
+    'href',
+    'https://fossunited.org/c/indiafoss/2026/schedule',
+  );
+  await expect(page.getByRole('link', { name: 'View the official schedule' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Speakers' })).toHaveCount(0);
+});
+
 test('now screen uses developer time to show current session and next', async ({ page }) => {
   await page.goto(NOW_URL);
   await expect(page.getByText('DEV CLOCK')).toBeVisible();
@@ -359,7 +374,7 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
   // With a known location the NEXT card says where you are and opens the map on the next room.
   await expect(page.getByText(/You are at/)).toBeVisible({ timeout: 10_000 });
   await page.getByRole('link', { name: 'Show on map' }).click();
-  await expect(page.getByText('DESTINATION')).toBeVisible();
+  await expect(page.getByText('DESTINATION', { exact: true })).toBeVisible();
 });
 
 test('booth directory lists and schedules a visit', async ({ page }) => {

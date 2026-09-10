@@ -23,6 +23,10 @@ export type ActivityType =
   | 'workshop'
   | 'bof'
   | 'devroom-session'
+  /** Organiser-run plenary moment: welcome/opening/closing notes, awards, group photo, results. */
+  | 'ceremony'
+  /** Organiser framing for a programme track: devroom introductions and wrap-ups. */
+  | 'intro'
   | 'community-booth'
   | 'sponsor-booth'
   | 'project-booth'

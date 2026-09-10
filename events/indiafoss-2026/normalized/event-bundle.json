@@ -11,32 +11,28 @@
       "sourceId": "chg3oh0klv",
       "type": "meal",
       "title": "Registrations and Breakfast (Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T08:00:00+05:30",
       "end": "2026-09-26T09:30:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
     {
       "id": "act-aq5t2bsj44",
       "sourceId": "chg34kmrb1",
-      "type": "talk",
+      "type": "ceremony",
       "title": "Welcome Note",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T09:30:00+05:30",
       "end": "2026-09-26T09:45:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
@@ -106,17 +102,15 @@
     {
       "id": "act-aq5to9iht3",
       "sourceId": "chg3cr2708",
-      "type": "talk",
+      "type": "ceremony",
       "title": "Opening Note",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T09:45:00+05:30",
       "end": "2026-09-26T10:00:00+05:30",
       "flexible": false,
       "locationId": "hall-2",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-2",
       "source": "fossunited"
     },
@@ -176,17 +170,15 @@
     {
       "id": "act-aq5tc0pju4",
       "sourceId": "chg3sj5rg7",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Documentation & Technical Writing",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T10:00:00+05:30",
       "end": "2026-09-26T10:05:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-documentation-technical-writing",
       "devroomId": "devroom-documentation-technical-writing",
       "source": "fossunited"
@@ -194,17 +186,15 @@
     {
       "id": "act-28latk6vs1",
       "sourceId": "chg34b4cnc",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Open Hardware",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T10:00:00+05:30",
       "end": "2026-09-26T10:05:00+05:30",
       "flexible": false,
       "locationId": "hall-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-open-hardware",
       "devroomId": "devroom-open-hardware",
       "source": "fossunited"
@@ -717,7 +707,6 @@
         "Talk",
         "Contributing to FOSS",
         "Engineering practice - productivity, debugging",
-        "Other",
         "API Documentation",
         "Documentation and Open source",
         "Developer Experience",
@@ -841,7 +830,6 @@
         "Birds of Feather(BoF)",
         "Sustainability",
         "Community",
-        "Other",
         "Beginner"
       ],
       "trackId": "room-2",
@@ -1059,17 +1047,15 @@
     {
       "id": "act-28ladjk67i",
       "sourceId": "chg3rcgd6o",
-      "type": "talk",
+      "type": "ceremony",
       "title": "Group Photo",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T11:25:00+05:30",
       "end": "2026-09-26T11:30:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-documentation-technical-writing",
       "devroomId": "devroom-documentation-technical-writing",
       "source": "fossunited"
@@ -1484,15 +1470,13 @@
       "sourceId": "chg32php2f",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T12:00:00+05:30",
       "end": "2026-09-26T14:30:00+05:30",
       "flexible": false,
       "locationId": "room-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "room-3",
       "source": "fossunited"
     },
@@ -1501,15 +1485,13 @@
       "sourceId": "chg3kjogli",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T12:00:00+05:30",
       "end": "2026-09-26T14:30:00+05:30",
       "flexible": false,
       "locationId": "room-2",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "room-2",
       "source": "fossunited"
     },
@@ -1658,7 +1640,6 @@
         "Talk",
         "Community",
         "Engineering practice - productivity, debugging",
-        "Other",
         "Beginner"
       ],
       "trackId": "devroom-documentation-technical-writing",
@@ -1670,15 +1651,13 @@
       "sourceId": "chg3mqo7e8",
       "type": "talk",
       "title": "2026 GB Elections. Meet the Candidates",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T12:15:00+05:30",
       "end": "2026-09-26T12:45:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
@@ -1913,17 +1892,15 @@
     {
       "id": "act-aq5tc1ppib",
       "sourceId": "chg3cl24n4",
-      "type": "talk",
+      "type": "ceremony",
       "title": "Devroom Wrap-Up",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T12:40:00+05:30",
       "end": "2026-09-26T12:45:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-documentation-technical-writing",
       "devroomId": "devroom-documentation-technical-writing",
       "source": "fossunited"
@@ -1971,15 +1948,13 @@
       "sourceId": "chg3ookra4",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T13:00:00+05:30",
       "end": "2026-09-26T14:00:00+05:30",
       "flexible": false,
       "locationId": "hall-2",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-2",
       "source": "fossunited"
     },
@@ -1988,15 +1963,13 @@
       "sourceId": "chg3u74n8c",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T13:00:00+05:30",
       "end": "2026-09-26T14:00:00+05:30",
       "flexible": false,
       "locationId": "hall-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-3",
       "source": "fossunited"
     },
@@ -2005,15 +1978,13 @@
       "sourceId": "chg3b4f11d",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T13:00:00+05:30",
       "end": "2026-09-26T14:00:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "room-1",
       "source": "fossunited"
     },
@@ -2022,32 +1993,28 @@
       "sourceId": "chg3e530fu",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T13:30:00+05:30",
       "end": "2026-09-26T14:30:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
     {
       "id": "act-aq5t6oijso",
       "sourceId": "chg340p4pv",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Android Open Source Project (AOSP)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T14:00:00+05:30",
       "end": "2026-09-26T14:05:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-android-open-source-project-aosp",
       "devroomId": "devroom-android-open-source-project-aosp",
       "source": "fossunited"
@@ -2055,17 +2022,15 @@
     {
       "id": "act-aq5tapk6u7",
       "sourceId": "chg3qr4l10",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Compilers, Programming Languages & Systems",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T14:00:00+05:30",
       "end": "2026-09-26T14:05:00+05:30",
       "flexible": false,
       "locationId": "hall-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-3",
       "source": "fossunited"
     },
@@ -2799,7 +2764,6 @@
         "Talk",
         "Technology architecture",
         "Technology / FOSS licenses, policy",
-        "Other",
         "FOSS for Government AI",
         "Government FOSS Adoption",
         "Intermediate"
@@ -3652,15 +3616,13 @@
       "sourceId": "chg3je4h28",
       "type": "talk",
       "title": "What's new at FOSS United Foundation",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T16:30:00+05:30",
       "end": "2026-09-26T17:00:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
@@ -3800,17 +3762,15 @@
     {
       "id": "act-28la7q52h1",
       "sourceId": "chg3426k01",
-      "type": "talk",
+      "type": "ceremony",
       "title": "FOSS Awards",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T17:00:00+05:30",
       "end": "2026-09-26T17:30:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
@@ -3819,15 +3779,13 @@
       "sourceId": "chg36l8uj1",
       "type": "talk",
       "title": "Reflections from GB Members",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T17:30:00+05:30",
       "end": "2026-09-26T18:15:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
@@ -3876,34 +3834,30 @@
     {
       "id": "act-aq5tg0077i",
       "sourceId": "chg3q91i1i",
-      "type": "talk",
+      "type": "ceremony",
       "title": "Opening Note",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T09:45:00+05:30",
       "end": "2026-09-27T10:00:00+05:30",
       "flexible": false,
       "locationId": "hall-2",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-2",
       "source": "fossunited"
     },
     {
       "id": "act-28laac7vdq",
       "sourceId": "chg3ir75bu",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Open Design",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T10:00:00+05:30",
       "end": "2026-09-27T10:10:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-open-design",
       "devroomId": "devroom-open-design",
       "source": "fossunited"
@@ -3911,17 +3865,15 @@
     {
       "id": "act-28lat7k13l",
       "sourceId": "chg3vidbbb",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Security",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T10:00:00+05:30",
       "end": "2026-09-27T10:05:00+05:30",
       "flexible": false,
       "locationId": "hall-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-security",
       "devroomId": "devroom-security",
       "source": "fossunited"
@@ -4216,7 +4168,6 @@
       "tags": [
         "Lightning Talk",
         "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
-        "Other",
         "Intermediate"
       ],
       "trackId": "devroom-security",
@@ -5022,7 +4973,6 @@
       "tags": [
         "Talk",
         "Engineering practice - productivity, debugging",
-        "Other",
         "Beginner"
       ],
       "trackId": "devroom-open-design",
@@ -5466,7 +5416,6 @@
       ],
       "tags": [
         "Lightning Talk",
-        "Other",
         "Intermediate"
       ],
       "trackId": "devroom-security",
@@ -5697,7 +5646,6 @@
       ],
       "tags": [
         "Talk",
-        "Other",
         "Security Research",
         "Technology / FOSS licenses, policy",
         "Academic Research",
@@ -5759,15 +5707,13 @@
       "sourceId": "chg3vbv82s",
       "type": "meal",
       "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T12:30:00+05:30",
       "end": "2026-09-27T14:30:00+05:30",
       "flexible": false,
       "locationId": "room-2",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "room-2",
       "source": "fossunited"
     },
@@ -5776,15 +5722,13 @@
       "sourceId": "chg330ogi7",
       "type": "talk",
       "title": "Unconference",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T12:30:00+05:30",
       "end": "2026-09-27T13:00:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-open-design",
       "devroomId": "devroom-open-design",
       "source": "fossunited"
@@ -5884,15 +5828,13 @@
       "sourceId": "chg38kbsti",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T13:00:00+05:30",
       "end": "2026-09-27T14:00:00+05:30",
       "flexible": false,
       "locationId": "hall-2",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-2",
       "source": "fossunited"
     },
@@ -5901,15 +5843,13 @@
       "sourceId": "chg3dtlnhi",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T13:00:00+05:30",
       "end": "2026-09-27T14:00:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "room-1",
       "source": "fossunited"
     },
@@ -5918,15 +5858,13 @@
       "sourceId": "chg3bkdkp8",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T13:00:00+05:30",
       "end": "2026-09-27T14:00:00+05:30",
       "flexible": false,
       "locationId": "hall-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-3",
       "source": "fossunited"
     },
@@ -5935,15 +5873,13 @@
       "sourceId": "chg3bjsg0d",
       "type": "meal",
       "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T13:15:00+05:30",
       "end": "2026-09-27T14:30:00+05:30",
       "flexible": false,
       "locationId": "room-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "room-3",
       "source": "fossunited"
     },
@@ -5952,32 +5888,28 @@
       "sourceId": "chg35jgovm",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T13:30:00+05:30",
       "end": "2026-09-27T14:30:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
     {
       "id": "act-28la4pp2q4",
       "sourceId": "chg3vn1prp",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Cloud & DevOps",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T14:00:00+05:30",
       "end": "2026-09-27T14:05:00+05:30",
       "flexible": false,
       "locationId": "hall-3",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-cloud-devops",
       "devroomId": "devroom-cloud-devops",
       "source": "fossunited"
@@ -5985,17 +5917,15 @@
     {
       "id": "act-aq5tf2jbhq",
       "sourceId": "chg39lc2s0",
-      "type": "talk",
+      "type": "intro",
       "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T14:00:00+05:30",
       "end": "2026-09-27T14:05:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "devroom-real-time-operating-systems-rtos",
       "devroomId": "devroom-real-time-operating-systems-rtos",
       "source": "fossunited"
@@ -6383,7 +6313,6 @@
         "Talk",
         "Contributing to FOSS",
         "Technology architecture",
-        "Other",
         "Beginner"
       ],
       "trackId": "devroom-real-time-operating-systems-rtos",
@@ -6793,7 +6722,6 @@
         "Lightning Talk",
         "Introducing a FOSS project or a new version of a popular project",
         "Technology architecture",
-        "Other",
         "Beginner"
       ],
       "trackId": "devroom-cloud-devops",
@@ -6805,15 +6733,13 @@
       "sourceId": "chg3gk2bff",
       "type": "talk",
       "title": "Communi-Con : 7 Community Voted Flash Talks",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T15:30:00+05:30",
       "end": "2026-09-27T16:45:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
@@ -7287,7 +7213,6 @@
       "tags": [
         "Lightning Talk",
         "Technology architecture",
-        "Other",
         "Intermediate"
       ],
       "trackId": "devroom-real-time-operating-systems-rtos",
@@ -7459,34 +7384,30 @@
     {
       "id": "act-28laa2io5q",
       "sourceId": "chg3bdilap",
-      "type": "talk",
+      "type": "ceremony",
       "title": "GB Election Results",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T16:45:00+05:30",
       "end": "2026-09-27T17:00:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     },
     {
       "id": "act-28lam1ecee",
       "sourceId": "chg3m05ctc",
-      "type": "talk",
+      "type": "ceremony",
       "title": "Closing Remarks, Feedback Session",
-      "subtitle": "Other",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T17:00:00+05:30",
       "end": "2026-09-27T18:00:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [],
-      "tags": [
-        "Other"
-      ],
+      "tags": [],
       "trackId": "hall-1",
       "source": "fossunited"
     }

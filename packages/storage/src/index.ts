@@ -1,5 +1,5 @@
 import type { EventBundle } from '@indiafoss/model';
-import type { PersonalDataFile } from '@indiafoss/model/contracts';
+import type { AccountClaimTrust, PersonalDataFile } from '@indiafoss/model/contracts';
 import { personalDataFromSnapshot } from './personal-data.js';
 import Dexie, { type Table } from 'dexie';
 
@@ -149,7 +149,12 @@ export interface ContactRecord {
   neutrinoServerName?: string;
   ticketRef?: string;
   socials: Record<string, string>;
-  /** QR exchange is not identity verification; stays false until Matrix verification. */
+  /**
+   * Matrix device verification happened. QR exchange, a card signature, a
+   * badge comparison and a profile match are none of that, so this stays
+   * `false` until the app holds cross-signing evidence — which nothing in
+   * this repository produces yet (#188). Never read off the wire.
+   */
   verified: boolean;
   savedAt: string;
   eventId?: string;
@@ -173,13 +178,46 @@ export interface ContactRecord {
    * checked; only meaningful when both ids are on the card.
    */
   meshLink?: {
+    // `profile-matched` is the homeserver's word, compared as a string — an
+    // account *claim* the profile agrees with, never verification. Records
+    // written by builds that spelled it `verified` are rewritten on read.
     // `outdated` means one of the two identities was a shape the checking
     // build did not recognise, so no comparison was possible — kept distinct
     // from `mismatch`, which is shown as evidence a card is not genuine (#160).
-    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+    state: MeshLinkObservation;
     checkedAt: number;
   };
+  /**
+   * The conclusion drawn from `meshLink` (the raw observation): at most
+   * `profile-matched` today. `binding-valid` and `verified` have no producer
+   * until #188 lands. Reset to `claimed` on every import; never trusted from
+   * a file or a card.
+   */
+  accountTrust?: AccountClaimTrust;
+  /**
+   * The attendee said, explicitly, that they compared this card's key badge
+   * with the one on the other person's phone and it matched (#31). Bound to
+   * the fingerprint it was made for: a later card with a different key does
+   * not inherit it. This is a statement about the *card key*, not about any
+   * account on the card, and nothing sets it but the attendee's own tap.
+   */
+  inPersonConfirmed?: { fingerprint: string; at: string };
   previousFingerprint?: string;
+}
+
+/** What a public-profile read observed; see `@indiafoss/matrix` `MeshLinkState`. */
+export type MeshLinkObservation =
+  'profile-matched' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+
+/**
+ * Bring a record written by an older build up to the current vocabulary.
+ * Builds before #31/#188 stored a profile match as `meshLink.state ===
+ * 'verified'`; it reads back as `profile-matched` — not dropped, not trusted.
+ */
+export function migrateContactRecord(raw: ContactRecord): ContactRecord {
+  const state = (raw.meshLink as { state?: string } | undefined)?.state;
+  if (state !== 'verified') return raw;
+  return { ...raw, meshLink: { ...raw.meshLink!, state: 'profile-matched' } };
 }
 
 /** The device's own handshake key pair (non-extractable CryptoKeys, structured-cloned by IndexedDB). */
@@ -423,7 +461,7 @@ export class CompanionStorage {
   }
 
   async listContacts(): Promise<ContactRecord[]> {
-    const rows = await this.db.contacts.toArray();
+    const rows = (await this.db.contacts.toArray()).map(migrateContactRecord);
     return rows.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
   }
 

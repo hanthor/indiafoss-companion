@@ -190,6 +190,45 @@
   <title>{pageTitle}</title>
 </svelte:head>
 
+{#snippet primaryLinks()}
+  <a href={resolve('/now')} aria-current={isActive('/now') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path
+        d="M12 3a9 9 0 110 18 9 9 0 010-18zm0 2a7 7 0 100 14 7 7 0 000-14zm-1 3h2v4.6l3 1.8-1 1.7-4-2.4V8z"
+      /></svg
+    >
+    <span>Now</span>
+  </a>
+  <a href={resolve('/plan')} aria-current={isActive('/plan') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M5 4h14v16H5V4zm2 2v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2zm0 4h4v2H9v-2z" /></svg
+    >
+    <span>Plan</span>
+  </a>
+  <a href={resolve('/schedule')} aria-current={isActive('/schedule') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zM6 9v10h12V9H6zm2 2h3v3H8v-3z" /></svg
+    >
+    <span>Schedule</span>
+  </a>
+  <a href={resolve('/map')} aria-current={isActive('/map') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path
+        d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7zm0 2a5 5 0 00-5 5c0 3 3.6 8.2 5 10.1 1.4-1.9 5-7.1 5-10.1a5 5 0 00-5-5zm0 2.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"
+      /></svg
+    >
+    <span>Map</span>
+  </a>
+  <a href={resolve('/explore')} aria-current={isActive('/explore') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path
+        d="M10 3a7 7 0 015.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z"
+      /></svg
+    >
+    <span>Explore</span>
+  </a>
+{/snippet}
+
 <div class="shell">
   <header class="app-bar">
     <a class="brand" href={brandHref} aria-label="IndiaFOSS Companion home">
@@ -244,68 +283,47 @@
     <p class="event-notice">Archived programme · This is not the current IndiaFOSS schedule.</p>
   {/if}
 
-  <main class="content" class:fullbleed>
-    {@render children()}
-  </main>
+  <div class="body">
+    <!-- Desktop only (≥1024px): the same five destinations as the bottom tab
+         bar, as a side rail before the content so keyboard order follows the
+         visual order. The tab bar is hidden there, so only one is in the tree. -->
+    <nav class="rail" aria-label="Primary" data-testid="nav-rail">
+      {@render primaryLinks()}
+    </nav>
+    <div class="column">
+      <main class="content" class:fullbleed>
+        {@render children()}
+      </main>
 
-  {#if updateState.available && updateState.eventId === eventState.bundle?.id}
-    <section class="updatebanner card accent" role="status" aria-label="Schedule update available">
-      <div class="updatebody">
-        <strong>Schedule changed</strong>
-        {#if updateState.error}<p role="alert">{updateState.error}</p>{/if}
-        <span>
-          {#each Object.entries(updateState.summary) as [type, count] (type)}
-            {describeChangeCount(type as ScheduleChangeType, count)}
-            {#if type === 'room-changed'}
-              — your route will be recalculated.
-            {/if}
-          {/each}
-        </span>
-      </div>
-      <button
-        class="button primary small"
-        onclick={() => applyUpdate(eventState.bundle?.id ?? DEFAULT_EVENT_ID)}>Update</button
-      >
-    </section>
-  {/if}
+      {#if updateState.available && updateState.eventId === eventState.bundle?.id}
+        <section
+          class="updatebanner card accent"
+          role="status"
+          aria-label="Schedule update available"
+        >
+          <div class="updatebody">
+            <strong>Schedule changed</strong>
+            {#if updateState.error}<p role="alert">{updateState.error}</p>{/if}
+            <span>
+              {#each Object.entries(updateState.summary) as [type, count] (type)}
+                {describeChangeCount(type as ScheduleChangeType, count)}
+                {#if type === 'room-changed'}
+                  — your route will be recalculated.
+                {/if}
+              {/each}
+            </span>
+          </div>
+          <button
+            class="button primary small"
+            onclick={() => applyUpdate(eventState.bundle?.id ?? DEFAULT_EVENT_ID)}>Update</button
+          >
+        </section>
+      {/if}
+    </div>
+  </div>
 
-  <nav class="tabbar" aria-label="Primary">
-    <a href={resolve('/now')} aria-current={isActive('/now') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path
-          d="M12 3a9 9 0 110 18 9 9 0 010-18zm0 2a7 7 0 100 14 7 7 0 000-14zm-1 3h2v4.6l3 1.8-1 1.7-4-2.4V8z"
-        /></svg
-      >
-      <span>Now</span>
-    </a>
-    <a href={resolve('/plan')} aria-current={isActive('/plan') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path d="M5 4h14v16H5V4zm2 2v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2zm0 4h4v2H9v-2z" /></svg
-      >
-      <span>Plan</span>
-    </a>
-    <a href={resolve('/schedule')} aria-current={isActive('/schedule') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zM6 9v10h12V9H6zm2 2h3v3H8v-3z" /></svg
-      >
-      <span>Schedule</span>
-    </a>
-    <a href={resolve('/map')} aria-current={isActive('/map') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path
-          d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7zm0 2a5 5 0 00-5 5c0 3 3.6 8.2 5 10.1 1.4-1.9 5-7.1 5-10.1a5 5 0 00-5-5zm0 2.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"
-        /></svg
-      >
-      <span>Map</span>
-    </a>
-    <a href={resolve('/explore')} aria-current={isActive('/explore') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path
-          d="M10 3a7 7 0 015.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z"
-        /></svg
-      >
-      <span>Explore</span>
-    </a>
+  <nav class="tabbar" aria-label="Primary" data-testid="nav-tabbar">
+    {@render primaryLinks()}
   </nav>
 </div>
 
@@ -513,5 +531,102 @@
   }
   .updatebody strong {
     color: var(--text);
+  }
+
+  /* Phone: the wrappers do not exist as boxes, so the shell's flex column
+     is exactly what it was. Desktop (≥1024px, issue 205): a side rail and the
+     content column sit in a grid under the app bar. */
+  .body,
+  .column {
+    display: contents;
+  }
+  .rail {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .app-bar {
+      padding-inline: 1.25rem;
+    }
+    .body {
+      display: grid;
+      grid-template-columns: var(--rail-width) minmax(0, 1fr);
+      flex: 1;
+      /* The rail's surface and edge are painted by the row, not by the rail:
+         a rail as tall as the viewport would make every row that tall and
+         push the page below the fold whenever a banner shows. */
+      background: linear-gradient(
+        to right,
+        var(--surface) calc(var(--rail-width) - 1px),
+        var(--line) calc(var(--rail-width) - 1px),
+        var(--line) var(--rail-width),
+        transparent var(--rail-width)
+      );
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .rail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      position: sticky;
+      top: calc(var(--appbar-height) + var(--safe-top));
+      align-self: start;
+      max-height: calc(100dvh - var(--appbar-height) - var(--safe-top));
+      overflow-y: auto;
+      padding: 1rem 0.75rem;
+    }
+    .rail a {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 44px;
+      padding: 0.55rem 0.85rem;
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .rail svg {
+      width: 1.35rem;
+      height: 1.35rem;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+    .rail a:hover {
+      background: var(--line);
+      color: var(--text);
+    }
+    .rail a[aria-current='page'] {
+      background: var(--mint-soft);
+      color: var(--mint-ink);
+    }
+    .rail a[aria-current='page']::before {
+      content: '';
+      position: absolute;
+      left: -0.75rem;
+      top: 18%;
+      bottom: 18%;
+      width: 3px;
+      background: var(--mint);
+    }
+    .content {
+      padding: 1rem 2rem 2rem;
+    }
+    .content.fullbleed {
+      flex-direction: row;
+      align-items: stretch;
+      padding: 0;
+    }
+    .tabbar {
+      display: none;
+    }
   }
 </style>

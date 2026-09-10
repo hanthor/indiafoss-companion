@@ -110,6 +110,17 @@
   --safe-top: env(safe-area-inset-top, var(--safe-area-inset-top, 0px));
   --safe-bottom: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
   --tabbar-height: 62px;
+  --appbar-height: 64px;
+  /* Desktop layout (#205): from 1024px the bottom tab bar gives way to a side
+     rail of this width. Anything that clears the tab bar reads the height
+     token, which is zero there. Routes use the same `min-width: 1024px`. */
+  --rail-width: 14rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --tabbar-height: 0px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
