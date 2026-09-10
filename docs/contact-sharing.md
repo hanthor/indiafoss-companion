@@ -102,24 +102,26 @@ shows it, falling back to the key badge; a broken link falls back too.
 
 ## Trust states, kept apart (#31, #188)
 
-A contact screen shows four separate facts and never folds them into one
+A contact screen shows five separate facts and never folds them into one
 badge. `deriveContactTrust()` in `apps/web/src/lib/contact-trust.ts` derives
 them from the stored record alone, and
 `packages/test-fixtures/fixtures/contact-trust/states.json` is the shared table
 of what each stored shape must produce.
 
-| Line             | States                                                                                                                                | What it proves                                                                                                                |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Card key**     | Card signed · badge _xxxx_ / Card signature invalid / Unsigned card / Key changed since an earlier card                               | The card came from a phone holding this key. Not who was holding the phone: a photographed QR carries the same signature.     |
-| **In person**    | Badge compared in person / … for an earlier key / Badge not compared in person / No badge to compare                                  | The attendee's own tap after comparing badges on `/connect/compare`. Bound to the fingerprint; a new key does not inherit it. |
-| **Account link** | Profile matches / Does not match / Account link claimed, not checked yet / … profile names no mesh id / Card predates a format change | Whether the Matrix account's public profile names the card's mesh id. The homeserver's word; at most `profile-matched`.       |
-| **Chat**         | Not verified in Chat                                                                                                                  | Matrix device verification. Nothing here can produce "Verified in Chat"; that branch exists and is unreachable (#188).        |
+| Line             | States                                                                                                                                                             | What it proves                                                                                                                                                                                                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Card key**     | Card signed · badge _xxxx_ / Card signature invalid / Unsigned card / Key changed since an earlier card                                                            | The card came from a phone holding this key. Not who was holding the phone: a photographed QR carries the same signature.                                                                                                                                                                                                                             |
+| **In person**    | Badge compared in person / … for an earlier key / Badge not compared in person / No badge to compare                                                               | The attendee's own tap after comparing badges on `/connect/compare`. Bound to the fingerprint; a new key does not inherit it.                                                                                                                                                                                                                         |
+| **Account link** | Profile matches / Does not match / Account link claimed, not checked yet / … profile names no mesh id / Card predates a format change                              | Whether the Matrix account's public profile names the card's mesh id. The homeserver's word; at most `profile-matched`.                                                                                                                                                                                                                               |
+| **Binding**      | Binding signed by both keys · Matrix key not confirmed in Chat / Binding expired / revoked / does not check out / format this app can't read yet / not checked yet | This app's own verification of a signed mesh↔Matrix binding the card carried (`docs/identity-binding.md`): the card key and a Matrix key both signed one statement naming these identities. A valid one lifts the account line to `binding-valid` — and no further, because the Matrix key came from a server, not a person. No card carries one yet. |
+| **Chat**         | Not verified in Chat                                                                                                                                               | Matrix device verification. Nothing here can produce "Verified in Chat"; that branch exists and is unreachable (#188).                                                                                                                                                                                                                                |
 
 Every record that arrives from somebody else — a scan, a shared link, an
 imported contact book — passes through `asReceivedRecord()` first: `verified`
 becomes `false`, `accountTrust` becomes `claimed`, and any in-person
-confirmation or profile observation in the file is dropped. A card cannot
-assert its own trust. Records written by builds that spelled a profile match
+confirmation, profile observation or binding verdict in the file is dropped
+(a signed binding itself is kept: it is data, and is re-checked here). A card
+cannot assert its own trust. Records written by builds that spelled a profile match
 `meshLink.state === 'verified'` read back as `profile-matched`
 (`migrateContactRecord()` in `@indiafoss/storage`).
 

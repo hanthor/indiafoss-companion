@@ -27,6 +27,47 @@ changes, update the issue first, then this file, so neither drifts.
   below the Android 15 status bar, camera permission for scanning, Scan icon,
   manual entry behind a disclosure; map pinch/drag/wheel zoom with compact
   labels; XMPP (Prav) and Delta Chat on cards; FOSS United by username.
+- Conference reliability (9 September): update latch and truthful freshness
+  (#238, closes #189); metadata-only adoption, reinstatement and the native
+  verified cache (#235/#251/#252, closes #190); the real 2026 programme
+  published and refreshed automatically (#242/#243, closes #213/#239);
+  three-choice discovery and whole-devroom plans (closes #192); PWA
+  personal-data export (#247/#249/#250).
+- 10 September, all merged to `main` with the evidence each PR body cites
+  (none is a device result):
+  - **One resolved plan on both platforms** (closes #221): PWA #266/#267,
+    native #304 (`core/ResolvedPlan.kt` behind Now, map, banner, reminders);
+    native time × room grid, plan markers and a persistent speaker-photo
+    cache (#303); one pick settles a clash and the losers stay interests, PWA
+    only (#297, refs #271).
+  - **Calendar provider** (closes #272): the native app keeps an app-owned
+    local calendar equal to the plan through `CalendarContract`, in-place
+    updates by event + CFP + occurrence (#302).
+  - **Personal-data import in the PWA** (#301, refs #240): validation,
+    CFP-resolved preview, keep-existing conflicts, one-transaction apply.
+    Native export/import still open under #240.
+  - **Venue** (closes #278, #223, #205, #270): organiser venue and
+    OpenStreetMap / `geo:` arrival handoff (#295); From/To panel with route
+    steps labelled an estimate while the graph is `_draft` (#299); desktop
+    layout from 1024px (#298, fix #309); organiser rows classified
+    `ceremony`/`intro` with a source link (#296).
+  - **Trust and identity** (refs #31, #188; closes #160): four separate trust
+    facts and no "Verified" from a profile read (#300); versioned identity
+    envelope, unread formats kept and never routed (#315). No cryptographic
+    binding.
+  - **`@indiafoss/matrix`** pruned to profile checks and handoff helpers
+    (#314).
+  - **Install channels**: Obtainium and our own F-Droid repository, Accrescent
+    removed (#308); the repository's unsigned catalogue pipeline
+    (hanthor/indiafoss-android-repo#6); repository not yet live (#291).
+  - **Bindings provenance** (#305): the `.aar` is built from
+    `hanthor/neutrino-iroh@15117e9` over `hanthor/neutrino@2d85348` and
+    released as `neutrino-bindings-0.8.2-e2ee.2d85348-ble.15117e9`; Chat pins
+    it (Chat #62).
+  - **Branding** (closes #33, Chat #50): native Compose (#313), Chat (Chat
+    #61); PWA landed earlier (#228).
+  - Tests for profile import and share fallbacks (#174, closes #173); AGP
+    8.13.2 / Gradle 8.13 (#307).
 
 ## Queue, as of 2026-09-04
 
@@ -34,17 +75,17 @@ Everything queued in [#34](https://github.com/hanthor/indiafoss-companion/issues
 that could be built and tested here is shipped. What is left is listed with the
 reason it is left, so nobody picks it up expecting it to be a small job.
 
-| #   | Issue                                                                                                                                     | State                                                                                                                                                                                                                                                                                                          |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | [#108](https://github.com/hanthor/indiafoss-companion/issues/108) Ranker step one simpler                                                 | Done, closed. Three steps: devrooms, swipe cards, then overlaps within a slot. Both apps.                                                                                                                                                                                                                      |
-| 2   | [#107](https://github.com/hanthor/indiafoss-companion/issues/107) Onboarding wizard                                                       | Done, closed. Notifications, ticket, socials, then rank. Both apps.                                                                                                                                                                                                                                            |
-| 3   | [#105](https://github.com/hanthor/indiafoss-companion/issues/105) Social links take a handle or a URL                                     | Done, closed.                                                                                                                                                                                                                                                                                                  |
-| 4   | [#106](https://github.com/hanthor/indiafoss-companion/issues/106) First-class Prav                                                        | Done, closed. XMPP on cards and contacts.                                                                                                                                                                                                                                                                      |
-| 5   | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                             | Tokens with one role each, a raw-colour guard, a real loading state, a dark-mode audit and a themed splash. Chat empty states no longer apply — the PWA has no chat UI to have an empty state in (ADR 0004). Font-licence decision (Press Start 2P vs. FFF Forward) still needs a human call and is left open. |
-| 6   | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Production event revision handling                                          | The client guarantees are tested end to end. Hash-addressing the venue, graph and change assets is a publishing-pipeline change, not a client one, and is left open.                                                                                                                                           |
-| 7   | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2 leftovers                                                    | Mostly shipped: key continuity, Web Share Target, contact book export/import, "who I met" recap, search, fingerprint comparison. Left open: NFC tap-to-share (now Web NFC, not a Capacitor plugin, since Capacitor is retired) and the mutual "verified in person" badge — both need two real phones.          |
-| 8   | [#110](https://github.com/hanthor/indiafoss-companion/issues/110) Native app parity leftovers                                             | Superseded from "blocks Capacitor retirement" to a plain parity list — Capacitor retired 2026-09-04 regardless (ADR 0004). Still missing: custom plan blocks, contact import/profile-fill, schedule-update banner, speaker avatars/booth pages, scan/handshake.                                                |
-| 9   | [#35](https://github.com/hanthor/indiafoss-companion/issues/35), [#74](https://github.com/hanthor/indiafoss-companion/issues/74) P2P chat | Closed/superseded — P2P chat is the dedicated `hanthor/indiafoss-chat-android` app now, not an in-companion add-on.                                                                                                                                                                                            |
+| #   | Issue                                                                                                                                     | State                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | [#108](https://github.com/hanthor/indiafoss-companion/issues/108) Ranker step one simpler                                                 | Done, closed. Three steps: devrooms, swipe cards, then overlaps within a slot. Both apps.                                                                                                                                                                                                                                                                                                                                                                           |
+| 2   | [#107](https://github.com/hanthor/indiafoss-companion/issues/107) Onboarding wizard                                                       | Done, closed. Notifications, ticket, socials, then rank. Both apps.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| 3   | [#105](https://github.com/hanthor/indiafoss-companion/issues/105) Social links take a handle or a URL                                     | Done, closed.                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| 4   | [#106](https://github.com/hanthor/indiafoss-companion/issues/106) First-class Prav                                                        | Done, closed. XMPP on cards and contacts.                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| 5   | [#33](https://github.com/hanthor/indiafoss-companion/issues/33) Design finish                                                             | Done, closed 2026-09-10. PWA (#228), native Compose (#313) and Chat (Chat #61) each carry the 2026 identity with recorded asset provenance. Press Start 2P ships as the display face (decision of 2026-09-02); FFF Forward is referenced, never bundled. Real-device rendering is not claimed.                                                                                                                                                                      |
+| 6   | [#7](https://github.com/hanthor/indiafoss-companion/issues/7) Production event revision handling                                          | The client guarantees are tested end to end. Hash-addressing the venue, graph and change assets is a publishing-pipeline change, not a client one, and is left open.                                                                                                                                                                                                                                                                                                |
+| 7   | [#31](https://github.com/hanthor/indiafoss-companion/issues/31) Handshake v2 leftovers                                                    | Mostly shipped: key continuity, Web Share Target, contact book export/import, "who I met" recap, search, fingerprint comparison; since 2026-09-10 the four trust facts are separate and a profile read never shows "Verified" (#300), and identities carry a versioned envelope (#315). Left open: NFC tap-to-share (Web NFC) and the mutual "verified in person" badge — both need two real phones.                                                                |
+| 8   | [#110](https://github.com/hanthor/indiafoss-companion/issues/110) Native app parity leftovers                                             | Superseded from "blocks Capacitor retirement" to a plain parity list — Capacitor retired 2026-09-04 regardless (ADR 0004). Landed since: resolved plan behind Now/map/reminders (#304), room grid, plan markers and photo cache (#303), calendar provider (#302), 2026 branding (#313). Still missing per those PRs' non-claims: clash resolution and replacement UI, personal-data import/export, venue-arrival card, contact import/profile-fill, scan/handshake. |
+| 9   | [#35](https://github.com/hanthor/indiafoss-companion/issues/35), [#74](https://github.com/hanthor/indiafoss-companion/issues/74) P2P chat | Closed/superseded — P2P chat is the dedicated `hanthor/indiafoss-chat-android` app now, not an in-companion add-on.                                                                                                                                                                                                                                                                                                                                                 |
 
 Closed as done: #2, #10 (native client), #12 (notifications), #29, #32 (socials), #52–#55,
 #60, #90 (ranking speed), #92 (dup of #93), #93 (simulator), #94 (contacts
@@ -58,13 +99,51 @@ guard against raw colours (#33); the revision-handling guarantees are tested
 (#7, `release.md`); and the conference reads back as "who I met" with a card
 you can share (#31, `contact-sharing.md`).
 
-## Sibling repository
+## Sibling repositories
 
 `hanthor/indiafoss-chat-android` (Element X Neutrino fork): PR #2 IndiaFOSS
-alignment, #3 CI packages token, #4 fork roadmap.
+alignment, #3 CI packages token, #4 fork roadmap. 10 September: conference link
+classifier and dispatcher with native-Companion handoff and PWA fallback (#59,
+closes Chat #28), nearby-discovery toggle backed by the real `set_discoverable`
+FFI (#60, pinned in #62), 2026 identity (#61, closes Chat #50); Chat #12 and
+#34 closed as implemented. No two-phone evidence in any of them.
+
+`hanthor/neutrino-iroh` (bindings and BLE transport): #16 media ALPN on the
+shared federation endpoint and the MatrixRTC `call.member` model, loopback only.
+
+`hanthor/indiafoss-android-repo` (our F-Droid repository): #6 app metadata,
+hash-pinned fdroidserver and unsigned catalogue generation; no index key, nothing
+deployed (#291).
 
 ## Decisions log
 
+- 2026-09-10: **Update channels are Obtainium and our own F-Droid repository;
+  Accrescent is out** (maintainer direction, #308). The PWA download cards
+  carry an `obtainium://add/` link and name the repository; the _Add
+  repository_ link appears only once #291's endpoint is live. The repository
+  pipeline builds an unsigned, verified catalogue and keeps Chat out of the
+  index until reviewed (hanthor/indiafoss-android-repo#6).
+- 2026-09-10: **One resolved plan, both platforms** (#221 closed). Now, the map
+  destination, the leave-by banner, the calendar and the reminders read one
+  projection resolved from the current bundle every time (PWA #266/#267,
+  native #304). Native's base is the greedy itinerary, the PWA's the DAG
+  solver; explicit choices resolve the same way, outputs are not claimed
+  identical (`docs/native-client.md`).
+- 2026-09-10: **A profile read is never "Verified"** (#300). Contact screens
+  show card signature, in-person badge comparison, homeserver profile match
+  and Chat device verification as four facts; `MeshLinkState.verified` is
+  renamed `profile-matched` and stored records migrate on read. Identities are
+  versioned behind one envelope and unread formats are kept, never routed
+  (#315). The cryptographic binding remains #188.
+- 2026-09-10: **The bindings name their provenance** (#305).
+  `patches/neutrino/version.json` points at `hanthor/neutrino-iroh`; the
+  release version is `0.8.2-e2ee.<neutrino rev>-ble.<neutrino-iroh commit>` and
+  the workflow refuses a version that does not name both, so no earlier asset
+  is overwritten. Chat pins `0.8.2-e2ee.2d85348-ble.15117e9` and calls
+  `setDiscoverable` directly (Chat #62).
+- 2026-09-10: **`@indiafoss/matrix` is profile checks and handoff helpers**
+  (#314). The retired chat UI's exports are gone; the session and crypto code
+  stays only because `tools/neutrino-probe`'s live tests drive it.
 - 2026-09-04: **The chat-handoff and livestream follow-up from the Capacitor
   retirement landed** (PR #140). The web PWA no longer embeds any chat UI:
   `/chat`, the Matrix session manager, the mesh-node bridge and the
@@ -182,7 +261,9 @@ alignment, #3 CI packages token, #4 fork roadmap.
 - 2026-09-02: **In-app chat is P2P only.** No public-homeserver sign-in in the
   app; Matrix ids on profiles open in Element. Reason: Neutrino nodes do not
   federate with public Matrix and identities cannot be linked, so mixing both
-  would split conversations (#35).
+  would split conversations (#35). _Superseded 2026-09-04 (ADR 0004): there is
+  no in-app chat; `@indiafoss/matrix` was pruned to what the handoff still
+  needs in #314._
 - 2026-09-02: Public rooms live on the organiser's homeserver, FOSDEM-style
   (owner): rooms on matrix.reilly.asia joined from attendees' existing Matrix
   accounts via Element links; no accounts handed out (#29). Raw iroh was
@@ -196,7 +277,10 @@ alignment, #3 CI packages token, #4 fork roadmap.
 - 2026-09-02: **No walk estimates** (owner): the Now screen, the banner and the
   map sheet no longer show walking times, leave-by or routing steps; the
   routing profile setting is gone. The map keeps the Google I/O-style peeking
-  sheet and highlights the destination instead (#60).
+  sheet and highlights the destination instead (#60). _Partly superseded
+  2026-09-10 (#299, closes #223): the map's From/To panel shows route steps and
+  a walking estimate again, labelled "Estimate: draft venue graph" until the
+  graph is signed off; the Now screen and banner still show no walk time._
 - 2026-09-02: Event revisions publish immutable hash-addressed assets and the
   client downloads the named asset in full before replacing anything; the
   committed normalized bundle is rewritten by the same sync so the two cannot

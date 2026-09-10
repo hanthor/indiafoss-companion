@@ -1,0 +1,971 @@
+{
+  "describes": "Signed identity bindings (#188, docs/identity-binding.md). Each case is a binding as received, the keys and identities the verifier holds independently, the clock, and the outcome every platform must reach. `signingBytesHex` is the exact canonical bytes both signatures cover. The keys are test-only.",
+  "domain": "in.indiafoss.binding/v1",
+  "version": 1,
+  "vocabulary": {
+    "state": [
+      "valid",
+      "malformed",
+      "wrong-domain",
+      "unknown-version",
+      "invalid-signature",
+      "mismatch",
+      "revoked",
+      "expired",
+      "not-yet-valid",
+      "unverifiable"
+    ],
+    "account": [
+      "binding-valid",
+      "revoked",
+      "claimed"
+    ]
+  },
+  "keys": {
+    "card": {
+      "alg": "ed25519",
+      "jwk": {
+        "crv": "Ed25519",
+        "d": "ttxdvjiKeGeo3Ab1Y6FJDDwOZH4V8nq9y3Tyilb1J2Q",
+        "x": "eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "kty": "OKP"
+      },
+      "id": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo"
+    },
+    "otherCard": {
+      "alg": "ed25519",
+      "jwk": {
+        "crv": "Ed25519",
+        "d": "E7MF4_dff754hEhOmXJj-nV49Fnpj1esjXRAwLsBM5w",
+        "x": "-XQElnII_M477ITYUA74xTcy29VhSOghDzXiK7FkOeM",
+        "kty": "OKP"
+      },
+      "id": "ed25519:-XQElnII_M477ITYUA74xTcy29VhSOghDzXiK7FkOeM"
+    },
+    "p256Card": {
+      "alg": "p256",
+      "jwk": {
+        "kty": "EC",
+        "x": "awZs7GGJqlxwc75xWuCg5MI_7oHMQRDGdRX5KVuLc14",
+        "y": "OSPv3PmLFXUkfbZX4bEckYXRzouMVevAd4N2_ZlE7uA",
+        "crv": "P-256",
+        "d": "UVd3dJg-vrX9CWtvl0R2JVr_IdRcoAyia6wbNFHp0Oo"
+      },
+      "id": "p256:BGsGbOxhiapccHO-cVrgoOTCP-6BzEEQxnUV-Slbi3NeOSPv3PmLFXUkfbZX4bEckYXRzouMVevAd4N2_ZlE7uA"
+    },
+    "master": {
+      "alg": "ed25519",
+      "jwk": {
+        "crv": "Ed25519",
+        "d": "jyTubNg-Awf50AThsa5jdYoCUcfG14Q2xk7KKX-U930",
+        "x": "80oru7_um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kty": "OKP"
+      },
+      "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI"
+    },
+    "device": {
+      "alg": "ed25519",
+      "jwk": {
+        "crv": "Ed25519",
+        "d": "fGzPtsNOkuPMcKgQLL0zfdeRiwNIKJ_DapBE1uefL6E",
+        "x": "qNOLGNb19CWtJefPPi7hK4JVUIu2FN4sWl59R-cwrSw",
+        "kty": "OKP"
+      },
+      "id": "ed25519:ABCDEFGH"
+    },
+    "otherMaster": {
+      "alg": "ed25519",
+      "jwk": {
+        "crv": "Ed25519",
+        "d": "gnCKZ16_eTMYPi5KcBNsXpwwD_EbOoSZ4tcnGCg2Ws4",
+        "x": "leWQhfxshr0aPpRkQEXcOPX5RhgI5KsrT0S_gEvF0zg",
+        "kty": "OKP"
+      },
+      "id": "ed25519:leWQhfxshr0aPpRkQEXcOPX5RhgI5KsrT0S/gEvF0zg"
+    }
+  },
+  "cases": [
+    {
+      "name": "valid-master-key",
+      "describes": "both signatures check; the Matrix half by the master key fetched from the homeserver",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "valid",
+        "account": "binding-valid"
+      }
+    },
+    {
+      "name": "valid-master-key-user-verified",
+      "describes": "the same binding when Chat has user-verified the master key: still binding-valid here; `verified` is Chat's to say",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "user-verified"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "valid",
+        "account": "binding-valid"
+      }
+    },
+    {
+      "name": "valid-device-key",
+      "describes": "a binding signed by a device key is valid at lower trust",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-device",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:ABCDEFGH",
+          "matrixKeyKind": "device",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "Ur71QfVeuBaO1WrqAM9kj3MLhYLU6fgPIVGKw1FErw6N7uDY6M1RoWoUD31ncZaS1LXPxMMRTFrPX3Fe4aVABA",
+          "matrix": "mvhs1AKrRysANj87Xzpd3X13ApLY4sRE-htX12SOCoMdmWb3HgtDXRy-upM2N3hbaJRGVyxv2XFj-hW76CmYCw"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:ABCDEFGH",
+        "kind": "device",
+        "publicKey": "qNOLGNb19CWtJefPPi7hK4JVUIu2FN4sWl59R+cwrSw",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d646576696365222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a4142434445464748222c226d61747269784b65794b696e64223a22646576696365222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "valid",
+        "account": "binding-valid"
+      }
+    },
+    {
+      "name": "valid-p256-card-key",
+      "describes": "a card key on the ECDSA P-256 fallback signs a valid binding",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-p256",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "p256:BGsGbOxhiapccHO-cVrgoOTCP-6BzEEQxnUV-Slbi3NeOSPv3PmLFXUkfbZX4bEckYXRzouMVevAd4N2_ZlE7uA",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "H42gvaBAPStY_l4H_t7YYhBHftl-ByEPiJIUK7XufSfGBpHaKifoj7xWlZ37tvJC_viDFoismern5DOU9BnU5w",
+          "matrix": "xGE7NeVlGdaIJjXucJW_DGixNBoShx6PHwlmI2alsDsCuyDVzOQrY_H7mMwpHsAMnjQrALaWkiL5aXgxjI-DDg"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "p256:BGsGbOxhiapccHO-cVrgoOTCP-6BzEEQxnUV-Slbi3NeOSPv3PmLFXUkfbZX4bEckYXRzouMVevAd4N2_ZlE7uA",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22703235363a42477347624f78686961706363484f2d635672676f4f5443502d36427a454551786e55562d536c6269334e654f53507633506d4c4658556b66625a58346245636b5958527a6f754d5665764164344e325f5a6c45377541222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d70323536222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "valid",
+        "account": "binding-valid"
+      }
+    },
+    {
+      "name": "expired",
+      "describes": "past expiresAt: earns nothing, and is not re-signed by anybody but the owner",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-10-10T09:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "expired",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "not-yet-valid",
+      "describes": "issued more than the skew allowance in the verifier's future",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-10T08:30:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "not-yet-valid",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "wrong-domain",
+      "describes": "valid signatures over another domain are not a binding",
+      "signed": {
+        "domain": "in.indiafoss.card/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "WIpSe0mZLpVCK9A1MkUt7pqCrXbL-WlCjIj2qqNwHpZI3zIIDIE858GH2pOpLR84IGRQsm3I1a6bnv51NRSlBQ",
+          "matrix": "01KTmqHYK1I7ZA19sUjSDhJxaH5PfkzwPYARtl4nfDjDLXgYhMRsiMteXoPVGDWee3JxDpV3Pb65y8CUfUivAQ"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "expect": {
+        "state": "wrong-domain",
+        "account": "claimed"
+      },
+      "signingBytesHex": "696e2e696e646961666f73732e636172642f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d"
+    },
+    {
+      "name": "unknown-version",
+      "describes": "a v2 binding is kept for a newer build, not judged",
+      "signed": {
+        "domain": "in.indiafoss.binding/v2",
+        "statement": {
+          "v": 2,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "5Dj2fSJMveSgkysOMuNgWLwGoby63jI2JhE3SkzSegBGnurmGbq_iM3TgvnQoYoK4fElwLIAuPbMt8j6fAkOBA",
+          "matrix": "gfk6223uUFjhxZK6vjFUcArzt2WQJZ1YDGmmfCnHeNXyfiue_tVk4hkcYfn6uUDxlKWfTOoRd39PJ4YstlKEDg"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "expect": {
+        "state": "unknown-version",
+        "account": "claimed"
+      },
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76320a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a327d"
+    },
+    {
+      "name": "tampered-mesh-id",
+      "describes": "the statement was changed after signing",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "invalid-signature",
+        "reason": "card signature",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "matrix-signature-by-another-key",
+      "describes": "the card half is genuine, the Matrix half was made by a key that is not the named one",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "XC9hSGGuCFy7sebDYi2Maw2zVYIhWmuu3xgnCMbe6JUROW4V5ygBVA7JIY9ERQ0Q0LyfwwsprtCRmd0TAKyiAA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "invalid-signature",
+        "reason": "matrix signature",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "signed-by-another-card-key",
+      "describes": "a binding signed by somebody else's card key, presented on this card",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "vr-1iP1xUgTcinS7Nn9Zn0lKUu1bIFnK463DkUBjVpvhTBGR3E0e0IPNHXEUQMFQe0iBkDxgVHcufXF6vx2tAg",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "invalid-signature",
+        "reason": "card signature",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "names-another-card-key",
+      "describes": "signed by this card key but naming another: the statement is not about this card",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:-XQElnII_M477ITYUA74xTcy29VhSOghDzXiK7FkOeM",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "BP4-Q4FLDGTzMUy2033hY1sNwqrG15JkLMZk0MfgrJ0RbBxcdvRZGgoLVxtLNpsYwgr1y_Qy5ks1I9vUKCW4DA",
+          "matrix": "RiTHuSWCOqyE5pRTie-jc8fr4tqjA_yBMbBL1nKJYkoFE3zYLDDbqxtgQ--Gg-siXzWcTG2oUEMPgOnFdHakAg"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a2d5851456c6e49495f4d343737495459554137347854637932395668534f6768447a58694b37466b4f654d222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "mismatch",
+        "reason": "cardKeyId",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "someone-elses-mesh-id",
+      "describes": "a genuine binding for another mesh identity, replayed on a card claiming this one",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-other-mesh",
+          "meshNodeId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "CA51Id9pkZAPIUN3TlrcZdkE1p_c4gqafwLtq69pS65H2pRsF__xVidA48qqWvgJp4mZL5e6SwR4mD_IIeHRDA",
+          "matrix": "wgwzCzOCyytHEQTd8KnaNTLriMOkk9ekHOvdcu6S-Dtw0janjWSxijrxdVycfsNUxDXEx2kFW50OCp04bI84AQ"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d6f746865722d6d657368222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262626262222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "mismatch",
+        "reason": "meshNodeId",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "someone-elses-mxid",
+      "describes": "the sharpest attack: a card naming @alice with a binding that never mentions her",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-other-mxid",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@alice:matrix.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "gPGMudjTuK5D-VkkEKgW1fLy_LrphsAIUh4XuEoAzJdCIOE9qXBTgoueIMxcJKRunFv8t7UF1jG5UFVVwbeJBQ",
+          "matrix": "qi7hr-qz1K_omH3a4dtsJAWgr92IOwpznOqoTw4hD2ZQ5D88xikBCHfugLGB57u5AW-zutSM-x-bY6dR2fMyDQ"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d6f746865722d6d786964222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240616c6963653a6d61747269782e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "mismatch",
+        "reason": "matrixUserId",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "revoked",
+      "describes": "the signer withdrew this id; replaying it after revocation earns `revoked`",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [
+        "b-2026-09-10-asha"
+      ],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "revoked",
+        "account": "revoked"
+      }
+    },
+    {
+      "name": "no-matrix-key-held",
+      "describes": "offline, with no cached key: the card half checks, the binding stays unverifiable",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": null,
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "unverifiable",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "held-key-is-not-the-signing-key",
+      "describes": "the verifier holds a different key id for the account: unverifiable, not invalid",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "AU9Yk_gYp75tkdMSyDoLNrbOo902-MM7hAHwI7tDg4VZsDfd07OE_PUDK90hCVoSy6YY-pvgZBTT6r99hj9XAw",
+          "matrix": "JUA931TiPJ1yeehi_d25tofi75MGMgZf_zpKZV2ovl8A6r6Yz7rN4N3_Y2cKbXXlyJX3xeX7iZnbWpRweuA_DA"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:leWQhfxshr0aPpRkQEXcOPX5RhgI5KsrT0S/gEvF0zg",
+        "kind": "master",
+        "publicKey": "leWQhfxshr0aPpRkQEXcOPX5RhgI5KsrT0S/gEvF0zg",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "signingBytesHex": "696e2e696e646961666f73732e62696e64696e672f76310a7b22636172644b65794964223a22656432353531393a65417a6f695f4a34476c58552d496d72353334716550674d486774305f584b434537344d6b4a6d6363566f222c22657870697265734174223a22323032362d31302d31305430393a30303a30302e3030305a222c226964223a22622d323032362d30392d31302d61736861222c226973737565644174223a22323032362d30392d31305430393a30303a30302e3030305a222c226d61747269784b65794964223a22656432353531393a38306f7275372f756d3476414d466c79384c684b375154775557454e4b36433664456254556f32626b6d49222c226d61747269784b65794b696e64223a226d6173746572222c226d6174726978557365724964223a2240617368613a696e646961666f73732e6f7267222c226d6573684e6f64654964223a2238343561613435363037383537323633396331353433363934646536396530613033666238383362643963316461623161326636646638313162373538393765222c226e6f6e6365223a2241414543417751464267634943516f4c4441304f4477222c2276223a317d",
+      "expect": {
+        "state": "unverifiable",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "malformed-no-expiry",
+      "describes": "v1 requires an expiry",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "5RnMfUN1AT3ajCcicbWAOUoZ2fYx51lED0Jc8PiN8F1R7X_AHxd8NXZdYTMA7y7KpHRU_DMvntSpODzrTIQMBw",
+          "matrix": "h9qC5GTrbcoLeANQbvIKOJ3jFLyBq4MqIiIL5baPQ6ALnEbv6mFJOw6qLNas4X003_MFZ2r1sr8DWosKuuXeDw"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "expect": {
+        "state": "malformed",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "malformed-validity-too-long",
+      "describes": "more than 180 days of validity is refused as malformed",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2027-09-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "bxL_WG4iErCk9MapnNfdGMtUaxFpzhYZR-gaXqmxS0Yk09hi7bRqMMy893IatTLM2EAl3wEA5mIBBR1oFcOzAQ",
+          "matrix": "PyIzNwd7N9d7r0zk4_TFFqlF92NiYXtj6bM2LyaFp3nchnLniEW4-rytQVlJFBmHC6W8SrzE8kAnBx-r6ApRAg"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "expect": {
+        "state": "malformed",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "malformed-unknown-field",
+      "describes": "a field v1 does not define is refused: a signature covers nothing a reader ignores",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@asha:indiafoss.org",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw",
+          "scope": "routing"
+        },
+        "signatures": {
+          "card": "hFDG6JOJ8LVJ7aCjCrZQSqPOAdRi3j_5L2YMTIX_TKMqmTnofn42fVNUSn_HCPy2uyWwUbGp_9XaxuyedvAsAg",
+          "matrix": "-cDtbxOLj6-7rTw68Qpbh4GQD2t9j3dSUX3y-yWqZtmDDuwV3YYuCzc2tZJFYq-oBLgMoV9D3Fu0GtvnVeVOCw"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "expect": {
+        "state": "malformed",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "malformed-mesh-as-matrix-id",
+      "describes": "binding a mesh identity to itself says nothing",
+      "signed": {
+        "domain": "in.indiafoss.binding/v1",
+        "statement": {
+          "v": 1,
+          "id": "b-2026-09-10-asha",
+          "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrixUserId": "@n:845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+          "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+          "matrixKeyKind": "master",
+          "issuedAt": "2026-09-10T09:00:00.000Z",
+          "expiresAt": "2026-10-10T09:00:00.000Z",
+          "nonce": "AAECAwQFBgcICQoLDA0ODw"
+        },
+        "signatures": {
+          "card": "A_noJcUQtLJW922s6alOgV3IOOuzjpFdTCFN3-EGYpuc47vCzyIzosdA6-CzW6FINAddn32qNc7PYt4zMEA9Cg",
+          "matrix": "zrFY_rolmAQENyAC2s774jVUDkVe8EGiNqup222f6sYs0HUvvnmL_dNoISVoOr7Zv9WWXzfyrURr-1lhLnVSBg"
+        }
+      },
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "expect": {
+        "state": "malformed",
+        "account": "claimed"
+      }
+    },
+    {
+      "name": "not-an-object",
+      "describes": "a string where a binding should be",
+      "signed": "in.indiafoss.binding/v1",
+      "expected": {
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixUserId": "@asha:indiafoss.org"
+      },
+      "cardKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+      "matrixKey": {
+        "id": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "kind": "master",
+        "publicKey": "80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+        "provenance": "server"
+      },
+      "revokedIds": [],
+      "now": "2026-09-11T12:00:00.000Z",
+      "expect": {
+        "state": "malformed",
+        "account": "claimed"
+      }
+    }
+  ]
+}

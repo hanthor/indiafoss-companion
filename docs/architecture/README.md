@@ -14,7 +14,7 @@ recommends something, the acceptance record lives in
 
 ## Current implementation evidence
 
-Use the [task status index](../tasks/README.md) for merged work and remaining gates, the [event README](../../events/indiafoss-2026/README.md) for schedule and booth source maintenance, and the [personal-data transfer contract](personal-data-transfer.md) for migration. The PWA exports personal data; import and native transfer UI remain unfinished. A stock Matrix client plus the PWA remains the iOS baseline pending device rehearsal. These implementation records do not waive the protocol or native iOS admission gates below.
+Use the [implementation status table](system.md#implementation-status-10-september-2026) in the system document for what has shipped against each seam (reconciled 10 September 2026, every row citing a PR or CI run), the [task status index](../tasks/README.md) for the specs and remaining gates, the [event README](../../events/indiafoss-2026/README.md) for schedule and booth source maintenance, and the [personal-data transfer contract](personal-data-transfer.md) for migration. The PWA exports and imports personal data (#250, #301); native export, import and round-trip tests remain (#240). A stock Matrix client plus the PWA remains the iOS baseline pending device rehearsal. These implementation records do not waive the protocol or native iOS admission gates below.
 
 The [attendee persona walkthrough](../reviews/attendee-personas-2026-09-09.md) maps eight hypothetical event journeys to observed friction, proposed features and existing issues. It prioritizes plan consistency, navigation and trust before more recommendation machinery; it is not a substitute for real-attendee/device testing.
 

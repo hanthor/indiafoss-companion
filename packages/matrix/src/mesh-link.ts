@@ -13,6 +13,22 @@ import { MatrixClient, MatrixError, type FetchLike } from './http.js';
  * reading the profile from the account's own homeserver: no account of the
  * peer's own is needed, and nothing about the mesh conversation leaves the
  * mesh. Offline, the claim shows as just that: claimed.
+ *
+ * ## Publishing a signed binding — proposal, not shipped (#188)
+ *
+ * The profile field above carries a bare string. The signed binding of
+ * `docs/identity-binding.md` (`@indiafoss/model` `signBinding`) could ride
+ * the same MSC4133 mechanism as a second field, `in.indiafoss.binding`,
+ * holding the `SignedBinding` JSON (well under the 64 KiB profile limit),
+ * or as account data that a room-state event `in.indiafoss.binding` in a DM
+ * republishes to a peer. Either way a *fetched* binding is verified exactly
+ * as one read off a card: against the card key the peer already holds from
+ * the card and a Matrix key obtained by `/keys/query`, never against keys
+ * inside the fetched document — so publishing it on the profile makes it
+ * discoverable, not more trusted. Nothing here writes or reads that field;
+ * `publishMeshLink` still publishes only the mesh id string. The choice of
+ * field versus room state, and whether a homeserver-hosted copy is wanted
+ * at all, is for the #188 review.
  */
 export const MESH_IDENTITY_FIELD = 'in.indiafoss.mesh';
 
