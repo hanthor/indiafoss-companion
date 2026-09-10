@@ -248,6 +248,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile,
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
                     onDynamicColor = viewModel::setDynamicColor,
+                    onCalendarSync = viewModel::setCalendarSyncEnabled,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->

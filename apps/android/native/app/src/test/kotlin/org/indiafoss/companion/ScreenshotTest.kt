@@ -274,6 +274,12 @@ class ScreenshotTest {
         ) {}
     }
     @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}, {}) {} }
+    @Test fun settingsCalendarOn() {
+        shoot("settings-calendar-on") {
+            SettingsScreen(state().copy(calendarSyncEnabled = true, calendarSyncStatus = "6 entries in the IndiaFOSS calendar · 2 added"), {}, {}) {}
+        }
+        compose.onNodeWithText("Disconnect and remove the calendar").performScrollTo().assertIsDisplayed()
+    }
     @Test fun welcome() = shoot("welcome") { WelcomeScreen(state(), {}, {}) {} }
     @Test fun banner() = shoot("banner") { LeaveByBanner(state("2026-09-26T09:58:00+05:30")) {} }
 }

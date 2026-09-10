@@ -21,6 +21,8 @@ data class EventBundle(
     val booths: List<Booth> = emptyList(),
     val tracks: List<Track> = emptyList(),
     val sourceMetadata: SourceMetadata = SourceMetadata(),
+    /** Organiser-published arrival details (#278); null until an organiser page confirms them. */
+    val venue: EventVenue? = null,
 ) {
     private val peopleById by lazy { people.associateBy { it.id } }
     private val locationsById by lazy { locations.associateBy { it.id } }
@@ -34,6 +36,30 @@ data class EventBundle(
 
 @Serializable
 data class SourceMetadata(val scheduleStatus: String? = null)
+
+/**
+ * Outdoor arrival block: venue name, address and the organiser-selected map
+ * destination, with the page it was read from and when. The map link marks
+ * the building, not an entrance; indoor routing is the venue asset's job.
+ */
+@Serializable
+data class EventVenue(
+    val version: Int = 1,
+    val name: String,
+    val address: String,
+    val city: String,
+    val region: String? = null,
+    val country: String? = null,
+    val mapUrl: String,
+    val coordinates: VenueCoordinates? = null,
+    val sourceUrl: String,
+    val travelGuideUrl: String? = null,
+    val checkedAt: String,
+    val note: String? = null,
+)
+
+@Serializable
+data class VenueCoordinates(val latitude: Double, val longitude: Double)
 
 @Serializable
 data class Activity(

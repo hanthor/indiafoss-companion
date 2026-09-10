@@ -1,4 +1,3 @@
-import { isLoopbackHomeserverHost } from '@indiafoss/model';
 import type {
   PublicRoomSummary,
   RawMatrixEvent,
@@ -145,15 +144,6 @@ export function slidingSyncToSyncResponse(response: SlidingSyncResponse): SyncRe
       ? { device_unused_fallback_key_types: e2ee.device_unused_fallback_key_types }
       : {}),
   };
-}
-
-/** True for an on-device homeserver (e.g. an embedded Neutrino node). */
-export function isLoopbackHomeserver(url: string): boolean {
-  // One implementation, in the model, because the bundle validator has to
-  // agree with the client about what counts as loopback: if they disagree, a
-  // config is either rejected for a server that works or accepted for one that
-  // will not connect.
-  return isLoopbackHomeserverHost(url);
 }
 
 /**

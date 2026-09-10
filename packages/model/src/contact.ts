@@ -1,4 +1,6 @@
 import { neutrinoMatrixId } from './friend';
+import { IDENTITY_VERSION } from './identity.js';
+import type { IdentityMeta } from './identity.js';
 import { matrixUriFor } from './messaging';
 
 export type AttendeeSocial =
@@ -93,6 +95,12 @@ export interface AttendeeProfile {
    * homeserver. Distinct from the Matrix id and never interchangeable with it.
    */
   neutrinoServerName?: string;
+  /**
+   * Which identity envelope version `matrixId` / `neutrinoServerName` were
+   * read under, and any identity fields the reader set aside unread (#160).
+   * Absent on the attendee's own profile and on cards from before versioning.
+   */
+  identity?: IdentityMeta;
   /** Event-scoped ticket reference (`ticket::<id>`); a correlation key, never an identity. */
   ticketRef?: string;
   fossUnitedProfileUrl?: string;
@@ -223,12 +231,29 @@ export function attendeeProfileToVCard(
     pushField(lines, 'URL;TYPE=profile', profile.fossUnitedProfileUrl);
     pushField(lines, 'X-FOSSUNITED-PROFILE', profile.fossUnitedProfileUrl);
   }
-  if (selection.matrixId) {
-    pushField(lines, 'X-INDIAFOSS-MATRIX', profile.matrixId);
-    if (profile.matrixId?.trim()) pushField(lines, 'IMPP', `matrix:${profile.matrixId}`);
-  }
-  if (selection.neutrinoServerName) {
-    pushField(lines, 'X-INDIAFOSS-MESH', profile.neutrinoServerName);
+  // Identity fields and their envelope version travel together (#160). A
+  // field this build set aside unread is written back as it arrived — under
+  // v1 when only its shape was the problem, under the version it declared when
+  // that was — so the next reader gets the same chance. A vCard has one slot
+  // per field, so a readable v1 value wins it and a foreign-version copy is
+  // then left to the JSON export, which keeps both.
+  const retained = profile.identity?.retained ?? {};
+  const matrixId = selection.matrixId ? profile.matrixId?.trim() : undefined;
+  const mesh = selection.neutrinoServerName ? profile.neutrinoServerName?.trim() : undefined;
+  const foreign = Boolean(retained.version) && !matrixId && !mesh;
+  const carry = foreign || !retained.version;
+  const matrixOut = matrixId ?? (carry && selection.matrixId ? retained.matrix : undefined);
+  const meshOut = mesh ?? (carry && selection.neutrinoServerName ? retained.mesh : undefined);
+  if (matrixOut || meshOut) {
+    pushField(lines, 'X-INDIAFOSS-MATRIX', matrixOut);
+    // Only a readable id is also offered to other address books as an IM address.
+    if (matrixId) pushField(lines, 'IMPP', `matrix:${matrixId}`);
+    pushField(lines, 'X-INDIAFOSS-MESH', meshOut);
+    pushField(
+      lines,
+      'X-INDIAFOSS-IDENTITY-VERSION',
+      foreign ? retained.version : String(IDENTITY_VERSION),
+    );
   }
   if (selection.ticketRef) pushField(lines, 'X-INDIAFOSS-TICKET', profile.ticketRef);
   if (selection.photo !== false) {
