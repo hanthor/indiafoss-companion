@@ -237,18 +237,6 @@
     </a>
     <nav class="toplinks" aria-label="App actions">
       <a
-        href="https://github.com/hanthor/indiafoss-companion/releases/download/nightly/indiafoss-companion-nightly.apk"
-        aria-label="Download Android app"
-        title="Download the native Android Companion APK"
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true"
-          ><path
-            d="M11 3h2v10l3-3 1.4 1.4L12 17l-5.4-5.6L8 10l3 3V3zM4 17h2v3h12v-3h2v5H4v-5z"
-          /></svg
-        >
-        <span>Android</span>
-      </a>
-      <a
         class="scancta"
         href={resolve('/scan')}
         aria-current={isActive('/scan') ? 'page' : undefined}
