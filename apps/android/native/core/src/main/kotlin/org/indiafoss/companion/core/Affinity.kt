@@ -4,8 +4,13 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
-/** One answered comparison, as stored on the device. */
-data class ComparisonEntry(val activityA: String, val activityB: String, val scoreA: Double)
+/**
+ * One answered comparison, as stored on the device. `clash` marks an answer
+ * given as a scheduling clash (#271): the loser could not be attended
+ * alongside the winner, which says nothing about whether it was wanted, so
+ * only the winner's facets are voted for.
+ */
+data class ComparisonEntry(val activityA: String, val activityB: String, val scoreA: Double, val clash: Boolean = false)
 
 /** What the attendee said about a room before ranking. */
 enum class RoomPreference { SKIP, LOVE }
@@ -14,7 +19,8 @@ enum class RoomPreference { SKIP, LOVE }
  * Taste per track, session type and tag, learnt from the comparison history
  * and the sessions ruled out — a port of `learnAffinity` in `@indiafoss/elo`
  * (docs/ranking.md). A pick for A over B is a vote for everything A is and
- * against everything B is; "not interested" is a vote against; a loved room
+ * against everything B is, except in a clash, where only the winner is voted
+ * for (#271); "not interested" is a vote against; a loved room
  * starts with a head of votes. Votes are shrunk towards zero so one pick
  * cannot demote a whole track.
  */
@@ -48,6 +54,10 @@ class AffinityModel(val affinity: Map<String, Double>, val evidence: Map<String,
             for (entry in history) {
                 val swing = (entry.scoreA - 0.5) * 2
                 if (swing == 0.0) continue
+                if (entry.clash) {
+                    vote(if (swing > 0) entry.activityA else entry.activityB, 1.0)
+                    continue
+                }
                 vote(entry.activityA, swing)
                 vote(entry.activityB, -swing)
             }

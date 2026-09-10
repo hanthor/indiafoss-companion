@@ -106,7 +106,29 @@ data class UiState(
 
     fun ranked(activity: Activity): RankedActivity {
         val r = ranking.rating(activity.id)
-        return RankedActivity(activity, r.rating, r.comparisons, dispositionOf(activity.id), r.triage)
+        return RankedActivity(activity, r.rating, r.comparisons, dispositionOf(activity.id), r.triage, r.yieldedTo)
+    }
+
+    /** The session `id` stood aside for in a clash (#271), if any. */
+    fun yieldsTo(id: String): String? = ranking.yieldedTo(id)
+
+    /** A talk that stood aside on a day, and the winner it stood aside for. */
+    data class StoodAside(val activity: Activity, val winner: Activity)
+
+    /**
+     * Talks that stood aside in a clash on `day` (#271) and whose winner is
+     * still in the running: interests, not dislikes, listed on the Plan screen
+     * with Reconsider. A must-go talk never stands aside.
+     */
+    fun stoodAsideOn(day: String): List<StoodAside> {
+        val b = bundle ?: return emptyList()
+        val eligible = Schedule.activitiesForDay(b, day)
+            .filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null && dispositionOf(it.id) != Disposition.NOT_INTERESTED }
+        val live = Ranking.activeAfterYields(eligible, { it.id }, { yieldsTo(it.id) }, { dispositionOf(it.id) == Disposition.MUST_ATTEND })
+        val byId = eligible.associateBy { it.id }
+        return eligible.filter { it.id !in live }
+            .mapNotNull { a -> byId[yieldsTo(a.id)]?.let { StoodAside(a, it) } }
+            .sortedBy { it.activity.start }
     }
 
     /** The taste learnt from every answer so far (docs/ranking.md). */
@@ -130,6 +152,7 @@ data class UiState(
             stayTrackIds = stayTrackIds,
             bookmarked = { it in bookmarks },
             blocks = blocks.filter { it.day == day }.map { it.toBlock() },
+            yieldsTo = ::yieldsTo,
         )
     }
 
@@ -162,6 +185,7 @@ data class UiState(
             ),
             stayTrackIds = stayTrackIds,
             walkSeconds = walkBetween,
+            yieldsTo = ::yieldsTo,
         )
     }
 
@@ -574,33 +598,61 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** What an answer needs to be taken back: the ratings before it, and the records to forget. */
-    data class Undo(val before: Map<String, org.indiafoss.companion.data.SessionRating>, val comparisonIds: List<String>)
+    /**
+     * What an answer needs to be taken back: every touched session's record
+     * before it (rating, comparisons, disposition, triage, stood-aside mark)
+     * and the comparison records to forget. `resolution` is what a pick did,
+     * for the screen's note.
+     */
+    data class Undo(
+        val before: Map<String, org.indiafoss.companion.data.SessionRating>,
+        val comparisonIds: List<String>,
+        val resolution: Ranking.ClashResolution? = null,
+    )
 
     /**
-     * One tap for a slot: the winner beats every loser in one go, one recorded
-     * comparison per pair. The Elo update works on the stored ratings, never
-     * the prior view; sessions answered about for the first time move further.
+     * Tap the session you would go to: it settles the whole slot in one
+     * action (#271, `resolveClash`). Every member the winner overlaps stands
+     * aside for it — a scheduling loss, not a dislike: they stay interests
+     * and the comparison is recorded as a clash so nothing is learnt against
+     * them — so the same window is never asked again as a chain of backup
+     * questions. A must-go loser keeps its mark and the plan keeps showing
+     * that clash. Members the winner does not overlap are left alone. The
+     * Elo update works on the stored ratings, never the prior view; a pair
+     * already answered is not moved again.
      */
-    fun pickInSlot(winner: Activity, losers: List<Activity>): Undo {
+    fun pickInSlot(winner: Activity, members: List<Activity>): Undo {
         val s = state.value
-        val ids = listOf(winner.id) + losers.map { it.id }
+        val ranked = members.map(s::ranked)
+        val resolution = Ranking.resolveClash(ranked, winner.id)
+        val ids = listOf(winner.id) + resolution.losers
         val before = ids.associateWith { s.ranking.rating(it) }
         val live = HashMap(before.mapValues { it.value.rating to it.value.comparisons })
+        val answered = s.ranking.answeredPairs
         val records = ArrayList<StoredComparison>()
-        for (loser in losers) {
+        for (loserId in resolution.losers) {
+            if (Ranking.pairKey(winner.id, loserId) in answered) continue
             val (rw, cw) = live.getValue(winner.id)
-            val (rl, cl) = live.getValue(loser.id)
+            val (rl, cl) = live.getValue(loserId)
             val result = Ranking.applyComparison(rw, rl, Choice.A, Ranking.pairKScale(cw, cl))
             live[winner.id] = result.ratingA to cw + 1
-            live[loser.id] = result.ratingB to cl + 1
-            records += StoredComparison("cmp-${System.currentTimeMillis()}-${records.size}", winner.id, loser.id, 1.0, System.currentTimeMillis())
+            live[loserId] = result.ratingB to cl + 1
+            records += StoredComparison("cmp-${System.currentTimeMillis()}-${records.size}", winner.id, loserId, 1.0, System.currentTimeMillis(), clash = true)
         }
+        val winnerRecord = before.getValue(winner.id)
         viewModelScope.launch {
             for ((id, r) in live) ratings.setRating(id, r.first, r.second)
             for (record in records) ratings.record(record)
+            for (id in resolution.steppedAside) ratings.setYieldedTo(id, winner.id)
+            // The pick is planned: keep it an interest so the itinerary prefers it.
+            if (s.dispositionOf(winner.id) == Disposition.NORMAL && winnerRecord.triage != "yes") ratings.setTriage(winner.id, "yes")
         }
-        return Undo(before, records.map { it.id })
+        return Undo(before, records.map { it.id }, resolution)
+    }
+
+    /** Put a stood-aside talk back in the running (Plan's "Reconsider", #271). */
+    fun reconsider(id: String) {
+        viewModelScope.launch { ratings.setYieldedTo(id, null) }
     }
 
     /** "Any of these": every open pair among the members is a tie. */
@@ -636,18 +688,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         return Undo(before, emptyList())
     }
 
-    /** Take back the last answer: ratings, dispositions and the records. */
+    /** Take back the last answer: every touched record verbatim (stood-aside marks included), and the comparisons forgotten. */
     fun undoLast(undo: Undo) {
         viewModelScope.launch {
-            for ((id, r) in undo.before) {
-                ratings.setRating(id, r.rating, r.comparisons)
-                ratings.setDisposition(id, when (r.disposition) {
-                    "must-attend" -> Disposition.MUST_ATTEND
-                    "not-interested" -> Disposition.NOT_INTERESTED
-                    "watch-later" -> Disposition.WATCH_LATER
-                    else -> Disposition.NORMAL
-                })
-            }
+            for ((id, r) in undo.before) ratings.restore(id, r)
             for (id in undo.comparisonIds) ratings.forget(id)
         }
     }
