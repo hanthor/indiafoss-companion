@@ -1,6 +1,7 @@
 import type { Activity } from '@indiafoss/model';
 import {
   DefaultTravelTime,
+  transitionSeconds,
   SOLVER_CONFIG,
   type ItineraryItem,
   type TravelTimeProvider,
@@ -212,10 +213,15 @@ export function applyItineraryEdits(input: ApplyEditsInput): EditedPlan {
 
     // Travel + buffer only apply between real, located activities.
     if (cur.flexible || next.flexible) continue;
-    const travelSeconds = travel.seconds(cur.locationId, next.locationId);
-    const requiredGapMs = (travelSeconds + bufferSeconds) * 1000;
+    const requiredSeconds = transitionSeconds(
+      { locationId: cur.locationId, devroomId: activities.get(cur.id)?.devroomId },
+      { locationId: next.locationId, devroomId: activities.get(next.id)?.devroomId },
+      travel,
+      bufferSeconds,
+    );
+    const requiredGapMs = requiredSeconds * 1000;
     if (curEnd + requiredGapMs > nextStart) {
-      const minutes = Math.ceil((travelSeconds + bufferSeconds) / 60);
+      const minutes = Math.ceil(requiredSeconds / 60);
       conflicts.push({
         kind: 'travel-buffer',
         a: cur.id,

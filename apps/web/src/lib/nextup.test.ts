@@ -153,3 +153,20 @@ describe('computeNextUp', () => {
     expect(next?.mustAttend).toBe(true);
   });
 });
+
+describe('next-up from a resolved plan', () => {
+  it('does not resurrect a removed bookmark or must-go entry', () => {
+    const next = computeNextUp({
+      ...base,
+      bookmarked: () => true,
+      mustAttend: (id) => id === 'a',
+      plannedIds: new Set(['b']),
+    });
+    expect(next?.activity.id).toBe('b');
+    expect(next?.planned).toBe(true);
+    expect(next?.mustAttend).toBe(false);
+  });
+  it('does not fall back to the general programme for an empty or conflicting plan', () => {
+    expect(computeNextUp({ ...base, bookmarked: () => true, plannedIds: new Set() })).toBeNull();
+  });
+});

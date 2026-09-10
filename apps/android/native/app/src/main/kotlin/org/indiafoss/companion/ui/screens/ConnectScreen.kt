@@ -93,6 +93,7 @@ fun ConnectScreen(
     onImportVcard: (String) -> Unit = {},
     onBack: () -> Unit,
 ) {
+    var showContactChecks by remember { mutableStateOf(false) }
     val context = LocalContext.current
     // Your own contact, from the phone's address book (one picked contact, read as a vCard) or a .vcf file (#110).
     val pickContact = rememberLauncherForActivityResult(ActivityResultContracts.PickContact()) { uri ->
@@ -130,6 +131,7 @@ fun ConnectScreen(
         },
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding)) {
+
             item {
                 Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                     Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -158,6 +160,15 @@ fun ConnectScreen(
                                 }
                             }
                         }
+                        TextButton(onClick = { showContactChecks = !showContactChecks }) {
+                            Text(if (showContactChecks) "Hide contact check explanation" else "What do contact checks mean?")
+                        }
+                        if (showContactChecks) {
+                            Text(
+                                "You can save and export people without checking their card. A valid card signature matches the included signing key; it does not verify their name or linked accounts. Compare the saved key badge with the one they show on their own phone to check that the card keys match. Verify Matrix accounts and devices separately in your Matrix chat app.",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                        }
                         Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = {
                                 val send = Intent(Intent.ACTION_SEND).apply {
@@ -178,6 +189,24 @@ fun ConnectScreen(
                     modifier = Modifier.padding(20.dp, 4.dp),
                 )
             }
+            item {
+                Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("Get IndiaFOSS Chat", style = MaterialTheme.typography.titleMedium)
+                        Text("Install the separate Matrix and P2P chat app for Android. Preview build.")
+                        Button(onClick = {
+                            runCatching {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
+                                    "https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk",
+                                )))
+                            }.onFailure {
+                                android.widget.Toast.makeText(context, "No browser is available to open the download.", android.widget.Toast.LENGTH_LONG).show()
+                            }
+                        }) { Text("Download Chat APK") }
+                    }
+                }
+            }
+
             item { SectionHeader("Identity") }
             item {
                 Text(

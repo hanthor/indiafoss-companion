@@ -19,14 +19,21 @@ export const routingPrefs = $state<{ profile: RoutingProfile; loaded: boolean }>
   loaded: false,
 });
 
+let hydration: Promise<void> | null = null;
 export async function hydrateRoutingProfile(): Promise<void> {
   if (routingPrefs.loaded) return;
-  const saved = (await getStorage().getSetting(KEY)) as RoutingProfile | undefined;
-  if (saved && VALID.includes(saved)) routingPrefs.profile = saved;
-  routingPrefs.loaded = true;
+  hydration ??= (async () => {
+    const saved = (await getStorage().getSetting(KEY)) as RoutingProfile | undefined;
+    if (!routingPrefs.loaded && saved && VALID.includes(saved)) routingPrefs.profile = saved;
+    routingPrefs.loaded = true;
+  })().finally(() => {
+    hydration = null;
+  });
+  await hydration;
 }
 
 export async function setRoutingProfile(profile: RoutingProfile): Promise<void> {
+  routingPrefs.loaded = true;
   routingPrefs.profile = profile;
   await getStorage().setSetting(KEY, profile);
 }

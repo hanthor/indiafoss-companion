@@ -52,6 +52,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.indiafoss.companion.core.isDiscoveryActivity
 import org.indiafoss.companion.CompanionViewModel
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.ui.Avatar
@@ -99,8 +102,8 @@ fun RankScreen(
     var undo by remember { mutableStateOf<CompanionViewModel.Undo?>(null) }
 
     val sessions = if (days.isEmpty()) emptyList() else
-        state.activitiesFor(days[day.coerceIn(0, days.lastIndex)]).filter { !it.cancelled && it.type != "meal" }
-    val untriaged = sessions.filter { state.ranking.rating(it.id).triage == null }
+        state.activitiesFor(days[day.coerceIn(0, days.lastIndex)]).filter { it.isDiscoveryActivity() }
+    val untriaged = state.affinity.discoveryDeck(sessions.filter { state.ranking.rooms[it.trackId] != "stay" }.map(state::ranked))
     val answered = state.ranking.answeredPairs
     val model = state.affinity
     val pool = model.apply(sessions.map(state::ranked))
@@ -108,16 +111,12 @@ fun RankScreen(
     val slots = Ranking.slots(pool, answered)
     val ids = sessions.map { it.id }.toSet()
     val choices = answered.count { key -> key.split("|").let { it.size == 2 && it[0] in ids && it[1] in ids } }
-    val step = chosen ?: when {
-        !state.ranking.roomsDecided && rooms.isNotEmpty() -> Step.DEVROOMS
-        untriaged.isNotEmpty() && choices == 0 -> Step.TALKS
-        else -> Step.SLOTS
-    }
+    val step = chosen ?: Step.TALKS
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Rank your day") },
+                title = { Text("Find your talks") },
                 navigationIcon = {
                     IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
                 },
@@ -251,6 +250,9 @@ private fun DevroomsStep(rooms: List<Room>, state: UiState, onRoom: (String, Str
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp),
                     )
+                    TextButton(onClick = { onRoom(room.track.id, if (pref == "stay") null else "stay") }) {
+                        Text(if (pref == "stay") "Staying for this devroom · Undo" else "Stay for this devroom")
+                    }
                     TextButton(onClick = { openRoom = if (openRoom == room.track.id) null else room.track.id }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
                         Text(if (openRoom == room.track.id) "Hide the talks" else "What's on")
                     }
@@ -303,17 +305,29 @@ private fun TalksStep(
     val kept = sessions.count { state.ranking.rating(it.id).triage == "yes" }
     val dropped = sessions.count { state.ranking.rating(it.id).triage == "no" }
     var showAnswered by remember { mutableStateOf(false) }
+    var lastAnswered by remember { mutableStateOf<String?>(null) }
+    val answer: (String, String) -> Unit = { id, choice ->
+        onAnswer(id, choice)
+        lastAnswered = id
+    }
     val card = untriaged.firstOrNull()
     LazyColumn(Modifier.fillMaxSize()) {
         item {
             Row(Modifier.fillMaxWidth().padding(20.dp, 4.dp, 20.dp, 0.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("$kept in · $dropped out", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                Text("${untriaged.size} to go", style = MaterialTheme.typography.labelLarge)
+                Text("Stop any time", style = MaterialTheme.typography.labelLarge)
             }
             LinearProgressIndicator(
                 progress = { if (sessions.isEmpty()) 0f else (sessions.size - untriaged.size).toFloat() / sessions.size },
                 modifier = Modifier.fillMaxWidth().padding(20.dp, 6.dp),
             )
+        }
+        lastAnswered?.let { id ->
+            item {
+                TextButton(onClick = { onClear(id); lastAnswered = null }, modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Text("Undo last choice")
+                }
+            }
         }
         if (card == null) {
             item {
@@ -334,7 +348,7 @@ private fun TalksStep(
         } else {
             item {
                 Text(
-                    "Swipe right if you might go, left if not. Only the Yeses that overlap need settling afterwards.",
+                    "Swipe right to want to go, left for not interested. Use the crown for must go.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -345,21 +359,21 @@ private fun TalksStep(
                 val clashes = sessions.count {
                     it.id != card.id && state.dispositionOf(it.id) != Disposition.NOT_INTERESTED && Ranking.overlaps(it, card)
                 }
-                SwipeCard(card, state, clashes, onOpen, onOpenSpeaker, onAnswer)
+                SwipeCard(card, state, clashes, onOpen, onOpenSpeaker, answer)
             }
             item {
                 Row(Modifier.fillMaxWidth().padding(16.dp, 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { onAnswer(card.id, "no") }, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
-                        Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Text("Not for me", Modifier.padding(start = 4.dp), maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                    Button(onClick = { answer(card.id, "must") }, colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFEFC44B), contentColor = androidx.compose.ui.graphics.Color(0xFF332700)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                        CrownIcon()
+                        Text("Must go", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
-                    FilledTonalButton(onClick = { onAnswer(card.id, "yes") }, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                    FilledTonalButton(onClick = { answer(card.id, "yes") }, colors = androidx.compose.material3.ButtonDefaults.filledTonalButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFB9EFC9), contentColor = androidx.compose.ui.graphics.Color(0xFF143923)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
                         Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Text("Interested", Modifier.padding(start = 4.dp), maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                        Text("Want to go", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
-                    Button(onClick = { onAnswer(card.id, "must") }, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
-                        Icon(Icons.Filled.Star, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Text("Must go", Modifier.padding(start = 4.dp), maxLines = 1, style = MaterialTheme.typography.labelLarge)
+                    OutlinedButton(onClick = { answer(card.id, "no") }, colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(containerColor = androidx.compose.ui.graphics.Color(0xFFE4E4E4), contentColor = androidx.compose.ui.graphics.Color(0xFF303030)), modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp, 10.dp)) {
+                        Icon(Icons.Filled.Close, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Text("Not interested", Modifier.padding(start = 4.dp), maxLines = 2, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -404,7 +418,8 @@ private fun SwipeCard(
     val scope = rememberCoroutineScope()
     val offset = remember(card.id) { Animatable(0f) }
     var readMore by remember(card.id) { mutableStateOf(false) }
-    val commit = 260f
+    val commit = with(LocalDensity.current) { 96.dp.toPx() }
+    var committing by remember(card.id) { mutableStateOf(false) }
     LaunchedEffect(card.id) { offset.snapTo(0f) }
     Card(
         modifier = Modifier
@@ -415,18 +430,19 @@ private fun SwipeCard(
                 rotationZ = offset.value / 40f
                 alpha = 1f - min(0.6f, abs(offset.value) / 1200f)
             }
-            .pointerInput(card.id) {
+            .testTag("talk-card")
+            .pointerInput(card.id, commit) {
                 detectHorizontalDragGestures(
                     onDragEnd = {
                         val x = offset.value
-                        when {
-                            x > commit -> scope.launch { offset.animateTo(1600f, tween(180)); onAnswer(card.id, "yes") }
-                            x < -commit -> scope.launch { offset.animateTo(-1600f, tween(180)); onAnswer(card.id, "no") }
+                        if (!committing) when {
+                            x >= commit -> { committing = true; scope.launch { offset.animateTo(1600f, tween(180)); onAnswer(card.id, "yes") } }
+                            x <= -commit -> { committing = true; scope.launch { offset.animateTo(-1600f, tween(180)); onAnswer(card.id, "no") } }
                             else -> scope.launch { offset.animateTo(0f) }
                         }
                     },
                     onDragCancel = { scope.launch { offset.animateTo(0f) } },
-                    onHorizontalDrag = { change, delta -> change.consume(); scope.launch { offset.snapTo(offset.value + delta) } },
+                    onHorizontalDrag = { change, delta -> if (!committing) { change.consume(); scope.launch { offset.snapTo(offset.value + delta) } } },
                 )
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
@@ -436,8 +452,8 @@ private fun SwipeCard(
                 Text(card.type.replace('-', ' ').uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
                 Text(timeAndRoom(card, state.bundle), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (offset.value > 40f) Text("INTERESTED", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            if (offset.value < -40f) Text("NOT FOR ME", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.tertiary)
+            if (offset.value > 40f) Text("WANT TO GO", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            if (offset.value < -40f) Text("NOT INTERESTED", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.tertiary)
             Text(card.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 6.dp))
             val speakers = state.bundle?.speakersOf(card).orEmpty()
             speakers.forEach { p -> SpeakerRow(p) { onOpenSpeaker(p.id) } }
@@ -611,5 +627,28 @@ private fun PickCard(ranked: RankedActivity, state: UiState, onOpen: (String) ->
                 FilledTonalButton(onClick = onPick) { Text("This one") }
             }
         }
+    }
+}
+
+
+/** Decorative vector crown; the adjacent button text provides its accessible label. */
+@Composable
+private fun CrownIcon() {
+    val color = androidx.compose.material3.LocalContentColor.current
+    androidx.compose.foundation.Canvas(Modifier.size(18.dp)) {
+        val scale = size.minDimension / 24f
+        val crown = androidx.compose.ui.graphics.Path().apply {
+            moveTo(3f * scale, 6f * scale)
+            lineTo(8f * scale, 10f * scale)
+            lineTo(12f * scale, 3f * scale)
+            lineTo(16f * scale, 10f * scale)
+            lineTo(21f * scale, 6f * scale)
+            lineTo(19f * scale, 18f * scale)
+            lineTo(5f * scale, 18f * scale)
+            close()
+            moveTo(5f * scale, 21f * scale)
+            lineTo(19f * scale, 21f * scale)
+        }
+        drawPath(crown, color, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 2f * scale))
     }
 }

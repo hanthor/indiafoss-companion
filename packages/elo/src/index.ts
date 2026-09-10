@@ -99,6 +99,14 @@ export interface RankedActivity {
   rating: number;
   comparisons: number;
   disposition: Disposition;
+  /** Direct card choice; independent of historical pairwise ratings. */
+  interest?: 'yes' | 'no';
+  /**
+   * The session this one stood aside for in a clash (#271). A scheduling
+   * loss, not a dislike: the attendee still wants it, it just cannot be
+   * attended while `yieldedTo` is live. Ignored for must-go sessions.
+   */
+  yieldedTo?: string;
 }
 
 export interface ComparisonSelectionInput {
@@ -140,9 +148,7 @@ export const SETTLED_GAP = 2 * K_FACTOR;
  * Must-attend and normal items compete; not-interested items are excluded.
  */
 export function selectNextComparison(input: ComparisonSelectionInput): ComparisonCandidate | null {
-  const pool = input.activities.filter(
-    (a) => a.disposition !== 'not-interested' && !a.activity.cancelled,
-  );
+  const pool = clashLivePool(input.activities);
   if (pool.length < 2) return null;
 
   let best: {
@@ -193,9 +199,7 @@ export interface ConflictProgress {
 }
 
 export function conflictProgress(input: ComparisonSelectionInput): ConflictProgress {
-  const pool = input.activities.filter(
-    (a) => a.disposition !== 'not-interested' && !a.activity.cancelled,
-  );
+  const pool = clashLivePool(input.activities);
   let conflicts = 0;
   let settled = 0;
   for (let i = 0; i < pool.length; i++) {
@@ -213,6 +217,92 @@ export function conflictProgress(input: ComparisonSelectionInput): ConflictProgr
     }
   }
   return { conflicts, settled, open: conflicts - settled };
+}
+
+/**
+ * Which of a set of sessions are still in the running after clash losses
+ * (#271). A session that stood aside for a winner is out only while that
+ * winner is itself live; if the winner leaves (ruled out, cancelled, or stood
+ * aside for something else in turn) the loser comes back, so a later,
+ * compatible talk is never suppressed by a decision that no longer holds.
+ * Pinned sessions never stand aside. Resolved to a fixed point; a cycle of
+ * yields (impossible through the UI) leaves all of its members live.
+ */
+export function activeAfterYields<T>(
+  items: readonly T[],
+  id: (item: T) => string,
+  yieldsTo: (item: T) => string | undefined,
+  pinned: (item: T) => boolean,
+): Set<string> {
+  const live = new Set(items.map(id));
+  const yielded = items.filter((item) => !pinned(item) && yieldsTo(item) !== undefined);
+  for (let round = 0; round <= yielded.length; round++) {
+    let changed = false;
+    for (const item of yielded) {
+      const winner = yieldsTo(item)!;
+      const shouldBeOut = live.has(winner) && winner !== id(item);
+      const isOut = !live.has(id(item));
+      if (shouldBeOut && !isOut) {
+        live.delete(id(item));
+        changed = true;
+      } else if (!shouldBeOut && isOut) {
+        live.add(id(item));
+        changed = true;
+      }
+    }
+    if (!changed) break;
+  }
+  return live;
+}
+
+/** The sessions a clash question may still be asked about: not ruled out, not cancelled, not stood aside. */
+export function clashLivePool(activities: readonly RankedActivity[]): RankedActivity[] {
+  const eligible = activities.filter(
+    (a) => a.disposition !== 'not-interested' && !a.activity.cancelled,
+  );
+  const live = activeAfterYields(
+    eligible,
+    (a) => a.activity.id,
+    (a) => a.yieldedTo,
+    (a) => a.disposition === 'must-attend',
+  );
+  return eligible.filter((a) => live.has(a.activity.id));
+}
+
+/** The outcome of picking one session in a clash (#271). */
+export interface ClashResolution {
+  winner: string;
+  /** Losers the winner actually overlaps; they stand aside while it is live. */
+  steppedAside: string[];
+  /** Overlapping must-go losers: kept as they are, so the plan keeps showing the conflict. */
+  keptMustGo: string[];
+  /** Members the winner does not overlap (a staggered slot); untouched and still live. */
+  unaffected: string[];
+}
+
+/**
+ * One pick settles the whole clash: every member the winner overlaps stands
+ * aside for it in one action, so the same window is never asked again as a
+ * chain of pairwise "and if that falls through?" questions. A member that
+ * does not overlap the winner is compatible with it and is left alone. A
+ * must-go loser is never resolved silently: it keeps its mark and the
+ * itinerary reports the must-go conflict until the attendee changes it.
+ */
+export function resolveClash(
+  members: readonly RankedActivity[],
+  winnerId: string,
+): ClashResolution {
+  const winner = members.find((m) => m.activity.id === winnerId);
+  const steppedAside: string[] = [];
+  const keptMustGo: string[] = [];
+  const unaffected: string[] = [];
+  for (const m of members) {
+    if (m.activity.id === winnerId) continue;
+    if (!winner || !overlaps(winner.activity, m.activity)) unaffected.push(m.activity.id);
+    else if (m.disposition === 'must-attend') keptMustGo.push(m.activity.id);
+    else steppedAside.push(m.activity.id);
+  }
+  return { winner: winnerId, steppedAside, keptMustGo, unaffected };
 }
 
 export function overlaps(a: Activity, b: Activity): boolean {
@@ -255,8 +345,7 @@ export function pairOpen(
 }
 
 export function conflictSlots(input: ComparisonSelectionInput): ConflictSlot[] {
-  const pool = input.activities
-    .filter((a) => a.disposition !== 'not-interested' && !a.activity.cancelled)
+  const pool = clashLivePool(input.activities)
     .filter((a) => a.activity.start && a.activity.end)
     .sort(
       (x, y) =>
@@ -306,6 +395,12 @@ export interface ComparisonHistoryEntry {
   activityB: string;
   /** Result score for A: 1 (A won), 0.5 (tie), 0 (B won). */
   scoreA: number;
+  /**
+   * Answered as a scheduling clash (#271): the loser could not be attended
+   * alongside the winner, which says nothing about whether it was wanted.
+   * Only the winner's facets are voted for.
+   */
+  clash?: boolean;
 }
 
 /** The facets of a session that a taste can attach to. */
@@ -337,7 +432,7 @@ const AFFINITY_SHRINKAGE = 3;
  * so one pick cannot demote a whole track.
  */
 /** What the attendee said about a room (track) before ranking: skip it, or love it. */
-export type RoomPreference = 'skip' | 'love';
+export type RoomPreference = 'skip' | 'love' | 'stay';
 
 /** Votes a loved room is given up front: enough to lift its talks by ~40 points, well under a settled gap. */
 export const LOVED_ROOM_VOTES = 6;
@@ -362,25 +457,31 @@ export function learnAffinity(
   for (const entry of history) {
     const swing = (entry.scoreA - 0.5) * 2; // +1 A won, -1 B won, 0 tie
     if (swing === 0) continue;
+    if (entry.clash) {
+      vote(swing > 0 ? entry.activityA : entry.activityB, 1);
+      continue;
+    }
     vote(entry.activityA, swing);
     vote(entry.activityB, -swing);
   }
   for (const r of byId.values()) {
     if (r.disposition === 'not-interested') vote(r.activity.id, -1);
+    else if (r.disposition === 'must-attend') vote(r.activity.id, 3);
+    else if (r.interest === 'yes') vote(r.activity.id, 1);
   }
   // A loved room starts with a head of votes; a skipped one is already out of
   // the pool, and gets the same weight against for anything that slips in.
   for (const [trackId, pref] of Object.entries(rooms)) {
     if (!pref) continue;
     const key = `track:${trackId}`;
-    const weight = pref === 'love' ? LOVED_ROOM_VOTES : -LOVED_ROOM_VOTES;
+    const weight = pref === 'skip' ? -LOVED_ROOM_VOTES : LOVED_ROOM_VOTES;
     votes.set(key, (votes.get(key) ?? 0) + weight);
     evidence.set(key, (evidence.get(key) ?? 0) + LOVED_ROOM_VOTES);
   }
   const affinity = new Map<AffinityKey, number>();
   for (const [key, total] of votes) {
     const n = evidence.get(key) ?? 0;
-    affinity.set(key, total / (n + AFFINITY_SHRINKAGE));
+    affinity.set(key, Math.max(-1, Math.min(1, total / (n + AFFINITY_SHRINKAGE))));
   }
   return { affinity, evidence };
 }
@@ -482,4 +583,57 @@ export function recommendations(
   return out
     .sort((a, b) => b.score - a.score || a.activity.id.localeCompare(b.activity.id))
     .slice(0, limit);
+}
+
+/**
+ * Local discovery deck. Explicit choices leave the deck; each fourth card
+ * explores another track. Cold start samples tracks instead of presenting
+ * the schedule chronologically. A reason is always an observed positive facet.
+ */
+export function discoveryDeck(pool: RankedActivity[], model: AffinityModel): Recommendation[] {
+  const remaining = pool.filter(
+    (r) =>
+      !r.interest &&
+      r.disposition === 'normal' &&
+      !r.activity.cancelled &&
+      r.activity.type !== 'meal',
+  );
+  const selected: Recommendation[] = [];
+  const usedTracks = new Map<string, number>();
+  const decided = pool.filter((r) => r.interest || r.disposition !== 'normal');
+  for (const r of decided) {
+    const track = r.activity.trackId ?? '';
+    usedTracks.set(track, (usedTracks.get(track) ?? 0) + 1);
+  }
+  const candidates = remaining.map((r) => {
+    const topics = affinityKeysOf(r.activity).filter(
+      (k) =>
+        !k.startsWith('type:') &&
+        !/^tag:(talk|lightning talk|other|beginner|intermediate|advanced)$/i.test(k),
+    );
+    const because = topics.filter((k) => (model.affinity.get(k) ?? 0) > 0);
+    // Format/audience is not a topic: liking one talk must not boost every talk equally.
+    const score =
+      topics.reduce((sum, key) => sum + (model.affinity.get(key) ?? 0), 0) /
+      Math.max(1, topics.length);
+    return { activity: r.activity, score, because };
+  });
+  while (candidates.length) {
+    const explore =
+      (decided.length + selected.length) % 4 === 3 || candidates.every((c) => c.score <= 0);
+    candidates.sort((a, b) => {
+      const diversity =
+        (usedTracks.get(a.activity.trackId ?? '') ?? 0) -
+        (usedTracks.get(b.activity.trackId ?? '') ?? 0);
+      return (
+        (explore ? diversity || b.score - a.score : b.score - a.score || diversity) ||
+        a.activity.id.localeCompare(b.activity.id)
+      );
+    });
+    const next = candidates.shift()!;
+    const track = next.activity.trackId ?? '';
+    usedTracks.set(track, (usedTracks.get(track) ?? 0) + 1);
+    selected.push(next);
+  }
+  return selected;
 }

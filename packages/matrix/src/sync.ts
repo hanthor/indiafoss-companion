@@ -318,16 +318,3 @@ export function applySyncResponse(
   delta.events.sort((a, b) => a.ts - b.ts);
   return delta;
 }
-
-/**
- * Whether `userId` may send messages in `room` under its power levels. A room
- * that has not sent power levels yet (or a mesh room without any) is open.
- * Used for the announcements channel (issue #113), where only moderators post.
- */
-export function canPost(room: Pick<MatrixRoomRecord, 'powerLevels'>, userId: string): boolean {
-  const levels = room.powerLevels;
-  if (!levels) return true;
-  const mine = levels.users[userId] ?? levels.usersDefault;
-  const needed = levels.message ?? levels.eventsDefault;
-  return mine >= needed;
-}

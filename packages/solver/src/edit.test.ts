@@ -234,3 +234,22 @@ describe('applyItineraryEdits properties', () => {
     );
   });
 });
+
+describe('devroom transition safety after edits', () => {
+  it.each([
+    ['overlap', '10:25', 'room', 'docs', 'overlap'],
+    ['room change', '10:30', 'elsewhere', 'docs', 'travel-buffer'],
+    ['different devroom', '10:30', 'room', 'hardware', 'travel-buffer'],
+    ['missing devroom', '10:30', 'room', undefined, 'travel-buffer'],
+  ])('retains a real conflict: %s', (_, start, room, devroom, kind) => {
+    const a = { ...act('a', '10:00', '10:30', 'room'), devroomId: 'docs' };
+    const b = { ...act('b', start!, '11:00', room), devroomId: devroom };
+    const result = applyItineraryEdits({
+      base: [item('a', '10:00', '10:30'), item('b', start!, '11:00')],
+      edits: EMPTY_PLAN_EDITS,
+      activities: mapOf(a, b),
+      travel: ZERO_TRAVEL,
+    });
+    expect(result.conflicts.map((c) => c.kind)).toEqual([kind]);
+  });
+});

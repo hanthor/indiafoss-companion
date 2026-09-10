@@ -6,7 +6,7 @@ native Compose client (Android), and P2P chat as its own dedicated app.
 
 ## Quality gate (must be green before release)
 
-CI runs on every push and PR (`.github/workflows/ci.yml`), three jobs:
+CI runs on every push and PR (`.github/workflows/ci.yml`), four jobs:
 
 **checks** — format, lint, typecheck, unit + property tests, fixture
 verification, venue validation (synthetic + 2026), PWA build, dependency audit
@@ -64,19 +64,75 @@ through the `404.html` fallback and are base-path aware.
 Debug APKs are produced in CI with a sha256 checksum. For release builds:
 
 - an AAB and signed release APK require a signing keystore configured in the
-  Gradle build; CI currently produces **clearly identified debug** artifacts.
+  Gradle build; ordinary PR CI produces **clearly identified debug** artifacts; the rolling
+  nightly uses the persistent signing procedure below.
 - F-Droid / core distribution must contain **no mandatory Google Play Services
   or FCM** dependencies (local notifications only).
 
-### Accrescent
+### Our F-Droid repository
 
-[Accrescent](https://accrescent.app) is the app-store channel we are aiming
-for, and it wants a different artifact from everyone else: a **bundletool-made,
-developer-signed `.apks` APK set**, one signer, signature scheme v2/v3/v3.1,
-plus DNS proof that we control `indiafoss.org`. Its developer sign-up is
-closed today, so nothing is published there yet. The requirements, the
-attendee-facing install and update instructions, and the checklist of what we
-still owe are in [accrescent.md](./accrescent.md).
+The [repository implementation plan](tasks/own-fdroid-repository.md) specifies a
+shared Companion/Chat update catalogue using the existing signed APKs and a
+separate index key. It is not deployed yet; direct APK downloads remain the
+available distribution path.
+
+### Nightly signing and upgrades
+
+The nightly workflow builds a non-debuggable release APK, signs it outside
+Gradle, and verifies its certificate before moving the nightly tag or publishing.
+PR CI uses a disposable test key; it never receives the distribution key.
+Missing credentials, an invalid signature or a certificate mismatch stop
+publication and leave the previous nightly available.
+
+Configure these once, using an existing recoverable signing identity if one is
+available:
+
+| GitHub setting                     | Value                                          |
+| ---------------------------------- | ---------------------------------------------- |
+| Secret `NIGHTLY_KEYSTORE_BASE64`   | Base64 of an encrypted PKCS12 keystore         |
+| Secret `NIGHTLY_KEYSTORE_PASSWORD` | Store and private-key password (same password) |
+| Variable `NIGHTLY_KEY_ALIAS`       | Alias of the signing private key               |
+| Variable `NIGHTLY_CERT_SHA256`     | SHA-256 of the DER signing certificate         |
+
+Keep an encrypted keystore backup and its password in maintainer-controlled
+storage separate from GitHub Actions. Record the owner and verify that the
+backup opens before configuring publication. Never commit the key, print its
+base64/password, put it in build artifacts, or store it in Gradle caches.
+Repository secrets cannot serve as the only recoverable backup. Do not rotate
+the key to resolve a workflow failure.
+
+The workflow emits `*.apk.signing.json` containing the certificate fingerprint,
+APK checksum, source revision and version. Compare the installed certificate
+with that fingerprint before advising an upgrade. The application ID stays
+`org.indiafoss.companion.nativeapp`; version codes increase with nightly runs.
+
+**Existing runner-signed installations:** previous nightlies used disposable
+debug keys. A new persistent certificate does not authorise updates to those
+installations. Keep the old app installed with its data; do not uninstall or
+clear storage to bypass Android's signature check. Export any data the installed
+version can export and retain the original files. Complete native/PWA transfer
+is tracked in #240; an export alone is not a proven restoration path. Unless the
+original key can be recovered, those installations need a separately verified
+migration before replacement.
+
+Acceptance has two levels:
+
+- CI signs the release APK twice with one disposable identity, verifies the
+  certificate, and rejects missing-key and wrong-certificate configurations.
+  This tests signing, not an on-device upgrade.
+- Before closing #226, build two successive actual nightlies, record both
+  fingerprints/version codes, then upgrade on a phone without uninstalling.
+  Confirm saved choices, edited plans, ticket, contacts and card identity remain
+  intact. Record the exact APKs and device evidence; do not substitute CI APKs.
+
+### Update channels
+
+Attendees keep the app current through **Obtainium** (tracking the GitHub
+release page) or, once it is published, **our own F-Droid repository**. Both
+deliver the same signed APK that the direct download link serves, so the
+signing identity never changes between channels. We do not direct attendees to
+any third-party app store. Attendee-facing instructions and the state of the
+F-Droid repository are in [install-channels.md](./install-channels.md).
 
 ## iOS
 
@@ -114,7 +170,7 @@ cancelled, time, room, title, speaker, recording) are unit-tested in
 
 ## Release checklist
 
-- [ ] `just ci` green locally and in CI (all three jobs).
+- [ ] `just ci` green locally and in CI (all four jobs).
 - [ ] Accessibility suite passes; core flows operable by keyboard.
 - [ ] Event data published and verified for the target event; stable ids
       preserved (see [event onboarding](./event-onboarding.md)).
@@ -129,7 +185,7 @@ cancelled, time, room, title, speaker, recording) are unit-tested in
 ## Related docs
 
 - [Event onboarding](./event-onboarding.md)
-- [Accrescent distribution](./accrescent.md)
+- [Install channels](./install-channels.md)
 - [Venue route review checklist](./venue-route-review-checklist.md)
 - [Contact sharing & QR scanning](./contact-sharing.md)
 - [Calendar export](./calendar-export.md)

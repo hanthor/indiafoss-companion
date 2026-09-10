@@ -5,7 +5,7 @@
 - Deciders: James (maintainer)
 - Related: [ADR 0003](0003-mesh-interop-by-federation-not-bridging.md) (no
   bridging), [ADR 0005](0005-ios-mesh-chat.md), `docs/conference-spindle.md`,
-  `docs/contact-sharing.md`, #111 (verified MXID link, **done**), #176 (the
+  `docs/contact-sharing.md`, #111 (public profile comparison, shipped), #176 (the
   E2EE seam), hanthor/indiafoss-chat-android#40 (the cross-seam DM guard)
 
 ## Context
@@ -33,17 +33,22 @@ Three facts constrain any answer, and together they determine it:
 2. **A server-side bridge is refused** (ADR 0003): it "would read every
    conversation". The mesh and the Spindle are "two worlds joined by people,
    not by federation".
-3. **The binding between a person's two identities already exists.** #111
-   shipped it: the app, signed into the real account, signs a statement over
-   (mesh user id, mesh node key, real MXID, issued at) with that account's
-   device key; a peer verifies it against the real homeserver's
-   `/keys/query`. The companion's contact card already carries both ids
-   (`X-INDIAFOSS-MESH`, `X-INDIAFOSS-MATRIX`) plus `X-INDIAFOSS-KEY` /
-   `-SIG`, checked in person by the pixel key badge.
+3. **A public profile link exists; a cryptographic identity binding does not.**
+   The current `packages/matrix/src/mesh-link.ts` discovers the homeserver,
+   fetches `/profile/{matrixId}` and compares its `in.indiafoss.mesh` string
+   with the claimed mesh node ID. That result is now named `profile-matched`
+   (its legacy spelling `verified` meant only that these profile strings
+   match, and stored records are migrated on read). It does not sign a binding
+   statement or verify Matrix device keys through `/keys/query`. The contact card's own
+   signature/key badge proves possession of that card key, not ownership of
+   both Matrix accounts.
 
-So the join belongs in the client, at the **person** layer, on a
-cryptographic claim the person themselves made. Not in a server, not in the
-protocol, and not by pretending one identity reaches both worlds.
+The proposed client-side person layer depends on the reviewed cryptographic
+binding in #188. Its required statement, keys, freshness, revocation and
+verification rules are not shipped by #111. Until those rules and their tests
+are implemented, a profile match must not authorise automatic account merging
+or transport routing. This corrects the earlier implementation claim without
+approving the proposed protocol or changing the ADR's Proposed status.
 
 ## The analogy, and exactly where it stops
 
@@ -68,7 +73,7 @@ claim.
 
 ## Decision
 
-Merge at the **person** layer, in the client, gated on a verified #111 link.
+Merge at the **person** layer, in the client, gated on the reviewed binding in #188.
 Ship it in five stages, each independently useful and independently
 shippable. Do not merge identities, do not merge crypto, do not bridge.
 
@@ -84,9 +89,11 @@ shippable. Do not merge identities, do not merge crypto, do not bridge.
   (`NeutrinoService` already exposes discovered peers); a classic account is
   reachable when the network is up and its homeserver answers.
 - **Person** — a contact card, optionally binding `{meshId, matrixId}`.
-- **Link state** — `verified` (the #111 claim checked against the real
-  homeserver's keys, or the card's key badge checked in person), `claimed`
-  (signature present, not yet checked — the offline state), or `invalid`.
+- **Proposed link state** — `verified` only after the future #188 binding
+  verification succeeds, `claimed` while that evidence is unavailable, or
+  `invalid` when verification fails. These are future routing states, not the
+  current profile-comparison result. An in-person card badge check remains a
+  separate observation.
 
 ## Stage 0 — Coexistence
 
@@ -224,8 +231,8 @@ channel only you can read. Not a bridge.
 - **Mis-binding is the sharpest threat.** An attacker publishing "my mesh id
   is bound to `@someone-important:matrix.org`" would receive messages meant
   for them. Mitigation is absolute: merge and auto-route **only** on a
-  `verified` link — the #111 check against the real homeserver's keys, or an
-  in-person card badge check. `claimed` never routes.
+  `verified` binding under the reviewed #188 rules. The current #111 profile
+  match and a card badge alone are insufficient. `claimed` never auto-routes.
 - **Verification does not transfer.** Two accounts are two crypto identities;
   cross-signing one does not vouch for the other. Verification UX doubles,
   and the merged surfaces must show per-identity state rather than one

@@ -53,14 +53,33 @@ overlaps half the morning; the chain is never followed further. Slots are
 shown one at a time ("SLOT 3 OF 9 · 11:00–11:30", the anchor's window), with
 the sessions as cards.
 
-Tapping a session is the answer for the whole slot: it beats every other
-session it overlaps in one go, one recorded comparison per pair. If the
-losers still overlap each other the slot stays up with "And if that falls
-through?", so a backup order comes out in at most n − 1 taps. **Any of
-these** ties every open pair; **None of these** drops the slot's sessions
-from the day; "Decide this slot later" moves on. Keyboard: 1–9 pick the nth
-card, ↑/↓ the first or second, E ties, 0 drops, U or Backspace undoes the
-whole pick.
+Tapping a session settles the whole slot in one action (#271). The pick is
+planned (kept as Want to go unless it is already must-go), and every member
+it overlaps **stands aside** for it: the preference records `yieldedTo:
+<winner>`, a scheduling loss kept apart from `disposition`. A stood-aside
+talk stays an interest, is left out of the plan only while its winner is
+live on the day (`activeAfterYields`), comes back on its own if the winner
+is ruled out or cancelled, and is never learnt as a dislike (its comparison
+is recorded with `clash: true`, which votes for the winner's facets only). A
+four-way clash is therefore one tap, never three further "and if that falls
+through?" questions — that chain was the bug in #271: a pick answered only
+the winner's pairs, so the losers' pairs kept the same window open.
+
+Members the winner does not overlap (a long workshop's slot also holds the
+talk at its far end) are untouched and still live, so a later compatible
+talk is never suppressed. A must-go loser never stands aside: it keeps its
+mark and the plan keeps reporting the must-go conflict until the attendee
+changes that answer. The prompt names the reserved devroom on its talks
+("STAYING FOR THIS DEVROOM") and explains that picking another talk leaves
+the devroom for that slot only — the solver exempts that one winner from the
+block's reservation and keeps the rest of the block. Undo restores every
+session of the last answer exactly, stood-aside marks included; the Plan
+screen also lists the day's stood-aside talks with **Reconsider**.
+
+**Any of these** ties every open pair; **None of these** drops the slot's
+sessions from the day (an explicit answer, unlike standing aside); "Decide
+this slot later" moves on. Keyboard: 1–9 pick the nth card, ↑/↓ the first
+or second, E ties, 0 drops, U or Backspace undoes the whole pick.
 
 Under the hood a pair is open when the two sessions overlap, have not been
 answered, and their ratings are within `SETTLED_GAP` (64, two definitive
@@ -112,6 +131,13 @@ Data ↓") once a track has two or more votes.
   conflict, progress counting, slot anchoring (no chaining through a long
   session, not-interested left out, settled members dropped), affinity
   learning and fading, purity of `applyPriors`.
+- `packages/elo/src/index.test.ts` (clash resolution, #271): a four-way
+  simultaneous clash settled by one pick, staggered overlaps standing aside
+  only the talks the winner clashes with, a stood-aside talk returning when
+  its winner leaves, must-go losers kept, clash losses not learnt as dislike.
+- `packages/solver/src/yields.test.ts`: stood-aside talks left out while the
+  winner is live and back when it is not, must-go conflicts retained, later
+  compatible talks kept, leaving a reserved devroom for one talk.
 - `apps/web/tests/app.spec.ts`: the devrooms step lists no main hall and
   "Not interested" thins the talks; the card step keeps and drops by button
   and by swipe and survives a reload; a slot pick answers several pairs,

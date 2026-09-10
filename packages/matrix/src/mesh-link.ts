@@ -1,4 +1,4 @@
-import { isNeutrinoServerName } from '@indiafoss/model';
+import { classifyMeshIdentity } from '@indiafoss/model';
 import { MatrixClient, MatrixError, type FetchLike } from './http.js';
 
 /**
@@ -16,9 +16,16 @@ import { MatrixClient, MatrixError, type FetchLike } from './http.js';
  */
 export const MESH_IDENTITY_FIELD = 'in.indiafoss.mesh';
 
+/**
+ * What one read of the account's public profile observed. This is the
+ * homeserver's word about its own user, compared as a string: it is **not**
+ * Matrix device verification and must never be rendered as "Verified". The
+ * conclusion a UI may draw from it is an `AccountClaimTrust` of at most
+ * `profile-matched` (`@indiafoss/model/contracts`, #188).
+ */
 export type MeshLinkState =
-  /** The account's profile names this mesh identity. */
-  | 'verified'
+  /** The account's profile names this mesh identity: the homeserver agrees with the card. */
+  | 'profile-matched'
   /** The account's profile names a different mesh identity: not this phone. */
   | 'mismatch'
   /** The account's profile carries no mesh identity: a claim, nothing more. */
@@ -92,8 +99,8 @@ export async function verifyMeshLink(
     if (typeof published !== 'string' || !published.trim()) {
       return { state: 'unlinked', checkedAt: now() };
     }
-    const a = published.trim().toLowerCase();
-    const b = claim.meshServerName.trim().toLowerCase();
+    const a = classifyMeshIdentity(published);
+    const b = classifyMeshIdentity(claim.meshServerName);
     // `mismatch` is shown to the attendee as evidence that a card is not what
     // it claims to be — the strongest thing this screen says about another
     // person. It has to mean "these two identities disagree", never "this
@@ -104,28 +111,33 @@ export async function verifyMeshLink(
     // today holds an old-shape identity while the profile publishes a new one.
     // Comparing them as strings makes every pre-convergence card read as a
     // forgery. So an identity of an unrecognised shape is `outdated`, and the
-    // attendee is told the card predates a format change rather than accused
-    // of carrying a fake one.
-    if (!isNeutrinoServerName(a) || !isNeutrinoServerName(b)) {
+    // attendee is told the identity is in a format this build cannot read
+    // rather than accused of carrying a fake one. The shape decision itself is
+    // `classifyMeshIdentity`, the one place that owns it (#160).
+    if (a?.kind !== 'node-id' || b?.kind !== 'node-id') {
       return { state: 'outdated', checkedAt: now() };
     }
-    return { state: a === b ? 'verified' : 'mismatch', checkedAt: now() };
+    return { state: a.nodeId === b.nodeId ? 'profile-matched' : 'mismatch', checkedAt: now() };
   } catch {
     return { state: 'unverifiable', checkedAt: now() };
   }
 }
 
-/** Short label for a check, for badges and lists. */
+/**
+ * Short label for a check, for badges and lists. Every label says who is
+ * asserting what; none of them is the word "Verified", because nothing this
+ * module does can establish that (#188).
+ */
 export function meshLinkLabel(check: MeshLinkCheck | undefined): string {
   switch (check?.state) {
-    case 'verified':
-      return 'Verified';
+    case 'profile-matched':
+      return 'Profile matches';
     case 'mismatch':
       return 'Does not match';
     case 'unlinked':
       return 'Claimed';
     case 'outdated':
-      return 'Card predates a format change';
+      return "Identity format this app can't read yet";
     case 'unverifiable':
       return 'Not checked yet';
     default:

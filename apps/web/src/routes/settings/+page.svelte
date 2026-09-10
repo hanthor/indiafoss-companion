@@ -1,9 +1,25 @@
 <script lang="ts">
+  import ChatDownload from '$lib/components/ChatDownload.svelte';
+  import NativeDownload from '$lib/components/NativeDownload.svelte';
+  import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
-  import { notificationsEnabled, setNotificationsEnabled } from '$lib/notifications.svelte';
+  import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
+  import PersonalDataImport from '$lib/components/PersonalDataImport.svelte';
+  import ReminderStatus from '$lib/components/ReminderStatus.svelte';
+  import {
+    notificationsEnabled,
+    reminderState,
+    setNotificationsEnabled,
+  } from '$lib/notifications.svelte';
   import { goto } from '$app/navigation';
   import { formatDayLabel, getEventDays } from '@indiafoss/schedule';
-  import { eventState, loadEvent } from '$lib/event.svelte';
+  import { DEFAULT_EVENT_ID, eventState, loadEvent, storedRevision } from '$lib/event.svelte';
+  import {
+    checkForUpdates,
+    updateState,
+    refreshStatus,
+    hydrateRefreshStatus,
+  } from '$lib/updates.svelte';
   import {
     dayStart,
     formatSimTime,
@@ -17,6 +33,26 @@
   $effect(() => {
     hydrateSimulator();
     void loadEvent();
+  });
+
+  // The revision actually stored on this device, not the one we hoped to
+  // fetch. Offline, this is the honest answer to "what am I looking at?".
+  let localRevision = $state<number | null>(null);
+  const activeEventId = $derived(eventState.bundle?.id ?? DEFAULT_EVENT_ID);
+  const refresh = $derived(refreshStatus[activeEventId]);
+  $effect(() => {
+    void updateState.available;
+    void refresh?.checking;
+    const eventId = activeEventId;
+    let cancelled = false;
+    localRevision = null;
+    void storedRevision(eventId).then((r) => {
+      if (!cancelled) localRevision = r;
+    });
+    void hydrateRefreshStatus(eventId);
+    return () => {
+      cancelled = true;
+    };
   });
 
   // ---------- Day simulator (#93) ----------
@@ -56,6 +92,38 @@
     </p>
     <a class="button" href={resolve('/connect')}>Open contact card →</a>
   </section>
+  <NativeDownload />
+
+  <PersonalDataExport />
+  <PersonalDataImport />
+  <ChatDownload />
+  <section class="card">
+    <h2>Schedule updates</h2>
+    <p class="muted">
+      {#if localRevision === null}
+        Using a cached schedule without a recorded revision.
+      {:else}
+        You have revision {localRevision} stored on this device.
+      {/if}
+    </p>
+    <p class="muted" data-testid="refresh-success">
+      {#if refresh?.lastSuccessAt}
+        Last successful check: {new Date(refresh.lastSuccessAt).toLocaleString()}.
+      {:else}
+        No successful check recorded for this event yet.
+      {/if}
+    </p>
+    {#if refresh?.error}
+      <p class="muted" role="status">Last check failed: {refresh.error}</p>
+    {/if}
+    <button
+      class="button"
+      disabled={refresh?.checking ?? false}
+      onclick={() => checkForUpdates(activeEventId, { force: true })}
+    >
+      {refresh?.checking ? 'Checking…' : 'Check for updates'}
+    </button>
+  </section>
   <section class="card">
     <h2>Reminders</h2>
     <p class="muted">
@@ -67,11 +135,17 @@
       <input
         type="checkbox"
         role="switch"
+        disabled={reminderState.status === 'requesting' || reminderState.status === 'unsupported'}
         checked={notificationsEnabled.value}
-        onchange={(e) => void setNotificationsEnabled(e.currentTarget.checked)}
+        onchange={(e) => {
+          const enabled = e.currentTarget.checked;
+          e.currentTarget.checked = notificationsEnabled.value;
+          void setNotificationsEnabled(enabled);
+        }}
       />
       <span>Enable reminders</span>
     </label>
+    <ReminderStatus />
   </section>
   <section class="card" aria-labelledby="sim-title">
     <h2 id="sim-title">Simulate the day</h2>
@@ -142,8 +216,8 @@
   <section class="card">
     <h2>Setup</h2>
     <p class="muted">
-      The welcome steps from the first run: reminders, ticket, your card, ranking. Nothing is reset
-      by running them again.
+      The welcome steps from the first run: reminders, your card, ranking. Nothing is reset by
+      running them again.
     </p>
     <a class="button secondary" href={resolve('/welcome')}>Run setup again</a>
   </section>
@@ -153,6 +227,7 @@
       {#each privacyRules as rule (rule)}<li>{rule}</li>{/each}
     </ul>
   </section>
+  <ContributeNotice />
 </section>
 
 <style>

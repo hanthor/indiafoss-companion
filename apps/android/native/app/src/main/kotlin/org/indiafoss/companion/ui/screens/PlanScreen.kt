@@ -31,7 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
-import org.indiafoss.companion.core.Itinerary
+import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.core.Schedule
 import org.indiafoss.companion.data.StoredBlock
 import androidx.compose.material3.AlertDialog
@@ -41,8 +41,10 @@ import androidx.compose.runtime.mutableStateOf
 
 /**
  * The day, planned: must-attend first, then bookmarks, then the best-rated
- * session in every free slot (`Itinerary`, docs/ranking.md). Ranking is one
- * tap away, and a day with nothing ranked yet says so.
+ * session in every free slot (`Itinerary`, docs/ranking.md), with the
+ * attendee's edits layered on top (`ResolvedPlan`, #221) — the same rows Now,
+ * the map and the reminders follow. Conflicts are listed, never hidden.
+ * Ranking is one tap away, and a day with nothing ranked yet says so.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +54,7 @@ fun PlanScreen(
     onRank: () -> Unit,
     onCalendar: (String) -> String?,
     onSkip: (String) -> Unit,
+    onRestore: (String) -> Unit = {},
     onAddBlock: (StoredBlock) -> Unit = {},
     onRemoveBlock: (String) -> Unit = {},
     onOpen: (String) -> Unit,
@@ -73,15 +76,23 @@ fun PlanScreen(
                 }
             }
             val day = days[selected.coerceIn(0, days.lastIndex)]
-            val plan = state.itineraryFor(day)
+            val resolved = state.resolvedPlanFor(day)
+            val plan = resolved?.items.orEmpty()
             val ranked = state.ranking.comparisons.isNotEmpty() ||
                 state.ranking.ratings.values.any { it.triage != null }
             LazyColumn(Modifier.fillMaxSize()) {
+                if (resolved != null && !resolved.feasible) item {
+                    Text("Your choices conflict. Resolve these before following the plan:", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(16.dp))
+                    resolved.blockingConflicts.forEach { Text(it.message, modifier = Modifier.padding(horizontal = 16.dp)) }
+                }
+                resolved?.warnings.orEmpty().forEach { warning ->
+                    item { Text(warning.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(16.dp, 4.dp)) }
+                }
                 item {
                     Row(Modifier.fillMaxWidth().padding(16.dp, 12.dp, 16.dp, 4.dp)) {
                         Button(onClick = onRank) {
                             Icon(Icons.Filled.SwapVert, contentDescription = null)
-                            Text(if (ranked) "  Keep ranking" else "  Rank this day first")
+                            Text("  Find talks and devrooms")
                         }
                         OutlinedButton(
                             onClick = {
@@ -101,7 +112,7 @@ fun PlanScreen(
                         }
                     }
                     if (!ranked) Text(
-                        "Until you rank, the plan is your bookmarks plus the programme's first pick in each slot.",
+                        "Choose a few talks or stay for a devroom. You can change your choices any time.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 8.dp),
@@ -110,7 +121,7 @@ fun PlanScreen(
                 if (plan.isEmpty()) {
                     item { EmptyState("Nothing to plan", "Every session on this day is ruled out or unscheduled.") }
                 }
-                items(plan.filter { it.reason == Itinerary.Reason.BLOCK }, key = { "b-" + it.activity.id }) { item ->
+                items(plan.filter { it.source == ResolvedPlan.Source.BLOCK }, key = { "b-" + it.activity.id }) { item ->
                     // The attendee's own block: a fixed time, or a booth visit the plan placed in a gap.
                     Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
                         Row(Modifier.padding(16.dp, 10.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -134,25 +145,45 @@ fun PlanScreen(
                 item {
                     TextButton(onClick = { adding = true }, modifier = Modifier.padding(16.dp, 0.dp)) { Text("+ Add a block of your own") }
                 }
-                items(plan.filter { it.reason != Itinerary.Reason.BLOCK }, key = { it.activity.id }) { item ->
+                val removedToday = state.removedFromPlan.mapNotNull { id -> state.activity(id)?.takeIf { it.start?.startsWith(day) == true } }
+                items(removedToday, key = { "r-" + it.id }) { activity ->
+                    Row(Modifier.fillMaxWidth().padding(20.dp, 2.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text("Removed: ${activity.title}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                        TextButton(onClick = { onRestore(activity.id) }) { Text("Restore") }
+                    }
+                }
+                items(plan.filter { it.source != ResolvedPlan.Source.BLOCK }, key = { it.activity.id }) { item ->
+                    if (item.source == ResolvedPlan.Source.LUNCH) {
+                        Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text(timeAndRoom(item.activity, state.bundle), style = MaterialTheme.typography.labelMedium)
+                                Text(item.activity.title, style = MaterialTheme.typography.titleMedium)
+                                Text("A free half hour within the official lunch break", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                        return@items
+                    }
                     SessionCard(
                         activity = item.activity,
                         bundle = state.bundle,
-                        bookmarked = item.activity.id in state.bookmarks || item.reason == Itinerary.Reason.MUST_ATTEND,
+                        bookmarked = item.activity.id in state.bookmarks || item.source == ResolvedPlan.Source.MUST_ATTEND,
                         onOpen = { onOpen(item.activity.id) },
                     )
-                    val why = when (item.reason) {
-                        Itinerary.Reason.BLOCK -> "Your block"
-                        Itinerary.Reason.MUST_ATTEND -> "Must attend"
-                        Itinerary.Reason.BOOKMARKED -> "Bookmarked"
-                        Itinerary.Reason.RANKED ->
+                    val why = when (item.source) {
+                        ResolvedPlan.Source.BLOCK -> "Your block"
+                        ResolvedPlan.Source.LUNCH -> "Lunch break"
+                        ResolvedPlan.Source.MUST_ATTEND -> "Must attend"
+                        ResolvedPlan.Source.BOOKMARKED -> "Bookmarked"
+                        ResolvedPlan.Source.REPLACEMENT -> "Your replacement"
+                        ResolvedPlan.Source.RANKED ->
                             if (state.ranking.rating(item.activity.id).comparisons > 0 || ranked) "Best rated in this slot"
                             else "The programme's pick for this slot"
                     }
                     Row(Modifier.fillMaxWidth().padding(start = 32.dp, end = 16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         Text(why, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
-                        if (item.reason == Itinerary.Reason.RANKED) {
-                            TextButton(onClick = { onSkip(item.activity.id) }) { Text("Not this one") }
+                        if (item.source == ResolvedPlan.Source.RANKED || item.source == ResolvedPlan.Source.BOOKMARKED || item.source == ResolvedPlan.Source.REPLACEMENT) {
+                            // Leaves the plan on every surface; the rating is untouched, so no dislike is learnt from a slot.
+                            TextButton(onClick = { onSkip(item.activity.id) }) { Text("Remove") }
                         }
                     }
                 }

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "eventId": "indiafoss-2026",
+  "revision": 15,
+  "generatedAt": "2026-09-10T04:45:23.083Z",
+  "timezone": "Asia/Kolkata",
+  "sourceUpdatedAt": "2026-09-09 22:43:49.137373",
+  "assets": {
+    "event": "event.ee802ed0.json",
+    "schedule": "schedule.b5b10c42.json",
+    "people": "people.33cd1998.json",
+    "booths": "booths.6c87cf33.json"
+  }
+}

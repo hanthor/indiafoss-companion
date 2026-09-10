@@ -20,6 +20,9 @@ data class EventBundle(
     val locations: List<Location> = emptyList(),
     val booths: List<Booth> = emptyList(),
     val tracks: List<Track> = emptyList(),
+    val sourceMetadata: SourceMetadata = SourceMetadata(),
+    /** Organiser-published arrival details (#278); null until an organiser page confirms them. */
+    val venue: EventVenue? = null,
 ) {
     private val peopleById by lazy { people.associateBy { it.id } }
     private val locationsById by lazy { locations.associateBy { it.id } }
@@ -30,6 +33,33 @@ data class EventBundle(
 
     fun speakersOf(activity: Activity): List<Person> = activity.speakerIds.mapNotNull(::person)
 }
+
+@Serializable
+data class SourceMetadata(val scheduleStatus: String? = null)
+
+/**
+ * Outdoor arrival block: venue name, address and the organiser-selected map
+ * destination, with the page it was read from and when. The map link marks
+ * the building, not an entrance; indoor routing is the venue asset's job.
+ */
+@Serializable
+data class EventVenue(
+    val version: Int = 1,
+    val name: String,
+    val address: String,
+    val city: String,
+    val region: String? = null,
+    val country: String? = null,
+    val mapUrl: String,
+    val coordinates: VenueCoordinates? = null,
+    val sourceUrl: String,
+    val travelGuideUrl: String? = null,
+    val checkedAt: String,
+    val note: String? = null,
+)
+
+@Serializable
+data class VenueCoordinates(val latitude: Double, val longitude: Double)
 
 @Serializable
 data class Activity(
@@ -49,6 +79,8 @@ data class Activity(
     val flexible: Boolean = false,
     val audience: String? = null,
     val sourceUrl: String? = null,
+    val proposalId: String? = null,
+    val scheduleNote: String? = null,
     val keyTakeaways: List<String> = emptyList(),
     val links: List<ExternalLink> = emptyList(),
     val references: List<ExternalLink> = emptyList(),
@@ -82,6 +114,7 @@ data class Booth(
     val description: String? = null,
     val website: String? = null,
     val locationId: String? = null,
+    val availableDates: List<String>? = null,
     val tags: List<String> = emptyList(),
 )
 

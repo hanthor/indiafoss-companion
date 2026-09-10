@@ -1,0 +1,25 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 6,
+  "from": 5,
+  "changes": [
+    {
+      "activityId": "act-28la8gj1tt",
+      "title": "404: Empathy Not Found",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lapvjakp",
+      "title": "Printable, Downloadable, Forever: An Ode to Offline Documentation",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-aq5tc1ppib",
+      "title": "Devroom Wrap-Up",
+      "type": "time-changed"
+    }
+  ],
+  "summary": {
+    "time-changed": 3
+  }
+}

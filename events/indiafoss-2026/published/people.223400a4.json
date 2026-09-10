@@ -1,0 +1,1180 @@
+{
+  "people": [
+    {
+      "id": "person-advait-dhamorikar",
+      "name": "Advait Dhamorikar",
+      "bio": "Linux hacker, embedded tinkerer, and occasional keyboard builder/breaker.",
+      "designation": "Linux Software Engineer",
+      "organization": "Mecha Systems",
+      "avatarUrl": "https://fossunited.org/files/1525748.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/advait-dhamorikar"
+        }
+      ]
+    },
+    {
+      "id": "person-afnan-k-salal",
+      "name": "Afnan K Salal",
+      "bio": "I'm Afnan K Salal, a tech enthusiast from Kerala who somehow ended up running a software company while spending most of his time building weird things. My interests range from compilers and programming languages to embedded hardware, AI, and distributed systems. I've worked on projects spanning custom language tooling, IoT platforms, and multi-agent AI systems, and I'm always looking for excuses to dive deeper into how things work under the hood.",
+      "designation": "CEO",
+      "organization": "VTRON",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/72243953?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://afnan.codes"
+        }
+      ]
+    },
+    {
+      "id": "person-agnish-ghosh",
+      "name": "Agnish Ghosh",
+      "bio": "I contribute to open-source Ethereum software and enjoy working on systems, networking, cryptography and mechanism design. Outside computing, I practice Indian classical vocal music, spend time lifting, and hope to someday trade servers for soil and run a farm.",
+      "designation": "Ethereum Core Dev and Nim Engineer",
+      "organization": "Institute of Free Technology (Nimbus Eth2)",
+      "avatarUrl": "https://fossunited.org/files/okkkk.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/agnish-ghosh-15902a211/"
+        }
+      ]
+    },
+    {
+      "id": "person-agriya-khetarpal",
+      "name": "Agriya Khetarpal",
+      "bio": "I am a software engineer based in New Delhi, India, working on scientific open source software in the Pyodide, Scientific Python, and Jupyter ecosystems. My interests in the world of documentation lean toward static site generators such as Hugo and Sphinx (and extensions), docs-as-code tooling, web accessibility, and translations. I’ve particularly spent a considerable amount of time advancing WebAssembly-powered interactive documentation and setting up translation infrastructure for scientific Python projects.",
+      "designation": "Software Engineer",
+      "organization": "Quansight",
+      "avatarUrl": "https://fossunited.org/files/profile_1q76h24k0m3bfc44.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://agriyakhetarp.al"
+        }
+      ]
+    },
+    {
+      "id": "person-akash-edamana",
+      "name": "Akash Edamana",
+      "bio": "Mechanical engineer and maker based in Kerala. I work in R&amp;D and product development - taking ideas from concept to working prototype: ideation, CAD, fabrication, testing, iteration. My strength is working end-to-end. I design the mechanical system, fabricate it, and get it to actually function. Fab Academy 2025 graduate from Super Fablab Kerala went deep into digital fabrication, CNC, 3D printing, and building complete projects from scratch. What I work with: CAD: SolidWorks, Fusion 360, Creo, Rhino, Solid Edge, Blender Fabrication: CNC machining, 3D printing, prototyping, DFM Electronics &amp; embedded: Arduino, ESP32, PCB design - enough to integrate with mechanical systems Previously sole Design Engineer at Aero360, Chennai. Currently Technology Fellow at Kerala Startup Mission (KSUM), Kochi.",
+      "designation": "Technology Fellow",
+      "organization": "Super Fablab Kerala",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-28 at 10.46.32 PMc33b1b.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/akashedamana/"
+        }
+      ]
+    },
+    {
+      "id": "person-akshay-abdar",
+      "name": "Akshay Abdar",
+      "bio": "Hi, my name is Akshay Shripati Abdar from Goa currently working as an Embedded Software Engineer in Texas Instruments India. I completed my MTech from IIT Kharagpur in 2024 in Embedded Controls and Software domain. I primarily work on developing Vision AI (ADAS SDK) and EdgeAI SDK’s involving AM62A SoC in my current field of work. Along with my technical interest i also love visiting different places, explore food, watch football and going gym.",
+      "designation": "Embedded Software Engineer",
+      "organization": "Texas Instruments India",
+      "avatarUrl": "https://fossunited.org/files/DSC_0756.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/akshay-abdar-35746a207?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+        }
+      ]
+    },
+    {
+      "id": "person-alwin-varghese",
+      "name": "Alwin Varghese",
+      "bio": "Electronics and Computer Engineering student at Amrita Vishwa Vidyapeetham strong interest in embedded systems, IoT, and hardware prototyping, a hardware security enthusiast and a member of the bi0s hardware. Experienced in building ESP32-based systems involving BLE communication, voice interfaces,. Passionate about developing practical hardware solutions that solve real-world problems and improve accessibility through technology.",
+      "designation": "Student",
+      "organization": "bi0s",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-28 at 11.42.42 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/alwin-varghese-58a45a330/"
+        }
+      ]
+    },
+    {
+      "id": "person-aman-valiyakath",
+      "name": "Aman Valiyakath",
+      "bio": "Hi! I'm Aman Valiyakath, a third-year CSE student at Amrita Vishwa Vidyapeetham and a mentor at amFOSS, a student-run FOSS club. I enjoy exploring the intersection of art and programming, and many of my projects are driven by that combination. Lately, I've been building desktop shells and UI tooling for Linux/X11.",
+      "designation": "Student",
+      "organization": "amFOSS | Amrita Vishwa Vidyapeetham",
+      "avatarUrl": "https://fossunited.org/files/aman-heart-2.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/aman-valiyakath/"
+        }
+      ]
+    },
+    {
+      "id": "person-amit-pundir",
+      "name": "Amit Pundir",
+      "bio": "IndiaFOSS'26 AOSP devroom manager",
+      "designation": "Software Engineer",
+      "avatarUrl": "https://fossunited.org/files/profile_4mj978tfvma6a536.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://fosstodon.org/@pundir"
+        }
+      ]
+    },
+    {
+      "id": "person-amneesh",
+      "name": "Amneesh",
+      "bio": "I have been an embedded engineer at Texas Instruments for more than one year, mostly working on Zephyr. Before TI, I enjoyed playing sys-admin at home and hosting stuff for friends. Recent hobbies include reading and boxing.",
+      "designation": "Software Engineer",
+      "organization": "Texas Instruments",
+      "avatarUrl": "https://fossunited.org/files/1000494485.jpg",
+      "links": []
+    },
+    {
+      "id": "person-ankit-siddhapura",
+      "name": "Ankit Siddhapura",
+      "bio": "Ankit Siddhapura is a Technical lead in embedded software at Silicon Signals pvt ltd. A dedicated contributor to the Android Open Source Project (AOSP) and the Android custom ROM. Embedded Software Engineer with expertise in Android/Linux BSP, AOSP camera stack, and IoT solutions. Experienced with Qualcomm, NXP, and Amlogic platforms, camera HAL, and wireless protocols like Wi-Fi, Zigbee, and LoRaWAN.",
+      "designation": "Technical Lead - Embedded Software",
+      "organization": "Silicon Signals Pvt. Ltd",
+      "avatarUrl": "https://fossunited.org/files/Untitleddbd6fe.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ankit-siddhapura/"
+        }
+      ]
+    },
+    {
+      "id": "person-antara-paul",
+      "name": "Antara Paul",
+      "bio": "Product Designer at Ente, building privacy-first products and the systems behind them.",
+      "designation": "Product designer",
+      "organization": "Ente",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-21 at 19.43.23-2.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/Paul_Antara04"
+        }
+      ]
+    },
+    {
+      "id": "person-anubhav-paul",
+      "name": "Anubhav Paul",
+      "bio": "I am a second-year Electrical Engineering student at IIT Delhi. I developed this project during a summer internship with FP Launchpad at IIT Madras, where I worked on formalizing elementary arithmetic algorithms in Lean 4 from a pedagogical angle. My broad interests include math, algorithms, and systems.",
+      "designation": "Undergraduate Student",
+      "organization": "IITD/ FP Launchpad IITM",
+      "avatarUrl": "https://fossunited.org/files/photo90fd1a.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/UnOrdinary19"
+        }
+      ]
+    },
+    {
+      "id": "person-anupam-jain",
+      "name": "Anupam Jain",
+      "bio": "Functional Programming and Type Theory Nerd UI Architect at Arista Networks Founder Functional Programming India Meetup Group",
+      "designation": "UI Architect",
+      "organization": "Arista Networks",
+      "avatarUrl": "https://fossunited.org/files/1780252865613.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/anupam-j/"
+        }
+      ]
+    },
+    {
+      "id": "person-armaan-chowfin",
+      "name": "Armaan Chowfin",
+      "bio": "Armaan started his journey in operating systems as an undergraduate researcher at iit bombay, focused on linux networking and x86-based virtualization. As an engineer at redkill, he works on developing and tuning core kernel subsystems - with an added interest in offensive/defensive security research.",
+      "designation": "Kernel engineer",
+      "organization": "Redkill Technologies",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-08-28 at 2.36.21 AM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/armaan-chowfin/"
+        }
+      ]
+    },
+    {
+      "id": "person-arun-kumar-aditya",
+      "name": "arun Kumar aditya",
+      "bio": "I have been an Android application developer with 5+ years of experience building production applications. For the last 2 years, I have been exploring AOSP OEM vendor layer development on Raspberry Pi 5. I built a series of projects in AOSP — starting from a basic Binder calculator service and working up through thermal control HALs, SafeMode native services, and hardware peripherals. I document each project as a detailed engineering journal, covering every real error and the reasoning behind every design decision. I live in India, and share my work on GitHub at github.com/ProArun. And this is going to be my first talk on any public forum, so I am excited",
+      "designation": "SDE 3",
+      "organization": "Mercedes-Benz Research & Development India",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocIMf77KKQqV_j89THuZeh1VhI17rYwb_xPbiSIYHY7pJumSCg4=s96-c",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/arun-aditya-82a94914a/"
+        }
+      ]
+    },
+    {
+      "id": "person-arunkumar-g",
+      "name": "ArunKumar G",
+      "bio": "I am a Staff Customer Engineer at Google Cloud with 18+ years of experience spanning software engineering, DevOps, cloud platforms, security, and AI. I work with enterprises to accelerate software delivery using AI-powered developer tools, secure software development practices, and cloud-native architectures. Also i am passionate about Zero Trust Security, DevSecOps, Agentic AI, and the future of AI-driven software engineering. I am a frequent speaker at technology communities and industry events, where i share practical insights on applying emerging technologies to real-world business challenges.",
+      "designation": "Staff Customer Engineer, Applied AI",
+      "organization": "Google",
+      "avatarUrl": "https://fossunited.org/files/ArunKG-Headshot.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/arun-kg/"
+        }
+      ]
+    },
+    {
+      "id": "person-ashish-jaiswal",
+      "name": "Ashish Jaiswal",
+      "bio": "Ashish is the CTO at Obmondo with over 15 years of experience in Linux, Kubernetes, and open-source infrastructure. He started his career on Red Hat's support team, working on RHEL kernel and base operating system issues, and has remained a strong advocate for open source ever since. Since joining Obmondo in 2015, he has grown from engineer to CTO, leading the architecture and engineering of the company's products while helping organizations build and operate secure, scalable Linux and Kubernetes platforms without vendor lock-in.",
+      "designation": "Chief Technology Officer",
+      "organization": "Obmondo",
+      "avatarUrl": "https://media.licdn.com/dms/image/v2/C4E03AQGxk8U0LdeabA/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1602730782652?e=1787788800&v=beta&t=Gg6paOCOOM2wLjHptty43IPolYMNnTJ6QYED6hsImaM",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ashish1099/"
+        }
+      ]
+    },
+    {
+      "id": "person-ashish-joy",
+      "name": "Ashish Joy",
+      "bio": "A Mechatronics Engineer with a passion for embedded systems, CNC machines, and robotics. Completed the Fab Academy program, I developed practical expertise in digital fabrication, electronics design, and system integration, building projects that blend creativity with engineering. I thrive at the intersection of hardware and software, transforming ideas into working prototypes and scalable systems. With a strong foundation in mechatronics and hands-on fabrication experience, I aim to contribute to industrial automation, robotics, and advanced manufacturing. I’m eager to connect with professionals in automation, embedded systems, and machine building to exchange knowledge and explore opportunities for collaboration.",
+      "designation": "Technology Fellow",
+      "organization": "Super Fablab Kerala",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-28 at 10.46.04 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ashishjoy-mr/"
+        }
+      ]
+    },
+    {
+      "id": "person-ayushman-agrawal-hingorani",
+      "name": "Ayushman Agrawal Hingorani",
+      "bio": "Residential Nerd, likes stuff related to the Roman Empire, FOSS and Security. Will work towards the better of mankind. (FOR THE EMPEROR!)",
+      "designation": "Security Researcher & Network Engineer",
+      "organization": "DefHawk",
+      "avatarUrl": "https://fossunited.org/files/Ayushman.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ayushman-agrawal-hingorani-8023b7192/"
+        }
+      ]
+    },
+    {
+      "id": "person-azim-javed",
+      "name": "Azim Javed",
+      "bio": "This boy pretends to be a Security Researcher but is always busy doom-scrolling reels. Sometimes when he’s bored, he likes to tear-up some IoT devices and tries to act as if he’s the cool hacker boy shown in movies with a terminal and random green coloured text.",
+      "designation": "Security Researcher",
+      "organization": "DefHawk",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-24 at 21.01.17.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/azimjaved/"
+        }
+      ]
+    },
+    {
+      "id": "person-badri-sunderarajan",
+      "name": "Badri Sunderarajan",
+      "bio": "Writer, illustrator, and freelance software developer. Been managing DNS records since age 12, and now runs the family YunoHost instance. Founding editor of Snipette magazine and currently Bursary Team Lead at Prav . Member of the XMPP Standards Foundation (XSF) and creator of Convo , an XMPP messaging app for KaiOS. Carries a flip phone .",
+      "designation": "Independent Tech Consultant",
+      "avatarUrl": "https://fossunited.org/files/profile_m143g71u8kb5f30bb5f30b.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://badrihippo.thekambattu.rocks"
+        }
+      ]
+    },
+    {
+      "id": "person-balu-babu",
+      "name": "Balu Babu",
+      "bio": "I like to make stuff.",
+      "designation": "Engineer",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/14091627?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/balub"
+        }
+      ]
+    },
+    {
+      "id": "person-bharathiraja",
+      "name": "Bharathiraja",
+      "bio": "Bharathiraja Nallathambi is an embedded systems engineer at Linumiz with 15+ years of experience, working at the intersection of RISC-V, FPGAs, and the Zephyr software stack. His interests span hardware software co-design and cryptographic hardware. Pursued doctoral research in FPGA-based fault diagnosis for lightweight cryptographic hardware, with a publication in Elsevier Microprocessors and Microsystems.",
+      "designation": "Embedded Software Engineer",
+      "organization": "Linumiz",
+      "avatarUrl": "https://fossunited.org/files/Bharathi_passport.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/bharathiraja-nallathambi"
+        }
+      ]
+    },
+    {
+      "id": "person-bhuvan",
+      "name": "Bhuvan",
+      "bio": "I am pursuing a B.E in Computer Science Engineering at Dayananda Sagar College of Engineering, Bangalore.I am an ACM SIGPLAN-M mentee and a Linux Foundation LiFT Scholar.I have interests in Compiler Engineering , parallel programming ,High performance computing ,C, C++, LLVM, Operating systems and open source. I have worked on devirtualization passes and optimising virtual method tables and MLIR dialects. I have contributions in RTEMS and Open Robotics.",
+      "designation": "Open Source Contributor",
+      "avatarUrl": "https://fossunited.org/files/1000025348.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/bhuvanb404"
+        }
+      ]
+    },
+    {
+      "id": "person-chaitany-patel",
+      "name": "Chaitany Patel",
+      "bio": "Chaitany Patel is an Associate Software Engineer at Red Hat, working on open-source AI and MLOps platforms. He contributes to projects including Feature Stores, sktime, TuringDB, and Cognee, and is a GSoC 2026 mentee under the German Center for Open Source AI. As a member of Kubeflow Commons Hub India, he helps developers move from users to open-source contributors.",
+      "designation": "Associate Software Enginee",
+      "organization": "Red Hat",
+      "avatarUrl": "https://fossunited.org/files/me82f638.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/chaitany-patel/"
+        }
+      ]
+    },
+    {
+      "id": "person-denny-george",
+      "name": "Denny George",
+      "bio": "I am Co Founder and Tech Lead at Tattle. We build &nbsp; tools and &nbsp; datasets to understand and respond to inaccurate and harmful content.",
+      "designation": "Co Founder and Tech Lead",
+      "organization": "Tattle Civic Technologies",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/1415361?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/dennyabrain"
+        }
+      ]
+    },
+    {
+      "id": "person-durwasa-chakraborty",
+      "name": "Durwasa Chakraborty",
+      "bio": "I am a PhD scholar in the Department of CS at IIT Madras, advised by Dr. KC Sivaramakrishnan and Dr. Kartik Nagar. My research focuses on programming languages and the formal verification of concurrent systems, that is, formally proving that concurrent programs are correct. I completed my undergraduate studies at Government Engineering College, Jabalpur, and my master's at Northeastern University, Boston. Before returning to academia as a full-time PhD student, I spent some years in industry as a software engineer at IBM, MathWorks, and AWS, building distributed systems, cloud infrastructure, and data pipelines, which gave me the financial stability I then heroically abandoned for intellectual freedom and a tax-free stipend. Outside research, I faithfully perform the sacred duties of every software engineer: watching anime, playing guitar, and carrying a camera everywhere in the hope of one day accidentally taking a good photograph. I occasionally write about algorithms, computer science, academia, and assorted obsessions under \"Anachronistic Monk,\" at durwasa-chakraborty.github.io.",
+      "designation": "PhD Student",
+      "organization": "Indian Institute of Technology, Madras",
+      "avatarUrl": "https://fossunited.org/files/durwasa_chakraborty_profile_pic.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://durwasa-chakraborty.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "person-eeshaan-sawant",
+      "name": "Eeshaan Sawant",
+      "bio": "Eeshaan is a DevRel Engineer at Nextcloud GmbH . He is an open source fanatic, and you can talk to him about cool things like digital sovereignty, digital autonomy, APIs and Cloud Native. Eeshaan loves to share what he learns, and has given talks at multiple open source conferences across the globe — UbuCon Asia, DevRel Kaigi Japan, Write the Docs Australia, Linux App Summit Europe, ChennaiFOSS; just to name a few. Don't be surprised if you see Eeshaan carrying his own coffee equipment at a conference. He loves sipping on his \"freshly brewed\" coffee, and is a hobbyist Home Barista when not by his laptop. ☕️ He also enjoys food and traveling to new countries. 🌎",
+      "designation": "Developer Relations Engineer",
+      "organization": "Nextcloud GmbH",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/100678386?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/sawanteeshaan"
+        }
+      ]
+    },
+    {
+      "id": "person-ganesh-bruno",
+      "name": "ganesh-bruno",
+      "bio": "Someone who loves open-source developer tools and actively engages with the developer community. I enjoy learning about new technologies, sharing insights, and helping developers discover useful tools. From my experience, good documentation is one of the biggest factors in driving adoption, especially for developer-focused products.",
+      "designation": "DevRel Engineer",
+      "organization": "usebruno",
+      "avatarUrl": "https://fossunited.org/files/profile_1a1oqqld0uda1f59.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.youtube.com/@devgancode"
+        }
+      ]
+    },
+    {
+      "id": "person-gautham-mohanraj",
+      "name": "Gautham Mohanraj",
+      "bio": "I’m a software engineer, Android developer, open-source contributor, and third-year student at Amrita Vishwa Vidyapeetham who enjoys understanding how Android works under the hood. I contribute to projects like Scribe-Android, a multilingual open-source keyboard, and Wikimedia ecosystem software, and spend a lot of time exploring Android internals, performance, platform quirks, and the occasional weird bug.",
+      "designation": "Student | amFOSS",
+      "organization": "Amrita Vishwa Vidyapeetam",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-05-27 at 00.50.26.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/angrezichatterbox/"
+        }
+      ]
+    },
+    {
+      "id": "person-gautham-sai",
+      "name": "Gautham Sai",
+      "bio": "Electronics and Communication Engineering undergraduate, a hardware security enthusiast and a member of the bi0s hardware. interests include embedded security and development, side-channel attacks and automotive security.",
+      "designation": "Student",
+      "organization": "bi0s",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-28 at 11.32.47 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/gautham-sai-b3781b205/"
+        }
+      ]
+    },
+    {
+      "id": "person-gigi-koneti",
+      "name": "GiGi Koneti",
+      "bio": "I’m an open-source contributor and student researcher in the field of AI and mathematics. I’m currently interning at IIT Bombay, building a math module for eSim, FOSSEE, an open-source EDA tool. I build optimized solutions for real-world problems. I have been actively contributing to open-source projects like ML-LAM, PyTorch, and Hugging Face. I am also a member of the open-source community in Bengaluru and an active member of Cohere Labs, an ML research community with researchers worldwide.",
+      "designation": "Intern",
+      "organization": "FOSSEE, IIT Bombay",
+      "avatarUrl": "https://fossunited.org/files/GiGi.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://gigikoneti.vercel.app"
+        }
+      ]
+    },
+    {
+      "id": "person-hamdaan-ali-quatil",
+      "name": "Hamdaan Ali Quatil",
+      "bio": "I'm a software engineer, architect, and open-source maintainer working at the intersection of security, identity, performance, and infrastructure. I build reliable systems, contribute to developer tools, and write about authentication, access control, API security, and performance engineering.",
+      "designation": "Software Engineer",
+      "organization": "Intuit",
+      "avatarUrl": "https://fossunited.org/files/698-crop.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://hamdaanali.com/"
+        }
+      ]
+    },
+    {
+      "id": "person-hariesh-varshan",
+      "name": "Hariesh Varshan",
+      "bio": "Avid learner who loves to explore everything embedded on and off work. I do run and gym as I strongly believe movement is my way of living.",
+      "designation": "Embedded Software Engineer",
+      "organization": "Texas Instruments India Pvt Ltd",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocJWpp2R-w0DHQzW5MebcajEynejP7zYfsz_6AAzzfLx97QUWWaS4A=s96-c",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/hariesh-varshan"
+        }
+      ]
+    },
+    {
+      "id": "person-harini-anand",
+      "name": "Harini Anand",
+      "bio": "I currently work as a Software Developer at IBM at the Data &amp; AI Division, on IBM watsonx™,&nbsp; which is our portfolio of AI products that accelerates the impact of generative AI in core workflows to drive productivity. I am an Undergraduate Researcher for Software Engineering at UIUC under Prof. Darko Marinov. I am a Research Associate at Georgia Institute of Technology, working at the intersection of ML, systems biology, and interpretable AI, exploring computational approaches to understanding complex systems. I am Biomedical XAI Researcher at Dartmouth College where my research focuses on scalable, low-burden approaches for personalized prediction and monitoring of schizophrenia. I previously worked at Niramai Health Analytix, a deep tech startup focusing on Breast Cancer and used ML frameworks as a Research Intern at Indian Institute of Technology Hyderabad, to predict gene regulatory networks. I have also built cognitive tools for reducing the onset of Dementia as a student entrepreneur. I led the largest technical community on campus, also held workshops and have given talks on Machine Learning, NLP, and Data Science.&nbsp; I’ve been admitted to top summer schools at Oxford University, London and Massachusetts Institute of Technology which specialize in the applications of AI in Healthcare. I am Google KaggleX Mentee, and an AWS Scholar and have been awarded merit scholarships. I am a strong advocate for representation in STEM, and recognized as a High Impact APAC Ambassador for the Women In Data Science Community, an initiative by Stanford University. I am also a Harvard WE Tech Fellow. I am a published AI researcher, a technical keynote speaker and have spoken at universities like Purdue University, IIT Madras, enterprises like Google, Microsoft Research, Intuit, and global conferences like Kubecon+CloudNative Con, MCP Dev Summit, Women Who Go, and FOSS United.",
+      "designation": "Data and AI SDE",
+      "organization": "IBM",
+      "avatarUrl": "https://fossunited.org/files/Harini Headshota5979d.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/harini-anand-2002/"
+        }
+      ]
+    },
+    {
+      "id": "person-jai-bellare",
+      "name": "Jai Bellare",
+      "bio": "I am a BTech student in Electrical Engineering at IIT Bombay. I won the Best Poster Award at the National Academy of Sciences, India Annual Symposium, 2024, for my development of an open-source GPU accelerated fluid simulation tool.",
+      "designation": "Student Researcher",
+      "organization": "HackerFab, IIT Bombay",
+      "avatarUrl": "https://fossunited.org/files/2026-06-27_23-58-45.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/jaibellare"
+        }
+      ]
+    },
+    {
+      "id": "person-jaimin-kalariya",
+      "name": "Jaimin Kalariya",
+      "bio": "A dedicated Android Custom ROM (LineageOS) Device maintainer &amp; contributor. Passionate Android Embedded Software Engineer specializing in open-source development and AOSP contributions. Expert in the Android ecosystem (framework, HALs, Kernel, applications) for developing cutting-edge systems that maximize Android's capabilities.",
+      "designation": "Senior Embedded Software Engineer",
+      "organization": "Silicon Signals Pvt. Ltd.",
+      "avatarUrl": "https://fossunited.org/files/New_Profil.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/jaimin-kalariya"
+        }
+      ]
+    },
+    {
+      "id": "person-jasil-faras",
+      "name": "Jasil Faras",
+      "bio": "Running on caffeine and open source",
+      "designation": "Student",
+      "avatarUrl": "https://fossunited.org/files/profile_obieujsmrk4d60b94d60b9.webp",
+      "links": []
+    },
+    {
+      "id": "person-jayapriya-pai",
+      "name": "Jayapriya Pai",
+      "bio": "Senior Software Engineer at Red Hat with cross functional background spanning Quality Engineering, System Engineering, and Software Engineering. Currently part of OpenShift Observability Team focussing on building and maintaining the In-cluster monitoring stack. Active Open Source contributor and maintainer for the Prometheus Operator projects and CNCF projects Perses , Kubernetes metrics-server . Served as Google Summer of Code mentor (2024, 2025) for the Prometheus Operator project. Most recently also working at the intersection of Observability and AI, building MCP servers that give LLMs structured access to the monitoring stack.",
+      "designation": "Senior Software Engineer",
+      "organization": "Red Hat",
+      "avatarUrl": "https://fossunited.org/files/Jp.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://slashpai.medium.com"
+        }
+      ]
+    },
+    {
+      "id": "person-kalyani-desai",
+      "name": "Kalyani Desai",
+      "bio": "I am a Technical Writer, Content Engineer, and Information Developer at Red Hat, working at the intersection of technology and communication. I focus on making complex developer documentation clear, accessible, and genuinely useful, currently leading documentation for Red Hat OpenShift Serverless and Red Hat OpenShift Serverless Logic, and maintaining their upstream open source projects: Knative, Kogito, and SonataFlow. I mentor aspiring professionals, speak on developer experience, emerging technologies, and AI, and create technical content with the goal of making knowledge accessible to everyone regardless of background or ability. I believe the most powerful thing any technologist can do is share what they know and lower the barriers for those who come next.",
+      "designation": "Technical Writer",
+      "organization": "Red Hat",
+      "avatarUrl": "https://fossunited.org/files/KalyaniDesai.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/kalyani-desai-2188a98a"
+        }
+      ]
+    },
+    {
+      "id": "person-karthikeyan",
+      "name": "Karthikeyan",
+      "bio": "With 5+ years of experience primarily in Embedded Linux and Zephyr RTOS, Karthikeyan started exploring AOSP as an option to expand the portfolio for Linumiz and also as a hobbyist. Quickly, AOSP became more than a weekend hobby, leading a team working closely with customers needing upstream. Karthi also works closely with security components like OP-TEE, DM-Crypt, and Secure Boot to help address the Cyber Resilience Act.",
+      "designation": "Technical Lead",
+      "organization": "Linumiz",
+      "avatarUrl": "https://fossunited.org/files/karthikeyan.jpg",
+      "links": []
+    },
+    {
+      "id": "person-keirthana-t-s",
+      "name": "Keirthana T S",
+      "bio": "Keirthana is a senior technical author at Canonical with 16 years of experience in technical communications. Working with a team of 30+ authors, Keirthana is responsible for team operations, documentation needs and standards across the engineering organization. She lives in Bangalore and has a history of documentation experience in enterprise companies including Hewlett Packard Enterprise, SAP.",
+      "designation": "Senior technical author",
+      "organization": "Canonical",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/15439933?v=4",
+      "links": []
+    },
+    {
+      "id": "person-kiran-jonnalagadda",
+      "name": "Kiran Jonnalagadda",
+      "bio": "I’m a member of the Tamarind Valley Collective, the topic of this session, and a co-founder of Hasgeek, where I help tech communities do better through a culture of peer review.",
+      "designation": "Member",
+      "organization": "Tamarind Valley Collective",
+      "avatarUrl": "https://fossunited.org/files/portrait.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/jackerhack"
+        }
+      ]
+    },
+    {
+      "id": "person-kriyanshi-shah",
+      "name": "Kriyanshi Shah",
+      "bio": "I work at the intersection of satellites, distributed systems, and the teams who need their data on time. At ISRO’s Space Applications Centre, I build ingestion, scheduling, and processing pipelines for geostationary satellite data and design JupyterHub environments that make planetary and weather research more accessible. I like running production and development setups on air-gapped and on-prem systems end to end—from build to deployment; it’s my guilty pleasure. Lately, I’ve been exploring and customizing SeaDAS to help scientists get more out of Earth observation data. 🌍✨",
+      "designation": "Software Engineer",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/59494745?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "http://twitter.com/kriyanshii"
+        }
+      ]
+    },
+    {
+      "id": "person-lakshmipathi-ganapathi",
+      "name": "lakshmipathi ganapathi",
+      "bio": "Winner of FOSS India awards 2008. An Open source programmer, fell in love with GNU/Linux in 2003 and the spark is still there.",
+      "designation": "FOSS Programmer",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocJkITf8wGMMPXOwZMAKf4gZKgrxN4myUUp7MK6X6rbHUu60Unamrw=s96-c",
+      "links": []
+    },
+    {
+      "id": "person-m-sudeep-kumar",
+      "name": "M Sudeep Kumar",
+      "bio": "Techie with 10 years of experience in software development. I've worked on big data pipelines, mobile engineering, and I'm currently working on a custom database. I enjoy working on open source software and am addicted to GitHub. Outside work I like going for a run, reading a fun sci-fi novel, and spending time with friends and family.",
+      "designation": "Protocol Engineer",
+      "organization": "Erigon Tech",
+      "avatarUrl": "https://fossunited.org/files/1579532107711.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/sudeepdino008"
+        }
+      ]
+    },
+    {
+      "id": "person-mohammed-shan",
+      "name": "Mohammed Shan",
+      "bio": "Community Manager, Hardware maker and enthusiast",
+      "designation": "Community Manager",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-15 at 19.47.27.jpeg",
+      "links": []
+    },
+    {
+      "id": "person-murugan-santhosh",
+      "name": "Murugan Santhosh",
+      "bio": "Student @Amrita University Chennai, 1st Year B.Tech in CSE (CYS) (2026 to 2030) Tamil Translation Coordinator for Python Official Documentation. Initiative of PyTamil Community.",
+      "designation": "Student",
+      "organization": "Amrita University Chennai",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-27 at 9.22.16 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/terminaljoint"
+        }
+      ]
+    },
+    {
+      "id": "person-naina-mehta",
+      "name": "Naina Mehta",
+      "bio": "Linux Kernel engineer primarily supporting core kernel frameworks and BootLoader for Android on Qualcomm Snapdragon Chipsets.",
+      "designation": "Lead Engineer, Senior",
+      "organization": "Qualcomm India Private Limited",
+      "avatarUrl": "https://media.licdn.com/dms/image/v2/D5603AQGmRGMOBQG8WA/profile-displayphoto-shrink_400_400/B56ZVQRo8WGsAk-/0/1740808558148?e=1789603200&v=beta&t=9TXp8LWro2JVX9nTggeZlL6oStuEBL5Uq_EW7t-FB8Q",
+      "links": []
+    },
+    {
+      "id": "person-navaneeth-nambiar",
+      "name": "Navaneeth Nambiar",
+      "bio": "Navaneeth is a Research Assistant at FP Launchpad at IIT Madras interested in the intersection of Programming Language Theory and Software Engineering and Security. Currently working on the OCaml compiler, he’s also interested in type systems, formal methods, software interoperability and in general promoting open source software. Outside of research, he enjoys reading manga, and trying out various cuisines.",
+      "designation": "Research Assistant",
+      "organization": "FP Launchpad",
+      "avatarUrl": "https://fossunited.org/files/IMG_55466db907.JPG",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://twitter.com/navaneethmn/"
+        }
+      ]
+    },
+    {
+      "id": "person-neeraj-upadhyay",
+      "name": "Neeraj Upadhyay",
+      "bio": "Neeraj Upadhyay is an operating systems engineer with over a decade shaping the Linux kernel at AMD and Qualcomm, and a co-maintainer of its RCU subsystem. His career spans server virtualization &amp; scalability, automotive CPU software, and hardware bring-up across generations of mobile and IoT chips. He now leads the technology building an indigenous, formally verified real-time OS for safety-critical systems. He holds an M.Tech in Computer Science from IIT Roorkee.",
+      "designation": "Co-Founder",
+      "organization": "Redkill Technologies",
+      "avatarUrl": "https://fossunited.org/files/neeraj.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/neeraj-upadhyay-62507b38/"
+        }
+      ]
+    },
+    {
+      "id": "person-nikhil-nair",
+      "name": "Nikhil Nair",
+      "bio": "I am a software engineer and Technology Fellow at Super FabLab Kerala. I specialize in cyber-physical systems, Edge AI, and computer vision, focusing on the software architecture that brings hardware to life. Having previously interned in AI and Robotics at Tata Elxsi, I'm a big fan of DIY projects and practical computer vision applications. I'm always looking for an excuse to wire up an ESP32 or a Raspberry Pi. Beyond engineering, I run long distances, keep a travel sketchbook, and follow Formula 1",
+      "designation": "Software Engineer - Technology Fellow",
+      "organization": "Super Fablab Kerala",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-28 at 10.49.40 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://icebelly29.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "person-nisarga-adhikary",
+      "name": "Nisarga Adhikary",
+      "bio": "hi, i'm nisarga. i love to code &amp; hack around. i'm heavily interested in foss and i love cybersecurity ^_^ you can reach out to me at hello[at]nisarga.me and i can be found on github as @ni5arga currently working as an osint &amp; threat intelligence engineer @ iit kanpur. also, i’m a foss hack ‘26 winner and a technical contributor of the fossunited platform.",
+      "designation": "osint & threat intelligence engineer",
+      "organization": "c3ihub, iit kanpur",
+      "avatarUrl": "https://fossunited.org/files/new-github-pfp.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://ni5arga.com"
+        }
+      ]
+    },
+    {
+      "id": "person-omshivaprakash-h-l",
+      "name": "Omshivaprakash H L",
+      "bio": "Omshivaprakash is the Co-Founder of Sanchaya - Kannada Language Tech Development Collective, CEO &amp; Founding Trustee of ServantsOfKnowledge, a community project building open hardware, open software, and open processes for digital archiving in India. His work sits at the intersection of knowledge systems, cultural preservation, and FOSS infrastructure. He believes the future of India's intellectual heritage depends on community-owned, openly licensed tools — and has been building them.",
+      "designation": "Co-Founder",
+      "organization": "Sanchaya & ServantsOfKnowledge",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocLpPqTAFObu-yHQnuZflR7K49XQymnJev9LS7izUgdIh9TrFIIt2g=s96-c",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/omshivaprakash"
+        }
+      ]
+    },
+    {
+      "id": "person-owm-dubey",
+      "name": "Owm Dubey",
+      "bio": "I am an Android developer and I eagerly contribute to open source across multiple orgs such as Wikimedia Foundation, Organic Maps, CNCF-KGateway etc. I love digging into Android internals and understanding how the system really works under the hood.",
+      "designation": "Intern",
+      "organization": "BlipAi",
+      "avatarUrl": "https://fossunited.org/files/profile_ejkqqefgvc28edd628edd6.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/owmdubey/"
+        }
+      ]
+    },
+    {
+      "id": "person-padmashree-s-s",
+      "name": "Padmashree S S",
+      "bio": "I am Padmashree S S, a student at Dayananda Sagar College of Engineering, Bengaluru. I am also an open source contributor and a GSoC mentee. I am interested in compilers, language tooling and low-level systems. I've always been fascinated by how things work under the hood and that curiosity is what drew me into exploring the internals of programming languages. Currently I am working on implementing the DocC language features in Sourcekit LSP.",
+      "designation": "Open Source Contributor | Student",
+      "organization": "Point Blank",
+      "avatarUrl": "https://fossunited.org/files/profile80d19e.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/padmashreess06"
+        }
+      ]
+    },
+    {
+      "id": "person-parthiban",
+      "name": "Parthiban",
+      "bio": "With over 14 years of experience in software engineering, Parthiban founded Linumiz, a company that provides domain-neutral software services for U-Boot, Linux, and Zephyr, ranging from board bringup, board supported package, customization, device drivers, to over the air software updates, primarily in but not limited to ARM. Parthiban is also an active developer, contributor, and speaker for several open source projects, such as U-Boot, Linux Kernel, and Zephyr RTOS.",
+      "designation": "Director of Engineering",
+      "organization": "Linumiz",
+      "avatarUrl": "https://fossunited.org/files/1588973329086.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://in.linkedin.com/in/parthitce"
+        }
+      ]
+    },
+    {
+      "id": "person-philippe-ombredanne",
+      "name": "Philippe Ombredanne",
+      "bio": "AboutCode Foundation - ScanCode - Package-URL - ClearlyDefined Philippe Ombredanne is a FOSS hacker on a mission to enable easier and safer reuse of healthy open source code. He is the lead maintainer of the AboutCode stack of open source tools for Software Composition Analysis, license and security compliance, including the industry-leading ScanCode, DejaCode, PurlDB, VulnerableCode, and ClearlyDefined. Philippe is leading the Package-URL (PURL) global standard for package identification in the software supply chains in SBOMs, VEX, and vulnerabilities (ECMA-427), co-founded SPDX and ClearlyDefined, and is a core contributor to CycloneDX. Philippe contributes to other open source projects, including the Linux kernel SPDX-ification, nix, Apache, Rust, strace, ORT, and several Python tools.",
+      "designation": "AboutCode maintainer",
+      "organization": "AboutCode",
+      "avatarUrl": "https://fossunited.org/files/phil2.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/ pombredanne"
+        }
+      ]
+    },
+    {
+      "id": "person-pragyansh-chaturvedi",
+      "name": "Pragyansh Chaturvedi",
+      "bio": "Pragyansh is a Software Engineer at Canonical, where he works on maintaining Ubuntu for Raspberry Pi and ARM computers. He is also a Post-Baccalaureate Fellow at FPLaunchpad. He is the co-creator and maintainer of PythonBPF, and is an Ubuntu MOTU.",
+      "designation": "Software Engineer",
+      "organization": "Canonical",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/76248539?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/r41k0u/"
+        }
+      ]
+    },
+    {
+      "id": "person-prathu-baronia",
+      "name": "Prathu Baronia",
+      "bio": "Prathu Baronia is an operating systems engineer with over 7 years of experience working deep in the software that powers modern chips. He has built &amp; maintained core system software at Qualcomm and Google, from secure firmware to custom kernels, and the Linux kernel itself. He now leads the business building an indigenous, formally verified real-time OS for safety-critical systems. He holds a BTech &amp; M.Tech in Electronics from IIT Bombay.",
+      "designation": "Founder",
+      "organization": "Redkill Technologies",
+      "avatarUrl": "https://fossunited.org/files/prathu.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/prathu-baronia-666587129/"
+        }
+      ]
+    },
+    {
+      "id": "person-pritesh-kiri",
+      "name": "Pritesh Kiri",
+      "bio": "Pritesh is the DevRel Engineer at Harness and community manager and maintainer of the LitmusChaos Community. He is also the Head of Community at ReactPlay, leading the ReactPlay Bangalore chapter. He has a strong background as a Developer Advocate, leading tech communities and fostering open-source contributions. Pritesh organizes workshops and meetups and creates video/blog content on MCP, Agents, and AI.",
+      "designation": "Developer Relations Engineer",
+      "organization": "Harness",
+      "avatarUrl": "https://fossunited.org/files/2.JPG",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.priteshkiri.com/"
+        }
+      ]
+    },
+    {
+      "id": "person-raunak",
+      "name": "Raunak",
+      "bio": "I love understanding systems by building them from scratch. Some of my interesting projects are: A WebAssembly interpreter from scratch which runs Doom and boots Linux ( https://github.com/rrampage/wart ) A terminal Snake game which fits in a QR code ( https://gist.github.com/rrampage/2a781662645dc2fcba45784eb584cbdc ) HTTP server in ARM64 assembly ( https://gist.github.com/rrampage/d31e75647a77badb3586ebae1e414cb6 ) Minimal Linux shell which compiles to a 4kb binary ( https://gist.github.com/rrampage/5046b60ca2d040bcffb49ee38e86041f )",
+      "designation": "Systems Programmer",
+      "avatarUrl": "https://fossunited.org/files/Raunak-dp.png",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/raunak1/"
+        }
+      ]
+    },
+    {
+      "id": "person-ritika",
+      "name": "ritika",
+      "bio": "I like to make things that you don’t see everyday, mostly in open, and I judge people with third person bios",
+      "designation": "Product designer",
+      "organization": "Mecha Systems",
+      "avatarUrl": "https://fossunited.org/files/Screenshot 2026-06-23 at 3.39.47 PM.png",
+      "links": []
+    },
+    {
+      "id": "person-ruchi-pakhle",
+      "name": "Ruchi Pakhle",
+      "bio": "Software Engineer II @ Red Hat - Data &amp; AI Maintainer @AsyncAPI Initiative &amp; Technical Steering Committee Member (prev) at AsyncAPI Initiative Prev - Software Engineer @Ansible Google Summer of Code’25 @AsyncAPI Initiative AsyncAPI Mentorship Program LFX’22 @Open Horizon",
+      "designation": "Software Engineer 2",
+      "organization": "Red Hat",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocL2yu4C2AnxkfnB1W6O8ntRPVF6g3_FOKVamZrHR56RmCiPbM_BIQ=s96-c",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/ruchi-pakhle-a0a5311b0/"
+        }
+      ]
+    },
+    {
+      "id": "person-rukmini-s",
+      "name": "Rukmini S",
+      "bio": "Rukmini S Founder &amp; Director of Data For India, a public platform to advance the understanding of India through data. Earlier, she was Data Editor at The Hindu. Rukmini’s book, ‘Whole Numbers &amp; Half Truths: What Data Can and Cannot Tell Us About Modern India’, was published in 2021. Rukmini has a Post-Graduate Diploma in Social Communications Media and an MSc in Development Studies. She is a Non-Resident Fellow at the Center for the Advanced Study of India at the University of Pennsylvania.",
+      "designation": "Founder & Director",
+      "organization": "Data For India",
+      "avatarUrl": "https://fossunited.org/files/Rukmini headshot.jpg",
+      "links": []
+    },
+    {
+      "id": "person-saalim-quadri",
+      "name": "Saalim Quadri",
+      "bio": "I'm Mohammad Saalim, a Software Engineer at 63SATS and a community-driven open-source developer who somehow turned flashing custom ROMs and compiling Android as a teenager into a full-time career. My journey into Android started more than six years ago with a simple curiosity: how does Android actually work beneath the UI? What began with custom ROMs, kernels, and device bring-up quickly grew into a deep interest in Android platform development. Since then, I've spent countless hours working across Android Frameworks, Launcher3, Chromium, Linux kernels, BSPs, and embedded Linux systems. Professionally, I've worked on Android bring-up efforts, Android Framework development, Launcher3 maintenance, Chromium fork, Raspberry Pi Android ports, Linux kernel development, and embedded Linux distributions built using Yocto and Buildroot. I'm also a Google Summer of Code contributor with The Linux Foundation, where I worked on integrating ROS SDK into Automotive Grade Linux through the meta-ros yocto layer. Outside of work, I lead Team Stormbreaker, an open-source community focused on Android and Linux Kernel development. I enjoy reverse engineering Android components, exploring platform internals, mentoring newcomers entering the Android ecosystem, and sharing the lessons I've learned along the way. If it runs Android or Linux, there's a good chance I've tried compiling, porting, modifying, or breaking it at least once.",
+      "designation": "Software Engineer",
+      "organization": "63SATS",
+      "avatarUrl": "https://fossunited.org/files/profile_7jt2ee2si57f5e6e.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/saalim-quadri/"
+        }
+      ]
+    },
+    {
+      "id": "person-sampurna-pyne",
+      "name": "Sampurna Pyne",
+      "bio": "I am a Software Developer and Security Enthusiast. I am currently a Google Summer of Code 2026 Contributor at AboutCode, where I contribute to VulnerableCode. I am a pre-final year student of Computer Science and Engineering. I represented India at IETF 122 in Bangkok sponsored by AIORI and have secured podium finishes in 12 hackathons. I am interested in product security, software supply chain security and secure software development.",
+      "designation": "Student | Contributor at AboutCode",
+      "organization": "AboutCode",
+      "avatarUrl": "https://fossunited.org/files/1731346754359.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://github.com/Samk1710"
+        }
+      ]
+    },
+    {
+      "id": "person-saniya-fatima",
+      "name": "Saniya Fatima",
+      "bio": "I am Saniya Fatima, an open-source contributor and a Google Summer of Code Mentee at FLARE organization. I like exploring different technical domains. My primary interest lies in cyber security.",
+      "designation": "Open Source Contributor | Member of Point Blank",
+      "avatarUrl": "https://fossunited.org/files/profile_69jd6ehad107204c.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://linkedin.com/in/saniyafatima07"
+        }
+      ]
+    },
+    {
+      "id": "person-saravanan",
+      "name": "Saravanan",
+      "bio": "Saravanan graduated in Electrical Engineering and working as Software Engineer at Linumiz. Over the past 13 years his focus is primarily on Embedded Linux, RTOS in DVB, IoT and Automotive domain. His work involves to provide Mainline Linux Kernel and related projects to run on customer hardware boards. He is an contributor for Zephyr, Linux Kernel and Yocto.",
+      "designation": "Head of Engineering",
+      "organization": "Linumiz",
+      "avatarUrl": "https://fossunited.org/files/Saravanan.jpg",
+      "links": []
+    },
+    {
+      "id": "person-saravanan-sekar",
+      "name": "Saravanan Sekar",
+      "bio": "Embedded software devloper with 15 years of experience in Linux kernel and Zephyr RTOS development.",
+      "designation": "Software Engineer",
+      "organization": "Linumiz",
+      "avatarUrl": "https://fossunited.org/files/Saravanan.jpg",
+      "links": []
+    },
+    {
+      "id": "person-serv0id",
+      "name": "serv0id",
+      "bio": "serv0id is a recent cs graduate and likes to tinker around with systems that don’t like to get tinkered with.",
+      "designation": "Security Analyst",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/113516593?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://x.com/serv0id"
+        }
+      ]
+    },
+    {
+      "id": "person-shreyas-hegde",
+      "name": "Shreyas Hegde",
+      "bio": "I'm currently a Research Intern at the Indian Institute of Technology, Kanpur , working under Prof. Amey Karkare on dynamic offloading and parallelism across heterogeneous compute (CPU/GPU/QPU). I'm also a Google Summer of Code 2026 contributor with The Julia Programming Language , working within the JuliaGPU organization on AcceleratedKernels.jl and GPUArrays.jl, building vendor agnostic GPU kernels and closing performance gaps with hand tuned vendor libraries. I also hold a maintainer role at JuliaGPU . I'm pursuing a Bachelor of Engineering in Computer and Information Science Engineering at Dayananda Sagar College of Engineering, Bangalore, with interests in Parallel Computing, GPGPU, Compiler Construction (LLVM/MLIR), C++, Julia, and High Performance Computing. I have prior open source contributions to projects including Emscripten and GCC Rust.",
+      "designation": "Member",
+      "organization": "JuliaGPU",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/181653726?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/shreyas-omkar/"
+        }
+      ]
+    },
+    {
+      "id": "person-shreyas-minocha",
+      "name": "Shreyas Minocha",
+      "bio": "Shreyas is a Computer Science PhD student at Georgia Tech where he works with Prof. Michael Specter in the Security, Privacy &amp; Democracy Lab. His research interests include censorship circumvention, anonymity, and privacy-preserving technologies. Prior to joining Georgia Tech, he received a Bachelor's degree in Computer Science from Rice University. His current research is on measuring and improving the impact of tech policy on the privacy of Internet users using tools from web measurement, reverse-engineering, and cryptography.",
+      "designation": "Computer Science PhD Student",
+      "organization": "Georgia Institute of Technology",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/11537232?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://shreyasminocha.me"
+        }
+      ]
+    },
+    {
+      "id": "person-shriya-chauhan",
+      "name": "Shriya Chauhan",
+      "bio": "Shriya is a Software Engineer at Red Hat and a Google Summer of Code 2025 contributor with AsyncAPI. A public speaker, open-source contributor, and Women in API community champion in India, Shriya actively works towards making tech more accessible and inclusive. She enjoys exploring developer communities, speaking at events, and contributing to conversations around cloud native technologies, APIs, and modern software engineering. Coming from the hills and navigating her journey into metropolitan tech spaces, she strongly believes in giving back to the community. Beyond engineering, she is passionate about spreading awareness about technology in villages, encouraging students to explore open source, and contributing towards community-driven initiatives that create opportunities for others. When she’s not coding or contributing to communities, she’s usually exploring ideas, storytelling through tech, and learning something new along the way. ✨",
+      "designation": "Developer Experience Engineer",
+      "organization": "RedHat",
+      "avatarUrl": "https://fossunited.org/files/shriya image.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/shriya-chauhan23"
+        }
+      ]
+    },
+    {
+      "id": "person-shubham-singh",
+      "name": "Shubham Singh",
+      "bio": "Shubham is a Computer Science student by day and a Site Reliability Engineer by night. He is a Certified Kubernetes Administrator (CKA) and a graduated LFX Mentee with CNCF KubeEdge. He has been contributing to CNCF projects for over two years and has been working with startups for over three years.",
+      "designation": "Site Reliability Engineer",
+      "organization": "Obmondo",
+      "avatarUrl": "https://fossunited.org/files/shubham.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/1shubham7/"
+        }
+      ]
+    },
+    {
+      "id": "person-sonal-sanjay-gaud",
+      "name": "SONAL SANJAY GAUD",
+      "bio": "Sonal Gaud is a Software Engineer at Accenture and an open-source contributor focused on cloud-native observability, testing, and developer tooling. She is an active reviewer for the Go instrumentation libraries in OpenTelemetry. Sonal was an Outreachy intern, where she worked on UI automation and CI/CD improvements, and participated in Google Summer of Code. She has spoken at cloud native conferences on topics including OpenTelemetry, instrumentation design, and contributor experience.",
+      "designation": "Software Engineer",
+      "organization": "Accenture",
+      "avatarUrl": "https://fossunited.org/files/WhatsApp Image 2026-06-26 at 12.04.13 PM.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/sonal-gaud/"
+        }
+      ]
+    },
+    {
+      "id": "person-soumya-tripathy",
+      "name": "Soumya Tripathy",
+      "bio": "Soumya has been working with TI for 4 years with contributions and expertise in the field of bootloader, flash devices and display for the Sitara family of processors. He is the engineering lead for Zephyr RTOS for Sitara family of of processors, actively working in onboarding Zephyr RTOS ecosystem for TI processors.",
+      "designation": "Member Group Technical Staff",
+      "organization": "Texas Instruments",
+      "avatarUrl": "https://fossunited.org/files/Soumya Tripathy.jpeg",
+      "links": []
+    },
+    {
+      "id": "person-srihari-thyagarajan",
+      "name": "Srihari Thyagarajan",
+      "bio": "I'm Srihari Thyagarajan , currently a Technical Writer at Deepnote (prev @ marimo, doing educational dev-rel/advocacy). I spend time working on documentation, integrating different dev-tools, frameworks and platforms, creating tutorials and guides, and building partnerships between communities. I’ve been working with notebooks a lot: there’s something really satisfying about the interactive, iterative nature of them. Over the past year, I've been attending OSS conferences / meetups across India: PyCon India, IndiaFOSS, DSPy, and others; and really enjoy being part of these communities (and helping co-organize SciPy India ).",
+      "designation": "Technical Writer",
+      "organization": "Deepnote",
+      "avatarUrl": "https://fossunited.org/files/profile_7pqv8gj9718b6efa8b6efa.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://haleshot.github.io/"
+        }
+      ]
+    },
+    {
+      "id": "person-syed-ali",
+      "name": "Syed Ali",
+      "bio": "Syed Ali is a musician and music electronics researcher and educator based in Bangalore, India. Under Tarab Instruments, his practice spans education in electronic music, DIY audio hardware design, audio software development, and research in music information retrieval and machine learning. He specialises in designing and building and repairing electronic music instruments, controllers and effects pedals, extending his artistic inquiry into the materiality of sound.",
+      "designation": "Hardware Designer",
+      "organization": "Tarab Instruments",
+      "avatarUrl": "https://fossunited.org/files/PCl.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://instagram.com/tarab_instruments"
+        }
+      ]
+    },
+    {
+      "id": "person-thejesh-gn",
+      "name": "Thejesh GN",
+      "bio": "Thejesh GN (ತೇಜೇಶ್ ಜಿ.ಎನ್) \"Thej\" is an Independent Technologist, Hacker, and InfoActivist from Banagalore, India. He started Nagarathna Memorial Grant in 2018. It's a no strings attached microgrant.",
+      "designation": "Cofounder and CTO",
+      "organization": "NMG, DataMeet, Peppo",
+      "avatarUrl": "https://ci3.googleusercontent.com/mail-sig/AIorK4zRkJmAIWhIJHS1ITFxSyQ0jr-ngLvF-NjUEPlWN3hVqmvKxmAYmxPsacmqPBIvd_KXVz5iLJ0",
+      "links": [
+        {
+          "label": "social",
+          "url": "http://thejeshgn.com"
+        }
+      ]
+    },
+    {
+      "id": "person-udhayadhithan-pa",
+      "name": "udhayadhithan PA",
+      "bio": "Udhayadhithan is the Co-Founder and CTO of ThynkLoop. Thynkloop is an embedded systems and AIoT engineering services company based in Chennai. He leads technical architecture and product development across a range of hardware and firmware projects, working at the intersection of embedded software, real-time systems, and hardware design for industrial and consumer products. He has his experience in full product development lifecycle, from initial architecture through firmware, PCB design, and production. He is also a co-founder of Thynkure Medical, a pre-clinical medical device startup with a mission to help tier 2 and tier 3 hospitals get the advance care.",
+      "designation": "Chief Technology Officer",
+      "organization": "Thynkloop",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocLPyqEYd6cTdryL0NIVhHmQtd3i7QhBD4h2WoctQC2TdsyvqhI=s96-c",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/udhayadhithan/"
+        }
+      ]
+    },
+    {
+      "id": "person-unnati-mishra",
+      "name": "Unnati Mishra",
+      "bio": "Unnati is a cloud-native software engineer &amp; a dedicated open-source contributor with a passion for building robust, scalable infrastructure. Specializing in Kubernetes release engineering and platform automation, she has spent years working deeply within the cloud-native ecosystem. An active voice in the tech community since 2022, Unnati loves breaking down complex architectural concepts on stage and on her YouTube channel. When she isn’t doing tech, you can find her on the dance💃 floor.",
+      "designation": "Software Engineer",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocLhUOrMc56dKe6HK--gSaCI6zslR_7r2zkJ3vNcBWAZzhaQYkU_=s96-c",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/pingunnatimishra/"
+        }
+      ]
+    },
+    {
+      "id": "person-varun-mallya",
+      "name": "Varun Mallya",
+      "bio": "Varun Mallya is a student at IIT Roorkee. He is the co-creator and maintainer of PythonBPF. He also contributes to the BPF subsystem of the Linux Kernel.",
+      "designation": "Student",
+      "organization": "IIT Roorkee",
+      "avatarUrl": "https://fossunited.org/files/1711447419170.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/varun-r-mallya/"
+        }
+      ]
+    },
+    {
+      "id": "person-vinamra-harkar",
+      "name": "Vinamra Harkar",
+      "bio": "Vinamra works at the intersection of technology and policy. Once upon a time, he was a LAMP Fellow working with a Member of Parliament, where he worked on tech policy and legislative research. He currently works at Bharat Digital, an early-stage technology non-profit, in the founder's office, focused on modernizing and humanizing how governments use technology in the service of the public.",
+      "designation": "Manager - Founder's Office",
+      "organization": "Bharat Digital",
+      "avatarUrl": "https://fossunited.org/files/Vinamra_LinkedI.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://vinamraharkar.in/"
+        }
+      ]
+    },
+    {
+      "id": "person-vishnu-srivatsava",
+      "name": "Vishnu Srivatsava",
+      "bio": "Software engineer who is into systems programming, Android/Linux internals, and security. Two-time CTF winner at IIIT Hyderabad. I've spent years tinkering with custom ROMs, bootloader unlocking, and open source software. Also a competitive speedcuber with a state record in 3x3 one-handed solving.",
+      "designation": "Software Engineer",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/49309611?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/vishnu-srivatsava-642222238/"
+        }
+      ]
+    },
+    {
+      "id": "person-wahid-khan",
+      "name": "Wahid Khan",
+      "bio": "I’m a student and a security researcher who spends his off-hours doing Android ROM bring-up and bug bounty hunting. I work on Nova-Kernels, a custom kernel project and also been working on porting YAAP (Android 16/17) to the Motorola Edge 50 Neo - Codename Vienna (MT6878/Dimensity 6300) - which is where most of this talk came from. my background forlow-level Android development and security research comes from TryHackMe and actively participates in CTFs, specializing in binary exploitation and reverse engineering. I’m also pursuing an M.Sc. in Cyber Security",
+      "designation": "Student",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/63857471?v=4",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://wahid7852.tech/"
+        }
+      ]
+    },
+    {
+      "id": "person-yash-guddeti",
+      "name": "Yash Guddeti",
+      "bio": "I am a Technical Writer, community leader, and advocate for open knowledge, passionate about helping people understand, adopt, and contribute to technology. My work focuses on creating documentation, user guidance, and AI-assisted knowledge experiences for complex enterprise software, making sophisticated systems more accessible to diverse audiences.",
+      "designation": "Technical Writer",
+      "organization": "Energy Exemplar",
+      "avatarUrl": "https://fossunited.org/files/unnamed8dcfc3.jpg",
+      "links": []
+    },
+    {
+      "id": "person-yash-srivastava",
+      "name": "Yash Srivastava",
+      "bio": "Embedded Software Engineer at Texas Instruments with nearly 3 years of experience in real-time systems, Zephyr RTOS, and bare-metal development. Proficient in C/C++ and ARM Cortex-A/M architectures, with hands-on experience developing display subsystems and low-level drivers. Skilled in flash technologies, system performance optimization, and JTAG debugging. Passionate about building efficient and maintainable embedded firmware.",
+      "designation": "Senior Embedded Software Engineer",
+      "organization": "Texas Instruments",
+      "avatarUrl": "https://fossunited.org/files/Photo-final.jpg",
+      "links": []
+    },
+    {
+      "id": "person-yash-verma",
+      "name": "Yash Verma",
+      "bio": "Present: Leading UPI payments at #6 largest fintech. Builder at heart, i’ve essentially grown up with tech. I started tinkering with tech since I was 15 y/o, started off with the good old php on apache servers. Since then have tried bunch of languages and platforms, building and breaking things. Joined a fintech in 2nd year of college and stuck to it : with latest work being rebuilding the payments system from scratch to power double digit million transactions per day. Open Source Exp Google CodeIn : Participated for 3 years during high school, finalist. Google Season of Docs: Mentor Google Summer of Code: Student Dev MLH Fellowship: Worked with Facebook on React Native",
+      "designation": "Senior Engineer",
+      "organization": "Fampay",
+      "avatarUrl": "https://fossunited.org/files/profile_1a1ogm65cr5b0978.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/yash-kumar-verma/"
+        }
+      ]
+    }
+  ]
+}

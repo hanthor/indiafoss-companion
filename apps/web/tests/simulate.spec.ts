@@ -1,6 +1,11 @@
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
-import { preferenceSaved } from './preference-saved.js';
+import { preferenceSaved, settingSaved } from './preference-saved.js';
+
+// These regression scenarios use stable IDs and times from the archived fixture.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
+});
 
 /**
  * Day simulator gate (#93): the app is run through a slice of the conference
@@ -23,9 +28,19 @@ const EARLY_START = '2025-09-20T09:00:00+05:30';
 /** Five simulated minutes a real second: slow enough that load jitter cannot skip an alert. */
 const SLOW_SPEED = 300;
 
-test.use({ permissions: ['notifications'] });
+// This suite inspects the desktop constructor; mobile-reminders covers real worker delivery.
+test.use({ permissions: ['notifications'], serviceWorkers: 'block' });
 
 test('the simulator fires every reminder tier and logs the banner', async ({ page }) => {
+  // Simulated delivery needs explicit Notification API permission. Chromium's
+  // headless Permissions override alone can still leave this API denied.
+  await page.addInitScript(() => {
+    class SimNotification {
+      static permission = 'granted';
+      close() {}
+    }
+    Object.defineProperty(window, 'Notification', { value: SimNotification });
+  });
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
 
@@ -34,12 +49,17 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   await page.getByRole('button', { name: /Must attend/ }).click();
   await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
-  await page.getByRole('switch', { name: /Enable reminders/ }).check();
+  await page.getByRole('switch', { name: /Enable reminders/ }).click();
+  await settingSaved(page, 'notifications-enabled', 'true');
 
   // Start the run from the URL, the way an automated walk-through would.
-  await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}`));
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}&at=audi-1`));
   await expect(page.getByTestId('sim-strip')).toBeVisible();
   await expect(page.getByTestId('sim-time')).toContainText('Sat 20 · 09:4');
+
+  // Now must switch from the initial wall clock to this simulated event day too.
+  await expect(page.getByRole('region', { name: 'Your plan now' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: "That's a wrap" })).toHaveCount(0);
 
   // The banner shows the must-attend session coming up.
   await expect(
@@ -61,10 +81,10 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   expect(fired.some((f) => f.includes('Leave now: First Step'))).toBe(true);
   expect(fired).toContain('10:15 Starting now: First Step into Open Source with AOSP');
   // The banner counted down and was logged as it changed.
-  expect(log.some((e) => e.kind === 'banner' && /STARTS IN \d+ MIN/.test(e.title))).toBe(true);
+  expect(log.some((e) => e.kind === 'banner' && /LEAVE BY|LEAVE NOW/.test(e.title))).toBe(true);
   // The strip shows the latest thing that happened: a reminder or the banner moving on.
   await expect(page.getByTestId('sim-latest')).toContainText(
-    /STARTS IN|STARTING NOW|Starting now|Leave now|In \d+ min/,
+    /STARTS IN|STARTING NOW|LEAVE BY|LEAVE NOW|Starting now|Leave now|In \d+ min/,
   );
 
   // Pause holds the clock; stop ends the run and the log records both.
@@ -138,12 +158,14 @@ test('every reminder names the session, the room and the walk, and opens it when
   await page.goto(appUrl('/map'));
   await page.getByRole('button', { name: /^Audi 2/ }).click();
   await page.getByRole('button', { name: "I'm here" }).click();
+  await settingSaved(page, 'current-location', 'audi-2');
 
   await page.goto(appUrl(`/activity/${SESSION}`));
   await page.getByRole('button', { name: /Must attend/ }).click();
   await preferenceSaved(page, SESSION);
   await page.goto(appUrl('/settings'));
-  await page.getByRole('switch', { name: /Enable reminders/ }).check();
+  await page.getByRole('switch', { name: /Enable reminders/ }).click();
+  await settingSaved(page, 'notifications-enabled', 'true');
 
   // Reminders in the past are never fired retroactively, so this run must not
   // lose simulated time to anything. Two things guard that: the clock is
@@ -183,18 +205,22 @@ test('every reminder names the session, the room and the walk, and opens it when
   await expect
     .poll(
       () =>
-        page.evaluate(() => (window as unknown as { __fired: { title: string }[] }).__fired.length),
+        page.evaluate(
+          () =>
+            (window as unknown as { __fired: { title: string }[] }).__fired.filter((n) =>
+              n.title.includes('First Step into Open Source'),
+            ).length,
+        ),
       { timeout: 60_000 },
     )
     .toBeGreaterThanOrEqual(3);
 
-  const fired = await page.evaluate(
-    () =>
-      (
-        window as unknown as {
-          __fired: { title: string; body: string; tag: string; icon: string; hasClick: boolean }[];
-        }
-      ).__fired,
+  const fired = await page.evaluate(() =>
+    (
+      window as unknown as {
+        __fired: { title: string; body: string; tag: string; icon: string; hasClick: boolean }[];
+      }
+    ).__fired.filter((n) => n.title.includes('First Step into Open Source')),
   );
 
   for (const shown of fired) {
@@ -213,4 +239,38 @@ test('every reminder names the session, the room and the walk, and opens it when
   // Starting-soon lands within minutes of leave-now for a near room, so it is
   // merged away rather than firing twice about the same talk.
   expect(fired.filter((n) => n.title.startsWith('In 15 min'))).toHaveLength(0);
+});
+
+test('removing a must-go from the edited plan suppresses its reminders', async ({ page }) => {
+  await page.addInitScript(() => {
+    class SimNotification {
+      static permission = 'granted';
+      close() {}
+    }
+    Object.defineProperty(window, 'Notification', { value: SimNotification });
+  });
+  await page.goto(appUrl('/activity/' + SESSION));
+  await page.getByRole('button', { name: /Must attend/ }).click();
+  await preferenceSaved(page, SESSION);
+  await page.goto(appUrl('/plan'));
+  const row = page.locator('.itinerary li').filter({
+    has: page.getByRole('link', { name: 'First Step into Open Source with AOSP', exact: true }),
+  });
+  await row.locator('summary').click();
+  await row.getByRole('button', { name: 'Remove', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Removed', exact: true })).toBeVisible();
+  await page.goto(appUrl('/settings'));
+  await page.getByRole('switch', { name: /Enable reminders/ }).click();
+  await settingSaved(page, 'notifications-enabled', 'true');
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(DAY_START)}&speed=${SPEED}&at=audi-1`));
+  await page.waitForFunction(
+    () => (window.__indiafossSim?.state().now ?? '') >= '2025-09-20T10:16:00+05:30',
+    null,
+    { timeout: 20_000 },
+  );
+  const notifications = await page.evaluate(() =>
+    window.__indiafossSim!.log().filter((e) => e.kind === 'notification'),
+  );
+  expect(notifications.length).toBeGreaterThan(0);
+  expect(notifications.some((e) => e.title.includes('First Step into Open Source'))).toBe(false);
 });

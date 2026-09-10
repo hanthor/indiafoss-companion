@@ -1,24 +1,26 @@
 <script lang="ts">
+  import DevroomBanner from '$lib/components/DevroomBanner.svelte';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
+  import { tick, untrack } from 'svelte';
   import { SvelteSet } from 'svelte/reactivity';
-  import type { Activity, Person } from '@indiafoss/model';
+  import { isDiscoveryActivity, type Activity, type Person } from '@indiafoss/model';
   import { activitiesForDay, formatDayLabel, formatTime, getEventDays } from '@indiafoss/schedule';
   import {
+    discoveryDeck,
     applyComparison,
     applyPriors,
     conflictProgress,
     conflictSlots,
     overlaps,
-    pairKey,
     pairKScale,
     pairOpen as isPairOpen,
+    resolveClash,
     scheduleStability,
     type AffinityModel,
     type ConflictSlot,
     type RankedActivity,
   } from '@indiafoss/elo';
-  import type { Disposition } from '@indiafoss/storage';
   import {
     comparedPairs,
     comparisonsOf,
@@ -28,10 +30,15 @@
     hydratePreferences,
     ratingOf,
     recordComparison,
+    restoreChoice,
     setDisposition,
     setRating,
-    setTriage,
+    setTalkChoice,
+    setYieldedTo,
+    snapshotChoice,
     triageOf,
+    yieldedTo,
+    type ChoiceSnapshot,
   } from '$lib/prefs.svelte';
   import { affinityModel } from '$lib/priors.svelte';
   import {
@@ -39,7 +46,6 @@
     hydrateRoomPrefs,
     markRoomsDecided,
     roomPreference,
-    roomPrefsState,
     setRoomPreference,
   } from '$lib/roomPrefs.svelte';
   import { roomSummary } from '$lib/roomInfo';
@@ -58,6 +64,7 @@
   let busy = $state(false);
   let entering = $state(false);
   let ready = $state(false);
+  let saveError = $state('');
   /** Answered talks are folded away; this unfolds them to change an answer. */
   let showAnswered = $state(false);
 
@@ -78,7 +85,7 @@
   // ---------- Step 1: devrooms ----------
   const rooms = $derived(devrooms(bundle));
   const roomsOut = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'skip').length);
-  const roomsMust = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'love').length);
+  const roomsStay = $derived(rooms.filter((r) => roomPreference(r.track.id) === 'stay').length);
   /** Which devroom's programme is unfolded. */
   let openRoom = $state<string | null>(null);
   async function roomsDone(): Promise<void> {
@@ -88,9 +95,7 @@
 
   // ---------- The day's sessions ----------
   const daySessions = $derived<Activity[]>(
-    (selectedDay ? activitiesForDay(bundle, selectedDay) : []).filter(
-      (a) => !a.cancelled && a.type !== 'meal',
-    ),
+    (selectedDay ? activitiesForDay(bundle, selectedDay) : []).filter(isDiscoveryActivity),
   );
 
   /** Stored ratings, the source of truth for updates. */
@@ -100,6 +105,8 @@
       rating: ratingOf(a.id),
       comparisons: comparisonsOf(a.id),
       disposition: dispositionOf(a.id),
+      interest: triageOf(a.id),
+      yieldedTo: yieldedTo(a.id),
     })),
   );
 
@@ -128,7 +135,13 @@
   });
 
   // ---------- Step 2: one talk at a time ----------
-  const untriaged = $derived(daySessions.filter((a) => !triageOf(a.id)));
+  const suggestions = $derived(
+    discoveryDeck(
+      stored.filter((r) => roomPreference(r.activity.trackId ?? '') !== 'stay'),
+      model,
+    ),
+  );
+  const untriaged = $derived(suggestions.map((s) => s.activity));
   const triaged = $derived(daySessions.filter((a) => !!triageOf(a.id)));
   const keptCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'yes').length);
   const droppedCount = $derived(daySessions.filter((a) => triageOf(a.id) === 'no').length);
@@ -141,26 +154,58 @@
   let dragX = $state(0);
   let dragging = $state(false);
   let leaving = $state<'left' | 'right' | null>(null);
-  const SWIPE_COMMIT = 90;
+  const SWIPE_COMMIT = 96;
   let pointerStartX = 0;
+  let pointerStartY = 0;
+  let activePointer: number | null = null;
+  let lastAnswered: Activity | null = $state(null);
 
   function onCardDown(event: PointerEvent): void {
-    if (busy || !card) return;
+    if (busy || !card || !event.isPrimary || event.button !== 0 || activePointer !== null) return;
     const target = event.target as HTMLElement | null;
-    if (target?.closest('button, a')) return; // reading about a talk is not an answer
+    if (target?.closest('button, a, input, select, textarea')) return;
     pointerStartX = event.clientX;
-    dragging = true;
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    pointerStartY = event.clientY;
+    activePointer = event.pointerId;
   }
   function onCardMove(event: PointerEvent): void {
-    if (!dragging) return;
-    dragX = event.clientX - pointerStartX;
+    if (event.pointerId !== activePointer) return;
+    const dx = event.clientX - pointerStartX;
+    const dy = event.clientY - pointerStartY;
+    if (!dragging) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 8) return;
+      if (Math.abs(dy) > Math.abs(dx)) {
+        onCardCancel(event);
+        return;
+      }
+      dragging = true;
+      (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+    }
+    dragX = dx;
   }
-  function onCardUp(): void {
-    if (!dragging) return;
+  function releasePointer(event: PointerEvent): void {
+    activePointer = null;
     dragging = false;
-    if (dragX > SWIPE_COMMIT) void answerCard('yes');
-    else if (dragX < -SWIPE_COMMIT) void answerCard('no');
+    const target = event.currentTarget as HTMLElement;
+    if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId);
+  }
+  function onCardCancel(event: PointerEvent): void {
+    if (event.pointerId !== activePointer) return;
+    releasePointer(event);
+    dragX = 0;
+  }
+  function onCardLostCapture(event: PointerEvent): void {
+    // Touch starts implicitly captured by the description/title. Taking
+    // capture on the card makes that child's lost event bubble here; only
+    // losing the card's own capture cancels this gesture.
+    if (event.target !== event.currentTarget) return;
+    onCardCancel(event);
+  }
+  function onCardUp(event: PointerEvent): void {
+    if (event.pointerId !== activePointer) return;
+    const answer = dragging && Math.abs(dragX) >= SWIPE_COMMIT ? (dragX > 0 ? 'yes' : 'no') : null;
+    releasePointer(event);
+    if (answer) void answerCard(answer);
     else dragX = 0;
   }
 
@@ -171,21 +216,51 @@
    */
   async function answerCard(answer: 'yes' | 'no' | 'must'): Promise<void> {
     if (!card || busy) return;
+    const restoreFocus = document.activeElement?.matches('[data-testid="talk-card"]');
     busy = true;
     chosenMode = 'cards';
-    const id = card.id;
+    const answeredCard = card;
+    const id = answeredCard.id;
     leaving = answer === 'no' ? 'left' : 'right';
     await new Promise((r) => setTimeout(r, 180));
-    await setTriage(id, answer === 'no' ? 'no' : 'yes');
-    if (answer === 'must') await setDisposition(id, 'must-attend');
-    leaving = null;
-    dragX = 0;
-    readMore = false;
-    busy = false;
+    try {
+      await setTalkChoice(id, answer);
+      lastAnswered = answeredCard;
+      saveError = '';
+      readMore = false;
+    } catch {
+      saveError = 'Your choice could not be saved. Please try again.';
+    } finally {
+      leaving = null;
+      dragX = 0;
+      busy = false;
+      if (restoreFocus) await focusDiscovery();
+    }
+  }
+  async function focusDiscovery(): Promise<void> {
+    await tick();
+    (
+      document.querySelector<HTMLElement>('[data-testid="talk-card"]') ??
+      document.querySelector<HTMLElement>('[data-testid="discovery-undo"]')
+    )?.focus({ preventScroll: true });
   }
   async function clearAnswer(activity: Activity): Promise<void> {
+    if (busy) return;
+    const restoreFocus = document.activeElement?.matches(
+      '[data-testid="talk-card"], [data-testid="discovery-undo"]',
+    );
+    busy = true;
     chosenMode = 'cards';
-    await setTriage(activity.id, undefined);
+    try {
+      await setTalkChoice(activity.id, undefined);
+      if (lastAnswered?.id === activity.id) lastAnswered = null;
+      saveError = '';
+    } catch {
+      saveError = 'Your choice could not be saved. Please try again.';
+    } finally {
+      busy = false;
+      if (restoreFocus) await focusDiscovery();
+    }
   }
 
   /** Sessions that clash with a given one, for the card's hint. */
@@ -208,47 +283,60 @@
   const pairOpen = (a: RankedActivity, b: RankedActivity): boolean => isPairOpen(a, b, answered);
   /** The members still in the running: every member is in at least one open pair. */
   const remaining = $derived<RankedActivity[]>(slot?.members ?? []);
-  /** A pick already made in this window leaves the rest as the backup question. */
-  const isBackup = $derived(
-    !!slot &&
-      slot.members.some((m) =>
-        slot.members.some((o) => o !== m && answered.has(pairKey(m.activity.id, o.activity.id))),
-      ),
-  );
+  /** The devroom a session belongs to when the attendee is staying for it (#271). */
+  const stayingFor = (a: Activity): string | null =>
+    a.trackId && roomPreference(a.trackId) === 'stay'
+      ? splitTrackName(bundle.tracks.find((t) => t.id === a.trackId)?.name ?? a.trackId).title
+      : null;
+  /** Reserved devrooms represented in the slot, for the explanation. */
+  const reservedInSlot = $derived([
+    ...new Set(remaining.map((m) => stayingFor(m.activity)).filter((n): n is string => !!n)),
+  ]);
+  const mustGoInSlot = $derived(remaining.filter((m) => m.disposition === 'must-attend').length);
+  /** How many of the other members a session actually clashes with (staggered slots differ). */
+  const clashesWithin = (r: RankedActivity): number =>
+    remaining.filter((o) => o !== r && overlaps(o.activity, r.activity)).length;
 
-  /** One reversible answer, captured before the Elo updates were applied. */
+  /** One reversible answer, captured before anything was written. */
   interface UndoEntry {
     comparisonIds: string[];
-    before: { id: string; rating: number; comparisons: number; disposition: Disposition }[];
+    before: ChoiceSnapshot[];
   }
   const undoStack = $state<UndoEntry[]>([]);
   const canUndo = $derived(undoStack.length > 0);
 
-  const snapshot = (id: string) => ({
-    id,
-    rating: ratingOf(id),
-    comparisons: comparisonsOf(id),
-    disposition: dispositionOf(id),
-  });
+  /** What the last pick did, so the attendee can see it and take it back. */
+  let lastPick = $state<{
+    title: string;
+    steppedAside: string[];
+    keptMustGo: string[];
+    leftDevrooms: string[];
+  } | null>(null);
 
   /**
-   * Tap the session you would go to: it beats every other open member of the
-   * slot in one go. Ratings move on the stored values, never the prior view,
-   * and each pair is recorded so it is never asked again.
+   * Tap the session you would go to: it settles the whole slot in one action
+   * (#271). Every member it overlaps stands aside for it — a scheduling
+   * loss, not a dislike: they stay interests and nothing is learnt against
+   * them — so the same window is never asked again as a chain of backup
+   * questions. A must-go loser keeps its mark and the plan keeps showing that
+   * clash. Members the winner does not overlap are left alone. Ratings move
+   * on the stored values, never the prior view.
    */
   async function pickInSlot(winner: RankedActivity): Promise<void> {
     if (!slot || busy) return;
-    const losers = remaining.filter((o) => o !== winner && pairOpen(winner, o));
-    if (losers.length === 0) return;
+    const resolution = resolveClash(remaining, winner.activity.id);
+    const loserIds = [...resolution.steppedAside, ...resolution.keptMustGo];
+    if (loserIds.length === 0) return;
     busy = true;
-    const ids = [winner.activity.id, ...losers.map((l) => l.activity.id)];
-    const before = ids.map(snapshot);
+    const winnerId = winner.activity.id;
+    const before = [winnerId, ...loserIds].map(snapshotChoice);
     const live = new Map(
       before.map((b) => [b.id, { rating: b.rating, comparisons: b.comparisons }]),
     );
     const comparisonIds: string[] = [];
-    for (const loser of losers) {
-      const w = live.get(winner.activity.id)!;
+    for (const loser of remaining) {
+      if (!loserIds.includes(loser.activity.id) || !pairOpen(winner, loser)) continue;
+      const w = live.get(winnerId)!;
       const l = live.get(loser.activity.id)!;
       const result = applyComparison(
         w.rating,
@@ -264,14 +352,35 @@
       comparisonIds.push(comparisonId);
       await recordComparison({
         id: comparisonId,
-        activityA: winner.activity.id,
+        activityA: winnerId,
         activityB: loser.activity.id,
         scoreA: 1,
         createdAt: new Date().toISOString(),
+        clash: true,
       });
     }
     await Promise.all([...live].map(([id, r]) => setRating(id, r.rating, r.comparisons)));
+    await Promise.all(resolution.steppedAside.map((id) => setYieldedTo(id, winnerId)));
+    // The pick is planned: keep it an interest so the itinerary prefers it.
+    if (dispositionOf(winnerId) === 'normal' && triageOf(winnerId) !== 'yes') {
+      await setTalkChoice(winnerId, 'yes');
+    }
     undoStack.push({ comparisonIds, before });
+    const titleOf = (id: string) =>
+      remaining.find((m) => m.activity.id === id)?.activity.title ?? id;
+    lastPick = {
+      title: winner.activity.title,
+      steppedAside: resolution.steppedAside.map(titleOf),
+      keptMustGo: resolution.keptMustGo.map(titleOf),
+      leftDevrooms: [
+        ...new Set(
+          resolution.steppedAside
+            .map((id) => remaining.find((m) => m.activity.id === id)?.activity)
+            .map((a) => (a ? stayingFor(a) : null))
+            .filter((n): n is string => !!n && n !== stayingFor(winner.activity)),
+        ),
+      ],
+    };
     busy = false;
     entering = true;
     setTimeout(() => (entering = false), 200);
@@ -281,7 +390,7 @@
   async function tieSlot(): Promise<void> {
     if (!slot || busy) return;
     busy = true;
-    const before = remaining.map((m) => snapshot(m.activity.id));
+    const before = remaining.map((m) => snapshotChoice(m.activity.id));
     const live = new Map(
       before.map((b) => [b.id, { rating: b.rating, comparisons: b.comparisons }]),
     );
@@ -316,16 +425,18 @@
     }
     await Promise.all([...live].map(([id, r]) => setRating(id, r.rating, r.comparisons)));
     undoStack.push({ comparisonIds, before });
+    lastPick = null;
     busy = false;
   }
 
-  /** "None of these": the whole slot leaves the day. */
+  /** "None of these": the whole slot leaves the day. An explicit answer, unlike standing aside. */
   async function dropSlot(): Promise<void> {
     if (!slot || busy) return;
     busy = true;
-    const before = remaining.map((m) => snapshot(m.activity.id));
+    const before = remaining.map((m) => snapshotChoice(m.activity.id));
     await Promise.all(before.map((b) => setDisposition(b.id, 'not-interested')));
     undoStack.push({ comparisonIds: [], before });
+    lastPick = null;
     busy = false;
   }
 
@@ -335,17 +446,19 @@
     skippedSlots.add(slot.key);
   }
 
+  /** Puts every session of the last answer back exactly as it was, stood-aside marks included. */
   async function undoLast(): Promise<void> {
     if (busy) return;
     const last = undoStack.pop();
     if (!last) return;
-    await Promise.all(
-      last.before.flatMap((b) => [
-        setRating(b.id, b.rating, b.comparisons),
-        setDisposition(b.id, b.disposition),
-      ]),
-    );
-    for (const id of last.comparisonIds) await forgetComparison(id);
+    busy = true;
+    try {
+      await Promise.all(last.before.map(restoreChoice));
+      for (const id of last.comparisonIds) await forgetComparison(id);
+    } finally {
+      lastPick = null;
+      busy = false;
+    }
   }
 
   /**
@@ -370,38 +483,65 @@
   // first answer must not flip the screen to the next step.
   $effect(() => {
     if (!ready || chosenMode !== null || daySessions.length === 0) return;
-    chosenMode =
-      forcedMode ??
-      (!roomPrefsState.decided && rooms.length > 0
-        ? 'rooms'
-        : untriaged.length > 0 && choicesMade === 0
-          ? 'cards'
-          : 'slots');
+    chosenMode = forcedMode ?? 'cards';
   });
   const mode = $derived<Mode>(chosenMode ?? forcedMode ?? 'slots');
+  $effect(() => {
+    if (
+      ready &&
+      mode === 'cards' &&
+      window.matchMedia('(hover: hover) and (pointer: fine)').matches
+    )
+      untrack(() => {
+        void focusDiscovery();
+      });
+  });
 
   // Keyboard: the cards are buttons, so Tab + Enter already works; these are shortcuts.
   function onKeydown(event: KeyboardEvent): void {
     const target = event.target as HTMLElement | null;
-    if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    if (
+      event.defaultPrevented ||
+      event.repeat ||
+      event.isComposing ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey
+    )
+      return;
+    if (
+      target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+    )
+      return;
     if (busy) return;
     if (mode === 'cards') {
+      if (target?.closest('button, a, [role="tab"], [role="button"], [role="dialog"], summary'))
+        return;
+      // Arrows work immediately; character aliases stay scoped to the card.
+      if (!event.key.startsWith('Arrow') && !target?.matches('[data-testid="talk-card"]')) return;
       switch (event.key) {
         case 'ArrowRight':
         case 'y':
         case 'Y':
           event.preventDefault();
-          void answerCard('yes');
+          void answerCard('yes').then(() => focusDiscovery());
           break;
         case 'ArrowLeft':
         case 'n':
         case 'N':
           event.preventDefault();
-          void answerCard('no');
+          void answerCard('no').then(() => focusDiscovery());
           break;
+        case 'ArrowUp':
         case 'm':
         case 'M':
-          void answerCard('must');
+          event.preventDefault();
+          void answerCard('must').then(() => focusDiscovery());
+          break;
+        case 'z':
+        case 'Z':
+          event.preventDefault();
+          if (lastAnswered) void clearAnswer(lastAnswered);
           break;
         default:
           break;
@@ -492,7 +632,7 @@
   <div class="head">
     <div>
       <a class="eyebrow back" href={resolve('/plan')}>← PLAN</a>
-      <h1>Rank your day</h1>
+      <h1>Find your talks</h1>
     </div>
     <div class="days" role="tablist" aria-label="Day">
       {#each days as day, i (day)}
@@ -516,8 +656,8 @@
       class:active={mode === 'rooms'}
       onclick={() => (chosenMode = 'rooms')}
     >
-      1 · Devrooms
-      {#if roomsOut + roomsMust > 0}<span class="count">{roomsOut + roomsMust}</span>{/if}
+      Devrooms
+      {#if roomsOut + roomsStay > 0}<span class="count">{roomsOut + roomsStay}</span>{/if}
     </button>
     <button
       role="tab"
@@ -525,7 +665,7 @@
       class:active={mode === 'cards'}
       onclick={() => (chosenMode = 'cards')}
     >
-      2 · Talks
+      Talks for you
       {#if untriaged.length > 0}<span class="count">{untriaged.length}</span>{/if}
     </button>
     <button
@@ -534,7 +674,7 @@
       class:active={mode === 'slots'}
       onclick={() => (chosenMode = 'slots')}
     >
-      3 · Overlaps
+      Compare overlaps (optional)
       <!-- The count means little before the talks step has thinned the day. -->
       {#if openSlots.length > 0 && (untriaged.length === 0 || choicesMade > 0)}
         <span class="count">{openSlots.length}</span>
@@ -545,7 +685,8 @@
   {#if mode === 'rooms'}
     <p class="muted small lead">
       Which devrooms are for you? <b>Not interested</b> takes a room's talks out of the day,
-      <b>Must go</b> puts them ahead of the rest. The main halls are always in.
+      <b>Stay for this devroom</b> reserves its whole block. Conflicting must-go choices are shown in
+      your plan.
     </p>
     {#if rooms.length === 0}
       <section class="done" aria-live="polite">
@@ -559,7 +700,13 @@
           {@const pref = roomPreference(r.track.id)}
           {@const info = roomSummary(bundle, r.sessions)}
           {@const named = splitTrackName(r.track.name)}
-          <li class="roomrow" data-testid="room-row" class:out={pref === 'skip'}>
+          <li
+            class="roomrow"
+            id="devroom-{r.track.id}"
+            data-testid="room-row"
+            class:out={pref === 'skip'}
+          >
+            <DevroomBanner trackId={r.track.id} eventId={bundle.id} />
             <div class="roomtext">
               <span class="roomname">{named.title}</span>
               {#if named.subtitle}
@@ -617,17 +764,16 @@
                 >Not interested</button
               >
               <button
-                class:on={!pref}
-                aria-pressed={!pref}
+                class:on={!pref || pref === 'love'}
+                aria-pressed={!pref || pref === 'love'}
                 onclick={() => setRoomPreference(bundle, r.track.id, undefined)}>Interested</button
               >
               <button
-                class:on={pref === 'love'}
-                class="love"
-                aria-pressed={pref === 'love'}
+                class:on={pref === 'stay'}
+                aria-pressed={pref === 'stay'}
                 onclick={() =>
-                  setRoomPreference(bundle, r.track.id, pref === 'love' ? undefined : 'love')}
-                >Must go</button
+                  setRoomPreference(bundle, r.track.id, pref === 'stay' ? undefined : 'stay')}
+                >Stay for this devroom</button
               >
             </div>
           </li>
@@ -635,27 +781,26 @@
       </ul>
       <div class="roomsdone">
         <button class="button dark" onclick={roomsDone}>
-          {roomsOut > 0 || roomsMust > 0
-            ? `Done · ${roomsOut} out, ${roomsMust} must go →`
+          {roomsOut > 0 || roomsStay > 0
+            ? `Done · ${roomsOut} out, ${roomsStay} staying →`
             : 'All devrooms are fine →'}
         </button>
       </div>
     {/if}
   {:else if mode === 'cards'}
-    <div class="progress" role="status">
-      <div class="progresstext">
-        <span class="ok">{keptCount} IN · {droppedCount} OUT</span>
-        <span>{untriaged.length} TO GO</span>
-      </div>
-      <div class="track">
-        <div
-          class="fill"
-          style="width:{daySessions.length
-            ? Math.round((triaged.length / daySessions.length) * 100)
-            : 0}%"
-        ></div>
-      </div>
-    </div>
+    <p class="muted small" role="status">
+      {triaged.length} choices saved ·
+      <a href={resolve('/plan')}>See my plan →</a>
+    </p>
+    {#if lastAnswered}
+      <button
+        class="linkbtn small"
+        data-testid="discovery-undo"
+        disabled={busy}
+        onclick={() => lastAnswered && clearAnswer(lastAnswered)}>Undo last choice</button
+      >
+    {/if}
+    {#if saveError}<p role="alert">{saveError}</p>{/if}
 
     {#if !ready}
       <p class="muted" role="status">Loading your picks…</p>
@@ -681,9 +826,8 @@
       </section>
     {:else}
       {@const clashes = clashCount(card)}
-      <p class="muted small lead center">
-        Swipe right if you might go, left if not. Only the Yeses that overlap need settling
-        afterwards.
+      <p class="sr-only" id="discovery-keys">
+        Left: not interested · Right: want to go · Up: must go · Z: undo.
       </p>
       <div class="stack" aria-live="polite">
         {#if nextCard}
@@ -696,29 +840,33 @@
           </article>
         {/if}
         {#key card.id}
-          <!-- The buttons below are the keyboard and screen-reader path; the drag is a shortcut. -->
+          <!-- Choice buttons remain available alongside immediate arrow-key shortcuts. -->
+          <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
           <article
             class="talkcard"
             class:dragging
             class:leaving-left={leaving === 'left'}
             class:leaving-right={leaving === 'right'}
             data-testid="talk-card"
+            tabindex="0"
+            aria-describedby="discovery-keys"
             aria-label={card.title}
             style="--dx:{dragX}px;--rot:{dragX / 18}deg"
             onpointerdown={onCardDown}
             onpointermove={onCardMove}
             onpointerup={onCardUp}
-            onpointercancel={onCardUp}
+            onpointercancel={onCardCancel}
+            onlostpointercapture={onCardLostCapture}
           >
             <span
               class="stamp yes"
               aria-hidden="true"
-              style="opacity:{Math.min(1, Math.max(0, dragX) / SWIPE_COMMIT)}">INTERESTED</span
+              style="opacity:{Math.min(1, Math.max(0, dragX) / SWIPE_COMMIT)}">WANT TO GO</span
             >
             <span
               class="stamp no"
               aria-hidden="true"
-              style="opacity:{Math.min(1, Math.max(0, -dragX) / SWIPE_COMMIT)}">NOT FOR ME</span
+              style="opacity:{Math.min(1, Math.max(0, -dragX) / SWIPE_COMMIT)}">NOT INTERESTED</span
             >
             <span class="talkhead">
               <TypeBadge type={card.type} />
@@ -751,6 +899,7 @@
                 </span>
               </div>
             {/each}
+            {#if card.scheduleNote}<p role="status">{card.scheduleNote}</p>{/if}
             {#if card.description}
               <div class="abstract" class:open={readMore}>
                 <p>{card.description}</p>
@@ -779,22 +928,40 @@
       </div>
       <div class="cardbtns">
         <button
-          class="button secondary no"
-          aria-label={`Not for me: ${card.title}`}
-          onclick={() => answerCard('no')}
-          disabled={busy}>✕ Not for me</button
+          class="button must"
+          aria-label={`Must go: ${card.title}`}
+          onclick={() => answerCard('must')}
+          disabled={busy}
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"><path d="m3 6 5 4 4-7 4 7 5-4-2 12H5Z" /><path d="M5 21h14" /></svg
+          > Must go</button
         >
         <button
           class="button secondary yes"
-          aria-label={`Interested: ${card.title}`}
+          aria-label={`Want to go: ${card.title}`}
           onclick={() => answerCard('yes')}
-          disabled={busy}>✓ Interested</button
+          disabled={busy}
+          ><svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg
+          > Want to go</button
         >
         <button
-          class="button dark must"
-          aria-label={`Must go: ${card.title}`}
-          onclick={() => answerCard('must')}
-          disabled={busy}>★ Must go</button
+          class="button secondary no"
+          aria-label={`Not interested: ${card.title}`}
+          onclick={() => answerCard('no')}
+          disabled={busy}>Not interested</button
         >
       </div>
     {/if}
@@ -863,10 +1030,27 @@
               slot.end,
             )}</span
           >
-          <span class="reasontext">
-            {isBackup ? 'And if that falls through?' : 'Which one would you go to?'}
-          </span>
+          <span class="reasontext">Which one would you go to?</span>
         </div>
+        <p class="muted small howto">
+          One tap settles this slot: your pick goes in the plan and the talks it overlaps stand
+          aside for it. They stay among your interests — standing aside is not a dislike — and Undo
+          brings them back.
+        </p>
+        {#if reservedInSlot.length > 0}
+          <p class="note stay" data-testid="slot-devroom-note">
+            You are staying for <strong>{reservedInSlot.join(' and ')}</strong>. Picking another
+            talk here leaves the devroom for just this slot — its talk stands aside, the rest of the
+            block stays reserved, and your plan comes back to it afterwards. Pick the devroom's own
+            talk to keep the block whole.
+          </p>
+        {/if}
+        {#if mustGoInSlot > 1}
+          <p class="note must" data-testid="slot-mustgo-note">
+            {mustGoInSlot} must-go talks clash here. Picking one keeps the others' must-go marks, so your
+            plan keeps flagging the clash until you change an answer — nothing is dropped for you.
+          </p>
+        {/if}
 
         {#each remaining as r, i (r.activity.id)}
           {@const act = r.activity}
@@ -887,6 +1071,15 @@
               <span class="title">{act.title}</span>
               {#if speakerNames(act)}<span class="speaker">{speakerNames(act)}</span>{/if}
               {#if r.disposition === 'must-attend'}<span class="mustpill">★ MUST GO</span>{/if}
+              {#if stayingFor(act)}
+                <span class="staypill">STAYING FOR THIS DEVROOM · {stayingFor(act)}</span>
+              {/if}
+              {#if remaining.length > 2 && clashesWithin(r) < remaining.length - 1}
+                <span class="muted small"
+                  >Overlaps {clashesWithin(r)} of the other {remaining.length - 1}; the rest can
+                  still fit.</span
+                >
+              {/if}
             </button>
             <a class="more" href={resolve(`/activity/${act.id}`)}>About this talk ↗</a>
           </article>
@@ -907,6 +1100,24 @@
       </section>
     {/if}
 
+    {#if lastPick}
+      <p class="note picked" role="status" data-testid="clash-result">
+        <strong>{lastPick.title}</strong> is in your plan.
+        {#if lastPick.steppedAside.length > 0}
+          {lastPick.steppedAside.length === 1
+            ? `${lastPick.steppedAside[0]} stood aside`
+            : `${lastPick.steppedAside.length} talks stood aside`} — still an interest, not a dislike.
+        {/if}
+        {#if lastPick.leftDevrooms.length > 0}
+          You leave {lastPick.leftDevrooms.join(' and ')} for this slot only.
+        {/if}
+        {#if lastPick.keptMustGo.length > 0}
+          {lastPick.keptMustGo.join(', ')}
+          {lastPick.keptMustGo.length === 1 ? 'keeps its' : 'keep their'} must-go mark, so the plan still
+          shows that clash.
+        {/if}
+      </p>
+    {/if}
     <div class="controls">
       <button class="button secondary" onclick={undoLast} disabled={!canUndo}>↶ Undo last</button>
       <p class="muted small">
@@ -943,6 +1154,18 @@
 </EventGate>
 
 <style>
+  .cardbtns .must {
+    background: var(--choice-must);
+    color: var(--choice-must-text);
+  }
+  .cardbtns .yes {
+    background: var(--choice-want);
+    color: var(--choice-want-text);
+  }
+  .cardbtns .no {
+    background: var(--choice-no);
+    color: var(--choice-no-text);
+  }
   /* Steps */
   .modes {
     display: grid;
@@ -955,10 +1178,10 @@
     align-items: center;
     justify-content: center;
     gap: 0.3rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 10px;
     padding: 0.5rem 0.3rem;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.05em;
@@ -996,7 +1219,7 @@
     flex-direction: column;
     gap: 0.6rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 14px;
     padding: 0.8rem 0.9rem;
     transition: opacity 0.15s;
@@ -1084,7 +1307,7 @@
   .roomchoice button {
     min-height: 2.4rem;
     padding: 0 0.4rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 999px;
     background: var(--surface);
     color: var(--text-muted);
@@ -1097,11 +1320,6 @@
     background: var(--ink);
     border-color: var(--ink);
     color: var(--on-ink);
-  }
-  .roomchoice button.love.on {
-    background: var(--mint);
-    border-color: var(--mint);
-    color: var(--ink);
   }
   .roomchoice button.skip.on {
     background: var(--amber-soft);
@@ -1118,16 +1336,13 @@
     line-height: 1.5;
     text-wrap: pretty;
   }
-  .lead.center {
-    text-align: center;
-  }
   .tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.3rem;
   }
   .tag {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.6rem;
     letter-spacing: 0.04em;
     padding: 0.15rem 0.45rem;
@@ -1163,7 +1378,7 @@
     flex-direction: column;
     gap: 0.55rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 18px;
     padding: 1rem 1rem 0.9rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
@@ -1251,7 +1466,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.8rem;
     font-weight: 700;
     color: var(--mint-ink);
@@ -1328,7 +1543,7 @@
     align-items: center;
     gap: 0.6rem;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 14px;
     padding: 0.45rem 0.8rem;
   }
@@ -1347,7 +1562,7 @@
     text-wrap: pretty;
   }
   .clash {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     letter-spacing: 0.04em;
     color: var(--amber-ink);
@@ -1360,7 +1575,7 @@
     flex: none;
   }
   .answer {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1421,7 +1636,7 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.66rem;
     letter-spacing: 0.06em;
     color: var(--text-muted);
@@ -1477,7 +1692,7 @@
     flex-wrap: wrap;
   }
   .pill {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1493,11 +1708,42 @@
     font-size: 0.9rem;
     font-weight: 600;
   }
+  .howto {
+    margin: 0 0 0.2rem;
+  }
+  .note {
+    margin: 0.2rem 0;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .note.stay {
+    background: color-mix(in srgb, var(--event-primary) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--event-primary) 40%, transparent);
+  }
+  .note.must {
+    background: color-mix(in srgb, var(--amber-soft) 60%, var(--surface));
+    border: 1px solid var(--amber);
+  }
+  .note.picked {
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    margin-top: 0.8rem;
+  }
+  .staypill {
+    align-self: flex-start;
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--event-primary-dark);
+  }
 
   .talk {
     position: relative;
     background: var(--surface-raised);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 16px;
     padding: 0 1rem 0.7rem;
     display: flex;
@@ -1547,7 +1793,7 @@
     gap: 0.5rem;
   }
   .when {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.7rem;
     color: var(--text-muted);
     text-align: right;
@@ -1565,7 +1811,7 @@
   }
   .mustpill {
     align-self: flex-start;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.6rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -1575,7 +1821,7 @@
     align-self: flex-end;
     border: 0;
     background: transparent;
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -1668,7 +1914,7 @@
     padding: 0;
     margin: 0.5rem 0 0;
     background: var(--surface);
-    border: 1px solid var(--border);
+    border: 1px solid var(--line);
     border-radius: 16px;
     overflow: hidden;
   }
@@ -1708,7 +1954,7 @@
     font-size: 0.64rem;
   }
   .rating {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.72rem;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;

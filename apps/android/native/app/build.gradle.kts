@@ -6,12 +6,12 @@ plugins {
 }
 
 // The bundle the app opens with before its first network refresh is the very
-// file the web client publishes — copied at build time rather than checked in
-// twice, so the two clients can never drift.
+// canonical normalized file the web build copies. Reading the generated web
+// static copy here would leave APKs stale after an automatic data-only import.
 val seedAssets = layout.buildDirectory.dir("generated/seed-assets")
 
 val copySeedBundle by tasks.registering(Copy::class) {
-    from(rootProject.file("../../web/static/events/indiafoss-2025/event-bundle.json"))
+    from(rootProject.file("../../../events/indiafoss-2026/normalized/event-bundle.json"))
     // The floor plans the web map draws, exported to JSON (`pnpm --filter @indiafoss/web floors`).
     from(rootProject.file("../../web/static/venues/indiafoss-2026/floors.json"))
     // The routing graph and room entrances behind the web map's walk times.
@@ -28,8 +28,8 @@ android {
         applicationId = "org.indiafoss.companion.nativeapp"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = providers.gradleProperty("nightlyVersionCode").orNull?.toInt() ?: 1
+        versionName = providers.gradleProperty("nightlyVersionName").orNull ?: "0.1-dev"
     }
 
     buildTypes {
@@ -51,6 +51,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     testOptions {

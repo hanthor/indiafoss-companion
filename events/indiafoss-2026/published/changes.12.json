@@ -1,0 +1,66 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 12,
+  "from": 11,
+  "changes": [
+    {
+      "activityId": "act-cfp-92adqrmbh1",
+      "title": "FOSS4Good - Techies in the social sector",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-8knf7bja7g",
+      "title": "Navigating the FOSS Contribution Journey",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-1vj5aoro8u",
+      "title": "How do we scale and sustain AI adoption without burning the planet?",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lar927u4",
+      "title": "From Reset to main(): Porting Infineon TriCore AURIX to Zephyr",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28laeodjb3",
+      "title": "Real-Time Video Pipelines on Embedded SoCs: A FreeRTOS Case Study",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lad4q6q5",
+      "title": "Tackling core lifecycle management in heterogeneous SoCs",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lak5j8nt",
+      "title": "Loops to real time",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lamtpeiu",
+      "title": "Indigenous, High-Performance, Safety-Critical RTOS",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lakfdugu",
+      "title": "From Architecture to Tasks: Designing Real-Time MCU Firmware in Heterogeneous APU-MCU Systems",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28laqe1pg1",
+      "title": "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-aqenkb8ktb",
+      "title": "RTL to Zephyr RTOS: Lightweight-Crypto Acceleration on Open RISC-V",
+      "type": "added"
+    }
+  ],
+  "summary": {
+    "time-changed": 9,
+    "added": 2
+  }
+}

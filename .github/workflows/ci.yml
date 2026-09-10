@@ -4,9 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -15,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: pnpm/action-setup@v4
         with:
@@ -41,7 +48,9 @@ jobs:
         run: pnpm -r test
 
       - name: Verify captured fixtures
-        run: pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+        run: |
+          pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+          pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2026
 
       - name: Validate venue assets
         run: |
@@ -71,6 +80,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: pnpm/action-setup@v4
         with:
@@ -91,7 +102,11 @@ jobs:
         run: pnpm --filter @indiafoss/web build
 
       - name: Run browser E2E tests
-        run: pnpm --filter @indiafoss/web test:e2e
+        run: pnpm --filter @indiafoss/web exec playwright test tests/app.spec.ts tests/discovery.spec.ts tests/personal-data.spec.ts tests/profile-import.spec.ts tests/ticket-contact.spec.ts tests/native-download.spec.ts tests/chat-download.spec.ts
+
+      # Headless Chromium denies OS notifications even with a permission override.
+      - name: Test mobile notification delivery with a real service worker
+        run: xvfb-run -a pnpm --filter @indiafoss/web exec playwright test tests/mobile-reminders.spec.ts --headed
 
       - name: Run accessibility checks
         run: pnpm --filter @indiafoss/web exec playwright test tests/a11y.spec.ts
@@ -125,8 +140,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
@@ -136,11 +153,8 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Core unit tests
-        run: cd apps/android/native && ./gradlew :core:test
-
-      - name: Screen renders (Robolectric screenshots)
-        run: cd apps/android/native && ./gradlew :app:testDebugUnitTest
+      - name: Core and app tests (including Robolectric screen renders)
+        run: bash scripts/android-test.sh
 
       - name: Upload screenshots
         if: always()
@@ -152,6 +166,13 @@ jobs:
 
       - name: Assemble debug APK
         run: cd apps/android/native && ./gradlew :app:assembleDebug
+
+      - name: Verify nightly signing and rejection paths with a disposable key
+        run: |
+          (cd apps/android/native && ./gradlew :app:assembleRelease)
+          build_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          export APKSIGNER="$build_tools/apksigner" ZIPALIGN="$build_tools/zipalign"
+          bash scripts/test-nightly-signing.sh apps/android/native/app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Checksum the APK
         run: |
@@ -175,8 +196,10 @@ jobs:
     needs: native
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'

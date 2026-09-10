@@ -1,3 +1,5 @@
+import { isCanonicalNodeId } from './identity.js';
+
 /**
  * Optional Matrix messaging configuration shipped inside an event bundle.
  *
@@ -156,7 +158,7 @@ export function isLoopbackHomeserverHost(value: string): boolean {
 }
 
 export function isMeshServerName(value: string): boolean {
-  return /^[0-9a-f]{64}$/.test(value);
+  return isCanonicalNodeId(value);
 }
 
 /**

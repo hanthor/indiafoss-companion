@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  QUESTION_CONTENT_KEY,
-  applySyncResponse,
-  canPost,
-  deriveRoomName,
-  describeEvent,
-} from './sync.js';
+import { QUESTION_CONTENT_KEY, applySyncResponse, deriveRoomName, describeEvent } from './sync.js';
 import { slidingSyncToSyncResponse } from './http.js';
 import type { MatrixRoomRecord, SyncResponse } from './types.js';
 
@@ -399,7 +393,7 @@ describe('sliding sync typing extension', () => {
 });
 
 describe('power levels (announcements, #113)', () => {
-  it('records who may post and answers canPost', () => {
+  it('records who may post', () => {
     const rooms = new Map<string, MatrixRoomRecord>();
     const response: SyncResponse = {
       next_batch: 'n1',
@@ -431,15 +425,6 @@ describe('power levels (announcements, #113)', () => {
       message: undefined,
       users: { '@org:hs': 100 },
     });
-    expect(canPost(room, '@org:hs')).toBe(true);
-    expect(canPost(room, '@me:hs')).toBe(false);
-    expect(canPost({ powerLevels: undefined }, '@me:hs')).toBe(true);
-    expect(
-      canPost(
-        { powerLevels: { usersDefault: 0, eventsDefault: 0, message: 50, users: {} } },
-        '@me:hs',
-      ),
-    ).toBe(false);
   });
 });
 

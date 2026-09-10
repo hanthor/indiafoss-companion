@@ -4,17 +4,22 @@
   import { page } from '$app/state';
   import { base, resolve } from '$app/paths';
   import { registerSW } from 'virtual:pwa-register';
+  import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
+  import { currentLocation, hydrateLocation } from '$lib/location.svelte';
   import { hydratePreferences } from '$lib/prefs.svelte';
-  import { applyUpdate, checkForUpdates, updateState } from '$lib/updates.svelte';
+  import { applyUpdate, checkForUpdates, updateState, refreshStatus } from '$lib/updates.svelte';
+  import { UpdatePoller, updatePollInterval, updateRetryDelay } from '$lib/update-poller';
+  import { describeChangeCount } from '@indiafoss/schedule';
+  import type { ScheduleChangeType } from '@indiafoss/schedule';
   import {
     armNotifications,
-    disarmNotifications,
     hydrateNotifications,
     notificationsEnabled,
   } from '$lib/notifications.svelte';
   import { untrack } from 'svelte';
   import { DEFAULT_EVENT_ID, eventState } from '$lib/event.svelte';
   import { installNativeDeepLinks } from '$lib/native';
+  import LivePlan from '$lib/components/LivePlan.svelte';
   import LeaveByBanner from '$lib/components/LeaveByBanner.svelte';
   import SimulatorStrip from '$lib/components/SimulatorStrip.svelte';
   import { goto } from '$app/navigation';
@@ -25,18 +30,21 @@
     startSimulationFromParams,
     tickInterval,
   } from '$lib/simulator.svelte';
+  import { trackPlanInputs } from '$lib/resolved-plan.svelte';
   import { simulationSpeed } from '$lib/clock';
   import { hydrateOnboarding, markOnboardingDone, onboardingState } from '$lib/onboarding.svelte';
 
   let { children }: { children: import('svelte').Snippet } = $props();
 
   const brandHref = resolve('/');
-  const logoSrc = `${base}/branding/indiafoss-2026-white.svg`;
+  const logoSrc = `${base}/branding/indiafoss-2026-black.svg`;
 
   registerSW({ immediate: true });
 
   onMount(() => {
     void hydratePreferences();
+    void hydrateRoutingProfile();
+    void hydrateLocation();
     void hydrateNotifications();
     // Deep-link targets are validated in routeForDeepLink() before navigation.
     // eslint-disable-next-line svelte/no-navigation-without-resolve
@@ -45,6 +53,15 @@
     // `?setup=done` skips the welcome wizard (links, automation).
     if (page.url.searchParams.get('setup') === 'done') void markOnboardingDone();
     else void hydrateOnboarding();
+    const refreshPermission = () => {
+      if (document.visibilityState === 'visible') void hydrateNotifications();
+    };
+    window.addEventListener('focus', refreshPermission);
+    document.addEventListener('visibilitychange', refreshPermission);
+    return () => {
+      window.removeEventListener('focus', refreshPermission);
+      document.removeEventListener('visibilitychange', refreshPermission);
+    };
   });
 
   // First run (#107): the home screen hands over to the welcome wizard once.
@@ -56,8 +73,8 @@
     void goto(resolve('/welcome'));
   });
 
-  // Reminders are re-armed once a minute of app time: every real minute, or
-  // much more often while the day simulator runs the clock fast. A run
+  // Extend the reminder window once a minute without cancelling due deliveries.
+  // This happens more often while the day simulator runs the clock fast. A run
   // starting or stopping moves the clock, so everything armed is dropped and
   // re-armed on the new one.
   $effect(() => {
@@ -68,13 +85,16 @@
     // effect would not re-run when they land, so the first alerts would wait
     // out the rest of the interval — a whole minute of a conference day in
     // which nothing can fire (#159).
-    void eventState.bundle;
+    trackPlanInputs(eventState.bundle);
     void notificationsEnabled.value;
+    void routingPrefs.profile;
+    void routingPrefs.loaded;
+    void currentLocation.value;
     const every = run ? untrack(() => tickInterval(60_000)) : 60_000;
     const timer = setInterval(() => {
-      void armNotifications();
+      void armNotifications(true).catch(() => {});
     }, every);
-    void disarmNotifications().then(() => armNotifications());
+    void armNotifications().catch(() => {});
     return () => clearInterval(timer);
   });
 
@@ -97,8 +117,34 @@
 
   $effect(() => {
     if (eventState.status === 'ready' && eventState.bundle) {
-      void checkForUpdates(DEFAULT_EVENT_ID);
+      void checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID);
     }
+  });
+
+  // Keep an open schedule fresh; hidden/offline tabs do not poll.
+  onMount(() => {
+    const poller = new UpdatePoller(
+      (periodic) => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID, { force: periodic }),
+      () =>
+        updateRetryDelay(
+          updatePollInterval(eventState.bundle),
+          refreshStatus[eventState.bundle?.id ?? DEFAULT_EVENT_ID]?.failures ?? 0,
+        ),
+    );
+    const resume = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) poller.start();
+      else poller.stop();
+    };
+    resume();
+    window.addEventListener('online', resume);
+    window.addEventListener('offline', resume);
+    document.addEventListener('visibilitychange', resume);
+    return () => {
+      poller.stop();
+      window.removeEventListener('online', resume);
+      window.removeEventListener('offline', resume);
+      document.removeEventListener('visibilitychange', resume);
+    };
   });
 
   // The map fills the screen edge to edge; every other route keeps the gutter.
@@ -144,13 +190,64 @@
   <title>{pageTitle}</title>
 </svelte:head>
 
+{#snippet primaryLinks()}
+  <a href={resolve('/now')} aria-current={isActive('/now') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path
+        d="M12 3a9 9 0 110 18 9 9 0 010-18zm0 2a7 7 0 100 14 7 7 0 000-14zm-1 3h2v4.6l3 1.8-1 1.7-4-2.4V8z"
+      /></svg
+    >
+    <span>Now</span>
+  </a>
+  <a href={resolve('/plan')} aria-current={isActive('/plan') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M5 4h14v16H5V4zm2 2v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2zm0 4h4v2H9v-2z" /></svg
+    >
+    <span>Plan</span>
+  </a>
+  <a href={resolve('/schedule')} aria-current={isActive('/schedule') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zM6 9v10h12V9H6zm2 2h3v3H8v-3z" /></svg
+    >
+    <span>Schedule</span>
+  </a>
+  <a href={resolve('/map')} aria-current={isActive('/map') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path
+        d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7zm0 2a5 5 0 00-5 5c0 3 3.6 8.2 5 10.1 1.4-1.9 5-7.1 5-10.1a5 5 0 00-5-5zm0 2.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"
+      /></svg
+    >
+    <span>Map</span>
+  </a>
+  <a href={resolve('/explore')} aria-current={isActive('/explore') ? 'page' : undefined}>
+    <svg viewBox="0 0 24 24" aria-hidden="true"
+      ><path
+        d="M10 3a7 7 0 015.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z"
+      /></svg
+    >
+    <span>Explore</span>
+  </a>
+{/snippet}
+
 <div class="shell">
   <header class="app-bar">
     <a class="brand" href={brandHref} aria-label="IndiaFOSS Companion home">
       <img src={logoSrc} alt="IndiaFOSS 2026" />
       <span class="brand-sub">Companion</span>
     </a>
-    <nav class="toplinks" aria-label="Account">
+    <nav class="toplinks" aria-label="App actions">
+      <a
+        href="https://github.com/hanthor/indiafoss-companion/releases/download/nightly/indiafoss-companion-nightly.apk"
+        aria-label="Download Android app"
+        title="Download the native Android Companion APK"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"
+          ><path
+            d="M11 3h2v10l3-3 1.4 1.4L12 17l-5.4-5.6L8 10l3 3V3zM4 17h2v3h12v-3h2v5H4v-5z"
+          /></svg
+        >
+        <span>Android</span>
+      </a>
       <a
         class="scancta"
         href={resolve('/scan')}
@@ -180,73 +277,65 @@
   </header>
   <div class="pixelstripe" aria-hidden="true"></div>
   <SimulatorStrip />
+  <LivePlan />
   <LeaveByBanner />
-
-  <main class="content" class:fullbleed>
-    {@render children()}
-  </main>
-
-  {#if updateState.available}
-    <section class="updatebanner card accent" role="status" aria-label="Schedule update available">
-      <div class="updatebody">
-        <strong>Schedule changed</strong>
-        <span>
-          {#each Object.entries(updateState.summary) as [type, count] (type)}
-            {count}
-            {type}{count === 1 ? '' : 's'}
-            {#if type === 'room-changed'}
-              — your route will be recalculated.
-            {/if}
-          {/each}
-        </span>
-      </div>
-      <button class="button primary small" onclick={() => applyUpdate(DEFAULT_EVENT_ID)}
-        >Update</button
-      >
-    </section>
+  {#if eventState.bundle && eventState.bundle.id !== DEFAULT_EVENT_ID}
+    <p class="event-notice">Archived programme · This is not the current IndiaFOSS schedule.</p>
   {/if}
 
-  <nav class="tabbar" aria-label="Primary">
-    <a href={resolve('/now')} aria-current={isActive('/now') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path
-          d="M12 3a9 9 0 110 18 9 9 0 010-18zm0 2a7 7 0 100 14 7 7 0 000-14zm-1 3h2v4.6l3 1.8-1 1.7-4-2.4V8z"
-        /></svg
-      >
-      <span>Now</span>
-    </a>
-    <a href={resolve('/plan')} aria-current={isActive('/plan') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path d="M5 4h14v16H5V4zm2 2v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2zm0 4h4v2H9v-2z" /></svg
-      >
-      <span>Plan</span>
-    </a>
-    <a href={resolve('/schedule')} aria-current={isActive('/schedule') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zM6 9v10h12V9H6zm2 2h3v3H8v-3z" /></svg
-      >
-      <span>Schedule</span>
-    </a>
-    <a href={resolve('/map')} aria-current={isActive('/map') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path
-          d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7zm0 2a5 5 0 00-5 5c0 3 3.6 8.2 5 10.1 1.4-1.9 5-7.1 5-10.1a5 5 0 00-5-5zm0 2.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"
-        /></svg
-      >
-      <span>Map</span>
-    </a>
-    <a href={resolve('/explore')} aria-current={isActive('/explore') ? 'page' : undefined}>
-      <svg viewBox="0 0 24 24" aria-hidden="true"
-        ><path
-          d="M10 3a7 7 0 015.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z"
-        /></svg
-      >
-      <span>Explore</span>
-    </a>
+  <div class="body">
+    <!-- Desktop only (≥1024px): the same five destinations as the bottom tab
+         bar, as a side rail before the content so keyboard order follows the
+         visual order. The tab bar is hidden there, so only one is in the tree. -->
+    <nav class="rail" aria-label="Primary" data-testid="nav-rail">
+      {@render primaryLinks()}
+    </nav>
+    <div class="column">
+      <main class="content" class:fullbleed>
+        {@render children()}
+      </main>
+
+      {#if updateState.available && updateState.eventId === eventState.bundle?.id}
+        <section
+          class="updatebanner card accent"
+          role="status"
+          aria-label="Schedule update available"
+        >
+          <div class="updatebody">
+            <strong>Schedule changed</strong>
+            {#if updateState.error}<p role="alert">{updateState.error}</p>{/if}
+            <span>
+              {#each Object.entries(updateState.summary) as [type, count] (type)}
+                {describeChangeCount(type as ScheduleChangeType, count)}
+                {#if type === 'room-changed'}
+                  — your route will be recalculated.
+                {/if}
+              {/each}
+            </span>
+          </div>
+          <button
+            class="button primary small"
+            onclick={() => applyUpdate(eventState.bundle?.id ?? DEFAULT_EVENT_ID)}>Update</button
+          >
+        </section>
+      {/if}
+    </div>
+  </div>
+
+  <nav class="tabbar" aria-label="Primary" data-testid="nav-tabbar">
+    {@render primaryLinks()}
   </nav>
 </div>
 
 <style>
+  .event-notice {
+    margin: 0;
+    padding: 0.6rem 1rem;
+    text-align: center;
+    background: var(--surface);
+    color: var(--text);
+    font-size: 0.9rem;
+  }
   .shell {
     display: flex;
     flex-direction: column;
@@ -261,9 +350,10 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: calc(0.55rem + var(--safe-top)) 0.9rem 0.55rem;
-    background: var(--ink-2);
-    color: var(--on-ink);
+    padding: calc(0.55rem + var(--safe-top)) max(1rem, calc((100vw - 75rem) / 2)) 0.55rem;
+    background: var(--paper);
+    color: var(--text);
+    border-bottom: 1px solid var(--line);
   }
 
   .brand {
@@ -279,12 +369,17 @@
     width: min(7.5rem, 36vw);
     height: auto;
   }
+  @media (prefers-color-scheme: dark) {
+    .brand img {
+      filter: invert(1);
+    }
+  }
   .brand-sub {
     font-family: var(--font-display);
-    font-size: 0.5rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--amber);
+    color: var(--text-muted);
   }
   @media (max-width: 480px) {
     .brand-sub {
@@ -307,10 +402,10 @@
     min-height: 44px;
     padding: 0.25rem 0.45rem;
     border-radius: var(--radius);
-    color: var(--on-ink);
+    color: var(--text);
     text-decoration: none;
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
+    font-family: var(--font-body);
+    font-size: 0.65rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -320,7 +415,7 @@
     fill: currentColor;
   }
   .toplinks a:hover {
-    background: hsl(0 0% 20%);
+    background: var(--line);
   }
   .toplinks a[aria-current='page'] {
     background: hsl(0 0% 29%);
@@ -341,6 +436,16 @@
     background: color-mix(in srgb, var(--amber) 82%, var(--on-ink));
     color: var(--ink);
   }
+  @media (max-width: 380px) {
+    .brand img {
+      width: 28vw;
+    }
+    .toplinks a.scancta {
+      flex-direction: column;
+      gap: 0.05rem;
+      padding: 0.25rem 0.45rem;
+    }
+  }
   .pixelstripe {
     position: sticky;
     top: calc(60px + var(--safe-top));
@@ -350,7 +455,7 @@
   .content {
     flex: 1;
     padding: 0.75rem 1rem 1.25rem;
-    max-width: 72rem;
+    max-width: 77rem;
     width: 100%;
     margin: 0 auto;
   }
@@ -383,8 +488,8 @@
     padding: 0.35rem 0.2rem;
     color: var(--text-muted);
     text-decoration: none;
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
+    font-family: var(--font-body);
+    font-size: 0.7rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -426,5 +531,102 @@
   }
   .updatebody strong {
     color: var(--text);
+  }
+
+  /* Phone: the wrappers do not exist as boxes, so the shell's flex column
+     is exactly what it was. Desktop (≥1024px, issue 205): a side rail and the
+     content column sit in a grid under the app bar. */
+  .body,
+  .column {
+    display: contents;
+  }
+  .rail {
+    display: none;
+  }
+  @media (min-width: 1024px) {
+    .app-bar {
+      padding-inline: 1.25rem;
+    }
+    .body {
+      display: grid;
+      grid-template-columns: var(--rail-width) minmax(0, 1fr);
+      flex: 1;
+      /* The rail's surface and edge are painted by the row, not by the rail:
+         a rail as tall as the viewport would make every row that tall and
+         push the page below the fold whenever a banner shows. */
+      background: linear-gradient(
+        to right,
+        var(--surface) calc(var(--rail-width) - 1px),
+        var(--line) calc(var(--rail-width) - 1px),
+        var(--line) var(--rail-width),
+        transparent var(--rail-width)
+      );
+    }
+    .column {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .rail {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      position: sticky;
+      top: calc(var(--appbar-height) + var(--safe-top));
+      align-self: start;
+      max-height: calc(100dvh - var(--appbar-height) - var(--safe-top));
+      overflow-y: auto;
+      padding: 1rem 0.75rem;
+    }
+    .rail a {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 44px;
+      padding: 0.55rem 0.85rem;
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-family: var(--font-body);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .rail svg {
+      width: 1.35rem;
+      height: 1.35rem;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+    .rail a:hover {
+      background: var(--line);
+      color: var(--text);
+    }
+    .rail a[aria-current='page'] {
+      background: var(--mint-soft);
+      color: var(--mint-ink);
+    }
+    .rail a[aria-current='page']::before {
+      content: '';
+      position: absolute;
+      left: -0.75rem;
+      top: 18%;
+      bottom: 18%;
+      width: 3px;
+      background: var(--mint);
+    }
+    .content {
+      padding: 1rem 2rem 2rem;
+    }
+    .content.fullbleed {
+      flex-direction: row;
+      align-items: stretch;
+      padding: 0;
+    }
+    .tabbar {
+      display: none;
+    }
   }
 </style>

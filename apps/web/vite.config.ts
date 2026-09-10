@@ -14,7 +14,8 @@ export default defineConfig({
     sveltekit(),
     SvelteKitPWA({
       registerType: 'autoUpdate',
-      base: base || '/',
+      // The PWA plugin concatenates its worker filename with this directory.
+      base: `${base}/`,
       injectRegister: false,
       kit: {
         // SPA mode: adapter-static fallback is build/index.html.
@@ -33,8 +34,8 @@ export default defineConfig({
         theme_color: '#18222a',
         background_color: '#18222a',
         display: 'standalone',
-        start_url: base || '/',
-        scope: base || '/',
+        start_url: `${base}/`,
+        scope: `${base}/`,
         // A shared friend link, Matrix link or pasted card lands in the scan preview.
         share_target: {
           action: `${base || ''}/scan`,
@@ -61,7 +62,10 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,json,woff2}'],
+        importScripts: [`${base}/notification-events.js`],
+        globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,json,woff2}'],
+        // Update manifests are freshness checks, never offline data.
+        globIgnores: ['**/events/*/manifest.json'],
         // The 7.8 MB E2EE WASM is fetched on first sign-in and then kept for offline use.
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         runtimeCaching: [

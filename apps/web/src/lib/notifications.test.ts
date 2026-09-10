@@ -82,10 +82,10 @@ describe('computeNotifications', () => {
       }),
     ]);
     const notifications = computeNotifications(b, '2026-09-19T10:30:00+05:30', () => null, planned);
-    const leave = notifications.find((n) => n.id === 'leave-a')!;
-    expect(leave.body).toBe('Audi 1 · starts 11:00');
-    // The timing still allows a default five minutes for the walk.
-    expect(Date.parse(leave.at)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 900 * 1000);
+    expect(notifications.find((n) => n.id === 'leave-a')).toBeUndefined();
+    const soon = notifications.find((n) => n.id === 'soon-a')!;
+    expect(soon.body).toBe('11:00 in Audi 1');
+    expect(Date.parse(soon.at)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 900 * 1000);
   });
 
   it('merges leave-now and starting-soon when they would land minutes apart', () => {

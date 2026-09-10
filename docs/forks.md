@@ -101,6 +101,28 @@ directory and the e2ee transport.
 
 ## hanthor/indiafoss-chat-android — the phone client
 
+**LFS availability, 8 September 2026:** the fork's missing current-main screenshot
+and media-test assets were restored from the exact upstream objects. A separate
+cache fetched them back from the fork and passed object integrity verification.
+No test baselines or application code changed. See
+[the recovery evidence](evidence/chat-lfs-recovery-2026-09-08.md) and
+[Chat #44](https://github.com/hanthor/indiafoss-chat-android/issues/44);
+test execution remains a separate gate.
+
+**Executed CI restored, 9 September 2026:**
+[Chat PR #55](https://github.com/hanthor/indiafoss-chat-android/pull/55) merged as
+`952b87a9` after all 14 checks passed. It repairs the `indices()` calls,
+permalink and enterprise test expectations, and asynchronous capture tests.
+It also supplies 66 reviewed screenshot baselines with provenance in
+`docs/indiafoss/snapshot-recovery-2026-09-08.md` in the Chat repository; the initial
+LFS restoration itself did not change baselines.
+
+The [main test run](https://github.com/hanthor/indiafoss-chat-android/actions/runs/34291085872)
+passed the complete unit/screenshot/coverage command in 34m52s, with 7359 Gradle
+tasks (5225 executed, 2134 from cache). Chat #44 and #20 are closed with that
+execution evidence. This is not evidence for venue reachability, attachment
+delivery, account coexistence or real-device recovery: Chat #45/#46/#48/#49
+remain independently scoped.
 Forked from Element X Android. Beyond branding and the embedded-Neutrino
 wiring it inherits, ours adds:
 
