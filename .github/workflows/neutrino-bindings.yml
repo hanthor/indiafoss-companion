@@ -94,7 +94,7 @@ jobs:
           sed -i 's|/element-hq/neutrino\[|/[^/]+/neutrino[|' build-aar.sh
           grep -n 'NEUTRINO_COMMIT=' build-aar.sh
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
