@@ -23,6 +23,10 @@
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
+  // The list is the default at every width: it is the searchable, filterable
+  // view the browser tests and attendees know. On a wide screen it still uses
+  // the width (co-starting sessions sit side by side), and the room grid,
+  // one tap away, lays every room out beside the others (issue 205).
   let view: 'list' | 'grid' = $state('list');
   let query = $state('');
   let selectedRoom = $state('');
@@ -388,6 +392,25 @@
     grid-template-columns: 5rem 1fr;
     gap: 0.75rem;
     margin-bottom: 0.25rem;
+  }
+  @media (min-width: 1024px) {
+    .controls {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      column-gap: 1.5rem;
+    }
+    .room-filters,
+    .filters {
+      grid-column: 1 / -1;
+    }
+    /* Sessions that start together sit beside each other, one per room. */
+    .items {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+      gap: 0 1rem;
+      align-items: start;
+    }
   }
   .time {
     text-align: right;
