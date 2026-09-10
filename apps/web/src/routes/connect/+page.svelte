@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ChatDownload from '$lib/components/ChatDownload.svelte';
   import ContactChecks from '$lib/components/ContactChecks.svelte';
   import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
@@ -626,6 +627,8 @@
   {/if}
 
   <ContactChecks />
+
+  <ChatDownload />
 
   <!-- Field groups -->
   {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}

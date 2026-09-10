@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ChatDownload from '$lib/components/ChatDownload.svelte';
   import NativeDownload from '$lib/components/NativeDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
@@ -93,6 +94,7 @@
   <NativeDownload />
 
   <PersonalDataExport />
+  <ChatDownload />
   <section class="card">
     <h2>Schedule updates</h2>
     <p class="muted">
