@@ -17,7 +17,7 @@ export interface PersonalDataSnapshot {
   settings: { key: string; value: string }[];
 }
 
-const SOCIAL_FIELDS = [
+export const SOCIAL_FIELDS = [
   'github',
   'gitlab',
   'linkedin',
@@ -35,7 +35,7 @@ const SOCIAL_FIELDS = [
   'xmpp',
   'deltachat',
 ];
-const PROFILE_FIELDS = [
+export const PROFILE_FIELDS = [
   'fullName',
   'organization',
   'email',
@@ -47,7 +47,7 @@ const PROFILE_FIELDS = [
   'fossUnitedProfileUrl',
   'avatarUrl',
 ];
-const SHARE_FIELDS = [
+export const SHARE_FIELDS = [
   'name',
   'organization',
   'email',
@@ -183,6 +183,31 @@ export function personalDataFromSnapshot(
 
   const contact: Record<string, unknown> = {};
   for (const { key, value } of snapshot.settings) {
+    if (key.startsWith('booth-visit-')) {
+      const boothId = key.slice('booth-visit-'.length);
+      const minutes = value === '' ? null : Number(value);
+      if (
+        !boothId ||
+        (minutes !== null && (!Number.isSafeInteger(minutes) || minutes < 1 || minutes > 1440))
+      ) {
+        throw new Error('Invalid booth visit duration');
+      }
+      const eventIds = new Set(
+        snapshot.bundles
+          .filter((bundle) => bundle.booths.some((booth) => booth.id === boothId))
+          .map((bundle) => bundle.id),
+      );
+      if (eventIds.size === 1) {
+        const target = event([...eventIds][0]!);
+        target.sections.boothVisits = {
+          ...object(target.sections.boothVisits ?? {}),
+          [boothId]: minutes,
+        };
+      } else {
+        (unassigned.boothVisits ??= []).push({ boothId, minutes });
+      }
+      continue;
+    }
     if (key === 'attendee-profile' || key === 'attendee-share-selection') {
       const profile = key === 'attendee-profile';
       const data = object(JSON.parse(value));
