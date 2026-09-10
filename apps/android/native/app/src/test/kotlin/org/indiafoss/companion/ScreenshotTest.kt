@@ -152,6 +152,8 @@ class ScreenshotTest {
 
     @Test fun scheduleRoomFilter() {
         shoot("schedule-room") { ScheduleScreen(state(), {}, {}) {} }
+        // The sixth chip is off-screen at phone width: bring it in before tapping.
+        compose.onNodeWithTag("room-chips").performScrollToNode(hasText("Room 2"))
         compose.onNodeWithText("Room 2").performClick()
         capture("schedule-room")
         // Only that room's sessions remain: the count line no longer says the whole day.

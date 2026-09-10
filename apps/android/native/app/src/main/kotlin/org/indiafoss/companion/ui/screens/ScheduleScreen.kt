@@ -97,6 +97,7 @@ fun ScheduleScreen(state: UiState, actions: @Composable () -> Unit, onBookmark: 
             val filtered = if (selectedRoom == null) dayActivities else dayActivities.filter { it.locationId == selectedRoom }
 
             LazyRow(
+                modifier = Modifier.testTag("room-chips"),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
