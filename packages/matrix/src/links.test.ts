@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  companionChatLink,
-  localpart,
-  matrixToUrl,
-  matrixUri,
-  parseMatrixTarget,
-} from './links.js';
+import { localpart, matrixToUrl, matrixUri, parseMatrixTarget } from './links.js';
 
 describe('parseMatrixTarget', () => {
   it('accepts raw ids', () => {
@@ -60,7 +54,6 @@ describe('link builders', () => {
     expect(matrixToUrl('#room:example.org')).toBe('https://matrix.to/#/%23room%3Aexample.org');
     expect(matrixUri({ kind: 'user', id: '@a:b' })).toBe('matrix:u/a%3Ab?action=chat');
     expect(matrixUri({ kind: 'alias', id: '#r:b' })).toBe('matrix:r/r%3Ab?action=join');
-    expect(companionChatLink({ kind: 'user', id: '@a:b' })).toBe('indiafoss://chat?dm=%40a%3Ab');
     expect(localpart('@alice:example.org')).toBe('alice');
     expect(localpart('nonsense')).toBe('nonsense');
   });

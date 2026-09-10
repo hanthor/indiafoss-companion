@@ -6,7 +6,7 @@
  * `sync.test.ts`; this file is about the request path around it.
  */
 import { describe, expect, it } from 'vitest';
-import { isLoopbackHomeserver, MatrixClient, MatrixError } from './http.js';
+import { MatrixClient, MatrixError } from './http.js';
 
 function recording(status: number, body: unknown, ok = false) {
   const seen: { url: string; method: string; headers: Record<string, string>; body?: string }[] =
@@ -44,19 +44,6 @@ describe('MatrixError', () => {
     expect(e.name).toBe('MatrixError');
     expect(e.message).toBe('nope');
     expect(e.retryAfterMs).toBe(2000);
-  });
-});
-
-describe('isLoopbackHomeserver', () => {
-  it('recognises a local homeserver however it is written', () => {
-    // Re-exported from the model so the bundle validator and the client cannot
-    // disagree about what counts as local (#152, #157).
-    for (const good of ['http://localhost:8008', 'http://127.0.0.1:8008', '127.0.0.1:8008']) {
-      expect(isLoopbackHomeserver(good), good).toBe(true);
-    }
-    for (const bad of ['https://matrix.reilly.asia', 'localhost.evil.example']) {
-      expect(isLoopbackHomeserver(bad), bad).toBe(false);
-    }
   });
 });
 

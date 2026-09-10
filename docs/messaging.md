@@ -14,6 +14,18 @@
 > model and the Capacitor specifics below as historical, everything else
 > (room aliases, Q&A, the mesh protocol itself) as still accurate for the
 > dedicated chat app.
+>
+> **What `packages/matrix` is now.** Not a chat client. The companion apps use
+> it for two things: public-profile checks — `verifyMeshLink` reads a peer's
+> `in.indiafoss.mesh` profile field, and the MSC4133 helpers read/write the
+> `org.fossunited.*` fields — and handoff helpers (`parseMatrixTarget`,
+> `matrixToUrl`, `matrixUri`, `localpart`) behind the PWA's "open in a Matrix
+> client" links and the QR scanner. `MatrixSessionManager`, the HTTP client and
+> the WASM crypto backend are kept solely because `tools/neutrino-probe` drives
+> them against live Neutrino / Spindle servers in CI (`neutrino-e2e.yml`,
+> `spindle-contracts.yml`) as the mesh chat contract harness; no shipping app
+> imports them. The retired chat UI's helpers (`canPost`, `companionChatLink`,
+> `isLoopbackHomeserver`, the IndexedDB crypto-store helpers) were removed.
 
 ## The model (decided 2026-09-02)
 
@@ -43,10 +55,12 @@
 
 ## What the companion does
 
-The `packages/matrix` client layer speaks standard Matrix and is exercised
-against a fake public-style homeserver in tests; the app itself only ever
-points it at the embedded node. The right-hand column is the parked Element X
-fork, kept as the reference implementation of the node integration.
+_Historical._ The `packages/matrix` client layer speaks standard Matrix and
+was exercised against a fake public-style homeserver in tests; the retired
+Capacitor app only ever pointed it at the embedded node. Today only
+`tools/neutrino-probe` drives the session manager (against real servers). The
+right-hand column is the parked Element X fork, kept as the reference
+implementation of the node integration.
 
 | Capability            | Client layer (`packages/matrix`)                               | Native Neutrino client (Element X fork, parked)           |
 | --------------------- | -------------------------------------------------------------- | --------------------------------------------------------- |
@@ -120,9 +134,9 @@ without any provisioning.
 first in `/chat`. `joinOrCreateRoom({ announcements: true })` creates it with
 `events_default: 50`, so whoever seeds it first — the organiser, on the
 conference homeserver — owns it and only moderators post. The reducer keeps
-the parts of `m.room.power_levels` that decide who may post; `canPost()`
-swaps the composer for a one-line note when the viewer cannot. A mesh room
-that has sent no power levels stays open.
+the parts of `m.room.power_levels` that decide who may post (the retired
+chat UI's `canPost()` composer gate is gone; the dedicated chat app has its
+own). A mesh room that has sent no power levels stays open.
 
 **Session Q&A (#114).** In any room, the ❓ toggle on the composer sends the
 next message with `in.indiafoss.question: true`; a `👍` reaction is an
@@ -393,10 +407,12 @@ is fine; the release names the exact upstream tag and commit it came from.
 
 ## Testing
 
-- `packages/matrix`: link parsing, sync reducer (state, unread, invites, leaves,
-  local-echo replacement), and an end-to-end fake-homeserver test covering
-  sign-in, sync, offline queueing, ordered delivery on reconnect, permanent
-  rejection, restore after reload, token expiry and sign-out.
+- `packages/matrix`: link parsing, mesh-link verification and MSC4133 profile
+  fields (the parts the PWA uses); plus the sync reducer and an end-to-end
+  fake-homeserver test covering sign-in, sync, offline queueing, ordered
+  delivery on reconnect, permanent rejection, restore after reload, token
+  expiry and sign-out, which guard the session manager `tools/neutrino-probe`
+  runs against live servers.
 - `packages/model`: friend payload round-trip and hardening, scan classifier,
   messaging config validation.
 - `packages/storage`: Matrix cache tables, outbox and contact persistence.
