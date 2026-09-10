@@ -8,6 +8,8 @@
  * See ADR 0009 for why these are hand-written rather than schema-generated.
  */
 
+import { isCanonicalNodeId } from '../identity.js';
+
 /**
  * Compatibility outcome for a `schemaVersion` field.
  *
@@ -148,9 +150,13 @@ export function collectSchemaVersionIssues(
   ];
 }
 
-/** A lowercase 64-character hex string — the shape of an iroh node id. */
+/**
+ * A lowercase 64-character hex string — the shape of an iroh node id. The
+ * decision itself lives in `../identity.ts` so every contract and parser
+ * changes together when the shape does (#160).
+ */
 export function isHex64(value: unknown): boolean {
-  return typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
+  return typeof value === 'string' && isCanonicalNodeId(value);
 }
 
 /**

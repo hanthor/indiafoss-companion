@@ -1,6 +1,12 @@
 import type { ContactRecord } from '@indiafoss/storage';
 import type { AccountClaimTrust } from '@indiafoss/model/contracts';
-import { matrixUriFor, neutrinoMatrixId, shortFingerprint } from '@indiafoss/model';
+import {
+  classifyMeshIdentity,
+  hasRetainedIdentity,
+  matrixUriFor,
+  neutrinoMatrixId,
+  shortFingerprint,
+} from '@indiafoss/model';
 import { accountTrustOf } from './mesh-link';
 
 /**
@@ -24,7 +30,16 @@ export type SignatureTrust = 'valid' | 'invalid' | 'unsigned' | 'key-changed';
 
 export type ProfileTrust =
   /** The card carries no Matrix id + mesh id pair; there is nothing to check. */
-  'no-claim' | 'unchecked' | 'profile-matched' | 'mismatch' | 'unlinked' | 'outdated';
+  | 'no-claim'
+  | 'unchecked'
+  | 'profile-matched'
+  | 'mismatch'
+  | 'unlinked'
+  /**
+   * An identity on the card, or on the profile, is in a format this build does
+   * not read (#160): kept as it arrived, never routed, never called a mismatch.
+   */
+  | 'outdated';
 
 export type InPersonTrust =
   /** The attendee compared this card's badge and said it matched. */
@@ -73,9 +88,12 @@ export function chatRoutesFor(
   contact: Pick<ContactRecord, 'matrixId' | 'neutrinoServerName'>,
 ): ChatRoute[] {
   const routes: ChatRoute[] = [];
-  const mesh = contact.neutrinoServerName?.trim();
-  if (mesh) {
-    const href = matrixUriFor(neutrinoMatrixId(mesh));
+  // Only a mesh identity this build recognises becomes an address (#160); the
+  // envelope never promotes another shape, and this guard keeps a hand-edited
+  // record from slipping past it.
+  const mesh = classifyMeshIdentity(contact.neutrinoServerName);
+  if (mesh?.kind === 'node-id') {
+    const href = matrixUriFor(neutrinoMatrixId(mesh.nodeId));
     if (href)
       routes.push({ kind: 'mesh', label: 'Message on mesh', href, caveat: MESH_ROUTE_CAVEAT });
   }
@@ -104,9 +122,13 @@ export function signatureTrustOf(
 }
 
 export function profileTrustOf(
-  contact: Pick<ContactRecord, 'matrixId' | 'neutrinoServerName' | 'meshLink'>,
+  contact: Pick<ContactRecord, 'matrixId' | 'neutrinoServerName' | 'meshLink' | 'identity'>,
 ): ProfileTrust {
-  if (!contact.matrixId?.trim() || !contact.neutrinoServerName?.trim()) return 'no-claim';
+  if (!contact.matrixId?.trim() || !contact.neutrinoServerName?.trim()) {
+    // A card whose identity this build set aside unread has a claim on it —
+    // one that cannot be checked, and must not be called absent.
+    return hasRetainedIdentity(contact.identity) ? 'outdated' : 'no-claim';
+  }
   switch (contact.meshLink?.state) {
     case 'profile-matched':
       return 'profile-matched';
@@ -182,7 +204,7 @@ export function profileLabel(state: ProfileTrust): string {
     case 'unlinked':
       return 'Account link claimed, profile names no mesh id';
     case 'outdated':
-      return 'Card predates a format change';
+      return "Identity format this app can't read yet";
   }
 }
 

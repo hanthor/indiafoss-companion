@@ -17,6 +17,16 @@ data class ContactCard(
     val website: String = "",
     val fossUnitedUsername: String = "",
     val matrixId: String = "",
+    /** Mesh node id (64 lowercase hex), kept separately from [matrixId]; empty when absent or unread. */
+    val meshNodeId: String = "",
+    /**
+     * Identity envelope version the identity fields were read under (#160), and
+     * the identity fields this build set aside because it did not understand
+     * them (`mesh`, `matrix`, and `version` when that was the reason). A
+     * retained value is never an address and never overwrites a known one.
+     */
+    val identityVersion: Int = Identity.VERSION,
+    val retainedIdentity: Map<String, String> = emptyMap(),
     val avatarUrl: String = "",
     /** The ticket QR's reference (`ticket::…`): a correlation key for organisers, never an identity. */
     val ticketRef: String = "",
@@ -51,9 +61,23 @@ object VCard {
             push("URL;TYPE=profile", url)
             push("X-FOSSUNITED-PROFILE", url)
         }
-        if (card.shares("matrixId") && card.matrixId.isNotBlank()) {
-            push("X-INDIAFOSS-MATRIX", card.matrixId)
-            push("IMPP", "matrix:${card.matrixId.trim()}")
+        // Identity fields and their envelope version travel together (#160); the
+        // rules mirror `attendeeProfileToVCard` in packages/model/src/contact.ts.
+        // A field set aside unread goes back out as it arrived — under v1 when
+        // only its shape was the problem, under the version it declared when that
+        // was — and a readable v1 value wins the single slot a vCard has.
+        val retained = card.retainedIdentity
+        val matrixId = if (card.shares("matrixId")) card.matrixId.trim() else ""
+        val mesh = if (card.shares("neutrinoServerName")) card.meshNodeId.trim() else ""
+        val foreign = !retained["version"].isNullOrBlank() && matrixId.isEmpty() && mesh.isEmpty()
+        val carry = foreign || retained["version"].isNullOrBlank()
+        val matrixOut = matrixId.ifEmpty { if (carry && card.shares("matrixId")) retained["matrix"].orEmpty() else "" }
+        val meshOut = mesh.ifEmpty { if (carry && card.shares("neutrinoServerName")) retained["mesh"].orEmpty() else "" }
+        if (matrixOut.isNotBlank() || meshOut.isNotBlank()) {
+            push("X-INDIAFOSS-MATRIX", matrixOut)
+            if (matrixId.isNotBlank()) push("IMPP", "matrix:$matrixId")
+            push("X-INDIAFOSS-MESH", meshOut)
+            push(Identity.VERSION_FIELD, if (foreign) retained.getValue("version") else Identity.VERSION.toString())
         }
         if (card.shares("ticketRef") && card.ticketRef.isNotBlank()) push("X-INDIAFOSS-TICKET", card.ticketRef)
         if (card.shares("photo")) {
@@ -137,6 +161,12 @@ object VCard {
         if (lines.none { it.trim().equals("BEGIN:VCARD", ignoreCase = true) }) return null
         var card = ContactCard()
         val socials = LinkedHashMap<String, String>()
+        // Identity lines are collected, not applied: the one decision about
+        // whether this build understands them is made once, below (#160).
+        var identityVersion: String? = null
+        var meshRaw: String? = null
+        var matrixRaw: String? = null
+        var imppMatrix: String? = null
         for (line in lines) {
             val at = line.indexOf(':')
             if (at <= 0) continue
@@ -153,7 +183,10 @@ object VCard {
                     card = card.copy(fossUnitedUsername = value.substringAfter("/u/").trimEnd('/'))
                 } else if (card.website.isEmpty()) card = card.copy(website = value)
                 "X-FOSSUNITED-PROFILE" -> card = card.copy(fossUnitedUsername = value.substringAfter("/u/").trimEnd('/'))
-                "X-INDIAFOSS-MATRIX", "X-MATRIX-ID" -> card = card.copy(matrixId = value)
+                "X-INDIAFOSS-MATRIX", "X-MATRIX-ID" -> matrixRaw = value
+                "X-INDIAFOSS-MESH", "X-NEUTRINO-SERVER-NAME" -> meshRaw = value
+                Identity.VERSION_FIELD -> identityVersion = value
+                "IMPP" -> if (imppMatrix == null && value.startsWith("matrix:", ignoreCase = true)) imppMatrix = value.substring("matrix:".length)
                 "X-INDIAFOSS-TICKET" -> card = card.copy(ticketRef = value)
                 "PHOTO" -> if (value.startsWith("https://")) card = card.copy(avatarUrl = value)
                 "X-SOCIALPROFILE" -> {
@@ -162,6 +195,13 @@ object VCard {
                 }
             }
         }
-        return card.copy(socials = socials)
+        val identity = Identity.read(identityVersion, meshRaw, matrixRaw ?: imppMatrix)
+        return card.copy(
+            socials = socials,
+            matrixId = identity.matrixId.orEmpty(),
+            meshNodeId = identity.meshNodeId.orEmpty(),
+            identityVersion = identity.version,
+            retainedIdentity = identity.retained,
+        )
     }
 }

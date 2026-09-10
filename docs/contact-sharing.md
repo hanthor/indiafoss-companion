@@ -7,13 +7,14 @@ so any phone camera saves the attendee straight to Contacts. Fields the
 companion understands ride along as `X-` extension properties, which camera
 apps ignore and the companion scanner reads:
 
-| Property             | Meaning                                                                         |
-| -------------------- | ------------------------------------------------------------------------------- |
-| `X-INDIAFOSS-MESH`   | Neutrino node id (64 hex): lets a scanned contact message you on the venue mesh |
-| `X-INDIAFOSS-MATRIX` | Public Matrix id, opened in Element                                             |
-| `X-INDIAFOSS-TICKET` | `ticket::<id>` correlation key for organisers; never an identity                |
-| `X-INDIAFOSS-KEY`    | This device's handshake public key (`alg:base64url`)                            |
-| `X-INDIAFOSS-SIG`    | Signature over every other line of the card, by that key                        |
+| Property                       | Meaning                                                                                            |
+| ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `X-INDIAFOSS-MESH`             | Neutrino node id (64 hex): lets a scanned contact message you on the venue mesh                    |
+| `X-INDIAFOSS-MATRIX`           | Public Matrix id, opened in Element                                                                |
+| `X-INDIAFOSS-TICKET`           | `ticket::<id>` correlation key for organisers; never an identity                                   |
+| `X-INDIAFOSS-KEY`              | This device's handshake public key (`alg:base64url`)                                               |
+| `X-INDIAFOSS-SIG`              | Signature over every other line of the card, by that key                                           |
+| `X-INDIAFOSS-IDENTITY-VERSION` | Envelope version of the mesh/Matrix fields (`1`); see [identity-envelope.md](identity-envelope.md) |
 
 The signature covers the whole body including the key line, so a card whose
 key was swapped does not verify. A card from any other app simply has no
@@ -23,7 +24,11 @@ own Connect screen, which is the in-person check.
 
 The older spellings (`X-MATRIX-ID`, `X-NEUTRINO-SERVER-NAME`,
 `X-INDIAFOSS-TICKET-REF`) and the `indiafoss://friend?v=1` link are still
-accepted by the scanner for cards already in circulation.
+accepted by the scanner for cards already in circulation. A card with no
+`X-INDIAFOSS-IDENTITY-VERSION` reads as version 1; a card declaring a version
+this build does not know keeps its identity fields unread — shown as "Identity
+format this app can't read yet", never as an address and never as a mismatch
+([identity-envelope.md](identity-envelope.md), #160).
 
 Every field is one row: label, editable value, share switch. Groups and
 defaults:
