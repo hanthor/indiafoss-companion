@@ -48,8 +48,8 @@ fun SettingsScreen(
     onRoutingProfile: (String) -> Unit,
     onStartSimulation: (day: String, time: String, speed: Int) -> Unit = { _, _, _ -> },
     onStopSimulation: () -> Unit = {},
-    onSetup: () -> Unit = {},
     onDynamicColor: (Boolean) -> Unit = {},
+    onSetup: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
