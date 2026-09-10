@@ -6,7 +6,9 @@ native Compose client (Android), and P2P chat as its own dedicated app.
 
 ## Quality gate (must be green before release)
 
-CI runs on every push and PR (`.github/workflows/ci.yml`), four jobs:
+CI runs on every push to main and every PR (`.github/workflows/ci.yml`),
+four jobs. All four are required by the branch ruleset, by name, and the
+names below are the ones it checks for.
 
 **checks** — format, lint, typecheck, unit + property tests, fixture
 verification, venue validation (synthetic + 2026), PWA build, dependency audit
@@ -31,6 +33,32 @@ tests, assembles a debug APK, checksums it (sha256), and uploads both.
 **android-emulator** — boots an emulator, installs the native debug APK, and
 runs the Maestro flows in `.maestro/` against it (see
 [docs/android-testing.md](android-testing.md)).
+
+### When each gate runs
+
+A first job, `changes`, compares a pull request against its base and each
+gate then decides at the job level whether it has anything to do:
+
+| Gate                                       | Runs on a pull request when the PR touches                                                                                                                                                                                                                                 |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Format · Lint · Typecheck · Test · Build` | anything — it is cheap, and it is the job that format-checks the markdown                                                                                                                                                                                                  |
+| `Playwright E2E (with time-travel)`        | `apps/web/**`, `packages/**`, `events/**`, `tools/**`, the root `package.json` / `pnpm-lock.yaml` / `pnpm-workspace.yaml` / `tsconfig.base.json` / `eslint.config.js`, or `ci.yml` itself                                                                                  |
+| `Native Compose client`                    | `apps/android/**` (Gradle wrapper, plugins and the version catalog included), `apps/web/static/venues/**` and `events/**` (both are copied into the APK), `packages/test-fixtures/**`, `packages/model/**`, `.maestro/**`, `scripts/**`, `.github/scripts/**`, or `ci.yml` |
+| `Android emulator (Maestro)`               | the same paths as the native job, and only after the native job has **succeeded** — it reuses that job's APK                                                                                                                                                               |
+
+On a push to main, a `workflow_call` (the schedule sync validates its
+candidate this way) and a manual `workflow_dispatch`, every gate runs
+unconditionally, so main always carries full evidence regardless of what the
+merged PR touched.
+
+A gate the filter switches off is recorded as **skipped, not passed**. That
+satisfies the ruleset — a skipped required check is a conclusion, whereas a
+missing one is not, which is why the filter lives in job-level `if:`
+conditions rather than an `on.paths` trigger filter — but it is not evidence
+that the code is fine. If a docs-only PR turns out to need the native or
+web gates (a path the table above does not list), add the path to the
+`changes` job rather than working around it; to force a full run on a
+branch, dispatch `ci.yml` by hand.
 
 Run the full gate locally:
 
@@ -170,7 +198,8 @@ cancelled, time, room, title, speaker, recording) are unit-tested in
 
 ## Release checklist
 
-- [ ] `just ci` green locally and in CI (all four jobs).
+- [ ] `just ci` green locally and in CI (all four jobs **passed** on main —
+      a skipped gate on a PR is not a pass; see "When each gate runs").
 - [ ] Accessibility suite passes; core flows operable by keyboard.
 - [ ] Event data published and verified for the target event; stable ids
       preserved (see [event onboarding](./event-onboarding.md)).
