@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EventBundle } from '@indiafoss/model';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from '@indiafoss/model';
 import { CompanionDatabase, CompanionStorage, defaultPreference, INITIAL_RATING } from './index.js';
@@ -14,6 +14,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await db.delete();
 });
 
@@ -206,5 +207,99 @@ describe('contacts', () => {
     expect((await storage.listContacts()).map((c) => c.fullName)).toEqual(['Two', 'One']);
     await storage.deleteContact('c2');
     expect((await storage.listContacts()).map((c) => c.id)).toEqual(['c1']);
+  });
+
+  it('reads a profile match saved by an older build as profile-matched, not verified (#188)', async () => {
+    // Builds before the trust split spelled the profile comparison `verified`.
+    // The attendee who saved that card last week keeps it, and it comes back
+    // under the honest name rather than as a verification.
+    await db.contacts.put({
+      id: 'legacy',
+      vcard: '',
+      fullName: 'Legacy',
+      socials: {},
+      verified: false,
+      savedAt: '2026-09-01T00:00:00Z',
+      matrixId: '@legacy:example.org',
+      neutrinoServerName: 'ab'.repeat(32),
+      meshLink: { state: 'verified' as unknown as 'profile-matched', checkedAt: 1 },
+    });
+    const [contact] = await storage.listContacts();
+    expect(contact?.fullName).toBe('Legacy');
+    expect(contact?.meshLink).toEqual({ state: 'profile-matched', checkedAt: 1 });
+    expect(contact?.verified).toBe(false);
+    // An unversioned record reads as identity v1 (#160); its ids are untouched.
+    expect(contact?.identity).toEqual({ version: 1 });
+    expect(contact?.neutrinoServerName).toBe('ab'.repeat(32));
+  });
+
+  it('reads a record whose mesh identity it does not recognise as retained, not as an address (#160)', async () => {
+    // A future build, or a hand-edited backup, may leave a mesh identity of a
+    // shape this build has never seen. It is kept with the record and moved
+    // out of the routable field, so no chat button is ever minted from it and
+    // a later build that understands it still finds it.
+    await db.contacts.put({
+      id: 'future',
+      vcard: '',
+      fullName: 'Future',
+      socials: {},
+      verified: false,
+      savedAt: '2026-09-02T00:00:00Z',
+      matrixId: '@future:example.org',
+      neutrinoServerName: 'converged:future',
+      identity: { version: 2 },
+    });
+    const [contact] = await storage.listContacts();
+    expect(contact?.id).toBe('future');
+    expect(contact?.neutrinoServerName).toBeUndefined();
+    expect(contact?.matrixId).toBeUndefined();
+    expect(contact?.identity).toEqual({
+      version: 2,
+      retained: { version: '2', mesh: 'converged:future', matrix: '@future:example.org' },
+    });
+  });
+});
+
+describe('atomic event revisions', () => {
+  it('commits the bundle, revision and legacy stamp without touching attendee data', async () => {
+    await storage.saveNote('talk', 'My notes');
+    await storage.setBookmark('talk', true);
+    expect(await storage.saveEventRevision(bundle(), 1)).toBe(true);
+    expect(await storage.loadEventRevision('e1')).toBe(1);
+    expect(await storage.getSetting('event-revision-e1')).toBe('1');
+    expect(await storage.getNote('talk')).toBe('My notes');
+    expect((await storage.getPreference('talk'))?.bookmarked).toBe(true);
+  });
+  it('rolls back the bundle when writing the revision stamp fails, then allows retry', async () => {
+    await storage.saveEventRevision(bundle(), 1);
+    const next = { ...bundle(), name: 'New revision' };
+    vi.spyOn(db.settings, 'put').mockRejectedValueOnce(new Error('Storage full'));
+    await expect(storage.saveEventRevision(next, 2)).rejects.toThrow('Storage full');
+    expect(await storage.loadEventBundle('e1')).toEqual(bundle());
+    expect(await storage.loadEventRevision('e1')).toBe(1);
+    expect(await storage.getSetting('event-revision-e1')).toBe('1');
+    expect(await storage.saveEventRevision(next, 2)).toBe(true);
+    expect(await storage.loadEventBundle('e1')).toEqual(next);
+  });
+  it('does not let competing writers roll back a newer revision', async () => {
+    await Promise.all([
+      storage.saveEventRevision({ ...bundle(), name: 'Revision 3' }, 3),
+      storage.saveEventRevision({ ...bundle(), name: 'Revision 2' }, 2),
+    ]);
+    expect(await storage.loadEventRevision('e1')).toBe(3);
+    expect((await storage.loadEventBundle('e1'))?.name).toBe('Revision 3');
+  });
+  it('repairs legacy standalone stamps by adopting a coherently downloaded revision', async () => {
+    await storage.saveEventBundle(bundle());
+    await storage.setSetting('event-revision-e1', '999');
+    expect(await storage.loadEventRevision('e1')).toBeNull();
+    expect(await storage.saveEventRevision({ ...bundle(), name: 'Current' }, 3)).toBe(true);
+    expect(await storage.loadEventRevision('e1')).toBe(3);
+  });
+  it.each([0, -1, 1.5, Infinity, Number.NaN])('rejects invalid revision %s', async (revision) => {
+    await expect(storage.saveEventRevision(bundle(), revision)).rejects.toThrow(
+      'Invalid event revision',
+    );
+    expect(await storage.loadEventBundle('e1')).toBeUndefined();
   });
 });

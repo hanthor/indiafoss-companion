@@ -1,4 +1,5 @@
 import type { Activity, EventBundle } from '@indiafoss/model';
+import { activeAfterYields } from '@indiafoss/elo';
 
 /**
  * Itinerary solver (§18–§21).
@@ -36,6 +37,12 @@ export interface SolverPreferences {
   ratingOf(activityId: string): number;
   dispositionOf(activityId: string): Disposition;
   bookmarked(activityId: string): boolean;
+  /**
+   * The session this one stood aside for in a clash (#271), if any. A
+   * scheduling loss, not a dislike: the session is left out only while its
+   * winner is a live candidate on the day, and never when it is must-go.
+   */
+  yieldsTo?(activityId: string): string | undefined;
 }
 
 /** Travel time between locations; the venue engine (Phase 5) supplies real values. */
@@ -109,6 +116,8 @@ export interface SolveDayInput {
   travel?: TravelTimeProvider;
   bufferSeconds?: number;
   flexibleGoals?: FlexibleGoal[];
+  /** Reserve the full published block for these programme tracks. */
+  stayTrackIds?: readonly string[];
 }
 
 function parse(iso: string): number {
@@ -137,8 +146,26 @@ export function canFollow(
   bufferSeconds: number,
 ): boolean {
   if (!prev.end || !next.start) return false;
-  const travelSeconds = travel.seconds(prev.locationId, next.locationId);
-  return parse(prev.end) + (travelSeconds + bufferSeconds) * 1000 <= parse(next.start);
+  return (
+    parse(prev.end) + transitionSeconds(prev, next, travel, bufferSeconds) * 1000 <=
+    parse(next.start)
+  );
+}
+
+/** Shared travel/settling requirement for generation and edited-plan validation. */
+export function transitionSeconds(
+  prev: Pick<Activity, 'devroomId' | 'locationId'>,
+  next: Pick<Activity, 'devroomId' | 'locationId'>,
+  travel: TravelTimeProvider,
+  bufferSeconds: number,
+): number {
+  const sameDevroom = Boolean(
+    prev.devroomId &&
+    prev.devroomId === next.devroomId &&
+    prev.locationId &&
+    prev.locationId === next.locationId,
+  );
+  return sameDevroom ? 0 : travel.seconds(prev.locationId, next.locationId) + bufferSeconds;
 }
 
 /**
@@ -241,18 +268,89 @@ export function solveDay(input: SolveDayInput): SolverResult {
   const {
     bundle,
     day,
-    preferences,
+    preferences: originalPreferences,
     travel = DefaultTravelTime,
     bufferSeconds = SOLVER_CONFIG.defaultBufferSeconds,
     flexibleGoals = DEFAULT_FLEXIBLE_GOALS,
   } = input;
 
+  const stays = new Set(input.stayTrackIds ?? []);
+  const ranges = [...stays].flatMap((trackId) => {
+    const sessions = bundle.activities.filter(
+      (a) =>
+        a.trackId === trackId &&
+        !a.cancelled &&
+        a.type !== 'meal' &&
+        a.start?.startsWith(day) &&
+        a.end?.startsWith(day),
+    );
+    if (!sessions.length) return [];
+    return [
+      {
+        trackId,
+        representative: sessions[0]!.id,
+        start: Math.min(...sessions.map((a) => parse(a.start!))),
+        end: Math.max(...sessions.map((a) => parse(a.end!))),
+      },
+    ];
+  });
+  const byId = new Map(bundle.activities.map((a) => [a.id, a]));
+  const timedOnDay = (a: Activity): boolean =>
+    !a.cancelled &&
+    a.type !== 'meal' &&
+    a.start?.startsWith(day) === true &&
+    a.end?.startsWith(day) === true;
+  // Clash losses (#271): a session that stood aside is out while its winner
+  // is live on the day. `leftFor` maps each winner to the devroom tracks the
+  // attendee left for it, so a reserved block can be left for one talk
+  // without dropping the reservation.
+  const yieldsTo = originalPreferences.yieldsTo;
+  const eligible = bundle.activities.filter(
+    (a) => timedOnDay(a) && originalPreferences.dispositionOf(a.id) !== 'not-interested',
+  );
+  const stoodAside = new Set<string>();
+  const leftFor = new Map<string, Set<string>>();
+  if (yieldsTo) {
+    const live = activeAfterYields(
+      eligible,
+      (a) => a.id,
+      (a) => yieldsTo(a.id),
+      (a) => originalPreferences.dispositionOf(a.id) === 'must-attend',
+    );
+    for (const a of eligible) {
+      if (live.has(a.id)) continue;
+      stoodAside.add(a.id);
+      const winner = yieldsTo(a.id);
+      if (winner && a.trackId && stays.has(a.trackId)) {
+        const tracks = leftFor.get(winner) ?? new Set<string>();
+        tracks.add(a.trackId);
+        leftFor.set(winner, tracks);
+      }
+    }
+  }
+  const preferences: SolverPreferences = {
+    ...originalPreferences,
+    dispositionOf: (id) => {
+      const own = originalPreferences.dispositionOf(id);
+      const a = byId.get(id);
+      if (!a || own === 'not-interested' || own === 'must-attend') return own;
+      if (stoodAside.has(id)) return 'not-interested';
+      if (stays.has(a.trackId ?? '') && a.type !== 'meal') return 'must-attend';
+      if (
+        a.start &&
+        a.end &&
+        ranges.some(
+          (r) =>
+            parse(a.start!) < r.end && parse(a.end!) > r.start && !leftFor.get(id)?.has(r.trackId),
+        )
+      )
+        return 'not-interested';
+      return own;
+    },
+  };
+
   const candidates = bundle.activities.filter(
-    (a) =>
-      !a.cancelled &&
-      a.start?.startsWith(day) === true &&
-      a.end?.startsWith(day) === true &&
-      preferences.dispositionOf(a.id) !== 'not-interested',
+    (a) => timedOnDay(a) && preferences.dispositionOf(a.id) !== 'not-interested',
   );
 
   const watchLater = candidates
@@ -266,6 +364,28 @@ export function solveDay(input: SolveDayInput): SolverResult {
     .sort((a, b) => parse(a.start!) - parse(b.start!));
 
   const mustAttendConflicts = checkMustAttendConflicts(mustAttends, travel, bufferSeconds);
+  // A must-go in a gap still conflicts with the whole-block commitment.
+  for (const range of ranges) {
+    for (const a of mustAttends) {
+      if (
+        a.trackId === range.trackId ||
+        parse(a.start!) >= range.end ||
+        parse(a.end!) <= range.start ||
+        // The attendee chose this talk over the devroom's own: not a silent conflict.
+        leftFor.get(a.id)?.has(range.trackId)
+      )
+        continue;
+      if (
+        !mustAttendConflicts.some(
+          (c) =>
+            (c.a === range.representative && c.b === a.id) ||
+            (c.b === range.representative && c.a === a.id),
+        )
+      ) {
+        mustAttendConflicts.push({ a: range.representative, b: a.id });
+      }
+    }
+  }
   if (mustAttendConflicts.length > 0) {
     return {
       itinerary: { eventId: bundle.id, day, items: [], totalUtility: 0 },
@@ -277,13 +397,20 @@ export function solveDay(input: SolveDayInput): SolverResult {
   }
 
   const dayEnd = 24 * 60;
-  const segments: { fromMin: number; toMin: number }[] = [];
+  const segments: { fromMin: number; toMin: number; before?: Activity; after?: Activity }[] = [];
   let prevEnd = 0;
+  let previousCommitment: Activity | undefined;
   for (const m of mustAttends) {
-    segments.push({ fromMin: prevEnd, toMin: minutesOfDay(m.start!) });
+    segments.push({
+      fromMin: prevEnd,
+      toMin: minutesOfDay(m.start!),
+      before: previousCommitment,
+      after: m,
+    });
     prevEnd = minutesOfDay(m.end!);
+    previousCommitment = m;
   }
-  segments.push({ fromMin: prevEnd, toMin: dayEnd });
+  segments.push({ fromMin: prevEnd, toMin: dayEnd, before: previousCommitment });
 
   const chosen: Activity[] = [...mustAttends];
   let totalUtility = mustAttends.reduce((sum, m) => sum + activityUtility(m, preferences), 0);
@@ -294,6 +421,8 @@ export function solveDay(input: SolveDayInput): SolverResult {
       if (seen.has(a.id)) return false;
       if (minutesOfDay(a.start!) < segment.fromMin) return false;
       if (minutesOfDay(a.end!) > segment.toMin) return false;
+      if (segment.before && !canFollow(segment.before, a, travel, bufferSeconds)) return false;
+      if (segment.after && !canFollow(a, segment.after, travel, bufferSeconds)) return false;
       return true;
     });
     const { order } = longestPathInDag(inside, preferences, travel, bufferSeconds);
@@ -308,6 +437,15 @@ export function solveDay(input: SolveDayInput): SolverResult {
   // place at most one flexible activity from the goal budget (largest goal
   // that fits, up to 60 min in 15-min steps).
   const items: ItineraryItem[] = [];
+  let lunchPlaced = false;
+  const lunchWindows = bundle.activities.filter(
+    (a) =>
+      a.type === 'meal' &&
+      !a.cancelled &&
+      /lunch/i.test(a.title) &&
+      a.start?.startsWith(day) &&
+      a.end?.startsWith(day),
+  );
   const flexBudget = new Map(flexibleGoals.map((g) => [g.kind, g.dailyMinutes]));
   const chosenSorted = [...chosen].sort((a, b) => parse(a.start!) - parse(b.start!));
 
@@ -321,7 +459,34 @@ export function solveDay(input: SolveDayInput): SolverResult {
       minutesOfDay(current.end!) + travel.seconds(current.locationId, next.locationId) / 60;
     const gapEndMin = minutesOfDay(next.start!) - bufferSeconds / 60;
     const gapMinutes = gapEndMin - gapStartMin;
-    if (gapMinutes < 15) continue;
+    // Per-room lunch rows describe availability, not competing sessions. Use
+    // one 30-minute reservation within a real gap; never displace a chosen talk.
+    if (!lunchPlaced) {
+      const slots = lunchWindows
+        .map((meal) => ({
+          start: Math.max(gapStartMin, minutesOfDay(meal.start!)),
+          end: Math.min(gapEndMin, minutesOfDay(meal.end!)),
+        }))
+        .filter((slot) => slot.end - slot.start >= 30)
+        .sort((a, b) => a.start - b.start);
+      const slot = slots[0];
+      if (slot) {
+        items.push({
+          activityId: `flex-lunch-${day}`,
+          start: toIso(day, slot.start),
+          end: toIso(day, slot.start + 30),
+          flexible: true,
+          label: 'Lunch · food area',
+        });
+        lunchPlaced = true;
+        continue;
+      }
+    }
+    if (
+      gapMinutes < 15 ||
+      ranges.some((r) => parse(current.end!) < r.end && parse(next.start!) > r.start)
+    )
+      continue;
 
     for (const goal of flexibleGoals) {
       const remaining = flexBudget.get(goal.kind) ?? 0;

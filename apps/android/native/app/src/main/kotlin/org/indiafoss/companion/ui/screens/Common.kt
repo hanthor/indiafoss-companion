@@ -17,6 +17,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.EventBundle
+import org.indiafoss.companion.core.PlanMarker
 import org.indiafoss.companion.core.Schedule
 
 /** One session as an M3 card: time, room, speakers and a bookmark toggle. */
@@ -32,6 +34,8 @@ fun SessionCard(
     activity: Activity,
     bundle: EventBundle?,
     bookmarked: Boolean = false,
+    /** The session's place in the attendee's day, shown as a chip when it has one (#110). */
+    marker: PlanMarker = PlanMarker.NONE,
     progress: Float? = null,
     onOpen: () -> Unit,
     onBookmark: (() -> Unit)? = null,
@@ -54,6 +58,13 @@ fun SessionCard(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                    val track = bundle?.tracks?.firstOrNull { it.id == activity.devroomId }
+                        ?: bundle?.tracks?.firstOrNull { it.id == activity.trackId }
+                    track?.let {
+                        Surface(color = MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.small, modifier = Modifier.padding(vertical = 4.dp)) {
+                            Text(it.name, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
                     Text(
                         text = activity.title,
                         style = MaterialTheme.typography.titleMedium,
@@ -85,6 +96,7 @@ fun SessionCard(
             if (activity.cancelled) {
                 SuggestionChip(onClick = {}, label = { Text("Cancelled") }, enabled = false)
             }
+            if (marker != PlanMarker.NONE) MarkerChip(marker)
             if (progress != null) {
                 LinearProgressIndicator(
                     progress = { progress },
@@ -104,4 +116,19 @@ fun timeAndRoom(activity: Activity, bundle: EventBundle?): String {
     } ?: "Unscheduled"
     val room = bundle?.location(activity.locationId)?.name
     return if (room != null) "$time  ·  $room" else time
+}
+
+/** "Planned", "Interested", "Must go" or "Stood aside", coloured by weight. */
+@Composable
+fun MarkerChip(marker: PlanMarker, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val (container, content) = when (marker) {
+        PlanMarker.MUST_GO -> scheme.tertiaryContainer to scheme.onTertiaryContainer
+        PlanMarker.PLANNED, PlanMarker.INTERESTED -> scheme.primaryContainer to scheme.onPrimaryContainer
+        PlanMarker.STOOD_ASIDE -> scheme.surfaceVariant to scheme.onSurfaceVariant
+        PlanMarker.NONE -> return
+    }
+    Surface(color = container, contentColor = content, shape = MaterialTheme.shapes.small, modifier = modifier.padding(top = 6.dp)) {
+        Text(marker.label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
+    }
 }

@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "eventId": "indiafoss-2026",
+  "generatedAt": "2026-09-01T09:00:00.000Z",
+  "server": "indiafoss.org",
+  "rooms": [
+    {
+      "id": "a",
+      "name": "Lobby",
+      "alias": "#indiafoss-2026:indiafoss.org",
+      "route": "classic",
+      "visibility": "public"
+    },
+    {
+      "id": "b",
+      "name": "Lobby again",
+      "alias": "#indiafoss-2026:indiafoss.org",
+      "route": "mesh",
+      "visibility": "public"
+    }
+  ]
+}

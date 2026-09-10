@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { attendeeProfileToVCard, DEFAULT_ATTENDEE_SHARE_SELECTION } from './contact.js';
 import {
+  MAX_SCAN_PAYLOAD_BYTES as FRIEND_LIMIT,
   decodeFriendPayload,
   encodeFriendPayload,
   encodeSignedFriendPayload,
@@ -8,12 +9,41 @@ import {
   verifyFriendPayload,
 } from './friend.js';
 import { generateHandshakeKeyPair } from './handshake.js';
-import { parseScannedPayload, parseVCard } from './scan.js';
+import { MAX_SCAN_PAYLOAD_BYTES, parseScannedPayload, parseVCard } from './scan.js';
 const classifyScannedPayload = parseScannedPayload;
 
 const SERVER_NAME = 'a'.repeat(64);
 
 describe('friend payload', () => {
+  it('shares the 8192-byte scanner boundary with direct decoding and verification', async () => {
+    expect(FRIEND_LIMIT).toBe(MAX_SCAN_PAYLOAD_BYTES);
+    const prefix = 'indiafoss://friend?v=1&fn=Ada&padding=';
+    const atLimit = prefix + 'a'.repeat(8192 - prefix.length);
+    expect(parseScannedPayload(atLimit)).toMatchObject({ kind: 'friend' });
+    expect(decodeFriendPayload(atLimit)?.fullName).toBe('Ada');
+    expect((await verifyFriendPayload(atLimit)).signature).toBe('unsigned');
+    const tooLarge = atLimit + 'a';
+    expect(parseScannedPayload(tooLarge)).toMatchObject({ kind: 'error', reason: 'oversized' });
+    expect(decodeFriendPayload(tooLarge)).toBeNull();
+    await expect(verifyFriendPayload(tooLarge)).rejects.toThrow('Not a friend card');
+  });
+
+  it('bounds encoded UTF-8 bytes, including multibyte and percent-encoded text', () => {
+    const prefix = 'indiafoss://friend?v=1&fn=Ada&padding=';
+    const remaining = 8192 - prefix.length;
+    const atLimit = prefix + 'अ'.repeat(Math.floor(remaining / 3)) + 'a'.repeat(remaining % 3);
+    expect(new TextEncoder().encode(atLimit).length).toBe(8192);
+    expect(decodeFriendPayload(atLimit)).not.toBeNull();
+    expect(decodeFriendPayload(atLimit + 'अ')).toBeNull();
+    expect(parseScannedPayload(atLimit + 'अ')).toMatchObject({
+      kind: 'error',
+      reason: 'oversized',
+    });
+    const encoded = prefix + '%E0%A4%85'.repeat(1000);
+    expect(decodeFriendPayload(encoded)).toBeNull();
+    expect(parseScannedPayload(encoded)).toMatchObject({ kind: 'error', reason: 'oversized' });
+  });
+
   it('round-trips every selected field and lowercases the Neutrino identity', () => {
     const encoded = encodeFriendPayload({
       version: 1,
@@ -35,6 +65,7 @@ describe('friend payload', () => {
       fossUnitedProfileUrl: 'https://fossunited.org/u/james_reilly',
       matrixId: '@james:matrix.org',
       neutrinoServerName: SERVER_NAME,
+      identity: { version: 1 },
       fullName: 'James, Reilly',
       organization: 'FOSS & Co',
       website: 'https://example.org',
@@ -42,11 +73,17 @@ describe('friend payload', () => {
     });
   });
 
-  it('drops malformed identities and unsafe urls instead of trusting them', () => {
+  it('retains malformed identities unread and drops unsafe urls, trusting neither', () => {
     const decoded = decodeFriendPayload(
       'indiafoss://friend?v=1&matrix_id=alice&neutrino_server_name=zz&ticket_ref=T1&url=javascript:alert(1)&social_github=ftp://x',
     );
-    expect(decoded).toEqual({ version: 1, socials: {} });
+    // Neither value is promoted to a routable field (#160): they are kept as
+    // they arrived so a later build can read them, and nothing else.
+    expect(decoded).toEqual({
+      version: 1,
+      socials: {},
+      identity: { version: 1, retained: { mesh: 'zz', matrix: 'alice' } },
+    });
   });
 
   it('signs cards and detects tampering', async () => {
@@ -57,6 +94,7 @@ describe('friend payload', () => {
     );
     const ok = await verifyFriendPayload(card);
     expect(ok.signature).toBe('valid');
+    expect((await verifyFriendPayload(`  ${card}  `)).signature).toBe('valid');
     expect(ok.payload.fullName).toBe('Ada');
     expect(ok.publicKey?.alg).toBe(pair.alg);
     const tampered = card.replace('fn=Ada', 'fn=Eve');
@@ -142,6 +180,7 @@ describe('parseVCard (scan.ts)', () => {
       website: 'https://example.org/long-folded-path',
       matrixId: '@grace:example.org',
       neutrinoServerName: 'a'.repeat(64),
+      identity: { version: 1 },
       ticketRef: 'ticket::T1',
       socials: { github: 'https://github.com/grace' },
     });

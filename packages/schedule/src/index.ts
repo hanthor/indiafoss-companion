@@ -224,6 +224,7 @@ export function formatInstant(ms: number, offsetMinutes: number): string {
 export type ScheduleChangeType =
   | 'added'
   | 'cancelled'
+  | 'reinstated'
   | 'time-changed'
   | 'room-changed'
   | 'title-changed'
@@ -254,6 +255,12 @@ export function diffBundles(prev: EventBundle, next: EventBundle): ScheduleChang
     }
     if (a.cancelled && !old.cancelled) {
       changes.push({ activityId: a.id, title: a.title, type: 'cancelled' });
+    } else if (!a.cancelled && old.cancelled) {
+      // A talk coming back is as important to an attendee as one going away,
+      // and detecting it only in the false-to-true direction meant a
+      // reinstated session produced an empty diff, which the update path then
+      // treated as "nothing to apply" (#190).
+      changes.push({ activityId: a.id, title: a.title, type: 'reinstated' });
     }
     if (a.start !== old.start || a.end !== old.end) {
       changes.push({ activityId: a.id, title: a.title, type: 'time-changed' });
@@ -293,6 +300,30 @@ export function summarizeChanges(changes: ScheduleChange[]): Record<string, numb
     summary[change.type] = (summary[change.type] ?? 0) + 1;
   }
   return summary;
+}
+
+/**
+ * Human wording for a change type, singular and plural.
+ *
+ * The update banner previously interpolated the raw type and appended an `s`,
+ * which reads as "2 room-changeds". Every type needs a real label, so a new
+ * one cannot be added without also being sayable.
+ */
+const CHANGE_LABELS: Record<ScheduleChangeType, [string, string]> = {
+  added: ['new session', 'new sessions'],
+  cancelled: ['cancellation', 'cancellations'],
+  reinstated: ['session back on', 'sessions back on'],
+  'time-changed': ['time change', 'time changes'],
+  'room-changed': ['room change', 'room changes'],
+  'title-changed': ['title change', 'title changes'],
+  'speaker-changed': ['speaker change', 'speaker changes'],
+  'recording-added': ['new recording', 'new recordings'],
+};
+
+/** Label a count of one change type, e.g. `2 room changes`. */
+export function describeChangeCount(type: ScheduleChangeType, count: number): string {
+  const label = CHANGE_LABELS[type];
+  return `${count} ${count === 1 ? label[0] : label[1]}`;
 }
 
 export {

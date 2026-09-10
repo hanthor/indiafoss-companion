@@ -13,6 +13,8 @@ export default tseslint.config(
       '**/.svelte-kit/**',
       '**/.vitest/**',
       '**/coverage/**',
+      '**/test-results/**',
+      '**/playwright-report/**',
       'apps/android/capacitor/android/**',
       'apps/web/static/**',
     ],

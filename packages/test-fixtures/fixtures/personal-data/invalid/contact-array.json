@@ -1,0 +1,33 @@
+{
+  "format": "indiafoss-personal-data",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-09T00:00:00.000Z",
+  "events": [
+    {
+      "eventId": "indiafoss-2026",
+      "activities": [
+        {
+          "eventId": "indiafoss-2026",
+          "activityId": "old",
+          "proposalId": "cfp"
+        }
+      ],
+      "sections": {
+        "preferences": [
+          {
+            "activityId": "old",
+            "disposition": "must-attend",
+            "bookmarked": true
+          }
+        ],
+        "notes": [
+          {
+            "activityId": "old",
+            "body": "Keep my notes"
+          }
+        ]
+      }
+    }
+  ],
+  "contact": []
+}

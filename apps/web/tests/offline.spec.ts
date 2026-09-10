@@ -17,7 +17,7 @@ import { appUrl } from './app-url.js';
 test('offline gate: full attendee flow with network disabled', async ({ page, context }) => {
   // 1. Online: download the event.
   await page.goto(appUrl('/'));
-  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
 
   // 2–3. Offline-ready: wait for the service worker to activate and control
   // the page, then confirm the bundle is in IndexedDB.
@@ -48,26 +48,26 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
 
   // 5. Hard reload — served from the service worker cache.
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
 
   // 6. Browse schedule.
   await page.goto(appUrl('/schedule'));
   await expect(page.getByRole('tab', { name: /Day 1/ })).toBeVisible();
-  await expect(page.getByText(/Registrations and Breakfast/).first()).toBeVisible();
+  await expect(page.getByRole('article').first()).toBeVisible();
 
   // 7. Search.
-  await page.getByPlaceholder('Search sessions…').fill('AOSP');
+  await page.getByPlaceholder('Search sessions…').fill('Android');
   await expect(page.getByRole('article').first()).toBeVisible();
 
   // 8. Open a session detail.
-  await page.goto(appUrl('/activity/act-c8ak0iov2l'));
-  await expect(page.getByRole('heading', { name: /First Step into Open Source/ })).toBeVisible();
+  await page.goto(appUrl('/activity/act-28la68il6o'));
+  await expect(page.getByRole('heading', { name: /Minnow/ })).toBeVisible();
 
   // 9. Modify Elo ranking.
-  await page.goto(appUrl('/plan/rank?mode=pairs'));
-  await expect(page.getByTestId('candidate-a')).toBeVisible();
-  await page.getByTestId('candidate-a').click();
-  await page.waitForTimeout(200);
+  await page.goto(appUrl('/plan/rank'));
+  await expect(page.getByTestId('talk-card')).toBeVisible();
+  await page.getByRole('button', { name: /^Want to go:/ }).click();
+  await expect(page.getByText(/1 choices saved/)).toBeVisible();
 
   // 10. Regenerate the itinerary.
   await page.goto(appUrl('/plan'));
@@ -75,15 +75,15 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
 
   // 11. Map: mark a room as here, open another and read the walk.
   await page.goto(appUrl('/map'));
-  await page.getByRole('button', { name: /^Audi 1/ }).click();
+  await page.getByRole('button', { name: /^(Audi 1|Hall 1)/ }).click();
   await page.getByRole('button', { name: "I'm here" }).click();
   await page.getByRole('button', { name: /^First/ }).click();
-  await page.getByRole('button', { name: /^Devroom 2/ }).click();
-  await expect(page.getByRole('heading', { name: 'Devroom 2' })).toBeVisible();
+  await page.getByRole('button', { name: /^Room 2/ }).click();
+  await expect(page.getByRole('heading', { name: 'Room 2' })).toBeVisible();
 
   // 12. Schedule-aware routing: the Now leave-by uses the cached venue graph
   // to compute walk time offline (§29, §52).
-  const during = '2025-09-20T10:20:00+05:30';
-  await page.goto(appUrl(`/now?now=${encodeURIComponent(during)}&at=audi-1`));
+  const during = '2026-09-26T10:20:00+05:30';
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(during)}&at=hall-1`));
   await expect(page.getByText(/You are at/)).toBeVisible({ timeout: 10_000 });
 });

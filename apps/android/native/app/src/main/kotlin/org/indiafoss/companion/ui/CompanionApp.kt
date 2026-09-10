@@ -143,14 +143,14 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         val route = backStack?.destination?.route
         // The countdown strip sits under every tab's app bar, not over detail screens.
         if (route != null && destinations.any { it.route == route }) {
-            LeaveByBanner(state) { navController.navigate("activity/$it") }
+            LeaveByBanner(state, onOpenPlan = { navController.navigate("plan") }) { navController.navigate("activity/$it") }
         }
         NavHost(
             navController = navController,
             startDestination = "now",
         ) {
             composable("now") {
-                NowScreen(state, topActions, viewModel::refresh, viewModel::dismissUpdate) { navController.navigate("activity/$it") }
+                NowScreen(state, topActions, viewModel::refresh, viewModel::dismissUpdate, onOpenPlan = { navController.navigate("plan") }) { navController.navigate("activity/$it") }
             }
             composable("schedule") {
                 ScheduleScreen(state, topActions, viewModel::toggleBookmark) {
@@ -163,7 +163,8 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     actions = topActions,
                     onRank = { navController.navigate("rank") },
                     onCalendar = viewModel::calendarFor,
-                    onSkip = viewModel::skipSession,
+                    onSkip = viewModel::removeFromPlan,
+                    onRestore = viewModel::restoreToPlan,
                     onAddBlock = viewModel::addBlock,
                     onRemoveBlock = viewModel::removeBlock,
                 ) { navController.navigate("activity/$it") }
@@ -231,7 +232,6 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     state = state,
                     onReminders = viewModel::setRemindersEnabled,
                     onSave = viewModel::saveProfile,
-                    onScan = scan,
                     onDone = { rank ->
                         viewModel.setOnboardingDone()
                         navController.navigate(if (rank) "rank" else "now") { popUpTo("welcome") { inclusive = true } }
@@ -242,6 +242,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 SettingsScreen(
                     state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile,
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
+                    onCalendarSync = viewModel::setCalendarSyncEnabled,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->
@@ -250,6 +251,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     activityId = entry.arguments?.getString("id").orEmpty(),
                     onBookmark = viewModel::toggleBookmark,
                     onMustAttend = viewModel::toggleMustAttend,
+                    onOpenSpeaker = { navController.navigate("speaker/$it") },
                     onBack = { navController.popBackStack() },
                 )
             }

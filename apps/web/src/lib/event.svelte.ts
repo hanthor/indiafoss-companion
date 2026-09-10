@@ -1,36 +1,17 @@
 import { base } from '$app/paths';
 import { CompanionStorage } from '@indiafoss/storage';
-import type { EventBundle } from '@indiafoss/model';
+import { collectBundleIssues, type EventBundle } from '@indiafoss/model';
 
-export const DEFAULT_EVENT_ID = 'indiafoss-2025';
+export const DEFAULT_EVENT_ID = 'indiafoss-2026';
 /** Static, hash-less asset; precached by the service worker (§34). */
 export const EVENT_BUNDLE_URL = `${base}/events/${DEFAULT_EVENT_ID}/event-bundle.json`;
 export const EVENT_MANIFEST_URL = `${base}/events/${DEFAULT_EVENT_ID}/manifest.json`;
 
 let storage: CompanionStorage | null = null;
 
-/** Remember which published revision the stored bundle corresponds to (§35). */
-export async function recordRevision(eventId: string, revision?: number): Promise<void> {
-  if (revision === undefined) {
-    try {
-      const res = await fetch(EVENT_MANIFEST_URL, { cache: 'no-store' });
-      if (res.ok) {
-        const manifest = (await res.json()) as { revision?: number };
-        revision = manifest.revision;
-      }
-    } catch {
-      revision = undefined;
-    }
-  }
-  if (revision !== undefined) {
-    await getStorage().setSetting(`event-revision-${eventId}`, String(revision));
-  }
-}
-
 /** Revision of the stored bundle, if known. */
 export async function storedRevision(eventId: string): Promise<number | null> {
-  const raw = await getStorage().getSetting(`event-revision-${eventId}`);
-  return raw ? Number(raw) : null;
+  return getStorage().loadEventRevision(eventId);
 }
 function getStorage(): CompanionStorage {
   storage ??= new CompanionStorage();
@@ -64,11 +45,16 @@ async function doLoad(eventId: string): Promise<EventBundle | null> {
     }
     // 2. Static asset, precached by the service worker (§34). A failed fetch
     //    must never wipe previously cached data (§60).
-    const res = await fetch(EVENT_BUNDLE_URL);
+    const res = await fetch(`${base}/events/${eventId}/event-bundle.json`);
     if (!res.ok) {
       throw new Error(`Event bundle request failed (HTTP ${res.status})`);
     }
     const bundle = (await res.json()) as EventBundle;
+    if (bundle.id !== eventId || collectBundleIssues(bundle).length > 0) {
+      throw new Error(
+        'The downloaded schedule is invalid or belongs to another event. Please try again.',
+      );
+    }
     await getStorage().saveEventBundle(bundle);
     eventState.bundle = bundle;
     eventState.status = 'ready';
@@ -84,7 +70,20 @@ async function doLoad(eventId: string): Promise<EventBundle | null> {
  * Load the event bundle: IndexedDB first (offline source of truth), then the
  * precached static asset. Concurrent callers share one in-flight request.
  */
-export async function loadEvent(eventId: string = DEFAULT_EVENT_ID): Promise<EventBundle | null> {
+function selectedEventId(): string {
+  if (typeof window === 'undefined') return DEFAULT_EVENT_ID;
+  try {
+    const requested = new URL(window.location.href).searchParams.get('event');
+    if (requested === 'indiafoss-2025' || requested === 'indiafoss-2026')
+      sessionStorage.setItem('selected-event', requested);
+    const selected = sessionStorage.getItem('selected-event');
+    return selected === 'indiafoss-2025' ? selected : DEFAULT_EVENT_ID;
+  } catch {
+    return DEFAULT_EVENT_ID;
+  }
+}
+
+export async function loadEvent(eventId: string = selectedEventId()): Promise<EventBundle | null> {
   if (eventState.status === 'ready' && eventState.bundle?.id === eventId) {
     return eventState.bundle;
   }

@@ -95,7 +95,10 @@ export function rankableRooms(
 export function devrooms(
   bundle: EventBundle,
 ): { track: Track; sessions: Activity[]; main: boolean }[] {
-  return rankableRooms(bundle).filter((r) => !r.main);
+  const explicit = bundle.activities.some((a) => a.devroomId?.startsWith('devroom-'));
+  return rankableRooms(bundle).filter(
+    (r) => !r.main && (!explicit || r.track.id.startsWith('devroom-')),
+  );
 }
 
 /**
@@ -134,4 +137,12 @@ export async function setRoomPreference(
 export async function markRoomsDecided(eventId: string): Promise<void> {
   roomPrefsState.decided = true;
   await getStorage().setSetting(decidedKey(eventId), 'true');
+}
+
+/** Read the active event's room choices back from storage (personal-data import). */
+export async function reloadRoomPrefs(): Promise<void> {
+  const eventId = hydratedFor;
+  if (!eventId) return;
+  hydratedFor = null;
+  await hydrateRoomPrefs(eventId);
 }

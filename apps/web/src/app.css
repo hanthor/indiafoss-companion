@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
    IndiaFOSS Companion design system.
-   Brand: FOSS United mint + ink + amber, pixel display type (like the
-   IndiaFOSS 2026 wordmark), monospace eyebrows, hard offset shadows.
+   Brand: IndiaFOSS 2026 Inter typography, neutral surfaces and quiet borders.
+   Pixel lettering belongs to the official wordmark; devroom art carries colour.
    All fonts ship locally so the PWA renders identically offline (§34, §58).
    --------------------------------------------------------------------------- */
 
@@ -38,9 +38,17 @@
 :root {
   color-scheme: light dark;
 
-  --font-display: 'FFF Forward', 'Press Start 2P', 'Space Mono', ui-monospace, monospace;
+  --font-display: var(--font-body);
   --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-body: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Direct talk choices: accessible text stays paired with its surface. */
+  --choice-must: #efc44b;
+  --choice-must-text: #332700;
+  --choice-want: #b9efc9;
+  --choice-want-text: #143923;
+  --choice-no: #e4e4e4;
+  --choice-no-text: #303030;
 
   /* Brand */
   --mint: hsl(144 92% 37%); /* --v3-primary-button */
@@ -81,9 +89,9 @@
 
   --radius: 0.375rem; /* buttons, inputs */
   --radius-lg: 1rem; /* cards, hero */
-  --shadow-hard: 0 4px 32px rgb(0 0 0 / 0.06);
-  --shadow-hard-sm: 0 2px 8px rgb(0 0 0 / 0.06);
-  --shadow-soft: 0 4px 32px rgb(0 0 0 / 0.06);
+  --shadow-hard: none;
+  --shadow-hard-sm: none;
+  --shadow-soft: none;
   /* System-bar insets: browsers report env(); Capacitor's SystemBars plugin
      injects --safe-area-inset-* on Android 15+, where the WebView is drawn
      under the status bar (edge-to-edge). */
@@ -102,6 +110,17 @@
   --safe-top: env(safe-area-inset-top, var(--safe-area-inset-top, 0px));
   --safe-bottom: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
   --tabbar-height: 62px;
+  --appbar-height: 64px;
+  /* Desktop layout (#205): from 1024px the bottom tab bar gives way to a side
+     rail of this width. Anything that clears the tab bar reads the height
+     token, which is zero there. Routes use the same `min-width: 1024px`. */
+  --rail-width: 14rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --tabbar-height: 0px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
@@ -178,6 +197,7 @@ body {
 }
 
 body {
+  margin: 0;
   font-family: var(--font-body);
   background-color: var(--paper);
   color: var(--text);
@@ -196,16 +216,17 @@ h3 {
 
 h1 {
   font-family: var(--font-display);
-  font-size: clamp(0.95rem, 2.8vw, 1.25rem);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  line-height: 1.5;
+  font-size: clamp(1.65rem, 3vw, 2.25rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
   margin: 1rem 0 0.5rem;
 }
 
 h2 {
-  font-size: 1.1rem;
-  font-weight: 800;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
   margin: 0 0 0.5rem;
 }
 
@@ -228,7 +249,7 @@ kbd {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.12em;

@@ -182,6 +182,7 @@ data class RankedActivity(
     val rating: Double = Ranking.INITIAL_RATING,
     val comparisons: Int = 0,
     val disposition: Disposition = Disposition.NORMAL,
+    val interest: String? = null,
 )
 
 data class RatingUpdate(val ratingA: Double, val ratingB: Double, val neither: Boolean)

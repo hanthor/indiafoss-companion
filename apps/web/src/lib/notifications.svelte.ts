@@ -1,3 +1,4 @@
+import { showBrowserNotification } from './browser-notification';
 import { CompanionStorage } from '@indiafoss/storage';
 import { base } from '$app/paths';
 import {
@@ -7,14 +8,16 @@ import {
   WebLocalNotificationTransport,
 } from '$lib/notifications';
 import type { NotificationTransport, PlannedBlock, ReminderTier } from '$lib/notifications';
-import { computeBlockNotifications, staleNotificationIds } from '$lib/notifications';
+import { computeBlockNotifications } from '$lib/notifications';
 import { getEventDays } from '@indiafoss/schedule';
-import type { PlanEdits } from '@indiafoss/solver';
-import { bookmarked, dispositionOf, hydratePreferences } from '$lib/prefs.svelte';
+import { resolveSavedDayPlan } from './resolved-plan.svelte';
+import { ReminderReconciler } from './reminder-reconciler';
+import { dispositionOf } from '$lib/prefs.svelte';
 import { eventState } from '$lib/event.svelte';
 import { currentLocation } from '$lib/location.svelte';
 import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
-import { findRoute } from '@indiafoss/venue';
+import { journeyRoute } from '$lib/journey';
+import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
 import { appNowMs, appSpeed, logSimEvent, simActive } from '$lib/simulator.svelte';
 
 let storage: CompanionStorage | null = null;
@@ -25,12 +28,13 @@ function getStorage(): CompanionStorage {
 
 /** Local notification preferences (§37) — off by default, on-device only. */
 export const notificationsEnabled = $state<{ value: boolean }>({ value: false });
+export const reminderState = $state<{
+  status: 'off' | 'requesting' | 'granted' | 'blocked' | 'unsupported' | 'dismissed' | 'error';
+  testMessage: string;
+}>({ status: 'off', testMessage: '' });
+let preferenceGeneration = 0;
 
-let armedAt: string | null = null;
-// Bookkeeping only; nothing renders from it.
-let armedIds = new Set<string>();
-/** The transport those ids were armed on, so they are cancelled on the same one. */
-let armedOn: NotificationTransport | null = null;
+const reconciler = new ReminderReconciler();
 
 let transportPromise: Promise<NotificationTransport> | null = null;
 let simulatorTransport: WebLocalNotificationTransport | null = null;
@@ -63,101 +67,136 @@ function getTransport(): Promise<NotificationTransport> {
 
 /** Drop everything armed so far; the next `armNotifications()` starts clean. */
 export async function disarmNotifications(): Promise<void> {
-  if (armedOn) for (const id of armedIds) await armedOn.cancel(id);
-  // eslint-disable-next-line svelte/prefer-svelte-reactivity
-  armedIds = new Set();
-  armedOn = null;
-  armedAt = null;
+  await reconciler.clear();
 }
 
 export async function hydrateNotifications(): Promise<void> {
-  const setting = await getStorage().getSetting('notifications-enabled');
-  if (setting !== null) notificationsEnabled.value = setting === 'true';
+  if (reminderState.status === 'requesting') return;
+  const generation = preferenceGeneration;
+  try {
+    const setting = await getStorage().getSetting('notifications-enabled');
+    const permission = await (await getTransport()).permission();
+    if (generation !== preferenceGeneration) return;
+    notificationsEnabled.value = setting === 'true' && permission === 'granted';
+    reminderState.status =
+      permission === 'unsupported'
+        ? 'unsupported'
+        : permission === 'denied'
+          ? 'blocked'
+          : notificationsEnabled.value
+            ? 'granted'
+            : 'off';
+  } catch {
+    if (generation !== preferenceGeneration) return;
+    notificationsEnabled.value = false;
+    reminderState.status = 'error';
+  }
 }
 
 export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
-  notificationsEnabled.value = enabled;
-  await getStorage().setSetting('notifications-enabled', String(enabled));
-  if (enabled) await (await getTransport()).requestPermission();
+  if (reminderState.status === 'requesting') return;
+  preferenceGeneration++;
+  reminderState.testMessage = '';
+  reminderState.status = enabled ? 'requesting' : 'off';
+  notificationsEnabled.value = false;
+  try {
+    // Request first, directly from the user action; never persist success before permission.
+    const transport = await getTransport();
+    const granted = enabled && (await transport.requestPermission());
+    const permission = await transport.permission();
+    await getStorage().setSetting('notifications-enabled', String(granted));
+    notificationsEnabled.value = granted;
+    reminderState.status = !enabled
+      ? 'off'
+      : granted
+        ? 'granted'
+        : permission === 'unsupported'
+          ? 'unsupported'
+          : permission === 'denied'
+            ? 'blocked'
+            : 'dismissed';
+    if (!granted) await disarmNotifications();
+  } catch {
+    notificationsEnabled.value = false;
+    reminderState.status = 'error';
+  }
 }
 
-/** Custom blocks from every day's plan edits (stored per day, see planEdits.svelte.ts). */
-async function plannedBlocks(eventId: string, days: string[]): Promise<PlannedBlock[]> {
-  const out: PlannedBlock[] = [];
-  for (const day of days) {
-    const saved = await getStorage().getSetting(`plan-edits-${eventId}-${day}`);
-    if (!saved) continue;
-    try {
-      const edits = JSON.parse(saved) as Partial<PlanEdits>;
-      for (const block of edits.customBlocks ?? []) {
-        out.push({
-          id: block.id,
-          label: block.label,
-          start: block.start,
-          locationName: eventState.bundle?.locations.find((l) => l.id === block.locationId)?.name,
-        });
-      }
-    } catch {
-      /* malformed local data: no reminders for that day */
+/** An immediate delivery check, not proof of background or future delivery. */
+export async function testReminder(): Promise<void> {
+  if (!notificationsEnabled.value) return;
+  try {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') {
+      await hydrateNotifications();
+      return;
     }
+    await showBrowserNotification(
+      'IndiaFOSS reminder test',
+      {
+        body: 'This is a test while the Companion is open.',
+        tag: 'indiafoss-reminder-test',
+        icon: `${base}/icons/icon-192.png`,
+      },
+      `${window.location.origin}${base}/plan`,
+    );
+    reminderState.testMessage =
+      'Test sent to your browser. Check whether it appeared; this does not test delivery with the app closed.';
+  } catch {
+    reminderState.testMessage =
+      'This browser could not show the test notification. Use your calendar for reminders.';
   }
-  return out;
 }
 
 /**
- * Arm notifications for the coming hour: compute the alerts for the current
- * event revision and hand them to the transport. Called once per minute while
- * the app is open; timers survive reload via re-arming from `now`.
+ * All alerts come from feasible edited plans, including removals/replacements.
+ * Input changes cancel old timers before resolving. Clock-only refreshes extend
+ * the lookahead window without interrupting timers or browser deliveries.
  */
-export async function armNotifications(): Promise<void> {
-  if (!notificationsEnabled.value) return;
-  const bundle = eventState.bundle;
-  if (!bundle) return;
-
-  // Resolve travel estimates from the venue graph when a location is known.
-  let venue: Awaited<ReturnType<typeof loadVenue>> | null = null;
-  try {
-    venue = await loadVenue(venueKeyForEvent(bundle.id));
-  } catch {
-    venue = null;
-  }
-  // Null when the walk cannot be worked out (no location set, no route): the
-  // alert then leaves the walk out rather than inventing five minutes.
-  const travelSecondsFor = (locationId: string | undefined): number | null => {
-    if (!venue || !locationId || !currentLocation.value) return null;
-    const from = venue.metadata.locations[currentLocation.value]?.entrances[0];
-    const to = venue.metadata.locations[locationId]?.entrances[0];
-    if (!from || !to) return null;
-    if (from === to) return 0;
-    const route = findRoute(venue.graph, from, to, 'fastest');
-    return route?.durationSeconds ?? null;
-  };
-
-  const nowMs = appNowMs();
-  // Once per half minute of app time; a clock that jumped (a simulator run
-  // starting) counts as due.
-  if (armedAt && Math.abs(nowMs - Date.parse(armedAt)) < 30_000) return;
-  // eslint-disable-next-line svelte/prefer-svelte-reactivity
-  const isoNow = new Date(nowMs).toISOString();
-  armedAt = isoNow;
-
-  await hydratePreferences();
-  const tierFor = (activityId: string): ReminderTier =>
-    dispositionOf(activityId) === 'must-attend'
-      ? 'must-attend'
-      : bookmarked(activityId)
-        ? 'planned'
-        : 'none';
-  const notifications = [
-    ...computeNotifications(bundle, isoNow, travelSecondsFor, tierFor),
-    ...computeBlockNotifications(await plannedBlocks(bundle.id, getEventDays(bundle)), isoNow),
-  ];
-  const transport = await getTransport();
-  if (armedOn && armedOn !== transport) await disarmNotifications();
-  // Time or room changes and un-bookmarking: cancel what was armed but is not wanted any more.
-  for (const id of staleNotificationIds(armedIds, notifications)) await transport.cancel(id);
-  // eslint-disable-next-line svelte/prefer-svelte-reactivity
-  armedIds = new Set(notifications.map((n) => n.id));
-  armedOn = transport;
-  for (const n of notifications) await transport.schedule(n);
+export async function armNotifications(clockRefresh = false): Promise<void> {
+  const reconcile = clockRefresh
+    ? reconciler.refresh.bind(reconciler)
+    : reconciler.replace.bind(reconciler);
+  await reconcile(async () => {
+    const bundle = eventState.bundle;
+    if (!notificationsEnabled.value || !bundle) return null;
+    await hydrateRoutingProfile();
+    const plans = await Promise.all(
+      getEventDays(bundle).map((day) => resolveSavedDayPlan(bundle, day)),
+    );
+    let venue: Awaited<ReturnType<typeof loadVenue>> | null = null;
+    try {
+      venue = await loadVenue(venueKeyForEvent(bundle.id));
+    } catch {
+      /* no invented walk */
+    }
+    const travelSecondsFor = (locationId: string | undefined): number | null =>
+      journeyRoute(venue, currentLocation.value, locationId, routingPrefs.profile)
+        ?.durationSeconds ?? null;
+    const validPlans = plans.filter((p) => p.edited.feasible && p.mustAttendConflicts.length === 0);
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const ids = new Set(validPlans.flatMap((p) => p.edited.items.map((item) => item.id)));
+    const tierFor = (id: string): ReminderTier =>
+      !ids.has(id) ? 'none' : dispositionOf(id) === 'must-attend' ? 'must-attend' : 'planned';
+    const blocks: PlannedBlock[] = validPlans.flatMap((p) =>
+      p.edited.items
+        .filter((item) => item.manual && !bundle.activities.some((a) => a.id === item.id))
+        .map((item) => ({
+          id: item.id,
+          label: item.label ?? 'Personal time',
+          start: item.start,
+          locationName: bundle.locations.find((l) => l.id === item.locationId)?.name,
+        })),
+    );
+    // Compute at the current instant after async reads, not when they started.
+    // Snapshot of this scheduling instant; no mutable Date enters reactive state.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const now = new Date(appNowMs()).toISOString();
+    return {
+      transport: await getTransport(),
+      notifications: [
+        ...computeNotifications(bundle, now, travelSecondsFor, tierFor),
+        ...computeBlockNotifications(blocks, now),
+      ],
+    };
+  });
 }

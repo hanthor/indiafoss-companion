@@ -1,8 +1,13 @@
 <script lang="ts">
+  import NativeDownload from '$lib/components/NativeDownload.svelte';
+  import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { base, resolve } from '$app/paths';
   import { formatDayLabel } from '@indiafoss/schedule';
   import { eventState } from '$lib/event.svelte';
+  import DevroomBanner from '$lib/components/DevroomBanner.svelte';
+  import { devroomArt } from '$lib/devroom-art';
   import EventGate from '$lib/components/EventGate.svelte';
+  import GettingThere from '$lib/components/GettingThere.svelte';
 
   const bundle = $derived(eventState.bundle);
 
@@ -32,7 +37,11 @@
 </script>
 
 <EventGate>
-  <section class="hero" aria-labelledby="hero-title">
+  <section
+    class="hero"
+    class:illustrated={bundle?.id === 'indiafoss-2026'}
+    aria-labelledby="hero-title"
+  >
     <span class="tagline">From the FOSS United community</span>
     <h1 class="hero-title">
       <img class="wordmark" src="{base}/branding/indiafoss-2026-white.svg" alt="" />
@@ -49,22 +58,24 @@
       {/if}
     </p>
     <p id="hero-title" class="hero-desc">
-      A festival of open source, in your pocket: schedule, personal ranking, itinerary and indoor
+      A festival of open source, in your pocket: schedule, talk discovery, itinerary and indoor
       navigation — all offline, no account needed.
     </p>
     <div class="hero-actions" role="group" aria-label="Primary actions">
-      <a class="button light" href={resolve('/plan/rank')}>Rank your sessions</a>
+      <a class="button light" href={resolve('/plan/rank')}>Find talks for you</a>
       <a class="button gray" href={resolve('/now')}>What's on now</a>
     </div>
   </section>
 
+  <NativeDownload />
+
   <a class="rank-hero" href={resolve('/plan/rank')}>
     <span class="rank-kicker">Make the most of your day</span>
-    <strong>Rank your sessions</strong>
+    <strong>Find talks for you</strong>
     <span class="rank-copy"
       >Tap or swipe through a few choices. We'll build your personal plan.</span
     >
-    <span class="rank-action">Start ranking →</span>
+    <span class="rank-action">Find talks for you →</span>
   </a>
 
   <nav class="quick" aria-label="Quick actions">
@@ -105,6 +116,30 @@
     </a>
   </nav>
 
+  {#if bundle?.venue}
+    <GettingThere venue={bundle.venue} />
+  {/if}
+
+  {#if bundle?.id === 'indiafoss-2026'}
+    <section class="devrooms" aria-labelledby="devrooms-heading">
+      <div class="section-heading">
+        <h2 id="devrooms-heading">Find your devroom</h2>
+        <a href={resolve('/plan/rank?mode=rooms')}>Choose your devrooms →</a>
+      </div>
+      <p class="muted">
+        Half-day tracks curated by their communities. Pick a few talks, or stay for a whole devroom.
+      </p>
+      <div class="devroom-grid">
+        {#each bundle.tracks.filter((track) => devroomArt[track.id]) as track (track.id)}
+          <a class="devroom-link" href={resolve(`/plan/rank?mode=rooms#devroom-${track.id}`)}>
+            <DevroomBanner trackId={track.id} eventId={bundle.id} />
+            <strong>{track.name}</strong>
+          </a>
+        {/each}
+      </div>
+    </section>
+  {/if}
+
   {#if bundle}
     <section class="stats card flat" aria-label="Event at a glance">
       <div class="stat"><b>{counts.sessions}</b><span>sessions</span></div>
@@ -117,6 +152,7 @@
       {bundle.timezone}
     </p>
   {/if}
+  <ContributeNotice />
 </EventGate>
 
 <style>
@@ -131,20 +167,27 @@
     gap: 1.1rem;
     text-align: center;
     margin-top: 0.5rem;
-    padding: 2rem 1.25rem 2.25rem;
+    padding: 3rem 1.25rem 5rem;
+    min-height: 440px;
     border-radius: var(--radius-lg);
-    background:
-      radial-gradient(
-        60% 80% at 50% 100%,
-        color-mix(in srgb, var(--mint) 28%, transparent),
-        transparent 70%
-      ),
-      var(--ink-2);
+    background: var(--ink-2);
     color: var(--on-ink);
     user-select: none;
   }
+  .hero.illustrated {
+    background-image: url('/branding/2026/if26-hero.webp');
+    background-position: center;
+    background-size: cover;
+  }
+  @media (max-width: 600px) {
+    .hero.illustrated {
+      background-image: url('/branding/2026/if26-hero-mobile.webp');
+      min-height: 500px;
+      padding-bottom: 5rem;
+    }
+  }
   .tagline {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -206,19 +249,19 @@
     gap: 0.25rem;
     margin: 1.1rem 0 1.2rem;
     padding: 1.25rem 1.4rem;
-    border: 1px solid color-mix(in srgb, var(--mint) 40%, transparent);
+    border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    background: var(--mint-soft);
-    color: var(--mint-dark);
+    background: var(--surface);
+    color: var(--text);
     text-decoration: none;
     box-shadow: var(--shadow-soft);
     transition: background 0.15s ease;
   }
   .rank-hero:hover {
-    background: color-mix(in srgb, var(--mint-soft) 80%, var(--on-ink));
+    background: var(--surface-raised);
   }
   .rank-kicker {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 0.64rem;
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -226,9 +269,10 @@
   }
   .rank-hero strong {
     font-family: var(--font-display);
-    font-size: clamp(0.95rem, 3vw, 1.25rem);
-    line-height: 1.6;
-    text-transform: uppercase;
+    font-size: clamp(1.4rem, 3vw, 1.75rem);
+    font-weight: 600;
+    letter-spacing: -0.04em;
+    line-height: 1.25;
   }
   .rank-copy {
     font-size: 0.88rem;
@@ -241,9 +285,14 @@
 
   .quick {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.7rem;
     margin: 1.2rem 0;
+  }
+  @media (max-width: 800px) {
+    .quick {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
   .quick a {
     display: grid;
@@ -261,7 +310,7 @@
     background: var(--surface-raised);
   }
   .quick .ico {
-    font-family: var(--font-mono);
+    font-family: var(--font-body);
     font-size: 1.1rem;
     color: var(--mint-ink);
     line-height: 1;
@@ -274,6 +323,49 @@
   .quick a span:not(.ico) {
     font-size: 0.8rem;
     color: var(--text-muted);
+  }
+
+  .devrooms {
+    margin: 2.5rem 0;
+  }
+  .section-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .devroom-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.75rem 2rem;
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+  }
+  .devroom-link {
+    color: var(--text);
+    text-decoration: none;
+    min-width: 0;
+  }
+  .devroom-link strong {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .devroom-link:hover strong {
+    text-decoration: underline;
+  }
+  @media (max-width: 800px) {
+    .devroom-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 480px) {
+    .devroom-grid {
+      grid-template-columns: 1fr;
+    }
   }
 
   .stats {

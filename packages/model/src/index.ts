@@ -4,9 +4,15 @@
  * Every external source (FOSS United, Pretalx, static files, fixtures) is
  * normalized into these types. Application components must never read raw
  * upstream structures directly.
+ *
+ * Formats that cross an app, device or platform boundary — the publish
+ * manifest, the room directory, contact cards, identity bindings, handoff
+ * links, capability records — live in `./contracts/` and are imported from
+ * `@indiafoss/model/contracts`. See ADR 0009.
  */
 
 import type { MessagingConfig } from './messaging.js';
+import type { EventVenue } from './venue.js';
 
 /** Everything an attendee can deliberately spend conference time doing. */
 export type ActivityType =
@@ -17,6 +23,10 @@ export type ActivityType =
   | 'workshop'
   | 'bof'
   | 'devroom-session'
+  /** Organiser-run plenary moment: welcome/opening/closing notes, awards, group photo, results. */
+  | 'ceremony'
+  /** Organiser framing for a programme track: devroom introductions and wrap-ups. */
+  | 'intro'
   | 'community-booth'
   | 'sponsor-booth'
   | 'project-booth'
@@ -34,8 +44,10 @@ export interface ExternalLink {
 
 export interface Activity {
   id: string;
-  /** Upstream identifier when one exists and is stable. */
+  /** Upstream schedule-row identifier; organisers may recreate it. */
   sourceId?: string;
+  /** Stable CFP identity for talk choices, independent of time and room. */
+  proposalId?: string;
 
   type: ActivityType;
 
@@ -71,6 +83,8 @@ export interface Activity {
 
   cancelled?: boolean;
   delayedMinutes?: number;
+  /** Source timing is inconsistent; do not invent a plannable end time. */
+  scheduleNote?: string;
 
   source: string;
 }
@@ -121,6 +135,8 @@ export interface Booth {
   website?: string;
 
   locationId?: string;
+  /** Local event dates; empty means unassigned, absent preserves legacy availability. */
+  availableDates?: string[];
   tags: string[];
 }
 
@@ -138,6 +154,8 @@ export interface SourceMetadata {
   sourceUpdatedAt?: string;
   /** Version of the normalizer that produced the bundle. */
   normalizerVersion: string;
+  /** Editorial publication status; absent in legacy bundles. */
+  scheduleStatus?: 'draft' | 'confirmed';
 }
 
 export interface EventBundle {
@@ -160,6 +178,12 @@ export interface EventBundle {
 
   /** Optional Matrix rooms for the event; absent when organizers publish none. */
   messaging?: MessagingConfig;
+
+  /**
+   * Organiser-published venue name, address and map destination for the
+   * outdoor arrival flow (#278); absent until an organiser page confirms it.
+   */
+  venue?: EventVenue;
 
   sourceMetadata: SourceMetadata;
 }
@@ -228,6 +252,26 @@ export {
 } from './friend.js';
 export type { FriendPayload, FriendSignatureState } from './friend.js';
 export {
+  IDENTITY_VERSION,
+  classifyMeshIdentity,
+  hasRetainedIdentity,
+  identityCompatibility,
+  identityMetaOf,
+  isCanonicalNodeId,
+  isMatrixUserIdShape,
+  mergeIdentity,
+  readIdentity,
+  withIdentityEnvelope,
+} from './identity.js';
+export type {
+  IdentityBearing,
+  IdentityCompatibility,
+  IdentityEnvelope,
+  IdentityMeta,
+  MeshIdentityShape,
+  RawIdentityFields,
+} from './identity.js';
+export {
   canonicalCardString,
   formatPublicKey,
   fromBase64Url,
@@ -261,6 +305,8 @@ export type {
   MessagingRoom,
 } from './messaging.js';
 export { collectBundleIssues, collectBundleWarnings, isValidEventBundle } from './validation.js';
+export { EVENT_VENUE_VERSION, collectVenueIssues, venueAddressLine, venueGeoUri } from './venue.js';
+export type { EventVenue, VenueCoordinates } from './venue.js';
 
 export {
   CONTACT_BOOK_VERSION,
@@ -286,3 +332,8 @@ export {
   verifyVCardSignature,
 } from './signed-vcard.js';
 export type { VCardIdentity, VCardSignatureState } from './signed-vcard.js';
+
+export { resolvePortableActivity } from './portable-activity.js';
+export type { PortableActivityReference, ActivityResolution } from './portable-activity.js';
+
+export { isDiscoveryActivity } from './discovery.js';

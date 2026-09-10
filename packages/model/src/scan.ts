@@ -2,9 +2,10 @@ import type { AttendeeProfile, AttendeeSocial } from './contact.js';
 import { decodeFriendPayload, isTicketRef } from './friend.js';
 import type { FriendPayload } from './friend.js';
 import { isMatrixUserId } from './messaging.js';
+import { identityMetaOf, readIdentity } from './identity.js';
 
-/** Hard ceiling for a scanned payload, guarding against oversized QR abuse (§28, §42). */
-export const MAX_SCAN_PAYLOAD_BYTES = 8192;
+import { MAX_SCAN_PAYLOAD_BYTES, utf8ByteLength } from './payload-limits.js';
+export { MAX_SCAN_PAYLOAD_BYTES } from './payload-limits.js';
 
 /** A location marker resolved from an `indiafoss://location/<id>` deep link. */
 export interface ScannedLocation {
@@ -94,10 +95,6 @@ function splitStructured(value: string): string[] {
 
 const LOCATION_ID = /^[a-z0-9][a-z0-9-]*$/i;
 
-function utf8ByteLength(value: string): number {
-  return new TextEncoder().encode(value).length;
-}
-
 function unescapeVCard(value: string): string {
   let out = '';
   for (let i = 0; i < value.length; i += 1) {
@@ -185,6 +182,9 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
 
   const profile: AttendeeProfile = { fullName: '', socials: {} };
   let structuredName: { family: string; given: string } | null = null;
+  // Identity lines are collected, not applied: the one decision about whether
+  // this build understands them is made once, below, by `readIdentity` (#160).
+  const identity: { version?: string; mesh?: string; matrix?: string; impp?: string } = {};
 
   for (const raw of lines) {
     const parsed = parseVCardLine(raw);
@@ -226,19 +226,22 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
       // longer names, and they still scan.
       case 'X-INDIAFOSS-MATRIX':
       case 'X-MATRIX-ID':
-        if (decoded) profile.matrixId = decoded;
+        if (decoded) identity.matrix = decoded;
         break;
       case 'X-INDIAFOSS-MESH':
       case 'X-NEUTRINO-SERVER-NAME':
-        if (/^[0-9a-f]{64}$/i.test(decoded)) profile.neutrinoServerName = decoded.toLowerCase();
+        if (decoded) identity.mesh = decoded;
+        break;
+      case 'X-INDIAFOSS-IDENTITY-VERSION':
+        if (decoded) identity.version = decoded;
         break;
       case 'X-INDIAFOSS-TICKET':
       case 'X-INDIAFOSS-TICKET-REF':
         if (isTicketRef(decoded)) profile.ticketRef = decoded;
         break;
       case 'IMPP':
-        if (!profile.matrixId && decoded.toLowerCase().startsWith('matrix:')) {
-          profile.matrixId = decoded.slice('matrix:'.length);
+        if (!identity.impp && decoded.toLowerCase().startsWith('matrix:')) {
+          identity.impp = decoded.slice('matrix:'.length);
         } else if (!profile.socials.xmpp && decoded.toLowerCase().startsWith('xmpp:')) {
           profile.socials.xmpp = decoded.slice('xmpp:'.length);
         }
@@ -257,6 +260,19 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
     profile.fullName = [structuredName.given, structuredName.family].filter(Boolean).join(' ');
   }
 
+  const envelope = readIdentity({
+    version: identity.version,
+    mesh: identity.mesh,
+    // The `IMPP:matrix:` line is the address-book spelling of the same claim;
+    // it only counts when the companion's own field is absent.
+    matrix: identity.matrix ?? identity.impp,
+  });
+  if (envelope.matrixId) profile.matrixId = envelope.matrixId;
+  if (envelope.meshNodeId) profile.neutrinoServerName = envelope.meshNodeId;
+  if (envelope.matrixId || envelope.meshNodeId || envelope.retained) {
+    profile.identity = identityMetaOf(envelope);
+  }
+
   // A vCard with no usable identity is treated as malformed by the caller.
   const hasAnyField =
     profile.fullName ||
@@ -266,6 +282,8 @@ export function parseVCard(vcard: string): AttendeeProfile | null {
     profile.website ||
     profile.matrixId ||
     profile.neutrinoServerName ||
+    // An identity this build could not read is still a contact worth keeping.
+    profile.identity?.retained ||
     profile.fossUnitedProfileUrl ||
     Object.keys(profile.socials).length > 0;
   return hasAnyField ? profile : null;
@@ -373,6 +391,24 @@ export function parseScannedPayload(input: string): ScannedPayload {
     }
     // Preserve the original (untrimmed) payload for faithful re-export.
     return { kind: 'contact', profile, vcard: input };
+  }
+
+  // Official ticket QR links are references, never an instruction to fetch the URL.
+  try {
+    const url = new URL(payload);
+    const ids = url.searchParams.getAll('id');
+    if (
+      url.origin === 'https://fossunited.org' &&
+      !url.username &&
+      !url.password &&
+      url.pathname === '/get_tickets' &&
+      ids.length === 1 &&
+      /^[A-Za-z0-9_-]{6,64}$/.test(ids[0]!)
+    ) {
+      return { kind: 'ticket', ticketRef: `ticket::${ids[0]}` };
+    }
+  } catch {
+    /* Bare references are handled below. */
   }
 
   // FOSS United ticket QR codes carry the bare ticket id; explicit refs use ticket::<id>.

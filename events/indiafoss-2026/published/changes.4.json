@@ -1,0 +1,612 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 4,
+  "from": 3,
+  "changes": [
+    {
+      "activityId": "act-aq5t2bsj44",
+      "title": "Welcome Note",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-062rh0sg2r",
+      "title": "From Pull Requests to Patients: Building Open Healthcare Infrastructure in the Open",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5to9iht3",
+      "title": "Opening Note",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-advandigma",
+      "title": "Building Zasper: Inception to Growth",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tc0pju4",
+      "title": "Devroom Intro: Documentation & Technical Writing",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-2bfslonj72",
+      "title": "From Institution to Community: Building COSH and a Culture of Open Source",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-0k2f61lkrj",
+      "title": "Repub: Launching the Open Post-Processing Workflow for Digital Archiving in India",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28la54hqh4",
+      "title": "Ctrl+F for 34 Years of India's GovTech (Building a Public Commons for India's Digital Governance History)",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-8s4g5qj3oq",
+      "title": "Textbooks that run: interactive, zero-install CS education in the browser",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-37sjgknrj3",
+      "title": "Do Open Source Companies Pay Competitively?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-1vj5aoro8u",
+      "title": "How do we scale and sustain AI adoption without burning the planet?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-42vnv417j4",
+      "title": "How to Build Long-Lasting Tech Communities That Thrive — A Playbook",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28lar2a71m",
+      "title": "Developer Experience is the New Open Source Contribution. Here's Why",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-44no6v1fbb",
+      "title": "Tracking-free and hackable network cameras - powered by libre software",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-9ojc3pnp7u",
+      "title": "Optimizing Performance of GUIs",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-4svti9mp47",
+      "title": "Fork Around and Find Out: How I Built a GNOME Extension Used by 200K+ People",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-658mrgdc1b",
+      "title": "FQ-PIE: Contributing to Open Standards by Contributing to FOSS",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-0dkd3hateq",
+      "title": "It takes a village to raise a repo",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5t5c8t57",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tk8jgaa",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28la8gj1tt",
+      "title": "404: Empathy Not Found",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-aq5t2pjeqp",
+      "title": "2026 GB Elections. Meet the Candidates",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-bemvjh2dac",
+      "title": "Mapping India in seconds, for one and all",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28lapvjakp",
+      "title": "Printable, Downloadable, Forever: An Ode to Offline Documentation",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-aq5tc1ppib",
+      "title": "Devroom Wrap-Up",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-0hgfa2n1kg",
+      "title": "Porting Pipecat to Rust: The story of Rustvani-Fast Cheap Voice Ai for Bharat",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5t1o9k38",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5t091a1i",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tu34gje",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5t6vl7ef",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5t6oijso",
+      "title": "Devroom Intro: Android Open Source Project (AOSP)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tapk6u7",
+      "title": "Devroom Intro: Compilers, Programming Languages & Systems",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-dticdhpupe",
+      "title": "FOSS for the Forgotten Middle: Open-Sourcing Finance Software for India's 50,000 Microgyms",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-0j48rt6d3s",
+      "title": "FOSS and Co-operatives",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-dagd2l28tm",
+      "title": "FOSS in the Public Consciousness",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-9lmiio7p5b",
+      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for ensuring Democratic Accountability",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-8knf7bja7g",
+      "title": "Navigating the FOSS Contribution Journey",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-ck74mbe1ds",
+      "title": "How FOSS and AI are Changing Government Workflows at NHAI",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-ab8viuj62q",
+      "title": "Building OpenSpeaks tools for language documentation and archiving",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-dmsksuju3d",
+      "title": "Offline-first mobile apps on Frappe: a metadata-driven Flutter SDK with server-side control",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-5773rhdk21",
+      "title": "Who Governs the Internet? An Open Floor for India's FOSS Community",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28lar32res",
+      "title": "PythonBPF - now with loops, custom funcs, and more maps!",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lad7fd91",
+      "title": "LGTM Is Not A Theorem",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-cpno9khavs",
+      "title": "Open Code, Curated Data: Building Open Water Intelligence for Indian Cities",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-5jvkd5u7mk",
+      "title": "Physics at 60FPS",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28la91lu3s",
+      "title": "One Language, All GPU: How Julia Targets different GPU backends from a Single Kernel.",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28labhid7f",
+      "title": "Rust Is Not an HDL, So I Built a Tiny One.",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-aq5t5e261u",
+      "title": "What's new at FOSS United Foundation",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28lak6c90f",
+      "title": "Formal Verification: An Introduction through Elementary Arithmetic",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la7q52h1",
+      "title": "FOSS Awards",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28laqivva5",
+      "title": "Reflections from GB Members",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-4llmgcq50k",
+      "title": "How India’s Largest G2C Platform Migrated to FOSS and Broke Free from Oracle",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tg0077i",
+      "title": "Opening Note",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-ccd7lpdj1o",
+      "title": "Don't Model Every Leaf: The Magic of Blender Geometry Nodes",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-8dso3avp9l",
+      "title": "How exactly can we teach students the right FOSS etiquette?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-84efmkj2n3",
+      "title": "Property-based testing for UIs",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-4eh569dvq9",
+      "title": "Can We Build a Copyleft License for Community Data in the Age of AI?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-5inuh3i6co",
+      "title": "Community-Centred Technology",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-2git32fbo6",
+      "title": "Surviving as an Open Source Startup : Xeneva",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-f4ko2mik8q",
+      "title": "Seqout: search engine for the world’s genomic data",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-66qapl9qoe",
+      "title": "OpenTCAD: A FOSS Python Pipeline for Semiconductor Process and Device Simulation",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-89tt0o6uio",
+      "title": "How we build Community Projects from the Community for the Community",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-6565fh5jve",
+      "title": "Open, decentralized language assessment software for the public school system",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-9c2a8js5lj",
+      "title": "Computationalizing landscapes: The CoRE stack data structure for social-ecological diagnostics and planning",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-92adqrmbh1",
+      "title": "FOSS4Good - Techies in the social sector",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28la3jufi5",
+      "title": "Micro-granting in India",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-96goef7o3q",
+      "title": "What can we do about open weight models enabling non consensual intimate imagery?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28la8q5i65",
+      "title": "Keeping an Eye on your Eye: Disassembling and Reassembling Smart Camera Hardware to breach YOUR Security",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-c6qld2dc77",
+      "title": "Bad Internet, Good Software",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-5pig94v0sa",
+      "title": "Opening the Archives: Building Digital Infrastructure for Public Participation in Archival Records",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28la50468f",
+      "title": "Reverse Engineering the PAN QR Code",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-fefrvv4n7q",
+      "title": "Flexibility is complexity in disguise: Building frappe-ui for 10+ Products",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-e981trm7r1",
+      "title": "Open Standards in XR - A current overview of OpenXR and WebXR",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28lah172t2",
+      "title": "Hacking India's Largest Exam System",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-4rfojd08rd",
+      "title": "Freedom to code - Community's role in tech Policy",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5ti5f6jv",
+      "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-doht3bggkm",
+      "title": "United by Free F&B",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28lao2ucgj",
+      "title": "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-aq5tm1051s",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5td49n4f",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tidiu4b",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5t7ni20b",
+      "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5t8uuiph",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tf2jbhq",
+      "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-391e59gb72",
+      "title": "Software Patents - AI and the Future of Open Innovation",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-bk39jtqjkk",
+      "title": "Tiles: Own your AI with local models and open protocols",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-1f9ett9bgj",
+      "title": "Community-Driven or Community-Branded? Who Gets to Shape Community Events?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-2p9brsg91r",
+      "title": "FOSS for Justice — What can Open Source do for India’s Courts?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-6pb727vn12",
+      "title": "The future of FOSS, SWE and Technical Education",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-7vvvus5cp0",
+      "title": "Calibrate: A framework for continuously evaluating and improving AI agents within non-profits",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-dglc657qff",
+      "title": "Being Bayesian: Stress-testing India's Loudest Stories with FOSS & Open Data",
+      "type": "added"
+    },
+    {
+      "activityId": "act-aq5tm8dp26",
+      "title": "Communi-Con",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-62ntegtu09",
+      "title": "Building Open Source Digital Infrastructure for a University",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-ajdpfpbh5a",
+      "title": "Judiciary Entity Map: How open source can make India’s courts legible",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28laqe1pg1",
+      "title": "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la409p82",
+      "title": "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lafkeena",
+      "title": "Registrations and Breakfast(in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28latc5cga",
+      "title": "Opening Note",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lapuctcl",
+      "title": "Opening Note",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lac5kgv6",
+      "title": "Devroom Intro: Documentation & Technical  Writing",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la2t1cl4",
+      "title": "Lunch Break - 12 PM to 2:30 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lagnn1cp",
+      "title": "Lunch Break - 12 PM to 2:30 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la63nebc",
+      "title": "GB Voting Process. Lightning intro to GB candidates.",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lafg3is1",
+      "title": "Devroom Wrap-up",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lap0e4uj",
+      "title": "Lunch Break - 1 PM to 2 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la8qrn0c",
+      "title": "Lunch Break - 1 PM to 2 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la3b95np",
+      "title": "Lunch Break - 1 PM to 2 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28larjihv5",
+      "title": "Lunch Break - 1:30 PM to 2:30 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lau8fau6",
+      "title": "Devroom Intro: AOSP",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lapd72mk",
+      "title": "Devroom Intro: Compilers, Programming Languages and Systems",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la93joc3",
+      "title": "Registrations and Breakfast(in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lahs4all",
+      "title": "Opening Note",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lavoonsb",
+      "title": "Opening Note",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lab177v9",
+      "title": "Lunch Break - 12 PM to 2:30 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la6m5b9q",
+      "title": "Lunch Break - 12 PM to 2:30 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la00ksut",
+      "title": "Lunch Break - 1 PM to 2 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laanvutt",
+      "title": "Lunch Break - 1 PM to 2 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laa9h9db",
+      "title": "Lunch Break - 1 PM to 2 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la940ue3",
+      "title": "Lunch Break - 1:30 PM to 2:30 PM (in food area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lavdibb5",
+      "title": "Devroom Intro: Real Time Operating Systems(RTOS)",
+      "type": "cancelled"
+    }
+  ],
+  "summary": {
+    "added": 78,
+    "time-changed": 18,
+    "cancelled": 24
+  }
+}

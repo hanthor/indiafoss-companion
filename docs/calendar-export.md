@@ -13,9 +13,22 @@ integration (§14). Everything is generated on-device in
   flexible blocks as labelled entries.
 
 The PWA offers a download plus the Web Share / open-with-calendar flow
-(`shareCalendarFile`, falling back to a `.vcf`/`.ics` download). A future native
-Material 3 Android client may additionally offer permission-gated
-`CalendarContract` batch insertion; the core flow never requires it.
+(`shareCalendarFile`, falling back to a `.vcf`/`.ics` download). The native
+client shares the same shape of file from My plan (`core/Calendar.kt`).
+
+## Native: a calendar that follows the plan (#272)
+
+An imported `.ics` is a snapshot: when the attendee changes their plan or the
+programme moves a session, the entries in their calendar app do not follow.
+The native client therefore also offers, opt-in from Settings, an app-owned
+local "IndiaFOSS" calendar through Android's `CalendarContract`, reconciled
+against the plan whenever it changes: sessions are added, updated in place
+(time, room, title) or removed, keyed by a stable identity (event, CFP
+proposal, occurrence), with no duplicates after a refresh or restart and no
+writes to any other calendar. Turning it off removes the calendar. See
+[native-client.md](native-client.md#the-plan-in-the-phones-calendar-272).
+The `.ics` export remains the portable fallback for every other calendar app
+and for the PWA; the UI says which one updates and which one does not.
 
 ## RFC 5545 decisions
 

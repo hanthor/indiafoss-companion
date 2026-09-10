@@ -76,7 +76,7 @@ export class FixtureSource implements EventSource {
     if (source.kind !== 'fossunited') {
       throw new Error(`FixtureSource cannot normalize source kind '${source.kind}'`);
     }
-    return normalizeFossUnited({
+    const bundle = normalizeFossUnited({
       eventId: source.eventId,
       event: source.event,
       schedule: source.schedule,
@@ -84,6 +84,18 @@ export class FixtureSource implements EventSource {
       proposalDetails: source.proposalDetails,
       booths: source.booths,
     });
+    const ids = await this.loadOptionalJson<Record<string, string>>(
+      `${this.eventsDir}/${source.eventId}/activity-ids.json`,
+      {},
+    );
+    for (const activity of bundle.activities) {
+      const id =
+        (activity.proposalId ? ids[`cfp:${activity.proposalId}`] : undefined) ??
+        ids[`row:${activity.sourceId}`] ??
+        (activity.sourceId ? ids[activity.sourceId] : undefined);
+      if (id) activity.id = id;
+    }
+    return bundle;
   }
 
   /** Convenience: fetch + normalize in one call (used by tests and dev tools). */

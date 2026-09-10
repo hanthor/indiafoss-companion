@@ -1,5 +1,6 @@
 package org.indiafoss.companion.ui.screens
 
+import org.indiafoss.companion.BuildConfig
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -34,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
@@ -46,12 +48,18 @@ fun SettingsScreen(
     onRoutingProfile: (String) -> Unit,
     onStartSimulation: (day: String, time: String, speed: Int) -> Unit = { _, _, _ -> },
     onStopSimulation: () -> Unit = {},
+    onCalendarSync: (Boolean) -> Unit = {},
     onSetup: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     // Android 13+ asks for the notification permission; below that it is granted by install.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         onReminders(granted)
+    }
+    // The phone's calendar (#272): read and write access to it, asked for only when the switch goes on.
+    val askCalendar = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
+        onCalendarSync(granted.values.all { it } && granted.isNotEmpty())
     }
     Scaffold(topBar = { TopAppBar(title = { Text("Settings") }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
@@ -82,6 +90,42 @@ fun SettingsScreen(
                             context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
                         }) { Text("Allow exact alarms for on-the-minute timing") }
                     }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Phone calendar", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Keep an \"IndiaFOSS\" calendar on this phone in step with your plan: sessions are added, " +
+                            "moved or removed as your choices and the programme change, with a ten-minute reminder each. " +
+                            "It is a local calendar owned by this app; no other calendar is touched.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Keep my plan in the calendar", Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        Switch(
+                            checked = state.calendarSyncEnabled,
+                            onCheckedChange = { on ->
+                                if (on) askCalendar.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
+                                else onCalendarSync(false)
+                            },
+                        )
+                    }
+                    state.calendarSyncStatus?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    if (state.calendarSyncEnabled) {
+                        TextButton(onClick = { onCalendarSync(false) }) { Text("Disconnect and remove the calendar") }
+                    }
+                    Text(
+                        "The Calendar button on My plan still shares a .ics file for any calendar app. " +
+                            "A file imported that way is a snapshot: it does not update when your plan or the programme changes.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                 }
             }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
@@ -152,7 +196,7 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("Setup", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "The welcome steps from the first run: reminders, ticket, your card, ranking. Nothing is reset by running them again.",
+                        "The welcome steps from the first run: reminders, your card, ranking. Nothing is reset by running them again.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
@@ -166,6 +210,7 @@ fun SettingsScreen(
                     listOf(
                         "No account is required.",
                         "Schedule, ranking, plan and reminders stay on this device.",
+                        "The phone-calendar option writes only to a calendar this app creates, and only while it is switched on.",
                         "The only network call is a check for a newer programme, from the public site.",
                     ).forEach {
                         Text("•  $it", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
@@ -174,7 +219,19 @@ fun SettingsScreen(
             }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
+                    Text("Make this Companion yours", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "At IndiaFOSS? Help build the app you’re using. Fork the project, fix a bug, improve the design or docs, and send a pull request. Ideas and issue reports are welcome too.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    TextButton(onClick = { uriHandler.openUri("https://github.com/hanthor/indiafoss-companion/fork") }) {
+                        Text("Fork on GitHub")
+                    }
+                    TextButton(onClick = { uriHandler.openUri("https://github.com/hanthor/indiafoss-companion/issues") }) {
+                        Text("Suggest an improvement")
+                    }
                     Text("About", style = MaterialTheme.typography.titleMedium)
+                    Text("Build ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                     Text(
                         "IndiaFOSS Companion, native. An unofficial community app built with AI assistance; " +
                             "not produced or endorsed by FOSS United. AGPL-3.0-or-later.",

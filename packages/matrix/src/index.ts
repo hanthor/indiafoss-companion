@@ -1,30 +1,23 @@
-export { MatrixClient, MatrixError, SYNC_FILTER, isLoopbackHomeserver } from './http.js';
+/**
+ * `@indiafoss/matrix` is no longer a chat client (ADR 0004: chat lives in
+ * hanthor/indiafoss-chat-android). What the companion apps still use:
+ *
+ * - public-profile checks: `verifyMeshLink` (the `in.indiafoss.mesh` field)
+ *   and the MSC4133 profile-field helpers;
+ * - handoff helpers: `matrix.to` / `matrix:` links and id parsing for the
+ *   PWA's "open in a Matrix client" buttons and the QR scanner.
+ *
+ * `MatrixSessionManager` and the crypto backend remain for
+ * `tools/neutrino-probe`, which drives them against live Neutrino / Spindle
+ * servers in CI as the mesh chat contract harness.
+ */
+export { MatrixClient, MatrixError } from './http.js';
 export type { CreateRoomOptions, FetchLike } from './http.js';
-export { WasmCryptoBackend, cryptoStoreName, deleteCryptoStore, loadCryptoWasm } from './crypto.js';
+export { WasmCryptoBackend } from './crypto.js';
 export type { CryptoBackend } from './crypto.js';
-export {
-  QUESTION_CONTENT_KEY,
-  applySyncResponse,
-  canPost,
-  deriveRoomName,
-  describeEvent,
-} from './sync.js';
-export type { SyncDelta } from './sync.js';
-export {
-  ANNOUNCEMENTS_POWER_LEVELS,
-  JOIN_RETRIES,
-  MatrixSessionManager,
-  MemoryMatrixStore,
-  joinStillProcessing,
-} from './session.js';
+export { MatrixSessionManager, MemoryMatrixStore } from './session.js';
 export type { MatrixSessionOptions, MatrixSnapshot, MatrixStore, RoomSpec } from './session.js';
-export {
-  companionChatLink,
-  localpart,
-  matrixToUrl,
-  matrixUri,
-  parseMatrixTarget,
-} from './links.js';
+export { localpart, matrixToUrl, matrixUri, parseMatrixTarget } from './links.js';
 export type { MatrixTarget, MatrixTargetKind } from './links.js';
 export {
   FOSSUNITED_PROFILE_URL_FIELD,

@@ -1,7 +1,11 @@
 <script lang="ts">
+  import ChatDownload from '$lib/components/ChatDownload.svelte';
+  import ContactChecks from '$lib/components/ContactChecks.svelte';
+  import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
-  import { meshLinkLabel } from '@indiafoss/matrix';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
+  import { page } from '$app/state';
+  import { afterNavigate } from '$app/navigation';
   import { SvelteSet } from 'svelte/reactivity';
   import { resolve } from '$app/paths';
   import {
@@ -15,6 +19,7 @@
     isMatrixUserId,
     isNeutrinoServerName,
     isTicketRef,
+    parseScannedPayload,
     neutrinoMatrixId,
     searchContacts,
     shortFingerprint,
@@ -22,16 +27,27 @@
     type AttendeeSocial,
     socialFromLink,
   } from '@indiafoss/model';
+  import TicketUpload from '$lib/components/TicketUpload.svelte';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
   import {
+    confirmBadgeInPerson,
     contactsState,
     deleteContact,
     hydrateContacts,
     importContactBook,
     verifyContactMeshLink,
     verifyMeshLinks,
+    withdrawBadgeConfirmation,
   } from '$lib/contacts.svelte';
+  import {
+    chatLabel,
+    deriveContactTrust,
+    inPersonLabel,
+    NO_ROUTE_LABEL,
+    profileLabel,
+    signatureLabel,
+  } from '$lib/contact-trust';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
   import { applyImportedProfile, type ImportedChange } from '$lib/fossunited';
@@ -188,6 +204,10 @@
   }
   function setValue(spec: CardFieldSpec, value: string): void {
     let stored: string | undefined = value.trim() ? value : undefined;
+    if (spec.key === 'ticketRef' && stored) {
+      const parsed = parseScannedPayload(stored);
+      if (parsed.kind === 'ticket') stored = parsed.ticketRef;
+    }
     // The FOSS United row takes a username; the card carries the profile URL.
     if (spec.key === 'fossUnitedProfileUrl' && stored) {
       const username = usernameFromProfileUrl(stored);
@@ -480,17 +500,63 @@
   }
 
   let openContact = $state<string | null>(null);
+  let openedRequest: string | null = null;
+  let navigationReady = $state(false);
+  afterNavigate(() => {
+    navigationReady = true;
+  });
+  $effect(() => {
+    const requested = page.url.searchParams.get('contact');
+    if (!requested) {
+      openedRequest = null;
+      return;
+    }
+    if (
+      !navigationReady ||
+      eventState.status !== 'ready' ||
+      !eventState.bundle ||
+      openedRequest === requested ||
+      !contactsState.contacts.some((c) => c.id === requested)
+    )
+      return;
+    openedRequest = requested;
+    contactSearch = '';
+    openContact = requested;
+    void tick().then(() => {
+      const row = document.getElementById(`contact-${requested}`);
+      row?.focus({ preventScroll: true });
+      row?.scrollIntoView({ block: 'center' });
+    });
+  });
 </script>
+
+{#snippet profileImporter()}
+  <ProfileImport
+    onimport={(imported) => {
+      const before = JSON.stringify(profileState.profile);
+      const changes = applyImportedProfile(profileState.profile, imported);
+      if (changes.length > 0) {
+        importSnapshot = before;
+        snapshotFrom = 'identity';
+      }
+      contactMessage = acceptChanges(changes, 'GitHub');
+      scheduleCard();
+    }}
+  />
+{/snippet}
 
 <EventGate>
   <section class="intro">
     <div class="eyebrow">LOCAL · OPT-IN · OFFLINE</div>
-    <h1>Your card</h1>
+    <h1>Your contact card</h1>
     <p class="muted">
-      Show this to someone. Only the fields switched on below are encoded — nothing leaves this
-      phone.
+      Show this to someone. Only the fields switched on below are encoded in your QR code.
     </p>
   </section>
+
+  {#if !profileState.profile.socials.github}
+    {@render profileImporter()}
+  {/if}
 
   <!-- Hero: the QR is always live -->
   <section class="card hero" aria-label="Your contact QR code">
@@ -558,10 +624,22 @@
   </section>
 
   <p class="muted small explain">
-    Any phone camera saves you straight to Contacts. Scanned with the Companion, the same code also
-    verifies your key badge and lets them message you. A QR can be photographed — email and phone
-    stay off unless you switch them on.
+    A phone camera can open your contact card. The Companion can save it in People I met and check
+    its signature. A signature shows the card came from a phone holding this key — not who is
+    holding the phone, and not that a chat will reach you. A QR can be photographed — email and
+    phone stay off unless you switch them on.
   </p>
+
+  {#if profileState.profile.socials.github}
+    <details class="profile-reimport">
+      <summary>Import another GitHub profile</summary>
+      {@render profileImporter()}
+    </details>
+  {/if}
+
+  <ContactChecks />
+
+  <ChatDownload />
 
   <!-- Field groups -->
   {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}
@@ -647,6 +725,15 @@
         {#if importSnapshot && snapshotFrom === 'links'}
           <button class="linkbtn small" onclick={undoImport}>Take the import back</button>
         {/if}
+      {/if}
+      {#if group === 'extras'}
+        <TicketUpload
+          saveOnSelect
+          onselect={(reference) => {
+            profileState.profile.ticketRef = reference;
+            scheduleCard();
+          }}
+        />
       {/if}
       <div class="rows">
         {#if group === 'links'}
@@ -748,7 +835,16 @@
                   aria-label={spec.label}
                   aria-invalid={bad}
                   type={spec.inputType}
-                  autocomplete="off"
+                  name={spec.key}
+                  autocomplete={spec.key === 'fullName'
+                    ? 'name'
+                    : spec.key === 'organization'
+                      ? 'organization'
+                      : spec.key === 'email'
+                        ? 'email'
+                        : spec.key === 'phone'
+                          ? 'tel'
+                          : 'off'}
                   spellcheck="false"
                   class:mono={spec.mono}
                   placeholder={spec.placeholder}
@@ -837,8 +933,10 @@
           {#each metGroups as g (g.day)}
             <div class="dayhead">{g.day === 'unknown' ? 'Undated' : dayLabel(g.day)}</div>
             {#each g.contacts as c (c.id)}
+              {@const trust = deriveContactTrust(c)}
               <div class="person" class:open={openContact === c.id}>
                 <button
+                  id={`contact-${c.id}`}
                   class="personrow"
                   onclick={() => (openContact = openContact === c.id ? null : c.id)}
                   aria-expanded={openContact === c.id}
@@ -876,27 +974,35 @@
                         )}{/if}
                       {#if (c.metCount ?? 1) > 1}· {c.metCount}×{/if}
                     </span>
+                    <!-- Three separate facts, three separate lines: the card key, the
+                         attendee's own badge comparison, and the account claim. None of
+                         them is Matrix verification, which has its own line below. -->
                     <span
                       class="line3"
-                      class:sig-ok={c.signature === 'valid'}
-                      class:sig-bad={c.signature === 'invalid' || c.keyChanged}
+                      class:sig-ok={trust.signature === 'valid'}
+                      class:sig-bad={trust.signature === 'invalid' ||
+                        trust.signature === 'key-changed'}
+                      title="About the card key only: it does not identify the person or their accounts"
                     >
-                      {c.keyChanged
-                        ? 'KEY CHANGED SINCE AN EARLIER CARD'
-                        : c.signature === 'valid'
-                          ? `SIGNED · BADGE ${shortFingerprint(c.fingerprint ?? '')}`
-                          : c.signature === 'invalid'
-                            ? 'BAD SIGNATURE'
-                            : 'UNSIGNED CARD'}
+                      {signatureLabel(trust.signature, c.fingerprint).toUpperCase()}
                     </span>
+                    {#if trust.inPerson === 'confirmed'}
+                      <span class="line3 sig-ok" title="Your own statement, about this card key"
+                        >{inPersonLabel(trust.inPerson).toUpperCase()}</span
+                      >
+                    {:else if trust.inPerson === 'confirmed-earlier-key'}
+                      <span class="line3 sig-bad"
+                        >{inPersonLabel(trust.inPerson).toUpperCase()}</span
+                      >
+                    {/if}
                     {#if c.matrixId && c.neutrinoServerName}
+                      <!-- A profile match is the homeserver's word: neutral, never the success colour. -->
                       <span
                         class="line3"
-                        class:sig-ok={c.meshLink?.state === 'verified'}
-                        class:sig-bad={c.meshLink?.state === 'mismatch'}
-                        title="Whether this Matrix account's own profile names this mesh identity"
+                        class:sig-bad={trust.contradiction}
+                        title="Whether this Matrix account's own public profile names this mesh identity — the homeserver's word, not proof of account control"
                       >
-                        MATRIX {c.matrixId} · {meshLinkLabel(c.meshLink).toUpperCase()}
+                        MATRIX {c.matrixId} · {profileLabel(trust.profile).toUpperCase()}
                       </span>
                     {/if}
                   </span>
@@ -904,15 +1010,85 @@
                 </button>
                 {#if openContact === c.id}
                   <div class="persondetail">
+                    <dl class="trust" aria-label="What this app knows about {c.fullName}">
+                      <dt>Card key</dt>
+                      <dd>
+                        {signatureLabel(trust.signature, c.fingerprint)}
+                        <span class="muted">
+                          {#if trust.signature === 'valid'}
+                            — the card came from a phone holding this key. It does not say who was
+                            holding the phone.
+                          {:else if trust.signature === 'key-changed'}
+                            — the earlier entry was kept. Compare badges in person before trusting
+                            either.
+                          {:else if trust.signature === 'invalid'}
+                            — altered or re-encoded. Ask for a fresh code.
+                          {:else}
+                            — another app's card, or an older Companion. Nothing to check.
+                          {/if}
+                        </span>
+                      </dd>
+                      <dt>In person</dt>
+                      <dd>
+                        {inPersonLabel(trust.inPerson)}
+                        {#if c.inPersonConfirmed && trust.inPerson === 'confirmed'}
+                          <span class="muted"
+                            >— your own statement, {timeLabel(c.inPersonConfirmed.at)}</span
+                          >
+                        {/if}
+                      </dd>
+                      {#if trust.profile !== 'no-claim'}
+                        <dt>Account link</dt>
+                        <dd>
+                          {profileLabel(trust.profile)}
+                          <span class="muted">
+                            {#if trust.profile === 'profile-matched'}
+                              — the homeserver's public profile agrees with the card. That is the
+                              homeserver's word, not proof the account is theirs.
+                            {:else if trust.profile === 'mismatch'}
+                              — the account's own profile names a different mesh identity than this
+                              card. Treat the card's Matrix id as not theirs.
+                            {:else if trust.profile === 'unchecked'}
+                              — checked against the account's public profile when online.
+                            {/if}
+                          </span>
+                        </dd>
+                      {/if}
+                      <dt>Chat</dt>
+                      <dd>
+                        {chatLabel(trust.chat)}
+                        <span class="muted"
+                          >— accounts and devices are verified in your Matrix chat app, never here.</span
+                        >
+                      </dd>
+                    </dl>
                     <SocialLinks links={contactDeepLinks(c)} compact />
-                    <div class="detailactions">
+                    <div class="detailactions" aria-label="Actions for {c.fullName}">
+                      {#if c.fingerprint}
+                        <a
+                          class="button ghost small"
+                          href={resolve(`/connect/compare?contact=${encodeURIComponent(c.id)}`)}
+                          >Compare badges</a
+                        >
+                        {#if trust.inPerson === 'confirmed'}
+                          <button
+                            class="button ghost small"
+                            onclick={() => withdrawBadgeConfirmation(c)}
+                            >Undo badge comparison</button
+                          >
+                        {:else}
+                          <button class="button ghost small" onclick={() => confirmBadgeInPerson(c)}
+                            >Badges matched in person</button
+                          >
+                        {/if}
+                      {/if}
                       {#if c.matrixId && c.neutrinoServerName}
                         <button
                           class="button ghost small"
                           disabled={checkingLink === c.id}
                           onclick={() => checkLink(c)}
                         >
-                          {checkingLink === c.id ? 'Checking…' : 'Check Matrix link'}
+                          {checkingLink === c.id ? 'Checking…' : 'Check Matrix profile'}
                         </button>
                       {/if}
                       <button
@@ -927,6 +1103,21 @@
                       <button class="button ghost small danger" onclick={() => deleteContact(c.id)}
                         >Remove</button
                       >
+                    </div>
+                    <!-- Opening a chat is a handoff to whatever client the OS has (ADR 0004).
+                         A web page cannot see which apps are installed, so say so. -->
+                    <div class="routes">
+                      {#if trust.routes.length === 0}
+                        <span class="muted small">{NO_ROUTE_LABEL} on this card.</span>
+                      {:else}
+                        {#each trust.routes as route (route.kind)}
+                          <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+                          <a class="button secondary small" href={route.href} rel="noreferrer"
+                            >{route.label}</a
+                          >
+                          <span class="muted small">{route.caveat}</span>
+                        {/each}
+                      {/if}
                     </div>
                   </div>
                 {/if}
@@ -1370,6 +1561,30 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
+  }
+  .trust {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.25rem 0.7rem;
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+  .trust dt {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding-top: 0.15rem;
+  }
+  .trust dd {
+    margin: 0;
+  }
+  .routes {
+    display: grid;
+    gap: 0.3rem;
+    justify-items: start;
   }
   .danger {
     color: var(--danger);

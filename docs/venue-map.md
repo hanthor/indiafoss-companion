@@ -4,6 +4,16 @@ The `/map` tab is the NIMHANS Convention Centre floor plan, not a generic
 viewer. It answers two questions: what is happening around me now, and when do
 I need to move.
 
+## Getting there
+
+Outdoor arrival is a separate, smaller thing: `GettingThere.svelte` shows the
+organiser's venue name and address from `bundle.venue`, a copy-address button,
+an "Open in OpenStreetMap" link to the organiser-selected feature and a `geo:`
+link for whichever maps app the phone has. It appears on Home, Now and the
+welcome wizard, reads from the cached bundle, and deliberately says nothing
+about entrances, routes or transport (#278). Indoor navigation starts at the
+plan below.
+
 ## Drawing
 
 `apps/web/src/lib/venue-floors.ts` holds both floors extracted from the
@@ -35,9 +45,10 @@ Now):
 
 - **LIVE** (mint): a session is running there; the label shows the title and
   minutes left.
-- **NEXT** (amber): the room of your next session (`computeNextUp`: earliest
-  upcoming bookmark within three hours, else the programme's next session) or
-  the destination of a `/map/to/<location>` link.
+- **TO** (amber): the journey's destination — the room of your next planned
+  session (`computeNextUp` over the shared resolved plan, within three hours),
+  the destination of a `/map/to/<location>` link, or a room chosen in the
+  From/To panel or with "Go here" in the sheet.
 - **Selected** (black outline): the room whose sheet is open.
 - **You** (green dot): the room of your current location.
 
@@ -51,10 +62,23 @@ opens a bottom sheet that **peeks** (name, floor and seats, ON NOW) and expands
 on the grabber to NEXT HERE and "I'm here" / "Clear location" (the same state a
 room QR's `?at=` deep link sets). This is the Google I/O app's map pattern:
 full-screen vector map, floor selector, small markers, a peeking bottom sheet.
-There are no walk estimates or drawn routes: the owner dropped them; the
-destination room is highlighted instead. Labels hide once they leave the plan
+No route is drawn on the plan; the destination room is highlighted and the
+journey is described in the panel above the plan. Labels hide once they leave the plan
 rather than dangling off-screen, and the drawing's viewBox carries 6 % padding
 so no wing is clipped at any aspect ratio.
+
+## From / To panel
+
+Above the plan (#223): **From** is the manually set location (a select over the
+drawn rooms, the same state as "I'm here" and a room QR's `?at=`), labelled
+MANUALLY SET with a Clear control; **To** defaults to the next planned talk or a
+`/map/to/` link and otherwise lists every room, so an attendee without a plan
+picks one directly; the saved routing profile sits alongside. With both ends
+known, `route-steps.ts` turns the graph route into a walking estimate, the floor
+changes and per-floor steps ("Walk to the lift on the ground floor", "Take the
+lift up to the first floor", …), honouring the profile. Estimates are labelled
+as such while the venue metadata is `_draft`; a signed-off graph reads
+"Validated venue path". Without a location or destination nothing is estimated.
 
 ## Next-up banner
 
