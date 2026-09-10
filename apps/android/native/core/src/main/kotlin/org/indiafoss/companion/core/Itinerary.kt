@@ -5,14 +5,15 @@ package org.indiafoss.companion.core
  * attendee can actually be in. Must-attend sessions are placed first and
  * never displaced; then bookmarks, then the rest by rating, each taken only
  * when it does not overlap what is already placed. Not-interested sessions
- * and meals are never placed. This is the greedy core of the web solver
+ * and source meal rows are never placed as talks. One lunch opportunity may
+ * occupy a free official lunch window. This is the greedy core of the web solver
  * (`@indiafoss/solver`), enough for a native plan that agrees with the
  * ranking; walking time between rooms is left to the leave-by logic.
  */
 object Itinerary {
     data class Item(val activity: Activity, val reason: Reason, val block: CustomBlock? = null)
 
-    enum class Reason { MUST_ATTEND, BOOKMARKED, RANKED, BLOCK }
+    enum class Reason { MUST_ATTEND, BOOKMARKED, RANKED, BLOCK, LUNCH }
 
     /**
      * A block of the attendee's own (#110, the web solver's custom and
@@ -40,10 +41,14 @@ object Itinerary {
         bookmarked: (String) -> Boolean,
         minimumRating: Double = 0.0,
         blocks: List<CustomBlock> = emptyList(),
+        stayTrackIds: Set<String> = emptySet(),
     ): List<Item> {
         val candidates = Schedule.activitiesForDay(bundle, day)
             .filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null }
             .filter { dispositionOf(it.id) != Disposition.NOT_INTERESTED }
+        val selected = candidates.filter { it.trackId in stayTrackIds }
+        val ranges = trackRanges(bundle, day, stayTrackIds)
+        fun reserved(a: Activity): Boolean = ranges.any { (track, range) -> a.trackId != track && a.start!! < range.second && a.end!! > range.first }
         val placed = ArrayList<Item>()
         fun free(activity: Activity): Boolean = placed.none { overlaps(it.activity, activity) }
         fun take(items: List<Activity>, reason: Reason) {
@@ -53,10 +58,11 @@ object Itinerary {
         for (block in blocks.filter { !it.flexible && it.start!!.startsWith(day) }) {
             placed += Item(block.asActivity(), Reason.BLOCK, block)
         }
-        take(candidates.filter { dispositionOf(it.id) == Disposition.MUST_ATTEND }, Reason.MUST_ATTEND)
-        take(candidates.filter { bookmarked(it.id) }, Reason.BOOKMARKED)
+        take(selected, Reason.MUST_ATTEND)
+        take(candidates.filter { dispositionOf(it.id) == Disposition.MUST_ATTEND && !reserved(it) }, Reason.MUST_ATTEND)
+        take(candidates.filter { bookmarked(it.id) && !reserved(it) }, Reason.BOOKMARKED)
         take(
-            candidates.filter { ratingOf(it.id) >= minimumRating }
+            candidates.filter { ratingOf(it.id) >= minimumRating && !reserved(it) }
                 .sortedWith(compareByDescending<Activity> { ratingOf(it.id) }.thenBy { it.start }),
             Reason.RANKED,
         )
@@ -65,7 +71,8 @@ object Itinerary {
         val dayEnd = Schedule.activitiesForDay(bundle, day).mapNotNull { it.end }.maxOrNull()
         if (dayStart != null && dayEnd != null) {
             for (block in blocks.filter { it.flexible }.sortedByDescending { it.durationMinutes }) {
-                val gap = largestGap(placed.map { it.activity }, Schedule.parseInstant(dayStart), Schedule.parseInstant(dayEnd))
+                val reservedBlocks = ranges.map { (track, range) -> Activity("reserved-$track", track, start = range.first, end = range.second) }
+                val gap = largestGap(placed.map { it.activity } + reservedBlocks, Schedule.parseInstant(dayStart), Schedule.parseInstant(dayEnd))
                     ?: continue
                 val needed = block.durationMinutes * 60_000L
                 if (gap.second - gap.first < needed) continue
@@ -76,11 +83,65 @@ object Itinerary {
                 placed += Item(fixed.asActivity(), Reason.BLOCK, fixed)
             }
         }
+        // Room lunch rows describe availability, not competing sessions. Place one
+        // food-area break only after talks and attendee blocks have claimed their time.
+        if (blocks.none { it.label.contains("lunch", ignoreCase = true) && (it.flexible || it.start!!.startsWith(day)) }) {
+            lunchOpportunity(bundle, day, placed.map { it.activity })?.let {
+                placed += Item(it, Reason.LUNCH)
+            }
+        }
         return placed.sortedBy { it.activity.start }
+    }
+
+    private fun lunchOpportunity(bundle: EventBundle, day: String, placed: List<Activity>): Activity? {
+        val busy = placed.filter { it.start != null && it.end != null }
+            .map { Schedule.parseInstant(it.start!!) to Schedule.parseInstant(it.end!!) }
+            .sortedBy { it.first }
+        if (busy.size < 2) return null
+        val windows = Schedule.activitiesForDay(bundle, day)
+            .filter { !it.cancelled && it.type == "meal" && it.title.contains("lunch", ignoreCase = true) && it.start != null && it.end != null }
+            .sortedBy { it.start }
+        val duration = 30 * 60_000L
+        for (window in windows) {
+            var cursor = maxOf(Schedule.parseInstant(window.start!!), busy.first().second)
+            val end = minOf(Schedule.parseInstant(window.end!!), busy.last().first)
+            for ((start, finish) in busy) {
+                if (minOf(start, end) - cursor >= duration) {
+                    val offset = Schedule.offsetMinutes(window.start!!)
+                    return Activity(
+                        id = "flex-lunch-$day", title = "Lunch · food area", type = "meal",
+                        start = Schedule.formatInstant(cursor, offset),
+                        end = Schedule.formatInstant(cursor + duration, offset),
+                        flexible = true,
+                    )
+                }
+                cursor = maxOf(cursor, finish)
+                if (cursor >= end) break
+            }
+        }
+        return null
     }
 
     private fun CustomBlock.asActivity(): Activity =
         Activity(id = id, title = label, type = "custom", start = start, end = end, locationId = locationId, flexible = flexible)
+
+    private fun trackRanges(bundle: EventBundle, day: String, tracks: Set<String>): Map<String, Pair<String, String>> =
+        Schedule.activitiesForDay(bundle, day).filter { it.trackId in tracks && !it.cancelled && it.type != "meal" && it.start != null && it.end != null }
+            .groupBy { it.trackId!! }.mapValues { (_, sessions) -> sessions.minOf { it.start!! } to sessions.maxOf { it.end!! } }
+
+    /** Conflicts remain visible even where the greedy native plan can place only one item. */
+    fun stayConflicts(bundle: EventBundle, day: String, tracks: Set<String>, dispositionOf: (String) -> Disposition): List<Pair<Activity, Activity>> {
+        val sessions = Schedule.activitiesForDay(bundle, day).filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null && dispositionOf(it.id) != Disposition.NOT_INTERESTED }
+        val ranges = trackRanges(bundle, day, tracks)
+        val result = ArrayList<Pair<Activity, Activity>>()
+        for ((track, range) in ranges) {
+            val selected = sessions.filter { it.trackId == track }
+            for (a in selected) for (b in selected) if (a.id < b.id && overlaps(a, b)) result += a to b
+            val representative = selected.firstOrNull() ?: continue
+            for (other in sessions) if (other.trackId != track && (dispositionOf(other.id) == Disposition.MUST_ATTEND || other.trackId in tracks) && other.start!! < range.second && other.end!! > range.first) result += representative to other
+        }
+        return result.distinctBy { listOf(it.first.id, it.second.id).sorted() }
+    }
 
     /** The widest free window between placed items, as (startMs, endMs). */
     fun largestGap(placed: List<Activity>, dayStartMs: Long, dayEndMs: Long): Pair<Long, Long>? {

@@ -1,199 +1,353 @@
-import { describe, expect, it, vi } from 'vitest';
-import {
-  MatrixClient,
-  MatrixError,
-  isLoopbackHomeserver,
-  slidingSyncToSyncResponse,
-  SLIDING_SYNC_CONN_ID,
-  SLIDING_SYNC_FLAG,
-  SLIDING_SYNC_PATH,
-  SYNC_FILTER,
-  type FetchLike,
-  type SlidingSyncResponse,
-} from './http.js';
+/**
+ * The Matrix HTTP client's own behaviour: how it authenticates, and how a
+ * server's refusal becomes something the app can act on.
+ *
+ * The sliding-sync folding this module also exports is covered in
+ * `sync.test.ts`; this file is about the request path around it.
+ */
+import { describe, expect, it } from 'vitest';
+import { isLoopbackHomeserver, MatrixClient, MatrixError } from './http.js';
 
-describe('isLoopbackHomeserver', () => {
-  it('returns true for loopback addresses', () => {
-    expect(isLoopbackHomeserver('http://localhost:8008')).toBe(true);
-    expect(isLoopbackHomeserver('http://127.0.0.1:8008')).toBe(true);
-    expect(isLoopbackHomeserver('http://[::1]:8008')).toBe(true);
-  });
-
-  it('returns false for remote servers or invalid URLs', () => {
-    expect(isLoopbackHomeserver('https://matrix.org')).toBe(false);
-    expect(isLoopbackHomeserver('invalid-url')).toBe(false);
-  });
-});
+function recording(status: number, body: unknown, ok = false) {
+  const seen: { url: string; method: string; headers: Record<string, string>; body?: string }[] =
+    [];
+  const fetchFn = (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+    seen.push({
+      url: String(input),
+      method: init?.method ?? 'GET',
+      headers: (init?.headers ?? {}) as Record<string, string>,
+      body: init?.body === undefined ? undefined : String(init.body),
+    });
+    return Promise.resolve(
+      new Response(body === undefined ? '' : JSON.stringify(body), {
+        status: ok ? 200 : status,
+      }),
+    );
+  };
+  return { seen, fetchFn };
+}
 
 describe('MatrixError', () => {
-  it('identifies auth failures correctly', () => {
-    const err401 = new MatrixError('Unauthorized', 401, 'M_UNAUTHORIZED');
-    expect(err401.isAuthFailure).toBe(true);
-
-    const errUnknownToken = new MatrixError('Invalid token', 403, 'M_UNKNOWN_TOKEN');
-    expect(errUnknownToken.isAuthFailure).toBe(true);
-
-    const errForbidden = new MatrixError('Forbidden', 403, 'M_FORBIDDEN');
-    expect(errForbidden.isAuthFailure).toBe(false);
+  it('calls a 401 an auth failure, and M_UNKNOWN_TOKEN at any status', () => {
+    // Both mean "sign in again". Neutrino answers 401 for an expired token and
+    // some servers answer 403 with the errcode, so keying on either is what
+    // keeps a stale session from looking like a permissions problem.
+    expect(new MatrixError('x', 401).isAuthFailure).toBe(true);
+    expect(new MatrixError('x', 403, 'M_UNKNOWN_TOKEN').isAuthFailure).toBe(true);
+    expect(new MatrixError('x', 403, 'M_FORBIDDEN').isAuthFailure).toBe(false);
+    expect(new MatrixError('x', 500).isAuthFailure).toBe(false);
   });
 
-  it('preserves status, errcode, and retryAfterMs', () => {
-    const err = new MatrixError('Rate limited', 429, 'M_LIMIT_EXCEEDED', 5000);
-    expect(err.message).toBe('Rate limited');
-    expect(err.status).toBe(429);
-    expect(err.errcode).toBe('M_LIMIT_EXCEEDED');
-    expect(err.retryAfterMs).toBe(5000);
-    expect(err.name).toBe('MatrixError');
+  it('is an Error with a name, so it survives logging and instanceof', () => {
+    const e = new MatrixError('nope', 429, 'M_LIMIT_EXCEEDED', 2000);
+    expect(e).toBeInstanceOf(Error);
+    expect(e.name).toBe('MatrixError');
+    expect(e.message).toBe('nope');
+    expect(e.retryAfterMs).toBe(2000);
   });
 });
 
-describe('slidingSyncToSyncResponse', () => {
-  it('converts sliding sync response to standard sync response', () => {
-    const input: SlidingSyncResponse = {
-      pos: 's123_456',
-      rooms: {
-        '!room1:example.org': {
-          timeline: [{ type: 'm.room.message', content: { body: 'hello' } } as any],
-          prev_batch: 't12',
-          limited: false,
-          required_state: [{ type: 'm.room.name', content: { name: 'Room 1' } } as any],
-        },
-        '!room2:example.org': {
-          invite_state: [{ type: 'm.room.name', content: { name: 'Room 2' } } as any],
-        },
-      },
-      extensions: {
-        typing: {
-          rooms: {
-            '!room1:example.org': { type: 'm.typing', content: { user_ids: ['@alice:ex.org'] } } as any,
-          },
-        },
-        to_device: {
-          events: [{ type: 'm.new_device', content: {} } as any],
-        },
-        account_data: {
-          global: [{ type: 'm.direct', content: {} } as any],
-        },
-        e2ee: {
-          device_lists: { changed: ['@bob:ex.org'] },
-          device_one_time_keys_count: { curve25519: 10 },
-          device_unused_fallback_key_types: ['signed_curve25519'],
-        },
-      },
-    };
-
-    const res = slidingSyncToSyncResponse(input);
-    expect(res.next_batch).toBe('s123_456');
-    expect(res.rooms.join['!room1:example.org']).toBeDefined();
-    expect(res.rooms.join['!room1:example.org']?.timeline.events.length).toBe(1);
-    expect(res.rooms.join['!room1:example.org']?.ephemeral?.events.length).toBe(1);
-    expect(res.rooms.invite['!room2:example.org']).toBeDefined();
-    expect(res.to_device?.events.length).toBe(1);
-    expect(res.account_data?.events.length).toBe(1);
-    expect(res.device_lists?.changed).toEqual(['@bob:ex.org']);
-    expect(res.device_one_time_keys_count).toEqual({ curve25519: 10 });
-    expect(res.device_unused_fallback_key_types).toEqual(['signed_curve25519']);
+describe('isLoopbackHomeserver', () => {
+  it('recognises a local homeserver however it is written', () => {
+    // Re-exported from the model so the bundle validator and the client cannot
+    // disagree about what counts as local (#152, #157).
+    for (const good of ['http://localhost:8008', 'http://127.0.0.1:8008', '127.0.0.1:8008']) {
+      expect(isLoopbackHomeserver(good), good).toBe(true);
+    }
+    for (const bad of ['https://matrix.reilly.asia', 'localhost.evil.example']) {
+      expect(isLoopbackHomeserver(bad), bad).toBe(false);
+    }
   });
 });
 
-describe('MatrixClient', () => {
-  it('normalizes base URL and handles discovery', async () => {
-    const mockFetch: FetchLike = async (url) => {
-      if (url === 'https://example.org/.well-known/matrix/client') {
-        return new Response(JSON.stringify({ 'm.homeserver': { base_url: 'https://matrix.example.org/' } }), { status: 200 });
-      }
-      return new Response(null, { status: 404 });
-    };
-
-    const discovered = await MatrixClient.discover('example.org', mockFetch);
-    expect(discovered).toBe('https://matrix.example.org');
-
-    const fallback = await MatrixClient.discover('https://fallback.org', async () => new Response(null, { status: 404 }));
-    expect(fallback).toBe('https://fallback.org');
+describe('MatrixClient requests', () => {
+  it('sends the access token, and JSON only when there is a body', async () => {
+    const { seen, fetchFn } = recording(200, {}, true);
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await c.rawRequest('GET', '/a');
+    await c.rawRequest('POST', '/b', { x: 1 });
+    expect(seen[0]?.headers.Authorization).toBe('Bearer tok');
+    // No body means no Content-Type: sending one on a GET makes some proxies
+    // and homeservers reject the request outright.
+    expect(seen[0]?.headers['Content-Type']).toBeUndefined();
+    expect(seen[1]?.headers['Content-Type']).toBe('application/json');
+    expect(seen[1]?.body).toBe('{"x":1}');
   });
 
-  it('throws on empty discover input', async () => {
-    await expect(MatrixClient.discover('  ')).rejects.toThrow('Enter a homeserver name');
+  it('omits the header entirely when there is no token', async () => {
+    const { seen, fetchFn } = recording(200, {}, true);
+    await new MatrixClient('https://hs.test', null, fetchFn).rawRequest('GET', '/a');
+    expect(seen[0]?.headers.Authorization).toBeUndefined();
   });
 
-  it('logs in with password and sets access token', async () => {
-    let capturedBody: any = null;
-    const mockFetch: FetchLike = async (url, init) => {
-      capturedBody = JSON.parse(init?.body as string);
-      return new Response(
-        JSON.stringify({
-          user_id: '@alice:example.org',
-          access_token: 'syt_secret_123',
-          device_id: 'DEV123',
+  it('turns a refusal into a MatrixError carrying what the server said', async () => {
+    const { fetchFn } = recording(429, {
+      errcode: 'M_LIMIT_EXCEEDED',
+      error: 'Too many requests',
+      retry_after_ms: 3000,
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    // retry_after_ms is the whole reason a caller can back off correctly
+    // rather than hammering a rate-limited server.
+    await expect(c.rawRequest('GET', '/a')).rejects.toMatchObject({
+      status: 429,
+      errcode: 'M_LIMIT_EXCEEDED',
+      message: 'Too many requests',
+      retryAfterMs: 3000,
+    });
+  });
+
+  it('still reports the status when the error body is not JSON', async () => {
+    // A reverse proxy in front of a node answers HTML, and the client must not
+    // lose the status to a parse failure.
+    const fetchFn = () => Promise.resolve(new Response('<html>502</html>', { status: 502 }));
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.rawRequest('GET', '/a')).rejects.toMatchObject({
+      status: 502,
+      message: 'Matrix request failed (HTTP 502)',
+    });
+  });
+
+  it('reads an empty 200 as null rather than throwing', async () => {
+    // Several Matrix endpoints answer 200 with no body at all.
+    const fetchFn = () => Promise.resolve(new Response('', { status: 200 }));
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.rawRequest('POST', '/a', {})).resolves.toBeNull();
+  });
+
+  it('can have its token replaced without rebuilding the client', async () => {
+    const { seen, fetchFn } = recording(200, {}, true);
+    const c = new MatrixClient('https://hs.test', 'old', fetchFn);
+    c.setAccessToken('new');
+    await c.rawRequest('GET', '/a');
+    expect(seen[0]?.headers.Authorization).toBe('Bearer new');
+  });
+});
+
+/**
+ * Route requests by path so one fetch can answer a whole conversation. The
+ * first matching path wins; anything unmatched is a 404, which is also how a
+ * homeserver answers an endpoint it does not implement.
+ */
+function routed(routes: Record<string, () => Response>) {
+  const seen: { url: string; method: string; headers: Record<string, string>; body?: string }[] =
+    [];
+  const fetchFn = (input: string | URL | Request, init?: RequestInit): Promise<Response> => {
+    const url = String(input);
+    seen.push({
+      url,
+      method: init?.method ?? 'GET',
+      headers: (init?.headers ?? {}) as Record<string, string>,
+      body: init?.body === undefined ? undefined : String(init.body),
+    });
+    const hit = Object.entries(routes).find(([path]) => url.includes(path));
+    return Promise.resolve(hit ? hit[1]() : new Response('', { status: 404 }));
+  };
+  return { seen, fetchFn };
+}
+
+const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
+
+describe('MatrixClient.discover', () => {
+  it('follows .well-known to the client API base the server names', async () => {
+    const { seen, fetchFn } = routed({
+      '/.well-known/matrix/client': () =>
+        json({ 'm.homeserver': { base_url: 'https://matrix.hs.test/' } }),
+    });
+    await expect(MatrixClient.discover('hs.test', fetchFn)).resolves.toBe('https://matrix.hs.test');
+    expect(seen[0]?.url).toBe('https://hs.test/.well-known/matrix/client');
+  });
+
+  it('uses the origin when there is no .well-known or the server is unreachable', async () => {
+    await expect(MatrixClient.discover('hs.test', routed({}).fetchFn)).resolves.toBe(
+      'https://hs.test',
+    );
+    // An explicit scheme is kept: an embedded node is plain http.
+    await expect(
+      MatrixClient.discover('http://localhost:8008/', () =>
+        Promise.reject(new TypeError('offline')),
+      ),
+    ).resolves.toBe('http://localhost:8008');
+  });
+
+  it('refuses a blank name rather than probing https://', async () => {
+    await expect(MatrixClient.discover('  ', routed({}).fetchFn)).rejects.toThrow(
+      'Enter a homeserver name',
+    );
+  });
+});
+
+describe('MatrixClient.loginWithPassword', () => {
+  const answer = () =>
+    json({ user_id: '@asha:hs.test', access_token: 'syt_new', device_id: 'SERVERDEV' });
+
+  it('sends the localpart and the requested device id, without any stale token', async () => {
+    const { seen, fetchFn } = routed({ '/login': answer });
+    const c = new MatrixClient('https://hs.test/', 'stale', fetchFn);
+    const session = await c.loginWithPassword('@asha:hs.test', 'pw', 'Companion', 'FRESHDEV');
+    expect(seen[0]?.method).toBe('POST');
+    // Login is unauthenticated: a token left over from a previous install
+    // must not be presented, or a server can reject the whole request.
+    expect(seen[0]?.headers.Authorization).toBeUndefined();
+    expect(JSON.parse(seen[0]?.body ?? '{}')).toEqual({
+      type: 'm.login.password',
+      identifier: { type: 'm.id.user', user: 'asha' },
+      password: 'pw',
+      initial_device_display_name: 'Companion',
+      device_id: 'FRESHDEV',
+    });
+    // The device id stored is the one the server answered with, which a
+    // server that ignores the request may choose itself.
+    expect(session).toEqual({
+      homeserver: 'https://hs.test',
+      userId: '@asha:hs.test',
+      accessToken: 'syt_new',
+      deviceId: 'SERVERDEV',
+    });
+  });
+
+  it('leaves device_id out when none is requested, and then uses the new token', async () => {
+    const { seen, fetchFn } = routed({ '/login': answer, '/after': () => json({}) });
+    const c = new MatrixClient('https://hs.test', null, fetchFn);
+    await c.loginWithPassword('asha', 'pw', 'Companion');
+    expect(JSON.parse(seen[0]?.body ?? '{}')).not.toHaveProperty('device_id');
+    await c.rawRequest('GET', '/after');
+    expect(seen[1]?.headers.Authorization).toBe('Bearer syt_new');
+  });
+
+  it('surfaces a wrong password as a MatrixError the UI can explain', async () => {
+    const { fetchFn } = routed({
+      '/login': () => json({ errcode: 'M_FORBIDDEN', error: 'Invalid password' }, 403),
+    });
+    const c = new MatrixClient('https://hs.test', null, fetchFn);
+    await expect(c.loginWithPassword('asha', 'wrong', 'Companion')).rejects.toMatchObject({
+      status: 403,
+      errcode: 'M_FORBIDDEN',
+      message: 'Invalid password',
+    });
+  });
+});
+
+describe('MatrixClient rooms', () => {
+  it('asks for encryption in the first event and reads the alias back from the server', async () => {
+    const { seen, fetchFn } = routed({
+      '/createRoom': () => json({ room_id: '!r:hs.test', room_alias: '#talk-1:hs.test' }),
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    const created = await c.createRoom({
+      name: 'Talk 1',
+      aliasLocalpart: 'talk-1',
+      encrypted: true,
+    });
+    expect(created).toEqual({ roomId: '!r:hs.test', alias: '#talk-1:hs.test' });
+    const body = JSON.parse(seen[0]?.body ?? '{}');
+    expect(body.room_alias_name).toBe('talk-1');
+    expect(body.initial_state).toEqual([
+      {
+        type: 'm.room.encryption',
+        state_key: '',
+        content: { algorithm: 'm.megolm.v1.aes-sha2' },
+      },
+    ]);
+  });
+
+  it('reports no alias when the server drops the request for one', async () => {
+    const { fetchFn } = routed({ '/createRoom': () => json({ room_id: '!r:hs.test' }) });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.createRoom({ aliasLocalpart: 'talk-1' })).resolves.toEqual({
+      roomId: '!r:hs.test',
+      alias: undefined,
+    });
+  });
+
+  it('lists members from /joined_members when the server has it', async () => {
+    const { seen, fetchFn } = routed({
+      '/joined_members': () => json({ joined: { '@a:hs.test': {}, '@b:hs.test': {} } }),
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.roomMembers('!r:hs.test')).resolves.toEqual(['@a:hs.test', '@b:hs.test']);
+    expect(seen).toHaveLength(1);
+  });
+
+  it('falls back to /members on a server without /joined_members, counting only joined once', async () => {
+    // Neutrino answers 404 to /joined_members; without the fallback the mesh
+    // member list came back empty.
+    const { seen, fetchFn } = routed({
+      '/members': () =>
+        json({
+          chunk: [
+            { state_key: '@a:hs.test', content: { membership: 'join' } },
+            { state_key: '@a:hs.test', content: { membership: 'join' } },
+            { state_key: '@gone:hs.test', content: { membership: 'leave' } },
+            { sender: '@s:hs.test', content: { membership: 'join' } },
+          ],
         }),
-        { status: 200 },
-      );
-    };
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.roomMembers('!r:hs.test')).resolves.toEqual(['@a:hs.test', '@s:hs.test']);
+    expect(seen.map((s) => s.url)).toEqual([
+      'https://hs.test/_matrix/client/v3/rooms/!r%3Ahs.test/joined_members',
+      'https://hs.test/_matrix/client/v3/rooms/!r%3Ahs.test/members',
+    ]);
+  });
+});
 
-    const client = new MatrixClient('https://example.org', null, mockFetch);
-    const session = await client.loginWithPassword('@alice:example.org', 'password123', 'Web Client', 'CUSTOM_DEV');
-
-    expect(capturedBody.type).toBe('m.login.password');
-    expect(capturedBody.identifier.user).toBe('alice');
-    expect(capturedBody.password).toBe('password123');
-    expect(capturedBody.device_id).toBe('CUSTOM_DEV');
-
-    expect(session.userId).toBe('@alice:example.org');
-    expect(session.accessToken).toBe('syt_secret_123');
-    expect(session.deviceId).toBe('DEV123');
+describe('MatrixClient media', () => {
+  it('uploads with the token and content type, and returns the mxc URI', async () => {
+    const { seen, fetchFn } = routed({
+      '/_matrix/media/v3/upload': () => json({ content_uri: 'mxc://hs.test/abc' }),
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.uploadMedia(new Uint8Array([1, 2, 3]), 'image/png', 'me.png')).resolves.toBe(
+      'mxc://hs.test/abc',
+    );
+    expect(seen[0]?.url).toBe('https://hs.test/_matrix/media/v3/upload?filename=me.png');
+    expect(seen[0]?.method).toBe('POST');
+    expect(seen[0]?.headers).toEqual({ 'Content-Type': 'image/png', Authorization: 'Bearer tok' });
   });
 
-  it('handles room management calls and member fallback', async () => {
-    const calls: { url: string; method: string }[] = [];
-    const mockFetch: FetchLike = async (url, init) => {
-      calls.push({ url, method: init?.method || 'GET' });
-      if (url.includes('/joined_members')) {
-        return new Response(null, { status: 404 });
-      }
-      if (url.includes('/members')) {
-        return new Response(
-          JSON.stringify({
-            chunk: [
-              { state_key: '@alice:ex.org', content: { membership: 'join' } },
-              { state_key: '@bob:ex.org', content: { membership: 'leave' } },
-            ],
-          }),
-          { status: 200 },
-        );
-      }
-      if (url.includes('/createRoom')) {
-        return new Response(JSON.stringify({ room_id: '!newroom:ex.org' }), { status: 200 });
-      }
-      return new Response(JSON.stringify({}), { status: 200 });
-    };
-
-    const client = new MatrixClient('https://example.org', 'token', mockFetch);
-    const roomId = await client.createRoom({ name: 'Test Room', encrypted: true });
-    expect(roomId).toBe('!newroom:ex.org');
-
-    const members = await client.roomMembers('!newroom:ex.org');
-    expect(members).toEqual(['@alice:ex.org']);
+  it('turns an upload refusal into a MatrixError carrying the reason', async () => {
+    const { fetchFn } = routed({
+      '/upload': () => json({ errcode: 'M_TOO_LARGE', error: 'Upload too large' }, 413),
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.uploadMedia(new Uint8Array(1), 'image/png')).rejects.toMatchObject({
+      status: 413,
+      errcode: 'M_TOO_LARGE',
+      message: 'Upload too large',
+    });
   });
 
-  it('handles media upload and download with fallback', async () => {
-    const mockFetch: FetchLike = async (url) => {
-      if (url.includes('/upload')) {
-        return new Response(JSON.stringify({ content_uri: 'mxc://example.org/media123' }), { status: 200 });
-      }
-      if (url.includes('/media/v1/media/download/')) {
-        return new Response(null, { status: 404 });
-      }
-      if (url.includes('/media/v3/download/')) {
-        return new Response(new Uint8Array([1, 2, 3]).buffer, { status: 200 });
-      }
-      return new Response(null, { status: 404 });
-    };
+  it('downloads through the authenticated endpoint, falling back to the legacy one', async () => {
+    // A pre-1.11 server answers 404 for /client/v1/media; the legacy path
+    // still serves the bytes.
+    const { seen, fetchFn } = routed({
+      '/_matrix/media/v3/download/': () => new Response(new Uint8Array([9, 8]), { status: 200 }),
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.downloadMedia('mxc://hs.test/abc')).resolves.toEqual(new Uint8Array([9, 8]));
+    expect(seen.map((s) => s.url)).toEqual([
+      'https://hs.test/_matrix/client/v1/media/download/hs.test/abc',
+      'https://hs.test/_matrix/media/v3/download/hs.test/abc',
+    ]);
+    expect(seen[0]?.headers.Authorization).toBe('Bearer tok');
+  });
 
-    const client = new MatrixClient('https://example.org', 'token', mockFetch);
-    const uri = await client.uploadMedia(new Uint8Array([1, 2, 3]), 'image/png', 'test.png');
-    expect(uri).toBe('mxc://example.org/media123');
+  it('does not try the legacy path for a refusal that is not 404', async () => {
+    // 403 means the server has the endpoint and said no; asking the
+    // unauthenticated path next would only leak the attempt.
+    const { seen, fetchFn } = routed({
+      '/_matrix/client/v1/media/download/': () => json({ errcode: 'M_FORBIDDEN' }, 403),
+    });
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.downloadMedia('mxc://hs.test/abc')).rejects.toMatchObject({ status: 403 });
+    expect(seen).toHaveLength(1);
+  });
 
-    const bytes = await client.downloadMedia('mxc://example.org/media123');
-    expect(bytes).toEqual(new Uint8Array([1, 2, 3]));
+  it('rejects something that is not an mxc URL before touching the network', async () => {
+    const { seen, fetchFn } = routed({});
+    const c = new MatrixClient('https://hs.test', 'tok', fetchFn);
+    await expect(c.downloadMedia('https://hs.test/abc')).rejects.toThrow('Not an mxc:// URL');
+    expect(seen).toHaveLength(0);
   });
 });

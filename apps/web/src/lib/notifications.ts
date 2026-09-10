@@ -1,3 +1,4 @@
+import { showBrowserNotification } from './browser-notification';
 import type { EventBundle } from '@indiafoss/model';
 import { leaveByInstant } from '@indiafoss/schedule';
 
@@ -17,7 +18,10 @@ export interface AppNotification {
   url?: string;
 }
 
+export type ReminderPermission = NotificationPermission | 'unsupported';
+
 export interface NotificationTransport {
+  permission(): Promise<ReminderPermission>;
   requestPermission(): Promise<boolean>;
   schedule(notification: AppNotification): Promise<void>;
   cancel(id: string): Promise<void>;
@@ -42,6 +46,8 @@ export const RealTransportClock: TransportClock = { nowMs: () => Date.now(), spe
 export class WebLocalNotificationTransport implements NotificationTransport {
   private readonly timers = new Map<string, ReturnType<typeof setTimeout>>();
 
+  private readonly deliveries = new Map<string, object>();
+
   constructor(
     private readonly clock: TransportClock = RealTransportClock,
     /** Called when a notification fires, before the system notification. */
@@ -49,6 +55,10 @@ export class WebLocalNotificationTransport implements NotificationTransport {
     /** Base path the app is served under, so a tapped notification lands in the right place. */
     private readonly basePath = '',
   ) {}
+
+  async permission(): Promise<ReminderPermission> {
+    return typeof Notification === 'undefined' ? 'unsupported' : Notification.permission;
+  }
 
   async requestPermission(): Promise<boolean> {
     if (typeof Notification === 'undefined') return false;
@@ -62,30 +72,35 @@ export class WebLocalNotificationTransport implements NotificationTransport {
     const speed = this.clock.speed();
     if (speed <= 0) return; // paused: re-armed on resume
     const delay = (Date.parse(notification.at) - this.clock.nowMs()) / speed;
-    this.cancel(notification.id);
+    await this.cancel(notification.id);
+    const delivery = {};
+    this.deliveries.set(notification.id, delivery);
     const timer = setTimeout(
       () => {
         this.timers.delete(notification.id);
         this.onFire(notification);
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          // `tag` replaces an earlier alert for the same session instead of
-          // stacking a second one; the icon is what turns a generic browser
-          // notification into one the attendee recognises as this app.
-          const shown = new Notification(notification.title, {
+        const url = new URL(
+          `${this.basePath}${notification.url ?? '/plan'}`,
+          window.location.origin,
+        ).href;
+        void showBrowserNotification(
+          notification.title,
+          {
             body: notification.body,
             tag: notification.id,
             icon: `${this.basePath}/icons/icon-192.png`,
             badge: `${this.basePath}/icons/icon-192.png`,
+          },
+          url,
+          () => this.deliveries.get(notification.id) === delivery,
+        )
+          // A rejected system notification must not become an unhandled timer rejection.
+          // The in-app simulator event above remains available; test delivery reports errors.
+          .catch(() => {})
+          .finally(() => {
+            if (this.deliveries.get(notification.id) === delivery)
+              this.deliveries.delete(notification.id);
           });
-          const url = notification.url;
-          if (url) {
-            shown.onclick = () => {
-              window.focus();
-              window.location.assign(`${this.basePath}${url}`);
-              shown.close();
-            };
-          }
-        }
       },
       Math.max(0, delay),
     );
@@ -93,6 +108,7 @@ export class WebLocalNotificationTransport implements NotificationTransport {
   }
 
   async cancel(id: string): Promise<void> {
+    this.deliveries.delete(id);
     const timer = this.timers.get(id);
     if (timer) {
       clearTimeout(timer);
@@ -119,6 +135,16 @@ export class NativeLocalNotificationTransport implements NotificationTransport {
   private load() {
     this.plugin ??= import('@capacitor/local-notifications');
     return this.plugin;
+  }
+
+  async permission(): Promise<ReminderPermission> {
+    const { LocalNotifications } = await this.load();
+    const result = await LocalNotifications.checkPermissions();
+    return result.display === 'granted'
+      ? 'granted'
+      : result.display === 'denied'
+        ? 'denied'
+        : 'default';
   }
 
   async requestPermission(): Promise<boolean> {
@@ -266,8 +292,7 @@ export const MERGE_WINDOW_MINUTES = 5;
  * Every alert names the session, the room and (when the attendee's location
  * is known) the walk, because a reminder that does not say where to go is
  * only half a reminder. `travelSecondsFor` returns null when the walk cannot
- * be worked out; the leave-by time then falls back to a default allowance and
- * the body simply leaves the walk out.
+ * be worked out; omit the departure alert and retain the starting-soon alert.
  */
 export function computeNotifications(
   bundle: EventBundle,
@@ -321,9 +346,11 @@ export function computeNotifications(
     }
 
     const startingSoonAt = startMs - window.startingSoonMinutes * 60_000;
-    const leaveAtMs = Date.parse(
-      leaveByInstant(activity.start, travel ?? 300, window.leaveBufferMinutes * 60),
-    );
+    // No route means no departure estimate; keep the ordinary starting-soon alert.
+    const leaveAtMs =
+      travel === null
+        ? Number.NaN
+        : Date.parse(leaveByInstant(activity.start, travel, window.leaveBufferMinutes * 60));
     const bothAhead = startingSoonAt > nowMs && leaveAtMs > nowMs;
     const merged =
       bothAhead && Math.abs(leaveAtMs - startingSoonAt) <= MERGE_WINDOW_MINUTES * 60_000;

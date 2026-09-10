@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ContactRecord } from '@indiafoss/storage';
 import {
   MESH_LINK_TTL_MS,
+  accountTrustOf,
   claimsMeshLink,
   contactForMeshUser,
   meshLinkStale,
@@ -46,13 +47,62 @@ describe('mesh link helpers', () => {
       meshLinkStale(contact({ meshLink: { state: 'unverifiable', checkedAt: now } }), now),
     ).toBe(true);
     expect(
-      meshLinkStale(contact({ meshLink: { state: 'verified', checkedAt: now - 1000 } }), now),
+      meshLinkStale(
+        contact({ meshLink: { state: 'profile-matched', checkedAt: now - 1000 } }),
+        now,
+      ),
     ).toBe(false);
     expect(
       meshLinkStale(
-        contact({ meshLink: { state: 'verified', checkedAt: now - MESH_LINK_TTL_MS - 1 } }),
+        contact({ meshLink: { state: 'profile-matched', checkedAt: now - MESH_LINK_TTL_MS - 1 } }),
         now,
       ),
     ).toBe(true);
+  });
+});
+
+describe('a card that predates a format change', () => {
+  it('is asked again rather than left with the verdict', () => {
+    // `outdated` says this build could not compare the two identities, not
+    // that they disagree. A later build may recognise the new shape, so the
+    // check is due again rather than settled (#160).
+    const now = 1_000_000;
+    expect(meshLinkStale(contact({ meshLink: { state: 'outdated', checkedAt: now } }), now)).toBe(
+      true,
+    );
+  });
+});
+
+describe('accountTrustOf: what a profile observation is worth (C-10, #188)', () => {
+  const at = 1;
+  it('treats an unchecked, unreachable, unrecognised or unlinked profile as a bare claim', () => {
+    expect(accountTrustOf(undefined)).toEqual({ trust: 'claimed', contradiction: false });
+    for (const state of ['unverifiable', 'outdated', 'unlinked'] as const) {
+      expect(accountTrustOf({ state, checkedAt: at })).toEqual({
+        trust: 'claimed',
+        contradiction: false,
+      });
+    }
+  });
+
+  it('maps a profile match to profile-matched and never to verified', () => {
+    const conclusion = accountTrustOf({ state: 'profile-matched', checkedAt: at });
+    expect(conclusion).toEqual({ trust: 'profile-matched', contradiction: false });
+    expect(conclusion.trust).not.toBe('verified');
+  });
+
+  it('keeps a mismatch distinct: a claim, plus a contradiction flag', () => {
+    expect(accountTrustOf({ state: 'mismatch', checkedAt: at })).toEqual({
+      trust: 'claimed',
+      contradiction: true,
+    });
+  });
+
+  it('has no path to binding-valid or verified: those need #188', () => {
+    const states = ['profile-matched', 'mismatch', 'unlinked', 'outdated', 'unverifiable'] as const;
+    for (const state of states) {
+      const { trust } = accountTrustOf({ state, checkedAt: at });
+      expect(['claimed', 'profile-matched']).toContain(trust);
+    }
   });
 });

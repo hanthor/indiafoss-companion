@@ -46,7 +46,7 @@ jobs:
     name: Build the .aar from source
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Read the pinned versions
         id: pin
@@ -68,7 +68,7 @@ jobs:
           echo "Building neutrino-iroh $ref against $fork@$rev as $version"
 
       - name: Check out neutrino-iroh
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: element-hq/neutrino-iroh
           ref: ${{ steps.pin.outputs.ref }}
@@ -94,13 +94,13 @@ jobs:
           sed -i 's|/element-hq/neutrino\[|/[^/]+/neutrino[|' build-aar.sh
           grep -n 'NEUTRINO_COMMIT=' build-aar.sh
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - name: Install the NDK
         # r27c, as build-aar.sh's header requires.

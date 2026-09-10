@@ -1,0 +1,61 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 7,
+  "from": 6,
+  "changes": [
+    {
+      "activityId": "act-cfp-a45o8u74jv",
+      "title": "Reverse Engineering the PAN QR Code",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-cmc3ntipr8",
+      "title": "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-erphckugi7",
+      "title": "Extracting AES Keys from Embedded Devices Using Open Source Hardware",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-9611q7a3nk",
+      "title": "The Art of Userspace Sandboxing on Linux",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-anvlvjqect",
+      "title": "Extending Capa for Malicious Script Analysis",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-edu2vnri2u",
+      "title": "Keeping an Eye on your Eye: Disassembling and Reassembling Smart Camera Hardware to breach YOUR Security",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-2pgiaujhvm",
+      "title": "Hacking India's Largest Exam System",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-b6m7iu49t2",
+      "title": "Papers, Please: A First Look at Age Verification on the Web",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-doht3bggkm",
+      "title": "United by (Free) F&B – Food & Books",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-cfp-5sktsu12a4",
+      "title": "A plan to sort out this CVE mess",
+      "type": "added"
+    }
+  ],
+  "summary": {
+    "added": 9,
+    "title-changed": 1
+  }
+}

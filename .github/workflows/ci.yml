@@ -4,9 +4,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        required: true
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -14,13 +19,15 @@ jobs:
     name: Format · Lint · Typecheck · Test · Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.24.0
+          version: 11.26.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -41,7 +48,9 @@ jobs:
         run: pnpm -r test
 
       - name: Verify captured fixtures
-        run: pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+        run: |
+          pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2025
+          pnpm --filter @indiafoss/fixture-recorder exec tsx src/index.ts verify indiafoss-2026
 
       - name: Validate venue assets
         run: |
@@ -60,7 +69,7 @@ jobs:
 
       - name: Upload SBOM
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.cdx.json
@@ -70,13 +79,15 @@ jobs:
     name: Playwright E2E (with time-travel)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.24.0
+          version: 11.26.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: pnpm
@@ -91,10 +102,20 @@ jobs:
         run: pnpm --filter @indiafoss/web build
 
       - name: Run browser E2E tests
-        run: pnpm --filter @indiafoss/web test:e2e
+        run: pnpm --filter @indiafoss/web exec playwright test tests/app.spec.ts tests/discovery.spec.ts tests/personal-data.spec.ts tests/profile-import.spec.ts tests/ticket-contact.spec.ts tests/native-download.spec.ts tests/chat-download.spec.ts
+
+      # Headless Chromium denies OS notifications even with a permission override.
+      - name: Test mobile notification delivery with a real service worker
+        run: xvfb-run -a pnpm --filter @indiafoss/web exec playwright test tests/mobile-reminders.spec.ts --headed
 
       - name: Run accessibility checks
         run: pnpm --filter @indiafoss/web exec playwright test tests/a11y.spec.ts
+
+      # The QR scanner, against Chromium's fake capture device. It needs its own
+      # step for the same reason as the gates below: `test:e2e` runs app.spec.ts
+      # and nothing else, so a spec not named in this file has never run.
+      - name: Run the camera gate
+        run: pnpm --filter @indiafoss/web exec playwright test tests/camera.spec.ts
 
       - name: Run offline E2E gate
         run: pnpm --filter @indiafoss/web exec playwright test tests/offline.spec.ts
@@ -109,7 +130,7 @@ jobs:
 
       - name: Upload test results
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: apps/web/test-results
@@ -118,27 +139,26 @@ jobs:
     name: Native Compose client
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - name: Core unit tests
-        run: cd apps/android/native && ./gradlew :core:test
-
-      - name: Screen renders (Robolectric screenshots)
-        run: cd apps/android/native && ./gradlew :app:testDebugUnitTest
+      - name: Core and app tests (including Robolectric screen renders)
+        run: bash scripts/android-test.sh
 
       - name: Upload screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-screenshots
           path: apps/android/native/app/build/screenshots
@@ -147,6 +167,13 @@ jobs:
       - name: Assemble debug APK
         run: cd apps/android/native && ./gradlew :app:assembleDebug
 
+      - name: Verify nightly signing and rejection paths with a disposable key
+        run: |
+          (cd apps/android/native && ./gradlew :app:assembleRelease)
+          build_tools=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          export APKSIGNER="$build_tools/apksigner" ZIPALIGN="$build_tools/zipalign"
+          bash scripts/test-nightly-signing.sh apps/android/native/app/build/outputs/apk/release/app-release-unsigned.apk
+
       - name: Checksum the APK
         run: |
           cd apps/android/native/app/build/outputs/apk/debug
@@ -154,7 +181,7 @@ jobs:
           cat app-debug.apk.sha256
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: native-apk
           path: |
@@ -168,15 +195,17 @@ jobs:
     # this costs an emulator boot rather than a second Gradle run.
     needs: native
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref || github.sha }}
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
 
       - name: Download the debug APK
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: native-apk
           path: apk
@@ -231,7 +260,7 @@ jobs:
 
       - name: Upload emulator artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: android-emulator
           path: |

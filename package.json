@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@11.26.0",
   "engines": {
     "node": ">=20.19.0"
   },
@@ -20,7 +20,7 @@
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.23.0",
-    "globals": "^16.0.0",
+    "globals": "^17.0.0",
     "prettier": "^3.9.6",
     "prettier-plugin-svelte": "^4.1.1",
     "typescript": "5.9.3",

@@ -4,6 +4,11 @@
  * Every external source (FOSS United, Pretalx, static files, fixtures) is
  * normalized into these types. Application components must never read raw
  * upstream structures directly.
+ *
+ * Formats that cross an app, device or platform boundary — the publish
+ * manifest, the room directory, contact cards, identity bindings, handoff
+ * links, capability records — live in `./contracts/` and are imported from
+ * `@indiafoss/model/contracts`. See ADR 0009.
  */
 
 import type { MessagingConfig } from './messaging.js';
@@ -17,6 +22,10 @@ export type ActivityType =
   | 'workshop'
   | 'bof'
   | 'devroom-session'
+  /** Organiser-run plenary moment: welcome/opening/closing notes, awards, group photo, results. */
+  | 'ceremony'
+  /** Organiser framing for a programme track: devroom introductions and wrap-ups. */
+  | 'intro'
   | 'community-booth'
   | 'sponsor-booth'
   | 'project-booth'
@@ -34,8 +43,10 @@ export interface ExternalLink {
 
 export interface Activity {
   id: string;
-  /** Upstream identifier when one exists and is stable. */
+  /** Upstream schedule-row identifier; organisers may recreate it. */
   sourceId?: string;
+  /** Stable CFP identity for talk choices, independent of time and room. */
+  proposalId?: string;
 
   type: ActivityType;
 
@@ -71,6 +82,8 @@ export interface Activity {
 
   cancelled?: boolean;
   delayedMinutes?: number;
+  /** Source timing is inconsistent; do not invent a plannable end time. */
+  scheduleNote?: string;
 
   source: string;
 }
@@ -121,6 +134,8 @@ export interface Booth {
   website?: string;
 
   locationId?: string;
+  /** Local event dates; empty means unassigned, absent preserves legacy availability. */
+  availableDates?: string[];
   tags: string[];
 }
 
@@ -138,6 +153,8 @@ export interface SourceMetadata {
   sourceUpdatedAt?: string;
   /** Version of the normalizer that produced the bundle. */
   normalizerVersion: string;
+  /** Editorial publication status; absent in legacy bundles. */
+  scheduleStatus?: 'draft' | 'confirmed';
 }
 
 export interface EventBundle {
@@ -247,7 +264,11 @@ export {
   homeserverName,
   isMatrixRoomAlias,
   isMatrixRoomId,
+  isLoopbackHomeserverHost,
+  isMeshServerName,
+  isServerName,
   isMatrixUserId,
+  matrixUriFor,
   announcementsRoom,
 } from './messaging.js';
 export type {
@@ -282,3 +303,8 @@ export {
   verifyVCardSignature,
 } from './signed-vcard.js';
 export type { VCardIdentity, VCardSignatureState } from './signed-vcard.js';
+
+export { resolvePortableActivity } from './portable-activity.js';
+export type { PortableActivityReference, ActivityResolution } from './portable-activity.js';
+
+export { isDiscoveryActivity } from './discovery.js';

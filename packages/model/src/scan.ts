@@ -3,8 +3,8 @@ import { decodeFriendPayload, isTicketRef } from './friend.js';
 import type { FriendPayload } from './friend.js';
 import { isMatrixUserId } from './messaging.js';
 
-/** Hard ceiling for a scanned payload, guarding against oversized QR abuse (§28, §42). */
-export const MAX_SCAN_PAYLOAD_BYTES = 8192;
+import { MAX_SCAN_PAYLOAD_BYTES, utf8ByteLength } from './payload-limits.js';
+export { MAX_SCAN_PAYLOAD_BYTES } from './payload-limits.js';
 
 /** A location marker resolved from an `indiafoss://location/<id>` deep link. */
 export interface ScannedLocation {
@@ -93,10 +93,6 @@ function splitStructured(value: string): string[] {
 }
 
 const LOCATION_ID = /^[a-z0-9][a-z0-9-]*$/i;
-
-function utf8ByteLength(value: string): number {
-  return new TextEncoder().encode(value).length;
-}
 
 function unescapeVCard(value: string): string {
   let out = '';
@@ -373,6 +369,24 @@ export function parseScannedPayload(input: string): ScannedPayload {
     }
     // Preserve the original (untrimmed) payload for faithful re-export.
     return { kind: 'contact', profile, vcard: input };
+  }
+
+  // Official ticket QR links are references, never an instruction to fetch the URL.
+  try {
+    const url = new URL(payload);
+    const ids = url.searchParams.getAll('id');
+    if (
+      url.origin === 'https://fossunited.org' &&
+      !url.username &&
+      !url.password &&
+      url.pathname === '/get_tickets' &&
+      ids.length === 1 &&
+      /^[A-Za-z0-9_-]{6,64}$/.test(ids[0]!)
+    ) {
+      return { kind: 'ticket', ticketRef: `ticket::${ids[0]}` };
+    }
+  } catch {
+    /* Bare references are handled below. */
   }
 
   // FOSS United ticket QR codes carry the bare ticket id; explicit refs use ticket::<id>.

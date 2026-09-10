@@ -31,8 +31,19 @@ export interface ContactBookEntry {
   metCount?: number;
   lastMetAt?: string;
   keyChanged?: boolean;
-  /** Whether the card's Matrix id was verified against that account's profile (issue #111). */
-  meshLink?: { state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable'; checkedAt: number };
+  /**
+   * What a read of the account's public profile observed (issue #111). A
+   * `profile-matched` result is the homeserver's word, not verification; an
+   * importer resets every trust field regardless of what the file says.
+   */
+  meshLink?: {
+    state: 'profile-matched' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+    checkedAt: number;
+  };
+  /** Conclusion drawn from `meshLink`; reset to `claimed` on import. */
+  accountTrust?: 'claimed' | 'profile-matched' | 'binding-valid' | 'verified' | 'revoked';
+  /** The attendee's own in-person badge comparison; dropped on import. */
+  inPersonConfirmed?: { fingerprint: string; at: string };
   previousFingerprint?: string;
 }
 

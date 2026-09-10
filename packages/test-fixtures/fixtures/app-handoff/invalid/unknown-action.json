@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "action": "wipe-device",
+  "ref": "anything"
+}

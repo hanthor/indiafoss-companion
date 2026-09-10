@@ -6,6 +6,7 @@ describe('profileFromGithubUser', () => {
     const profile = profileFromGithubUser({
       name: 'James Reilly',
       company: '@fossunited',
+      email: ' public@example.org ',
       blog: 'reilly.asia',
       avatar_url: 'https://avatars.githubusercontent.com/u/5840441?v=4',
       twitter_username: 'hanthor',
@@ -14,6 +15,7 @@ describe('profileFromGithubUser', () => {
     expect(profile).toEqual({
       fullName: 'James Reilly',
       organization: 'fossunited',
+      email: 'public@example.org',
       website: 'https://reilly.asia',
       avatarUrl: 'https://avatars.githubusercontent.com/u/5840441?v=4',
       socials: { github: 'https://github.com/hanthor', x: 'https://x.com/hanthor' },
@@ -21,7 +23,9 @@ describe('profileFromGithubUser', () => {
   });
 
   it('leaves out what GitHub does not know', () => {
-    expect(profileFromGithubUser({ name: null, company: '', blog: '' })).toEqual({ socials: {} });
+    expect(profileFromGithubUser({ name: null, company: '', blog: '', email: null })).toEqual({
+      socials: {},
+    });
   });
 });
 

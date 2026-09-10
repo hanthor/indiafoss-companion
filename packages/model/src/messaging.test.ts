@@ -5,7 +5,11 @@ import {
   homeserverName,
   isMatrixRoomAlias,
   isMatrixRoomId,
+  isLoopbackHomeserverHost,
   isMatrixUserId,
+  isMeshServerName,
+  isServerName,
+  matrixUriFor,
   announcementsRoom,
 } from './messaging.js';
 
@@ -124,5 +128,175 @@ describe('announcementsRoom (#113)', () => {
       announcementsRoom({ ...base, announcementsAlias: '#news:reilly.asia' }, 'x')?.alias,
     ).toBe('#news:reilly.asia');
     expect(announcementsRoom({ ...base, announcementsAlias: false }, 'x')).toBeNull();
+  });
+});
+
+describe('matrixUriFor', () => {
+  it('builds MSC2312 URIs for each id shape, with the action a client should take', () => {
+    expect(matrixUriFor('@ada:matrix.org')).toBe('matrix:u/ada%3Amatrix.org?action=chat');
+    expect(matrixUriFor('#indiafoss:reilly.asia')).toBe(
+      'matrix:r/indiafoss%3Areilly.asia?action=join',
+    );
+    expect(matrixUriFor('!abc:reilly.asia', { via: ['reilly.asia'] })).toBe(
+      'matrix:roomid/abc%3Areilly.asia?action=join&via=reilly.asia',
+    );
+  });
+
+  it('refuses a room id with no via, because that link cannot be joined', () => {
+    // Measured against a mesh node: joining by room id with no server hint is
+    // 404 M_NOT_FOUND, and 200 once a hint is supplied. A room id names no
+    // server to ask — v12 ids do not even carry a domain — so without a via
+    // this would be a link that fails for exactly the people it is for.
+    expect(matrixUriFor('!abc:reilly.asia')).toBeNull();
+    expect(matrixUriFor('!abc:reilly.asia', { via: ['  '] })).toBeNull();
+  });
+
+  it('accepts a room v12 id, which carries no server suffix at all', () => {
+    // What neutrino mints. The older `!local:server` regex rejected these, so
+    // every room id the mesh produces yielded no link whatsoever.
+    const id = '!5Fo-Hb-VS5AIkPFP-KNNfWaGMl1hQO_pg0VxmHJ2Vm4';
+    expect(matrixUriFor(id, { via: ['a1b2', 'c3d4'] })).toBe(
+      `matrix:roomid/${'5Fo-Hb-VS5AIkPFP-KNNfWaGMl1hQO_pg0VxmHJ2Vm4'}?action=join&via=a1b2&via=c3d4`,
+    );
+  });
+
+  it('returns null for anything that is not a Matrix id, so callers can fall back', () => {
+    // A dead `matrix:` link is worse than a web permalink: it silently does
+    // nothing. Callers rely on null to choose matrix.to instead.
+    for (const bad of [
+      '',
+      'ada:matrix.org',
+      'https://matrix.to/#/@a:b',
+      'not-an-id',
+      '@no-server',
+    ]) {
+      expect(matrixUriFor(bad), bad).toBeNull();
+    }
+  });
+
+  it('tolerates surrounding whitespace from a pasted id', () => {
+    expect(matrixUriFor('  @ada:matrix.org  ')).toBe('matrix:u/ada%3Amatrix.org?action=chat');
+  });
+});
+
+describe('alias server names', () => {
+  it('accepts a mesh node id, which is what a venue gateway is called', () => {
+    // 64 hex, no dot and no colon: neutrino derives server_name from the node
+    // identity, so this is the shape the mesh actually uses.
+    const node = 'a'.repeat(64);
+    expect(isMeshServerName(node)).toBe(true);
+    expect(isServerName(node)).toBe(true);
+    // Not a node id, and not a plausible host either.
+    expect(isMeshServerName('A'.repeat(64))).toBe(false);
+    expect(isMeshServerName('a'.repeat(63))).toBe(false);
+  });
+
+  it('accepts ordinary server names, with or without a port', () => {
+    for (const good of ['reilly.asia', 'matrix.org', 'localhost', '127.0.0.1:8008']) {
+      expect(isServerName(good), good).toBe(true);
+    }
+  });
+
+  it('rejects what could never be a server name', () => {
+    // Each of these is a real mistake: pasting the homeserver URL, a whole
+    // alias, or a trailing path. All of them would generate aliases in a
+    // namespace nobody owns.
+    for (const bad of [
+      '',
+      'https://matrix.reilly.asia',
+      '#room:reilly.asia',
+      'reilly.asia/',
+      'reilly asia',
+      'reilly.asia:notaport',
+      'reilly.asia:8008:9',
+      '@user:reilly.asia',
+    ]) {
+      expect(isServerName(bad), bad).toBe(false);
+    }
+  });
+
+  it('flags a bad alias server in the bundle, where it is still cheap', () => {
+    const base = { homeserver: 'https://matrix.reilly.asia', rooms: [] };
+    expect(collectMessagingIssues({ ...base, aliasServer: 'a'.repeat(64) })).toEqual([]);
+    expect(collectMessagingIssues({ ...base, aliasServer: 'reilly.asia' })).toEqual([]);
+    expect(collectMessagingIssues({ ...base, aliasServer: 'https://reilly.asia' })).toEqual([
+      'messaging.aliasServer is not a server name: https://reilly.asia',
+    ]);
+  });
+});
+
+describe('a mesh node as the alias anchor', () => {
+  // The offline venue case: the namespace is owned by a gateway node on the
+  // mesh rather than by a host on the internet, so the aliases resolve in a
+  // hall with no uplink. Changing to this is a bundle edit, and nothing below
+  // may need a code change for it to work — which is what this pins.
+  const NODE = '16900202044e255fbe89bb1c7bfff749809cad753e0ec5bb3fb727ad59dc7c50';
+  const config = {
+    homeserver: 'https://matrix.reilly.asia',
+    rooms: [],
+    aliasServer: NODE,
+  };
+
+  it('passes validation and generates aliases in the node namespace', () => {
+    expect(collectMessagingIssues(config)).toEqual([]);
+    expect(conferenceChatAlias(config, 'indiafoss-2026', 'session', 'act-C8AK0iov2l')).toBe(
+      `#indiafoss-2026-session-act-c8ak0iov2l:${NODE}`,
+    );
+    expect(announcementsRoom(config, 'indiafoss-2026')?.alias).toBe(
+      `#indiafoss-2026-announcements:${NODE}`,
+    );
+  });
+
+  it('still produces a handoff link a client can act on offline', () => {
+    // A node id has no dot and no colon in it, so anything treating a server
+    // name as a hostname mangles it. The alias must survive into the `matrix:`
+    // URI intact, since that URI is the whole offline handoff.
+    const alias = conferenceChatAlias(config, 'indiafoss-2026', 'room', 'Hall 3');
+    expect(alias).toBe(`#indiafoss-2026-room-hall-3:${NODE}`);
+    expect(matrixUriFor(alias)).toBe(
+      `matrix:r/${encodeURIComponent(`indiafoss-2026-room-hall-3:${NODE}`)}?action=join`,
+    );
+    expect(isMatrixRoomAlias(alias)).toBe(true);
+  });
+});
+
+describe('loopback homeservers', () => {
+  it('recognises loopback with or without a scheme or port', () => {
+    for (const good of [
+      'http://localhost:8008',
+      'http://127.0.0.1:8008',
+      'http://[::1]:8008',
+      // Bare host:port. `127.0.0.1:8008` throws in `URL`, and `localhost:8008`
+      // is worse: it parses as the scheme `localhost:` with no host, so a
+      // hostname check silently compares against an empty string (#152).
+      '127.0.0.1:8008',
+      'localhost:8008',
+      'localhost',
+      '[::1]:8008',
+    ]) {
+      expect(isLoopbackHomeserverHost(good), good).toBe(true);
+    }
+  });
+
+  it('does not mistake a real host for loopback', () => {
+    for (const bad of [
+      'https://matrix.reilly.asia',
+      'matrix.reilly.asia:8448',
+      'localhost.evil.example',
+      '127.0.0.1.evil.example',
+      '',
+    ]) {
+      expect(isLoopbackHomeserverHost(bad), bad).toBe(false);
+    }
+  });
+
+  it('accepts a plain-HTTP mesh node in the bundle, and still rejects the open web', () => {
+    // The embedded node serves its client-server API over loopback, where
+    // there is no network for https to protect (#157).
+    expect(collectMessagingIssues({ homeserver: 'http://127.0.0.1:8008', rooms: [] })).toEqual([]);
+    expect(collectMessagingIssues({ homeserver: 'http://[::1]:8008', rooms: [] })).toEqual([]);
+    expect(collectMessagingIssues({ homeserver: 'http://matrix.reilly.asia', rooms: [] })).toEqual([
+      'messaging.homeserver must use https: http://matrix.reilly.asia',
+    ]);
   });
 });

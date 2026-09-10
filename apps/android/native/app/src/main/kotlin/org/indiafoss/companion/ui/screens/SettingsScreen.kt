@@ -1,5 +1,6 @@
 package org.indiafoss.companion.ui.screens
 
+import org.indiafoss.companion.BuildConfig
 import android.Manifest
 import android.content.Intent
 import android.os.Build
@@ -34,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
@@ -49,6 +51,7 @@ fun SettingsScreen(
     onSetup: () -> Unit = {},
 ) {
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     // Android 13+ asks for the notification permission; below that it is granted by install.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         onReminders(granted)
@@ -152,7 +155,7 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("Setup", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "The welcome steps from the first run: reminders, ticket, your card, ranking. Nothing is reset by running them again.",
+                        "The welcome steps from the first run: reminders, your card, ranking. Nothing is reset by running them again.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
@@ -174,7 +177,19 @@ fun SettingsScreen(
             }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
+                    Text("Make this Companion yours", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "At IndiaFOSS? Help build the app you’re using. Fork the project, fix a bug, improve the design or docs, and send a pull request. Ideas and issue reports are welcome too.",
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    TextButton(onClick = { uriHandler.openUri("https://github.com/hanthor/indiafoss-companion/fork") }) {
+                        Text("Fork on GitHub")
+                    }
+                    TextButton(onClick = { uriHandler.openUri("https://github.com/hanthor/indiafoss-companion/issues") }) {
+                        Text("Suggest an improvement")
+                    }
                     Text("About", style = MaterialTheme.typography.titleMedium)
+                    Text("Build ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
                     Text(
                         "IndiaFOSS Companion, native. An unofficial community app built with AI assistance; " +
                             "not produced or endorsed by FOSS United. AGPL-3.0-or-later.",

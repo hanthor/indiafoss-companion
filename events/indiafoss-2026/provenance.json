@@ -1,0 +1,183 @@
+{
+  "capturedAt": "2026-09-08T08:56:20.876193+00:00",
+  "status": "draft",
+  "scheduleUrl": "https://fossunited.org/dashboard/schedule/indiafoss/2026",
+  "eventRoute": "c/indiafoss/2026",
+  "sourceModified": "2026-09-08 13:03:16.547207",
+  "sourceEndpoints": [
+    "https://fossunited.org/api/method/fossunited.api.dashboard.get_event",
+    "https://fossunited.org/api/method/fossunited.api.schedule.get_event_schedule",
+    "https://fossunited.org/api/method/fossunited.api.proposal.get_event_proposals"
+  ],
+  "captureNotes": [
+    "Guest public API responses unwrapped from message. Administrative owner/modified_by and linked-user metadata removed. Event document projected to public adapter fields.",
+    "Proposal detail pages captured with fixture-recorder; source URLs retained.",
+    "Draft publication explicitly requested by maintainer. No organiser confirmation of a final timetable is claimed.",
+    "Main conference only: 26–27 September. Separately ticketed 25 September workshops not invented or imported into this programme.",
+    "Repeated opening/lunch titles in different rooms are preserved; warnings are recorded, not treated as a reason to fabricate edits.",
+    "One end-before-start source entry retains its start and an explicit timing note; no end time is invented and it is excluded from automatic planning."
+  ],
+  "rawSha256": {
+    "event.json": "ff2981083cc58ce625df5828283714583b017843d5179955c5c8061dd16e04a9",
+    "proposal-details.json": "495f97446243bcb4b907158f2952eab03cbe8d6b43696537473157657392851c",
+    "proposals.json": "db051e8f80b42b61b863c8c7b52e3e72f29dce721e49adf6df027a0b9c4fdc49",
+    "schedule.json": "a8523981094f17de4433dac442266770f9a915e6616f4da7b543da1beaadd8c7"
+  },
+  "programmeEntries": 111,
+  "speakers": 90,
+  "physicalRooms": 6,
+  "namedDevrooms": 8,
+  "sameRoomOverlaps": [
+    {
+      "a": "act-28lao2ucgj",
+      "b": "act-28laa9h9db",
+      "titles": [
+        "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
+        "Lunch Break - 1 PM to 2 PM (in food area)"
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28laqe1pg1",
+      "b": "act-28laiujb0d",
+      "titles": [
+        "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+        "From Display Controller to Panel: A Modular Display Pipeline Architecture for Zephyr"
+      ],
+      "room": "room-1"
+    },
+    {
+      "a": "act-28laqe1pg1",
+      "b": "act-28lar927u4",
+      "titles": [
+        "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+        "From Reset to main(): Porting Infineon TriCore AURIX to Zephyr"
+      ],
+      "room": "room-1"
+    },
+    {
+      "a": "act-28laqe1pg1",
+      "b": "act-28laeodjb3",
+      "titles": [
+        "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+        "Real-Time Video Pipelines on Embedded SoCs: A FreeRTOS Case Study"
+      ],
+      "room": "room-1"
+    },
+    {
+      "a": "act-28laqe1pg1",
+      "b": "act-28lad4q6q5",
+      "titles": [
+        "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+        "Tackling core lifecycle management in heterogeneous SoCs"
+      ],
+      "room": "room-1"
+    },
+    {
+      "a": "act-28laqe1pg1",
+      "b": "act-28lak5j8nt",
+      "titles": [
+        "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+        "Loops to real time"
+      ],
+      "room": "room-1"
+    },
+    {
+      "a": "act-28laqe1pg1",
+      "b": "act-28lamtpeiu",
+      "titles": [
+        "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+        "Indigenous, High-Performance, Safety-Critical RTOS"
+      ],
+      "room": "room-1"
+    },
+    {
+      "a": "act-28laqe1pg1",
+      "b": "act-28lakfdugu",
+      "titles": [
+        "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
+        "From Architecture to Tasks: Designing Real-Time MCU Firmware in Heterogeneous APU-MCU Systems"
+      ],
+      "room": "room-1"
+    },
+    {
+      "a": "act-28la11nd7m",
+      "b": "act-28la409p82",
+      "titles": [
+        "Remote Execution by Design: Sandboxing AI Agents with gVisor & Pipelock",
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events."
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28la409p82",
+      "b": "act-28lacdbph1",
+      "titles": [
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+        "From Prompts to Production: Building an Open-Source AI On-Call Agent with MCP and Multi-Agent Workflows"
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28la409p82",
+      "b": "act-28lac636ge",
+      "titles": [
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+        "Long live outbox : Outbox is dead"
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28la409p82",
+      "b": "act-28laurq10s",
+      "titles": [
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+        "Kubernetes Native Observability Dashboards with Perses, without the YAML/JSON Hell"
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28la409p82",
+      "b": "act-28la635lu7",
+      "titles": [
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+        "Cilium Network Policy Anti-Patterns I Learned the Hard Way"
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28la409p82",
+      "b": "act-28lacdroo3",
+      "titles": [
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+        "Escaping Cron Hell: Building and Contributing to Dagu, an Open Source Workflow Orchestrator"
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28la409p82",
+      "b": "act-28lag29fko",
+      "titles": [
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+        "15 Years, One Server, 8GB RAM and 500,000 Linux Learners: Lessons from Running Webminal"
+      ],
+      "room": "hall-3"
+    },
+    {
+      "a": "act-28la409p82",
+      "b": "act-28laedc93i",
+      "titles": [
+        "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
+        "Unused Is Not a Kubernetes Field: Platform Hygiene Is Not Cleanup"
+      ],
+      "room": "hall-3"
+    }
+  ],
+  "unconfirmedTiming": [
+    {
+      "id": "act-28la50468f",
+      "title": "Reverse Engineering the PAN QR Code",
+      "note": "Timing needs confirmation: the draft lists 12:20:00–10:35:00. This session cannot be placed in a plan yet."
+    }
+  ]
+}

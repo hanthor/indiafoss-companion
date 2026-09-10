@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "eventId": "indiafoss-2026",
+  "generatedAt": "2026-09-20T11:30:00.000Z",
+  "server": "indiafoss.org",
+  "rooms": [
+    {
+      "id": "lobby",
+      "name": "Lobby",
+      "alias": "#indiafoss-2026:indiafoss.org",
+      "roomId": "!abcdef:indiafoss.org",
+      "route": "federated",
+      "visibility": "public",
+      "topic": "General conference chat"
+    },
+    {
+      "id": "audi-1",
+      "name": "Auditorium 1",
+      "alias": "#indiafoss-2026-audi1:indiafoss.org",
+      "route": "mesh",
+      "visibility": "public",
+      "locationId": "audi-1",
+      "activityIds": [
+        "keynote",
+        "closing"
+      ]
+    },
+    {
+      "id": "organisers",
+      "name": "Organisers",
+      "alias": "#indiafoss-2026-org:indiafoss.org",
+      "route": "classic",
+      "visibility": "invite"
+    }
+  ],
+  "supports": [
+    "room.version.v11",
+    "room.federation.classic"
+  ]
+}

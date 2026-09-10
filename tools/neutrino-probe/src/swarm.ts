@@ -196,6 +196,15 @@ export async function runSwarm(args: Args): Promise<SwarmResult> {
       { msgtype: 'm.text', body: 'hello swarm' },
       hostUser.token,
     );
+    // Check the send, loudly. This line was missing, and its absence turned a
+    // 400 ("prev_events exceeds 20 entries" — the join-storm head-cap bug)
+    // into "fan-out delivered zero", which reads as a federation or transport
+    // failure and was chased as one across two machines and three link
+    // profiles before anyone looked at the response the host had been
+    // returning all along.
+    if (sent.status !== 200 || !sent.body.event_id) {
+      throw new Error(`host send failed: HTTP ${sent.status} ${JSON.stringify(sent.body)}`);
+    }
     const eventId = String(sent.body.event_id);
     const arrivals: number[] = [];
     const waitMsg = async (i: number): Promise<void> => {
@@ -203,7 +212,15 @@ export async function runSwarm(args: Args): Promise<SwarmResult> {
       while (Date.now() < end) {
         const m = await nodes[i]!.api(
           'GET',
-          `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages?dir=b&limit=5`,
+          // limit=50, not 5. Under a shaped link a few join events integrate
+          // *after* the message (retried out of a gap-fill), and in dir=b they
+          // sit above it — at 22+ nodes reliably more than five of them, so a
+          // limit-5 window never contains the message and every peer reads as
+          // undelivered. That false wall reproduced on two machines, gated on
+          // shaping, and cost a day: the databases had all 52 events while the
+          // harness reported 23/23 undelivered. 50 is a transaction's worth,
+          // which no straggler burst can exceed between two polls.
+          `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/messages?dir=b&limit=50`,
           undefined,
           users[i]!.token,
         );

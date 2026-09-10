@@ -5,6 +5,11 @@
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
+  import { journeyRoute, ROUTING_LABELS } from '$lib/journey';
+  import { routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
+  import type { RoutingProfile } from '@indiafoss/venue';
+  import { eventDay } from '$lib/resolved-plan';
+  import { livePlanState } from '$lib/resolved-plan.svelte';
   import { bookmarked } from '$lib/prefs.svelte';
   import {
     currentLocation,
@@ -16,20 +21,22 @@
   import { FLOORS, FLOOR_ORDER, anchorPercent } from '$lib/venue-floors';
   import type { FloorId, FloorRoom } from '$lib/venue-floors';
   import { floorOfRoom, locationsForRoom, roomForLocation } from '$lib/venue-rooms';
+  import { DEFAULT_NOTIFICATION_WINDOW } from '$lib/notifications';
   import { computeNextUp } from '$lib/nextup';
   import { devroomTrackNames, labelHeadingFor } from '$lib/devrooms';
+  import { routeEvidence, routeSteps } from '$lib/route-steps';
 
   /** Destination location id (`/map/to/[location]`): highlighted and opened in the sheet. */
   let { initialTo = '' }: { initialTo?: string } = $props();
 
-  const BUFFER_SECONDS = 300;
+  const BUFFER_SECONDS = DEFAULT_NOTIFICATION_WINDOW.leaveBufferMinutes * 60;
 
-  const clock = clockFromParams(
-    page.url.searchParams.get('now'),
-    page.url.searchParams.get('speed'),
+  const clock = $derived(
+    clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
   );
-  let now = $state(clock.now());
+  let now = $state('');
   $effect(() => {
+    now = clock.now();
     if (isFixedClock(clock)) return;
     const timer = setInterval(() => {
       now = clock.now();
@@ -38,7 +45,7 @@
   });
 
   const bundle = $derived(eventState.bundle);
-  const venueKey = $derived(venueKeyForEvent(bundle?.id ?? 'indiafoss-2025'));
+  const venueKey = $derived(venueKeyForEvent(bundle?.id ?? 'indiafoss-2026'));
   let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
   let venueError: string | null = $state(null);
 
@@ -86,7 +93,7 @@
 
   // ---- what's on ---------------------------------------------------------
 
-  const nowMs = $derived(parseInstant(now));
+  const nowMs = $derived(now ? parseInstant(now) : 0);
 
   const liveByRoom = $derived.by<Map<string, Activity[]>>(() => {
     // eslint-disable-next-line svelte/prefer-svelte-reactivity
@@ -131,18 +138,28 @@
    * programme is the identity — "Rust" tells you more than "HALL 3".
    */
   function labelHeading(room: FloorRoom): { text: string; devroom: boolean } {
-    return labelHeadingFor(roomTitle(room), liveByRoom.get(room.id)?.[0]?.trackId, devroomTracks);
+    const heading = labelHeadingFor(
+      roomTitle(room),
+      liveByRoom.get(room.id)?.[0]?.trackId,
+      devroomTracks,
+    );
+    return heading.text === roomTitle(room) ? { text: heading.text, devroom: false } : heading;
   }
 
   const nextUp = $derived(
-    bundle
+    bundle && now && routingPrefs.loaded
       ? computeNextUp({
           bundle,
           now,
           bookmarked,
+          plannedIds: new Set(
+            livePlanState.bundle === bundle && livePlanState.day === eventDay(now, bundle.timezone)
+              ? livePlanState.activityIds
+              : [],
+          ),
           venue,
           currentLocation: currentLocation.value,
-          profile: 'fastest',
+          profile: routingPrefs.profile,
           bufferSeconds: BUFFER_SECONDS,
         })
       : null,
@@ -155,12 +172,35 @@
   );
   const destinationRoom = $derived(initialTo ? (roomOf.get(initialTo) ?? null) : null);
 
+  // ---- from / to (#223) --------------------------------------------------
+  // The journey is explicit: From is the manually set location, To is the
+  // next planned talk, a `/map/to/` link, or a room the attendee picks. The
+  // selects are the keyboard and large-text equivalent of tapping the plan.
+
+  /** `undefined` follows the plan or deep link; `'plan'`, a room id or `''` is a choice. */
+  let toChoice = $state<string | undefined>(undefined);
+  const autoTo = $derived(destinationRoom ?? (nextRoom ? 'plan' : ''));
+  const toValue = $derived(toChoice ?? autoTo);
+  const toIsPlan = $derived(toValue === 'plan');
+  const toRoom = $derived(toIsPlan ? nextRoom : toValue || null);
+  const toRoomObj = $derived(allRooms.find((r) => r.id === toRoom) ?? null);
+  const hereRoomObj = $derived(allRooms.find((r) => r.id === hereRoom) ?? null);
+  /** Where the attendee said they are, even when that location is not drawn. */
+  const hereName = $derived(
+    hereRoomObj
+      ? roomTitle(hereRoomObj)
+      : currentLocation.value
+        ? (bundle?.locations.find((l) => l.id === currentLocation.value)?.name ??
+          currentLocation.value)
+        : null,
+  );
+
   // ---- floor + selection -------------------------------------------------
 
   let floorChoice = $state<FloorId | null>(null);
   const floor = $derived.by<FloorId>(() => {
     if (floorChoice) return floorChoice;
-    const preferred = destinationRoom ?? hereRoom ?? nextRoom;
+    const preferred = destinationRoom ?? hereRoom ?? toRoom;
     return (preferred && floorOfRoom(preferred)) || 'ground';
   });
   const plan = $derived(FLOORS[floor]);
@@ -180,15 +220,27 @@
     };
     const here = other(hereRoom);
     if (here) return here === 'first' ? "YOU'RE UPSTAIRS ↑" : "YOU'RE DOWNSTAIRS ↓";
-    const next = other(destinationRoom ?? nextRoom);
-    if (next) return next === 'first' ? 'NEXT TALK UPSTAIRS ↑' : 'NEXT TALK DOWNSTAIRS ↓';
+    const next = other(toRoom);
+    const what = toIsPlan ? 'NEXT TALK' : 'DESTINATION';
+    if (next) return next === 'first' ? `${what} UPSTAIRS ↑` : `${what} DOWNSTAIRS ↓`;
     return '';
   });
 
   function roomState(id: string): 'live' | 'next' | '' {
     if ((liveByRoom.get(id)?.length ?? 0) > 0) return 'live';
-    if (id === nextRoom || id === destinationRoom) return 'next';
+    if (id === toRoom) return 'next';
     return '';
+  }
+
+  async function chooseFrom(roomId: string) {
+    await setCurrentLocation(roomId ? primaryLocation(roomId) : null);
+  }
+
+  function chooseTo(value: string) {
+    toChoice = value;
+    const room = value === 'plan' ? nextRoom : value || null;
+    const f = room ? floorOfRoom(room) : null;
+    if (f) floorChoice = f;
   }
 
   let sheetExpanded = $state(false);
@@ -408,12 +460,51 @@
     return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
   }
 
+  const selectedRoute = $derived(
+    routingPrefs.loaded && selectedRoom
+      ? journeyRoute(
+          venue,
+          currentLocation.value,
+          primaryLocation(selectedRoom.id),
+          routingPrefs.profile,
+        )
+      : null,
+  );
   const isHere = $derived(selectedRoom !== null && hereRoom === selectedRoom.id);
+  const isDestination = $derived(selectedRoom !== null && toRoom === selectedRoom.id);
 
   async function toggleHere() {
     if (!selectedRoom) return;
     await setCurrentLocation(isHere ? null : primaryLocation(selectedRoom.id));
   }
+
+  function toggleDestination() {
+    if (!selectedRoom) return;
+    chooseTo(isDestination ? '' : selectedRoom.id);
+  }
+
+  /** The devroom whose programme is running in a room right now, if any. */
+  function devroomOf(room: FloorRoom): string | null {
+    const track = liveByRoom.get(room.id)?.[0]?.trackId;
+    return track ? (devroomTracks.get(track) ?? null) : null;
+  }
+
+  // ---- the journey itself ------------------------------------------------
+
+  const journey = $derived(
+    routingPrefs.loaded && toRoom
+      ? journeyRoute(venue, currentLocation.value, primaryLocation(toRoom), routingPrefs.profile)
+      : null,
+  );
+  const journeySteps = $derived(
+    journey && venue && toRoomObj ? routeSteps(venue, journey, { to: roomTitle(toRoomObj) }) : null,
+  );
+  const evidence = $derived(venue ? routeEvidence(venue) : null);
+  const floorChangeText = $derived.by(() => {
+    const n = journeySteps?.floorChanges ?? 0;
+    return n === 0 ? 'same floor' : `${n} floor ${n === 1 ? 'change' : 'changes'}`;
+  });
+  let stepsOpen = $state(false);
 </script>
 
 {#if venueError}
@@ -424,6 +515,127 @@
 {:else if !venue || !bundle}
   <p class="loading" role="status">Loading venue…</p>
 {:else}
+  <section class="journey-panel" aria-label="Journey">
+    <div class="row">
+      <label class="from-to" for="map-from">From</label>
+      <select
+        id="map-from"
+        value={hereRoom ?? ''}
+        onchange={(event) => void chooseFrom(event.currentTarget.value)}
+      >
+        <option value="">Set where I am…</option>
+        {#if currentLocation.value && !hereRoom}
+          <option value="" disabled>{hereName} (not on the plan)</option>
+        {/if}
+        {#each FLOOR_ORDER as id (id)}
+          <optgroup label="{FLOORS[id].label} floor">
+            {#each FLOORS[id].rooms as room (room.id)}
+              {#if primaryLocation(room.id)}
+                <option value={room.id}>{roomTitle(room)}</option>
+              {/if}
+            {/each}
+          </optgroup>
+        {/each}
+      </select>
+      {#if currentLocation.value}
+        <span class="tag">MANUALLY SET</span>
+        <button class="ghost" onclick={() => void chooseFrom('')}>Clear</button>
+      {/if}
+    </div>
+    <div class="row">
+      <label class="from-to" for="map-to">To</label>
+      <select id="map-to" value={toValue} onchange={(event) => chooseTo(event.currentTarget.value)}>
+        <option value="">Choose a room…</option>
+        {#if nextRoom}
+          <option value="plan"
+            >Next planned talk · {roomTitle(allRooms.find((r) => r.id === nextRoom)!)}</option
+          >
+        {/if}
+        {#each FLOOR_ORDER as id (id)}
+          <optgroup label="{FLOORS[id].label} floor">
+            {#each FLOORS[id].rooms as room (room.id)}
+              {#if primaryLocation(room.id)}
+                <option value={room.id}>{roomTitle(room)}</option>
+              {/if}
+            {/each}
+          </optgroup>
+        {/each}
+      </select>
+      {#if toIsPlan && nextUp}
+        <span class="tag next">NEXT IN YOUR PLAN</span>
+      {:else if toRoom && toRoom === destinationRoom && toChoice === undefined}
+        <span class="tag next">FROM LINK</span>
+      {/if}
+    </div>
+    {#if toIsPlan && nextUp}
+      <p class="planned">
+        <span class="title">{nextUp.activity.title}</span>
+        <span class="muted">
+          · {formatTime(nextUp.activity.start!)}{#if nextUp.leaveBy}
+            · leave by {formatTime(nextUp.leaveBy)}{/if}
+        </span>
+      </p>
+    {:else if !nextRoom && !toChoice && !destinationRoom}
+      <p class="muted small">No upcoming talk in your plan. Pick a room to route to it.</p>
+    {/if}
+    <div class="row">
+      <label class="from-to" for="map-routing-profile">Routing profile</label>
+      <select
+        id="map-routing-profile"
+        value={routingPrefs.profile}
+        disabled={!routingPrefs.loaded}
+        onchange={(event) => void setRoutingProfile(event.currentTarget.value as RoutingProfile)}
+      >
+        {#each Object.entries(ROUTING_LABELS) as [value, label] (value)}<option {value}
+            >{label}</option
+          >{/each}
+      </select>
+    </div>
+    <div class="summary" aria-live="polite" data-testid="journey-summary">
+      {#if !currentLocation.value}
+        <p class="muted small">Set where you are to get a walking estimate and route steps.</p>
+      {:else if !toRoom}
+        <p class="muted small">Choose a destination to see the walk.</p>
+      {:else if !routingPrefs.loaded}
+        <p class="muted small">Loading your routing preference…</p>
+      {:else if journey && journeySteps?.sameSpot}
+        <p class="small">You are already at {roomTitle(toRoomObj!)}.</p>
+      {:else if journey && journeySteps}
+        <p class="estimate">
+          <strong>≈ {journeySteps.minutes} min walk</strong> · {floorChangeText} · {ROUTING_LABELS[
+            routingPrefs.profile
+          ]}
+        </p>
+        {#if evidence}
+          <p class="evidence" class:validated={evidence.validated}>{evidence.label}</p>
+        {/if}
+        <button
+          class="ghost steps-toggle"
+          aria-expanded={stepsOpen}
+          aria-controls="map-route-steps"
+          onclick={() => (stepsOpen = !stepsOpen)}
+        >
+          {stepsOpen ? 'Hide' : 'Show'} route steps ({journeySteps.steps.length})
+        </button>
+        {#if stepsOpen}
+          <ol id="map-route-steps" class="steps" aria-label="Route steps">
+            {#each journeySteps.steps as step, i (i)}
+              <li class={step.kind}>
+                <span>{step.text}</span>
+                <span class="muted small">{Math.max(1, Math.ceil(step.seconds / 60))} min</span>
+              </li>
+            {/each}
+          </ol>
+        {/if}
+      {:else}
+        <p class="small">
+          No {ROUTING_LABELS[routingPrefs.profile].toLowerCase()} route is available on this map from
+          {hereName} to {roomTitle(toRoomObj!)}. Ask the venue team for directions.
+        </p>
+      {/if}
+    </div>
+  </section>
+
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="plan"
@@ -475,19 +687,27 @@
         {@const heading = labelHeading(room)}
         <button
           class="roomlabel {roomState(room.id)}"
+          data-planned-destination={room.id === nextRoom}
           class:compact={!zoomed}
           class:selected={selected === room.id}
           style={labelStyle(room)}
           aria-label="{roomTitle(room)}{first
             ? `${heading.devroom ? `, ${heading.text} devroom` : ''}, live: ${first.title}, ${minutesLeft(first)} min left`
-            : ''}{room.id === hereRoom ? ', you are here' : ''}"
+            : ''}{room.id === nextRoom ? ', next in your plan' : ''}{room.id === hereRoom
+            ? ', you are here'
+            : ''}"
           aria-pressed={selected === room.id}
           onclick={() => select(room.id)}
         >
-          <span class="name" class:devroom={heading.devroom}>{heading.text}</span>
+          <span class="name">{roomTitle(room)}</span>
+          {#if room.id === nextRoom}<span class="talk">Next in your plan</span
+            >{:else if room.id === toRoom}<span class="talk">Destination</span>{/if}
+          {#if heading.devroom}<span class="talk devroom">{heading.text}</span>{/if}
           {#if first}
             <!-- The talk itself, so the map answers "what is on in there" without a tap (#117). -->
-            <span class="talk">{truncate(first.title, zoomed ? 34 : 26)}</span>
+            {#if !heading.devroom || zoomed}<span class="talk"
+                >{truncate(first.title, zoomed ? 34 : 26)}</span
+              >{/if}
             <span class="left">{minutesLeft(first)} MIN LEFT</span>
           {/if}
           {#if room.id === hereRoom}<span class="you" aria-hidden="true"></span>{/if}
@@ -528,7 +748,7 @@
 
     <ul class="legend" aria-label="Legend">
       <li><span class="sw live"></span>LIVE</li>
-      <li><span class="sw next"></span>NEXT</li>
+      <li><span class="sw next"></span>TO</li>
       <li><span class="sw sw-you"></span>YOU</li>
     </ul>
   </div>
@@ -549,11 +769,14 @@
           <p class="meta">
             {#if roomTitle(selectedRoom) !== selectedRoom.name}{selectedRoom.name} ·
             {/if}
-            {plan.label} floor{#if selectedRoom.cap}
+            {FLOORS[floorOfRoom(selectedRoom.id) ?? floor].label} floor{#if selectedRoom.cap}
               · {selectedRoom.cap} seats{/if}
-            {#if selectedRoom.id === destinationRoom}
+            {#if isDestination}
               · <span class="tag">DESTINATION</span>{/if}
           </p>
+          {#if devroomOf(selectedRoom)}
+            <p class="devroom-line">Devroom now: <strong>{devroomOf(selectedRoom)}</strong></p>
+          {/if}
         </div>
         <button
           class="close"
@@ -561,6 +784,36 @@
           onclick={() => select(selectedRoom.id)}>×</button
         >
       </header>
+
+      <div class="actions">
+        {#if primaryLocation(selectedRoom.id)}
+          <button class="here" class:clear={isHere} onclick={toggleHere}>
+            {isHere ? 'Clear location' : "I'm here"}
+          </button>
+          <button class="here go" class:clear={isDestination} onclick={toggleDestination}>
+            {isDestination ? 'Clear destination' : 'Go here'}
+          </button>
+        {/if}
+      </div>
+
+      <div class="journey" aria-label="Walking route">
+        {#if !currentLocation.value}
+          <p>Set where you are (From, or “I'm here”) to estimate the walk.</p>
+        {:else if !routingPrefs.loaded}
+          <p>Loading your routing preference…</p>
+        {:else if selectedRoute}
+          <p>
+            {Math.ceil(selectedRoute.durationSeconds / 60)} min estimated walk · {ROUTING_LABELS[
+              routingPrefs.profile
+            ]}
+          </p>
+        {:else}
+          <p>
+            No {ROUTING_LABELS[routingPrefs.profile].toLowerCase()} route is available on this map from
+            your starting location. Ask the venue team for directions.
+          </p>
+        {/if}
+      </div>
 
       {#each live as a (a.id)}
         <div class="block">
@@ -589,26 +842,117 @@
       {:else if live.length === 0}
         <p class="muted">Nothing scheduled here right now.</p>
       {/if}
-
-      <div class="actions">
-        {#if primaryLocation(selectedRoom.id)}
-          <button class="here" class:clear={isHere} onclick={toggleHere}>
-            {isHere ? 'Clear location' : "I'm here"}
-          </button>
-        {/if}
-      </div>
     </section>
   {/if}
 {/if}
 
 <style>
+  .journey {
+    padding: 0.25rem 0;
+    font-size: 0.85rem;
+  }
+  .journey p {
+    margin: 0;
+  }
+
+  /* From / To panel: rows wrap so large text and narrow phones still fit. */
+  .journey-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--surface-raised);
+    font-size: 0.85rem;
+  }
+  .journey-panel .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.6rem;
+  }
+  .from-to {
+    flex: 0 0 auto;
+    min-width: 3rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .journey-panel select {
+    flex: 1 1 10rem;
+    min-width: 0;
+    min-height: 44px;
+    max-width: 100%;
+    font: inherit;
+  }
+  .journey-panel .tag {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+  .journey-panel .tag.next {
+    color: var(--amber-ink);
+  }
+  .ghost {
+    min-height: 44px;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .planned {
+    margin: 0;
+    font-size: 0.82rem;
+  }
+  .planned .title {
+    font-weight: 600;
+  }
+  .summary p {
+    margin: 0;
+  }
+  .estimate {
+    font-size: 0.95rem;
+  }
+  .evidence {
+    color: var(--amber-ink);
+    font-size: 0.78rem;
+  }
+  .evidence.validated {
+    color: var(--mint-ink);
+  }
+  .steps-toggle {
+    margin-top: 0.3rem;
+  }
+  .steps {
+    margin: 0.4rem 0 0;
+    padding-left: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .steps li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.25rem 0.75rem;
+  }
+  .steps li.stairs,
+  .steps li.lift {
+    font-weight: 600;
+  }
+  .small {
+    font-size: 0.82rem;
+  }
   .loading,
   .empty {
     padding: 1rem;
     color: var(--text-muted);
-  }
-  .small {
-    font-size: 0.82rem;
   }
 
   .plan {
@@ -759,6 +1103,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     opacity: 0.95;
+  }
+  /* A devroom's name is its identity: wrap to two lines rather than cut it (issue 223). */
+  .roomlabel .talk.devroom {
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
   .roomlabel .left {
     font-family: var(--font-mono);
@@ -929,12 +1283,13 @@
     background: var(--line-strong);
     opacity: 0.4;
   }
-  /* Peek state: the header and the first block; tap the grabber for the rest. */
+  /* Keep the map visible while allowing every room action to remain reachable. */
   .sheet:not(.expanded) {
-    max-height: 11rem;
-    overflow: hidden;
+    max-height: 38dvh;
   }
   .sheet {
+    max-height: 65dvh;
+    overflow-y: auto;
     position: sticky;
     bottom: calc(var(--tabbar-height) + var(--safe-bottom));
     z-index: 2;
@@ -946,6 +1301,26 @@
     display: flex;
     flex-direction: column;
     gap: 0.7rem;
+  }
+  .sheet > * {
+    flex-shrink: 0;
+  }
+  /* Desktop (issue 205): the plan fills the height beside the rail and the room
+     sheet stands to its right as a panel, so opening a room hides no map. */
+  @media (min-width: 1024px) {
+    .sheet,
+    .sheet:not(.expanded) {
+      position: static;
+      flex: 0 0 24rem;
+      max-height: calc(100dvh - var(--appbar-height) - var(--safe-top));
+      border-top: none;
+      border-left: 2px solid var(--ink);
+      box-shadow: none;
+      padding-top: 1rem;
+    }
+    .grabber {
+      display: none;
+    }
   }
   .sheet header {
     display: flex;
@@ -970,6 +1345,11 @@
   .tag {
     color: var(--amber-ink);
     font-weight: 700;
+  }
+  .devroom-line {
+    margin: 0.2rem 0 0;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
   }
   .close {
     flex: none;
@@ -1019,6 +1399,7 @@
   }
   .actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
   }
   .here {
@@ -1035,5 +1416,13 @@
     background: var(--surface);
     border-color: var(--line);
     color: var(--text);
+  }
+  .here.go {
+    background: var(--amber);
+    border-color: var(--amber);
+  }
+  .here.go.clear {
+    background: var(--surface);
+    border-color: var(--line);
   }
 </style>

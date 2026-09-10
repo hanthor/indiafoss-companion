@@ -50,8 +50,8 @@ test('every design token resolves, and the themed ones actually change', async (
   const darkPage = await dark.newPage();
   await lightPage.goto(appUrl('/?setup=done'));
   await darkPage.goto(appUrl('/?setup=done'));
-  await expect(lightPage.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
-  await expect(darkPage.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect(lightPage.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
+  await expect(darkPage.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
 
   const inLight = await tokens(lightPage);
   const inDark = await tokens(darkPage);
@@ -89,6 +89,32 @@ test('the first load shows a skeleton of what is coming, not a bare line of text
   expect(await loading.locator('[aria-hidden="true"]').count()).toBeGreaterThan(3);
 
   release();
-  await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /IndiaFOSS 2026/ })).toBeVisible();
   await expect(loading).toBeHidden();
+});
+
+test('2026 devroom artwork remains available after an offline reload', async ({
+  page,
+  context,
+}) => {
+  await page.goto(appUrl('/?setup=done'));
+  await expect(page.getByRole('heading', { name: 'Find your devroom' })).toBeVisible();
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  // The newly installed worker controls the next navigation (it need not
+  // claim the already-open first page).
+  await context.setOffline(true);
+  await page.reload();
+  const banners = page.locator('.devroom-grid img');
+  await expect(banners).toHaveCount(8);
+  for (const banner of await banners.all()) {
+    await banner.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() => banner.evaluate((img) => (img as HTMLImageElement).naturalWidth))
+      .toBeGreaterThan(0);
+  }
+  await expect(
+    page.getByRole('link', { name: 'Android Open Source Project (AOSP)', exact: true }),
+  ).toBeVisible();
 });

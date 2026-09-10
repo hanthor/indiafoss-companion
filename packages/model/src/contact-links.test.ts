@@ -24,7 +24,10 @@ describe('contactDeepLinks', () => {
     expect(links.map((l) => [l.kind, l.href])).toEqual([
       ['website', 'https://ada.example'],
       ['github', 'https://github.com/ada'],
-      ['matrix', 'https://matrix.to/#/%40ada%3Amatrix.org'],
+      // A `matrix:` URI, not a matrix.to permalink: matrix.to is a web page
+      // that redirects to a client, so with no venue internet it never reaches
+      // one. This scheme is resolved locally by the OS and works offline.
+      ['matrix', 'matrix:u/ada%3Amatrix.org?action=chat'],
       ['telegram', 'https://t.me/ada_l'],
       ['whatsapp', 'https://wa.me/919876543210'],
       ['signal', 'https://signal.me/#p/+919876543210'],

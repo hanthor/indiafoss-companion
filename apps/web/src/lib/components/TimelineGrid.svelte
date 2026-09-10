@@ -12,10 +12,12 @@
     activities,
     bundle,
     day,
+    plannedIds = new Set<string>(),
   }: {
     activities: Activity[];
     bundle: EventBundle;
     day: string;
+    plannedIds?: Set<string>;
   } = $props();
 
   // locationId -> activities, as a plain array of entries (kept non-reactive).
@@ -25,12 +27,15 @@
       // eslint-disable-next-line svelte/prefer-svelte-reactivity
       const groups = new Map<string, Activity[]>();
       for (const a of activities) {
-        if (!a.locationId) continue;
+        if (!a.locationId || !a.start || !a.end || Date.parse(a.end) <= Date.parse(a.start))
+          continue;
         const list = groups.get(a.locationId) ?? [];
         list.push(a);
         groups.set(a.locationId, list);
       }
-      return [...groups.entries()];
+      return [...groups.entries()].sort(([a], [b]) =>
+        a.localeCompare(b, undefined, { numeric: true }),
+      );
     })(),
   );
 
@@ -56,7 +61,8 @@
   const hours = $derived(
     (() => {
       const list: string[] = [];
-      const firstHour = Math.floor((dayStartMs - 330 * 60000) / 3600000) * 3600000;
+      const offset = 330 * 60000;
+      const firstHour = Math.ceil((dayStartMs + offset) / 3600000) * 3600000 - offset;
       for (let ms = firstHour; ms <= dayEndMs + 60000; ms += 3600000) {
         list.push(new Date(ms).toISOString());
       }
@@ -95,13 +101,25 @@
   const locationName = (id: string): string | undefined =>
     bundle.locations.find((l) => l.id === id)?.name;
 
-  const hourLabel = (iso: string): string => formatTime(iso);
+  const hourLabel = (iso: string): string =>
+    new Date(iso).toLocaleTimeString('en-GB', {
+      timeZone: bundle.timezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
 </script>
 
-<div class="timeline" style:--total-height="{totalHeight}px">
+<div
+  class="timeline"
+  role="region"
+  aria-label="Schedule by room and time"
+  tabindex="0"
+  style:--total-height="{totalHeight}px"
+>
   <div class="ruler">
     {#each hours as hour (hour)}
-      <div class="tick" style:top="{((Date.parse(hour) - dayStartMs) / 60000) * PPM}px">
+      <div class="tick" style:top="{((Date.parse(hour) - dayStartMs) / 60000) * PPM + 36}px">
         <span>{hourLabel(hour)}</span>
       </div>
     {/each}
@@ -109,13 +127,16 @@
 
   <div class="columns">
     {#each byLocation as [locId, acts] (locId)}
-      <div class="column" style:width="{COLUMN_WIDTH}px">
+      <div class="column" style:--column-width="{COLUMN_WIDTH}px">
         <h3 class="colhead">{locationName(locId) ?? locId}</h3>
         <div class="colbody">
           {#each layout(acts) as slot (slot.act.id)}
             <a
               class="cell"
+              class:planned={plannedIds.has(slot.act.id)}
               class:cancelled={slot.act.cancelled}
+              class:meal={slot.act.type === 'meal'}
+              aria-label={`${slot.act.title}, ${formatTime(slot.act.start!)}–${formatTime(slot.act.end!)}, ${locationName(locId)}`}
               href={resolve(`/activity/${slot.act.id}`)}
               style:top="{slot.top}px"
               style:height="{slot.height}px"
@@ -123,6 +144,7 @@
               style:width="{slot.width}%"
               title={slot.act.title}
             >
+              {#if plannedIds.has(slot.act.id)}<span class="planned-mark">Planned · </span>{/if}
               <strong>{slot.act.title}</strong>
             </a>
           {/each}
@@ -133,14 +155,26 @@
 </div>
 
 <style>
+  .cell.planned {
+    box-shadow: inset 3px 0 0 var(--mint);
+  }
+  .planned-mark {
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
   .timeline {
     display: flex;
     gap: 0;
-    overflow-x: auto;
+    overflow: auto;
+    max-height: 72vh;
+    position: relative;
     --total-height: 600px;
   }
   .ruler {
-    position: relative;
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    background: var(--surface);
     width: 56px;
     flex-shrink: 0;
     height: var(--total-height);
@@ -153,15 +187,6 @@
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
   }
-  .tick::after {
-    content: '';
-    position: absolute;
-    left: calc(100% + 4px);
-    top: 50%;
-    width: 9999px;
-    height: 1px;
-    background: color-mix(in srgb, var(--text-muted) 18%, transparent);
-  }
   .columns {
     display: flex;
     gap: 8px;
@@ -169,11 +194,27 @@
   }
   .column {
     flex-shrink: 0;
+    width: var(--column-width);
     border-left: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+  }
+  @media (min-width: 1024px) {
+    .timeline {
+      max-height: calc(100dvh - 21rem);
+      min-height: 24rem;
+    }
+    /* Rooms share the width equally; six of them fit a 1200px reading
+       column, and narrower screens scroll the region sideways as before. */
+    .column {
+      flex: 1 1 0;
+      width: auto;
+      min-width: 11rem;
+    }
   }
   .colhead {
     position: sticky;
     top: 0;
+    height: 36px;
+    box-sizing: border-box;
     background: var(--surface);
     z-index: 1;
     margin: 0;
@@ -188,6 +229,11 @@
   .colbody {
     position: relative;
     height: var(--total-height);
+  }
+  .cell.meal {
+    background: var(--surface-raised);
+    border-style: dashed;
+    color: var(--text-muted);
   }
   .cell {
     position: absolute;

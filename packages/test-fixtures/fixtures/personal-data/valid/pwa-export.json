@@ -1,0 +1,116 @@
+{
+  "format": "indiafoss-personal-data",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-09T01:00:00.000Z",
+  "events": [
+    {
+      "eventId": "indiafoss-2026",
+      "activities": [
+        {
+          "eventId": "indiafoss-2026",
+          "activityId": "talk-a",
+          "proposalId": "cfp-0"
+        },
+        {
+          "eventId": "indiafoss-2026",
+          "activityId": "talk-b",
+          "proposalId": "cfp-1"
+        }
+      ],
+      "sections": {
+        "preferences": [
+          {
+            "activityId": "talk-a",
+            "disposition": "must-attend",
+            "triage": "yes",
+            "rating": 1200,
+            "comparisons": 0,
+            "bookmarked": true
+          }
+        ],
+        "notes": [
+          {
+            "activityId": "talk-b",
+            "body": "ಕನ್ನಡ\nFollow up after the talk",
+            "updatedAt": "2026-09-09T01:00:00.000Z"
+          }
+        ],
+        "comparisons": [
+          {
+            "id": "comparison-1",
+            "activityA": "talk-a",
+            "activityB": "talk-b",
+            "createdAt": "2026-09-09T01:00:00.000Z",
+            "scoreA": 1
+          }
+        ],
+        "itinerary": {
+          "generatedAt": "2026-09-09T01:00:00.000Z",
+          "activityIds": [
+            "talk-a"
+          ]
+        },
+        "plans": [
+          {
+            "day": "2026-09-19",
+            "locked": [
+              "talk-a",
+              "custom-lunch"
+            ],
+            "removed": [
+              "talk-b"
+            ],
+            "replacements": {
+              "talk-b": "talk-a"
+            },
+            "customBlocks": [
+              {
+                "id": "custom-lunch",
+                "label": "Lunch with friends",
+                "start": "2026-09-19T12:00:00+05:30",
+                "end": "2026-09-19T12:30:00+05:30",
+                "flexible": true
+              }
+            ]
+          }
+        ],
+        "resolvedPlans": [
+          {
+            "day": "2026-09-19",
+            "activityIds": [
+              "talk-a"
+            ]
+          }
+        ],
+        "rooms": {
+          "prefs": {
+            "devroom": "stay"
+          },
+          "skipped": {
+            "other": [
+              "talk-b"
+            ]
+          }
+        },
+        "roomsDecided": true
+      }
+    }
+  ],
+  "contact": {
+    "profile": {
+      "fullName": "Asha",
+      "email": "asha@example.org",
+      "matrixId": "@asha:example.org",
+      "socials": {
+        "github": "https://github.com/asha"
+      }
+    },
+    "selection": {
+      "name": true,
+      "email": false,
+      "socials": {
+        "github": true
+      }
+    }
+  }
+}

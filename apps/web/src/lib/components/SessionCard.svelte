@@ -9,7 +9,13 @@
     activity,
     bundle,
     compactTime = false,
-  }: { activity: Activity; bundle: EventBundle; compactTime?: boolean } = $props();
+    planned = false,
+  }: {
+    activity: Activity;
+    bundle: EventBundle;
+    compactTime?: boolean;
+    planned?: boolean;
+  } = $props();
 
   const location = $derived(bundle.locations.find((l) => l.id === activity.locationId));
   const speakers = $derived(
@@ -33,7 +39,12 @@
   }
 </script>
 
-<article class="session" class:cancelled={activity.cancelled} class:compact={compactTime}>
+<article
+  class="session"
+  class:planned
+  class:cancelled={activity.cancelled}
+  class:compact={compactTime}
+>
   {#if !compactTime}
     <time class="times" datetime={activity.start}>
       {#if activity.start && activity.end}
@@ -55,6 +66,7 @@
     </p>
     <div class="chips">
       <TypeBadge type={activity.type} />
+      {#if planned}<span class="planned-mark">Planned</span>{/if}
       {#if activity.cancelled}<span class="chip cancelled">cancelled</span>{/if}
       {#if mustAttend}<span class="chip must">must attend</span>{/if}
     </div>
@@ -77,9 +89,19 @@
       onclick={onMustAttend}>MUST</button
     >
   </div>
+  {#if activity.scheduleNote}<p class="muted small" role="status">{activity.scheduleNote}</p>{/if}
 </article>
 
 <style>
+  .session.planned {
+    box-shadow: inset 3px 0 0 var(--mint);
+    padding-left: 0.65rem;
+  }
+  .planned-mark {
+    color: var(--mint-ink);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
   .session.compact {
     grid-template-columns: 1fr auto;
   }
