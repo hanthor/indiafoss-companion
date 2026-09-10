@@ -8,11 +8,12 @@ class ScheduleDiffTest {
     private fun act(id: String, title: String = id, start: String = "2025-09-20T10:00:00+05:30", room: String? = "audi-1", cancelled: Boolean = false) =
         Activity(id = id, title = title, start = start, end = "2025-09-20T10:30:00+05:30", locationId = room, cancelled = cancelled)
 
-    private fun bundle(vararg activities: Activity) = EventBundle(
+    private fun bundle(vararg activities: Activity, people: List<Person> = emptyList()) = EventBundle(
         id = "e", name = "E", timezone = "Asia/Kolkata",
         start = "2025-09-20T09:00:00+05:30", end = "2025-09-20T18:00:00+05:30",
         activities = activities.toList(),
         locations = listOf(Location("audi-1", "Audi 1"), Location("audi-2", "Audi 2")),
+        people = people,
     )
 
     @Test
@@ -104,18 +105,16 @@ class ScheduleDiffTest {
             act("cut", title = "Cut"), act("back", title = "Back", cancelled = true),
             act("named", title = "Old name"),
             act("spoken", title = "Spoken").copy(speakerIds = listOf("p1")),
+            people = listOf(Person("p1", "Asha Menon")),
         )
-        val next = EventBundle(
-            id = "e", name = "E", timezone = "Asia/Kolkata",
-            start = "2025-09-20T09:00:00+05:30", end = "2025-09-20T18:00:00+05:30",
-            activities = listOf(
-                act("cut", title = "Cut", cancelled = true), act("back", title = "Back"),
-                act("named", title = "New name"),
-                act("spoken", title = "Spoken").copy(speakerIds = listOf("p2", "p3")),
-                act("fresh", title = "Fresh"),
-            ),
-            locations = listOf(Location("audi-1", "Audi 1"), Location("audi-2", "Audi 2")),
-            people = listOf(Person("p1", "Asha Menon"), Person("p2", "Dev Rao")),
+        val next = bundle(
+            act("cut", title = "Cut", cancelled = true), act("back", title = "Back"),
+            act("named", title = "New name"),
+            act("spoken", title = "Spoken").copy(speakerIds = listOf("p2", "p3")),
+            act("fresh", title = "Fresh"),
+            // The speaker who left is named from the revision that had her;
+            // p3 is in neither bundle's people and falls back to the id.
+            people = listOf(Person("p2", "Dev Rao")),
         )
         assertEquals(
             listOf(
