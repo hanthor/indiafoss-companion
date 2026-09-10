@@ -11,6 +11,8 @@ plugins {
 val seedAssets = layout.buildDirectory.dir("generated/seed-assets")
 
 val copySeedBundle by tasks.registering(Copy::class) {
+    // These copied paths are also what makes a change outside apps/android
+    // rebuild this app in CI: see the `native` filter in .github/workflows/ci.yml.
     from(rootProject.file("../../../events/indiafoss-2026/normalized/event-bundle.json"))
     // The floor plans the web map draws, exported to JSON (`pnpm --filter @indiafoss/web floors`).
     from(rootProject.file("../../web/static/venues/indiafoss-2026/floors.json"))
