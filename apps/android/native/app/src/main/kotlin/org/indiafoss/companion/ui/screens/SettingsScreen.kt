@@ -55,11 +55,11 @@ fun SettingsScreen(
     onStopSimulation: () -> Unit = {},
     onDynamicColor: (Boolean) -> Unit = {},
     onCalendarSync: (Boolean) -> Unit = {},
-    onSetup: () -> Unit = {},
     onExportPersonalData: (android.net.Uri) -> Unit = {},
     onImportPersonalData: (android.net.Uri) -> Unit = {},
     onApplyImport: (Set<String>) -> Unit = {},
     onCancelImport: () -> Unit = {},
+    onSetup: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
