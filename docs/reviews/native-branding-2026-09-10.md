@@ -32,8 +32,7 @@ wallpaper.
 
 Warning and error stay amber and red under every scheme; nothing semantic is
 brand green. `--mint` itself is not used for text: the PWA's white-on-mint
-button measures 2.7:1, so native fills buttons with `--mint-ink` (11:1 on
-white) and keeps the brighter green for the rule and the launcher.
+button measures 2.7:1, so native fills buttons with `--mint-ink` (10.2:1) and keeps the brighter green for the rule and the launcher.
 
 ### Where the palette is fixed
 
@@ -102,10 +101,12 @@ masthead and welcome hero stay ink and mint, which is the intended split.
   buttons squeezing "Not now" to one letter per line; they flow onto a
   second row now. The masthead eyebrow wraps onto two lines and remains
   readable; nothing clips.
-- Contrast, computed from the tokens: body text 15.7:1 (light) and 15.1:1
-  (dark) on paper; muted text 8.6:1 / 9.9:1; `primary` on paper 9.5:1 /
-  10.6:1; eyebrow green on the ink surface 10.3:1; mono metadata is set in
-  `onSurfaceVariant`, never faint. These are computed values, not
+- Contrast, computed from the tokens (WCAG relative luminance): body text
+  16.2:1 (light) and 16.9:1 (dark) on paper; muted text 7.8:1 / 11.5:1;
+  `primary` on paper 8.9:1 / 11.9:1; the eyebrow green on the ink surface
+  11.2:1; white on a mint-ink button 10.2:1 (white on the bright mint would
+  be 2.7:1, which is why mint is never a text or button fill). Mono metadata
+  is set in `onSurfaceVariant`, never faint. These are computed values, not
   measurements of the rendered frames.
 - Devroom art carries no meaning and no content description; the track chip
   and card title remain the accessible name.
