@@ -21,7 +21,7 @@ val copySeedBundle by tasks.registering(Copy::class) {
 
 android {
     namespace = "org.indiafoss.companion"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "org.indiafoss.companion.nativeapp"
