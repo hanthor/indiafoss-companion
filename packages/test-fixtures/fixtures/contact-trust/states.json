@@ -1,0 +1,314 @@
+{
+  "describes": "Trust states a contact screen must keep apart (#31, #188). Each case is a stored contact record (the fields that matter) and the separate conclusions every platform must draw from it. No case may produce `verified` for the account or the chat line: nothing in either app holds cross-signing evidence.",
+  "vocabulary": {
+    "signature": ["valid", "invalid", "unsigned", "key-changed"],
+    "account": ["claimed", "profile-matched"],
+    "profile": ["no-claim", "unchecked", "profile-matched", "mismatch", "unlinked", "outdated"],
+    "inPerson": ["confirmed", "confirmed-earlier-key", "unconfirmed", "no-badge"],
+    "chat": ["not-verified"],
+    "routes": ["mesh", "matrix"]
+  },
+  "cases": [
+    {
+      "name": "unsigned-card-from-another-app",
+      "describes": "a plain vCard from a camera app: no key, no accounts, no route",
+      "record": { "fullName": "Riya", "verified": false, "socials": {} },
+      "expect": {
+        "signature": "unsigned",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "no-claim",
+        "inPerson": "no-badge",
+        "chat": "not-verified",
+        "routes": []
+      }
+    },
+    {
+      "name": "signed-card-signature-valid",
+      "describes": "a valid signature proves control of the card key and nothing else",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f"
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "no-claim",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": []
+      }
+    },
+    {
+      "name": "signed-card-bad-signature",
+      "describes": "an altered or re-encoded card",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "invalid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f"
+      },
+      "expect": {
+        "signature": "invalid",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "no-claim",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": []
+      }
+    },
+    {
+      "name": "key-changed-since-earlier-card",
+      "describes": "same person, different key: flagged, never silently replaced",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "keyChanged": true,
+        "fingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+        "previousFingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f"
+      },
+      "expect": {
+        "signature": "key-changed",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "no-claim",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": []
+      }
+    },
+    {
+      "name": "account-link-claimed-not-checked",
+      "describes": "a card naming both ids, before any profile read: a claim, with routes that may or may not work",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e"
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "profile-confirmed",
+      "describes": "the homeserver's public profile names the card's mesh id: profile-matched, never verified",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "meshLink": { "state": "profile-matched", "checkedAt": 1758000000000 }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "profile-matched",
+        "contradiction": false,
+        "profile": "profile-matched",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "profile-mismatch",
+      "describes": "the profile names a different mesh id: a contradiction, shown as such, not flattened into claimed",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "meshLink": { "state": "mismatch", "checkedAt": 1758000000000 }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "contradiction": true,
+        "profile": "mismatch",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "profile-unlinked",
+      "describes": "the profile carries no mesh id at all",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "meshLink": { "state": "unlinked", "checkedAt": 1758000000000 }
+      },
+      "expect": {
+        "signature": "unsigned",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "unlinked",
+        "inPerson": "no-badge",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "profile-outdated",
+      "describes": "one identity is a shape this build does not recognise (#160): asked again, not accused",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "meshLink": { "state": "outdated", "checkedAt": 1758000000000 }
+      },
+      "expect": {
+        "signature": "unsigned",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "outdated",
+        "inPerson": "no-badge",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "profile-unverifiable",
+      "describes": "the homeserver could not be reached: still a claim",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "meshLink": { "state": "unverifiable", "checkedAt": 1758000000000 }
+      },
+      "expect": {
+        "signature": "unsigned",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "no-badge",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "in-person-confirmed",
+      "describes": "the attendee compared badges and said they matched: a fact about the card key, not the accounts",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "meshLink": { "state": "profile-matched", "checkedAt": 1758000000000 },
+        "inPersonConfirmed": {
+          "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+          "at": "2026-09-19T11:00:00.000Z"
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "profile-matched",
+        "contradiction": false,
+        "profile": "profile-matched",
+        "inPerson": "confirmed",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "in-person-confirmed-for-earlier-key",
+      "describes": "a confirmation is bound to the key it was made for; a new key does not inherit it",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "1111111111111111111111111111111111111111111111111111111111111111",
+        "inPersonConfirmed": {
+          "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+          "at": "2026-09-19T11:00:00.000Z"
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "no-claim",
+        "inPerson": "confirmed-earlier-key",
+        "chat": "not-verified",
+        "routes": []
+      }
+    },
+    {
+      "name": "mesh-only-card",
+      "describes": "a mesh id with no public Matrix id: one route, no account link to check",
+      "record": {
+        "fullName": "Dev",
+        "verified": false,
+        "socials": {},
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e"
+      },
+      "expect": {
+        "signature": "unsigned",
+        "account": "claimed",
+        "contradiction": false,
+        "profile": "no-claim",
+        "inPerson": "no-badge",
+        "chat": "not-verified",
+        "routes": ["mesh"]
+      }
+    },
+    {
+      "name": "adversarial-someone-elses-mxid-on-a-self-signed-card",
+      "describes": "a valid signature over somebody else's MXID earns nothing above claimed; even a profile match is only profile-matched (#188)",
+      "record": {
+        "fullName": "Mallory as Alice",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "2222222222222222222222222222222222222222222222222222222222222222",
+        "matrixId": "@alice:matrix.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "accountTrust": "verified",
+        "meshLink": { "state": "profile-matched", "checkedAt": 1758000000000 }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "profile-matched",
+        "contradiction": false,
+        "profile": "profile-matched",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": ["mesh", "matrix"]
+      }
+    }
+  ]
+}

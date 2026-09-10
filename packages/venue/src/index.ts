@@ -49,6 +49,12 @@ export interface VenueLocationRef {
 
 export interface VenueMetadata {
   locations: Record<string, VenueLocationRef>;
+  /**
+   * True while the graph is a best-effort draft: structurally validated, but
+   * its distances and walk times have not been paced on site. The route
+   * review checklist removes the flag once the venue team signs off.
+   */
+  _draft?: boolean;
 }
 
 export type RoutingProfile = 'fastest' | 'accessible' | 'avoid-stairs';

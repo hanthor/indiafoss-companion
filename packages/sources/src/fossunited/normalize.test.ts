@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { isValidEventBundle } from '@indiafoss/model';
-import { frappeDateTimeToIso, normalizeFossUnited, slugify, toIsoInKolkata } from './normalize.js';
+import {
+  classifyOrganiserSession,
+  frappeDateTimeToIso,
+  normalizeFossUnited,
+  slugify,
+  toIsoInKolkata,
+} from './normalize.js';
 import type { FosuEventDoc, FosuProposal, FosuSchedule } from './types.js';
 
 const event: FosuEventDoc = {
@@ -160,5 +166,133 @@ describe('normalizeFossUnited', () => {
 
   it('derives stable ids from upstream row names', () => {
     expect(bundle.activities.find((a) => a.sourceId === 'row-1')?.id).toBe('act-row-1');
+  });
+});
+
+describe('organiser-authored schedule rows (2026 source contract)', () => {
+  const row = (
+    name: string,
+    title: string,
+    extra: Partial<FosuSchedule[string][string][number]> = {},
+  ) => ({
+    name,
+    title,
+    scheduled_date: '2026-09-26',
+    start_time: '9:00:00',
+    end_time: '9:30:00',
+    hall: 'Hall 1',
+    category: 'Other',
+    other_category: 'Other',
+    linked_cfp: '',
+    cfp_speakers: [],
+    ...extra,
+  });
+  const organiserSchedule: FosuSchedule = {
+    '2026-09-26': {
+      'Hall 1': [
+        row('r-welcome', 'Welcome Note'),
+        row('r-opening', 'Opening Note'),
+        row('r-awards', 'FOSS Awards'),
+        row('r-photo', 'Group Photo'),
+        row('r-results', 'GB Election Results'),
+        row('r-closing', 'Closing Remarks, Feedback Session'),
+        row('r-intro', 'Devroom Intro: Open Hardware'),
+        row('r-wrap', 'Devroom Wrap-Up'),
+        row('r-whatsnew', "What's new at FOSS United Foundation"),
+        row('r-unconf', 'Unconference'),
+        row('r-short', 'Introduction to Rust', {
+          category: 'Talk',
+          other_category: '',
+          linked_cfp: 'prop-short',
+        }),
+      ],
+    },
+  };
+  const organiserEvent: FosuEventDoc = { ...event, route: 'c/indiafoss/2026' };
+  const shortTalk: FosuProposal = {
+    name: 'prop-short',
+    route: 'c/indiafoss/2026/cfp/prop-short',
+    talk_title: 'Introduction to Rust',
+    session_type: 'Talk',
+    session_categories: 'Community\nOther',
+    status: 'Approved',
+  };
+  const bundle = normalizeFossUnited({
+    eventId: 'indiafoss-2026',
+    event: organiserEvent,
+    schedule: organiserSchedule,
+    proposals: [shortTalk],
+  });
+  const byTitle = new Map(bundle.activities.map((a) => [a.title, a]));
+
+  it('classifies ceremonies and introductions by narrow title rules', () => {
+    for (const title of [
+      'Welcome Note',
+      'Opening Note',
+      'FOSS Awards',
+      'Group Photo',
+      'GB Election Results',
+      'Closing Remarks, Feedback Session',
+      'Devroom Wrap-Up',
+    ])
+      expect(byTitle.get(title)?.type, title).toBe('ceremony');
+    expect(byTitle.get('Devroom Intro: Open Hardware')?.type).toBe('intro');
+  });
+
+  it('keeps unrecognised organiser rows and genuine short talks as talks', () => {
+    expect(byTitle.get("What's new at FOSS United Foundation")?.type).toBe('talk');
+    expect(byTitle.get('Unconference')?.type).toBe('talk');
+    expect(byTitle.get('Introduction to Rust')?.type).toBe('talk');
+  });
+
+  it('never overrides a linked proposal or a specific other_category', () => {
+    expect(
+      classifyOrganiserSession({ title: 'FOSS Awards', linked_cfp: 'prop-x' }),
+    ).toBeUndefined();
+    expect(
+      classifyOrganiserSession({ title: 'Opening Note', category: 'Opening Note' }),
+    ).toBeUndefined();
+    expect(
+      classifyOrganiserSession({
+        title: 'Closing Note and Open Discussion',
+        category: 'Other',
+        other_category: 'Open House',
+      }),
+    ).toBeUndefined();
+    expect(classifyOrganiserSession({ title: 'Introduction to Rust' })).toBeUndefined();
+    expect(classifyOrganiserSession({ title: 'Writing a devroom introduction' })).toBeUndefined();
+  });
+
+  it('drops the "Other" placeholder from subtitles and tags', () => {
+    const awards = byTitle.get('FOSS Awards')!;
+    expect(awards.subtitle).toBeUndefined();
+    expect(awards.tags).toEqual([]);
+    expect(awards.speakerIds).toEqual([]);
+    expect(byTitle.get('Introduction to Rust')?.tags).toEqual(['Talk', 'Community']);
+    expect(bundle.activities.some((a) => a.tags.includes('Other'))).toBe(false);
+  });
+
+  it('links unlinked rows to the public schedule and proposals to their page', () => {
+    expect(byTitle.get('FOSS Awards')?.sourceUrl).toBe(
+      'https://fossunited.org/c/indiafoss/2026/schedule',
+    );
+    expect(byTitle.get('FOSS Awards')?.description).toBeUndefined();
+    expect(byTitle.get('Introduction to Rust')?.sourceUrl).toBe(
+      'https://fossunited.org/c/indiafoss/2026/cfp/prop-short',
+    );
+  });
+
+  it('leaves the archived 2025 contract unchanged', () => {
+    const legacy = normalizeFossUnited({
+      eventId: 'indiafoss-2025',
+      event: organiserEvent,
+      schedule: organiserSchedule,
+      proposals: [shortTalk],
+    });
+    const awards = legacy.activities.find((a) => a.title === 'FOSS Awards')!;
+    expect(awards.type).toBe('talk');
+    expect(awards.subtitle).toBe('Other');
+    expect(awards.tags).toEqual(['Other']);
+    expect(awards.sourceUrl).toBeUndefined();
   });
 });

@@ -90,9 +90,40 @@ shows it, falling back to the key badge; a broken link falls back too.
 - **The Matrix-id-to-mesh link is checked, not trusted (#111).** When a card
   carries both a Matrix id and a mesh node id, the app checks, once online,
   that the Matrix account's own public profile names that mesh id, and shows
-  "verified", "claimed" or "does not match" next to it. The check is one read
-  of a public profile from the account's homeserver; it sends nothing about
-  the contact or the conversation anywhere.
+  "Profile matches", "Claimed" or "Does not match" next to it. The check is
+  one read of a public profile from the account's homeserver; it sends nothing
+  about the contact or the conversation anywhere. A match is the homeserver's
+  word about its own user and is never shown as "Verified" (#188).
+
+## Trust states, kept apart (#31, #188)
+
+A contact screen shows four separate facts and never folds them into one
+badge. `deriveContactTrust()` in `apps/web/src/lib/contact-trust.ts` derives
+them from the stored record alone, and
+`packages/test-fixtures/fixtures/contact-trust/states.json` is the shared table
+of what each stored shape must produce.
+
+| Line             | States                                                                                                                                | What it proves                                                                                                                |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Card key**     | Card signed · badge _xxxx_ / Card signature invalid / Unsigned card / Key changed since an earlier card                               | The card came from a phone holding this key. Not who was holding the phone: a photographed QR carries the same signature.     |
+| **In person**    | Badge compared in person / … for an earlier key / Badge not compared in person / No badge to compare                                  | The attendee's own tap after comparing badges on `/connect/compare`. Bound to the fingerprint; a new key does not inherit it. |
+| **Account link** | Profile matches / Does not match / Account link claimed, not checked yet / … profile names no mesh id / Card predates a format change | Whether the Matrix account's public profile names the card's mesh id. The homeserver's word; at most `profile-matched`.       |
+| **Chat**         | Not verified in Chat                                                                                                                  | Matrix device verification. Nothing here can produce "Verified in Chat"; that branch exists and is unreachable (#188).        |
+
+Every record that arrives from somebody else — a scan, a shared link, an
+imported contact book — passes through `asReceivedRecord()` first: `verified`
+becomes `false`, `accountTrust` becomes `claimed`, and any in-person
+confirmation or profile observation in the file is dropped. A card cannot
+assert its own trust. Records written by builds that spelled a profile match
+`meshLink.state === 'verified'` read back as `profile-matched`
+(`migrateContactRecord()` in `@indiafoss/storage`).
+
+Opening a chat is a third, separate action. A web page cannot see which apps
+are installed, so each route button carries its caveat ("Opens IndiaFOSS Chat
+if it is installed and the mesh is up. This app cannot tell whether it is."),
+and a card with no Matrix or mesh id says "No known chat route" rather than
+offering a dead button. No route is ever chosen automatically (ADR 0006,
+gated on #188).
 
 ## vCard compatibility decisions
 
@@ -228,10 +259,16 @@ card carries `pk` (`alg:base64url`) and `sig` over its other fields.
 - This is a **handshake, not identity verification**: it proves the card was
   produced by the holder of a key, not who they are. Matrix cross-signing
   remains the authenticity mechanism for messaging, and every contact still
-  shows as unverified.
+  shows "Not verified in Chat".
+- **"Badges matched in person"** is the attendee's own statement, made on
+  `/connect/compare` or from a contact's detail panel after holding the
+  phones together. There is no channel by which one phone learns that the
+  other scanned it, so this is deliberately not a mutual-scan flag; it
+  records the comparison the attendee actually did, bound to the card key it
+  was done for.
 
 Ideas that build on the same primitives (not implemented): mutual-scan
-"met in person" confirmation, an NFC tap that writes the friend card to a
+confirmation carried over the mesh, an NFC tap that writes the friend card to a
 badge, and a local "hallway passport" that stamps sessions, booths and people
 you met into a shareable pixel-art card.
 

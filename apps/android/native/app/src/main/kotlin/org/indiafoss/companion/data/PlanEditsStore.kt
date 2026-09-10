@@ -30,8 +30,20 @@ data class StoredBlock(
     fun toBlock() = Itinerary.CustomBlock(id, label, start, end, durationMinutes, locationId)
 }
 
+/**
+ * Everything the attendee changed by hand, by stable id only (never by
+ * resolved time or room), the same shape as the PWA's `PlanEdits`: blocks of
+ * their own, sessions removed from the plan, and replacements chosen for a
+ * slot. Resolved against the current bundle by `ResolvedPlan` (#221).
+ */
 @Serializable
-data class PlanEdits(val blocks: List<StoredBlock> = emptyList())
+data class PlanEdits(
+    val blocks: List<StoredBlock> = emptyList(),
+    val removed: List<String> = emptyList(),
+    /** original activity id → replacement activity id. */
+    val replacements: Map<String, String> = emptyMap(),
+    val locked: List<String> = emptyList(),
+)
 
 /**
  * The attendee's own plan items (#110): custom blocks with a fixed time and
@@ -56,4 +68,9 @@ class PlanEditsStore(private val context: Context) {
     suspend fun addBlock(block: StoredBlock) = update { it.copy(blocks = it.blocks.filterNot { b -> b.id == block.id } + block) }
 
     suspend fun removeBlock(id: String) = update { it.copy(blocks = it.blocks.filterNot { b -> b.id == id }) }
+
+    /** "Remove" on a planned row: the session leaves the plan, the rating is untouched (no dislike is learnt from a slot). */
+    suspend fun removeSession(id: String) = update { if (id in it.removed) it else it.copy(removed = it.removed + id) }
+
+    suspend fun restoreSession(id: String) = update { it.copy(removed = it.removed.filterNot { r -> r == id }) }
 }

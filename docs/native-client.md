@@ -11,25 +11,69 @@ client renders natively rather than embedding a WebView.
 
 | Tab / route | State                                                                                                                                                                              |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Now         | live sessions with progress, up next                                                                                                                                               |
+| Now         | "Your plan now" (in progress / up next from the resolved plan, or its conflicts), then live sessions in every room with progress, then the programme's next session                |
 | Schedule    | per day, bookmark from the list                                                                                                                                                    |
-| My plan     | the day planned from must-attend, bookmarks and ratings (`Itinerary`); "Rank this day"                                                                                             |
+| My plan     | the day planned from must-attend, devroom stays, bookmarks and ratings (`Itinerary`) with removals and blocks layered on top (`ResolvedPlan`); remove/restore; "Rank this day"     |
 | Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
 | Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                        |
-| Map         | rooms and what is on in each (the floor plan is not drawn natively yet)                                                                                                            |
+| Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                    |
 | Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                                                              |
 | Session     | detail, bookmark, must attend                                                                                                                                                      |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
-plan whenever bookmarks, must-attend marks or the bundle change, so a change
-of plan cancels alarms that no longer apply; `ReminderReceiver` posts the
+resolved plan whenever anything feeding it changes — bookmarks, must-attend
+marks, ratings, devroom stays, blocks, removals, the bundle — and reconciled
+with what was armed before (`Reminders.reconcile`): an entry that left the
+plan has its alarm cancelled, an unchanged one is re-set under the same id,
+so a refresh or a restart never arms it twice. `ReminderReceiver` posts the
 notification. Ratings, answered pairs and room preferences live in
 `RatingsStore` as one JSON document in DataStore.
 
-Every tab carries the leave-by banner under its app bar: the next session
-that matters (must attend, then the earliest bookmark, then the programme's
-next talk, never a break) counting down, tertiary-coloured within five
-minutes.
+Every tab carries the leave-by banner under its app bar: the next item in
+the resolved plan counting down, tertiary-coloured within five minutes. When
+the plan has a blocking conflict the banner says so and opens the plan.
+
+## The resolved plan (#221)
+
+`ResolvedPlan` (in `core`) is the one projection Now, the map destination,
+the banner, the calendar export and the reminders read, the counterpart of
+the PWA's `resolveDayPlan` + `applyItineraryEdits`. It is resolved from the
+current bundle every time, never from a cached list of planned ids: the
+greedy base (`Itinerary.forDay` — fixed blocks, devroom stays, must-attend,
+bookmarks, then the best-rated free session, one lunch gap) with the saved
+edits (`PlanEditsStore`: blocks, removals, replacements) layered on top.
+A retimed session moves with the bundle, a cancelled one leaves and comes
+back when reinstated, a replacement that left the schedule is a conflict.
+
+Conflicts are explicit and block the plan: overlapping must-attend choices,
+a devroom stay clashing with a must-go, overlapping blocks, an unknown
+replacement. An infeasible day names no current/next item, no destination
+and no reminders until it is resolved — the same rule as the PWA.
+
+Deliberate differences from the PWA, rather than claims of identical output:
+
+- **Base solver.** The PWA runs the DAG solver with travel/buffer
+  constraints; native keeps the greedy `Itinerary`, which places sessions
+  back to back. The two can pick different ranked fillers for the same
+  ratings. Explicit choices (must-attend, stays, bookmarks, blocks,
+  removals) resolve the same way on both.
+- **Tight transfers are warnings, not conflicts.** The PWA's
+  `travel-buffer` conflict makes a plan infeasible; the native base would
+  trip it on most days, so `ResolvedPlan.ConflictKind.TRAVEL` (not enough
+  walk time between two rooms, only when the walk is known) is shown beside
+  the plan and does not block Now, the map or the reminders.
+- **Every planned item gets reminders.** As on the web, an item in a
+  feasible plan is planned-tier (must-attend where marked), including the
+  programme's ranked pick for a slot and blocks of your own; earlier native
+  builds only alerted for bookmarks and must-attend.
+- **Replacements have no native UI yet.** The store and the projection
+  handle `replacements` (tested in `ResolvedPlanTest`), but the Plan screen
+  offers remove/restore only; locking is stored but unused.
+- **"Remove" does not learn dislike.** It records a removal by id; the
+  rating is untouched. The old "Not this one" marked the talk not
+  interested.
+- **Day boundaries.** Native reads the venue day from `now` in the event's
+  fixed offset (`IsoClock`), the PWA from `Intl` with the event timezone.
 
 Walk times come from the venue graph (`venue.graph.json` and
 `venue.metadata.json`, shipped in assets; `Routing` is the web package's
@@ -43,8 +87,7 @@ screen from a launch or a running app.
 Native feel: edge-to-edge, predictive back, pull-to-refresh on Now, the
 system share sheet for cards and calendars, Material You colour.
 
-Not native yet: custom plan blocks, booth-visit goals, the day simulator,
-the optional P2P chat.
+Not native yet: plan replacements UI, the optional P2P chat.
 
 ## Layout
 

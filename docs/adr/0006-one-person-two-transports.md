@@ -36,9 +36,10 @@ Three facts constrain any answer, and together they determine it:
 3. **A public profile link exists; a cryptographic identity binding does not.**
    The current `packages/matrix/src/mesh-link.ts` discovers the homeserver,
    fetches `/profile/{matrixId}` and compares its `in.indiafoss.mesh` string
-   with the claimed mesh node ID. Its legacy result name `verified` means
-   that these profile strings match. It does not sign a binding statement or
-   verify Matrix device keys through `/keys/query`. The contact card's own
+   with the claimed mesh node ID. That result is now named `profile-matched`
+   (its legacy spelling `verified` meant only that these profile strings
+   match, and stored records are migrated on read). It does not sign a binding
+   statement or verify Matrix device keys through `/keys/query`. The contact card's own
    signature/key badge proves possession of that card key, not ownership of
    both Matrix accounts.
 

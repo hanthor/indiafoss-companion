@@ -196,247 +196,256 @@
   </div>
   {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
 
-  <section class="mustlist" aria-labelledby="must-title">
-    <h2 id="must-title">★ Must attend</h2>
-    {#if mustAttend.length === 0}
-      <p class="muted small">
-        Nothing yet. Mark a talk <strong>★ Must attend</strong> on its page or with the
-        <strong>MUST</strong> mark on the schedule to pin it here with extra reminders.
-      </p>
-    {:else}
-      <p class="muted small">
-        Pinned in your plan. Extra reminders {MUST_ATTEND_HEADS_UP_MINUTES} min before, when it is time
-        to leave, and as each starts (switch reminders on in Settings).
-      </p>
-      <ol>
-        {#each mustAttend as a (a.id)}
-          <li>
-            <time datetime={a.start}>
-              {#if a.start}{formatDayLabel(a.start.slice(0, 10))} {formatTime(a.start)}{/if}
-            </time>
-            <span class="what">
-              <a href={resolve(`/activity/${a.id}`)}>{a.title}</a>
-              {#if roomName(a.locationId)}<small>{roomName(a.locationId)}</small>{/if}
-            </span>
-            <button
-              class="unmust"
-              aria-label="Remove {a.title} from must attend"
-              onclick={() => setDisposition(a.id, 'normal')}>Remove</button
-            >
-          </li>
-        {/each}
-      </ol>
-    {/if}
-  </section>
-
-  {#if solving}
-    <p role="status">Computing your best day…</p>
-  {:else if result && edited}
-    {#if result.mustAttendConflicts.length > 0}
-      <section class="conflict" role="alert">
-        <h2>Your must-go or devroom choices conflict</h2>
-        {#each result.mustAttendConflicts as c (c.a + c.b)}
-          <p>
-            <strong>{activityTitle(c.a)}</strong> and <strong>{activityTitle(c.b)}</strong> cannot both
-            fit.
+  <div class="plan-layout">
+    <div class="plan-main">
+      <section class="mustlist" aria-labelledby="must-title">
+        <h2 id="must-title">★ Must attend</h2>
+        {#if mustAttend.length === 0}
+          <p class="muted small">
+            Nothing yet. Mark a talk <strong>★ Must attend</strong> on its page or with the
+            <strong>MUST</strong> mark on the schedule to pin it here with extra reminders.
           </p>
-        {/each}
-        <a href={resolve('/plan/rank')}>[Compare]</a>
-      </section>
-    {/if}
-
-    {#if edited.conflicts.length > 0}
-      <section class="conflict warn" role="alert" data-testid="edit-conflicts">
-        <h2>Some plan items conflict</h2>
-        <p class="muted small">
-          These items stay in your plan so you can fix them — nothing was silently removed.
-        </p>
-        <ul>
-          {#each edited.conflicts as conflict, i (conflict.a + (conflict.b ?? '') + i)}
-            <li>{conflict.message}</li>
-          {/each}
-        </ul>
-      </section>
-    {/if}
-
-    {#if edited.items.length > 0}
-      <ol class="itinerary">
-        {#each edited.items as item (item.id)}
-          <li class:flex={item.flexible} class:locked={item.locked} class:manual={item.manual}>
-            <time>{formatTime(item.start)}–{formatTime(item.end)}</time>
-            <div class="body">
-              <div class="titleline">
-                {#if item.flexible || isCustom(item.id)}
-                  <span class="flabel">{item.label ?? 'Flexible time'}</span>
-                {:else}
-                  <a href={resolve(`/activity/${item.id}`)}
-                    >{item.label ?? activityTitle(item.id)}</a
-                  >
-                {/if}
-                {#if item.locked}<span class="badge" title="Locked">Locked</span>{/if}
-                {#if item.replacedActivityId}<span class="badge alt">replaced</span>{/if}
-              </div>
-              {#if item.locationId}
-                <span class="loc">{locationName(item.locationId)}</span>
-              {/if}
-
-              {#if !item.flexible || isCustom(item.id)}
-                <details
-                  class="adjust"
-                  open={adjustOpen.has(item.id)}
-                  ontoggle={(e) => {
-                    if (e.currentTarget.open) adjustOpen.add(item.id);
-                    else adjustOpen.delete(item.id);
-                  }}
+        {:else}
+          <p class="muted small">
+            Pinned in your plan. Extra reminders {MUST_ATTEND_HEADS_UP_MINUTES} min before, when it is
+            time to leave, and as each starts (switch reminders on in Settings).
+          </p>
+          <ol>
+            {#each mustAttend as a (a.id)}
+              <li>
+                <time datetime={a.start}>
+                  {#if a.start}{formatDayLabel(a.start.slice(0, 10))} {formatTime(a.start)}{/if}
+                </time>
+                <span class="what">
+                  <a href={resolve(`/activity/${a.id}`)}>{a.title}</a>
+                  {#if roomName(a.locationId)}<small>{roomName(a.locationId)}</small>{/if}
+                </span>
+                <button
+                  class="unmust"
+                  aria-label="Remove {a.title} from must attend"
+                  onclick={() => setDisposition(a.id, 'normal')}>Remove</button
                 >
-                  <summary>Adjust</summary>
-                  <div class="rowcontrols">
-                    {#if !isCustom(item.id)}
-                      <button
-                        class="chip"
-                        aria-pressed={item.locked}
-                        onclick={() => toggleLock(item.id)}
-                      >
-                        {item.locked ? 'Unlock' : 'Lock'}
-                      </button>
-                      <button
-                        class="chip"
-                        onclick={() => removeItem(item.replacedActivityId ?? item.id)}
-                      >
-                        Remove
-                      </button>
-                      {#if item.replacedActivityId}
-                        <button
-                          class="chip"
-                          onclick={() => clearReplacement(item.replacedActivityId!)}
-                        >
-                          Undo replace
-                        </button>
-                      {/if}
-                    {:else}
-                      <button
-                        class="chip"
-                        aria-pressed={item.locked}
-                        onclick={() => toggleLock(item.id)}
-                      >
-                        {item.locked ? 'Unlock' : 'Lock'}
-                      </button>
-                      <button class="chip" onclick={() => removeCustomBlock(item.id)}>Delete</button
-                      >
-                    {/if}
-                  </div>
-
-                  {#if !item.flexible && !isCustom(item.id)}
-                    {@const backups = backupsFor(item.replacedActivityId ?? item.id)}
-                    {#if backups.length > 0}
-                      <label class="replace">
-                        <span class="sr-only">Replace with a backup</span>
-                        <select
-                          onchange={(e) => {
-                            const v = e.currentTarget.value;
-                            if (v) void replaceItem(item.replacedActivityId ?? item.id, v);
-                            e.currentTarget.value = '';
-                          }}
-                        >
-                          <option value="">Replace with backup…</option>
-                          {#each backups as backupId (backupId)}
-                            <option value={backupId}>{activityTitle(backupId)}</option>
-                          {/each}
-                        </select>
-                      </label>
-                    {/if}
-                  {/if}
-                </details>
-              {/if}
-            </div>
-          </li>
-        {/each}
-      </ol>
-      <p class="muted small">
-        {edited.items.length} slots ·
-        {edited.feasible ? 'No conflicts' : `${edited.conflicts.length} conflict(s) to resolve`}
-      </p>
-    {:else if result.mustAttendConflicts.length === 0}
-      <p class="muted">No sessions scheduled for this day yet. Add a block below.</p>
-    {/if}
-
-    {#if stoodAside.length > 0}
-      <section class="removed" data-testid="stood-aside">
-        <h2>Stood aside</h2>
-        <p class="muted small">
-          Talks you were interested in that lost a clash. They are not dislikes; reconsider one to
-          put it back in the running.
-        </p>
-        <ul>
-          {#each stoodAside as row (row.activity.id)}
-            <li>
-              <span
-                ><a href={resolve(`/activity/${row.activity.id}`)}>{row.activity.title}</a>
-                <small class="muted">stood aside for {row.winner.title}</small></span
-              >
-              <button class="chip" onclick={() => setYieldedTo(row.activity.id, undefined)}
-                >Reconsider</button
-              >
-            </li>
-          {/each}
-        </ul>
-      </section>
-    {/if}
-
-    {#if planEdits.edits.removed.length > 0}
-      <section class="removed">
-        <h2>Removed</h2>
-        <ul>
-          {#each planEdits.edits.removed as id (id)}
-            <li>
-              <span>{isCustom(id) ? 'Custom block' : (activityTitle(id) ?? id)}</span>
-              {#if !isCustom(id)}
-                <button class="chip" onclick={() => restoreItem(id)}>Restore</button>
-              {/if}
-            </li>
-          {/each}
-        </ul>
-      </section>
-    {/if}
-
-    <section class="add-block">
-      <h2>Add a block</h2>
-      <form
-        onsubmit={(event) => {
-          event.preventDefault();
-          void submitCustomBlock();
-        }}
-      >
-        <label>
-          What
-          <input bind:value={blockLabel} placeholder="Lunch with the KDE folks" required />
-        </label>
-        <div class="times">
-          <label>
-            Start
-            <input type="time" bind:value={blockStart} required />
-          </label>
-          <label>
-            End
-            <input type="time" bind:value={blockEnd} required />
-          </label>
-        </div>
-        <label>
-          Where (optional)
-          <select bind:value={blockLocation}>
-            <option value="">No location</option>
-            {#each bundle.locations as loc (loc.id)}
-              <option value={loc.id}>{loc.name}</option>
+              </li>
             {/each}
-          </select>
-        </label>
-        <label class="check">
-          <input type="checkbox" bind:checked={blockFlexible} /> Flexible (no travel check)
-        </label>
-        <button class="calendar" type="submit">Add block</button>
-      </form>
-    </section>
-  {/if}
+          </ol>
+        {/if}
+      </section>
+
+      {#if solving}
+        <p role="status">Computing your best day…</p>
+      {:else if result && edited}
+        {#if result.mustAttendConflicts.length > 0}
+          <section class="conflict" role="alert">
+            <h2>Your must-go or devroom choices conflict</h2>
+            {#each result.mustAttendConflicts as c (c.a + c.b)}
+              <p>
+                <strong>{activityTitle(c.a)}</strong> and <strong>{activityTitle(c.b)}</strong> cannot
+                both fit.
+              </p>
+            {/each}
+            <a href={resolve('/plan/rank')}>[Compare]</a>
+          </section>
+        {/if}
+
+        {#if edited.conflicts.length > 0}
+          <section class="conflict warn" role="alert" data-testid="edit-conflicts">
+            <h2>Some plan items conflict</h2>
+            <p class="muted small">
+              These items stay in your plan so you can fix them — nothing was silently removed.
+            </p>
+            <ul>
+              {#each edited.conflicts as conflict, i (conflict.a + (conflict.b ?? '') + i)}
+                <li>{conflict.message}</li>
+              {/each}
+            </ul>
+          </section>
+        {/if}
+
+        {#if edited.items.length > 0}
+          <ol class="itinerary">
+            {#each edited.items as item (item.id)}
+              <li class:flex={item.flexible} class:locked={item.locked} class:manual={item.manual}>
+                <time>{formatTime(item.start)}–{formatTime(item.end)}</time>
+                <div class="body">
+                  <div class="titleline">
+                    {#if item.flexible || isCustom(item.id)}
+                      <span class="flabel">{item.label ?? 'Flexible time'}</span>
+                    {:else}
+                      <a href={resolve(`/activity/${item.id}`)}
+                        >{item.label ?? activityTitle(item.id)}</a
+                      >
+                    {/if}
+                    {#if item.locked}<span class="badge" title="Locked">Locked</span>{/if}
+                    {#if item.replacedActivityId}<span class="badge alt">replaced</span>{/if}
+                  </div>
+                  {#if item.locationId}
+                    <span class="loc">{locationName(item.locationId)}</span>
+                  {/if}
+
+                  {#if !item.flexible || isCustom(item.id)}
+                    <details
+                      class="adjust"
+                      open={adjustOpen.has(item.id)}
+                      ontoggle={(e) => {
+                        if (e.currentTarget.open) adjustOpen.add(item.id);
+                        else adjustOpen.delete(item.id);
+                      }}
+                    >
+                      <summary>Adjust</summary>
+                      <div class="rowcontrols">
+                        {#if !isCustom(item.id)}
+                          <button
+                            class="chip"
+                            aria-pressed={item.locked}
+                            onclick={() => toggleLock(item.id)}
+                          >
+                            {item.locked ? 'Unlock' : 'Lock'}
+                          </button>
+                          <button
+                            class="chip"
+                            onclick={() => removeItem(item.replacedActivityId ?? item.id)}
+                          >
+                            Remove
+                          </button>
+                          {#if item.replacedActivityId}
+                            <button
+                              class="chip"
+                              onclick={() => clearReplacement(item.replacedActivityId!)}
+                            >
+                              Undo replace
+                            </button>
+                          {/if}
+                        {:else}
+                          <button
+                            class="chip"
+                            aria-pressed={item.locked}
+                            onclick={() => toggleLock(item.id)}
+                          >
+                            {item.locked ? 'Unlock' : 'Lock'}
+                          </button>
+                          <button class="chip" onclick={() => removeCustomBlock(item.id)}
+                            >Delete</button
+                          >
+                        {/if}
+                      </div>
+
+                      {#if !item.flexible && !isCustom(item.id)}
+                        {@const backups = backupsFor(item.replacedActivityId ?? item.id)}
+                        {#if backups.length > 0}
+                          <label class="replace">
+                            <span class="sr-only">Replace with a backup</span>
+                            <select
+                              onchange={(e) => {
+                                const v = e.currentTarget.value;
+                                if (v) void replaceItem(item.replacedActivityId ?? item.id, v);
+                                e.currentTarget.value = '';
+                              }}
+                            >
+                              <option value="">Replace with backup…</option>
+                              {#each backups as backupId (backupId)}
+                                <option value={backupId}>{activityTitle(backupId)}</option>
+                              {/each}
+                            </select>
+                          </label>
+                        {/if}
+                      {/if}
+                    </details>
+                  {/if}
+                </div>
+              </li>
+            {/each}
+          </ol>
+          <p class="muted small">
+            {edited.items.length} slots ·
+            {edited.feasible ? 'No conflicts' : `${edited.conflicts.length} conflict(s) to resolve`}
+          </p>
+        {:else if result.mustAttendConflicts.length === 0}
+          <p class="muted">No sessions scheduled for this day yet. Add a block below.</p>
+        {/if}
+      {/if}
+    </div>
+
+    {#if !solving && result && edited}
+      <aside class="plan-side" aria-label="Plan tools">
+        {#if stoodAside.length > 0}
+          <section class="removed" data-testid="stood-aside">
+            <h2>Stood aside</h2>
+            <p class="muted small">
+              Talks you were interested in that lost a clash. They are not dislikes; reconsider one
+              to put it back in the running.
+            </p>
+            <ul>
+              {#each stoodAside as row (row.activity.id)}
+                <li>
+                  <span
+                    ><a href={resolve(`/activity/${row.activity.id}`)}>{row.activity.title}</a>
+                    <small class="muted">stood aside for {row.winner.title}</small></span
+                  >
+                  <button class="chip" onclick={() => setYieldedTo(row.activity.id, undefined)}
+                    >Reconsider</button
+                  >
+                </li>
+              {/each}
+            </ul>
+          </section>
+        {/if}
+
+        {#if planEdits.edits.removed.length > 0}
+          <section class="removed">
+            <h2>Removed</h2>
+            <ul>
+              {#each planEdits.edits.removed as id (id)}
+                <li>
+                  <span>{isCustom(id) ? 'Custom block' : (activityTitle(id) ?? id)}</span>
+                  {#if !isCustom(id)}
+                    <button class="chip" onclick={() => restoreItem(id)}>Restore</button>
+                  {/if}
+                </li>
+              {/each}
+            </ul>
+          </section>
+        {/if}
+
+        <section class="add-block">
+          <h2>Add a block</h2>
+          <form
+            onsubmit={(event) => {
+              event.preventDefault();
+              void submitCustomBlock();
+            }}
+          >
+            <label>
+              What
+              <input bind:value={blockLabel} placeholder="Lunch with the KDE folks" required />
+            </label>
+            <div class="times">
+              <label>
+                Start
+                <input type="time" bind:value={blockStart} required />
+              </label>
+              <label>
+                End
+                <input type="time" bind:value={blockEnd} required />
+              </label>
+            </div>
+            <label>
+              Where (optional)
+              <select bind:value={blockLocation}>
+                <option value="">No location</option>
+                {#each bundle.locations as loc (loc.id)}
+                  <option value={loc.id}>{loc.name}</option>
+                {/each}
+              </select>
+            </label>
+            <label class="check">
+              <input type="checkbox" bind:checked={blockFlexible} /> Flexible (no travel check)
+            </label>
+            <button class="calendar" type="submit">Add block</button>
+          </form>
+        </section>
+      </aside>
+    {/if}
+  </div>
 </EventGate>
 
 <style>
@@ -452,6 +461,35 @@
     height: 1px;
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
+  }
+  /* Phone: the wrappers are not boxes, so the page reads top to bottom as
+     before. Desktop (issue 205): the itinerary keeps a reading width on the left
+     and the editing tools sit beside it instead of a screen below. */
+  .plan-layout,
+  .plan-main,
+  .plan-side {
+    display: contents;
+  }
+  @media (min-width: 1024px) {
+    .plan-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 22rem;
+      gap: 0 2.5rem;
+      align-items: start;
+    }
+    .plan-main {
+      display: block;
+      min-width: 0;
+    }
+    .plan-side {
+      display: block;
+      position: sticky;
+      top: calc(var(--appbar-height) + var(--safe-top) + 1rem);
+    }
+    .plan-side .add-block,
+    .plan-side .removed {
+      margin-top: 0.5rem;
+    }
   }
   .days {
     display: flex;

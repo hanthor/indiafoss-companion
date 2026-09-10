@@ -208,6 +208,27 @@ describe('contacts', () => {
     await storage.deleteContact('c2');
     expect((await storage.listContacts()).map((c) => c.id)).toEqual(['c1']);
   });
+
+  it('reads a profile match saved by an older build as profile-matched, not verified (#188)', async () => {
+    // Builds before the trust split spelled the profile comparison `verified`.
+    // The attendee who saved that card last week keeps it, and it comes back
+    // under the honest name rather than as a verification.
+    await db.contacts.put({
+      id: 'legacy',
+      vcard: '',
+      fullName: 'Legacy',
+      socials: {},
+      verified: false,
+      savedAt: '2026-09-01T00:00:00Z',
+      matrixId: '@legacy:example.org',
+      neutrinoServerName: 'ab'.repeat(32),
+      meshLink: { state: 'verified' as unknown as 'profile-matched', checkedAt: 1 },
+    });
+    const [contact] = await storage.listContacts();
+    expect(contact?.fullName).toBe('Legacy');
+    expect(contact?.meshLink).toEqual({ state: 'profile-matched', checkedAt: 1 });
+    expect(contact?.verified).toBe(false);
+  });
 });
 
 describe('atomic event revisions', () => {
