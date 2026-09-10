@@ -6,6 +6,7 @@ import {
   computeNowState,
   FixedClock,
   describeChangeCount,
+  describeChanges,
   diffBundles,
   formatDayLabel,
   formatTime,
@@ -268,6 +269,279 @@ describe('describeChangeCount', () => {
         { activityId: 'c', title: 'C', type: 'cancelled' },
       ]),
     ).toEqual({ reinstated: 2, cancelled: 1 });
+  });
+});
+
+describe('describeChanges', () => {
+  const rooms = (b: EventBundle, locations: EventBundle['locations']): EventBundle => ({
+    ...b,
+    locations,
+  });
+  const HALL_A = { id: 'hall-a', name: 'Hall A', kind: 'room' as const, routingNodeIds: [] };
+  const HALL_B = { id: 'hall-b', name: 'Hall B', kind: 'room' as const, routingNodeIds: [] };
+
+  const said = (details: { description: string }[]) => details.map((d) => d.description);
+
+  it('says what a time was and what it now is', () => {
+    const before = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const after = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:30:00+05:30`, end: `${D1}11:30:00+05:30` }),
+    ]);
+    expect(said(describeChanges(before, after))).toEqual([
+      'Moved from 10:00\u201311:00 to 10:30\u201311:30.',
+    ]);
+  });
+
+  it('names the day only when the session moved to a different one', () => {
+    const before = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const after = bundle([
+      act({ id: 'a', title: 'A', start: `${D2}10:00:00+05:30`, end: `${D2}11:00:00+05:30` }),
+    ]);
+    expect(said(describeChanges(before, after))).toEqual([
+      'Moved from Sat 19 Sep 10:00\u201311:00 to Sun 20 Sep 10:00\u201311:00.',
+    ]);
+  });
+
+  it('reports an end-only change without repeating the start as if it moved', () => {
+    const before = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const after = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}10:30:00+05:30` }),
+    ]);
+    expect(said(describeChanges(before, after))).toEqual([
+      'Moved from 10:00\u201311:00 to 10:00\u201310:30.',
+    ]);
+  });
+
+  it('handles a session gaining and losing its slot', () => {
+    const slotted = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const flexible = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        start: undefined,
+        end: undefined,
+        flexible: true,
+      },
+    ]);
+    expect(said(describeChanges(slotted, flexible))).toEqual([
+      'No longer has a time; it was Sat 19 Sep 10:00\u201311:00.',
+    ]);
+    expect(said(describeChanges(flexible, slotted))).toEqual([
+      'Now scheduled for Sat 19 Sep 10:00\u201311:00.',
+    ]);
+  });
+
+  it('names rooms, resolving the old one against the revision that named it', () => {
+    // Hall A exists only in the previous bundle: the organisers dropped it
+    // from the new revision's location list when they emptied it.
+    const before = rooms(
+      bundle([
+        {
+          ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+          locationId: 'hall-a',
+        },
+      ]),
+      [HALL_A],
+    );
+    const after = rooms(
+      bundle([
+        {
+          ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+          locationId: 'hall-b',
+        },
+      ]),
+      [HALL_B],
+    );
+    expect(said(describeChanges(before, after))).toEqual(['Moved from Hall A to Hall B.']);
+  });
+
+  it('falls back to the raw id rather than claiming the room is unknown', () => {
+    const before = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        locationId: 'hall-a',
+      },
+    ]);
+    const after = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        locationId: 'hall-b',
+      },
+    ]);
+    expect(said(describeChanges(before, after))).toEqual(['Moved from hall-a to hall-b.']);
+  });
+
+  it('says a session is gone, back on, or new', () => {
+    const base = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    expect(said(describeChanges(base, bundle([])))).toEqual(['No longer on the programme.']);
+
+    const withNew = rooms(
+      bundle([
+        act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        {
+          ...act({ id: 'b', title: 'B', start: `${D2}12:00:00+05:30`, end: `${D2}13:00:00+05:30` }),
+          locationId: 'hall-b',
+        },
+      ]),
+      [HALL_B],
+    );
+    expect(said(describeChanges(base, withNew))).toEqual([
+      'New session, Sun 20 Sep 12:00\u201313:00 in Hall B.',
+    ]);
+
+    const off = bundle([
+      {
+        ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        cancelled: true,
+      },
+    ]);
+    expect(said(describeChanges(off, base))).toEqual(['Back on the programme.']);
+  });
+
+  it('names speakers on both sides of a change', () => {
+    const people = [
+      { id: 'p1', name: 'Asha', links: [] },
+      { id: 'p2', name: 'Bimal', links: [] },
+    ];
+    const before: EventBundle = {
+      ...bundle([
+        {
+          ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+          speakerIds: ['p1'],
+        },
+      ]),
+      people,
+    };
+    const after: EventBundle = {
+      ...bundle([
+        {
+          ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+          speakerIds: ['p2'],
+        },
+      ]),
+      people,
+    };
+    expect(said(describeChanges(before, after))).toEqual(['Speakers changed from Asha to Bimal.']);
+  });
+
+  it('quotes the old title on a rename', () => {
+    const before = bundle([
+      act({ id: 'a', title: 'Old name', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const after = bundle([
+      act({ id: 'a', title: 'New name', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const details = describeChanges(before, after);
+    expect(details[0]!.title).toBe('New name');
+    expect(details[0]!.description).toBe('Renamed from \u201cOld name\u201d.');
+  });
+
+  it('lists what costs an attendee most first', () => {
+    const before = bundle([
+      act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+      act({ id: 'b', title: 'B', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+      act({ id: 'c', title: 'C', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+    ]);
+    const after = bundle([
+      {
+        ...act({
+          id: 'a',
+          title: 'A renamed',
+          start: `${D1}10:00:00+05:30`,
+          end: `${D1}11:00:00+05:30`,
+        }),
+      },
+      {
+        ...act({ id: 'b', title: 'B', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+        cancelled: true,
+      },
+      act({ id: 'c', title: 'C', start: `${D1}14:00:00+05:30`, end: `${D1}15:00:00+05:30` }),
+    ]);
+    expect(describeChanges(before, after).map((d) => d.type)).toEqual([
+      'cancelled',
+      'time-changed',
+      'title-changed',
+    ]);
+  });
+
+  it('covers every change type it can be handed, with no leftover machine wording', () => {
+    // A new change type must be given wording here before it can reach the
+    // notice; the fallback is the raw type, which is not a sentence.
+    const types: ScheduleChangeType[] = [
+      'added',
+      'cancelled',
+      'reinstated',
+      'time-changed',
+      'room-changed',
+      'title-changed',
+      'speaker-changed',
+      'recording-added',
+    ];
+    const before = rooms(
+      bundle([
+        {
+          ...act({ id: 'a', title: 'A', start: `${D1}10:00:00+05:30`, end: `${D1}11:00:00+05:30` }),
+          locationId: 'hall-a',
+          speakerIds: ['p1'],
+        },
+        act({
+          id: 'gone',
+          title: 'Gone',
+          start: `${D1}10:00:00+05:30`,
+          end: `${D1}11:00:00+05:30`,
+        }),
+        {
+          ...act({
+            id: 'back',
+            title: 'Back',
+            start: `${D1}10:00:00+05:30`,
+            end: `${D1}11:00:00+05:30`,
+          }),
+          cancelled: true,
+        },
+      ]),
+      [HALL_A, HALL_B],
+    );
+    const after = rooms(
+      bundle([
+        {
+          ...act({
+            id: 'a',
+            title: 'A renamed',
+            start: `${D1}11:00:00+05:30`,
+            end: `${D1}12:00:00+05:30`,
+          }),
+          locationId: 'hall-b',
+          speakerIds: ['p2'],
+          recordingUrl: 'https://example.test/a.mp4',
+        },
+        act({
+          id: 'back',
+          title: 'Back',
+          start: `${D1}10:00:00+05:30`,
+          end: `${D1}11:00:00+05:30`,
+        }),
+        act({ id: 'new', title: 'New', start: `${D1}15:00:00+05:30`, end: `${D1}16:00:00+05:30` }),
+      ]),
+      [HALL_A, HALL_B],
+    );
+    const details = describeChanges(before, after);
+    expect(new Set(details.map((d) => d.type))).toEqual(new Set(types));
+    for (const detail of details) {
+      expect(detail.description).not.toContain(detail.type);
+      expect(detail.description).not.toContain('undefined');
+      expect(detail.description).not.toContain('null');
+      expect(detail.description.endsWith('.')).toBe(true);
+    }
   });
 });
 

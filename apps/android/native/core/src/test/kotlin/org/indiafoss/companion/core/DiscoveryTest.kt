@@ -31,7 +31,7 @@ class DiscoveryTest {
         val b = bundle(listOf(talk("a", "docs", "10:00", "10:30"), talk("b", "docs", "11:00", "11:30"), talk("gap", "other", "10:30", "11:00"), talk("afternoon", "aosp", "14:00", "14:30").copy(locationId = "docs")))
         val plan = Itinerary.forDay(b, day, { 1200.0 }, { Disposition.NORMAL }, { false }, stayTrackIds = setOf("docs"))
         assertEquals(listOf("a", "b", "afternoon"), plan.map { it.activity.id })
-        val conflicts = Itinerary.stayConflicts(b, day, setOf("docs")) { if (it == "gap") Disposition.MUST_ATTEND else Disposition.NORMAL }
+        val conflicts = Itinerary.stayConflicts(b, day, setOf("docs"), dispositionOf = { if (it == "gap") Disposition.MUST_ATTEND else Disposition.NORMAL })
         assertTrue(conflicts.any { it.second.id == "gap" })
     }
     @Test fun `exploration survives recomputing the deck after each answer`() {

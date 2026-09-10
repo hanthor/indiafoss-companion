@@ -86,19 +86,22 @@ fun RankScreen(
     onClearAnswer: (String) -> Unit,
     onRoom: (String, String?) -> Unit,
     onRoomsDecided: () -> Unit,
+    /** The tapped session and the slot's members: one pick settles the slot (#271). */
     onPick: (Activity, List<Activity>) -> CompanionViewModel.Undo,
     onTie: (List<Activity>) -> CompanionViewModel.Undo,
     onDrop: (List<Activity>) -> CompanionViewModel.Undo,
     onUndo: (CompanionViewModel.Undo) -> Unit,
     onOpen: (String) -> Unit,
     onOpenSpeaker: (String) -> Unit,
+    /** Open on the devrooms step (from the Explore gallery) instead of the talks. */
+    startWithDevrooms: Boolean = false,
     onBack: () -> Unit,
 ) {
     val bundle = state.bundle
     val days = state.days
     var day by remember(days) { mutableIntStateOf(0) }
     val rooms = remember(bundle) { devrooms(state) }
-    var chosen by remember { mutableStateOf<Step?>(null) }
+    var chosen by remember { mutableStateOf<Step?>(if (startWithDevrooms) Step.DEVROOMS else null) }
     var undo by remember { mutableStateOf<CompanionViewModel.Undo?>(null) }
 
     val sessions = if (days.isEmpty()) emptyList() else
@@ -159,20 +162,18 @@ fun RankScreen(
                 Step.SLOTS -> SlotsStep(
                     state = state,
                     slots = slots,
-                    answered = answered,
                     progress = progress,
                     choices = choices,
                     untriaged = untriaged.size,
                     taste = model.tasteLine(bundle?.tracks.orEmpty()),
-                    canUndo = undo != null,
-                    onPick = { winner, losers -> undo = onPick(winner, losers) },
+                    lastUndo = undo,
+                    onPick = { winner, members -> undo = onPick(winner, members) },
                     onTie = { members -> undo = onTie(members) },
                     onDrop = { members -> undo = onDrop(members) },
                     onUndo = { undo?.let(onUndo); undo = null },
                     onOpen = onOpen,
                     onSort = { chosen = Step.TALKS },
-                    leaderboard = pool.filter { it.disposition != Disposition.NOT_INTERESTED }
-                        .sortedByDescending { it.rating }.take(4),
+                    leaderboard = Ranking.livePool(pool).sortedByDescending { it.rating }.take(4),
                 )
             }
         }
@@ -237,6 +238,8 @@ private fun DevroomsStep(rooms: List<Room>, state: UiState, onRoom: (String, Str
             val tags = topicTags(room.sessions.flatMap { it.tags }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }).take(3)
             val speakers = state.bundle?.let { b -> room.sessions.flatMap(b::speakersOf).distinctBy { it.id } }.orEmpty()
             Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
+                // The official 2026 pattern where there is one, as on the PWA's planning cards.
+                org.indiafoss.companion.ui.DevroomBanner(state.bundle, room.track.id, shape = androidx.compose.ui.graphics.RectangleShape)
                 Column(Modifier.padding(16.dp)) {
                     Text(room.track.name, style = MaterialTheme.typography.titleMedium)
                     room.track.description?.let { Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 2.dp)) }
@@ -500,16 +503,28 @@ private fun SpeakerRow(person: Person, onClick: () -> Unit) {
     }
 }
 
+/** "FOSS in Science" from "Devroom 1 (FOSS in Science)": the room is a booking, not the track's identity (the PWA's `splitTrackName`). */
+internal fun devroomTitle(name: String): String {
+    val m = Regex("^(.*?)\\s*\\((.+)\\)\\s*$").find(name.trim()) ?: return name.trim()
+    return m.groupValues[2].trim().ifEmpty { name.trim() }
+}
+
+/** The devroom a session belongs to when the attendee is staying for it (#271), by its title. */
+private fun stayingFor(state: UiState, activity: Activity): String? {
+    val track = activity.trackId ?: return null
+    if (state.ranking.rooms[track] != "stay") return null
+    return devroomTitle(state.bundle?.tracks?.firstOrNull { it.id == track }?.name ?: track)
+}
+
 @Composable
 private fun SlotsStep(
     state: UiState,
     slots: List<Ranking.Slot>,
-    answered: Set<String>,
     progress: Ranking.Progress,
     choices: Int,
     untriaged: Int,
     taste: String,
-    canUndo: Boolean,
+    lastUndo: CompanionViewModel.Undo?,
     onPick: (Activity, List<Activity>) -> Unit,
     onTie: (List<Activity>) -> Unit,
     onDrop: (List<Activity>) -> Unit,
@@ -521,9 +536,10 @@ private fun SlotsStep(
     val stability = if (progress.conflicts == 0) 1f else progress.settled.toFloat() / progress.conflicts
     val skipped = remember { mutableStateOf(setOf<String>()) }
     val slot = slots.firstOrNull { it.key !in skipped.value } ?: slots.firstOrNull()
-    val isBackup = slot != null && slot.members.any { m ->
-        slot.members.any { o -> o !== m && Ranking.pairKey(m.activity.id, o.activity.id) in answered }
-    }
+    /** What the last pick did, so the attendee can see it and take it back (#271). */
+    var lastPick by remember { mutableStateOf<LastPick?>(null) }
+    /** The note is only shown while its pick is the one Undo would take back. */
+    val shownPick = lastPick?.takeIf { lastUndo != null }
     LazyColumn(Modifier.fillMaxSize()) {
         item {
             Row(Modifier.fillMaxWidth().padding(20.dp, 8.dp, 20.dp, 0.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -550,24 +566,65 @@ private fun SlotsStep(
             }
         } else {
             val members = slot.members.map { it.activity }
+            val reservedInSlot = slot.members.mapNotNull { stayingFor(state, it.activity) }.distinct()
+            val mustGoInSlot = slot.members.count { it.disposition == Disposition.MUST_ATTEND }
             item {
                 Row(Modifier.fillMaxWidth().padding(20.dp, 4.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     AssistChip(onClick = {}, label = { Text("Slot ${slots.indexOf(slot) + 1} of ${slots.size} · ${Schedule.formatTime(slot.start)}–${Schedule.formatTime(slot.end)}") })
                 }
+                Text("Which one would you go to?", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 4.dp))
                 Text(
-                    if (isBackup) "And if that falls through?" else "Which one would you go to?",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 4.dp),
+                    "One tap settles this slot: your pick goes in the plan and the talks it overlaps stand aside for it. " +
+                        "They stay among your interests — standing aside is not a dislike — and Undo brings them back.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 6.dp),
+                )
+                if (reservedInSlot.isNotEmpty()) Text(
+                    "You are staying for ${reservedInSlot.joinToString(" and ")}. Picking another talk here leaves the devroom for just this slot — " +
+                        "its talk stands aside, the rest of the block stays reserved, and your plan comes back to it afterwards. " +
+                        "Pick the devroom's own talk to keep the block whole.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 6.dp).testTag("slot-devroom-note"),
+                )
+                if (mustGoInSlot > 1) Text(
+                    "$mustGoInSlot must-go talks clash here. Picking one keeps the others' must-go marks, so your plan keeps flagging the clash " +
+                        "until you change an answer — nothing is dropped for you.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 6.dp).testTag("slot-mustgo-note"),
                 )
             }
             items(slot.members, key = { "m-" + it.activity.id }) { r ->
-                val losers = slot.members.filter { o -> o !== r && Ranking.pairOpen(r, o, answered) }.map { it.activity }
-                PickCard(r, state, onOpen) { onPick(r.activity, losers) }
+                val clashesWithin = slot.members.count { o -> o !== r && Ranking.overlaps(o.activity, r.activity) }
+                val staggered = slot.members.size > 2 && clashesWithin < slot.members.size - 1
+                PickCard(
+                    ranked = r,
+                    state = state,
+                    stayingFor = stayingFor(state, r.activity),
+                    staggered = if (staggered) "Overlaps $clashesWithin of the other ${slot.members.size - 1}; the rest can still fit." else null,
+                    onOpen = onOpen,
+                ) {
+                    val resolution = Ranking.resolveClash(slot.members, r.activity.id)
+                    if (resolution.losers.isEmpty()) return@PickCard
+                    val titleOf = { id: String -> slot.members.firstOrNull { it.activity.id == id }?.activity?.title ?: id }
+                    val own = stayingFor(state, r.activity)
+                    lastPick = LastPick(
+                        title = r.activity.title,
+                        steppedAside = resolution.steppedAside.map(titleOf),
+                        keptMustGo = resolution.keptMustGo.map(titleOf),
+                        leftDevrooms = resolution.steppedAside
+                            .mapNotNull { id -> slot.members.firstOrNull { it.activity.id == id }?.let { stayingFor(state, it.activity) } }
+                            .filter { it != own }.distinct(),
+                    )
+                    onPick(r.activity, members)
+                }
             }
             item {
                 Row(Modifier.fillMaxWidth().padding(16.dp, 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { onTie(members) }, modifier = Modifier.weight(1f)) { Text("Any of these") }
-                    OutlinedButton(onClick = { onDrop(members) }, modifier = Modifier.weight(1f)) { Text("None of these") }
+                    OutlinedButton(onClick = { lastPick = null; onTie(members) }, modifier = Modifier.weight(1f)) { Text("Any of these") }
+                    OutlinedButton(onClick = { lastPick = null; onDrop(members) }, modifier = Modifier.weight(1f)) { Text("None of these") }
                 }
                 if (slots.size > 1) TextButton(
                     onClick = {
@@ -578,9 +635,19 @@ private fun SlotsStep(
                 ) { Text("Decide this slot later") }
             }
         }
+        shownPick?.let { pick ->
+            item {
+                Text(
+                    pick.summary(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth().padding(20.dp, 4.dp).testTag("clash-result"),
+                )
+            }
+        }
         item {
             Row(Modifier.fillMaxWidth().padding(16.dp, 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onUndo, enabled = canUndo) {
+                TextButton(onClick = { lastPick = null; onUndo() }, enabled = lastUndo != null) {
                     Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = null)
                     Text("Undo last", Modifier.padding(start = 6.dp))
                 }
@@ -609,10 +676,33 @@ private fun SlotsStep(
     }
 }
 
+/** What the last pick did (#271), worded as on the PWA's `clash-result` note. */
+internal data class LastPick(val title: String, val steppedAside: List<String>, val keptMustGo: List<String>, val leftDevrooms: List<String>) {
+    fun summary(): String = buildString {
+        append("$title is in your plan.")
+        if (steppedAside.isNotEmpty()) {
+            append(" ")
+            append(if (steppedAside.size == 1) "${steppedAside[0]} stood aside" else "${steppedAside.size} talks stood aside")
+            append(" — still an interest, not a dislike.")
+        }
+        if (leftDevrooms.isNotEmpty()) append(" You leave ${leftDevrooms.joinToString(" and ")} for this slot only.")
+        if (keptMustGo.isNotEmpty()) {
+            append(" ${keptMustGo.joinToString(", ")} ${if (keptMustGo.size == 1) "keeps its" else "keep their"} must-go mark, so the plan still shows that clash.")
+        }
+    }
+}
+
 @Composable
-private fun PickCard(ranked: RankedActivity, state: UiState, onOpen: (String) -> Unit, onPick: () -> Unit) {
+private fun PickCard(
+    ranked: RankedActivity,
+    state: UiState,
+    stayingFor: String?,
+    staggered: String?,
+    onOpen: (String) -> Unit,
+    onPick: () -> Unit,
+) {
     val activity = ranked.activity
-    Card(onClick = onPick, modifier = Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
+    Card(onClick = onPick, modifier = Modifier.fillMaxWidth().padding(16.dp, 4.dp).testTag("pick-" + activity.id)) {
         Column(Modifier.padding(16.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(activity.type.replace('-', ' ').uppercase(), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
@@ -622,6 +712,8 @@ private fun PickCard(ranked: RankedActivity, state: UiState, onOpen: (String) ->
             val speakers = state.bundle?.speakersOf(activity).orEmpty()
             if (speakers.isNotEmpty()) Text(speakers.joinToString { it.name }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (ranked.disposition == Disposition.MUST_ATTEND) Text("★ MUST GO", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.tertiary)
+            if (stayingFor != null) Text("STAYING FOR THIS DEVROOM · $stayingFor", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            if (staggered != null) Text(staggered, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = { onOpen(activity.id) }) { Text("About this talk") }
                 FilledTonalButton(onClick = onPick) { Text("This one") }

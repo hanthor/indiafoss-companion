@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      The window behind the first Compose frame. Without it the platform
-      default showed through, so launching on a dark-mode phone flashed white
-      before the app painted. These match the Compose surfaces (#33).
+      The window behind the first Compose frame and the Android 12+ splash
+      plate: the brand paper token (the app.css paper token, hsl(0 0% 94%)), so a
+      launch on a dark-mode phone never flashes white and the splash matches
+      the event surfaces rather than the platform default (#33).
     -->
-    <color name="window_background">#FBF8FC</color>
-    <color name="splash_background">#FBF8FC</color>
+    <color name="window_background">#F0F0F0</color>
+    <color name="splash_background">#F0F0F0</color>
 </resources>

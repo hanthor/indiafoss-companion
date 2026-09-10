@@ -167,6 +167,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onRestore = viewModel::restoreToPlan,
                     onAddBlock = viewModel::addBlock,
                     onRemoveBlock = viewModel::removeBlock,
+                    onReconsider = viewModel::reconsider,
                 ) { navController.navigate("activity/$it") }
             }
             composable("explore") {
@@ -176,6 +177,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onOpenActivity = { navController.navigate("activity/$it") },
                     onOpenSpeaker = { navController.navigate("speaker/$it") },
                     onOpenBooth = { navController.navigate("booth/$it") },
+                    onOpenDevrooms = { navController.navigate("rank?step=devrooms") },
                 )
             }
             composable("booth/{id}") { entry ->
@@ -210,8 +212,12 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable("rank") {
+            composable(
+                "rank?step={step}",
+                arguments = listOf(androidx.navigation.navArgument("step") { nullable = true; defaultValue = null }),
+            ) { entry ->
                 RankScreen(
+                    startWithDevrooms = entry.arguments?.getString("step") == "devrooms",
                     state = state,
                     onAnswerCard = viewModel::answerCard,
                     onClearAnswer = { viewModel.answerQuick(it, null) },
@@ -242,7 +248,13 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 SettingsScreen(
                     state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile,
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
+                    onDynamicColor = viewModel::setDynamicColor,
                     onCalendarSync = viewModel::setCalendarSyncEnabled,
+                    onExportPersonalData = viewModel::exportPersonalData,
+                    onImportPersonalData = viewModel::previewPersonalData,
+                    onApplyImport = viewModel::applyPersonalData,
+                    onCancelImport = viewModel::cancelPersonalDataImport,
+                    onRefresh = viewModel::refresh,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->

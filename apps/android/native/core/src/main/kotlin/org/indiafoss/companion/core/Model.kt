@@ -35,7 +35,12 @@ data class EventBundle(
 }
 
 @Serializable
-data class SourceMetadata(val scheduleStatus: String? = null)
+data class SourceMetadata(
+    /** `draft` while the organisers still call the programme provisional; absent in older bundles. */
+    val scheduleStatus: String? = null,
+    /** When the programme was last imported upstream; naive `YYYY-MM-DD HH:MM:SS` in the event's zone. */
+    val sourceUpdatedAt: String? = null,
+)
 
 /**
  * Outdoor arrival block: venue name, address and the organiser-selected map

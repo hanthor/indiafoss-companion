@@ -3,19 +3,19 @@
 Tracked against the engineering specification in the project docs. Each phase
 lands on `main` with tests green.
 
-| Phase | Deliverable                                                                    | Status                                |
-| ----- | ------------------------------------------------------------------------------ | ------------------------------------- |
-| 0     | Bootstrap: monorepo, SvelteKit PWA, ~~Capacitor wrapper~~, tooling, CI         | ✅ done (shell retired, ADR 0004)     |
-| 1     | Canonical model, source adapters, 2025 fixture, bundle validator               | ✅ done                               |
-| 2     | Schedule app: list + grid, detail, speakers, search, filters, bookmarks, clock | ✅ done                               |
-| 3     | Elo engine, comparison queue, ranking UI, dispositions                         | ✅ done                               |
-| 4     | Itinerary solver: DAG, locks, backups, flexible activities                     | ✅ done                               |
-| 5     | Venue engine: SVG map, routing graph, A\*, textual routes, validator           | ✅ done                               |
-| 6     | Schedule-aware navigation: leave-by, QR location                               | ✅ done                               |
-| 7     | Booth experience: directory, map linkage, booth activities                     | ✅ done                               |
-| 8     | Production sync: event-sync, diffs, update UI                                  | ✅ done                               |
-| 9     | Android polish: notifications, deep links, F-Droid/Play flavors                | 🚧 partial (deep links; see ADR 0004) |
-| 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases              | 🚧 partial (a11y, SBOM, offline E2E)  |
+| Phase | Deliverable                                                                         | Status                                                                                                                            |
+| ----- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Bootstrap: monorepo, SvelteKit PWA, ~~Capacitor wrapper~~, tooling, CI              | ✅ done (shell retired, ADR 0004)                                                                                                 |
+| 1     | Canonical model, source adapters, 2025 fixture, bundle validator                    | ✅ done                                                                                                                           |
+| 2     | Schedule app: list + grid, detail, speakers, search, filters, bookmarks, clock      | ✅ done                                                                                                                           |
+| 3     | Elo engine, comparison queue, ranking UI, dispositions                              | ✅ done                                                                                                                           |
+| 4     | Itinerary solver: DAG, locks, backups, flexible activities                          | ✅ done                                                                                                                           |
+| 5     | Venue engine: SVG map, routing graph, A\*, textual routes, validator                | ✅ done                                                                                                                           |
+| 6     | Schedule-aware navigation: leave-by, QR location                                    | ✅ done                                                                                                                           |
+| 7     | Booth experience: directory, map linkage, booth activities                          | ✅ done                                                                                                                           |
+| 8     | Production sync: event-sync, diffs, update UI                                       | ✅ done                                                                                                                           |
+| 9     | Android polish: notifications, deep links, ~~F-Droid/Play flavors~~ update channels | 🚧 partial (notifications, deep links; Obtainium + own F-Droid repository replace store flavors, #308; repository not live, #291) |
+| 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases                   | 🚧 partial (a11y, SBOM, offline E2E, signed nightly per `release.md`)                                                             |
 
 > **The Capacitor shell is gone** ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)).
 > Phase 0 shipped it and Phase 9 polished it, and both entries are left standing
@@ -38,10 +38,28 @@ lands on `main` with tests green.
 
 See `roadmap.md` (mirror of tracking issue #34) for everything after Phase 10.
 
-- Optional Matrix messaging (issue #11) — `packages/matrix`, `/chat`,
-  Neutrino/QR handoff; see `docs/messaging.md`.
+- ~~Optional Matrix messaging (issue #11) — `packages/matrix`, `/chat`,
+  Neutrino/QR handoff; see `docs/messaging.md`.~~ Superseded: chat is the
+  dedicated `hanthor/indiafoss-chat-android` app (ADR 0004) and
+  `packages/matrix` is now profile checks and handoff helpers only (PR #314).
 - Contact sharing, QR scanning, calendar export, editable itinerary (issues
   #5, #8, #14, #4) landed with PR #15.
+- Conference reliability and the real 2026 programme: PRs #238, #235/#251/#252,
+  #242/#243 (issues #189, #190, #213/#239 closed).
+- One resolved plan behind Now, map and reminders on both platforms: PRs
+  #266/#267 (PWA) and #304 (native); native room grid and plan markers #303;
+  clash resolution in one pick on the PWA #297 (issue #221 closed).
+- Native app-owned calendar kept equal to the plan: PR #302 (issue #272
+  closed; device acceptance not claimed).
+- Personal-data export and import in the PWA: PRs #247/#249/#250 and #301
+  (issue #240 stays open for the native side).
+- Venue arrival, map From/To with route steps, desktop layout: PRs #295, #299,
+  #298/#309, #296 (issues #278, #223, #205, #270 closed).
+- Trust states and the versioned identity envelope: PRs #300 and #315 (issue
+  #160 closed; #31 and #188 stay open — no cryptographic binding).
+- Install channels: Obtainium and our own F-Droid repository, Accrescent
+  removed: PR #308 and hanthor/indiafoss-android-repo#6 (issue #291 open).
+- 2026 branding on the native client: PR #313 (issue #33 closed).
 
 ## Notes
 

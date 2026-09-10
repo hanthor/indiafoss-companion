@@ -1,0 +1,130 @@
+{
+  "format": "indiafoss-personal-data",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-10T08:00:00.000Z",
+  "events": [
+    {
+      "eventId": "indiafoss-2026",
+      "activities": [
+        {
+          "eventId": "indiafoss-2026",
+          "activityId": "talk-a",
+          "proposalId": "cfp-0"
+        },
+        {
+          "eventId": "indiafoss-2026",
+          "activityId": "talk-b",
+          "proposalId": "cfp-1"
+        }
+      ],
+      "sections": {
+        "preferences": [
+          {
+            "activityId": "talk-a",
+            "rating": 1232.0,
+            "comparisons": 1,
+            "disposition": "must-attend",
+            "bookmarked": true,
+            "triage": "yes"
+          },
+          {
+            "activityId": "talk-b",
+            "rating": 1168.0,
+            "comparisons": 1,
+            "disposition": "normal",
+            "bookmarked": false
+          }
+        ],
+        "notes": [
+          {
+            "activityId": "talk-b",
+            "body": "ಕನ್ನಡ\nFollow up after the talk",
+            "updatedAt": "2026-09-09T01:00:00.000Z"
+          }
+        ],
+        "comparisons": [
+          {
+            "id": "cmp-1",
+            "activityA": "talk-a",
+            "activityB": "talk-b",
+            "scoreA": 1.0,
+            "createdAt": "2026-09-09T01:00:00.000Z"
+          }
+        ],
+        "plans": [
+          {
+            "day": "2026-09-19",
+            "locked": ["blk-1"],
+            "removed": ["talk-b"],
+            "replacements": {},
+            "customBlocks": [
+              {
+                "id": "blk-1",
+                "label": "Coffee with Priya",
+                "start": "2026-09-19T11:30:00+05:30",
+                "end": "2026-09-19T12:00:00+05:30"
+              }
+            ]
+          }
+        ],
+        "flexibleBlocks": [
+          {
+            "id": "visit-booth-1",
+            "label": "Visit Booth One",
+            "day": "2026-09-19",
+            "durationMinutes": 20,
+            "locationId": "hall-1"
+          },
+          {
+            "id": "blk-2",
+            "label": "Find a quiet corner",
+            "day": "2026-09-19",
+            "durationMinutes": 15
+          }
+        ],
+        "rooms": {
+          "prefs": {
+            "devroom": "stay"
+          },
+          "skipped": {
+            "other": ["talk-b"]
+          }
+        },
+        "roomsDecided": true,
+        "boothVisits": {
+          "booth-1": 20
+        }
+      }
+    }
+  ],
+  "contact": {
+    "profile": {
+      "fullName": "Asha",
+      "email": "asha@example.org",
+      "matrixId": "@asha:example.org",
+      "fossUnitedProfileUrl": "https://fossunited.org/u/asha",
+      "socials": {
+        "github": "https://github.com/asha"
+      }
+    },
+    "selection": {
+      "name": true,
+      "email": false,
+      "fossUnitedProfileUrl": true,
+      "socials": {
+        "github": true
+      }
+    }
+  },
+  "unassigned": {
+    "preferences": [
+      {
+        "activityId": "old-talk",
+        "rating": 1200.0,
+        "comparisons": 0,
+        "disposition": "not-interested",
+        "bookmarked": false
+      }
+    ]
+  }
+}

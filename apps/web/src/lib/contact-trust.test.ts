@@ -37,6 +37,7 @@ describe('deriveContactTrust against the shared fixture table', () => {
       expect({
         signature: trust.signature,
         account: trust.account,
+        binding: trust.binding,
         contradiction: trust.contradiction,
         profile: trust.profile,
         inPerson: trust.inPerson,

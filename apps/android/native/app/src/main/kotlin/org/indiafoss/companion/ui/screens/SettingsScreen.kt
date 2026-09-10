@@ -39,6 +39,12 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.platform.testTag
+import org.indiafoss.companion.core.ImportPreview
+import org.indiafoss.companion.core.ScheduleFreshness
+import org.indiafoss.companion.core.ImportChange
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +54,13 @@ fun SettingsScreen(
     onRoutingProfile: (String) -> Unit,
     onStartSimulation: (day: String, time: String, speed: Int) -> Unit = { _, _, _ -> },
     onStopSimulation: () -> Unit = {},
+    onDynamicColor: (Boolean) -> Unit = {},
     onCalendarSync: (Boolean) -> Unit = {},
+    onExportPersonalData: (android.net.Uri) -> Unit = {},
+    onImportPersonalData: (android.net.Uri) -> Unit = {},
+    onApplyImport: (Set<String>) -> Unit = {},
+    onCancelImport: () -> Unit = {},
+    onRefresh: () -> Unit = {},
     onSetup: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -61,8 +73,59 @@ fun SettingsScreen(
     val askCalendar = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         onCalendarSync(granted.values.all { it } && granted.isNotEmpty())
     }
+    // The system file picker, both ways (#240): the file never leaves the attendee's choice of place.
+    val createDocument = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        if (uri != null) onExportPersonalData(uri)
+    }
+    val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) onImportPersonalData(uri)
+    }
+    // Wall clock, not the day simulator: how old the imported programme is, is a
+    // fact about the real world (#191). Read once per composition of this screen.
+    val freshness = ScheduleFreshness.describe(
+        bundle = state.bundle,
+        lastCheckedAt = state.lastRefreshAt,
+        source = when (state.bundleSource) {
+            org.indiafoss.companion.data.BundleSource.REFRESHED -> ScheduleFreshness.SeedSource.REFRESHED
+            org.indiafoss.companion.data.BundleSource.SEED -> ScheduleFreshness.SeedSource.SEED
+            // Provenance not recorded: never claim it was refreshed. With a
+            // schedule on screen the conservative reading is the built-in copy.
+            null -> if (state.bundle == null) ScheduleFreshness.SeedSource.NONE else ScheduleFreshness.SeedSource.SEED
+        },
+    )
     Scaffold(topBar = { TopAppBar(title = { Text("Settings") }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp).testTag("schedule-freshness")) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Schedule data", style = MaterialTheme.typography.titleMedium)
+                    val body = MaterialTheme.typography.bodyMedium
+                    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+                    freshness.statusLine?.let {
+                        Text(
+                            it,
+                            style = body,
+                            color = if (freshness.provisional) MaterialTheme.colorScheme.error else muted,
+                            modifier = Modifier.padding(top = 4.dp).testTag("schedule-status"),
+                        )
+                    }
+                    Text(
+                        freshness.importedLine,
+                        style = body,
+                        color = muted,
+                        modifier = Modifier.padding(top = 4.dp).testTag("schedule-imported"),
+                    )
+                    freshness.sourceLine?.let {
+                        Text(it, style = body, color = muted, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    Text(
+                        freshness.checkedLine,
+                        style = body,
+                        color = muted,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp).testTag("schedule-checked"),
+                    )
+                    Button(onClick = onRefresh) { Text("Check for updates") }
+                }
+            }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("Reminders", style = MaterialTheme.typography.titleMedium)
@@ -89,6 +152,26 @@ fun SettingsScreen(
                         TextButton(onClick = {
                             context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
                         }) { Text("Allow exact alarms for on-the-minute timing") }
+                    }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Appearance", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            "Light or dark follows the system setting. The everyday screens can take your wallpaper colours; " +
+                                "the welcome, Now and devroom surfaces keep the IndiaFOSS green either way."
+                        } else {
+                            "Light or dark follows the system setting, in the IndiaFOSS 2026 colours."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Use wallpaper colours", Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        Switch(checked = state.dynamicColor, onCheckedChange = onDynamicColor)
                     }
                 }
             }
@@ -204,6 +287,13 @@ fun SettingsScreen(
                     TextButton(onClick = onSetup) { Text("Run setup again") }
                 }
             }
+            PersonalDataCard(
+                state,
+                onExport = { createDocument.launch("indiafoss-personal-data-${state.now.take(10)}.json") },
+                onImport = { openDocument.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
+                onApply = onApplyImport,
+                onCancel = onCancelImport,
+            )
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("Privacy", style = MaterialTheme.typography.titleMedium)
@@ -239,6 +329,107 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Export and import of the attendee's personal data (#240): the same
+ * versioned file the PWA writes and reads. Import shows what would change
+ * before anything is written; what this phone already holds differently is
+ * kept unless ticked, and records that cannot be matched to this programme
+ * are listed by name rather than dropped.
+ */
+@Composable
+fun PersonalDataCard(
+    state: UiState,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+    onApply: (Set<String>) -> Unit,
+    onCancel: () -> Unit,
+) {
+    Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp).testTag("personal-data")) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Personal data", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Save your talk choices, ratings, devroom preferences, plan edits, notes and contact card as a file, " +
+                    "or bring them in from the PWA or another phone. The file contains private details, including card fields " +
+                    "you do not share. Nothing is uploaded; the handshake key stays on this phone.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+            )
+            val preview = state.importPreview
+            if (preview == null) {
+                Row {
+                    TextButton(onClick = onExport, enabled = !state.personalDataBusy) { Text("Save personal data") }
+                    TextButton(onClick = onImport, enabled = !state.personalDataBusy) { Text("Import from a file") }
+                }
+                if (state.personalDataBusy) Text("Working…", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                ImportPreviewSection(preview, busy = state.personalDataBusy, onApply = onApply, onCancel = onCancel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImportPreviewSection(preview: ImportPreview, busy: Boolean, onApply: (Set<String>) -> Unit, onCancel: () -> Unit) {
+    // New records are ticked; what this phone holds differently is kept unless the attendee ticks it.
+    var selected by remember(preview) { mutableStateOf(preview.additions.map { it.id }.toSet()) }
+    Text("From a file exported ${preview.exportedAt.take(10)}", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(bottom = 4.dp))
+    val additions = preview.additions
+    val conflicts = preview.conflicts
+    if (additions.isEmpty() && conflicts.isEmpty()) {
+        Text("Nothing new to import from this file.", style = MaterialTheme.typography.bodyMedium)
+    }
+    if (additions.isNotEmpty()) {
+        Text("New on this phone (${additions.size})", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        additions.forEach { change ->
+            ChangeRow(change, selected = change.id in selected) { on -> selected = if (on) selected + change.id else selected - change.id }
+        }
+    }
+    if (conflicts.isNotEmpty()) {
+        Text("Different on this phone (${conflicts.size}) — kept unless ticked", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        conflicts.forEach { change ->
+            ChangeRow(change, selected = change.id in selected) { on -> selected = if (on) selected + change.id else selected - change.id }
+        }
+    }
+    if (preview.unchanged > 0) {
+        Text("Already the same here: ${preview.unchanged}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp))
+    }
+    if (preview.skipped.isNotEmpty()) {
+        Text("Not importable (${preview.skipped.size})", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        preview.skipped.forEach { skip ->
+            Text("${skip.label} — ${skip.reason.label}: ${skip.detail}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp))
+        }
+    }
+    if (preview.unsupported.isNotEmpty()) {
+        Text("Not understood by this app (${preview.unsupported.size}), left alone", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+        preview.unsupported.forEach { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 2.dp)) }
+    }
+    HorizontalDivider(Modifier.padding(top = 8.dp))
+    Row(Modifier.padding(top = 4.dp)) {
+        Button(onClick = { onApply(selected) }, enabled = selected.isNotEmpty() && !busy, modifier = Modifier.testTag("import-apply")) {
+            Text("Import ${selected.size} selected")
+        }
+        TextButton(onClick = onCancel, enabled = !busy) { Text("Cancel") }
+    }
+}
+
+@Composable
+private fun ChangeRow(change: ImportChange, selected: Boolean, onSelected: (Boolean) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(top = 2.dp)) {
+        Checkbox(checked = selected, onCheckedChange = onSelected)
+        Column(Modifier.weight(1f)) {
+            Text(change.label, style = MaterialTheme.typography.bodyMedium)
+            val current = change.currentSummary
+            if (current != null) {
+                Text("Here: $current", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("File: ${change.incomingSummary}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                Text(change.incomingSummary, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
