@@ -43,6 +43,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.ui.platform.testTag
 import org.indiafoss.companion.core.ImportPreview
+import org.indiafoss.companion.core.ScheduleFreshness
 import org.indiafoss.companion.core.ImportChange
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +60,7 @@ fun SettingsScreen(
     onImportPersonalData: (android.net.Uri) -> Unit = {},
     onApplyImport: (Set<String>) -> Unit = {},
     onCancelImport: () -> Unit = {},
+    onRefresh: () -> Unit = {},
     onSetup: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -78,8 +80,52 @@ fun SettingsScreen(
     val openDocument = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) onImportPersonalData(uri)
     }
+    // Wall clock, not the day simulator: how old the imported programme is, is a
+    // fact about the real world (#191). Read once per composition of this screen.
+    val freshness = ScheduleFreshness.describe(
+        bundle = state.bundle,
+        lastCheckedAt = state.lastRefreshAt,
+        source = when (state.bundleSource) {
+            org.indiafoss.companion.data.BundleSource.REFRESHED -> ScheduleFreshness.SeedSource.REFRESHED
+            org.indiafoss.companion.data.BundleSource.SEED -> ScheduleFreshness.SeedSource.SEED
+            // Provenance not recorded: never claim it was refreshed. With a
+            // schedule on screen the conservative reading is the built-in copy.
+            null -> if (state.bundle == null) ScheduleFreshness.SeedSource.NONE else ScheduleFreshness.SeedSource.SEED
+        },
+    )
     Scaffold(topBar = { TopAppBar(title = { Text("Settings") }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp).testTag("schedule-freshness")) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Schedule data", style = MaterialTheme.typography.titleMedium)
+                    val body = MaterialTheme.typography.bodyMedium
+                    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+                    freshness.statusLine?.let {
+                        Text(
+                            it,
+                            style = body,
+                            color = if (freshness.provisional) MaterialTheme.colorScheme.error else muted,
+                            modifier = Modifier.padding(top = 4.dp).testTag("schedule-status"),
+                        )
+                    }
+                    Text(
+                        freshness.importedLine,
+                        style = body,
+                        color = muted,
+                        modifier = Modifier.padding(top = 4.dp).testTag("schedule-imported"),
+                    )
+                    freshness.sourceLine?.let {
+                        Text(it, style = body, color = muted, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    Text(
+                        freshness.checkedLine,
+                        style = body,
+                        color = muted,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp).testTag("schedule-checked"),
+                    )
+                    Button(onClick = onRefresh) { Text("Check for updates") }
+                }
+            }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
                     Text("Reminders", style = MaterialTheme.typography.titleMedium)

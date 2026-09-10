@@ -422,7 +422,10 @@ class LargeTextScreenshotTest {
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
     @Test fun settings() {
         shoot("settings") { SettingsScreen(state(), {}, {}) {} }
-        compose.onNodeWithText("Appearance").assertIsDisplayed()
+        // Refresh state leads the screen (#191): what the schedule is and how
+        // old it is, before any of the switches.
+        compose.onNodeWithText("Schedule data").assertIsDisplayed()
+        compose.onNodeWithText("Appearance").performScrollTo().assertIsDisplayed()
     }
 }
 

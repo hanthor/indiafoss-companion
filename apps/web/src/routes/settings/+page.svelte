@@ -20,6 +20,7 @@
     refreshStatus,
     hydrateRefreshStatus,
   } from '$lib/updates.svelte';
+  import { describeScheduleFreshness } from '$lib/schedule-freshness';
   import {
     dayStart,
     formatSimTime,
@@ -40,6 +41,22 @@
   let localRevision = $state<number | null>(null);
   const activeEventId = $derived(eventState.bundle?.id ?? DEFAULT_EVENT_ID);
   const refresh = $derived(refreshStatus[activeEventId]);
+
+  // Wall clock, deliberately not the day simulator (#191): how old the imported
+  // programme is, is a fact about the real world. Ticking keeps the wording
+  // right on a screen left open, without a re-render storm.
+  let wallClock = $state(Date.now());
+  $effect(() => {
+    const timer = setInterval(() => (wallClock = Date.now()), 60_000);
+    return () => clearInterval(timer);
+  });
+  const freshness = $derived(
+    describeScheduleFreshness({
+      bundle: eventState.bundle,
+      lastCheckedAt: refresh?.lastSuccessAt ?? null,
+      now: wallClock,
+    }),
+  );
   $effect(() => {
     void updateState.available;
     void refresh?.checking;
@@ -99,6 +116,21 @@
   <ChatDownload />
   <section class="card">
     <h2>Schedule updates</h2>
+    {#if freshness.statusLine}
+      <p
+        class="muted"
+        data-testid="schedule-status"
+        data-provisional={freshness.provisional ? 'true' : 'false'}
+      >
+        {freshness.statusLine}
+      </p>
+    {/if}
+    <p class="muted" data-testid="schedule-imported" data-age={freshness.age}>
+      {freshness.importedLine}
+      {#if freshness.age === 'stale'}
+        No newer import has been published, so treat these times as out of date.
+      {/if}
+    </p>
     <p class="muted">
       {#if localRevision === null}
         Using a cached schedule without a recorded revision.
@@ -106,12 +138,13 @@
         You have revision {localRevision} stored on this device.
       {/if}
     </p>
-    <p class="muted" data-testid="refresh-success">
+    <p class="muted" data-testid="refresh-success" data-overdue={freshness.checkOverdue}>
       {#if refresh?.lastSuccessAt}
         Last successful check: {new Date(refresh.lastSuccessAt).toLocaleString()}.
       {:else}
         No successful check recorded for this event yet.
       {/if}
+      {freshness.checkedLine}
     </p>
     {#if refresh?.error}
       <p class="muted" role="status">Last check failed: {refresh.error}</p>

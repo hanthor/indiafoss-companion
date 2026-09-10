@@ -421,6 +421,56 @@ test('Settings keeps the active event revision and successful check after a fail
   await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
 });
 
+/**
+ * Refresh state has to be honest about three different clocks (#191): when the
+ * programme was imported upstream, whether the organisers still call it a
+ * draft, and when this device last managed to look. A successful check must
+ * never read as "your schedule is current".
+ */
+test('Settings separates when the programme was imported from when this device last checked', async ({
+  page,
+  request,
+}) => {
+  await publish(page, 9999, await publishedBundle(request));
+  await page.goto(appUrl('/settings?setup=done'));
+
+  const imported = page.getByTestId('schedule-imported');
+  await expect(imported).toContainText('Programme data imported from the organisers');
+  // The archived 2025 bundle carries no editorial status. Saying nothing is the
+  // honest answer; it must not be reported as confirmed.
+  await expect(page.getByTestId('schedule-status')).toHaveCount(0);
+  await expect(page.getByTestId('refresh-success')).toContainText(
+    'That is when it looked, not how old the programme is.',
+  );
+});
+
+test('Settings calls a draft programme provisional and an old import out of date', async ({
+  page,
+  request,
+}) => {
+  const bundle = await publishedBundle(request);
+  const provisional = {
+    ...bundle,
+    sourceMetadata: {
+      ...(bundle.sourceMetadata as Record<string, unknown>),
+      scheduleStatus: 'draft',
+      sourceUpdatedAt: '2020-01-01 00:00:00',
+    },
+  };
+  await page.route(/\/events\/indiafoss-2025\/event-bundle\.json/, (route) =>
+    route.fulfill({ json: provisional }),
+  );
+  await publish(page, 9999, provisional);
+  await page.goto(appUrl('/settings?setup=done'));
+
+  const status = page.getByTestId('schedule-status');
+  await expect(status).toContainText('Provisional');
+  await expect(status).toHaveAttribute('data-provisional', 'true');
+  const imported = page.getByTestId('schedule-imported');
+  await expect(imported).toHaveAttribute('data-age', 'stale');
+  await expect(imported).toContainText('treat these times as out of date');
+});
+
 test.describe('service-worker recovery', () => {
   test.use({ serviceWorkers: 'allow' });
   test('offline recovery applies a changed session without losing any personal records', async ({
