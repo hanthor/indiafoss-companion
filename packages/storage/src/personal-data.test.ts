@@ -174,6 +174,25 @@ it('retains removed, ambiguous and cross-event legacy records without guessing t
   });
 });
 
+it('exports clash resolution: a stood-aside preference and a clash comparison (#271)', async () => {
+  await storage.saveEventBundle(bundle());
+  await storage.setPreference({ ...defaultPreference('talk-b'), yieldedTo: 'talk-a' });
+  await storage.saveComparison({
+    id: 'clash-1',
+    activityA: 'talk-a',
+    activityB: 'talk-b',
+    scoreA: 1,
+    clash: true,
+    createdAt: exportedAt,
+  });
+  const file = await storage.exportPersonalData(exportedAt);
+  expect(file.events[0]?.sections).toMatchObject({
+    preferences: [expect.objectContaining({ activityId: 'talk-b', yieldedTo: 'talk-a' })],
+    comparisons: [expect.objectContaining({ id: 'clash-1', clash: true })],
+  });
+  expect(decodePersonalData(encodePersonalData(file))).toEqual({ ok: true, data: file });
+});
+
 it('keeps event-scoped edits after their schedule is removed and references both replacement sides', async () => {
   await storage.setSetting(
     'plan-edits-old-event-2025-09-20',
@@ -204,3 +223,46 @@ it('rejects corrupt or oversized exports without changing storage, then permits 
     contact: { profile: { fullName: 'Asha' } },
   });
 });
+
+it('exports booth plans and explicit cancellations with event scope, retaining ambiguous or removed booths', async () => {
+  const a = bundle('event-a');
+  const b = bundle('event-b');
+  a.booths = ['planned', 'cancelled', 'shared'].map((id) => ({
+    id,
+    name: id,
+    category: 'project',
+    tags: [],
+  }));
+  b.booths = [{ id: 'shared', name: 'Shared ID', category: 'project', tags: [] }];
+  await storage.saveEventBundle(a);
+  await storage.saveEventBundle(b);
+  await storage.setSetting('booth-visit-planned', '30');
+  await storage.setSetting('booth-visit-cancelled', '');
+  await storage.setSetting('booth-visit-shared', '15');
+  await storage.setSetting('booth-visit-removed', '');
+  const file = await storage.exportPersonalData(exportedAt);
+  expect(file.events).toEqual([
+    {
+      eventId: 'event-a',
+      activities: [],
+      sections: { boothVisits: { planned: 30, cancelled: null } },
+    },
+  ]);
+  expect(file.unassigned).toEqual({
+    boothVisits: [
+      { boothId: 'removed', minutes: null },
+      { boothId: 'shared', minutes: 15 },
+    ],
+  });
+});
+
+it.each(['0', '-1', 'Infinity', 'NaN', '15.5', '1441'])(
+  'rejects invalid persisted booth duration %s without changing it',
+  async (value) => {
+    await storage.setSetting('booth-visit-invalid', value);
+    await expect(storage.exportPersonalData(exportedAt)).rejects.toThrow(
+      'Invalid booth visit duration',
+    );
+    expect(await storage.getSetting('booth-visit-invalid')).toBe(value);
+  },
+);

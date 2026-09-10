@@ -21,6 +21,8 @@ import {
   type ComparisonChoice,
   type RankedActivity,
   recommendations,
+  resolveClash,
+  clashLivePool,
 } from './index.js';
 
 function act(id: string, start: string, end: string, title = id): Activity {
@@ -511,5 +513,127 @@ describe('recommendations', () => {
     // A list that reshuffles between renders reads as noise, not judgement.
     const pool = [ranked(act('b', 'rust')), ranked(act('a', 'rust'))];
     expect(recommendations(pool, model).map((r) => r.activity.id)).toEqual(['a', 'b']);
+  });
+});
+
+describe('clash resolution (#271)', () => {
+  const at = (id: string, start: string, end: string, extra: Partial<RankedActivity> = {}) =>
+    ({
+      activity: {
+        id,
+        type: 'talk',
+        title: id,
+        start: `2026-09-19T${start}:00+05:30`,
+        end: `2026-09-19T${end}:00+05:30`,
+        flexible: false,
+        speakerIds: [],
+        tags: [],
+        source: 'test',
+      },
+      rating: 1200,
+      comparisons: 0,
+      disposition: 'normal',
+      ...extra,
+    }) as RankedActivity;
+
+  /** What the Rank screen does on a pick: the winner beats every loser it overlaps, one pair each. */
+  function pick(members: RankedActivity[], winnerId: string, compared: Set<string>) {
+    const winner = members.find((m) => m.activity.id === winnerId)!;
+    const resolution = resolveClash(members, winnerId);
+    for (const loserId of [...resolution.steppedAside, ...resolution.keptMustGo]) {
+      const loser = members.find((m) => m.activity.id === loserId)!;
+      const r = applyComparison(
+        winner.rating,
+        loser.rating,
+        'definitely-a',
+        pairKScale(winner.comparisons, loser.comparisons),
+      );
+      winner.rating = r.ratingA;
+      loser.rating = r.ratingB;
+      winner.comparisons++;
+      loser.comparisons++;
+      compared.add(pairKey(winnerId, loserId));
+    }
+    for (const id of resolution.steppedAside) {
+      members.find((m) => m.activity.id === id)!.yieldedTo = winnerId;
+    }
+    return resolution;
+  }
+
+  it('a four-way simultaneous clash is settled by one pick, not three more questions', () => {
+    const members = ['a', 'b', 'c', 'd'].map((id) => at(id, '11:00', '11:30'));
+    const compared = new Set<string>();
+    const slots = conflictSlots({ activities: members, alreadyCompared: compared });
+    expect(slots).toHaveLength(4);
+    expect(slots[0]!.members.map((m) => m.activity.id)).toEqual(['a', 'b', 'c', 'd']);
+
+    const resolution = pick(members, 'b', compared);
+    expect(resolution.steppedAside.sort()).toEqual(['a', 'c', 'd']);
+    // The same 11:00 window must not come back as "and if that falls through?".
+    expect(conflictSlots({ activities: members, alreadyCompared: compared })).toEqual([]);
+    expect(conflictProgress({ activities: members, alreadyCompared: compared }).open).toBe(0);
+    expect(scheduleStability({ activities: members, alreadyCompared: compared })).toBe(1);
+  });
+
+  it('a staggered overlap only stands aside the talks the winner actually clashes with', () => {
+    // A long workshop, a talk at its start and a talk at its end.
+    const members = [
+      at('w', '11:00', '13:00'),
+      at('x', '11:00', '11:30'),
+      at('y', '12:30', '13:00'),
+    ];
+    const compared = new Set<string>();
+    const resolution = pick(members, 'x', compared);
+    expect(resolution.steppedAside).toEqual(['w']);
+    expect(resolution.unaffected).toEqual(['y']);
+    // y is compatible with x and stays live; with w aside there is nothing left to ask.
+    expect(conflictSlots({ activities: members, alreadyCompared: compared })).toEqual([]);
+    expect(members.find((m) => m.activity.id === 'y')!.yieldedTo).toBeUndefined();
+  });
+
+  it('a stood-aside talk returns when its winner leaves the day', () => {
+    const members = [
+      at('a', '11:00', '11:30'),
+      at('b', '11:00', '11:30'),
+      at('c', '11:00', '11:30'),
+    ];
+    const compared = new Set<string>();
+    pick(members, 'a', compared);
+    expect(conflictSlots({ activities: members, alreadyCompared: compared })).toEqual([]);
+    members[0]!.disposition = 'not-interested';
+    // b and c are back in the running and still need a decision between them.
+    const slots = conflictSlots({ activities: members, alreadyCompared: compared });
+    expect(slots[0]!.members.map((m) => m.activity.id)).toEqual(['b', 'c']);
+  });
+
+  it('never stands aside a must-go loser: the explicit conflict is kept for the plan', () => {
+    const members = [
+      at('a', '11:00', '11:30'),
+      at('b', '11:00', '11:30', { disposition: 'must-attend' }),
+      at('c', '11:00', '11:30'),
+    ];
+    const resolution = resolveClash(members, 'a');
+    expect(resolution.steppedAside).toEqual(['c']);
+    expect(resolution.keptMustGo).toEqual(['b']);
+    // Even if a yield were recorded, a must-go member is never dropped from the live pool.
+    members[1]!.yieldedTo = 'a';
+    members[2]!.yieldedTo = 'a';
+    expect(clashLivePool(members).map((m) => m.activity.id)).toEqual(['a', 'b']);
+  });
+
+  it('a clash loss is not learnt as dislike of the loser', () => {
+    const aosp = { ...act('a', `${D}11:00:00+05:30`, `${D}11:30:00+05:30`), trackId: 'aosp' };
+    const rust = { ...act('b', `${D}11:00:00+05:30`, `${D}11:30:00+05:30`), trackId: 'rust' };
+    const pool: RankedActivity[] = [
+      { activity: aosp, rating: 1200, comparisons: 1, disposition: 'normal' },
+      { activity: rust, rating: 1200, comparisons: 1, disposition: 'normal', interest: 'yes' },
+    ];
+    const asClash = learnAffinity(pool, [
+      { activityA: 'a', activityB: 'b', scoreA: 1, clash: true },
+    ]);
+    const asTaste = learnAffinity(pool, [{ activityA: 'a', activityB: 'b', scoreA: 1 }]);
+    expect(asClash.affinity.get('track:aosp')).toBeGreaterThan(0);
+    expect(asClash.affinity.get('track:rust')).toBeGreaterThan(0);
+    expect(asTaste.affinity.get('track:rust')!).toBeLessThan(asClash.affinity.get('track:rust')!);
   });
 });

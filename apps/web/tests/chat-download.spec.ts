@@ -16,6 +16,10 @@ for (const route of ['/connect', '/settings']) {
       'https://github.com/hanthor/indiafoss-chat-android/releases/tag/nightly',
     );
     await expect(card).toContainText('Android 7.0 or later');
+    await expect(card.getByRole('link', { name: 'Obtainium', exact: true })).toHaveAttribute(
+      'href',
+      'obtainium://add/https://github.com/hanthor/indiafoss-chat-android',
+    );
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);

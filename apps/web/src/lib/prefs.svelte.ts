@@ -46,6 +46,66 @@ export function triageOf(activityId: string): ActivityPreference['triage'] | und
   return preferences.get(activityId)?.triage;
 }
 
+/** The session this one stood aside for in a clash (#271), if any. */
+export function yieldedTo(activityId: string): string | undefined {
+  return preferences.get(activityId)?.yieldedTo;
+}
+
+/**
+ * Record or clear a clash loss (#271). Standing aside is a scheduling
+ * outcome, not an answer: the disposition, interest and rating are untouched,
+ * so the talk stays an interest and nothing is learnt against it.
+ */
+export async function setYieldedTo(
+  activityId: string,
+  winnerId: string | undefined,
+): Promise<void> {
+  const next: ActivityPreference = { ...preferenceFor(activityId) };
+  if (winnerId) next.yieldedTo = winnerId;
+  else delete next.yieldedTo;
+  await getStorage().setPreference(next);
+  preferences.set(activityId, next);
+}
+
+/** Everything a clash pick or undo may change about one session, in one write. */
+export interface ChoiceSnapshot {
+  id: string;
+  rating: number;
+  comparisons: number;
+  disposition: Disposition;
+  triage?: ActivityPreference['triage'];
+  yieldedTo?: string;
+}
+
+export function snapshotChoice(activityId: string): ChoiceSnapshot {
+  const current = preferenceFor(activityId);
+  const snapshot: ChoiceSnapshot = {
+    id: activityId,
+    rating: current.rating,
+    comparisons: current.comparisons,
+    disposition: current.disposition,
+  };
+  if (current.triage) snapshot.triage = current.triage;
+  if (current.yieldedTo) snapshot.yieldedTo = current.yieldedTo;
+  return snapshot;
+}
+
+/** Restore a snapshot verbatim (undo). Bookmarks are not part of a choice and are kept. */
+export async function restoreChoice(snapshot: ChoiceSnapshot): Promise<void> {
+  const next: ActivityPreference = {
+    ...preferenceFor(snapshot.id),
+    rating: snapshot.rating,
+    comparisons: snapshot.comparisons,
+    disposition: snapshot.disposition,
+  };
+  if (snapshot.triage) next.triage = snapshot.triage;
+  else delete next.triage;
+  if (snapshot.yieldedTo) next.yieldedTo = snapshot.yieldedTo;
+  else delete next.yieldedTo;
+  await getStorage().setPreference(next);
+  preferences.set(snapshot.id, next);
+}
+
 /**
  * Quick-pass answer (#90). "No" rules the session out of ranking and planning;
  * "yes" keeps it in. Clearing restores a plain session; a must-attend mark is
@@ -133,11 +193,16 @@ export async function toggleBookmark(activityId: string): Promise<void> {
 export async function setDisposition(activityId: string, disposition: Disposition): Promise<void> {
   const current = preferenceFor(activityId);
   const next = { ...current, disposition };
+  // A must-go mark is an explicit answer: it overrides an earlier clash loss.
+  if (disposition === 'must-attend') delete next.yieldedTo;
   await getStorage().setPreference(next);
   preferences.set(activityId, next);
 }
 
-/** One explicit card answer, persisted in one write. Clearing also clears its must mark. */
+/**
+ * One explicit card answer, persisted in one write. Clearing also clears its
+ * must mark. Any direct answer supersedes an earlier clash loss (#271).
+ */
 export async function setTalkChoice(
   activityId: string,
   answer: 'yes' | 'no' | 'must' | undefined,
@@ -148,6 +213,28 @@ export async function setTalkChoice(
   } satisfies ActivityPreference;
   if (answer) next.triage = answer === 'no' ? 'no' : 'yes';
   else delete next.triage;
+  delete next.yieldedTo;
   await getStorage().setPreference(next);
   preferences.set(activityId, next);
+}
+
+/**
+ * Re-read every preference and comparison after storage changed underneath
+ * the caches (personal-data import). Consumers observe the maps, so they update in place.
+ */
+export async function reloadPreferences(): Promise<void> {
+  const [stored, comparisons] = await Promise.all([
+    getStorage().listPreferences(),
+    getStorage().listComparisons(),
+  ]);
+  preferences.clear();
+  for (const p of stored) preferences.set(p.activityId, p);
+  hydrated = true;
+  history.clear();
+  answeredPairs.clear();
+  for (const c of comparisons) {
+    history.set(c.id, c);
+    answeredPairs.add(pairKey(c.activityA, c.activityB));
+  }
+  historyHydrated = true;
 }

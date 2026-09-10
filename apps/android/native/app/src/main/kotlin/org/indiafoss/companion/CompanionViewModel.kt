@@ -33,6 +33,7 @@ import org.indiafoss.companion.core.Disposition
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.Itinerary
 import org.indiafoss.companion.core.NowState
+import org.indiafoss.companion.core.PlanMarker
 import org.indiafoss.companion.core.RankedActivity
 import org.indiafoss.companion.core.Ranking
 import org.indiafoss.companion.core.Schedule
@@ -179,6 +180,17 @@ data class UiState(
     fun plannedEntries(): List<PlannedEntry> {
         val b = bundle ?: return emptyList()
         return PlannedEntries.fromPlans(b, days.mapNotNull(::resolvedPlanFor))
+    }
+
+    /**
+     * Where each of the day's sessions stands in the attendee's plan (#110),
+     * read off the resolved plan (#221) so the Schedule agrees with Now, the
+     * map and the reminders: a removed session loses its mark, a replacement
+     * gains one, an interest that lost its slot stands aside.
+     */
+    fun markersFor(day: String): Map<String, PlanMarker> {
+        val plan = resolvedPlanFor(day) ?: return emptyMap()
+        return PlanMarker.derive(activitiesFor(day), plan, ::dispositionOf, { it in bookmarks }, { ranking.rating(it).triage })
     }
 
     val nowState: NowState?

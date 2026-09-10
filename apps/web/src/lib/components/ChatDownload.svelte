@@ -18,6 +18,12 @@
     Android 7.0 or later. Open the downloaded APK and allow installation from your browser when
     Android asks.
   </p>
+  <p class="muted">
+    Keep it updated with
+    <a href="obtainium://add/https://github.com/hanthor/indiafoss-chat-android">Obtainium</a>
+    (<a href="https://github.com/ImranR98/Obtainium/releases/latest">get Obtainium</a>) or, once
+    published, our F-Droid repository.
+  </p>
 </section>
 
 <style>

@@ -129,3 +129,12 @@ export async function removeCustomBlock(id: string): Promise<void> {
 export function isRemoved(id: string): boolean {
   return planEdits.edits.removed.includes(id);
 }
+
+/** Drop the active day's cached edits and read them back from storage (personal-data import). */
+export async function reloadPlanEdits(): Promise<void> {
+  const { eventId, day } = planEdits;
+  if (!eventId || !day) return;
+  planEdits.eventId = null;
+  planEdits.day = null;
+  await hydratePlanEdits(eventId, day);
+}

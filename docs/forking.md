@@ -203,7 +203,7 @@ P2P chat is not part of this app — it's the dedicated
 `hanthor/indiafoss-chat-android` fork (see
 [ADR 0004](adr/0004-retire-the-capacitor-shell.md)). The build, release and
 store channels for this app are in [release.md](./release.md) and
-[accrescent.md](./accrescent.md).
+[install-channels.md](./install-channels.md).
 
 ## Things you can delete outright
 
