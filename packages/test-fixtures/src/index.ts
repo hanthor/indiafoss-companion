@@ -122,3 +122,38 @@ export function allFixtureCases(): {
   }
   return cases;
 }
+
+/**
+ * One row of `fixtures/contact-trust/states.json`: a stored contact record and
+ * the separate conclusions a contact screen must draw from it (#31, #188).
+ * The record is typed loosely on purpose — it is stored data of whatever
+ * shape an older build or an imported file left behind.
+ */
+export interface ContactTrustCase {
+  name: string;
+  describes: string;
+  record: Record<string, unknown>;
+  expect: {
+    signature: string;
+    account: string;
+    contradiction: boolean;
+    profile: string;
+    inPerson: string;
+    chat: string;
+    routes: string[];
+  };
+}
+
+export interface ContactTrustFixtures {
+  describes: string;
+  /** The closed set of values each conclusion may take. `chat` deliberately lacks `verified`. */
+  vocabulary: Record<keyof Omit<ContactTrustCase['expect'], 'contradiction'>, string[]>;
+  cases: ContactTrustCase[];
+}
+
+/** Load the contact trust-state table. Not part of `index.json`: it is a derivation table, not a validator suite. */
+export function loadContactTrustFixtures(): ContactTrustFixtures {
+  return JSON.parse(
+    readFileSync(fixturesDir('contact-trust', 'states.json'), 'utf8'),
+  ) as ContactTrustFixtures;
+}

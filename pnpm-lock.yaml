@@ -71,6 +71,9 @@ importers:
       '@indiafoss/storage':
         specifier: workspace:*
         version: link:../../packages/storage
+      '@indiafoss/test-fixtures':
+        specifier: workspace:*
+        version: link:../../packages/test-fixtures
       '@indiafoss/venue':
         specifier: workspace:*
         version: link:../../packages/venue
