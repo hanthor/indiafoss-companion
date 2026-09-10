@@ -121,7 +121,7 @@ fun ExploreScreen(
                                         Text(
                                             track.name,
                                             style = MaterialTheme.typography.titleSmall,
-                                            maxLines = 2,
+                                            maxLines = 3,
                                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                                             modifier = Modifier.padding(12.dp, 10.dp),
                                         )

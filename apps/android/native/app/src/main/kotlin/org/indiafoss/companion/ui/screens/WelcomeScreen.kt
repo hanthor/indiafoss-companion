@@ -8,7 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,7 +51,7 @@ import org.indiafoss.companion.ui.theme.eyebrow
  * A launch surface: it carries the event identity, so it is rendered in the
  * brand scheme whatever the wallpaper palette (#33).
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun WelcomeScreen(
     state: UiState,
@@ -108,7 +109,7 @@ fun WelcomeScreen(
                             if (state.remindersEnabled) {
                                 Text("Reminders are on.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.primary)
                                 Button(onClick = { step = 1 }) { Text("Next") }
-                            } else Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            } else FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = {
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) askPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
                                     else { onReminders(true); step = 1 }
@@ -128,7 +129,8 @@ fun WelcomeScreen(
                             OutlinedTextField(draft.socials["linkedin"].orEmpty(), { draft = draft.copy(socials = draft.socials + ("linkedin" to it)) }, label = { Text("LinkedIn") }, placeholder = { Text("https://linkedin.com/in/you") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(draft.socials["mastodon"].orEmpty(), { draft = draft.copy(socials = draft.socials + ("mastodon" to it)) }, label = { Text("Mastodon") }, placeholder = { Text("https://fosstodon.org/@you") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(draft.fossUnitedUsername, { draft = draft.copy(fossUnitedUsername = it) }, label = { Text("FOSS United username") }, placeholder = { Text("your_username") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Buttons wrap rather than squeeze at large font sizes.
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = { onSave(draft.copy(fullName = draft.fullName.trim())); step = 2 }) {
                                     Text(if (draft.fullName.isBlank()) "Skip for now" else "Save")
                                 }
@@ -141,7 +143,8 @@ fun WelcomeScreen(
                                 "Say which devrooms are for you, swipe through the talks, settle the overlaps: a few minutes now and the app builds a plan around what you would actually go to.",
                                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Buttons wrap rather than squeeze at large font sizes.
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = { onDone(true) }) { Text("Rank my sessions") }
                                 OutlinedButton(onClick = { onDone(false) }) { Text("Later") }
                             }

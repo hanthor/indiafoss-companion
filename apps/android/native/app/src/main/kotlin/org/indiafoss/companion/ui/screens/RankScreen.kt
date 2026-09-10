@@ -93,12 +93,14 @@ fun RankScreen(
     onOpen: (String) -> Unit,
     onOpenSpeaker: (String) -> Unit,
     onBack: () -> Unit,
+    /** Open on the devrooms step (from the Explore gallery) instead of the talks. */
+    startWithDevrooms: Boolean = false,
 ) {
     val bundle = state.bundle
     val days = state.days
     var day by remember(days) { mutableIntStateOf(0) }
     val rooms = remember(bundle) { devrooms(state) }
-    var chosen by remember { mutableStateOf<Step?>(null) }
+    var chosen by remember { mutableStateOf<Step?>(if (startWithDevrooms) Step.DEVROOMS else null) }
     var undo by remember { mutableStateOf<CompanionViewModel.Undo?>(null) }
 
     val sessions = if (days.isEmpty()) emptyList() else

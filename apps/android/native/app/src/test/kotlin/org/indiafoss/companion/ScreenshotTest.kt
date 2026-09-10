@@ -189,6 +189,13 @@ class ScreenshotTest {
     }
     @Test fun plan() = shoot("plan") { PlanScreen(state(), {}, {}, { null }, {}) {} }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
+    /** The devroom cards carry the official 2026 patterns (the PWA's planning cards). */
+    @Test fun rankDevrooms() {
+        shoot("rank-devrooms") {
+            RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}, startWithDevrooms = true) {}
+        }
+        compose.onNode(hasText("Which devrooms are for you?", substring = true)).assertIsDisplayed()
+    }
     @Test fun rankTalks() = shoot("rank-talks") {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true)), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
