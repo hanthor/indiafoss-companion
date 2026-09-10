@@ -1,8 +1,4 @@
 {
-  "_source": "https://docs.google.com/spreadsheets/d/12_CJE84LOk19pzjfHyNWXKWUHML1Fjpi3G2Be9Nvt4U/edit",
-  "_snapshot": "https://gist.githubusercontent.com/hanthor/561e363e56f425625fe6140728b99015/raw/0f0284ecdf8481fef862628bb89503d9bb3ca036/gistfile1.txt",
-  "_capturedAt": "2026-09-09",
-  "_notes": "Sheet CSV and pinned gist contain identical 71 rows. Categories map to existing app categories; original domains and showcasing days are preserved in tags. Showcasing days are also visible in descriptions on both clients. Organiser category suggestions in Notes are omitted. No booth positions are inferred. Website URLs are not inferred either: each is the host the source row already printed in its Brief Description, moved into the website field and removed from the description text so it is not shown twice. IDs are stable: preserve existing IDs when updating names. FOSSEE's source row spells its host fosseee.in, which does not resolve; the website field uses fossee.in, which answers 200. That is the only host that differs from the source text. The source row spells the Forklore booth 'Folklore'; the name here is Forklore, per the organisers. Its id is unchanged, as ids are stable across name corrections.",
   "booths": [
     {
       "id": "booth-2026-debian",
@@ -825,7 +821,7 @@
     },
     {
       "id": "booth-2026-folklore",
-      "name": "Forklore",
+      "name": "Folklore",
       "category": "other",
       "description": "Confessions, quirks and the occasional rant from India's open source keepers\n\nShowcasing: Both Days.",
       "tags": [
