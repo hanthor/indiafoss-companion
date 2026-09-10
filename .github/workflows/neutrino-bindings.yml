@@ -158,7 +158,7 @@ jobs:
             # dependency lines themselves to the rev, then re-resolve only
             # those two packages so the rest of the lockfile stays as the
             # fork committed it.
-            sed -i -E "s|^(neutrino-(ffi|main) = \{ git = \"$fork(\.git)?\", )branch = \"[^\"]+\"|\1rev = \"$rev\"|" "$manifest"
+            sed -i -E "s#^(neutrino-(ffi|main) = \{ git = \"$fork(\.git)?\", )branch = \"[^\"]+\"#\1rev = \"$rev\"#" "$manifest"
             grep -nE '^neutrino-(ffi|main) = ' "$manifest"
             grep -qE "^neutrino-ffi = .*rev = \"$rev\"" "$manifest" || { echo "failed to pin neutrino-ffi to $rev"; exit 1; }
             grep -qE "^neutrino-main = .*rev = \"$rev\"" "$manifest" || { echo "failed to pin neutrino-main to $rev"; exit 1; }
