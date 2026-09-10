@@ -2,7 +2,7 @@
 <resources>
     <!--
       The window behind the first Compose frame and the Android 12+ splash
-      plate: the brand paper token (app.css --paper, hsl(0 0% 94%)), so a
+      plate: the brand paper token (the app.css paper token, hsl(0 0% 94%)), so a
       launch on a dark-mode phone never flashes white and the splash matches
       the event surfaces rather than the platform default (#33).
     -->

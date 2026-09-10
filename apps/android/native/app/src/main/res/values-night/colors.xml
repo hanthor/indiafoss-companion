@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- app.css --paper in the dark theme, hsl(0 0% 8%). -->
+    <!-- The app.css paper token in the dark theme, hsl(0 0% 8%). -->
     <color name="window_background">#141414</color>
     <color name="splash_background">#141414</color>
 </resources>
