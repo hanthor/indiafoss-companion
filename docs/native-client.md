@@ -26,6 +26,50 @@ of plan cancels alarms that no longer apply; `ReminderReceiver` posts the
 notification. Ratings, answered pairs and room preferences live in
 `RatingsStore` as one JSON document in DataStore.
 
+## The plan in the phone's calendar (#272)
+
+Settings has an opt-in "Keep my plan in the calendar" switch. On, with
+`READ_CALENDAR`/`WRITE_CALENDAR` granted, the app creates one local calendar
+of its own ("IndiaFOSS", `ACCOUNT_TYPE_LOCAL`, written through
+`CalendarContract` as a sync adapter) and keeps it equal to the plan: every
+planned session of every day, with the room, the speakers and a ten-minute
+reminder, and a `CUSTOM_APP_URI` deep link back into the app.
+
+- `core/CalendarSync.kt` holds the decisions and is pure: `PlannedEntry` is
+  the narrow input (what the attendee means to be at, as the native
+  itinerary produces it today and the resolved-plan projection of #221 can
+  produce later), `PlannedIdentity` is the row's identity following the
+  transfer contract of #247 (event, CFP proposal where there is one, exact
+  occurrence; stored in the row's `SYNC_DATA1`/`SYNC_DATA2`), and
+  `CalendarReconciler` turns desired entries plus the rows the provider holds
+  into inserts, in-place updates and deletes. A session that moves, is
+  renamed or changes room is updated, never re-added; a regenerated
+  programme that gives the same proposal a new activity id still updates the
+  row in place when the match is unambiguous; a row that left the plan is
+  deleted; duplicate rows collapse, so a refresh or a restart never doubles
+  an entry; rows in any other calendar, and rows in the app's calendar
+  without the app's identity, are never touched.
+- `app/calendar/CalendarSync.kt` is the thin `ContentResolver` adapter: it
+  finds or creates the calendar, reads only that calendar's rows, and applies
+  the reconciler's ops in one batch. `disconnect()` removes the calendar and
+  everything in it.
+- `CompanionViewModel` reconciles whenever the plan's inputs change
+  (bundle, bookmarks, must-attend, ratings, blocks) or the switch goes on,
+  which includes every launch. There is no background job yet: a programme
+  revision that arrives while the app is closed reaches the calendar the
+  next time the app opens.
+- Turning the switch off, or "Disconnect and remove the calendar", deletes
+  the app's calendar. A permission denied at the prompt leaves the switch
+  off and nothing touched; a permission withdrawn later is reported in the
+  status line under the switch.
+
+The `.ics` share on My plan stays as the portable fallback for any calendar
+app; Settings says plainly that an imported file is a snapshot that does not
+update. `CalendarSyncTest` in `:core` covers the reconciliation; the
+`:app` test of the same name runs the adapter against an in-memory stand-in
+for the provider under Robolectric. Nothing here has been exercised against
+a real device's calendar provider yet.
+
 Every tab carries the leave-by banner under its app bar: the next session
 that matters (must attend, then the earliest bookmark, then the programme's
 next talk, never a break) counting down, tertiary-coloured within five

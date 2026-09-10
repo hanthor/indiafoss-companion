@@ -241,6 +241,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 SettingsScreen(
                     state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile,
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
+                    onCalendarSync = viewModel::setCalendarSyncEnabled,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->
