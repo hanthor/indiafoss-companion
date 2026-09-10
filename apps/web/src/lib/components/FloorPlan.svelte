@@ -1136,8 +1136,13 @@
     position: absolute;
     top: 0.6rem;
     left: 0.75rem;
+    /* Keep the chips above the clock: in the desktop layout the canvas is
+       narrow enough for the two to meet, and the clock must never take a tap. */
+    z-index: 1;
     display: flex;
+    flex-wrap: wrap;
     gap: 0.35rem;
+    max-width: calc(100% - 1.5rem);
   }
   .chip {
     display: inline-flex;
@@ -1172,6 +1177,9 @@
     position: absolute;
     top: 0.6rem;
     right: 0.75rem;
+    /* Read-only readout; it sits over the canvas and must not intercept taps
+       meant for the floor chips or rooms beneath it. */
+    pointer-events: none;
     display: flex;
     gap: 0.5rem;
     align-items: center;
