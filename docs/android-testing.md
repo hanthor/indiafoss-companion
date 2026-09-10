@@ -213,3 +213,5 @@ this app carries no P2P chat code (ADR 0004).
   real device's accessibility dump before being added — that verification is
   what made this rewrite's flows pass without a single red run, unlike the
   original suite's first attempt.
+
+<!-- probe: docs-only change to observe CI gate skipping; PR #333 -->
