@@ -79,6 +79,8 @@ class RankClashTest {
         show(four, RankingState(roomsDecided = true))
         compose.onNodeWithText("Which one would you go to?").assertIsDisplayed()
         compose.onNodeWithText("Slot 1 of 4 · 11:00–11:30").assertIsDisplayed()
+        // Four cards push the Undo row below the fold: bring it into the lazy list before reading it.
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Undo last"))
         compose.onNodeWithText("Undo last").assertIsNotEnabled()
         pick("b")
         // One tap, one pick, with every member of the slot: the view model settles the whole window.
