@@ -23,6 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import org.indiafoss.companion.UiState
+import androidx.compose.foundation.draw.drawBehind
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.geometry.Size
+import org.indiafoss.companion.ScheduleUpdate
+import org.indiafoss.companion.core.ScheduleDiff
 import org.indiafoss.companion.ui.EventMasthead
 import org.indiafoss.companion.core.EventPhase
 import org.indiafoss.companion.core.ResolvedPlan
@@ -62,27 +70,7 @@ fun NowScreen(
             else -> PullToRefreshBox(isRefreshing = false, onRefresh = onRefresh, modifier = Modifier.fillMaxSize().padding(padding)) {
                 LazyColumn(Modifier.fillMaxSize()) {
                 state.update?.let { update ->
-                    item {
-                        Card(
-                            Modifier.fillMaxWidth().padding(16.dp, 8.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
-                        ) {
-                            Column(Modifier.padding(16.dp)) {
-                                Text("Schedule updated · revision ${update.revision}", style = MaterialTheme.typography.titleSmall)
-                                Text(update.summary, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 2.dp))
-                                update.changes.take(6).forEach { change ->
-                                    Text(
-                                        "• ${change.title}: ${change.kind.label}${change.detail?.let { " ($it)" } ?: ""}",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(top = 4.dp).clickable { onOpen(change.activityId) },
-                                    )
-                                }
-                                if (update.changes.size > 6) Text("and ${update.changes.size - 6} more", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp))
-                                TextButton(onClick = onDismissUpdate, modifier = Modifier.align(Alignment.End)) { Text("Got it") }
-                            }
-                        }
-                    }
+                    item { ScheduleUpdateCard(update, state.todayPlan, onDismissUpdate, onOpen) }
                 }
                 // The event's own strip (name, dates, day or recap) in the fixed brand palette.
                 item { EventMasthead(state) }
@@ -174,5 +162,95 @@ private fun PersonalPlanCard(state: UiState, onOpenPlan: () -> Unit, onOpen: (St
             }
             TextButton(onClick = onOpenPlan, modifier = Modifier.align(Alignment.End)) { Text("Open your plan") }
         }
+    }
+}
+
+/**
+ * The schedule-change notice, openable onto what actually changed (#312).
+ *
+ * The counts alone ("1 room changed") told an attendee that something moved
+ * but not what, leaving them to re-read the programme and hope to spot it.
+ * **See what changed** discloses the whole list, one plain sentence each,
+ * ordered by what costs most if acted on late; a row opens its session.
+ *
+ * Changes to sessions in the attendee's own plan for today come first, under
+ * a heading and a rule down the side. "Their plan" is the resolved plan
+ * (#221) that Now, the map and the reminders already read, not a second
+ * notion of what is planned. When that plan cannot speak for the attendee -
+ * no plan for today, or one made infeasible by a conflict - the list stays
+ * flat and claims nothing about what affects them, rather than saying
+ * "nothing in your plan changed" on a guess.
+ *
+ * When the revision being replaced could not be diffed there is no list and
+ * no counts at all: part of a change list shown as the whole one is worse
+ * than none.
+ */
+@Composable
+fun ScheduleUpdateCard(
+    update: ScheduleUpdate,
+    plan: ResolvedPlan.Plan?,
+    onDismissUpdate: () -> Unit,
+    onOpen: (String) -> Unit,
+) {
+    var expanded by rememberSaveable(update.revision) { mutableStateOf(false) }
+    val changes = update.changes
+    val ruleColour = MaterialTheme.colorScheme.primary
+    Card(
+        Modifier.fillMaxWidth().padding(16.dp, 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Schedule updated · revision ${update.revision}", style = MaterialTheme.typography.titleSmall)
+            if (changes == null) {
+                Text(
+                    "The programme changed. What changed cannot be listed for this update.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            } else {
+                update.summary?.let { Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 2.dp)) }
+                // Only the resolved plan may say what is in the attendee's day.
+                val plannedIds = plan?.takeIf { it.feasible && it.items.isNotEmpty() }?.plannedIds
+                val mine = plannedIds?.let { ids -> changes.filter { it.activityId in ids } }.orEmpty()
+                val rest = if (plannedIds == null) changes else changes.filterNot { it.activityId in plannedIds }
+                TextButton(onClick = { expanded = !expanded }, modifier = Modifier.padding(top = 4.dp)) {
+                    Text(if (expanded) "Hide what changed" else "See what changed")
+                }
+                if (expanded) {
+                    if (mine.isNotEmpty()) {
+                        ChangeGroupHeader("In your plan today")
+                        Column(
+                            Modifier
+                                .drawBehind { drawRect(ruleColour, size = Size(2.dp.toPx(), size.height)) }
+                                .padding(start = 10.dp),
+                        ) { mine.forEach { ChangeRow(it, onOpen) } }
+                        if (rest.isNotEmpty()) ChangeGroupHeader("Elsewhere in the programme")
+                    }
+                    rest.forEach { ChangeRow(it, onOpen) }
+                }
+            }
+            TextButton(onClick = onDismissUpdate, modifier = Modifier.align(Alignment.End)) { Text("Got it") }
+        }
+    }
+}
+
+@Composable
+private fun ChangeGroupHeader(text: String) = Text(
+    text,
+    style = MaterialTheme.typography.labelLarge,
+    fontWeight = FontWeight.SemiBold,
+    modifier = Modifier.padding(top = 8.dp, bottom = 2.dp),
+)
+
+/** One change: the session it happened to, then the change said in a sentence. */
+@Composable
+private fun ChangeRow(detail: ScheduleDiff.Detail, onOpen: (String) -> Unit) {
+    Column(Modifier.fillMaxWidth().clickable { onOpen(detail.activityId) }.padding(vertical = 4.dp)) {
+        Text(detail.title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+        Text(
+            detail.description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
