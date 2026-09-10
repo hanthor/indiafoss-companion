@@ -11,6 +11,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  rmSync,
   realpathSync,
   writeFileSync,
 } from 'node:fs';
@@ -271,26 +272,31 @@ export async function syncEvent(
   return manifest;
 }
 
-export function publishEvent(eventId: string): void {
-  const publishedDir = repoRoot('events', eventId, 'published');
+export function publishEvent(eventId: string, publishedDirIn?: string, destDirIn?: string): void {
+  const publishedDir = publishedDirIn ?? repoRoot('events', eventId, 'published');
   const manifestPath = join(publishedDir, 'manifest.json');
   if (!existsSync(manifestPath)) {
     throw new Error(`no published manifest for ${eventId}; run 'event-sync sync ${eventId}' first`);
   }
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as EventManifest;
-  const destDir = repoRoot('apps', 'web', 'static', 'events', eventId);
+  const destDir = destDirIn ?? repoRoot('apps', 'web', 'static', 'events', eventId);
   mkdirSync(destDir, { recursive: true });
+  const asset = manifest.assets['event']!;
   // Hash-less copy for the precache, plus the immutable asset the manifest names.
-  copyFileSync(join(publishedDir, manifest.assets['event']!), join(destDir, 'event-bundle.json'));
-  copyFileSync(
-    join(publishedDir, manifest.assets['event']!),
-    join(destDir, manifest.assets['event']!),
-  );
+  copyFileSync(join(publishedDir, asset), join(destDir, 'event-bundle.json'));
+  copyFileSync(join(publishedDir, asset), join(destDir, asset));
   writeFileSync(join(destDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
-  console.log(
-    `published ${eventId} rev ${manifest.revision} -> apps/web/static/events/${eventId}/`,
+  // The asset name carries a content hash, so a changed bundle publishes under a
+  // new name and the old one would linger forever. Nothing serves it once the
+  // manifest stops naming it, and the sync runs hourly, so sweep it now.
+  const stale = readdirSync(destDir).filter(
+    (name) => /^event\.[0-9a-f]{8}\.json$/.test(name) && name !== asset,
   );
-  void readdirSync;
+  for (const name of stale) rmSync(join(destDir, name));
+  console.log(
+    `published ${eventId} rev ${manifest.revision} -> ${destDir}` +
+      (stale.length > 0 ? ` (removed ${stale.length} superseded asset(s))` : ''),
+  );
 }
 
 export async function main(): Promise<void> {

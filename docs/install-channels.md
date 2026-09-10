@@ -17,9 +17,14 @@ installs new builds as they appear.
    - Companion: `https://github.com/hanthor/indiafoss-companion`
    - Chat: `https://github.com/hanthor/indiafoss-chat-android`
 3. Obtainium picks the `nightly` pre-release's APK. Enable _Include
-   prereleases_ if it does not, and pin the APK filename
-   (`indiafoss-companion-nightly.apk` / `indiafoss-chat-android.apk`) under the
-   app's settings so the checksum sidecar is never chosen.
+   prereleases_ if it does not, and pin the APK filename under the app's
+   settings so the checksum sidecar is never chosen:
+   - Companion: `indiafoss-companion-nightly.apk`
+   - Chat: `indiafoss-chat-android-arm64-v8a.apk` on an arm64 phone, which is
+     almost every phone and much the smaller download. Pin
+     `indiafoss-chat-android.apk` instead if that one will not install; it
+     carries every architecture. Chat publishes both, so an unpinned filename
+     is ambiguous here.
 4. Updates then arrive on Obtainium's own schedule; it asks before installing.
 
 If you first installed the APK by hand, Obtainium can still update it, because

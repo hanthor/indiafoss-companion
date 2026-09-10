@@ -49,6 +49,7 @@ import org.indiafoss.companion.core.StoredBlock
 import org.indiafoss.companion.core.ScheduleDiff
 import org.indiafoss.companion.core.RankingState
 import org.indiafoss.companion.data.RatingsStore
+import org.indiafoss.companion.data.BundleSource
 import org.indiafoss.companion.data.RefreshResult
 import org.indiafoss.companion.core.StoredComparison
 import org.indiafoss.companion.data.VenueRepository
@@ -108,6 +109,13 @@ data class UiState(
     val importPreview: ImportPreview? = null,
     /** An export or import is in progress; the Settings buttons wait. */
     val personalDataBusy: Boolean = false,
+    /**
+     * Where the rendered bundle came from (#191). A seed copy is as old as the
+     * APK, and Settings says so rather than presenting it as refreshed.
+     */
+    val bundleSource: BundleSource? = null,
+    /** Wall-clock millis of this device's last successful manifest check, if any (#191). */
+    val lastRefreshAt: Long? = null,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
     fun dispositionOf(id: String): Disposition =
@@ -276,8 +284,15 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             // An import that did not finish is undone before anything reads the stores (#240).
             withContext(Dispatchers.IO) { personalData.recover() }
-            val cached = repository.cached()
-            _state.update { it.copy(loading = false, bundle = cached, now = nowIso()) }
+            val cached = repository.cachedWithSource()
+            _state.update {
+                it.copy(
+                    loading = false,
+                    bundle = cached?.bundle,
+                    bundleSource = cached?.source,
+                    now = nowIso(),
+                )
+            }
             preferences.bookmarks.collect { saved ->
                 _state.update { it.copy(bookmarks = saved) }
             }
@@ -416,6 +431,8 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                     _state.update {
                         it.copy(
                             bundle = result.bundle,
+                            bundleSource = BundleSource.REFRESHED,
+                            lastRefreshAt = System.currentTimeMillis(),
                             now = nowIso(),
                             // The banner carries the diff; the snackbar only when there is nothing to list.
                             update = if (changes.isEmpty()) null else ScheduleUpdate(result.revision, changes),
@@ -425,7 +442,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 is RefreshResult.Failed ->
                     _state.update { it.copy(message = null) } // offline is normal; stay quiet
-                RefreshResult.UpToDate -> _state.update { it.copy(now = nowIso()) }
+                // Reaching the manifest is a successful check even when nothing changed;
+                // it is recorded as a check, never as evidence that the data is new (#191).
+                RefreshResult.UpToDate ->
+                    _state.update { it.copy(now = nowIso(), lastRefreshAt = System.currentTimeMillis()) }
             }
         }.also { refreshJob = it }
     }
