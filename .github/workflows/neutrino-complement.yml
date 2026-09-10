@@ -69,7 +69,7 @@ jobs:
         with:
           workspaces: neutrino
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
 
