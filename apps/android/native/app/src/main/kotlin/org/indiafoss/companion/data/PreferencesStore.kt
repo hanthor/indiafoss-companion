@@ -53,6 +53,15 @@ class PreferencesStore(private val context: Context) {
         context.dataStore.edit { it[profileKey] = profile }
     }
 
+    private val dynamicColorKey = booleanPreferencesKey("dynamic-colour")
+
+    /** Material You on Android 12+ for the everyday screens; the event surfaces keep the brand palette either way (#33). */
+    val dynamicColor: Flow<Boolean> = context.dataStore.data.map { it[dynamicColorKey] ?: true }
+
+    suspend fun setDynamicColor(on: Boolean) {
+        context.dataStore.edit { it[dynamicColorKey] = on }
+    }
+
     private val locationKey = stringPreferencesKey("current-location")
 
     val location: Flow<String?> = context.dataStore.data.map { it[locationKey] }

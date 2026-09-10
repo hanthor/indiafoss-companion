@@ -176,6 +176,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onOpenActivity = { navController.navigate("activity/$it") },
                     onOpenSpeaker = { navController.navigate("speaker/$it") },
                     onOpenBooth = { navController.navigate("booth/$it") },
+                    onOpenDevrooms = { navController.navigate("rank") },
                 )
             }
             composable("booth/{id}") { entry ->
@@ -242,6 +243,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 SettingsScreen(
                     state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile,
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
+                    onDynamicColor = viewModel::setDynamicColor,
                 ) { navController.navigate("welcome") }
             }
             composable("activity/{id}") { entry ->

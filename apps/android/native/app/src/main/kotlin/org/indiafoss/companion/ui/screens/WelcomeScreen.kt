@@ -4,7 +4,9 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,15 +35,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.ContactCard
+import org.indiafoss.companion.ui.theme.EventIdentity
+import org.indiafoss.companion.ui.theme.brand
+import org.indiafoss.companion.ui.theme.eyebrow
 
 /**
  * First-run setup (#107): reminders, who you are, then ranking. Every
  * step can be skipped; everything here can be changed later under Settings,
  * Your card or Rank. Shown once, and again from Settings on request.
+ *
+ * A launch surface: it carries the event identity, so it is rendered in the
+ * brand scheme whatever the wallpaper palette (#33).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,15 +67,18 @@ fun WelcomeScreen(
     }
     val eventName = state.bundle?.name ?: "IndiaFOSS"
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Welcome") }) }) { padding ->
+    EventIdentity { Scaffold(topBar = { TopAppBar(title = { Text("Welcome") }) }) { padding ->
+        val brand = MaterialTheme.brand
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
+            // The hero: ink surface, one mint rule, pale-green eyebrow — the PWA's home hero, at phone size.
             Card(
                 Modifier.fillMaxWidth().padding(16.dp, 8.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                colors = CardDefaults.cardColors(containerColor = brand.inkSurface, contentColor = brand.onInk),
             ) {
+                Box(Modifier.fillMaxWidth().height(4.dp).background(brand.mint))
                 Column(Modifier.padding(20.dp)) {
-                    Text("SET UP IN A MINUTE", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
-                    Text("Welcome to $eventName", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
+                    Text("SET UP IN A MINUTE", style = MaterialTheme.typography.eyebrow, color = brand.mintOnInk)
+                    Text("Welcome to $eventName", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 4.dp))
                     Text(
                         "Three quick steps, all optional, so the app can remind you, put your name on a card and plan your day. Everything stays on this phone.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -82,7 +92,7 @@ fun WelcomeScreen(
             )
             Text(
                 "${step + 1} · ${steps[step].uppercase()}",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.eyebrow,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(20.dp, 8.dp, 20.dp, 0.dp),
             )
@@ -143,5 +153,5 @@ fun WelcomeScreen(
             TextButton(onClick = { onDone(false) }, modifier = Modifier.padding(16.dp, 0.dp)) { Text("Skip setup · run it again from Settings") }
             Spacer(Modifier.height(24.dp))
         }
-    }
+    } }
 }

@@ -1,7 +1,11 @@
 package org.indiafoss.companion.ui.screens
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
@@ -28,9 +33,16 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.ui.Avatar
+import org.indiafoss.companion.ui.DevroomArt
+import org.indiafoss.companion.ui.DevroomBanner
+import org.indiafoss.companion.ui.theme.brand
 import org.indiafoss.companion.core.Search
 
-/** Search across sessions, speakers and booths; booths and speakers browsable without a query. */
+/**
+ * Search across sessions, speakers and booths; booths and speakers browsable
+ * without a query, under the 2026 devroom gallery (the PWA's home gallery;
+ * a devroom opens the Rank step where whole tracks are chosen).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExploreScreen(
@@ -39,6 +51,7 @@ fun ExploreScreen(
     onOpenActivity: (String) -> Unit,
     onOpenSpeaker: (String) -> Unit,
     onOpenBooth: (String) -> Unit = {},
+    onOpenDevrooms: () -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val bundle = state.bundle
@@ -86,6 +99,37 @@ fun ExploreScreen(
                         HorizontalDivider()
                     }
                 } else {
+                    val devrooms = bundle?.tracks.orEmpty().filter { DevroomArt.forTrack(bundle, it.id) != null }
+                    if (devrooms.isNotEmpty()) {
+                        item { SectionHeader("Find your devroom") }
+                        item {
+                            Text(
+                                "Half-day tracks curated by their communities. Pick a few talks, or stay for a whole devroom.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(20.dp, 0.dp, 20.dp, 8.dp),
+                            )
+                        }
+                        item {
+                            LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                items(devrooms, key = { "art-" + it.id }) { track ->
+                                    Card(
+                                        Modifier.width(200.dp).clickable(onClick = onOpenDevrooms),
+                                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.brand.surfaceRaised, contentColor = MaterialTheme.brand.text),
+                                    ) {
+                                        DevroomBanner(bundle, track.id, ratio = 2f, shape = androidx.compose.ui.graphics.RectangleShape)
+                                        Text(
+                                            track.name,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            maxLines = 2,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                            modifier = Modifier.padding(12.dp, 10.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
                     val booths = bundle?.booths.orEmpty()
                     if (booths.isNotEmpty()) {
                         item { SectionHeader("Booths") }

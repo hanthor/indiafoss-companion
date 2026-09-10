@@ -74,6 +74,8 @@ data class UiState(
     /** A route asked for by a deep link, consumed by the navigation host. */
     val pendingRoute: String? = null,
     val routingProfile: String = "fastest",
+    /** Wallpaper (Material You) colour for the everyday screens; off keeps the event scheme throughout. */
+    val dynamicColor: Boolean = true,
     val message: String? = null,
     /** The attendee's own plan blocks and booth visits (#110). */
     val blocks: List<StoredBlock> = emptyList(),
@@ -242,6 +244,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             preferences.location.collect { at -> _state.update { it.copy(currentLocation = at, walkSecondsTo = walker(at)) } }
         }
+        viewModelScope.launch { preferences.dynamicColor.collect { on -> _state.update { it.copy(dynamicColor = on) } } }
         viewModelScope.launch {
             preferences.routingProfile.collect { p ->
                 _state.update { it.copy(routingProfile = p, walkSecondsTo = walker(it.currentLocation, p), walkBetween = between(p)) }
@@ -401,6 +404,11 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             else -> RoutingProfile.FASTEST
         }
         return { from, to -> venue.walkSeconds(floors, from, to, routing) }
+    }
+
+    fun setDynamicColor(on: Boolean) {
+        _state.update { it.copy(dynamicColor = on) }
+        viewModelScope.launch { preferences.setDynamicColor(on) }
     }
 
     fun setRoutingProfile(profile: String) {

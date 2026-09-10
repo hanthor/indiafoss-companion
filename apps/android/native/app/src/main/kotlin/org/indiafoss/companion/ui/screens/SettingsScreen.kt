@@ -49,6 +49,7 @@ fun SettingsScreen(
     onStartSimulation: (day: String, time: String, speed: Int) -> Unit = { _, _, _ -> },
     onStopSimulation: () -> Unit = {},
     onSetup: () -> Unit = {},
+    onDynamicColor: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -84,6 +85,26 @@ fun SettingsScreen(
                         TextButton(onClick = {
                             context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
                         }) { Text("Allow exact alarms for on-the-minute timing") }
+                    }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Appearance", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            "Light or dark follows the system setting. The everyday screens can take your wallpaper colours; " +
+                                "the welcome, Now and devroom surfaces keep the IndiaFOSS green either way."
+                        } else {
+                            "Light or dark follows the system setting, in the IndiaFOSS 2026 colours."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Use wallpaper colours", Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        Switch(checked = state.dynamicColor, onCheckedChange = onDynamicColor)
                     }
                 }
             }

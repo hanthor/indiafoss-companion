@@ -237,6 +237,8 @@ private fun DevroomsStep(rooms: List<Room>, state: UiState, onRoom: (String, Str
             val tags = topicTags(room.sessions.flatMap { it.tags }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }).take(3)
             val speakers = state.bundle?.let { b -> room.sessions.flatMap(b::speakersOf).distinctBy { it.id } }.orEmpty()
             Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
+                // The official 2026 pattern where there is one, as on the PWA's planning cards.
+                org.indiafoss.companion.ui.DevroomBanner(state.bundle, room.track.id, shape = androidx.compose.ui.graphics.RectangleShape)
                 Column(Modifier.padding(16.dp)) {
                     Text(room.track.name, style = MaterialTheme.typography.titleMedium)
                     room.track.description?.let { Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 2.dp)) }

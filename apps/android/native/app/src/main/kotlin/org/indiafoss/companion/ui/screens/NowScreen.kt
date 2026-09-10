@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import org.indiafoss.companion.UiState
+import org.indiafoss.companion.ui.EventMasthead
 import org.indiafoss.companion.core.EventPhase
 import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.core.Schedule
@@ -83,14 +84,8 @@ fun NowScreen(
                         }
                     }
                 }
-                if (now.phase != EventPhase.DURING) {
-                    item {
-                        SectionHeader(
-                            if (now.phase == EventPhase.BEFORE) "Before the conference"
-                            else "That's a wrap",
-                        )
-                    }
-                }
+                // The event's own strip (name, dates, day or recap) in the fixed brand palette.
+                item { EventMasthead(state) }
                 if (now.phase == EventPhase.DURING) {
                     item { SectionHeader("Your plan now") }
                     item { PersonalPlanCard(state, onOpenPlan, onOpen) }
