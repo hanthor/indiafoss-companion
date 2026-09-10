@@ -1,47 +1,35 @@
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
+import { settingSaved } from './preference-saved.js';
 
+/**
+ * The routing profile lives in Settings, next to the reminders it affects. It is
+ * the only control for a preference the leave-by banner, the itinerary solver
+ * and reminders all read (§26/§29), so the saved choice has to survive a reload,
+ * and the accessible options have to stay reachable.
+ */
 test.use({ serviceWorkers: 'block' });
-for (const accessibleRoute of [true, false]) {
-  test(`saved accessible preference applies on map reload, route available: ${accessibleRoute}`, async ({
-    page,
-  }) => {
-    await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
-    await page.route('**/venues/synthetic/venue.graph.json', async (route) => {
-      const base = { from: 'gf-audi1', to: 'ff-devroom2', distanceMeters: 10, oneWay: false };
-      await route.fulfill({
-        json: {
-          nodes: [
-            { id: 'gf-audi1', floor: 'ground', x: 0, y: 0 },
-            { id: 'ff-devroom2', floor: 'first', x: 0, y: 0 },
-          ],
-          edges: [
-            { ...base, timeSeconds: 60, stairs: true, accessible: false, lift: false },
-            ...(accessibleRoute
-              ? [{ ...base, timeSeconds: 600, stairs: false, accessible: true, lift: true }]
-              : []),
-          ],
-        },
-      });
-    });
-    await page.goto(appUrl('/map?setup=done'));
-    await page.getByRole('button', { name: /^Audi 1/ }).click();
-    await page.getByRole('button', { name: "I'm here" }).click();
-    await page.getByRole('button', { name: /^First/ }).click();
-    await page.getByRole('button', { name: /^Devroom 2/ }).click();
-    const journey = page.getByLabel('Walking route');
-    await expect(journey).toContainText('1 min estimated walk · Fastest');
-    await page.getByRole('button', { name: 'Show more', exact: true }).click();
-    await page.getByLabel('Routing profile', { exact: true }).selectOption('accessible');
-    await expect(journey).toContainText(
-      accessibleRoute ? '10 min estimated walk · Accessible' : 'No accessible route is available',
-    );
-    await page.reload();
-    await page.getByRole('button', { name: /^First/ }).click();
-    await page.getByRole('button', { name: /^Devroom 2/ }).click();
-    await expect(page.getByLabel('Routing profile', { exact: true })).toHaveValue('accessible');
-    await expect(journey).toContainText(
-      accessibleRoute ? '10 min estimated walk · Accessible' : 'No accessible route is available',
-    );
-  });
-}
+
+test('the routing profile is saved and reapplied after a reload', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
+  await page.goto(appUrl('/settings?setup=done'));
+
+  const profile = page.getByLabel('Routing profile', { exact: true });
+  await expect(profile).toBeEnabled();
+  await expect(profile).toHaveValue('fastest');
+  // Removing these would quietly pin every walking estimate to 'fastest'.
+  await expect(profile.getByRole('option')).toHaveText(['Fastest', 'Accessible', 'Avoid stairs']);
+  await profile.selectOption('accessible');
+  await settingSaved(page, 'routing-profile', 'accessible');
+
+  await page.reload();
+  const reloaded = page.getByLabel('Routing profile', { exact: true });
+  await expect(reloaded).toBeEnabled();
+  await expect(reloaded).toHaveValue('accessible');
+});
+
+test('the map carries no routing profile control', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('selected-event', 'indiafoss-2025'));
+  await page.goto(appUrl('/map?setup=done'));
+  await expect(page.getByLabel('Routing profile', { exact: true })).toHaveCount(0);
+});

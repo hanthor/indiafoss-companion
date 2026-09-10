@@ -62,10 +62,10 @@ opens a bottom sheet that **peeks** (name, floor and seats, ON NOW) and expands
 on the grabber to NEXT HERE and "I'm here" / "Clear location" (the same state a
 room QR's `?at=` deep link sets). This is the Google I/O app's map pattern:
 full-screen vector map, floor selector, small markers, a peeking bottom sheet.
-No route is drawn on the plan; the destination room is highlighted and the
-journey is described in the panel above the plan. Labels hide once they leave the plan
-rather than dangling off-screen, and the drawing's viewBox carries 6 % padding
-so no wing is clipped at any aspect ratio.
+No route is drawn on the plan and no walking directions are given: the
+destination room is highlighted and the floor chips say which floor it is on.
+Labels hide once they leave the plan rather than dangling off-screen, and the
+drawing's viewBox carries 6 % padding so no wing is clipped at any aspect ratio.
 
 ## From / To panel
 
@@ -73,12 +73,11 @@ Above the plan (#223): **From** is the manually set location (a select over the
 drawn rooms, the same state as "I'm here" and a room QR's `?at=`), labelled
 MANUALLY SET with a Clear control; **To** defaults to the next planned talk or a
 `/map/to/` link and otherwise lists every room, so an attendee without a plan
-picks one directly; the saved routing profile sits alongside. With both ends
-known, `route-steps.ts` turns the graph route into a walking estimate, the floor
-changes and per-floor steps ("Walk to the lift on the ground floor", "Take the
-lift up to the first floor", …), honouring the profile. Estimates are labelled
-as such while the venue metadata is `_draft`; a signed-off graph reads
-"Validated venue path". Without a location or destination nothing is estimated.
+picks one directly, and picking one highlights it and switches to its floor.
+When the destination is the next planned talk the panel names it with its start
+and leave-by time. The saved routing profile sits alongside: it no longer
+changes anything drawn on the map, but it is the only control for the
+preference the leave-by banner, the itinerary solver and reminders all read.
 
 ## Next-up banner
 
