@@ -52,8 +52,8 @@ import), #95 (photo), #96 (FOSS United as a link), #105 (social handles),
 #106 (Prav), #107 (welcome wizard), #108 (three-step ranker).
 
 Since then: reminders name the room and the walk and open the session when
-tapped (`reminders.md`); Accrescent is documented as the Android channel we
-are heading for (`accrescent.md`); the design tokens have one role each with a
+tapped (`reminders.md`); Obtainium and our own F-Droid repository are the Android
+update channels (`install-channels.md`); the design tokens have one role each with a
 guard against raw colours (#33); the revision-handling guarantees are tested
 (#7, `release.md`); and the conference reads back as "who I met" with a card
 you can share (#31, `contact-sharing.md`).
