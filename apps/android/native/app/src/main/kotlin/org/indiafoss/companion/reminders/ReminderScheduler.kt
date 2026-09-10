@@ -17,38 +17,31 @@ import org.indiafoss.companion.core.Reminders
 /**
  * Local reminders through AlarmManager: they fire with the app closed, and
  * there is no push service. `arm()` recomputes the next day's alerts from
- * the current plan and replaces what was set before, so a change of plan
- * (or a schedule update) cancels alarms that no longer apply. Nothing is
- * scheduled until reminders are switched on in Settings.
+ * the resolved plan (`UiState.plannedReminders`, #221) and reconciles them
+ * with what was set before: an entry that left the plan — removed, replaced,
+ * cancelled, retimed, un-marked — has its alarm cancelled, and an unchanged
+ * one is re-set under the same id, so a refresh or a restart never arms it
+ * twice. Nothing is scheduled until reminders are switched on in Settings.
  */
 class ReminderScheduler(private val context: Context) {
     private val alarms = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     private val armed = context.getSharedPreferences("reminders", Context.MODE_PRIVATE)
 
     fun arm(state: UiState) {
-        val bundle = state.bundle ?: return
+        if (state.bundle == null) return
         // While the day simulator runs, the view model fires reminders on the simulated clock instead.
-        val wanted = if (!state.remindersEnabled || state.simulation != null) emptyList() else Reminders.compute(
-            bundle, System.currentTimeMillis(),
-            tierFor = { id ->
-                when {
-                    id in state.mustAttend -> Reminders.Tier.MUST_ATTEND
-                    id in state.bookmarks -> Reminders.Tier.PLANNED
-                    else -> Reminders.Tier.NONE
-                }
-            },
-            walkSecondsTo = { locationId -> locationId?.let(state.walkSecondsTo) },
-        )
+        val wanted = if (!state.remindersEnabled || state.simulation != null) emptyList() else state.plannedReminders(System.currentTimeMillis())
         val previous = armed.getStringSet("ids", emptySet()).orEmpty()
-        val next = wanted.map { it.id }.toSet()
-        for (id in previous - next) alarms.cancel(pendingIntent(id, null, null, null))
+        val plan = Reminders.reconcile(previous, wanted)
+        for (id in plan.cancel) alarms.cancel(pendingIntent(id, null, null, null))
         val exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarms.canScheduleExactAlarms()
-        for (reminder in wanted) {
+        for (reminder in plan.schedule) {
+            // One PendingIntent per id (same request code and data), so re-setting replaces rather than duplicates.
             val intent = pendingIntent(reminder.id, reminder.title, reminder.body, reminder.activityId)
             if (exact) alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.atMs, intent)
             else alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, reminder.atMs, intent)
         }
-        armed.edit().putStringSet("ids", next).apply()
+        armed.edit().putStringSet("ids", plan.armed).apply()
     }
 
     private fun pendingIntent(id: String, title: String?, body: String?, activityId: String?): PendingIntent {
