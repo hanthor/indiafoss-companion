@@ -41,6 +41,7 @@
     withdrawBadgeConfirmation,
   } from '$lib/contacts.svelte';
   import {
+    bindingLabel,
     chatLabel,
     deriveContactTrust,
     inPersonLabel,
@@ -1005,6 +1006,17 @@
                         MATRIX {c.matrixId} · {profileLabel(trust.profile).toUpperCase()}
                       </span>
                     {/if}
+                    {#if trust.binding !== 'none'}
+                      <!-- A valid binding is two signatures over one statement, not verification:
+                           the success colour stays reserved for `verified`, which nothing sets. -->
+                      <span
+                        class="line3"
+                        class:sig-bad={trust.binding === 'invalid' || trust.binding === 'revoked'}
+                        title="This app's own check of the signed binding on the card, against the card key and a Matrix key it holds — not a person's verification"
+                      >
+                        {bindingLabel(trust.binding).toUpperCase()}
+                      </span>
+                    {/if}
                   </span>
                   <span class="chev" aria-hidden="true">›</span>
                 </button>
@@ -1050,6 +1062,29 @@
                               card. Treat the card's Matrix id as not theirs.
                             {:else if trust.profile === 'unchecked'}
                               — checked against the account's public profile when online.
+                            {/if}
+                          </span>
+                        </dd>
+                      {/if}
+                      {#if trust.binding !== 'none'}
+                        <dt>Binding</dt>
+                        <dd>
+                          {bindingLabel(trust.binding)}
+                          <span class="muted">
+                            {#if trust.binding === 'valid'}
+                              — the card key and a Matrix key both signed a statement naming these
+                              two identities. The Matrix key came from a server, not from a person:
+                              confirm it in Chat before treating the accounts as one.
+                            {:else if trust.binding === 'revoked'}
+                              — its owner withdrew this binding. Do not use it.
+                            {:else if trust.binding === 'invalid'}
+                              — altered, signed by another key, or about someone else. Treat the
+                              account link as a bare claim.
+                            {:else if trust.binding === 'expired'}
+                              — out of date. Ask for a fresh card.
+                            {:else if trust.binding === 'unchecked'}
+                              — the card half was checked; the Matrix half waits for a key this app
+                              does not hold yet.
                             {/if}
                           </span>
                         </dd>
