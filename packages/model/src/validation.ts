@@ -1,6 +1,7 @@
 import type { EventBundle } from './index.js';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from './index.js';
 import { collectMessagingIssues } from './messaging.js';
+import { collectVenueIssues } from './venue.js';
 
 /**
  * Minimal structural validator for an {@link EventBundle}.
@@ -50,6 +51,10 @@ export function collectBundleIssues(bundle: EventBundle): string[] {
         trackIds: new Set(bundle.tracks.map((t) => t.id)),
       }),
     );
+  }
+
+  if (bundle.venue) {
+    issues.push(...collectVenueIssues(bundle.venue));
   }
 
   return issues;
