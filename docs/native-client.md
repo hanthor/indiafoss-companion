@@ -9,16 +9,16 @@ client renders natively rather than embedding a WebView.
 
 ## Screens
 
-| Tab / route | State                                                                                                                                                                              |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Now         | live sessions with progress, up next                                                                                                                                               |
+| Tab / route | State                                                                                                                                                                               |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Now         | live sessions with progress, up next                                                                                                                                                |
 | Schedule    | per day; room chips, list or time × room grid (`ScheduleGrid`, the PWA's TimelineGrid rules), plan markers on sessions (`PlanMarker`: planned / interested / must go / stood aside) |
-| My plan     | the day planned from must-attend, bookmarks and ratings (`Itinerary`); "Rank this day"                                                                                             |
-| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
-| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                        |
-| Map         | rooms and what is on in each (the floor plan is not drawn natively yet)                                                                                                            |
-| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                                                              |
-| Session     | detail, bookmark, must attend                                                                                                                                                      |
+| My plan     | the day planned from must-attend, bookmarks and ratings (`Itinerary`); "Rank this day"                                                                                              |
+| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo  |
+| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                         |
+| Map         | rooms and what is on in each (the floor plan is not drawn natively yet)                                                                                                             |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                                                               |
+| Session     | detail, bookmark, must attend                                                                                                                                                       |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
 plan whenever bookmarks, must-attend marks or the bundle change, so a change
