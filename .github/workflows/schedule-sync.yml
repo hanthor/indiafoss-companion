@@ -59,6 +59,18 @@ jobs:
               *) echo "Unexpected candidate path: $file"; exit 1 ;;
             esac
           done
+          # A run whose base moved during validation leaves its candidate open. The
+          # next run re-syncs from live, so that candidate is stale by definition:
+          # close it instead of letting a second PR for the same job pile up (#193).
+          gh pr list --repo "$GH_REPO" --state open --base main --limit 100 \
+            --json number,headRefName \
+            --jq '.[] | select(.headRefName | startswith("automation/schedule-")) | .number' |
+          while IFS= read -r stale; do
+            [ -n "$stale" ] || continue
+            gh pr close "$stale" --repo "$GH_REPO" --delete-branch \
+              --comment 'Superseded: a newer sync run re-imported the published programme from the live APIs. Closing so only one automated schedule candidate is ever open.'
+            echo "Closed superseded candidate #$stale" >> "$GITHUB_STEP_SUMMARY"
+          done
           branch="automation/schedule-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           git checkout -b "$branch"
           git config user.name 'github-actions[bot]'
