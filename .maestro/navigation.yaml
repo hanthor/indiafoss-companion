@@ -38,6 +38,13 @@ appId: org.indiafoss.companion.nativeapp
 - assertVisible: 'Day 2'
 - takeScreenshot: 03-schedule
 
+# The room grid is the same day drawn as time × room; the room chips stay.
+- tapOn: 'Room grid'
+- extendedWaitUntil:
+    visible: 'All rooms'
+    timeout: 30000
+- takeScreenshot: 03b-schedule-grid
+
 - tapOn: 'My plan'
 - extendedWaitUntil:
     visible: '.*Add a block of your own.*'

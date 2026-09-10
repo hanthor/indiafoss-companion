@@ -20,7 +20,7 @@
   } from '$lib/planEdits.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import { SvelteSet } from 'svelte/reactivity';
-  import { dispositionOf, setDisposition } from '$lib/prefs.svelte';
+  import { dispositionOf, setDisposition, setYieldedTo, yieldedTo } from '$lib/prefs.svelte';
   import { MUST_ATTEND_HEADS_UP_MINUTES } from '$lib/notifications';
 
   const bundle = $derived(eventState.bundle!);
@@ -151,6 +151,27 @@
   );
   const roomName = (locationId: string | undefined): string | undefined =>
     bundle?.locations.find((l) => l.id === locationId)?.name;
+
+  /**
+   * Talks that stood aside in a clash on this day (#271) and whose winner is
+   * still in the running. They are interests, not dislikes; "Reconsider" puts
+   * one back so the plan re-solves with it.
+   */
+  const stoodAside = $derived(
+    (bundle?.activities ?? [])
+      .filter((a) => selectedDay && a.start?.startsWith(selectedDay) && !a.cancelled)
+      .map((a) => ({ activity: a, winner: activityMap.get(yieldedTo(a.id) ?? '') }))
+      .filter(
+        (
+          row,
+        ): row is { activity: (typeof row)['activity']; winner: NonNullable<typeof row.winner> } =>
+          !!row.winner &&
+          !row.winner.cancelled &&
+          dispositionOf(row.winner.id) !== 'not-interested' &&
+          dispositionOf(row.activity.id) !== 'must-attend',
+      )
+      .sort((x, y) => (x.activity.start ?? '').localeCompare(y.activity.start ?? '')),
+  );
 </script>
 
 <EventGate>
@@ -346,6 +367,29 @@
 
     {#if !solving && result && edited}
       <aside class="plan-side" aria-label="Plan tools">
+        {#if stoodAside.length > 0}
+          <section class="removed" data-testid="stood-aside">
+            <h2>Stood aside</h2>
+            <p class="muted small">
+              Talks you were interested in that lost a clash. They are not dislikes; reconsider one
+              to put it back in the running.
+            </p>
+            <ul>
+              {#each stoodAside as row (row.activity.id)}
+                <li>
+                  <span
+                    ><a href={resolve(`/activity/${row.activity.id}`)}>{row.activity.title}</a>
+                    <small class="muted">stood aside for {row.winner.title}</small></span
+                  >
+                  <button class="chip" onclick={() => setYieldedTo(row.activity.id, undefined)}
+                    >Reconsider</button
+                  >
+                </li>
+              {/each}
+            </ul>
+          </section>
+        {/if}
+
         {#if planEdits.edits.removed.length > 0}
           <section class="removed">
             <h2>Removed</h2>
