@@ -55,6 +55,8 @@
     'workshop',
     'panel',
     'bof',
+    'ceremony',
+    'intro',
     'meal',
   ];
   const typeToggles = $state<Record<string, boolean>>(
