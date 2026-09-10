@@ -92,13 +92,15 @@ fun RankScreen(
     onUndo: (CompanionViewModel.Undo) -> Unit,
     onOpen: (String) -> Unit,
     onOpenSpeaker: (String) -> Unit,
+    /** Open on the devrooms step (from the Explore gallery) instead of the talks. */
+    startWithDevrooms: Boolean = false,
     onBack: () -> Unit,
 ) {
     val bundle = state.bundle
     val days = state.days
     var day by remember(days) { mutableIntStateOf(0) }
     val rooms = remember(bundle) { devrooms(state) }
-    var chosen by remember { mutableStateOf<Step?>(null) }
+    var chosen by remember { mutableStateOf<Step?>(if (startWithDevrooms) Step.DEVROOMS else null) }
     var undo by remember { mutableStateOf<CompanionViewModel.Undo?>(null) }
 
     val sessions = if (days.isEmpty()) emptyList() else
@@ -237,6 +239,8 @@ private fun DevroomsStep(rooms: List<Room>, state: UiState, onRoom: (String, Str
             val tags = topicTags(room.sessions.flatMap { it.tags }.groupingBy { it }.eachCount().entries.sortedByDescending { it.value }.map { it.key }).take(3)
             val speakers = state.bundle?.let { b -> room.sessions.flatMap(b::speakersOf).distinctBy { it.id } }.orEmpty()
             Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
+                // The official 2026 pattern where there is one, as on the PWA's planning cards.
+                org.indiafoss.companion.ui.DevroomBanner(state.bundle, room.track.id, shape = androidx.compose.ui.graphics.RectangleShape)
                 Column(Modifier.padding(16.dp)) {
                     Text(room.track.name, style = MaterialTheme.typography.titleMedium)
                     room.track.description?.let { Text(it, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 2.dp)) }

@@ -39,6 +39,14 @@ export const livePlanState = $state<{
 /** Invalidates persisted flexible goals after a booth visit is saved. */
 export const planInputs = $state({ revision: 0 });
 
+/**
+ * Force every plan consumer, and the reminder reconciler behind the layout
+ * effect, to resolve again from storage. Used after a personal-data import.
+ */
+export function invalidatePlanProjection(): void {
+  planInputs.revision += 1;
+}
+
 /** Call synchronously in an effect so all consumers observe the same plan inputs. */
 export function trackPlanInputs(bundle: EventBundle | null) {
   void JSON.stringify(bundle?.activities.map((a) => preferenceFor(a.id)));

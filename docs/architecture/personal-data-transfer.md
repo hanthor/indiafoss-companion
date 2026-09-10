@@ -10,9 +10,11 @@ Resolution uses CFP identity first. A unique CFP match survives a recreated row.
 
 The version-1 transport codec is implemented in both languages. It validates the envelope, unique event/activity references, canonical UTC export timestamp, a 5 MiB UTF-8 limit and maximum nesting of 64. Shared fixtures cover valid files, unknown fields and rejection cases. Unknown optional JSON sections survive decoding and encoding.
 
-The PWA Settings page can export personal data from one consistent IndexedDB read transaction. It projects an explicit allowlist of personal record fields, including private contact fields regardless of the contact card's sharing selection. The UI explains this and states that import is not available yet. Credentials, device keys, chat caches, scanned contacts, passport stamps and general device settings are excluded.
+The PWA Settings page can export personal data from one consistent IndexedDB read transaction. It projects an explicit allowlist of personal record fields, including private contact fields regardless of the contact card's sharing selection, and booth-visit preferences keyed by stable booth ID. Credentials, device keys, chat caches, scanned contacts, passport stamps and general device settings are excluded.
 
-This is not a complete migration flow. A valid envelope does not mean its section contents are safe to apply: import adapters must validate their records and identity references before mutation. Native export, both import adapters and their attendee UI remain to implement.
+The PWA Settings page can also import such a file, offline, from a file picker. `@indiafoss/storage` validates every supported section after envelope decoding (finite numbers, enumerations, calendar days and timestamps, declared activity references, unique records) and reports unsupported sections without applying them. The planner resolves each activity reference through the shared CFP/occurrence contract and lists additions, conflicts with existing device data and unresolved, unassigned or unknown-event records; conflicts are unticked by default so current choices, including explicit negative ones, are kept. Apply runs in one IndexedDB write transaction that re-reads every previewed value first; any record changed since the preview aborts the whole import and Dexie rolls back. After a commit the preference, comparison, plan-edit, room, saved-plan and contact caches reload from storage and the plan projection is invalidated, which re-arms reminders from the imported plan.
+
+This is not yet a complete migration flow. Native export, the native import adapter (which still needs a durable journal or unified personal-state repository) and its attendee UI remain to implement. Unresolved and unassigned records are shown in the preview but are not stored on the destination; the attendee keeps the file and retries after a programme update.
 
 ## Versioned file design
 
@@ -29,8 +31,9 @@ Section record schemas must be validated by their owning import adapters; envelo
 | `events[].sections.resolvedPlans`          | Last saved activity IDs per day; recompute against the destination schedule before using             |
 | `events[].sections.itinerary`              | Legacy saved itinerary activity IDs and generation time                                              |
 | `events[].sections.rooms` / `roomsDecided` | Devroom preferences (including `stay`), IDs skipped by the room choice and onboarding decision state |
+| `events[].sections.boothVisits`            | Planned visit minutes per stable booth ID; `null` records an explicit cancellation                   |
 | `contact.profile` / `contact.selection`    | Allowlisted contact fields/socials and the explicit sharing selection                                |
-| `unassigned`                               | Legacy preferences, notes and comparisons whose event cannot be uniquely determined                  |
+| `unassigned`                               | Legacy preferences, notes, comparisons and booth visits whose event cannot be uniquely determined    |
 
 Every event-scoped activity reference used by these sections is included in the event's reference table, with CFP proposal identity when present in the cached programme. Custom-block IDs remain local plan IDs. Plan keys explicitly retain their event even if the programme has been removed.
 
@@ -55,7 +58,7 @@ A newer major version must be rejected before any write. Unknown optional sectio
 4. Commit only after the attendee confirms. Keep unresolved records for a later schedule refresh and re-export.
 5. Reload reactive state from the committed result before reporting success.
 
-PWA writes can use one IndexedDB transaction. Native currently splits personal state across DataStores; implementing a file picker alone would leave partial-import risk. Its adapter needs a durable import journal and a recovery gate, or a unified personal-state repository, before the UI can claim completion. Test interruption between writes and restart recovery. A failed or cancelled import must leave the prior personal state usable.
+The PWA importer implements steps 1 to 5 (`previewPersonalDataImport` / `applyPersonalDataImport` in `@indiafoss/storage`, wired to Settings by `apps/web/src/lib/personal-data-import.svelte.ts`). Native currently splits personal state across DataStores; implementing a file picker alone would leave partial-import risk. Its adapter needs a durable import journal and a recovery gate, or a unified personal-state repository, before the UI can claim completion. Test interruption between writes and restart recovery. A failed or cancelled import must leave the prior personal state usable.
 
 ## Delivery checks
 

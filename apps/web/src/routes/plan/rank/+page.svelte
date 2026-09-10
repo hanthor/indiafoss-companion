@@ -13,15 +13,14 @@
     conflictProgress,
     conflictSlots,
     overlaps,
-    pairKey,
     pairKScale,
     pairOpen as isPairOpen,
+    resolveClash,
     scheduleStability,
     type AffinityModel,
     type ConflictSlot,
     type RankedActivity,
   } from '@indiafoss/elo';
-  import type { Disposition } from '@indiafoss/storage';
   import {
     comparedPairs,
     comparisonsOf,
@@ -31,10 +30,15 @@
     hydratePreferences,
     ratingOf,
     recordComparison,
+    restoreChoice,
     setDisposition,
     setRating,
     setTalkChoice,
+    setYieldedTo,
+    snapshotChoice,
     triageOf,
+    yieldedTo,
+    type ChoiceSnapshot,
   } from '$lib/prefs.svelte';
   import { affinityModel } from '$lib/priors.svelte';
   import {
@@ -102,6 +106,7 @@
       comparisons: comparisonsOf(a.id),
       disposition: dispositionOf(a.id),
       interest: triageOf(a.id),
+      yieldedTo: yieldedTo(a.id),
     })),
   );
 
@@ -278,47 +283,60 @@
   const pairOpen = (a: RankedActivity, b: RankedActivity): boolean => isPairOpen(a, b, answered);
   /** The members still in the running: every member is in at least one open pair. */
   const remaining = $derived<RankedActivity[]>(slot?.members ?? []);
-  /** A pick already made in this window leaves the rest as the backup question. */
-  const isBackup = $derived(
-    !!slot &&
-      slot.members.some((m) =>
-        slot.members.some((o) => o !== m && answered.has(pairKey(m.activity.id, o.activity.id))),
-      ),
-  );
+  /** The devroom a session belongs to when the attendee is staying for it (#271). */
+  const stayingFor = (a: Activity): string | null =>
+    a.trackId && roomPreference(a.trackId) === 'stay'
+      ? splitTrackName(bundle.tracks.find((t) => t.id === a.trackId)?.name ?? a.trackId).title
+      : null;
+  /** Reserved devrooms represented in the slot, for the explanation. */
+  const reservedInSlot = $derived([
+    ...new Set(remaining.map((m) => stayingFor(m.activity)).filter((n): n is string => !!n)),
+  ]);
+  const mustGoInSlot = $derived(remaining.filter((m) => m.disposition === 'must-attend').length);
+  /** How many of the other members a session actually clashes with (staggered slots differ). */
+  const clashesWithin = (r: RankedActivity): number =>
+    remaining.filter((o) => o !== r && overlaps(o.activity, r.activity)).length;
 
-  /** One reversible answer, captured before the Elo updates were applied. */
+  /** One reversible answer, captured before anything was written. */
   interface UndoEntry {
     comparisonIds: string[];
-    before: { id: string; rating: number; comparisons: number; disposition: Disposition }[];
+    before: ChoiceSnapshot[];
   }
   const undoStack = $state<UndoEntry[]>([]);
   const canUndo = $derived(undoStack.length > 0);
 
-  const snapshot = (id: string) => ({
-    id,
-    rating: ratingOf(id),
-    comparisons: comparisonsOf(id),
-    disposition: dispositionOf(id),
-  });
+  /** What the last pick did, so the attendee can see it and take it back. */
+  let lastPick = $state<{
+    title: string;
+    steppedAside: string[];
+    keptMustGo: string[];
+    leftDevrooms: string[];
+  } | null>(null);
 
   /**
-   * Tap the session you would go to: it beats every other open member of the
-   * slot in one go. Ratings move on the stored values, never the prior view,
-   * and each pair is recorded so it is never asked again.
+   * Tap the session you would go to: it settles the whole slot in one action
+   * (#271). Every member it overlaps stands aside for it — a scheduling
+   * loss, not a dislike: they stay interests and nothing is learnt against
+   * them — so the same window is never asked again as a chain of backup
+   * questions. A must-go loser keeps its mark and the plan keeps showing that
+   * clash. Members the winner does not overlap are left alone. Ratings move
+   * on the stored values, never the prior view.
    */
   async function pickInSlot(winner: RankedActivity): Promise<void> {
     if (!slot || busy) return;
-    const losers = remaining.filter((o) => o !== winner && pairOpen(winner, o));
-    if (losers.length === 0) return;
+    const resolution = resolveClash(remaining, winner.activity.id);
+    const loserIds = [...resolution.steppedAside, ...resolution.keptMustGo];
+    if (loserIds.length === 0) return;
     busy = true;
-    const ids = [winner.activity.id, ...losers.map((l) => l.activity.id)];
-    const before = ids.map(snapshot);
+    const winnerId = winner.activity.id;
+    const before = [winnerId, ...loserIds].map(snapshotChoice);
     const live = new Map(
       before.map((b) => [b.id, { rating: b.rating, comparisons: b.comparisons }]),
     );
     const comparisonIds: string[] = [];
-    for (const loser of losers) {
-      const w = live.get(winner.activity.id)!;
+    for (const loser of remaining) {
+      if (!loserIds.includes(loser.activity.id) || !pairOpen(winner, loser)) continue;
+      const w = live.get(winnerId)!;
       const l = live.get(loser.activity.id)!;
       const result = applyComparison(
         w.rating,
@@ -334,14 +352,35 @@
       comparisonIds.push(comparisonId);
       await recordComparison({
         id: comparisonId,
-        activityA: winner.activity.id,
+        activityA: winnerId,
         activityB: loser.activity.id,
         scoreA: 1,
         createdAt: new Date().toISOString(),
+        clash: true,
       });
     }
     await Promise.all([...live].map(([id, r]) => setRating(id, r.rating, r.comparisons)));
+    await Promise.all(resolution.steppedAside.map((id) => setYieldedTo(id, winnerId)));
+    // The pick is planned: keep it an interest so the itinerary prefers it.
+    if (dispositionOf(winnerId) === 'normal' && triageOf(winnerId) !== 'yes') {
+      await setTalkChoice(winnerId, 'yes');
+    }
     undoStack.push({ comparisonIds, before });
+    const titleOf = (id: string) =>
+      remaining.find((m) => m.activity.id === id)?.activity.title ?? id;
+    lastPick = {
+      title: winner.activity.title,
+      steppedAside: resolution.steppedAside.map(titleOf),
+      keptMustGo: resolution.keptMustGo.map(titleOf),
+      leftDevrooms: [
+        ...new Set(
+          resolution.steppedAside
+            .map((id) => remaining.find((m) => m.activity.id === id)?.activity)
+            .map((a) => (a ? stayingFor(a) : null))
+            .filter((n): n is string => !!n && n !== stayingFor(winner.activity)),
+        ),
+      ],
+    };
     busy = false;
     entering = true;
     setTimeout(() => (entering = false), 200);
@@ -351,7 +390,7 @@
   async function tieSlot(): Promise<void> {
     if (!slot || busy) return;
     busy = true;
-    const before = remaining.map((m) => snapshot(m.activity.id));
+    const before = remaining.map((m) => snapshotChoice(m.activity.id));
     const live = new Map(
       before.map((b) => [b.id, { rating: b.rating, comparisons: b.comparisons }]),
     );
@@ -386,16 +425,18 @@
     }
     await Promise.all([...live].map(([id, r]) => setRating(id, r.rating, r.comparisons)));
     undoStack.push({ comparisonIds, before });
+    lastPick = null;
     busy = false;
   }
 
-  /** "None of these": the whole slot leaves the day. */
+  /** "None of these": the whole slot leaves the day. An explicit answer, unlike standing aside. */
   async function dropSlot(): Promise<void> {
     if (!slot || busy) return;
     busy = true;
-    const before = remaining.map((m) => snapshot(m.activity.id));
+    const before = remaining.map((m) => snapshotChoice(m.activity.id));
     await Promise.all(before.map((b) => setDisposition(b.id, 'not-interested')));
     undoStack.push({ comparisonIds: [], before });
+    lastPick = null;
     busy = false;
   }
 
@@ -405,17 +446,19 @@
     skippedSlots.add(slot.key);
   }
 
+  /** Puts every session of the last answer back exactly as it was, stood-aside marks included. */
   async function undoLast(): Promise<void> {
     if (busy) return;
     const last = undoStack.pop();
     if (!last) return;
-    await Promise.all(
-      last.before.flatMap((b) => [
-        setRating(b.id, b.rating, b.comparisons),
-        setDisposition(b.id, b.disposition),
-      ]),
-    );
-    for (const id of last.comparisonIds) await forgetComparison(id);
+    busy = true;
+    try {
+      await Promise.all(last.before.map(restoreChoice));
+      for (const id of last.comparisonIds) await forgetComparison(id);
+    } finally {
+      lastPick = null;
+      busy = false;
+    }
   }
 
   /**
@@ -987,10 +1030,27 @@
               slot.end,
             )}</span
           >
-          <span class="reasontext">
-            {isBackup ? 'And if that falls through?' : 'Which one would you go to?'}
-          </span>
+          <span class="reasontext">Which one would you go to?</span>
         </div>
+        <p class="muted small howto">
+          One tap settles this slot: your pick goes in the plan and the talks it overlaps stand
+          aside for it. They stay among your interests — standing aside is not a dislike — and Undo
+          brings them back.
+        </p>
+        {#if reservedInSlot.length > 0}
+          <p class="note stay" data-testid="slot-devroom-note">
+            You are staying for <strong>{reservedInSlot.join(' and ')}</strong>. Picking another
+            talk here leaves the devroom for just this slot — its talk stands aside, the rest of the
+            block stays reserved, and your plan comes back to it afterwards. Pick the devroom's own
+            talk to keep the block whole.
+          </p>
+        {/if}
+        {#if mustGoInSlot > 1}
+          <p class="note must" data-testid="slot-mustgo-note">
+            {mustGoInSlot} must-go talks clash here. Picking one keeps the others' must-go marks, so your
+            plan keeps flagging the clash until you change an answer — nothing is dropped for you.
+          </p>
+        {/if}
 
         {#each remaining as r, i (r.activity.id)}
           {@const act = r.activity}
@@ -1011,6 +1071,15 @@
               <span class="title">{act.title}</span>
               {#if speakerNames(act)}<span class="speaker">{speakerNames(act)}</span>{/if}
               {#if r.disposition === 'must-attend'}<span class="mustpill">★ MUST GO</span>{/if}
+              {#if stayingFor(act)}
+                <span class="staypill">STAYING FOR THIS DEVROOM · {stayingFor(act)}</span>
+              {/if}
+              {#if remaining.length > 2 && clashesWithin(r) < remaining.length - 1}
+                <span class="muted small"
+                  >Overlaps {clashesWithin(r)} of the other {remaining.length - 1}; the rest can
+                  still fit.</span
+                >
+              {/if}
             </button>
             <a class="more" href={resolve(`/activity/${act.id}`)}>About this talk ↗</a>
           </article>
@@ -1031,6 +1100,24 @@
       </section>
     {/if}
 
+    {#if lastPick}
+      <p class="note picked" role="status" data-testid="clash-result">
+        <strong>{lastPick.title}</strong> is in your plan.
+        {#if lastPick.steppedAside.length > 0}
+          {lastPick.steppedAside.length === 1
+            ? `${lastPick.steppedAside[0]} stood aside`
+            : `${lastPick.steppedAside.length} talks stood aside`} — still an interest, not a dislike.
+        {/if}
+        {#if lastPick.leftDevrooms.length > 0}
+          You leave {lastPick.leftDevrooms.join(' and ')} for this slot only.
+        {/if}
+        {#if lastPick.keptMustGo.length > 0}
+          {lastPick.keptMustGo.join(', ')}
+          {lastPick.keptMustGo.length === 1 ? 'keeps its' : 'keep their'} must-go mark, so the plan still
+          shows that clash.
+        {/if}
+      </p>
+    {/if}
     <div class="controls">
       <button class="button secondary" onclick={undoLast} disabled={!canUndo}>↶ Undo last</button>
       <p class="muted small">
@@ -1620,6 +1707,37 @@
   .reasontext {
     font-size: 0.9rem;
     font-weight: 600;
+  }
+  .howto {
+    margin: 0 0 0.2rem;
+  }
+  .note {
+    margin: 0.2rem 0;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  .note.stay {
+    background: color-mix(in srgb, var(--event-primary) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--event-primary) 40%, transparent);
+  }
+  .note.must {
+    background: color-mix(in srgb, var(--amber-soft) 60%, var(--surface));
+    border: 1px solid var(--amber);
+  }
+  .note.picked {
+    background: var(--surface-raised);
+    border: 1px solid var(--line);
+    margin-top: 0.8rem;
+  }
+  .staypill {
+    align-self: flex-start;
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--event-primary-dark);
   }
 
   .talk {

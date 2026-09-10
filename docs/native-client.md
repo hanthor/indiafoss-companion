@@ -9,16 +9,16 @@ client renders natively rather than embedding a WebView.
 
 ## Screens
 
-| Tab / route | State                                                                                                                                                                              |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Now         | "Your plan now" (in progress / up next from the resolved plan, or its conflicts), then live sessions in every room with progress, then the programme's next session                |
-| Schedule    | per day, bookmark from the list                                                                                                                                                    |
-| My plan     | the day planned from must-attend, devroom stays, bookmarks and ratings (`Itinerary`) with removals and blocks layered on top (`ResolvedPlan`); remove/restore; "Rank this day"     |
-| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
-| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                        |
-| Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                    |
-| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), privacy, about                                                                                              |
-| Session     | detail, bookmark, must attend                                                                                                                                                      |
+| Tab / route | State                                                                                                                                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Now         | "Your plan now" (in progress / up next from the resolved plan, or its conflicts), then live sessions in every room with progress, then the programme's next session                            |
+| Schedule    | per day; room chips, list or time × room grid (`ScheduleGrid`, the PWA's TimelineGrid rules), plan markers from the resolved plan (`PlanMarker`: planned / interested / must go / stood aside) |
+| My plan     | the day planned from must-attend, devroom stays, bookmarks and ratings (`Itinerary`) with removals and blocks layered on top (`ResolvedPlan`); remove/restore; "Rank this day"                 |
+| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo             |
+| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                                    |
+| Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                                |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), privacy, about                                                                   |
+| Session     | detail, bookmark, must attend                                                                                                                                                                  |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
 resolved plan whenever anything feeding it changes — bookmarks, must-attend
@@ -66,6 +66,13 @@ Deliberate differences from the PWA, rather than claims of identical output:
   feasible plan is planned-tier (must-attend where marked), including the
   programme's ranked pick for a slot and blocks of your own; earlier native
   builds only alerted for bookmarks and must-attend.
+- **The Schedule's plan markers read the resolved plan.** `PlanMarker`
+  (planned / interested / must go / stood aside, on the list and the room
+  grid) is derived from `ResolvedPlan.forDay`, not the greedy base: a
+  removed session loses its mark, a replacement carries one, and a
+  bookmark or must-go that an overlapping planned item beat is shown
+  standing aside rather than silently dropped. Blocks and the lunch gap
+  are never "placed sessions" for this purpose.
 - **Replacements have no native UI yet.** The store and the projection
   handle `replacements` (tested in `ResolvedPlanTest`), but the Plan screen
   offers remove/restore only; locking is stored but unused.
@@ -74,6 +81,52 @@ Deliberate differences from the PWA, rather than claims of identical output:
   interested.
 - **Day boundaries.** Native reads the venue day from `now` in the event's
   fixed offset (`IsoClock`), the PWA from `Intl` with the event timezone.
+
+## The plan in the phone's calendar (#272)
+
+Settings has an opt-in "Keep my plan in the calendar" switch. On, with
+`READ_CALENDAR`/`WRITE_CALENDAR` granted, the app creates one local calendar
+of its own ("IndiaFOSS", `ACCOUNT_TYPE_LOCAL`, written through
+`CalendarContract` as a sync adapter) and keeps it equal to the plan: every
+planned session of every day, with the room, the speakers and a ten-minute
+reminder, and a `CUSTOM_APP_URI` deep link back into the app.
+
+- `core/CalendarSync.kt` holds the decisions and is pure: `PlannedEntry` is
+  the narrow input (`PlannedEntries.fromPlans` projects every feasible day
+  of the resolved plan above into them; a day with a blocking conflict
+  contributes nothing until it is resolved, the same rule as the
+  reminders), `PlannedIdentity` is the row's identity following the
+  transfer contract of #247 (event, CFP proposal where there is one, exact
+  occurrence; stored in the row's `SYNC_DATA1`/`SYNC_DATA2`), and
+  `CalendarReconciler` turns desired entries plus the rows the provider holds
+  into inserts, in-place updates and deletes. A session that moves, is
+  renamed or changes room is updated, never re-added; a regenerated
+  programme that gives the same proposal a new activity id still updates the
+  row in place when the match is unambiguous; a row that left the plan is
+  deleted; duplicate rows collapse, so a refresh or a restart never doubles
+  an entry; rows in any other calendar, and rows in the app's calendar
+  without the app's identity, are never touched.
+- `app/calendar/CalendarSync.kt` is the thin `ContentResolver` adapter: it
+  finds or creates the calendar, reads only that calendar's rows, and applies
+  the reconciler's ops in one batch. `disconnect()` removes the calendar and
+  everything in it.
+- `CompanionViewModel` reconciles whenever the resolved plan's inputs change
+  (bundle, bookmarks, must-attend, ratings, devroom stays, blocks, removals,
+  replacements) or the switch goes on,
+  which includes every launch. There is no background job yet: a programme
+  revision that arrives while the app is closed reaches the calendar the
+  next time the app opens.
+- Turning the switch off, or "Disconnect and remove the calendar", deletes
+  the app's calendar. A permission denied at the prompt leaves the switch
+  off and nothing touched; a permission withdrawn later is reported in the
+  status line under the switch.
+
+The `.ics` share on My plan stays as the portable fallback for any calendar
+app; Settings says plainly that an imported file is a snapshot that does not
+update. `CalendarSyncTest` in `:core` covers the reconciliation; the
+`:app` test of the same name runs the adapter against an in-memory stand-in
+for the provider under Robolectric. Nothing here has been exercised against
+a real device's calendar provider yet.
 
 Walk times come from the venue graph (`venue.graph.json` and
 `venue.metadata.json`, shipped in assets; `Routing` is the web package's
@@ -85,7 +138,8 @@ tapped room on the map says how far it is. `indiafoss://activity/<id>`,
 screen from a launch or a running app.
 
 Native feel: edge-to-edge, predictive back, pull-to-refresh on Now, the
-system share sheet for cards and calendars, Material You colour.
+system share sheet for cards and calendars, Material You colour on the
+everyday screens (see Theming and branding below).
 
 Not native yet: plan replacements UI, the optional P2P chat.
 
@@ -112,7 +166,9 @@ are what keeps the two in step.
 
 `./gradlew :app:testDebugUnitTest` renders every screen with the seed bundle
 under Robolectric (`ScreenshotTest`, plus `DarkScreenshotTest` for the dark
-scheme) and writes PNGs to `app/build/screenshots`; CI uploads them as `native-screenshots` on every
+scheme, `LargeTextScreenshotTest` at 1.5× font scale and
+`DynamicColorScreenshotTest` with Material You on) and writes PNGs to
+`app/build/screenshots`; CI uploads them as `native-screenshots` on every
 PR, so a change to a screen can be looked at from the Actions page.
 
 ## Building
@@ -138,10 +194,41 @@ refresh is silent: offline is the normal case at a conference.
 Bookmarks and must-attend live in `DataStore` preferences, keyed by activity
 id — the same ids the web client uses.
 
-## Theming
+## Theming and branding
 
-`CompanionTheme` uses `dynamicLightColorScheme`/`dynamicDarkColorScheme` on
-Android 12+, so the app takes the user's wallpaper palette. Below that it falls
-back to a scheme seeded from mint (`#0fb556`). Typography is stock M3. There is
-deliberately no IndiaFOSS wordmark, pixel font or brand chrome here — that is
-the PWA's identity, not this one's.
+`ui/theme/Theme.kt` carries the IndiaFOSS 2026 tokens with one role each,
+mirroring `apps/web/src/app.css` (`BrandColors`: mint, mint-ink, pale green,
+ink, paper/surface/raised, text/muted/faint, line, amber, and the semantic
+danger/warning/success — never brand green). They are placed in their
+Material 3 roles as `LightScheme`/`DarkScheme`, and exposed unchanged as
+`LocalBrand` / `MaterialTheme.brand`.
+
+On Android 12+ the everyday screens (Schedule, My plan, Map, Explore lists,
+Settings, detail pages) take the user's wallpaper palette by default;
+Settings → Appearance → "Use wallpaper colours" switches that off, and older
+devices use the event scheme. The event surfaces read `LocalBrand` and keep
+their identity under either: the Now masthead (event name, dates, day or
+recap), the welcome flow (`EventIdentity`), the devroom gallery on Explore
+and the devroom cards in Rank. Light or dark follows the system.
+
+Typography (`ui/theme/Type.kt`) is Inter — 600 headings with tight tracking,
+400 body — with Space Mono for compact metadata only (`Typography.meta`,
+`Typography.eyebrow`: time · room lines and capitalised eyebrows), the same
+choice the PWA made in [the 8 September review](reviews/branding-2026-09-08.md).
+Both fonts ship in `res/font` (SIL OFL 1.1) so nothing is fetched at run
+time; the pixel face stays on the official wordmark and is not bundled.
+
+The eight official 2026 devroom patterns ship as WebP in
+`res/drawable-nodpi` (`ui/DevroomArt.kt`, keyed exactly as
+`apps/web/src/lib/devroom-art.ts`) and appear on Explore, Rank and as a
+sliver beside the track chip on session cards, only for the `indiafoss-2026`
+bundle. Provenance, licences, checksums and the render script are in
+[`apps/android/native/branding/README.md`](../apps/android/native/branding/README.md);
+the decisions and CI screenshots are in
+[the native branding review](reviews/native-branding-2026-09-10.md).
+
+The launcher is this project's own calendar-and-pin glyph on the event mint,
+no FOSS United mark; IndiaFOSS Chat keeps its speech-bubble icon, so the two
+apps are told apart by silhouette. The splash plate is the brand paper token
+in both themes. The Settings "About" card keeps the unofficial community
+project disclosure.

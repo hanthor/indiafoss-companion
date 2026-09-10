@@ -1,4 +1,6 @@
 import type { AttendeeProfile } from './contact.js';
+import { withIdentityEnvelope } from './identity.js';
+import type { IdentityMeta } from './identity.js';
 import { parseVCard } from './scan.js';
 
 /**
@@ -18,6 +20,8 @@ export interface ContactBookEntry {
   avatarUrl?: string;
   matrixId?: string;
   neutrinoServerName?: string;
+  /** Identity envelope version and unread identity fields (#160); absent before versioning. */
+  identity?: IdentityMeta;
   ticketRef?: string;
   socials: Record<string, string>;
   verified: boolean;
@@ -31,11 +35,19 @@ export interface ContactBookEntry {
   metCount?: number;
   lastMetAt?: string;
   keyChanged?: boolean;
-  /** Whether the card's Matrix id was verified against that account's profile (issue #111). */
+  /**
+   * What a read of the account's public profile observed (issue #111). A
+   * `profile-matched` result is the homeserver's word, not verification; an
+   * importer resets every trust field regardless of what the file says.
+   */
   meshLink?: {
-    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+    state: 'profile-matched' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
     checkedAt: number;
   };
+  /** Conclusion drawn from `meshLink`; reset to `claimed` on import. */
+  accountTrust?: 'claimed' | 'profile-matched' | 'binding-valid' | 'verified' | 'revoked';
+  /** The attendee's own in-person badge comparison; dropped on import. */
+  inPersonConfirmed?: { fingerprint: string; at: string };
   previousFingerprint?: string;
 }
 
@@ -116,6 +128,7 @@ function entryFromProfile(
     ...(profile.avatarUrl ? { avatarUrl: profile.avatarUrl } : {}),
     ...(profile.matrixId ? { matrixId: profile.matrixId } : {}),
     ...(profile.neutrinoServerName ? { neutrinoServerName: profile.neutrinoServerName } : {}),
+    ...(profile.identity ? { identity: profile.identity } : {}),
     ...(profile.ticketRef ? { ticketRef: profile.ticketRef } : {}),
     socials: { ...profile.socials },
     verified: false,
@@ -153,15 +166,19 @@ export function parseContactBook(
         skipped++;
         continue;
       }
-      entries.push({
-        ...entry,
-        id: typeof entry.id === 'string' && entry.id ? entry.id : newId(),
-        vcard: typeof entry.vcard === 'string' ? entry.vcard : '',
-        fullName: entry.fullName,
-        socials: entry.socials && typeof entry.socials === 'object' ? { ...entry.socials } : {},
-        verified: false,
-        savedAt: typeof entry.savedAt === 'string' ? entry.savedAt : savedAt,
-      } as ContactBookEntry);
+      // A file written by a newer build may carry an identity version or a
+      // mesh shape this build does not read: it is kept, not routed (#160).
+      entries.push(
+        withIdentityEnvelope({
+          ...entry,
+          id: typeof entry.id === 'string' && entry.id ? entry.id : newId(),
+          vcard: typeof entry.vcard === 'string' ? entry.vcard : '',
+          fullName: entry.fullName,
+          socials: entry.socials && typeof entry.socials === 'object' ? { ...entry.socials } : {},
+          verified: false,
+          savedAt: typeof entry.savedAt === 'string' ? entry.savedAt : savedAt,
+        } as ContactBookEntry),
+      );
     }
     return { entries, format: 'json', skipped };
   }

@@ -125,15 +125,14 @@ Acceptance has two levels:
   Confirm saved choices, edited plans, ticket, contacts and card identity remain
   intact. Record the exact APKs and device evidence; do not substitute CI APKs.
 
-### Accrescent
+### Update channels
 
-[Accrescent](https://accrescent.app) is the app-store channel we are aiming
-for, and it wants a different artifact from everyone else: a **bundletool-made,
-developer-signed `.apks` APK set**, one signer, signature scheme v2/v3/v3.1,
-plus DNS proof that we control `indiafoss.org`. Its developer sign-up is
-closed today, so nothing is published there yet. The requirements, the
-attendee-facing install and update instructions, and the checklist of what we
-still owe are in [accrescent.md](./accrescent.md).
+Attendees keep the app current through **Obtainium** (tracking the GitHub
+release page) or, once it is published, **our own F-Droid repository**. Both
+deliver the same signed APK that the direct download link serves, so the
+signing identity never changes between channels. We do not direct attendees to
+any third-party app store. Attendee-facing instructions and the state of the
+F-Droid repository are in [install-channels.md](./install-channels.md).
 
 ## iOS
 
@@ -186,7 +185,7 @@ cancelled, time, room, title, speaker, recording) are unit-tested in
 ## Related docs
 
 - [Event onboarding](./event-onboarding.md)
-- [Accrescent distribution](./accrescent.md)
+- [Install channels](./install-channels.md)
 - [Venue route review checklist](./venue-route-review-checklist.md)
 - [Contact sharing & QR scanning](./contact-sharing.md)
 - [Calendar export](./calendar-export.md)

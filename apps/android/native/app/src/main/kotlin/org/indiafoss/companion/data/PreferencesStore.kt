@@ -35,6 +35,15 @@ class PreferencesStore(private val context: Context) {
         context.dataStore.edit { it[remindersKey] = on }
     }
 
+    private val calendarSyncKey = booleanPreferencesKey("calendar-sync-enabled")
+
+    /** Off until switched on in Settings; the phone's calendar is never touched before that (#272). */
+    val calendarSyncEnabled: Flow<Boolean> = context.dataStore.data.map { it[calendarSyncKey] ?: false }
+
+    suspend fun setCalendarSyncEnabled(on: Boolean) {
+        context.dataStore.edit { it[calendarSyncKey] = on }
+    }
+
     private val onboardingKey = booleanPreferencesKey("onboarding-done")
 
     /** Null until the store has been read; false brings up the welcome screen once (#107). */
@@ -51,6 +60,15 @@ class PreferencesStore(private val context: Context) {
 
     suspend fun setRoutingProfile(profile: String) {
         context.dataStore.edit { it[profileKey] = profile }
+    }
+
+    private val dynamicColorKey = booleanPreferencesKey("dynamic-colour")
+
+    /** Material You on Android 12+ for the everyday screens; the event surfaces keep the brand palette either way (#33). */
+    val dynamicColor: Flow<Boolean> = context.dataStore.data.map { it[dynamicColorKey] ?: true }
+
+    suspend fun setDynamicColor(on: Boolean) {
+        context.dataStore.edit { it[dynamicColorKey] = on }
     }
 
     private val locationKey = stringPreferencesKey("current-location")

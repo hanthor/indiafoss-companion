@@ -10,6 +10,7 @@ import {
   hydrateComparisons,
   hydratePreferences,
   ratingOf,
+  yieldedTo,
 } from '$lib/prefs.svelte';
 import { hydrateRoomPrefs, roomPreferences } from '$lib/roomPrefs.svelte';
 import { triageOf } from '$lib/prefs.svelte';
@@ -27,6 +28,8 @@ const preferences: SolverPreferences = {
   ratingOf: (id) => ratingOf(id),
   dispositionOf: (id) => dispositionOf(id),
   bookmarked: (id) => bookmarked(id),
+  // Clash losses (#271) leave the plan while their winner is live; never a dislike.
+  yieldsTo: (id) => yieldedTo(id),
 };
 
 /** Planned booth visits (settings key `booth-visit-<id>` -> minutes). */

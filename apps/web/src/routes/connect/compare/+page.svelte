@@ -1,9 +1,16 @@
 <script lang="ts">
   import ContactChecks from '$lib/components/ContactChecks.svelte';
   import { resolve } from '$app/paths';
+  import { page } from '$app/state';
   import { identiconSvg, shortFingerprint } from '@indiafoss/model';
   import { hydrateIdentity, identityState } from '$lib/identity.svelte';
-  import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
+  import {
+    confirmBadgeInPerson,
+    contactsState,
+    hydrateContacts,
+    withdrawBadgeConfirmation,
+  } from '$lib/contacts.svelte';
+  import { deriveContactTrust, inPersonLabel } from '$lib/contact-trust';
 
   $effect(() => {
     void hydrateIdentity();
@@ -12,7 +19,29 @@
 
   const withBadge = $derived(contactsState.contacts.filter((c) => c.fingerprint));
   let picked = $state('');
+  // Opened from a contact's detail panel: start on that contact.
+  let preselected: string | null = null;
+  $effect(() => {
+    const requested = page.url.searchParams.get('contact');
+    if (!requested || preselected === requested) return;
+    if (!withBadge.some((c) => c.id === requested)) return;
+    preselected = requested;
+    picked = requested;
+  });
   const other = $derived(withBadge.find((c) => c.id === picked) ?? null);
+  const otherTrust = $derived(other ? deriveContactTrust(other) : null);
+  let confirmMessage = $state('');
+
+  async function markMatched(): Promise<void> {
+    if (!other) return;
+    await confirmBadgeInPerson(other);
+    confirmMessage = `Noted: you compared ${other.fullName}'s badge in person. This is your own statement about the card key; it does not verify their accounts.`;
+  }
+  async function unmark(): Promise<void> {
+    if (!other) return;
+    await withdrawBadgeConfirmation(other);
+    confirmMessage = 'Badge comparison withdrawn.';
+  }
 
   const spaced = (fp: string) =>
     fp
@@ -22,11 +51,12 @@
 </script>
 
 <a class="back" href={resolve('/connect')}>← Your contact card</a>
-<div class="eyebrow">KEY BADGES · VERIFY IN PERSON</div>
+<div class="eyebrow">KEY BADGES · COMPARE IN PERSON</div>
 <h1>Compare badges</h1>
 <p class="lead">
   Hold the phones together. The badge on your screen must match the badge they see for you, and
-  theirs must match what you saved. Matching badges mean the card keys match.
+  theirs must match what you saved. Matching badges mean the card keys match — nothing more: not
+  their name, not their accounts, and not that a chat will reach them.
 </p>
 
 <ContactChecks />
@@ -69,12 +99,37 @@
           Ask {other.fullName} to open Connect: their badge there should read
           <b>{shortFingerprint(other.fingerprint)}</b>.
         </p>
+        {#if otherTrust}
+          <p class="state" data-state={otherTrust.inPerson}>{inPersonLabel(otherTrust.inPerson)}</p>
+          {#if otherTrust.inPerson === 'confirmed'}
+            <button class="button ghost small" onclick={unmark}>Undo badge comparison</button>
+          {:else}
+            <button class="button primary small" onclick={markMatched}
+              >Badges matched in person</button
+            >
+          {/if}
+        {/if}
       {/if}
     {/if}
   </section>
 </div>
+{#if confirmMessage}<p class="muted small" role="status">{confirmMessage}</p>{/if}
 
 <style>
+  .state {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .state[data-state='confirmed'] {
+    color: var(--mint-ink);
+  }
+  .state[data-state='confirmed-earlier-key'] {
+    color: var(--amber-ink);
+  }
   .back {
     display: inline-block;
     margin-bottom: 0.5rem;

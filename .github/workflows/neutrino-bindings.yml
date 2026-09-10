@@ -115,7 +115,7 @@ jobs:
           done
           echo "$version names neutrino-iroh ${head:0:7} and neutrino ${{ steps.pin.outputs.rev }}"
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'

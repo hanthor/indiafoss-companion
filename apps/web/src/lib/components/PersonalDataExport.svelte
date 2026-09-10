@@ -35,7 +35,10 @@
     Save your talk choices, devroom preferences, plan edits, notes and contact card in a file. The
     file contains private details, including fields you have chosen not to share on your card.
   </p>
-  <p class="muted">Import on another device is not available yet. Keep the file for later.</p>
+  <p class="muted">
+    Import the file below on another browser. The native Android app cannot import it yet; keep the
+    file for later.
+  </p>
   <button class="button" onclick={exportData} disabled={busy}>
     {busy ? 'Preparing export…' : 'Download personal data'}
   </button>

@@ -9,7 +9,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8.svg)](https://hanthor.github.io/indiafoss-companion/)
 
-[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [Docs](#documentation)
+[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [**Download Chat for Android**](https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk) · [Docs](#documentation)
 
 <img src="docs/screenshots/now.png" width="30%" alt="The Now screen listing three sessions running right now, each with a progress bar and minutes remaining" />
 <img src="docs/screenshots/map.png" width="30%" alt="The venue map in dark mode with three halls lit mint, each labelled with the minutes left in its session, and a dot showing where you are" />
@@ -67,6 +67,8 @@ Your ratings never leave the phone.
 The venue's real floor plan, with halls lit up while sessions run in them and a dot for where you are — set by scanning the QR on a room door, or by tapping **I'm here**.
 
 Both floors are drawn as vectors, so pinch, drag and wheel zoom stay sharp, and a corner hint tells you when your next talk is on the other floor. Underneath is a routing graph with A\* pathfinding and accessible profiles (lift instead of stairs).
+
+Before you are inside: a **Getting there** card with the organiser's venue name and address, a copy button, and a handoff to the organiser's OpenStreetMap destination or your own maps app — cached with the programme, so it works without signal.
 
 </td>
 <td width="40%"><img src="docs/screenshots/map.png" alt="Venue map with live rooms" /></td>
@@ -131,8 +133,8 @@ Neither is on unless you switch it on.
 ## Try it
 
 - **Web / PWA** — <https://hanthor.github.io/indiafoss-companion/>, deployed from `main`. Installable; works offline after the first load.
-- **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the latest debug APK and its SHA-256. P2P chat is compiled in when the Neutrino bindings are published; they are built from source by a workflow, so no contributor needs a token ([docs](docs/messaging.md#building-the-p2p-variant)).
-- **Android via Accrescent** — the channel we are heading for: install [Accrescent](https://accrescent.app), install the Companion from it, and it stays up to date on its own, in the background, with the signing key verified against signed store metadata. Accrescent's developer sign-up is closed at the moment, so this is not live yet — [what it needs, and what attendees will do](docs/accrescent.md).
+- **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the signed native Companion APK and its SHA-256. For messaging, install the separate [IndiaFOSS Chat Android preview](https://github.com/hanthor/indiafoss-chat-android/releases/tag/nightly).
+- **Keeping Android up to date** — add the release page to [Obtainium](https://github.com/ImranR98/Obtainium) (`obtainium://add/https://github.com/hanthor/indiafoss-companion`) and it tracks every signed build; our own F-Droid repository for Companion and Chat is being set up (#291). Both install the same signed APK — [install channels](docs/install-channels.md).
 - **iOS** — the PWA is iOS-ready: **Share → Add to Home Screen**. Apple touch icon and standalone metadata are in the build; no App Store account needed.
 
 ## Make it yours
@@ -240,7 +242,7 @@ pnpm --filter @indiafoss/web screenshots
 | [Messaging](docs/messaging.md) · [Neutrino capabilities](docs/neutrino-capabilities.md) · [P2P state of the art](docs/p2p-matrix-state-of-the-art.md) | Matrix rooms, P2P mesh, threat model, and what the mesh measurably supports |
 | [Android testing](docs/android-testing.md)                                                                                                            | the emulator gate, the Maestro flows, and the exploratory pass              |
 | [Native client](docs/native-client.md)                                                                                                                | the Compose app and its Kotlin core                                         |
-| [Privacy](docs/privacy.md) · [Release](docs/release.md) · [Accrescent](docs/accrescent.md)                                                            | what is stored, how a release is cut, and the Accrescent channel            |
+| [Privacy](docs/privacy.md) · [Release](docs/release.md) · [Install channels](docs/install-channels.md)                                                | what is stored, how a release is cut, and how attendees install and update  |
 | [ADRs](docs/adr/README.md) · [Phases](docs/phases.md) · [Roadmap](docs/roadmap.md)                                                                    | decisions and where the project is going                                    |
 
 ## Status

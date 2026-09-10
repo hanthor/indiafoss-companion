@@ -1,5 +1,5 @@
-import { collectBundleWarnings, isValidEventBundle } from '@indiafoss/model';
-import type { EventBundle, EventReference, MessagingConfig } from '@indiafoss/model';
+import { collectBundleWarnings, collectVenueIssues, isValidEventBundle } from '@indiafoss/model';
+import type { EventBundle, EventReference, EventVenue, MessagingConfig } from '@indiafoss/model';
 import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
 import { FixtureSource, FossUnitedSource, mergeBooths, repoRoot } from '@indiafoss/sources';
 import { preserveActivityIds } from './identity.js';
@@ -91,6 +91,23 @@ export async function syncEvent(
   const messagingPath = join(repoRoot('events', eventId), 'messaging.json');
   if (existsSync(messagingPath)) {
     bundle.messaging = JSON.parse(readFileSync(messagingPath, 'utf8')) as MessagingConfig;
+  }
+
+  // Merge the reviewed venue arrival block (#278). The organiser's own event
+  // document also carries a map link; a mismatch means the reviewed file is
+  // stale, which is a warning for a human, never a reason to guess.
+  const venuePath = join(repoRoot('events', eventId), 'venue-arrival.json');
+  if (existsSync(venuePath)) {
+    const { venue } = JSON.parse(readFileSync(venuePath, 'utf8')) as { venue: EventVenue };
+    const issues = collectVenueIssues(venue);
+    if (issues.length) throw new Error(`venue-arrival.json is invalid: ${issues.join('; ')}`);
+    bundle.venue = venue;
+    const upstreamMapLink = captured.kind === 'fossunited' ? captured.event.map_link : undefined;
+    if (upstreamMapLink && upstreamMapLink !== venue.mapUrl) {
+      console.warn(
+        `warning: venue-arrival.json mapUrl differs from the FOSS United event map_link (${upstreamMapLink}); re-check the organiser page`,
+      );
+    }
   }
 
   const publicationPath = join(repoRoot('events', eventId), 'publication.json');

@@ -1,6 +1,15 @@
-import type { EventBundle } from '@indiafoss/model';
-import type { PersonalDataFile } from '@indiafoss/model/contracts';
-import { personalDataFromSnapshot } from './personal-data.js';
+import type { EventBundle, IdentityMeta } from '@indiafoss/model';
+import { withIdentityEnvelope } from '@indiafoss/model';
+import type { AccountClaimTrust, PersonalDataFile } from '@indiafoss/model/contracts';
+import { personalDataFromSnapshot, type PersonalDataSnapshot } from './personal-data.js';
+import { validatePersonalData } from './personal-data-validation.js';
+import {
+  PersonalDataImportStaleError,
+  planPersonalDataImport,
+  storedValue,
+  type ImportChange,
+  type PersonalDataImportPreview,
+} from './personal-data-import.js';
 import Dexie, { type Table } from 'dexie';
 
 /** Initial Elo rating (§14). */
@@ -22,6 +31,13 @@ export interface ActivityPreference {
    * running and is what the head-to-head round is then limited to.
    */
   triage?: 'yes' | 'no';
+  /**
+   * The session this one stood aside for in a clash (#271). A scheduling
+   * loss kept apart from `disposition`: the talk stays an interest, is left
+   * out of the plan only while the winner is live, and is never learnt as a
+   * dislike. Cleared by any later direct answer.
+   */
+  yieldedTo?: string;
 }
 
 export interface ComparisonRecord {
@@ -31,6 +47,8 @@ export interface ComparisonRecord {
   /** Result score for A: 1.0 / 0.5 / 0.0 (+ effective K, see elo package). */
   scoreA: number;
   createdAt: string;
+  /** Answered as a scheduling clash (#271): the loser is not learnt as a dislike. */
+  clash?: boolean;
 }
 
 export interface EventBundleRecord {
@@ -147,9 +165,21 @@ export interface ContactRecord {
   matrixId?: string;
   /** Neutrino P2P node identity, kept separately from the Matrix id. */
   neutrinoServerName?: string;
+  /**
+   * Identity envelope version `matrixId` / `neutrinoServerName` were read
+   * under, and any identity fields the reading build set aside because it did
+   * not understand them (#160). Records from before versioning gain
+   * `{ version: 1 }` on read.
+   */
+  identity?: IdentityMeta;
   ticketRef?: string;
   socials: Record<string, string>;
-  /** QR exchange is not identity verification; stays false until Matrix verification. */
+  /**
+   * Matrix device verification happened. QR exchange, a card signature, a
+   * badge comparison and a profile match are none of that, so this stays
+   * `false` until the app holds cross-signing evidence — which nothing in
+   * this repository produces yet (#188). Never read off the wire.
+   */
   verified: boolean;
   savedAt: string;
   eventId?: string;
@@ -173,13 +203,52 @@ export interface ContactRecord {
    * checked; only meaningful when both ids are on the card.
    */
   meshLink?: {
+    // `profile-matched` is the homeserver's word, compared as a string — an
+    // account *claim* the profile agrees with, never verification. Records
+    // written by builds that spelled it `verified` are rewritten on read.
     // `outdated` means one of the two identities was a shape the checking
     // build did not recognise, so no comparison was possible — kept distinct
     // from `mismatch`, which is shown as evidence a card is not genuine (#160).
-    state: 'verified' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+    state: MeshLinkObservation;
     checkedAt: number;
   };
+  /**
+   * The conclusion drawn from `meshLink` (the raw observation): at most
+   * `profile-matched` today. `binding-valid` and `verified` have no producer
+   * until #188 lands. Reset to `claimed` on every import; never trusted from
+   * a file or a card.
+   */
+  accountTrust?: AccountClaimTrust;
+  /**
+   * The attendee said, explicitly, that they compared this card's key badge
+   * with the one on the other person's phone and it matched (#31). Bound to
+   * the fingerprint it was made for: a later card with a different key does
+   * not inherit it. This is a statement about the *card key*, not about any
+   * account on the card, and nothing sets it but the attendee's own tap.
+   */
+  inPersonConfirmed?: { fingerprint: string; at: string };
   previousFingerprint?: string;
+}
+
+/** What a public-profile read observed; see `@indiafoss/matrix` `MeshLinkState`. */
+export type MeshLinkObservation =
+  'profile-matched' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
+
+/**
+ * Bring a record written by an older build up to the current vocabulary.
+ * Builds before #31/#188 stored a profile match as `meshLink.state ===
+ * 'verified'`; it reads back as `profile-matched` — not dropped, not trusted.
+ * Identity fields go through the versioned envelope (#160): an unversioned
+ * record reads as v1, and a mesh or Matrix value this build does not
+ * recognise is moved to `identity.retained` rather than offered as an address.
+ */
+export function migrateContactRecord(raw: ContactRecord): ContactRecord {
+  const state = (raw.meshLink as { state?: string } | undefined)?.state;
+  const record =
+    state === 'verified'
+      ? { ...raw, meshLink: { ...raw.meshLink!, state: 'profile-matched' as const } }
+      : raw;
+  return withIdentityEnvelope(record);
 }
 
 /** The device's own handshake key pair (non-extractable CryptoKeys, structured-cloned by IndexedDB). */
@@ -258,56 +327,92 @@ export function defaultPreference(activityId: string): ActivityPreference {
 export class CompanionStorage {
   constructor(private readonly db: CompanionDatabase = new CompanionDatabase()) {}
 
+  private personalStores() {
+    return [
+      this.db.events,
+      this.db.preferences,
+      this.db.comparisons,
+      this.db.notes,
+      this.db.itineraries,
+      this.db.settings,
+    ];
+  }
+
+  /** Only the explicit personal-data allowlist; credentials, keys and caches never enter it. */
+  private async personalSnapshot(): Promise<PersonalDataSnapshot> {
+    const [
+      events,
+      preferences,
+      comparisons,
+      notes,
+      itineraries,
+      contact,
+      plans,
+      resolved,
+      rooms,
+      booths,
+    ] = await Promise.all([
+      this.db.events.toArray(),
+      this.db.preferences.toArray(),
+      this.db.comparisons.toArray(),
+      this.db.notes.toArray(),
+      this.db.itineraries.toArray(),
+      this.db.settings.where('key').anyOf('attendee-profile', 'attendee-share-selection').toArray(),
+      this.db.settings.where('key').startsWith('plan-edits-').toArray(),
+      this.db.settings.where('key').startsWith('resolved-plan-').toArray(),
+      this.db.settings.where('key').startsWith('room-prefs-').toArray(),
+      this.db.settings.where('key').startsWith('booth-visit-').toArray(),
+    ]);
+    return {
+      bundles: events.map((record) => record.bundle),
+      preferences,
+      comparisons,
+      notes,
+      itineraries,
+      settings: [...contact, ...plans, ...resolved, ...rooms, ...booths],
+    };
+  }
+
   /** One consistent read transaction across the explicit personal-data allowlist. */
   async exportPersonalData(exportedAt = new Date().toISOString()): Promise<PersonalDataFile> {
-    return this.db.transaction(
-      'r',
-      [
-        this.db.events,
-        this.db.preferences,
-        this.db.comparisons,
-        this.db.notes,
-        this.db.itineraries,
-        this.db.settings,
-      ],
-      async () => {
-        const [
-          events,
-          preferences,
-          comparisons,
-          notes,
-          itineraries,
-          contact,
-          plans,
-          resolved,
-          rooms,
-        ] = await Promise.all([
-          this.db.events.toArray(),
-          this.db.preferences.toArray(),
-          this.db.comparisons.toArray(),
-          this.db.notes.toArray(),
-          this.db.itineraries.toArray(),
-          this.db.settings
-            .where('key')
-            .anyOf('attendee-profile', 'attendee-share-selection')
-            .toArray(),
-          this.db.settings.where('key').startsWith('plan-edits-').toArray(),
-          this.db.settings.where('key').startsWith('resolved-plan-').toArray(),
-          this.db.settings.where('key').startsWith('room-prefs-').toArray(),
-        ]);
-        return personalDataFromSnapshot(
-          {
-            bundles: events.map((record) => record.bundle),
-            preferences,
-            comparisons,
-            notes,
-            itineraries,
-            settings: [...contact, ...plans, ...resolved, ...rooms],
-          },
-          exportedAt,
-        );
-      },
+    return this.db.transaction('r', this.personalStores(), async () =>
+      personalDataFromSnapshot(await this.personalSnapshot(), exportedAt),
     );
+  }
+
+  /**
+   * Validate a file and compare it with this device in one read transaction.
+   * Nothing is written; unresolved and unsupported data is reported, not dropped.
+   */
+  async previewPersonalDataImport(raw: string): Promise<PersonalDataImportPreview> {
+    const validated = validatePersonalData(raw);
+    return this.db.transaction('r', this.personalStores(), async () =>
+      planPersonalDataImport(validated, await this.personalSnapshot()),
+    );
+  }
+
+  /**
+   * Apply selected preview changes in one write transaction. Every value is
+   * re-read first: a record edited since the preview aborts the whole import
+   * (Dexie rolls back), so a stale preview cannot overwrite a newer choice.
+   */
+  async applyPersonalDataImport(changes: ImportChange[]): Promise<{ applied: number }> {
+    return this.db.transaction('rw', this.personalStores(), async () => {
+      const stale: string[] = [];
+      for (const change of changes) {
+        const stored = await this.db.table(change.write.store).get(change.write.key);
+        if (storedValue(change.write, stored) !== change.current) stale.push(change.label);
+      }
+      if (stale.length) throw new PersonalDataImportStaleError(stale);
+      for (const { write } of changes) {
+        if (write.store === 'settings') {
+          await this.db.settings.put({ key: write.key, value: write.value as string });
+        } else {
+          await this.db.table(write.store).put(write.value);
+        }
+      }
+      return { applied: changes.length };
+    });
   }
 
   async saveEventBundle(bundle: EventBundle): Promise<void> {
@@ -423,7 +528,7 @@ export class CompanionStorage {
   }
 
   async listContacts(): Promise<ContactRecord[]> {
-    const rows = await this.db.contacts.toArray();
+    const rows = (await this.db.contacts.toArray()).map(migrateContactRecord);
     return rows.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
   }
 
@@ -502,3 +607,20 @@ export class CompanionStorage {
     );
   }
 }
+
+export {
+  PersonalDataImportStaleError,
+  canonical,
+  planPersonalDataImport,
+} from './personal-data-import.js';
+export type {
+  ImportChange,
+  ImportSkip,
+  ImportSkipReason,
+  ImportStore,
+  ImportWrite,
+  PersonalDataImportPreview,
+} from './personal-data-import.js';
+export { validatePersonalData } from './personal-data-validation.js';
+export type { ValidatedPersonalData } from './personal-data-validation.js';
+export type { PersonalDataSnapshot } from './personal-data.js';

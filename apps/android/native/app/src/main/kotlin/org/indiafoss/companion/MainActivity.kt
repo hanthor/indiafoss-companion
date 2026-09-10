@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.indiafoss.companion.ui.CompanionApp
 import org.indiafoss.companion.ui.theme.CompanionTheme
 
@@ -17,7 +19,8 @@ class MainActivity : ComponentActivity() {
         org.indiafoss.companion.reminders.ReminderScheduler.ensureChannel(this)
         intent?.dataString?.let(viewModel::openDeepLink)
         setContent {
-            CompanionTheme {
+            val state by viewModel.state.collectAsStateWithLifecycle()
+            CompanionTheme(dynamicColor = state.dynamicColor) {
                 CompanionApp(viewModel)
             }
         }

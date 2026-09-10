@@ -22,6 +22,7 @@
     "fast-check": "^4.9.0"
   },
   "dependencies": {
+    "@indiafoss/elo": "workspace:*",
     "@indiafoss/model": "workspace:*"
   }
 }

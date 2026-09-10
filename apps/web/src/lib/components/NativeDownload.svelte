@@ -13,6 +13,12 @@
       >Release notes and checksums</a
     >
   </div>
+  <p class="small muted">
+    Keep it updated with
+    <a href="obtainium://add/https://github.com/hanthor/indiafoss-companion">Obtainium</a>
+    (<a href="https://github.com/ImranR98/Obtainium/releases/latest">get Obtainium</a>) or, once
+    published, our F-Droid repository. Same signing key either way.
+  </p>
   <p class="small muted">Browser and Android data are currently separate.</p>
 </section>
 

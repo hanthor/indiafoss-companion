@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Lightweight Matrix client-server messaging layer with an offline outbox",
+  "description": "Matrix public-profile checks and handoff helpers for the companion; session manager retained as the neutrino-probe contract harness",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -18,7 +18,7 @@
   "dependencies": {
     "@indiafoss/model": "workspace:*",
     "@indiafoss/storage": "workspace:*",
-    "@matrix-org/matrix-sdk-crypto-wasm": "18.7.0"
+    "@matrix-org/matrix-sdk-crypto-wasm": "18.8.0"
   },
   "devDependencies": {
     "eslint": "^10.9.1",

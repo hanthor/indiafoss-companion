@@ -17,6 +17,11 @@ for (const route of ['/?setup=done', '/settings']) {
       'https://github.com/hanthor/indiafoss-companion/releases/tag/nightly',
     );
     await expect(section).toContainText('Browser and Android data are currently separate.');
+    await expect(section.getByRole('link', { name: 'Obtainium', exact: true })).toHaveAttribute(
+      'href',
+      'obtainium://add/https://github.com/hanthor/indiafoss-companion',
+    );
+    await expect(section).not.toContainText(/accrescent/i);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );

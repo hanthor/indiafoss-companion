@@ -65,6 +65,7 @@ describe('friend payload', () => {
       fossUnitedProfileUrl: 'https://fossunited.org/u/james_reilly',
       matrixId: '@james:matrix.org',
       neutrinoServerName: SERVER_NAME,
+      identity: { version: 1 },
       fullName: 'James, Reilly',
       organization: 'FOSS & Co',
       website: 'https://example.org',
@@ -72,11 +73,17 @@ describe('friend payload', () => {
     });
   });
 
-  it('drops malformed identities and unsafe urls instead of trusting them', () => {
+  it('retains malformed identities unread and drops unsafe urls, trusting neither', () => {
     const decoded = decodeFriendPayload(
       'indiafoss://friend?v=1&matrix_id=alice&neutrino_server_name=zz&ticket_ref=T1&url=javascript:alert(1)&social_github=ftp://x',
     );
-    expect(decoded).toEqual({ version: 1, socials: {} });
+    // Neither value is promoted to a routable field (#160): they are kept as
+    // they arrived so a later build can read them, and nothing else.
+    expect(decoded).toEqual({
+      version: 1,
+      socials: {},
+      identity: { version: 1, retained: { mesh: 'zz', matrix: 'alice' } },
+    });
   });
 
   it('signs cards and detects tampering', async () => {
@@ -173,6 +180,7 @@ describe('parseVCard (scan.ts)', () => {
       website: 'https://example.org/long-folded-path',
       matrixId: '@grace:example.org',
       neutrinoServerName: 'a'.repeat(64),
+      identity: { version: 1 },
       ticketRef: 'ticket::T1',
       socials: { github: 'https://github.com/grace' },
     });

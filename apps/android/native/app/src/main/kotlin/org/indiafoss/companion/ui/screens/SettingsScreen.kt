@@ -48,6 +48,8 @@ fun SettingsScreen(
     onRoutingProfile: (String) -> Unit,
     onStartSimulation: (day: String, time: String, speed: Int) -> Unit = { _, _, _ -> },
     onStopSimulation: () -> Unit = {},
+    onDynamicColor: (Boolean) -> Unit = {},
+    onCalendarSync: (Boolean) -> Unit = {},
     onSetup: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -55,6 +57,10 @@ fun SettingsScreen(
     // Android 13+ asks for the notification permission; below that it is granted by install.
     val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         onReminders(granted)
+    }
+    // The phone's calendar (#272): read and write access to it, asked for only when the switch goes on.
+    val askCalendar = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
+        onCalendarSync(granted.values.all { it } && granted.isNotEmpty())
     }
     Scaffold(topBar = { TopAppBar(title = { Text("Settings") }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
@@ -85,6 +91,62 @@ fun SettingsScreen(
                             context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM))
                         }) { Text("Allow exact alarms for on-the-minute timing") }
                     }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Appearance", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            "Light or dark follows the system setting. The everyday screens can take your wallpaper colours; " +
+                                "the welcome, Now and devroom surfaces keep the IndiaFOSS green either way."
+                        } else {
+                            "Light or dark follows the system setting, in the IndiaFOSS 2026 colours."
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Use wallpaper colours", Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        Switch(checked = state.dynamicColor, onCheckedChange = onDynamicColor)
+                    }
+                }
+            }
+            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Phone calendar", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Keep an \"IndiaFOSS\" calendar on this phone in step with your plan: sessions are added, " +
+                            "moved or removed as your choices and the programme change, with a ten-minute reminder each. " +
+                            "It is a local calendar owned by this app; no other calendar is touched.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Keep my plan in the calendar", Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                        Switch(
+                            checked = state.calendarSyncEnabled,
+                            onCheckedChange = { on ->
+                                if (on) askCalendar.launch(arrayOf(Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR))
+                                else onCalendarSync(false)
+                            },
+                        )
+                    }
+                    state.calendarSyncStatus?.let {
+                        Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    if (state.calendarSyncEnabled) {
+                        TextButton(onClick = { onCalendarSync(false) }) { Text("Disconnect and remove the calendar") }
+                    }
+                    Text(
+                        "The Calendar button on My plan still shares a .ics file for any calendar app. " +
+                            "A file imported that way is a snapshot: it does not update when your plan or the programme changes.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
                 }
             }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
@@ -169,6 +231,7 @@ fun SettingsScreen(
                     listOf(
                         "No account is required.",
                         "Schedule, ranking, plan and reminders stay on this device.",
+                        "The phone-calendar option writes only to a calendar this app creates, and only while it is switched on.",
                         "The only network call is a check for a newer programme, from the public site.",
                     ).forEach {
                         Text("•  $it", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
