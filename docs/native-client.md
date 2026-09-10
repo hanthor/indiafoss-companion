@@ -9,16 +9,16 @@ client renders natively rather than embedding a WebView.
 
 ## Screens
 
-| Tab / route | State                                                                                                                                                                                          |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Now         | "Your plan now" (in progress / up next from the resolved plan, or its conflicts), then live sessions in every room with progress, then the programme's next session                            |
-| Schedule    | per day; room chips, list or time × room grid (`ScheduleGrid`, the PWA's TimelineGrid rules), plan markers from the resolved plan (`PlanMarker`: planned / interested / must go / stood aside) |
-| My plan     | the day planned from must-attend, devroom stays, bookmarks and ratings (`Itinerary`) with removals and blocks layered on top (`ResolvedPlan`); remove/restore; "Rank this day"                 |
-| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo             |
-| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                                    |
-| Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                                |
-| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), phone calendar, personal-data export/import (#240), privacy, about               |
-| Session     | detail, bookmark, must attend                                                                                                                                                                  |
+| Tab / route | State                                                                                                                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Now         | "Your plan now" (in progress / up next from the resolved plan, or its conflicts), then live sessions in every room with progress, then the programme's next session                              |
+| Schedule    | per day; room chips, list or time × room grid (`ScheduleGrid`, the PWA's TimelineGrid rules), plan markers from the resolved plan (`PlanMarker`: planned / interested / must go / stood aside)   |
+| My plan     | the day planned from must-attend, devroom stays, bookmarks and ratings (`Itinerary`) with removals and blocks layered on top (`ResolvedPlan`); remove/restore; "Stood aside … Reconsider" (#271) |
+| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, one tap settling the slot (#271), same rules as the PWA (`docs/ranking.md`), with undo    |
+| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                                      |
+| Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                                  |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), phone calendar, personal-data export/import (#240), privacy, about                 |
+| Session     | detail, bookmark, must attend                                                                                                                                                                    |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
 resolved plan whenever anything feeding it changes — bookmarks, must-attend
@@ -56,7 +56,8 @@ Deliberate differences from the PWA, rather than claims of identical output:
   constraints; native keeps the greedy `Itinerary`, which places sessions
   back to back. The two can pick different ranked fillers for the same
   ratings. Explicit choices (must-attend, stays, bookmarks, blocks,
-  removals) resolve the same way on both.
+  removals, clash losses and the devroom left for one pick) resolve the
+  same way on both.
 - **Tight transfers are warnings, not conflicts.** The PWA's
   `travel-buffer` conflict makes a plan infeasible; the native base would
   trip it on most days, so `ResolvedPlan.ConflictKind.TRAVEL` (not enough
@@ -78,9 +79,40 @@ Deliberate differences from the PWA, rather than claims of identical output:
   offers remove/restore only; locking is stored but unused.
 - **"Remove" does not learn dislike.** It records a removal by id; the
   rating is untouched. The old "Not this one" marked the talk not
-  interested.
+  interested. (Standing aside in a clash is the same on both: an interest
+  kept, not a dislike.)
+- **Rank has no keyboard shortcuts and no `?mode=` link.** The PWA's Z-to-undo
+  and forced steps are web affordances; native uses the step buttons and the
+  Undo button. The settlement itself — one pick per slot, the note, Undo — is
+  the same.
+- **The devroom title in the pill.** Both clients show the track name's
+  bracketed part ("Rust" from "Devroom 2 (Rust)"); native's `devroomTitle`
+  is a small regex rather than the PWA's `splitTrackName`.
 - **Day boundaries.** Native reads the venue day from `now` in the event's
   fixed offset (`IsoClock`), the PWA from `Intl` with the event timezone.
+
+## Clash settlement (#271)
+
+The overlaps step groups a time window's mutually overlapping candidates
+into one settlement card (`Ranking.slots`, over `Ranking.livePool`), and one
+tap on a session settles it the way the PWA does:
+
+| Rule                     | Native                                                                                                                                                                                                        |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| One pick settles a slot  | `CompanionViewModel.pickInSlot(winner, members)` runs `Ranking.resolveClash`; every member the winner overlaps gets `SessionRating.yieldedTo = winner`; the window is not asked again (`livePool` drops them) |
+| Standing aside ≠ dislike | `yieldedTo` is a field of its own beside `disposition`/`triage`; the comparison is stored with `clash = true`, and `AffinityModel.learn` then votes for the winner only                                       |
+| Left out while live      | `Itinerary.forDay`/`ResolvedPlan.forDay` take `yieldsTo`; `Ranking.activeAfterYields` resolves the yields to a fixed point, so a loser returns when its winner is ruled out, cancelled or stands aside itself |
+| Staggered members        | `resolveClash` leaves members the winner does not overlap alone (`unaffected`); the card says "Overlaps 1 of the other 2; the rest can still fit"                                                             |
+| Must-go retained         | a must-go loser is `keptMustGo`: no yield, the comparison still recorded, the plan keeps its `MUST_ATTEND` conflict; the slot says so when several must-go talks clash                                        |
+| Reserved devroom         | cards carry "STAYING FOR THIS DEVROOM · name" and the slot explains that another pick leaves the devroom for that slot only; `Itinerary.Yields.leftFor` exempts that winner from the block and keeps the rest |
+| Undo                     | `Undo.before` holds every touched `SessionRating` verbatim (rating, comparisons, disposition, triage, `yieldedTo`); `undoLast` restores them and forgets the clash comparisons                                |
+| Reconsider               | My plan lists the day's stood-aside talks whose winner is live (`UiState.stoodAsideOn`); Reconsider clears `yieldedTo`                                                                                        |
+
+Any later direct answer on a talk (a card answer, a must-go mark) clears its
+`yieldedTo`, as `setTalkChoice`/`setDisposition` do on the web. The fields
+are the PWA's `ActivityPreference.yieldedTo` and `ComparisonRecord.clash`;
+the shared personal-data fixture `clash-settlement.json` round-trips them
+through both codecs.
 
 ## The plan in the phone's calendar (#272)
 

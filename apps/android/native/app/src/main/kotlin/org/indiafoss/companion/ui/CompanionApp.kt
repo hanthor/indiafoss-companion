@@ -167,6 +167,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onRestore = viewModel::restoreToPlan,
                     onAddBlock = viewModel::addBlock,
                     onRemoveBlock = viewModel::removeBlock,
+                    onReconsider = viewModel::reconsider,
                 ) { navController.navigate("activity/$it") }
             }
             composable("explore") {

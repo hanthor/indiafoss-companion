@@ -53,11 +53,17 @@ class RatingsStore(private val context: Context) {
         s.copy(ratings = s.ratings + (id to s.rating(id).copy(rating = rating, comparisons = comparisons)))
     }
 
+    /** A must-go mark is an explicit answer: it overrides an earlier clash loss (#271). */
     suspend fun setDisposition(id: String, disposition: Disposition) = update { s ->
-        s.copy(ratings = s.ratings + (id to s.rating(id).copy(disposition = disposition.stored())))
+        val current = s.rating(id)
+        val yielded = if (disposition == Disposition.MUST_ATTEND) null else current.yieldedTo
+        s.copy(ratings = s.ratings + (id to current.copy(disposition = disposition.stored(), yieldedTo = yielded)))
     }
 
-    /** Quick pass: "no" rules the session out, "yes" keeps it in, null clears the answer. */
+    /**
+     * Quick pass: "no" rules the session out, "yes" keeps it in, null clears
+     * the answer. Any direct answer supersedes an earlier clash loss (#271).
+     */
     suspend fun setTriage(id: String, answer: String?) = update { s ->
         val current = s.rating(id)
         val disposition = when {
@@ -65,7 +71,17 @@ class RatingsStore(private val context: Context) {
             current.disposition == "not-interested" -> "normal"
             else -> current.disposition
         }
-        s.copy(ratings = s.ratings + (id to current.copy(triage = answer, disposition = disposition)))
+        s.copy(ratings = s.ratings + (id to current.copy(triage = answer, disposition = disposition, yieldedTo = null)))
+    }
+
+    /** Stand `id` aside for `winner` in a clash (#271); null puts it back in the running ("Reconsider"). */
+    suspend fun setYieldedTo(id: String, winner: String?) = update { s ->
+        s.copy(ratings = s.ratings + (id to s.rating(id).copy(yieldedTo = winner)))
+    }
+
+    /** Put a session's record back exactly as it was: undo of a pick, tie or drop. */
+    suspend fun restore(id: String, record: SessionRating) = update { s ->
+        s.copy(ratings = s.ratings + (id to record))
     }
 
     suspend fun record(comparison: StoredComparison) = update { s ->

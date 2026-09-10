@@ -19,7 +19,13 @@ data class SessionRating(
     val disposition: String = "normal",
     /** Quick-pass answer: "yes" or "no". */
     val triage: String? = null,
-    /** The session this one stood aside for in a clash (#271): carried for the PWA, which decides it; native does not read it. */
+    /**
+     * The session this one stood aside for in a clash (#271). A scheduling
+     * loss kept apart from `disposition`: the talk stays an interest, is left
+     * out of the plan only while the winner is live, and is never learnt as a
+     * dislike. Cleared by any later direct answer. Same field as the PWA's
+     * `ActivityPreference.yieldedTo`.
+     */
     val yieldedTo: String? = null,
 )
 
@@ -30,7 +36,7 @@ data class StoredComparison(
     val b: String,
     val scoreA: Double,
     val at: Long,
-    /** Answered as a scheduling clash (#271); carried for the PWA, which is where it is set. */
+    /** Answered as a scheduling clash (#271): the loser is not learnt as a dislike (`ComparisonRecord.clash`). */
     val clash: Boolean = false,
 )
 
@@ -55,7 +61,10 @@ data class RankingState(
 
     val answeredPairs: Set<String> get() = comparisons.map { Ranking.pairKey(it.a, it.b) }.toSet()
 
-    val history: List<ComparisonEntry> get() = comparisons.map { ComparisonEntry(it.a, it.b, it.scoreA) }
+    val history: List<ComparisonEntry> get() = comparisons.map { ComparisonEntry(it.a, it.b, it.scoreA, it.clash) }
+
+    /** The session `id` stood aside for in a clash, if any (#271). */
+    fun yieldedTo(id: String): String? = rating(id).yieldedTo
 
     val roomPreferences: Map<String, RoomPreference>
         get() = rooms.mapNotNull { (id, pref) ->

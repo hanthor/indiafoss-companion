@@ -262,6 +262,10 @@
       {
         "file": "native-export.json",
         "describes": "a real native export: flexible blocks travel as a native-only section, booth visits by stable ID, and the PWA imports the rest"
+      },
+      {
+        "file": "clash-settlement.json",
+        "describes": "a stood-aside preference (yieldedTo) and a clash comparison (#271) round-trip through both codecs"
       }
     ],
     "invalid": [

@@ -146,6 +146,106 @@ class RankingTest {
         assertTrue(Ranking.slots(listOf(a, b, c), answered + Ranking.pairKey("b", "c")).isEmpty())
     }
 
+    // ---------- Clash settlement (#271), mirroring the elo package's cases ----------
+
+    private fun at(id: String, start: String, end: String, disposition: Disposition = Disposition.NORMAL) =
+        RankedActivity(Activity(id = id, title = id, start = "2026-09-26T$start:00+05:30", end = "2026-09-26T$end:00+05:30"), disposition = disposition)
+
+    /** What the Rank screen does on a pick: the winner beats every loser it overlaps, one pair each, and the losers stand aside. */
+    private fun pick(members: MutableList<RankedActivity>, winnerId: String, compared: MutableSet<String>): Ranking.ClashResolution {
+        val resolution = Ranking.resolveClash(members, winnerId)
+        for (loserId in resolution.losers) {
+            val w = members.indexOfFirst { it.activity.id == winnerId }
+            val l = members.indexOfFirst { it.activity.id == loserId }
+            val r = Ranking.applyComparison(members[w].rating, members[l].rating, Choice.A, Ranking.pairKScale(members[w].comparisons, members[l].comparisons))
+            members[w] = members[w].copy(rating = r.ratingA, comparisons = members[w].comparisons + 1)
+            members[l] = members[l].copy(rating = r.ratingB, comparisons = members[l].comparisons + 1)
+            compared += Ranking.pairKey(winnerId, loserId)
+        }
+        for (id in resolution.steppedAside) {
+            val i = members.indexOfFirst { it.activity.id == id }
+            members[i] = members[i].copy(yieldedTo = winnerId)
+        }
+        return resolution
+    }
+
+    @Test
+    fun `a four-way simultaneous clash is settled by one pick, not three more questions`() {
+        val members = mutableListOf(at("a", "11:00", "11:30"), at("b", "11:00", "11:30"), at("c", "11:00", "11:30"), at("d", "11:00", "11:30"))
+        val compared = HashSet<String>()
+        val slots = Ranking.slots(members, compared)
+        assertEquals(4, slots.size)
+        assertEquals(listOf("a", "b", "c", "d"), slots[0].members.map { it.activity.id })
+
+        val resolution = pick(members, "b", compared)
+        assertEquals(listOf("a", "c", "d"), resolution.steppedAside.sorted())
+        // The same 11:00 window must not come back as "and if that falls through?".
+        assertTrue(Ranking.slots(members, compared).isEmpty())
+        assertEquals(0, Ranking.progress(members, compared).open)
+        assertEquals(1.0, Ranking.stability(members, compared), 1e-9)
+        assertNull(Ranking.selectNext(members, compared))
+    }
+
+    @Test
+    fun `a staggered overlap only stands aside the talks the winner actually clashes with`() {
+        // A long workshop, a talk at its start and a talk at its end.
+        val members = mutableListOf(at("w", "11:00", "13:00"), at("x", "11:00", "11:30"), at("y", "12:30", "13:00"))
+        val compared = HashSet<String>()
+        val resolution = pick(members, "x", compared)
+        assertEquals(listOf("w"), resolution.steppedAside)
+        assertEquals(listOf("y"), resolution.unaffected)
+        // y is compatible with x and stays live; with w aside there is nothing left to ask.
+        assertTrue(Ranking.slots(members, compared).isEmpty())
+        assertNull(members.first { it.activity.id == "y" }.yieldedTo)
+        assertEquals(listOf("x", "y"), Ranking.livePool(members).map { it.activity.id })
+    }
+
+    @Test
+    fun `a stood-aside talk returns when its winner leaves the day`() {
+        val members = mutableListOf(at("a", "11:00", "11:30"), at("b", "11:00", "11:30"), at("c", "11:00", "11:30"))
+        val compared = HashSet<String>()
+        pick(members, "a", compared)
+        assertTrue(Ranking.slots(members, compared).isEmpty())
+        members[0] = members[0].copy(disposition = Disposition.NOT_INTERESTED)
+        // b and c are back in the running and still need a decision between them.
+        val slots = Ranking.slots(members, compared)
+        assertEquals(listOf("b", "c"), slots[0].members.map { it.activity.id })
+    }
+
+    @Test
+    fun `never stands aside a must-go loser so the explicit conflict is kept for the plan`() {
+        val members = listOf(at("a", "11:00", "11:30"), at("b", "11:00", "11:30", Disposition.MUST_ATTEND), at("c", "11:00", "11:30"))
+        val resolution = Ranking.resolveClash(members, "a")
+        assertEquals(listOf("c"), resolution.steppedAside)
+        assertEquals(listOf("b"), resolution.keptMustGo)
+        // Even if a yield were recorded, a must-go member is never dropped from the live pool.
+        val yielded = members.map { if (it.activity.id == "a") it else it.copy(yieldedTo = "a") }
+        assertEquals(listOf("a", "b"), Ranking.livePool(yielded).map { it.activity.id })
+    }
+
+    @Test
+    fun `undo puts every touched session back exactly and reopens the slot`() {
+        val before = listOf(at("a", "11:00", "11:30"), at("b", "11:00", "11:30"), at("c", "11:00", "11:30"))
+        val members = before.toMutableList()
+        val compared = HashSet<String>()
+        pick(members, "a", compared)
+        assertTrue(Ranking.slots(members, compared).isEmpty())
+        // What the store's undo does: restore each record verbatim and forget the comparisons.
+        val restored = members.map { m -> before.first { it.activity.id == m.activity.id } }
+        assertEquals(before, restored)
+        assertEquals(listOf("a", "b", "c"), Ranking.slots(restored, emptySet())[0].members.map { it.activity.id })
+    }
+
+    @Test
+    fun `a chain of yields resolves to a fixed point and a cycle is broken in list order`() {
+        // c stood aside for b, b stood aside for a: b is out, so c is back.
+        val chain = listOf(at("a", "11:00", "11:30"), at("b", "11:00", "11:30").copy(yieldedTo = "a"), at("c", "11:00", "11:30").copy(yieldedTo = "b"))
+        assertEquals(listOf("a", "c"), Ranking.livePool(chain).map { it.activity.id })
+        // A cycle cannot be made through the UI; as in the elo package, the first member stands aside and the other stays.
+        val loop = listOf(at("a", "11:00", "11:30").copy(yieldedTo = "b"), at("b", "11:00", "11:30").copy(yieldedTo = "a"))
+        assertEquals(listOf("b"), Ranking.livePool(loop).map { it.activity.id })
+    }
+
     @Test
     fun `day labels carry the weekday`() {
         assertEquals("Sat 20 Sep", Schedule.formatDayLabel("2025-09-20"))

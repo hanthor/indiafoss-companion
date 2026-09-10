@@ -60,7 +60,7 @@ object Ranking {
         pool: List<RankedActivity>,
         alreadyCompared: Set<String>,
     ): ComparisonCandidate? {
-        val eligible = pool.filter { it.disposition != Disposition.NOT_INTERESTED && !it.activity.cancelled }
+        val eligible = livePool(pool)
         if (eligible.size < 2) return null
         var best: ComparisonCandidate? = null
         var bestScore = 0.0
@@ -95,7 +95,7 @@ object Ranking {
     }
 
     fun progress(pool: List<RankedActivity>, alreadyCompared: Set<String>): Progress {
-        val eligible = pool.filter { it.disposition != Disposition.NOT_INTERESTED && !it.activity.cancelled }
+        val eligible = livePool(pool)
         var conflicts = 0
         var settled = 0
         for (i in eligible.indices) {
@@ -136,8 +136,7 @@ object Ranking {
             abs(a.rating - b.rating) < SETTLED_GAP
 
     fun slots(pool: List<RankedActivity>, alreadyCompared: Set<String>): List<Slot> {
-        val live = pool
-            .filter { it.disposition != Disposition.NOT_INTERESTED && !it.activity.cancelled }
+        val live = livePool(pool)
             .filter { it.activity.start != null && it.activity.end != null }
             .sortedWith(compareBy<RankedActivity> { it.activity.start }.thenBy { it.activity.id })
         val slots = ArrayList<Slot>()
@@ -154,6 +153,90 @@ object Ranking {
             )
         }
         return slots
+    }
+
+    /**
+     * Which of a set of sessions are still in the running after clash losses
+     * (#271), the port of `activeAfterYields` in `@indiafoss/elo`. A session
+     * that stood aside for a winner is out only while that winner is itself
+     * live; if the winner leaves (ruled out, cancelled, or stood aside for
+     * something else in turn) the loser comes back, so a later, compatible
+     * talk is never suppressed by a decision that no longer holds. Pinned
+     * sessions never stand aside. Resolved to a fixed point; a cycle of
+     * yields (impossible through the UI) is broken in list order, as in the
+     * elo package.
+     */
+    fun <T> activeAfterYields(
+        items: List<T>,
+        id: (T) -> String,
+        yieldsTo: (T) -> String?,
+        pinned: (T) -> Boolean,
+    ): Set<String> {
+        val live = items.map(id).toMutableSet()
+        val yielded = items.filter { !pinned(it) && yieldsTo(it) != null }
+        for (round in 0..yielded.size) {
+            var changed = false
+            for (item in yielded) {
+                val winner = yieldsTo(item)!!
+                val shouldBeOut = winner in live && winner != id(item)
+                val isOut = id(item) !in live
+                if (shouldBeOut && !isOut) {
+                    live -= id(item)
+                    changed = true
+                } else if (!shouldBeOut && isOut) {
+                    live += id(item)
+                    changed = true
+                }
+            }
+            if (!changed) break
+        }
+        return live
+    }
+
+    /** The sessions a clash question may still be asked about: not ruled out, not cancelled, not stood aside (`clashLivePool`). */
+    fun livePool(pool: List<RankedActivity>): List<RankedActivity> {
+        val eligible = pool.filter { it.disposition != Disposition.NOT_INTERESTED && !it.activity.cancelled }
+        val live = activeAfterYields(eligible, { it.activity.id }, { it.yieldedTo }, { it.disposition == Disposition.MUST_ATTEND })
+        return eligible.filter { it.activity.id in live }
+    }
+
+    /** The outcome of picking one session in a clash (#271). */
+    data class ClashResolution(
+        val winner: String,
+        /** Losers the winner actually overlaps; they stand aside while it is live. */
+        val steppedAside: List<String>,
+        /** Overlapping must-go losers: kept as they are, so the plan keeps showing the conflict. */
+        val keptMustGo: List<String>,
+        /** Members the winner does not overlap (a staggered slot); untouched and still live. */
+        val unaffected: List<String>,
+    ) {
+        /** Every member the pick is a comparison against. */
+        val losers: List<String> get() = steppedAside + keptMustGo
+    }
+
+    /**
+     * One pick settles the whole clash (`resolveClash` in `@indiafoss/elo`):
+     * every member the winner overlaps stands aside for it in one action, so
+     * the same window is never asked again as a chain of pairwise "and if
+     * that falls through?" questions. A member that does not overlap the
+     * winner is compatible with it and is left alone. A must-go loser is
+     * never resolved silently: it keeps its mark and the itinerary reports
+     * the must-go conflict until the attendee changes it.
+     */
+    fun resolveClash(members: List<RankedActivity>, winnerId: String): ClashResolution {
+        val winner = members.firstOrNull { it.activity.id == winnerId }
+        val steppedAside = ArrayList<String>()
+        val keptMustGo = ArrayList<String>()
+        val unaffected = ArrayList<String>()
+        for (m in members) {
+            if (m.activity.id == winnerId) continue
+            when {
+                winner == null || !overlaps(winner.activity, m.activity) -> unaffected += m.activity.id
+                m.disposition == Disposition.MUST_ATTEND -> keptMustGo += m.activity.id
+                else -> steppedAside += m.activity.id
+            }
+        }
+        return ClashResolution(winnerId, steppedAside, keptMustGo, unaffected)
     }
 
     fun overlaps(a: Activity, b: Activity): Boolean {
@@ -183,6 +266,12 @@ data class RankedActivity(
     val comparisons: Int = 0,
     val disposition: Disposition = Disposition.NORMAL,
     val interest: String? = null,
+    /**
+     * The session this one stood aside for in a clash (#271). A scheduling
+     * loss, not a dislike: the attendee still wants it, it just cannot be
+     * attended while `yieldedTo` is live. Ignored for must-go sessions.
+     */
+    val yieldedTo: String? = null,
 )
 
 data class RatingUpdate(val ratingA: Double, val ratingB: Double, val neither: Boolean)
