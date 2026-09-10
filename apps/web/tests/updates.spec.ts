@@ -649,3 +649,126 @@ for (const invalid of ['event identity', 'schema version'] as const) {
     expect((await savedEvent(page)).bundle.id).toBe('indiafoss-2025');
   });
 }
+
+/**
+ * The notice used to say only how many things changed, which told an attendee
+ * that the programme had moved under them without saying what moved, so the
+ * only way to find out was to re-read the schedule (#312).
+ */
+
+/** The published slot and room of KEPT, moved by the revisions below. */
+const KEPT_TITLE = 'First Step into Open Source with AOSP';
+const RENAMED_TITLE = 'FOSDEM - what it is, why we do it, and how';
+
+/** A revision that moves KEPT in time and room, and drops RENAMED entirely. */
+function movedProgramme(current: Record<string, unknown>) {
+  const next = structuredClone(current) as {
+    activities: {
+      id: string;
+      title: string;
+      start?: string;
+      end?: string;
+      locationId?: string;
+    }[];
+  };
+  const kept = next.activities.find((a) => a.id === KEPT)!;
+  kept.start = '2025-09-20T11:15:00+05:30';
+  kept.end = '2025-09-20T11:30:00+05:30';
+  kept.locationId = 'audi-2';
+  next.activities = next.activities.filter((a) => a.id !== RENAMED);
+  return next;
+}
+
+test('the notice opens onto what actually changed, in plain language', async ({
+  page,
+  request,
+}) => {
+  await page.goto(appUrl('/schedule?setup=done'));
+  await expect(page.getByRole('article').first()).toBeVisible({ timeout: 10_000 });
+
+  await publish(page, 999, movedProgramme(await publishedBundle(request)));
+  await page.goto(appUrl('/schedule?setup=done'));
+  const banner = page.getByRole('status', { name: 'Schedule update available' });
+  await expect(banner).toBeVisible({ timeout: 10_000 });
+
+  // Closed by default: the notice is already an interruption.
+  const toggle = banner.getByRole('button', { name: 'See what changed' });
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+
+  const list = banner.getByRole('list', { name: 'What changed' });
+  const moved = list.getByRole('listitem').filter({ hasText: KEPT_TITLE });
+  // What it was and what it now is, for both the time and the room.
+  await expect(moved.filter({ hasText: 'Moved from 10:15–10:30 to 11:15–11:30.' })).toBeVisible();
+  await expect(moved.filter({ hasText: 'Moved from Devroom 1 (AOSP) to Audi 2.' })).toBeVisible();
+  await expect(list.getByRole('listitem').filter({ hasText: RENAMED_TITLE })).toContainText(
+    'No longer on the programme.',
+  );
+
+  // The counts the notice already showed and the list it now opens onto come
+  // from the same diff, so they cannot disagree.
+  await expect(banner).toContainText('1 cancellation');
+  await expect(banner).toContainText('1 time change');
+  await expect(banner).toContainText('1 room change');
+
+  await banner.getByRole('button', { name: 'Hide what changed' }).click();
+  await expect(list).toBeHidden();
+
+  // And the notice still does its original job.
+  await banner.getByRole('button', { name: 'Update' }).click();
+  await expect(banner).toBeHidden();
+});
+
+test('changes to the attendee’s own plan are listed first and marked as theirs', async ({
+  page,
+  request,
+}) => {
+  // A must-attend pins the session into the resolved plan for its day, which
+  // is the projection the notice groups by — not a second list of "my" ids.
+  await page.goto(appUrl(`/activity/${KEPT}?setup=done`));
+  await page.getByRole('button', { name: /Must attend/ }).click();
+  await preferenceSaved(page, KEPT);
+
+  await publish(page, 999, movedProgramme(await publishedBundle(request)));
+  // Fixed to the conference day so the live plan resolves the day KEPT is on.
+  await page.goto(appUrl('/schedule?setup=done&now=2025-09-20T10%3A00%3A00%2B05%3A30'));
+  const banner = page.getByRole('status', { name: 'Schedule update available' });
+  await expect(banner).toBeVisible({ timeout: 10_000 });
+  await banner.getByRole('button', { name: 'See what changed' }).click();
+
+  const mine = banner.getByRole('list', { name: 'Changes to sessions in your plan today' });
+  await expect(mine).toBeVisible();
+  await expect(mine).toContainText(KEPT_TITLE);
+  await expect(mine).toContainText('Moved from Devroom 1 (AOSP) to Audi 2.');
+  // The cancelled session is not in this attendee's plan, so it belongs to the
+  // rest of the programme rather than to the group that affects them.
+  await expect(mine).not.toContainText(RENAMED_TITLE);
+  await expect(banner.getByRole('list', { name: 'Other changes to the programme' })).toContainText(
+    RENAMED_TITLE,
+  );
+});
+
+test('without the previous revision the notice says so instead of listing part of it', async ({
+  page,
+  request,
+}) => {
+  // `?updates=summary-only` is the seam for the branch where the revision
+  // being replaced cannot be diffed. The app's own check always holds the
+  // attendee's current bundle, so the branch is defensive; what it must never
+  // do is show some of the changes as though they were all of them.
+  await publish(page, 999, movedProgramme(await publishedBundle(request)));
+  await page.goto(appUrl('/schedule?setup=done&updates=summary-only'));
+  const banner = page.getByRole('status', { name: 'Schedule update available' });
+  await expect(banner).toBeVisible({ timeout: 10_000 });
+
+  await expect(banner).toContainText('What changed cannot be listed for this update.');
+  await expect(banner.getByRole('button', { name: /what changed/ })).toBeHidden();
+  await expect(banner.getByRole('listitem')).toHaveCount(0);
+  // No counts either: a partial tally is the same claim in a smaller font.
+  await expect(banner).not.toContainText('time change');
+
+  // The update itself is unaffected; only the explanation is missing.
+  await banner.getByRole('button', { name: 'Update' }).click();
+  await expect(banner).toBeHidden();
+  await expect(page.getByText(RENAMED_TITLE)).toBeHidden();
+});
