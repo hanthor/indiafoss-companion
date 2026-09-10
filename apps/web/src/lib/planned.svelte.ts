@@ -31,3 +31,9 @@ export async function savePlanned(eventId: string, day: string, ids: string[]): 
   plannedState[key] = ids;
   await storage.setSetting(key, JSON.stringify(ids));
 }
+
+/** Forget cached saved plans so the next load reads storage (personal-data import). */
+export function forgetPlanned(): void {
+  for (const key of Object.keys(plannedState)) delete plannedState[key];
+  for (const key of Object.keys(planExists)) delete planExists[key];
+}

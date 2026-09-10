@@ -151,3 +151,24 @@ export async function setTalkChoice(
   await getStorage().setPreference(next);
   preferences.set(activityId, next);
 }
+
+/**
+ * Re-read every preference and comparison after storage changed underneath
+ * the caches (personal-data import). Consumers observe the maps, so they update in place.
+ */
+export async function reloadPreferences(): Promise<void> {
+  const [stored, comparisons] = await Promise.all([
+    getStorage().listPreferences(),
+    getStorage().listComparisons(),
+  ]);
+  preferences.clear();
+  for (const p of stored) preferences.set(p.activityId, p);
+  hydrated = true;
+  history.clear();
+  answeredPairs.clear();
+  for (const c of comparisons) {
+    history.set(c.id, c);
+    answeredPairs.add(pairKey(c.activityA, c.activityB));
+  }
+  historyHydrated = true;
+}
