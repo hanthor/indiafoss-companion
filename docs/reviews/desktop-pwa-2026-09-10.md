@@ -5,7 +5,7 @@ Issue #205 showed the PWA at 1900 × 1160 as a stretched phone: a five-item tab 
 ## What changed
 
 - From 1024px the bottom tab bar is hidden and the same five destinations appear in a side rail before the content, so keyboard order follows the visual order (app bar, rail, page). Only one primary navigation is in the accessibility tree at any width. The rail's surface is painted by the row rather than by the rail itself, so a viewport-tall rail cannot push the page below the fold when a banner is showing. `--tabbar-height` is zero at desktop widths, so the schedule-update banner and the map sheet stop reserving space for a bar that is not there.
-- Schedule opens on the room grid at desktop widths; the toggle still works both ways, and phones keep the list. Grid columns share the reading width equally (six rooms fit the 1200px column at 1900px); narrower desktops scroll the grid region sideways as before. In the list view, sessions that start together sit beside each other.
+- Schedule keeps the list as the default at every width (it is the searchable view the browser tests and attendees know); the room grid is one click away. Grid columns share the reading width equally (six rooms fit the 1200px column at 1900px); narrower desktops scroll the grid region sideways as before. In the list view, sessions that start together sit beside each other.
 - Now places your plan and the next programme item on the left and the longer live list on the right.
 - Plan keeps the itinerary at a reading width and moves "Removed" and "Add a block" into a sticky side column.
 - Map: the room sheet becomes a panel to the right of the floor plan, sized to the viewport, so opening a room hides no map and the legend and zoom controls remain visible. The grabber is not shown there.
@@ -19,7 +19,7 @@ Home, Explore, Connect, Scan, Settings, discovery and the activity/speaker pages
 ## Evidence
 
 - Unit tests (apps/web): 111 passed in 23 files, including the design-token guard.
-- Browser tests with `--workers=2`: 41 passed, none on retry — the 32 existing accessibility checks (light and dark) and 9 new checks in `tests/desktop.spec.ts` covering rail/tab bar presence, the room grid side by side at 1900 and 1024, keyboard order, two-column Now and Plan, the map panel beside the plan, and no horizontal scroll at 1900 × 1160 and 390 × 844.
+- Browser tests with `--workers=2`: 80 passed, none on retry — the 38 checks in `app.spec.ts`, the 32 accessibility checks (light and dark) and 10 new checks in `tests/desktop.spec.ts` covering rail/tab bar presence, the room grid side by side at 1900 and 1024 once chosen, search narrowing the list at 1900, keyboard order, two-column Now and Plan, the map panel beside the plan, and no horizontal scroll at 1900 × 1160 and 390 × 844.
 - Workspace format check, lint and typecheck passed (three pre-existing svelte-check warnings, none in changed lines).
 - Browser inspection: `scrollWidth` equals `clientWidth` on Schedule, Now, Plan and Map at 1900, 1024 and 390 wide.
 
@@ -32,7 +32,8 @@ Home, Explore, Connect, Scan, Settings, discovery and the activity/speaker pages
 | Plan     | [before](desktop-pwa-2026-09-10/plan-desktop-before.png)     | [after](desktop-pwa-2026-09-10/plan-desktop-after.png)     |
 | Map      | [before](desktop-pwa-2026-09-10/map-desktop-before.png)      | [after](desktop-pwa-2026-09-10/map-desktop-after.png)      |
 
-[Schedule at 1024 × 768](desktop-pwa-2026-09-10/schedule-laptop-after.png) ·
+[Schedule room grid at 1900 × 1160](desktop-pwa-2026-09-10/schedule-grid-desktop-after.png) ·
+[Schedule room grid at 1024 × 768](desktop-pwa-2026-09-10/schedule-laptop-after.png) ·
 [Map at 1024 × 768](desktop-pwa-2026-09-10/map-laptop-after.png) ·
 [Schedule at 390 × 844](desktop-pwa-2026-09-10/schedule-phone-after.png) ·
 [Map at 390 × 844](desktop-pwa-2026-09-10/map-phone-after.png).

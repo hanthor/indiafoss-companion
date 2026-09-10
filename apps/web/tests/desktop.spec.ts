@@ -61,13 +61,15 @@ test.describe('desktop', () => {
     expect(railBox.width).toBeLessThan(320);
     expect(railBox.height).toBeGreaterThan(railBox.width);
 
-    // Room grid by default, with at least two room columns beside each other.
-    const grid = page.getByRole('region', { name: 'Schedule by room and time' });
-    await expect(grid).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Room grid' })).toHaveAttribute(
+    // The list stays the default (its cards are what search narrows); the
+    // room grid, once chosen, shows at least two room columns side by side.
+    await expect(page.getByRole('button', { name: 'List' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
+    await page.getByRole('button', { name: 'Room grid' }).click();
+    const grid = page.getByRole('region', { name: 'Schedule by room and time' });
+    await expect(grid).toBeVisible();
     const headings = grid.getByRole('heading', { level: 3 });
     expect(await headings.count()).toBeGreaterThanOrEqual(2);
     const first = await box(headings.nth(0));
@@ -143,6 +145,7 @@ test.describe('laptop', () => {
     await settle(page, '/schedule');
     await expect(page.getByTestId('nav-rail')).toBeVisible();
     await expect(page.getByTestId('nav-tabbar')).toBeHidden();
+    await page.getByRole('button', { name: 'Room grid' }).click();
     await expect(page.getByRole('region', { name: 'Schedule by room and time' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
@@ -151,7 +154,7 @@ test.describe('laptop', () => {
 test.describe('phone', () => {
   test.use({ viewport: PHONE, isMobile: true, hasTouch: true });
 
-  test('the tab bar stays at the bottom and the schedule opens as a list', async ({ page }) => {
+  test('the tab bar stays at the bottom and the schedule stays a list', async ({ page }) => {
     await settle(page, '/schedule');
     const tabbar = page.getByTestId('nav-tabbar');
     await expect(tabbar).toBeVisible();
@@ -169,6 +172,14 @@ test.describe('phone', () => {
     // The grid is still a tap away.
     await page.getByRole('button', { name: 'Room grid' }).click();
     await expect(page.getByRole('region', { name: 'Schedule by room and time' })).toBeVisible();
+    await expectNoHorizontalScroll(page);
+  });
+
+  test('search narrows the schedule list at a desktop width too', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await settle(page, '/schedule');
+    await page.getByPlaceholder('Search sessions…').fill('AOSP');
+    await expect(page.getByRole('article').first()).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
 

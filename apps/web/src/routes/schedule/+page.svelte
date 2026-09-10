@@ -18,19 +18,16 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import SessionCard from '$lib/components/SessionCard.svelte';
   import TimelineGrid from '$lib/components/TimelineGrid.svelte';
-  import { onMount } from 'svelte';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
+  // The list is the default at every width: it is the searchable, filterable
+  // view the browser tests and attendees know. On a wide screen it still uses
+  // the width (co-starting sessions sit side by side), and the room grid,
+  // one tap away, lays every room out beside the others (issue 205).
   let view: 'list' | 'grid' = $state('list');
-
-  // A wide screen has room for every hall side by side, so it opens on the
-  // room grid (#205). Phones keep the list; the toggle still works on both.
-  onMount(() => {
-    if (window.matchMedia('(min-width: 1024px)').matches) view = 'grid';
-  });
   let query = $state('');
   let selectedRoom = $state('');
   let devroomsOnly = $state(false);
