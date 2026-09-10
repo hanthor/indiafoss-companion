@@ -67,14 +67,20 @@ class RankClashTest {
     /** The note sits under the cards: bring it into the lazy list before reading it. */
     private fun result() = compose.onNode(hasScrollAction()).performScrollToNode(hasTestTag("clash-result")).let { compose.onNodeWithTag("clash-result") }
 
+    /** Bring a card into the lazy list, then tap it. */
+    private fun pick(id: String) {
+        compose.onNode(hasScrollAction()).performScrollToNode(hasTestTag("pick-$id"))
+        compose.onNodeWithTag("pick-$id").assertIsDisplayed().performClick()
+        compose.waitForIdle()
+    }
+
     @Test fun fourWayClashIsOneStep() {
         val four = listOf("a", "b", "c", "d").map { talk(it, "11:00", "11:30") }
         show(four, RankingState(roomsDecided = true))
         compose.onNodeWithText("Which one would you go to?").assertIsDisplayed()
         compose.onNodeWithText("Slot 1 of 4 · 11:00–11:30").assertIsDisplayed()
         compose.onNodeWithText("Undo last").assertIsNotEnabled()
-        compose.onNodeWithTag("pick-b").performClick()
-        compose.waitForIdle()
+        pick("b")
         // One tap, one pick, with every member of the slot: the view model settles the whole window.
         assertEquals(listOf("b" to listOf("a", "b", "c", "d")), picks)
         result().assertIsDisplayed().assert(hasText("Talk b is in your plan. 3 talks stood aside — still an interest, not a dislike."))
@@ -106,8 +112,7 @@ class RankClashTest {
         val three = listOf("a", "b", "c").map { talk(it, "11:00", "11:30") }
         show(three, RankingState(roomsDecided = true), mustAttend = setOf("a", "b"))
         compose.onNodeWithTag("slot-mustgo-note").assertIsDisplayed()
-        compose.onNodeWithTag("pick-c").performClick()
-        compose.waitForIdle()
+        pick("c")
         result().assert(hasText("Talk a, Talk b keep their must-go mark, so the plan still shows that clash.", substring = true))
     }
 
@@ -117,8 +122,7 @@ class RankClashTest {
         show(members, RankingState(roomsDecided = true, rooms = mapOf("devroom-rust" to "stay")), tracks = listOf(rust))
         compose.onNodeWithText("STAYING FOR THIS DEVROOM · Rust").assertIsDisplayed()
         compose.onNodeWithTag("slot-devroom-note").assertIsDisplayed()
-        compose.onNodeWithTag("pick-o").performClick()
-        compose.waitForIdle()
+        pick("o")
         result().assert(hasText("Talk r stood aside", substring = true)).assert(hasText("You leave Rust for this slot only.", substring = true))
     }
 
