@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { publicEventRoute, syncEvent } from './index.js';
+import { publicEventRoute, publishEvent, syncEvent } from './index.js';
 import type { EventBundle } from '@indiafoss/model';
 
 let dir: string;
@@ -30,6 +30,40 @@ describe('event-sync', () => {
       expect(m2.revision).toBe(m1.revision); // unchanged -> no bump
     },
   );
+
+  it('publishes the bundle the manifest names and sweeps the one it replaced', async () => {
+    dir = mkdtempSync(join(tmpdir(), 'eventsync-'));
+    const dest = mkdtempSync(join(tmpdir(), 'eventstatic-'));
+    try {
+      const manifest = await syncEvent('indiafoss-2026', 'fixture', dir);
+      publishEvent('indiafoss-2026', dir, dest);
+
+      const asset = manifest.assets['event']!;
+      // What the app fetches must be byte-identical to what was published.
+      expect(readFileSync(join(dest, 'event-bundle.json'), 'utf8')).toBe(
+        readFileSync(join(dir, asset), 'utf8'),
+      );
+      expect(JSON.parse(readFileSync(join(dest, 'manifest.json'), 'utf8')).revision).toBe(
+        manifest.revision,
+      );
+
+      // A superseded asset must not linger: the sync runs hourly.
+      const superseded = 'event.deadbeef.json';
+      writeFileSync(join(dest, superseded), '{}');
+      publishEvent('indiafoss-2026', dir, dest);
+      expect(existsSync(join(dest, superseded))).toBe(false);
+      expect(readdirSync(dest).filter((n) => /^event\.[0-9a-f]{8}\.json$/.test(n))).toEqual([
+        asset,
+      ]);
+    } finally {
+      rmSync(dest, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses to publish an event that has never been synced', () => {
+    dir = mkdtempSync(join(tmpdir(), 'eventsync-'));
+    expect(() => publishEvent('indiafoss-2026', dir, dir)).toThrow(/no published manifest/);
+  });
 
   it('carries the reviewed venue arrival block into the published bundle', async () => {
     dir = mkdtempSync(join(tmpdir(), 'eventsync-'));
