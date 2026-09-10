@@ -79,7 +79,7 @@ jobs:
         # The fork's Dockerfile is cargo-chef-structured, so the dependency
         # layer is cached across runs until the lockfile changes; `load` puts
         # the image where the harness's `docker run` finds it.
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: neutrino
           file: neutrino/docker/complement/Dockerfile
