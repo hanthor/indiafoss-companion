@@ -257,9 +257,17 @@ data class Simulation(val startMs: Long, val speed: Int, val anchorRealMs: Long,
 
 data class SimEvent(val simAt: String, val kind: String, val title: String, val body: String = "")
 
-/** A schedule revision that arrived while the app was open, and the diff against the one before. */
-data class ScheduleUpdate(val revision: Int, val changes: List<ScheduleDiff.Change>) {
-    val summary: String get() = ScheduleDiff.summary(changes)
+/**
+ * A schedule revision that arrived while the app was open, and what changed
+ * against the one before (#312).
+ *
+ * `changes` is null when the revision being replaced could not be diffed —
+ * the notice then says the programme changed and that what changed cannot be
+ * listed, rather than showing part of a list as if it were the whole one.
+ * When it is non-null it is complete, so the counts and the list agree.
+ */
+data class ScheduleUpdate(val revision: Int, val changes: List<ScheduleDiff.Detail>?) {
+    val summary: String? get() = changes?.let { list -> ScheduleDiff.summary(list.map(ScheduleDiff.Detail::change)) }
 }
 
 class CompanionViewModel(app: Application) : AndroidViewModel(app) {
@@ -427,16 +435,19 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         return viewModelScope.launch {
             when (val result = repository.refresh()) {
                 is RefreshResult.Updated -> {
-                    val changes = result.previous?.let { ScheduleDiff.between(it, result.bundle) }.orEmpty()
+                    // Null when there is no previous revision to diff against:
+                    // an unlistable update, not an empty one (#312).
+                    val changes = result.previous?.let { ScheduleDiff.describe(it, result.bundle) }
                     _state.update {
                         it.copy(
                             bundle = result.bundle,
                             bundleSource = BundleSource.REFRESHED,
                             lastRefreshAt = System.currentTimeMillis(),
                             now = nowIso(),
-                            // The banner carries the diff; the snackbar only when there is nothing to list.
-                            update = if (changes.isEmpty()) null else ScheduleUpdate(result.revision, changes),
-                            message = if (changes.isEmpty()) "Schedule updated to revision ${result.revision}" else null,
+                            // The banner carries the diff; the snackbar only when the
+                            // diff ran and found nothing an attendee would act on.
+                            update = if (changes?.isEmpty() == true) null else ScheduleUpdate(result.revision, changes),
+                            message = if (changes?.isEmpty() == true) "Schedule updated to revision ${result.revision}" else null,
                         )
                     }
                 }
