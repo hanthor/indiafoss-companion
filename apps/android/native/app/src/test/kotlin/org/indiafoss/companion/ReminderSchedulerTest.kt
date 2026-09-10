@@ -45,7 +45,7 @@ class ReminderSchedulerTest {
         mustAttend = mustAttend, removedFromPlan = removed, remindersEnabled = enabled,
     )
 
-    private fun armedIds() = alarms.scheduledAlarms.map { it.operation?.let { op -> shadowOf(op).savedIntent.data?.host } }
+    private fun armedIds(): List<String> = alarms.scheduledAlarms.mapNotNull { it.operation?.let { op -> shadowOf(op).savedIntent.data?.host } }
 
     @Test
     fun anEntryLeavingThePlanLosesItsAlarmsAndRearmingNeverDuplicates() {
@@ -61,14 +61,14 @@ class ReminderSchedulerTest {
 
         scheduler.arm(state(removed = setOf("t")))
         val afterRemoval = armedIds()
-        assertTrue(afterRemoval.toString(), afterRemoval.none { it!!.endsWith("-t") })
+        assertTrue(afterRemoval.toString(), afterRemoval.none { it.endsWith("-t") })
         assertTrue(afterRemoval.toString(), "leave-o" in afterRemoval)
 
         scheduler.arm(state(removed = setOf("t"), mustAttend = emptySet()))
         assertTrue(armedIds().toString(), "leave-o" in armedIds())
 
         scheduler.arm(state(enabled = false))
-        assertEquals(emptyList<String?>(), armedIds())
+        assertEquals(emptyList<String>(), armedIds())
     }
 
     @Test
@@ -76,7 +76,7 @@ class ReminderSchedulerTest {
         val clash = talk.copy(id = "c", title = "Clash")
         val conflicted = state(mustAttend = setOf("t", "c")).copy(bundle = bundle.copy(activities = listOf(talk, other, clash)))
         scheduler.arm(conflicted)
-        assertEquals(emptyList<String?>(), armedIds())
+        assertEquals(emptyList<String>(), armedIds())
         scheduler.arm(conflicted.copy(removedFromPlan = setOf("c")))
         assertTrue(armedIds().toString(), "must-t" in armedIds())
     }
