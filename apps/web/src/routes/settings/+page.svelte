@@ -6,6 +6,9 @@
   import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
   import PersonalDataImport from '$lib/components/PersonalDataImport.svelte';
   import ReminderStatus from '$lib/components/ReminderStatus.svelte';
+  import { ROUTING_LABELS } from '$lib/journey';
+  import { routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
+  import type { RoutingProfile } from '@indiafoss/venue';
   import {
     notificationsEnabled,
     reminderState,
@@ -156,6 +159,24 @@
     >
       {refresh?.checking ? 'Checking…' : 'Check for updates'}
     </button>
+  </section>
+  <section class="card">
+    <h2>Getting around</h2>
+    <p class="muted">
+      How the app works out the walk between rooms. It sets the "leave by" time on your plan and on
+      the map, and when a "leave now" reminder fires.
+    </p>
+    <label class="routing" for="routing-profile">Routing profile</label>
+    <select
+      id="routing-profile"
+      value={routingPrefs.profile}
+      disabled={!routingPrefs.loaded}
+      onchange={(event) => void setRoutingProfile(event.currentTarget.value as RoutingProfile)}
+    >
+      {#each Object.entries(ROUTING_LABELS) as [value, label] (value)}<option {value}
+          >{label}</option
+        >{/each}
+    </select>
   </section>
   <section class="card">
     <h2>Reminders</h2>
