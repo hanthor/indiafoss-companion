@@ -93,7 +93,7 @@ fun ScheduleScreen(state: UiState, actions: @Composable () -> Unit, onBookmark: 
             }
             val dayActivities = state.activitiesFor(day)
             val rooms = remember(state.bundle, day) { state.bundle?.let { ScheduleGrid.rooms(it, dayActivities) }.orEmpty() }
-            val markers = remember(state.bundle, state.bookmarks, state.mustAttend, state.ranking, state.blocks, day) { state.markersFor(day) }
+            val markers = remember(state.bundle, state.bookmarks, state.mustAttend, state.ranking, state.blocks, state.removedFromPlan, state.planReplacements, day) { state.markersFor(day) }
             val filtered = if (selectedRoom == null) dayActivities else dayActivities.filter { it.locationId == selectedRoom }
 
             LazyRow(

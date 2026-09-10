@@ -6,10 +6,11 @@ package org.indiafoss.companion.core
  * must-attend one its own chip, and an interest that lost its slot is shown
  * standing aside rather than silently dropped.
  *
- * Derived from the native greedy itinerary ([Itinerary.forDay]) and the
- * stored preferences. The PWA reads a saved, solver-resolved plan instead
- * (`resolved-plan.svelte.ts`); the native projection of that plan is #221,
- * and once it lands this derivation should take its output as `plan`.
+ * Derived from the resolved plan ([ResolvedPlan.forDay] — the greedy base
+ * with removals and replacements layered on, #221) and the stored
+ * preferences, so the Schedule agrees with Now, the map and the reminders
+ * about what is planned. The PWA reads its saved, solver-resolved plan the
+ * same way (`resolved-plan.svelte.ts`).
  */
 enum class PlanMarker(val label: String) {
     NONE(""),
@@ -25,12 +26,12 @@ enum class PlanMarker(val label: String) {
     companion object {
         fun derive(
             activities: List<Activity>,
-            plan: List<Itinerary.Item>,
+            plan: ResolvedPlan.Plan,
             dispositionOf: (String) -> Disposition,
             bookmarked: (String) -> Boolean,
             triageOf: (String) -> String?,
         ): Map<String, PlanMarker> {
-            val placed = plan.filter { it.block == null && it.reason != Itinerary.Reason.LUNCH }.map { it.activity }
+            val placed = plan.items.filter { it.isSession }.map { it.activity }
             val placedIds = placed.map { it.id }.toSet()
             return activities.associate { activity ->
                 val disposition = dispositionOf(activity.id)

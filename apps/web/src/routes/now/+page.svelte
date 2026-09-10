@@ -124,134 +124,144 @@
       <p>The conference has ended. See you at the next one!</p>
     </section>
   {:else}
-    <section class="card" aria-labelledby="personal-heading">
-      <h2 id="personal-heading">Your plan now</h2>
-      {#if planStatus === 'loading'}
-        <p class="muted" role="status">Loading your plan…</p>
-      {:else if planStatus === 'error'}
-        <p>Your plan could not be loaded. Open Plan to try again.</p>
-      {:else if planConflicted}
-        <p>Your plan has conflicting choices. Resolve them before choosing where to go.</p>
-      {:else if personalNext}
-        <p class="muted">
-          {Date.parse(personalNext.start) <= Date.parse(now) ? 'In progress' : 'Up next'} · {formatTime(
-            personalNext.start,
-          )}–{formatTime(personalNext.end)}
-        </p>
-        {#if personalActivity}
-          {@render trackTag(personalActivity)}
-          <a href={resolve(`/activity/${personalActivity.id}`)}>{personalActivity.title}</a>
-        {:else}
-          <strong>{personalNext.label ?? 'Personal time'}</strong>
-        {/if}
-        {#if personalNext.locationId}
-          <p>
-            <a href={resolve(`/map/to/${personalNext.locationId}`)}>Show on map</a> · {bundle?.locations.find(
-              (l) => l.id === personalNext.locationId,
-            )?.name ?? personalNext.locationId}
+    <div class="now-grid">
+      <section class="card" aria-labelledby="personal-heading">
+        <h2 id="personal-heading">Your plan now</h2>
+        {#if planStatus === 'loading'}
+          <p class="muted" role="status">Loading your plan…</p>
+        {:else if planStatus === 'error'}
+          <p>Your plan could not be loaded. Open Plan to try again.</p>
+        {:else if planConflicted}
+          <p>Your plan has conflicting choices. Resolve them before choosing where to go.</p>
+        {:else if personalNext}
+          <p class="muted">
+            {Date.parse(personalNext.start) <= Date.parse(now) ? 'In progress' : 'Up next'} · {formatTime(
+              personalNext.start,
+            )}–{formatTime(personalNext.end)}
           </p>
-        {/if}
-      {:else}
-        <p>No more items in your plan today. Browse what's on or make time for a break.</p>
-      {/if}
-      <p><a href={resolve(`/plan?day=${day}`)}>Open your plan</a></p>
-    </section>
-
-    <section class="card" aria-labelledby="now-heading">
-      <h2 id="now-heading">Happening now</h2>
-      {#if nowState!.current.length === 0}
-        <p class="muted">Between sessions — take a break or explore the map.</p>
-      {:else}
-        {#each nowState!.current as activity (activity.id)}
-          {@const room = sessionRoomLink(bundle, activity.id, activity.locationId, activity.title)}
-          <div class="session">
-            {@render trackTag(activity)}
-            <div class="row">
-              <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
-              <TypeBadge type={activity.type} />
-            </div>
-            <p class="muted">
-              {locationName(activity)}
-              {#if room}
-                <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
-                ·
-                <a href={room.href} title={room.alias}>Chat</a>
-                <!-- eslint-enable svelte/no-navigation-without-resolve -->
-              {/if}
-              {#if activity.livestreamUrl}
-                <!-- eslint-disable svelte/no-navigation-without-resolve -- external stream link -->
-                ·
-                <a href={activity.livestreamUrl} target="_blank" rel="noreferrer">▶ watch live ↗</a>
-                <!-- eslint-enable svelte/no-navigation-without-resolve -->
-              {/if}
+          {#if personalActivity}
+            {@render trackTag(personalActivity)}
+            <a href={resolve(`/activity/${personalActivity.id}`)}>{personalActivity.title}</a>
+          {:else}
+            <strong>{personalNext.label ?? 'Personal time'}</strong>
+          {/if}
+          {#if personalNext.locationId}
+            <p>
+              <a href={resolve(`/map/to/${personalNext.locationId}`)}>Show on map</a> · {bundle?.locations.find(
+                (l) => l.id === personalNext.locationId,
+              )?.name ?? personalNext.locationId}
             </p>
-            <div
-              class="progress"
-              role="progressbar"
-              aria-label="Progress of {activity.title}"
-              aria-valuenow={Math.round(activityProgress(activity, now) * 100)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
+          {/if}
+        {:else}
+          <p>No more items in your plan today. Browse what's on or make time for a break.</p>
+        {/if}
+        <p><a href={resolve(`/plan?day=${day}`)}>Open your plan</a></p>
+      </section>
+
+      <section class="card" aria-labelledby="now-heading">
+        <h2 id="now-heading">Happening now</h2>
+        {#if nowState!.current.length === 0}
+          <p class="muted">Between sessions — take a break or explore the map.</p>
+        {:else}
+          {#each nowState!.current as activity (activity.id)}
+            {@const room = sessionRoomLink(
+              bundle,
+              activity.id,
+              activity.locationId,
+              activity.title,
+            )}
+            <div class="session">
+              {@render trackTag(activity)}
+              <div class="row">
+                <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
+                <TypeBadge type={activity.type} />
+              </div>
+              <p class="muted">
+                {locationName(activity)}
+                {#if room}
+                  <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
+                  ·
+                  <a href={room.href} title={room.alias}>Chat</a>
+                  <!-- eslint-enable svelte/no-navigation-without-resolve -->
+                {/if}
+                {#if activity.livestreamUrl}
+                  <!-- eslint-disable svelte/no-navigation-without-resolve -- external stream link -->
+                  ·
+                  <a href={activity.livestreamUrl} target="_blank" rel="noreferrer"
+                    >▶ watch live ↗</a
+                  >
+                  <!-- eslint-enable svelte/no-navigation-without-resolve -->
+                {/if}
+              </p>
               <div
-                class="fill"
-                style:width="{Math.round(activityProgress(activity, now) * 100)}%"
-              ></div>
+                class="progress"
+                role="progressbar"
+                aria-label="Progress of {activity.title}"
+                aria-valuenow={Math.round(activityProgress(activity, now) * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  class="fill"
+                  style:width="{Math.round(activityProgress(activity, now) * 100)}%"
+                ></div>
+              </div>
+              <p class="muted small">
+                {formatTime(activity.start!)}–{formatTime(activity.end!)} · ends in
+                {minutesUntil(activity.end!, now)}
+              </p>
             </div>
-            <p class="muted small">
-              {formatTime(activity.start!)}–{formatTime(activity.end!)} · ends in
-              {minutesUntil(activity.end!, now)}
-            </p>
-          </div>
-        {/each}
-      {/if}
-    </section>
-
-    {#if nowState!.next}
-      <section class="card" aria-labelledby="next-heading">
-        <h2 id="next-heading">Next in the programme</h2>
-        {@render trackTag(nowState!.next)}
-        <div class="row big">
-          <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
-          <TypeBadge type={nowState!.next.type} />
-        </div>
-        <p class="muted">
-          {locationName(nowState!.next)} · {formatTime(nowState!.next.start!)} · starts in
-          {minutesUntil(nowState!.next.start!, now)}
-        </p>
-
-        {#if currentLocation.value}
-          <p class="leave">
-            You are at <strong
-              >{locationName({ locationId: currentLocation.value } as Activity) ??
-                currentLocation.value.replace(/-/g, ' ')}</strong
-            >.
-          </p>
-          <div class="actions">
-            <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show on map</a>
-            <button class="ghost" onclick={() => setCurrentLocation(null)}>Clear my location</button
-            >
-          </div>
-        {:else}
-          <p class="muted small">Tell the app where you are and the map opens on your room.</p>
-          <label>
-            <span class="sr-only">Set your current location</span>
-            <select
-              aria-label="Set your current location"
-              value={currentLocation.value ?? ''}
-              onchange={(e) => setCurrentLocation(e.currentTarget.value || null)}
-            >
-              <option value="">Where are you?</option>
-              {#each venueLocations as [id, ref] (id)}
-                <option value={id}
-                  >{ref.floor === 'first' ? '↑ ' : ''}{id.replace(/-/g, ' ')}</option
-                >
-              {/each}
-            </select>
-          </label>
+          {/each}
         {/if}
       </section>
-    {/if}
+
+      {#if nowState!.next}
+        <section class="card" aria-labelledby="next-heading">
+          <h2 id="next-heading">Next in the programme</h2>
+          {@render trackTag(nowState!.next)}
+          <div class="row big">
+            <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
+            <TypeBadge type={nowState!.next.type} />
+          </div>
+          <p class="muted">
+            {locationName(nowState!.next)} · {formatTime(nowState!.next.start!)} · starts in
+            {minutesUntil(nowState!.next.start!, now)}
+          </p>
+
+          {#if currentLocation.value}
+            <p class="leave">
+              You are at <strong
+                >{locationName({ locationId: currentLocation.value } as Activity) ??
+                  currentLocation.value.replace(/-/g, ' ')}</strong
+              >.
+            </p>
+            <div class="actions">
+              <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show on map</a>
+              <button class="ghost" onclick={() => setCurrentLocation(null)}
+                >Clear my location</button
+              >
+            </div>
+          {:else}
+            <p class="muted small">Tell the app where you are and the map opens on your room.</p>
+            <label>
+              <span class="sr-only">Set your current location</span>
+              <select
+                aria-label="Set your current location"
+                value={currentLocation.value ?? ''}
+                onchange={(e) => setCurrentLocation(e.currentTarget.value || null)}
+              >
+                <option value="">Where are you?</option>
+                {#each venueLocations as [id, ref] (id)}
+                  <option value={id}
+                    >{ref.floor === 'first' ? '↑ ' : ''}{id.replace(/-/g, ' ')}</option
+                  >
+                {/each}
+              </select>
+            </label>
+          {/if}
+        </section>
+      {/if}
+    </div>
   {/if}
 </EventGate>
 
@@ -288,6 +298,27 @@
     border-radius: var(--radius);
     padding: 1rem;
     margin-bottom: 1rem;
+  }
+  /* Phone: no box of its own. Desktop (issue 205): your plan and what is next on
+     the left, the longer "happening now" list on the right. */
+  .now-grid {
+    display: contents;
+  }
+  @media (min-width: 1024px) {
+    .now-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+      grid-auto-flow: dense;
+      gap: 1rem;
+      align-items: start;
+    }
+    .now-grid > .card {
+      margin-bottom: 0;
+    }
+    .now-grid > [aria-labelledby='now-heading'] {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+    }
   }
   .card h2 {
     margin: 0 0 0.75rem;

@@ -127,7 +127,7 @@
 
   <div class="columns">
     {#each byLocation as [locId, acts] (locId)}
-      <div class="column" style:width="{COLUMN_WIDTH}px">
+      <div class="column" style:--column-width="{COLUMN_WIDTH}px">
         <h3 class="colhead">{locationName(locId) ?? locId}</h3>
         <div class="colbody">
           {#each layout(acts) as slot (slot.act.id)}
@@ -194,7 +194,21 @@
   }
   .column {
     flex-shrink: 0;
+    width: var(--column-width);
     border-left: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+  }
+  @media (min-width: 1024px) {
+    .timeline {
+      max-height: calc(100dvh - 21rem);
+      min-height: 24rem;
+    }
+    /* Rooms share the width equally; six of them fit a 1200px reading
+       column, and narrower screens scroll the region sideways as before. */
+    .column {
+      flex: 1 1 0;
+      width: auto;
+      min-width: 11rem;
+    }
   }
   .colhead {
     position: sticky;

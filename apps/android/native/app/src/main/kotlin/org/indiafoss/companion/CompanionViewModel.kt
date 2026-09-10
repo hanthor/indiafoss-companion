@@ -35,6 +35,7 @@ import org.indiafoss.companion.data.PlanEditsStore
 import org.indiafoss.companion.data.ProfileImporter
 import org.indiafoss.companion.core.ProfileImport
 import org.indiafoss.companion.core.Reminders
+import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.reminders.ReminderNotifier
 import org.indiafoss.companion.data.PreferencesStore
 import org.indiafoss.companion.data.StoredBlock
@@ -69,12 +70,18 @@ data class UiState(
     val currentLocation: String? = null,
     /** Seconds of walking from where the attendee is to a location, when both are on the plan. */
     val walkSecondsTo: (String) -> Int? = { null },
+    /** Seconds of walking between two locations, for the plan's transfer warnings; null when unknown. */
+    val walkBetween: (String, String) -> Int? = { _, _ -> null },
     /** A route asked for by a deep link, consumed by the navigation host. */
     val pendingRoute: String? = null,
     val routingProfile: String = "fastest",
     val message: String? = null,
     /** The attendee's own plan blocks and booth visits (#110). */
     val blocks: List<StoredBlock> = emptyList(),
+    /** Sessions the attendee took out of the plan by id (#221); the rating stays. */
+    val removedFromPlan: Set<String> = emptySet(),
+    /** original activity id → replacement chosen for that slot (#221). */
+    val planReplacements: Map<String, String> = emptyMap(),
     /** The last schedule update, with what changed, until dismissed. */
     val update: ScheduleUpdate? = null,
     /** The day simulator (#110, docs/simulator.md): null when the clock is real. */
@@ -100,27 +107,74 @@ data class UiState(
     /** The stored rating with the taste prior blended in; what selection and planning use. */
     fun effectiveRating(activity: Activity): Double = affinity.ratingWithPrior(ranked(activity))
 
+    /** The greedy base plan for a day; what `resolvedPlanFor` layers the edits over. */
     fun itineraryFor(day: String): List<Itinerary.Item> {
         val b = bundle ?: return emptyList()
-        val model = affinity
-        val byId = b.activities.associateBy { it.id }
         return Itinerary.forDay(
             b, day,
-            ratingOf = { id -> (byId[id]?.let { model.ratingWithPrior(ranked(it)) } ?: Ranking.INITIAL_RATING) + (if (ranking.rating(id).triage == "yes") 120.0 else 0.0) },
+            ratingOf = planRating(b),
             dispositionOf = ::dispositionOf,
-            stayTrackIds = ranking.rooms.filterValues { it == "stay" }.keys,
+            stayTrackIds = stayTrackIds,
             bookmarked = { it in bookmarks },
             blocks = blocks.filter { it.day == day }.map { it.toBlock() },
         )
     }
 
+    private val stayTrackIds: Set<String> get() = ranking.rooms.filterValues { it == "stay" }.keys
+
+    private fun planRating(b: EventBundle): (String) -> Double {
+        val model = affinity
+        val byId = b.activities.associateBy { it.id }
+        return { id -> (byId[id]?.let { model.ratingWithPrior(ranked(it)) } ?: Ranking.INITIAL_RATING) + (if (ranking.rating(id).triage == "yes") 120.0 else 0.0) }
+    }
+
     /**
-     * Where each of the day's sessions stands in the attendee's plan (#110):
-     * derived from the greedy itinerary and the stored marks. The solver-
-     * resolved projection is #221; this reads the same inputs it will.
+     * The attendee's resolved plan for a day (#221): base plan, must-go,
+     * devroom reservations, interested talks, blocks, removals and
+     * replacements, resolved against the current bundle every time. Now, the
+     * map destination, the leave-by banner, the calendar and the reminders
+     * all read this and nothing else.
      */
-    fun markersFor(day: String): Map<String, PlanMarker> =
-        PlanMarker.derive(activitiesFor(day), itineraryFor(day), ::dispositionOf, { it in bookmarks }, { ranking.rating(it).triage })
+    fun resolvedPlanFor(day: String): ResolvedPlan.Plan? {
+        val b = bundle ?: return null
+        return ResolvedPlan.forDay(
+            b, day,
+            ratingOf = planRating(b),
+            dispositionOf = ::dispositionOf,
+            bookmarked = { it in bookmarks },
+            edits = ResolvedPlan.Edits(
+                removed = removedFromPlan,
+                replacements = planReplacements,
+                blocks = blocks.filter { it.day == day }.map { it.toBlock() },
+            ),
+            stayTrackIds = stayTrackIds,
+            walkSeconds = walkBetween,
+        )
+    }
+
+    /** The plan for the venue's current day; null outside the event days (`now` carries the event offset). */
+    val todayPlan: ResolvedPlan.Plan?
+        get() = nowState?.day?.let(::resolvedPlanFor)
+
+    /** Every alert the resolved plans want from `nowMs` on: the input to the alarm reconciliation. */
+    fun plannedReminders(nowMs: Long): List<Reminders.Reminder> {
+        val b = bundle ?: return emptyList()
+        return Reminders.forPlans(
+            days.mapNotNull(::resolvedPlanFor), b::location, nowMs, ::dispositionOf,
+            walkSecondsTo = { locationId -> locationId?.let(walkSecondsTo) },
+        )
+    }
+
+    /**
+     * Where each of the day's sessions stands in the attendee's plan (#110),
+     * read off the resolved plan (#221) so the Schedule agrees with Now, the
+     * map and the reminders: a removed session loses its mark, a replacement
+     * gains one, an interest that lost its slot stands aside.
+     */
+    fun markersFor(day: String): Map<String, PlanMarker> {
+        val plan = resolvedPlanFor(day) ?: return emptyMap()
+        return PlanMarker.derive(activitiesFor(day), plan, ::dispositionOf, { it in bookmarks }, { ranking.rating(it).triage })
+    }
 
     val nowState: NowState?
         get() = bundle?.let { Schedule.nowState(it, now) }
@@ -192,14 +246,20 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             }
         }
         viewModelScope.launch { profiles.contacts.collect { met -> _state.update { it.copy(contacts = met) } } }
-        viewModelScope.launch { planEdits.edits.collect { e -> _state.update { it.copy(blocks = e.blocks) } } }
+        viewModelScope.launch {
+            planEdits.edits.collect { e ->
+                _state.update { it.copy(blocks = e.blocks, removedFromPlan = e.removed.toSet(), planReplacements = e.replacements) }
+            }
+        }
         viewModelScope.launch {
             preferences.location.collect { at -> _state.update { it.copy(currentLocation = at, walkSecondsTo = walker(at)) } }
         }
         viewModelScope.launch {
-            preferences.routingProfile.collect { p -> _state.update { it.copy(routingProfile = p, walkSecondsTo = walker(it.currentLocation, p)) } }
+            preferences.routingProfile.collect { p ->
+                _state.update { it.copy(routingProfile = p, walkSecondsTo = walker(it.currentLocation, p), walkBetween = between(p)) }
+            }
         }
-        // Whatever changes the plan re-arms the alarms: bookmarks, must-attend, the bundle.
+        // Whatever changes the resolved plan re-arms the alarms: bookmarks, must-attend, ratings, edits, the bundle.
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
         }
@@ -264,6 +324,15 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     fun removeBlock(id: String) {
         viewModelScope.launch { planEdits.removeBlock(id) }
+    }
+
+    /** "Remove" on a planned row (#221): the session leaves the resolved plan everywhere; nothing is learnt about taste. */
+    fun removeFromPlan(id: String) {
+        viewModelScope.launch { planEdits.removeSession(id) }
+    }
+
+    fun restoreToPlan(id: String) {
+        viewModelScope.launch { planEdits.restoreSession(id) }
     }
 
     /** "Plan a visit" on a booth: a flexible half hour at the booth's spot, on the given day. */
@@ -337,18 +406,28 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         return if (from == null) { _ -> null } else { to -> venue.walkSeconds(floors, from, to, routing) }
     }
 
+    private fun between(profile: String = state.value.routingProfile): (String, String) -> Int? {
+        val routing = when (profile) {
+            "accessible" -> RoutingProfile.ACCESSIBLE
+            "avoid-stairs" -> RoutingProfile.AVOID_STAIRS
+            else -> RoutingProfile.FASTEST
+        }
+        return { from, to -> venue.walkSeconds(floors, from, to, routing) }
+    }
+
     fun setRoutingProfile(profile: String) {
-        _state.update { it.copy(routingProfile = profile, walkSecondsTo = walker(it.currentLocation, profile)) }
+        _state.update { it.copy(routingProfile = profile, walkSecondsTo = walker(it.currentLocation, profile), walkBetween = between(profile)) }
         viewModelScope.launch { preferences.setRoutingProfile(profile) }
     }
 
-    /** The planned day as an .ics for the system share sheet (calendar apps import it). */
+    /** The resolved plan for a day as an .ics for the system share sheet (calendar apps import it). */
     fun calendarFor(day: String): String? {
         val bundle = state.value.bundle ?: return null
-        return Calendar.ics(bundle, state.value.itineraryFor(day).map { it.activity })
+        val plan = state.value.resolvedPlanFor(day) ?: return null
+        return Calendar.ics(bundle, plan.items.filter { it.source != ResolvedPlan.Source.LUNCH }.map { it.activity })
     }
 
-    /** "Not this one" on a planned row: the session leaves the plan and the ranking. */
+    /** Rule a session out of the ranking altogether (Rank's "no"); Plan's "Remove" uses `removeFromPlan` instead. */
     fun skipSession(id: String) {
         viewModelScope.launch { ratings.setDisposition(id, Disposition.NOT_INTERESTED) }
     }
@@ -519,17 +598,8 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         val bundle = s.bundle ?: return
         if (!s.remindersEnabled) return
         val nowMs = sim.nowMs()
-        val due = Reminders.compute(
-            bundle, sim.startMs,
-            tierFor = { id ->
-                when {
-                    id in s.mustAttend -> Reminders.Tier.MUST_ATTEND
-                    id in s.bookmarks -> Reminders.Tier.PLANNED
-                    else -> Reminders.Tier.NONE
-                }
-            },
-            walkSecondsTo = { locationId -> locationId?.let(s.walkSecondsTo) },
-        ).filter { it.atMs <= nowMs && it.id !in firedInSimulation }
+        // The same projection the real alarms use, so the simulator rehearses the actual plan.
+        val due = s.plannedReminders(sim.startMs).filter { it.atMs <= nowMs && it.id !in firedInSimulation }
         if (due.isEmpty()) return
         for (r in due) {
             firedInSimulation += r.id

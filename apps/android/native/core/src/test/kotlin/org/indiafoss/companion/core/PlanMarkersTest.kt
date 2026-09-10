@@ -19,6 +19,7 @@ class PlanMarkersTest {
             activity("skipped", "13:00", "13:30"),
             activity("gone", "14:00", "14:30", cancelled = true),
             activity("alone", "15:00", "15:30"),
+            activity("spare", "16:00", "16:30"),
         ),
     )
 
@@ -33,12 +34,13 @@ class PlanMarkersTest {
         else -> Disposition.NORMAL
     }
 
-    private fun markers(): Map<String, PlanMarker> {
-        val plan = Itinerary.forDay(
+    private fun markers(edits: ResolvedPlan.Edits = ResolvedPlan.Edits.NONE): Map<String, PlanMarker> {
+        val plan = ResolvedPlan.forDay(
             bundle, "2025-09-20",
             ratingOf = { ratings[it] ?: Ranking.INITIAL_RATING },
             dispositionOf = ::disposition,
             bookmarked = { it in bookmarks },
+            edits = edits,
         )
         return PlanMarker.derive(bundle.activities, plan, ::disposition, { it in bookmarks }, { triage[it] })
     }
@@ -79,8 +81,26 @@ class PlanMarkersTest {
     fun `an interest that nothing overlaps and nothing placed is not stood aside`() {
         // Unplaced for some other reason (here: not in this day's plan at all) is not a lost clash.
         val lone = activity("lone", "16:00", "16:30")
-        val result = PlanMarker.derive(listOf(lone), emptyList(), { Disposition.NORMAL }, { true }, { null })
+        val empty = ResolvedPlan.Plan("2025-09-20", emptyList(), emptyList())
+        val result = PlanMarker.derive(listOf(lone), empty, { Disposition.NORMAL }, { true }, { null })
         assertEquals(PlanMarker.NONE, result["lone"])
+    }
+
+    @Test
+    fun `a session removed from the plan loses its mark and the bookmark it beat is no longer stood aside`() {
+        // Removing the winner (#221) drops its mark; the resolved plan does not refill the slot,
+        // so nothing planned overlaps the beaten bookmark any more and it is not stood aside either.
+        val result = markers(ResolvedPlan.Edits(removed = setOf("bookmarked")))
+        assertEquals(PlanMarker.NONE, result["bookmarked"])
+        assertEquals(PlanMarker.NONE, result["loser"])
+    }
+
+    @Test
+    fun `a replacement is planned in the slot it took and the original is not`() {
+        // "spare" is removed from the base so it only enters the plan as the replacement for "plain".
+        val result = markers(ResolvedPlan.Edits(removed = setOf("spare"), replacements = mapOf("plain" to "spare")))
+        assertEquals(PlanMarker.NONE, result["plain"])
+        assertEquals(PlanMarker.PLANNED, result["spare"])
     }
 
     @Test
@@ -89,7 +109,8 @@ class PlanMarkersTest {
         val block = Itinerary.CustomBlock("own", "Coffee", "2025-09-20T12:30:00+05:30", "2025-09-20T13:00:00+05:30")
         val blockItem = Itinerary.Item(Activity(block.id, block.label, type = "custom", start = block.start, end = block.end), Itinerary.Reason.BLOCK, block)
         val wanted = activity("wanted", "12:30", "13:00")
-        val result = PlanMarker.derive(listOf(wanted), listOf(lunch, blockItem), { Disposition.NORMAL }, { true }, { null })
+        val plan = ResolvedPlan.resolve(bundle, "2025-09-20", listOf(lunch, blockItem))
+        val result = PlanMarker.derive(listOf(wanted), plan, { Disposition.NORMAL }, { true }, { null })
         assertEquals(PlanMarker.NONE, result["wanted"])
     }
 }
