@@ -9,7 +9,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8.svg)](https://hanthor.github.io/indiafoss-companion/)
 
-[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [**Download Chat for Android**](https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk) · [Docs](#documentation)
+[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [**Download Chat for Android**](https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk) · [Docs](#documentation)
 
 <img src="docs/screenshots/now.png" width="30%" alt="The Now screen listing three sessions running right now, each with a progress bar and minutes remaining" />
 <img src="docs/screenshots/map.png" width="30%" alt="The venue map in dark mode with three halls lit mint, each labelled with the minutes left in its session, and a dot showing where you are" />

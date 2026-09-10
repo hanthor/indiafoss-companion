@@ -9,6 +9,11 @@ for (const route of ['/connect', '/settings']) {
     await card.scrollIntoViewIfNeeded();
     await expect(card.getByRole('link', { name: 'Download Chat APK' })).toHaveAttribute(
       'href',
+      'https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk',
+    );
+    // The universal build stays one tap away for a device arm64 will not install on.
+    await expect(card.getByRole('link', { name: 'build for every architecture' })).toHaveAttribute(
+      'href',
       'https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk',
     );
     await expect(card.getByRole('link', { name: 'Release notes and checksums' })).toHaveAttribute(
