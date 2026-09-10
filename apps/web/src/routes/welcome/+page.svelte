@@ -16,6 +16,7 @@
   import { hasContactPicker, pickContact, profileFromContactFile } from '$lib/contact-import';
   import { applyImportedProfile, type ImportedProfile } from '$lib/fossunited';
   import EventGate from '$lib/components/EventGate.svelte';
+  import GettingThere from '$lib/components/GettingThere.svelte';
 
   /**
    * The welcome wizard (#107): reminders, who you are, then ranking.
@@ -252,6 +253,10 @@
     <button class="linkbtn" onclick={() => finish('/')}>Skip setup</button>
     · You can run this again from Settings.
   </p>
+
+  {#if bundle?.venue}
+    <GettingThere venue={bundle.venue} compact />
+  {/if}
 </EventGate>
 
 <style>

@@ -68,6 +68,8 @@ The venue's real floor plan, with halls lit up while sessions run in them and a 
 
 Both floors are drawn as vectors, so pinch, drag and wheel zoom stay sharp, and a corner hint tells you when your next talk is on the other floor. Underneath is a routing graph with A\* pathfinding and accessible profiles (lift instead of stairs).
 
+Before you are inside: a **Getting there** card with the organiser's venue name and address, a copy button, and a handoff to the organiser's OpenStreetMap destination or your own maps app — cached with the programme, so it works without signal.
+
 </td>
 <td width="40%"><img src="docs/screenshots/map.png" alt="Venue map with live rooms" /></td>
 </tr>

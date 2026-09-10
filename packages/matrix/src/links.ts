@@ -76,13 +76,6 @@ export function matrixUri(target: MatrixTarget): string {
   }
 }
 
-/** App-native deep link that the QR scanner recognises. */
-export function companionChatLink(target: MatrixTarget): string {
-  const params = new URLSearchParams();
-  params.set(target.kind === 'user' ? 'dm' : 'join', target.id);
-  return `indiafoss://chat?${params.toString()}`;
-}
-
 /** Local part of an id for compact display (`@alice:example.org` → `alice`). */
 export function localpart(id: string): string {
   const match = id.match(/^[@#!]([^:]+):/);

@@ -10430,5 +10430,22 @@
     "sourceUpdatedAt": "2026-09-09 22:43:49.137373",
     "normalizerVersion": "0.2.0",
     "scheduleStatus": "draft"
+  },
+  "venue": {
+    "version": 1,
+    "name": "NIMHANS Convention Centre",
+    "address": "NIMHANS Convention Centre, Hosur Road, Bengaluru",
+    "city": "Bengaluru",
+    "region": "Karnataka",
+    "country": "India",
+    "mapUrl": "https://osmapp.org/way/1219285692#18.89/12.9431/77.5961",
+    "coordinates": {
+      "latitude": 12.9431,
+      "longitude": 77.5961
+    },
+    "sourceUrl": "https://fossunited.org/indiafoss/2026",
+    "travelGuideUrl": "https://fossunited.org/indiafoss/guide/travel",
+    "checkedAt": "2026-09-10",
+    "note": "The map link marks the venue building as the organiser published it, not a specific entrance."
   }
 }

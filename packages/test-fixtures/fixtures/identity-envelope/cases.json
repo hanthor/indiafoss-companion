@@ -1,0 +1,219 @@
+{
+  "describes": "The versioned identity envelope (#160). Each case is one card as it arrives on the wire — as vCard lines, and where the format has one, as an indiafoss://friend link — and the single outcome every platform must reach: which identity fields are promoted to routable addresses, which are kept verbatim as unread, and which chat routes may be offered. A retained field is never an address. Two well-formed but different node ids remain a mismatch on the profile check; that case lives in packages/matrix.",
+  "version": 1,
+  "vocabulary": {
+    "retainedKeys": ["version", "mesh", "matrix"],
+    "routes": ["mesh", "matrix"]
+  },
+  "cases": [
+    {
+      "name": "legacy-unversioned-v1-card",
+      "describes": "a card written before versioning: read as v1, both identities promoted",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MATRIX:@asha:example.org",
+        "X-INDIAFOSS-MESH:845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "END:VCARD"
+      ],
+      "friend": "indiafoss://friend?v=1&fn=Asha&matrix_id=%40asha%3Aexample.org&neutrino_server_name=845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixId": "@asha:example.org",
+        "retained": {},
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "legacy-old-spellings",
+      "describes": "the pre-redesign property names still read as v1",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-MATRIX-ID:@asha:example.org",
+        "X-NEUTRINO-SERVER-NAME:845AA456078572639C1543694DE69E0A03FB883BD9C1DAB1A2F6DF811B75897E",
+        "END:VCARD"
+      ],
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixId": "@asha:example.org",
+        "retained": {},
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "explicit-v1-card",
+      "describes": "a card that declares identity version 1 reads exactly like an unversioned one",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MATRIX:@asha:example.org",
+        "IMPP:matrix:@asha:example.org",
+        "X-INDIAFOSS-MESH:845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "X-INDIAFOSS-IDENTITY-VERSION:1",
+        "END:VCARD"
+      ],
+      "friend": "indiafoss://friend?v=1&identity_v=1&fn=Asha&matrix_id=%40asha%3Aexample.org&neutrino_server_name=845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixId": "@asha:example.org",
+        "retained": {},
+        "routes": ["mesh", "matrix"]
+      }
+    },
+    {
+      "name": "mesh-only-card",
+      "describes": "a mesh identity with no Matrix account routes on the mesh alone",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MESH:845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "X-INDIAFOSS-IDENTITY-VERSION:1",
+        "END:VCARD"
+      ],
+      "friend": "indiafoss://friend?v=1&identity_v=1&fn=Asha&neutrino_server_name=845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "matrixId": null,
+        "retained": {},
+        "routes": ["mesh"]
+      }
+    },
+    {
+      "name": "unknown-mesh-shape-under-v1",
+      "describes": "a v1 card whose mesh field is not a 64-hex node id: kept unread, never an address; the Matrix id still routes",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MATRIX:@asha:example.org",
+        "X-INDIAFOSS-MESH:node.something-new.example",
+        "END:VCARD"
+      ],
+      "friend": "indiafoss://friend?v=1&fn=Asha&matrix_id=%40asha%3Aexample.org&neutrino_server_name=node.something-new.example",
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": null,
+        "matrixId": "@asha:example.org",
+        "retained": { "mesh": "node.something-new.example" },
+        "routes": ["matrix"]
+      }
+    },
+    {
+      "name": "short-node-id",
+      "describes": "a truncated node id is a recognition aid, not an identity: kept unread",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MESH:845aa456078572639c1543694de69e0a",
+        "END:VCARD"
+      ],
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": null,
+        "matrixId": null,
+        "retained": { "mesh": "845aa456078572639c1543694de69e0a" },
+        "routes": []
+      }
+    },
+    {
+      "name": "malformed-matrix-id",
+      "describes": "a Matrix field that is not @localpart:server is kept unread rather than offered as an address",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MATRIX:asha",
+        "END:VCARD"
+      ],
+      "friend": "indiafoss://friend?v=1&fn=Asha&matrix_id=asha",
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": null,
+        "matrixId": null,
+        "retained": { "matrix": "asha" },
+        "routes": []
+      }
+    },
+    {
+      "name": "future-identity-version",
+      "describes": "a card from a build that knows identity version 2: nothing is promoted, everything is kept with the version that caused it",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MATRIX:@asha:example.org",
+        "X-INDIAFOSS-MESH:845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "X-INDIAFOSS-IDENTITY-VERSION:2",
+        "END:VCARD"
+      ],
+      "friend": "indiafoss://friend?v=1&identity_v=2&fn=Asha&matrix_id=%40asha%3Aexample.org&neutrino_server_name=845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+      "expect": {
+        "version": 2,
+        "understood": false,
+        "meshNodeId": null,
+        "matrixId": null,
+        "retained": {
+          "version": "2",
+          "mesh": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+          "matrix": "@asha:example.org"
+        },
+        "routes": []
+      }
+    },
+    {
+      "name": "malformed-identity-version",
+      "describes": "a version that is not a positive integer is treated like a newer one: kept, never trusted",
+      "vcard": [
+        "BEGIN:VCARD",
+        "VERSION:3.0",
+        "FN:Asha",
+        "X-INDIAFOSS-MESH:845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "X-INDIAFOSS-IDENTITY-VERSION:v1-beta",
+        "END:VCARD"
+      ],
+      "friend": "indiafoss://friend?v=1&identity_v=v1-beta&fn=Asha&neutrino_server_name=845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+      "expect": {
+        "version": 0,
+        "understood": false,
+        "meshNodeId": null,
+        "matrixId": null,
+        "retained": {
+          "version": "v1-beta",
+          "mesh": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e"
+        },
+        "routes": []
+      }
+    },
+    {
+      "name": "no-identity",
+      "describes": "a card naming no account at all: version 1, nothing promoted, nothing retained",
+      "vcard": ["BEGIN:VCARD", "VERSION:3.0", "FN:Asha", "END:VCARD"],
+      "friend": "indiafoss://friend?v=1&fn=Asha",
+      "expect": {
+        "version": 1,
+        "understood": true,
+        "meshNodeId": null,
+        "matrixId": null,
+        "retained": {},
+        "routes": []
+      }
+    }
+  ]
+}

@@ -12,6 +12,7 @@ import {
   withoutInPersonConfirmation,
 } from '$lib/contact-trust';
 import type { ContinuityResult } from '$lib/contact-continuity';
+import type { IdentityMeta } from '@indiafoss/model';
 
 let storage: CompanionStorage | null = null;
 function getStorage(): CompanionStorage {
@@ -37,6 +38,21 @@ function nowIso(): string {
 
 function newId(): string {
   return `contact-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * A plain copy of the identity envelope. A scanned payload lives in `$state`,
+ * so its nested objects are proxies, which IndexedDB cannot structured-clone
+ * (DataCloneError) — the same reason `socials` is spread below.
+ */
+function plainIdentity(meta: IdentityMeta | undefined): { identity?: IdentityMeta } {
+  if (!meta) return {};
+  return {
+    identity: {
+      version: meta.version,
+      ...(meta.retained ? { retained: { ...meta.retained } } : {}),
+    },
+  };
 }
 
 export interface MeetingContext {
@@ -73,6 +89,7 @@ export function contactFromVCard(
     avatarUrl: card.avatarUrl,
     matrixId: card.matrixId,
     neutrinoServerName: card.neutrinoServerName,
+    ...plainIdentity(card.identity),
     ticketRef: card.ticketRef,
     socials: { ...card.socials } as Record<string, string>,
     verified: false,
@@ -94,6 +111,7 @@ export function contactFromFriend(
       website: friend.website,
       matrixId: friend.matrixId,
       neutrinoServerName: friend.neutrinoServerName,
+      identity: friend.identity,
       fossUnitedProfileUrl: friend.fossUnitedProfileUrl,
       socials: friend.socials,
     },
@@ -123,6 +141,7 @@ export function contactFromFriend(
     fossUnitedProfileUrl: friend.fossUnitedProfileUrl,
     matrixId: friend.matrixId,
     neutrinoServerName: friend.neutrinoServerName,
+    ...plainIdentity(friend.identity),
     ticketRef: friend.ticketRef,
     socials: { ...friend.socials } as Record<string, string>,
     verified: false,

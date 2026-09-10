@@ -455,6 +455,11 @@
                 >P2P Matrix id {neutrinoMatrixId(contactPreview.neutrinoServerName)}</span
               >
             </dd>{/if}
+          {#if contactPreview.identity?.retained}<dt>Identity</dt>
+            <dd class="muted small" data-testid="identity-retained">
+              This card carries an identity in a format this app can't read yet. It is kept with the
+              contact as it arrived, and not used as an address.
+            </dd>{/if}
           {#if contactPreview.ticketRef}<dt>Ticket ref</dt>
             <dd><code>{contactPreview.ticketRef}</code></dd>{/if}
           {#each Object.entries(contactPreview.socials) as [network, url] (network)}

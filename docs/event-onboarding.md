@@ -59,6 +59,28 @@ The venue asset (SVG + routing graph + metadata) is onboarded separately — see
 distances/floors require venue-team confirmation before the `_draft` flag is
 removed.
 
+### Getting there (outdoor arrival)
+
+`events/<event>/venue-arrival.json` is a reviewed fixture, merged into the
+bundle by `event-sync sync` as `bundle.venue` (`EventVenue`, versioned by
+`version`, validated by `collectVenueIssues`). It carries only what an
+organiser page publishes: venue `name`, `address`, `city`, the
+organiser-selected `mapUrl` (an OpenStreetMap feature link), optional
+`coordinates`, the `sourceUrl` it was read from and the `checkedAt` date. The
+file's `provenance` block records which page supplied which field.
+
+Rules:
+
+- Copy the organiser's wording; never geocode, pick an entrance, or add
+  parking or transport advice. The map link marks the building the organiser
+  chose, nothing more. An organiser travel page may be linked (`travelGuideUrl`)
+  but its content is not imported.
+- Re-check the source pages and bump `checkedAt` whenever the organiser page
+  changes. The sync warns when the FOSS United event document's `map_link`
+  disagrees with the reviewed file.
+- Without the file the bundle has no `venue` and the app shows no
+  "Getting there" card. Indoor rooms and routes stay in the venue asset (#223).
+
 ## The 2025 fixture
 
 `events/indiafoss-2025` is the golden historical fixture used as test data

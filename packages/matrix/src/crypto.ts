@@ -45,11 +45,6 @@ export async function loadCryptoWasm(): Promise<Wasm> {
   return wasmModule;
 }
 
-/** Name of the persistent (IndexedDB) crypto store for one account/device. */
-export function cryptoStoreName(userId: string, deviceId: string): string {
-  return `indiafoss-crypto-${userId}-${deviceId}`.replace(/[^A-Za-z0-9_.@:-]/g, '_');
-}
-
 export class WasmCryptoBackend implements CryptoBackend {
   private listeners: ((roomIds: string[]) => void)[] = [];
   private constructor(
@@ -222,17 +217,5 @@ export class WasmCryptoBackend implements CryptoBackend {
 
   async close(): Promise<void> {
     this.machine.close();
-  }
-}
-
-/** Best-effort removal of the persistent crypto store on sign-out (browser only). */
-export async function deleteCryptoStore(storeName: string): Promise<void> {
-  const idb = (globalThis as { indexedDB?: IDBFactory }).indexedDB;
-  if (!idb) return;
-  for (const suffix of ['::matrix-sdk-crypto', '::matrix-sdk-crypto-meta']) {
-    await new Promise<void>((resolve) => {
-      const req = idb.deleteDatabase(`${storeName}${suffix}`);
-      req.onsuccess = req.onerror = req.onblocked = () => resolve();
-    });
   }
 }
