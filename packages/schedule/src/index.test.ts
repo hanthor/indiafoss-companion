@@ -277,8 +277,8 @@ describe('describeChanges', () => {
     ...b,
     locations,
   });
-  const HALL_A = { id: 'hall-a', name: 'Hall A', kind: 'session' as const, routingNodeIds: [] };
-  const HALL_B = { id: 'hall-b', name: 'Hall B', kind: 'session' as const, routingNodeIds: [] };
+  const HALL_A = { id: 'hall-a', name: 'Hall A', kind: 'room' as const, routingNodeIds: [] };
+  const HALL_B = { id: 'hall-b', name: 'Hall B', kind: 'room' as const, routingNodeIds: [] };
 
   const said = (details: { description: string }[]) => details.map((d) => d.description);
 
