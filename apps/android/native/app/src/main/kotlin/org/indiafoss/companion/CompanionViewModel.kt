@@ -26,6 +26,7 @@ import org.indiafoss.companion.core.Disposition
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.Itinerary
 import org.indiafoss.companion.core.NowState
+import org.indiafoss.companion.core.PlanMarker
 import org.indiafoss.companion.core.RankedActivity
 import org.indiafoss.companion.core.Ranking
 import org.indiafoss.companion.core.Schedule
@@ -112,6 +113,14 @@ data class UiState(
             blocks = blocks.filter { it.day == day }.map { it.toBlock() },
         )
     }
+
+    /**
+     * Where each of the day's sessions stands in the attendee's plan (#110):
+     * derived from the greedy itinerary and the stored marks. The solver-
+     * resolved projection is #221; this reads the same inputs it will.
+     */
+    fun markersFor(day: String): Map<String, PlanMarker> =
+        PlanMarker.derive(activitiesFor(day), itineraryFor(day), ::dispositionOf, { it in bookmarks }, { ranking.rating(it).triage })
 
     val nowState: NowState?
         get() = bundle?.let { Schedule.nowState(it, now) }

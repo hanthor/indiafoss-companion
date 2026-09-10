@@ -12,7 +12,7 @@ client renders natively rather than embedding a WebView.
 | Tab / route | State                                                                                                                                                                              |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Now         | live sessions with progress, up next                                                                                                                                               |
-| Schedule    | per day, bookmark from the list                                                                                                                                                    |
+| Schedule    | per day; room chips, list or time × room grid (`ScheduleGrid`, the PWA's TimelineGrid rules), plan markers on sessions (`PlanMarker`: planned / interested / must go / stood aside) |
 | My plan     | the day planned from must-attend, bookmarks and ratings (`Itinerary`); "Rank this day"                                                                                             |
 | Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
 | Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                        |
