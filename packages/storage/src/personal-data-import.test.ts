@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto';
 import fixture from '../../test-fixtures/fixtures/personal-data/valid/pwa-export.json';
+import nativeExport from '../../test-fixtures/fixtures/personal-data/valid/native-export.json';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { EventBundle } from '@indiafoss/model';
 import {
@@ -364,5 +365,67 @@ describe('personal data import transaction', () => {
     await db.preferences.delete('talk-a');
     await expect(apply(result.changes)).rejects.toThrow(PersonalDataImportStaleError);
     expect(await db.notes.count()).toBe(0);
+  });
+});
+
+describe('a native export (cross-platform round trip, #240)', () => {
+  // The Kotlin exporter produces this file from `NativePersonalDataTest`'s state; the PWA must take it.
+  it('validates, imports what both platforms share and reports the native-only section', async () => {
+    await storage.saveEventBundle(bundle());
+    const native = structuredClone(nativeExport) as unknown as File;
+    const result = await preview(native);
+    expect(result.unsupported).toEqual(['events[0].sections.flexibleBlocks']);
+    expect(result.skipped).toEqual([
+      expect.objectContaining({ section: 'preferences', label: 'old-talk', reason: 'unassigned' }),
+    ]);
+    expect(result.changes.every((change) => change.status === 'add')).toBe(true);
+    const byId = Object.fromEntries(result.changes.map((change) => [change.id, change]));
+    expect(byId['preferences:talk-a']!.write.value).toEqual({
+      activityId: 'talk-a',
+      rating: 1232,
+      comparisons: 1,
+      disposition: 'must-attend',
+      bookmarked: true,
+      triage: 'yes',
+    });
+    expect(byId['comparisons:cmp-1']!.write.value).toMatchObject({
+      activityA: 'talk-a',
+      scoreA: 1,
+    });
+    expect(byId['settings:booth-visit-booth-1']!.write.value).toBe('20');
+    expect(
+      JSON.parse(byId['settings:plan-edits-indiafoss-2026-2026-09-19']!.write.value as string),
+    ).toEqual({
+      locked: ['blk-1'],
+      removed: ['talk-b'],
+      replacements: {},
+      customBlocks: [
+        {
+          id: 'blk-1',
+          label: 'Coffee with Priya',
+          start: '2026-09-19T11:30:00+05:30',
+          end: '2026-09-19T12:00:00+05:30',
+        },
+      ],
+    });
+    expect(byId['settings:room-prefs-decided-indiafoss-2026']!.write.value).toBe('true');
+    expect(byId['settings:attendee-share-selection']!.incomingSummary).toBe(
+      'shares name, fossUnitedProfileUrl',
+    );
+    await apply(result.changes);
+    expect(await storage.getNote('talk-b')).toBe('ಕನ್ನಡ\nFollow up after the talk');
+    expect(await storage.getPreference('talk-a')).toMatchObject({ disposition: 'must-attend' });
+    expect(JSON.parse((await storage.getSetting('attendee-profile'))!)).toEqual({
+      fullName: 'Asha',
+      email: 'asha@example.org',
+      matrixId: '@asha:example.org',
+      fossUnitedProfileUrl: 'https://fossunited.org/u/asha',
+      socials: { github: 'https://github.com/asha' },
+    });
+    // What the PWA now exports carries the same sections back for native; the native-only one was never stored.
+    const exported = await storage.exportPersonalData('2026-09-10T09:00:00.000Z');
+    expect(exported.events[0]!.sections.boothVisits).toEqual({ 'booth-1': 20 });
+    expect(exported.events[0]!.sections.flexibleBlocks).toBeUndefined();
+    expect(exported.events[0]!.sections.notes).toEqual(native.events[0]!.sections.notes);
   });
 });

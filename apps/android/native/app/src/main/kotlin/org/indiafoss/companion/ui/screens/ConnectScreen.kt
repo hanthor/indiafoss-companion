@@ -194,10 +194,11 @@ fun ConnectScreen(
                     Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("Get IndiaFOSS Chat", style = MaterialTheme.typography.titleMedium)
                         Text("Install the separate Matrix and P2P chat app for Android. Preview build.")
+                        Text("The download is the arm64 build, which almost every phone uses and is much smaller. The release page also carries a build for every architecture.", style = MaterialTheme.typography.bodySmall)
                         Button(onClick = {
                             runCatching {
                                 context.startActivity(Intent(Intent.ACTION_VIEW, android.net.Uri.parse(
-                                    "https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk",
+                                    "https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk",
                                 )))
                             }.onFailure {
                                 android.widget.Toast.makeText(context, "No browser is available to open the download.", android.widget.Toast.LENGTH_LONG).show()

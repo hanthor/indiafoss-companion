@@ -360,3 +360,91 @@ test('a card in an identity format this build cannot read is kept, shown neutral
   await expect(detail).not.toContainText('Message on mesh');
   await expect(detail).not.toContainText(/\bVerified\b/);
 });
+
+/**
+ * The signed binding (#188, docs/identity-binding.md). A card carrying one
+ * gets its own line; a valid check lifts the account line to a binding
+ * state and no further. Bindings are seeded as stored records: no surface
+ * writes one yet, and the check is this device's own conclusion.
+ */
+const SIGNED_BINDING = {
+  domain: 'in.indiafoss.binding/v1',
+  statement: {
+    v: 1,
+    id: 'b-1',
+    meshNodeId: MESH,
+    matrixUserId: '@asha:example.org',
+    cardKeyId: 'ed25519:AAAA',
+    matrixKeyId: 'ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI',
+    matrixKeyKind: 'master',
+    issuedAt: '2026-09-10T09:00:00.000Z',
+    expiresAt: '2026-10-10T09:00:00.000Z',
+    nonce: 'AAECAwQFBgcICQoLDA0ODw',
+  },
+  signatures: { card: 'x', matrix: 'y' },
+};
+
+test('a valid binding reads as signed by both keys, never as "Verified"', async ({ page }) => {
+  await homeserver(page, MESH);
+  await seedContact(page, {
+    ...base,
+    fullName: 'Bound Person',
+    signature: 'valid',
+    fingerprint: FP,
+    publicKey: 'ed25519:AAAA',
+    matrixId: '@asha:example.org',
+    neutrinoServerName: MESH,
+    meshLink: { state: 'profile-matched', checkedAt: Date.now() },
+    binding: {
+      signed: SIGNED_BINDING,
+      check: { state: 'valid', checkedAt: Date.now(), matrixKeyProvenance: 'server' },
+    },
+  });
+  const row = await openSeeded(page, 'Bound Person');
+  await expect(row).toContainText('BINDING SIGNED BY BOTH KEYS');
+  await expect(row).toContainText('PROFILE MATCHES');
+  await expect(row).not.toContainText(/\bVERIFIED\b/);
+  const detail = page.locator('.persondetail');
+  await expect(detail).toContainText(
+    'Binding signed by both keys · Matrix key not confirmed in Chat',
+  );
+  await expect(detail).toContainText('confirm it in Chat before treating the accounts as one');
+  await expect(detail).toContainText('Not verified in Chat');
+  await expect(page.locator('.people')).not.toContainText(/\bVerified\b/);
+});
+
+test('a revoked binding is shown as revoked, above a matching profile', async ({ page }) => {
+  await homeserver(page, MESH);
+  await seedContact(page, {
+    ...base,
+    fullName: 'Withdrawn Person',
+    signature: 'valid',
+    fingerprint: FP,
+    publicKey: 'ed25519:AAAA',
+    matrixId: '@asha:example.org',
+    neutrinoServerName: MESH,
+    meshLink: { state: 'profile-matched', checkedAt: Date.now() },
+    binding: { signed: SIGNED_BINDING, check: { state: 'revoked', checkedAt: Date.now() } },
+  });
+  const row = await openSeeded(page, 'Withdrawn Person');
+  await expect(row).toContainText('BINDING REVOKED');
+  await expect(page.locator('.persondetail')).toContainText('its owner withdrew this binding');
+});
+
+test('a binding that has not been checked, or cannot be, stays a claim', async ({ page }) => {
+  await homeserver(page, 'down');
+  await seedContact(page, {
+    ...base,
+    fullName: 'Unchecked Person',
+    signature: 'valid',
+    fingerprint: FP,
+    publicKey: 'ed25519:AAAA',
+    matrixId: '@asha:example.org',
+    neutrinoServerName: MESH,
+    binding: { signed: SIGNED_BINDING },
+  });
+  const row = await openSeeded(page, 'Unchecked Person');
+  await expect(row).toContainText('BINDING NOT CHECKED YET');
+  await expect(row).toContainText('ACCOUNT LINK CLAIMED, NOT CHECKED YET');
+  await expect(row).not.toContainText(/\bVERIFIED\b/);
+});

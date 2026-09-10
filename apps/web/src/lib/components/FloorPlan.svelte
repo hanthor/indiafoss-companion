@@ -5,9 +5,7 @@
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
-  import { journeyRoute, ROUTING_LABELS } from '$lib/journey';
-  import { routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
-  import type { RoutingProfile } from '@indiafoss/venue';
+  import { routingPrefs } from '$lib/routingPrefs.svelte';
   import { eventDay } from '$lib/resolved-plan';
   import { livePlanState } from '$lib/resolved-plan.svelte';
   import { bookmarked } from '$lib/prefs.svelte';
@@ -24,7 +22,6 @@
   import { DEFAULT_NOTIFICATION_WINDOW } from '$lib/notifications';
   import { computeNextUp } from '$lib/nextup';
   import { devroomTrackNames, labelHeadingFor } from '$lib/devrooms';
-  import { routeEvidence, routeSteps } from '$lib/route-steps';
 
   /** Destination location id (`/map/to/[location]`): highlighted and opened in the sheet. */
   let { initialTo = '' }: { initialTo?: string } = $props();
@@ -173,9 +170,9 @@
   const destinationRoom = $derived(initialTo ? (roomOf.get(initialTo) ?? null) : null);
 
   // ---- from / to (#223) --------------------------------------------------
-  // The journey is explicit: From is the manually set location, To is the
-  // next planned talk, a `/map/to/` link, or a room the attendee picks. The
-  // selects are the keyboard and large-text equivalent of tapping the plan.
+  // From is the manually set location and To is the highlighted destination:
+  // the next planned talk, a `/map/to/` link, or a room the attendee picks.
+  // The selects are the keyboard and large-text equivalent of tapping the plan.
 
   /** `undefined` follows the plan or deep link; `'plan'`, a room id or `''` is a choice. */
   let toChoice = $state<string | undefined>(undefined);
@@ -183,7 +180,6 @@
   const toValue = $derived(toChoice ?? autoTo);
   const toIsPlan = $derived(toValue === 'plan');
   const toRoom = $derived(toIsPlan ? nextRoom : toValue || null);
-  const toRoomObj = $derived(allRooms.find((r) => r.id === toRoom) ?? null);
   const hereRoomObj = $derived(allRooms.find((r) => r.id === hereRoom) ?? null);
   /** Where the attendee said they are, even when that location is not drawn. */
   const hereName = $derived(
@@ -460,16 +456,6 @@
     return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
   }
 
-  const selectedRoute = $derived(
-    routingPrefs.loaded && selectedRoom
-      ? journeyRoute(
-          venue,
-          currentLocation.value,
-          primaryLocation(selectedRoom.id),
-          routingPrefs.profile,
-        )
-      : null,
-  );
   const isHere = $derived(selectedRoom !== null && hereRoom === selectedRoom.id);
   const isDestination = $derived(selectedRoom !== null && toRoom === selectedRoom.id);
 
@@ -488,23 +474,6 @@
     const track = liveByRoom.get(room.id)?.[0]?.trackId;
     return track ? (devroomTracks.get(track) ?? null) : null;
   }
-
-  // ---- the journey itself ------------------------------------------------
-
-  const journey = $derived(
-    routingPrefs.loaded && toRoom
-      ? journeyRoute(venue, currentLocation.value, primaryLocation(toRoom), routingPrefs.profile)
-      : null,
-  );
-  const journeySteps = $derived(
-    journey && venue && toRoomObj ? routeSteps(venue, journey, { to: roomTitle(toRoomObj) }) : null,
-  );
-  const evidence = $derived(venue ? routeEvidence(venue) : null);
-  const floorChangeText = $derived.by(() => {
-    const n = journeySteps?.floorChanges ?? 0;
-    return n === 0 ? 'same floor' : `${n} floor ${n === 1 ? 'change' : 'changes'}`;
-  });
-  let stepsOpen = $state(false);
 </script>
 
 {#if venueError}
@@ -576,64 +545,8 @@
         </span>
       </p>
     {:else if !nextRoom && !toChoice && !destinationRoom}
-      <p class="muted small">No upcoming talk in your plan. Pick a room to route to it.</p>
+      <p class="muted small">No upcoming talk in your plan. Pick a room to highlight it.</p>
     {/if}
-    <div class="row">
-      <label class="from-to" for="map-routing-profile">Routing profile</label>
-      <select
-        id="map-routing-profile"
-        value={routingPrefs.profile}
-        disabled={!routingPrefs.loaded}
-        onchange={(event) => void setRoutingProfile(event.currentTarget.value as RoutingProfile)}
-      >
-        {#each Object.entries(ROUTING_LABELS) as [value, label] (value)}<option {value}
-            >{label}</option
-          >{/each}
-      </select>
-    </div>
-    <div class="summary" aria-live="polite" data-testid="journey-summary">
-      {#if !currentLocation.value}
-        <p class="muted small">Set where you are to get a walking estimate and route steps.</p>
-      {:else if !toRoom}
-        <p class="muted small">Choose a destination to see the walk.</p>
-      {:else if !routingPrefs.loaded}
-        <p class="muted small">Loading your routing preference…</p>
-      {:else if journey && journeySteps?.sameSpot}
-        <p class="small">You are already at {roomTitle(toRoomObj!)}.</p>
-      {:else if journey && journeySteps}
-        <p class="estimate">
-          <strong>≈ {journeySteps.minutes} min walk</strong> · {floorChangeText} · {ROUTING_LABELS[
-            routingPrefs.profile
-          ]}
-        </p>
-        {#if evidence}
-          <p class="evidence" class:validated={evidence.validated}>{evidence.label}</p>
-        {/if}
-        <button
-          class="ghost steps-toggle"
-          aria-expanded={stepsOpen}
-          aria-controls="map-route-steps"
-          onclick={() => (stepsOpen = !stepsOpen)}
-        >
-          {stepsOpen ? 'Hide' : 'Show'} route steps ({journeySteps.steps.length})
-        </button>
-        {#if stepsOpen}
-          <ol id="map-route-steps" class="steps" aria-label="Route steps">
-            {#each journeySteps.steps as step, i (i)}
-              <li class={step.kind}>
-                <span>{step.text}</span>
-                <span class="muted small">{Math.max(1, Math.ceil(step.seconds / 60))} min</span>
-              </li>
-            {/each}
-          </ol>
-        {/if}
-      {:else}
-        <p class="small">
-          No {ROUTING_LABELS[routingPrefs.profile].toLowerCase()} route is available on this map from
-          {hereName} to {roomTitle(toRoomObj!)}. Ask the venue team for directions.
-        </p>
-      {/if}
-    </div>
   </section>
 
   <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -796,25 +709,6 @@
         {/if}
       </div>
 
-      <div class="journey" aria-label="Walking route">
-        {#if !currentLocation.value}
-          <p>Set where you are (From, or “I'm here”) to estimate the walk.</p>
-        {:else if !routingPrefs.loaded}
-          <p>Loading your routing preference…</p>
-        {:else if selectedRoute}
-          <p>
-            {Math.ceil(selectedRoute.durationSeconds / 60)} min estimated walk · {ROUTING_LABELS[
-              routingPrefs.profile
-            ]}
-          </p>
-        {:else}
-          <p>
-            No {ROUTING_LABELS[routingPrefs.profile].toLowerCase()} route is available on this map from
-            your starting location. Ask the venue team for directions.
-          </p>
-        {/if}
-      </div>
-
       {#each live as a (a.id)}
         <div class="block">
           <span class="kicker live">ON NOW</span>
@@ -847,14 +741,6 @@
 {/if}
 
 <style>
-  .journey {
-    padding: 0.25rem 0;
-    font-size: 0.85rem;
-  }
-  .journey p {
-    margin: 0;
-  }
-
   /* From / To panel: rows wrap so large text and narrow phones still fit. */
   .journey-panel {
     display: flex;
@@ -911,39 +797,6 @@
     font-size: 0.82rem;
   }
   .planned .title {
-    font-weight: 600;
-  }
-  .summary p {
-    margin: 0;
-  }
-  .estimate {
-    font-size: 0.95rem;
-  }
-  .evidence {
-    color: var(--amber-ink);
-    font-size: 0.78rem;
-  }
-  .evidence.validated {
-    color: var(--mint-ink);
-  }
-  .steps-toggle {
-    margin-top: 0.3rem;
-  }
-  .steps {
-    margin: 0.4rem 0 0;
-    padding-left: 1.4rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-  .steps li {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 0.25rem 0.75rem;
-  }
-  .steps li.stairs,
-  .steps li.lift {
     font-weight: 600;
   }
   .small {

@@ -11,58 +11,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.indiafoss.companion.core.ComparisonEntry
 import org.indiafoss.companion.core.Disposition
-import org.indiafoss.companion.core.Ranking
-import org.indiafoss.companion.core.RoomPreference
+import org.indiafoss.companion.core.RankingState
+import org.indiafoss.companion.core.SessionRating
+import org.indiafoss.companion.core.StoredComparison
 
 private val Context.rankingStore: DataStore<Preferences> by preferencesDataStore(name = "ranking")
-
-/** Everything ranking knows about one session; mirrors the PWA's preference record. */
-@Serializable
-data class SessionRating(
-    val rating: Double = Ranking.INITIAL_RATING,
-    val comparisons: Int = 0,
-    val disposition: String = "normal",
-    /** Quick-pass answer: "yes" or "no". */
-    val triage: String? = null,
-)
-
-@Serializable
-data class StoredComparison(val id: String, val a: String, val b: String, val scoreA: Double, val at: Long)
-
-@Serializable
-data class RankingState(
-    val ratings: Map<String, SessionRating> = emptyMap(),
-    val comparisons: List<StoredComparison> = emptyList(),
-    /** Room (track) id → "skip" | "love". */
-    val rooms: Map<String, String> = emptyMap(),
-    /** Sessions a room skip marked, so leaving Skip restores exactly those. */
-    val roomSkipped: Map<String, List<String>> = emptyMap(),
-    val roomsDecided: Boolean = false,
-) {
-    fun rating(id: String): SessionRating = ratings[id] ?: SessionRating()
-
-    fun dispositionOf(id: String): Disposition = when (rating(id).disposition) {
-        "must-attend" -> Disposition.MUST_ATTEND
-        "not-interested" -> Disposition.NOT_INTERESTED
-        "watch-later" -> Disposition.WATCH_LATER
-        else -> Disposition.NORMAL
-    }
-
-    val answeredPairs: Set<String> get() = comparisons.map { Ranking.pairKey(it.a, it.b) }.toSet()
-
-    val history: List<ComparisonEntry> get() = comparisons.map { ComparisonEntry(it.a, it.b, it.scoreA) }
-
-    val roomPreferences: Map<String, RoomPreference>
-        get() = rooms.mapNotNull { (id, pref) ->
-            when (pref) {
-                "skip" -> id to RoomPreference.SKIP
-                "love", "stay" -> id to RoomPreference.LOVE
-                else -> null
-            }
-        }.toMap()
-}
 
 /**
  * Ratings, answered pairs and room preferences, as one JSON document in
@@ -86,15 +40,30 @@ class RatingsStore(private val context: Context) {
         }
     }
 
+    /** Replace the whole document, only if it still equals `expected`; null restores unconditionally (see `PersonalDataRepository`). */
+    suspend fun replace(expected: RankingState?, next: RankingState) {
+        context.rankingStore.edit { prefs ->
+            val current = prefs[key]?.let { runCatching { json.decodeFromString<RankingState>(it) }.getOrNull() } ?: RankingState()
+            if (expected != null && current != expected) throw ConcurrentEditException("ranking")
+            prefs[key] = json.encodeToString(next)
+        }
+    }
+
     suspend fun setRating(id: String, rating: Double, comparisons: Int) = update { s ->
         s.copy(ratings = s.ratings + (id to s.rating(id).copy(rating = rating, comparisons = comparisons)))
     }
 
+    /** A must-go mark is an explicit answer: it overrides an earlier clash loss (#271). */
     suspend fun setDisposition(id: String, disposition: Disposition) = update { s ->
-        s.copy(ratings = s.ratings + (id to s.rating(id).copy(disposition = disposition.stored())))
+        val current = s.rating(id)
+        val yielded = if (disposition == Disposition.MUST_ATTEND) null else current.yieldedTo
+        s.copy(ratings = s.ratings + (id to current.copy(disposition = disposition.stored(), yieldedTo = yielded)))
     }
 
-    /** Quick pass: "no" rules the session out, "yes" keeps it in, null clears the answer. */
+    /**
+     * Quick pass: "no" rules the session out, "yes" keeps it in, null clears
+     * the answer. Any direct answer supersedes an earlier clash loss (#271).
+     */
     suspend fun setTriage(id: String, answer: String?) = update { s ->
         val current = s.rating(id)
         val disposition = when {
@@ -102,7 +71,17 @@ class RatingsStore(private val context: Context) {
             current.disposition == "not-interested" -> "normal"
             else -> current.disposition
         }
-        s.copy(ratings = s.ratings + (id to current.copy(triage = answer, disposition = disposition)))
+        s.copy(ratings = s.ratings + (id to current.copy(triage = answer, disposition = disposition, yieldedTo = null)))
+    }
+
+    /** Stand `id` aside for `winner` in a clash (#271); null puts it back in the running ("Reconsider"). */
+    suspend fun setYieldedTo(id: String, winner: String?) = update { s ->
+        s.copy(ratings = s.ratings + (id to s.rating(id).copy(yieldedTo = winner)))
+    }
+
+    /** Put a session's record back exactly as it was: undo of a pick, tie or drop. */
+    suspend fun restore(id: String, record: SessionRating) = update { s ->
+        s.copy(ratings = s.ratings + (id to record))
     }
 
     suspend fun record(comparison: StoredComparison) = update { s ->

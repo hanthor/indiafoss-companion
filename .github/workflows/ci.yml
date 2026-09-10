@@ -9,12 +9,103 @@ on:
       ref:
         type: string
         required: true
+  # A manual run always executes every gate, whatever the branch touched.
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit or branch to test (default: the dispatched ref)'
+        type: string
+        required: false
 
 concurrency:
   group: ci-${{ inputs.ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Decides which of the four gates a change can affect. Every gate keeps its
+  # name (the branch ruleset requires all four by name), and a gate that has
+  # nothing to do is *skipped* at the job level: a skipped job still reports
+  # a conclusion, which satisfies the ruleset, whereas an `on.paths` filter
+  # would leave the required check missing and the PR unmergeable.
+  #
+  # Only pull requests are filtered. A push to main, a workflow_call from the
+  # schedule sync, and a manual dispatch run everything, so main always has
+  # full evidence and a stale filter can never hide a regression there.
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      # 'true' when the web build, the Playwright suites, or the packages
+      # they import could differ; always 'true' outside a pull request.
+      web: ${{ github.event_name != 'pull_request' || steps.filter.outputs.web == 'true' }}
+      # 'true' when the Compose client, its bundled data, or the Maestro
+      # flows could differ; always 'true' outside a pull request.
+      native: ${{ github.event_name != 'pull_request' || steps.filter.outputs.native == 'true' }}
+      # 'true' when a pull request touches neither of the above, so only the
+      # `checks` job (which formats the markdown) has anything to do.
+      docs-only: ${{ github.event_name == 'pull_request' && steps.filter.outputs.web != 'true' && steps.filter.outputs.native != 'true' }}
+    steps:
+      # No checkout: on pull_request the action lists the PR's files through
+      # the API, and on every other event this step does not run.
+      # Hash-pinned: dorny is outside the actions/* org the rest of this file
+      # trusts by major tag. Renovate keeps the digest current (the comment
+      # carries the version it resolves).
+      - name: Compare the pull request against its base
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: |
+            # Feeds `e2e`. Everything pnpm builds for the PWA: the app, every
+            # workspace package (apps/web depends on all of them), the event
+            # bundles it serves, the tools that verify fixtures and venues,
+            # and the root toolchain files that change what a build means.
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'events/**'
+              - 'tools/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'tsconfig.base.json'
+              - 'eslint.config.js'
+              - '.github/workflows/ci.yml'
+            # Feeds `native` and `android-emulator`. The Compose client and its
+            # Gradle wrapper, plugin and version catalog live under
+            # apps/android; app/build.gradle.kts also copies the event bundle
+            # and the venue assets from apps/web/static into the APK, the
+            # Robolectric tests read packages/test-fixtures and the model
+            # contract in packages/model, and the emulator job drives the
+            # flows in .maestro through the scripts named here.
+            native:
+              - 'apps/android/**'
+              - 'apps/web/static/venues/**'
+              - 'packages/test-fixtures/**'
+              - 'packages/model/**'
+              - 'events/**'
+              - '.maestro/**'
+              - 'scripts/**'
+              - '.github/scripts/**'
+              - '.github/workflows/ci.yml'
+
+      - name: Summarise the decision
+        env:
+          WEB: ${{ github.event_name != 'pull_request' || steps.filter.outputs.web == 'true' }}
+          NATIVE: ${{ github.event_name != 'pull_request' || steps.filter.outputs.native == 'true' }}
+        run: |
+          {
+            echo "| Gate | Runs |"
+            echo "| --- | --- |"
+            echo "| Format · Lint · Typecheck · Test · Build | always |"
+            echo "| Playwright E2E (with time-travel) | $WEB |"
+            echo "| Native Compose client | $NATIVE |"
+            echo "| Android emulator (Maestro) | $NATIVE (after the native job succeeds) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   checks:
     name: Format · Lint · Typecheck · Test · Build
     runs-on: ubuntu-latest
@@ -78,6 +169,8 @@ jobs:
   e2e:
     name: Playwright E2E (with time-travel)
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.web == 'true'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -138,6 +231,8 @@ jobs:
   native:
     name: Native Compose client
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -151,7 +246,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Core and app tests (including Robolectric screen renders)
         run: bash scripts/android-test.sh
@@ -192,8 +287,11 @@ jobs:
     name: Android emulator (Maestro)
     runs-on: ubuntu-latest
     # Reuses the debug APK the native job already produced and uploaded, so
-    # this costs an emulator boot rather than a second Gradle run.
-    needs: native
+    # this costs an emulator boot rather than a second Gradle run. Skipped
+    # (not failed) when native has nothing to do; the explicit result check
+    # means a cancelled or failed native job never lets this one start.
+    needs: [changes, native]
+    if: needs.changes.outputs.native == 'true' && needs.native.result == 'success'
     steps:
       - uses: actions/checkout@v7
         with:
@@ -220,7 +318,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Cache the AVD
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: avd-cache
         with:
           path: |

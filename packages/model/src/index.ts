@@ -286,6 +286,32 @@ export {
 } from './handshake.js';
 export type { HandshakeAlgorithm, HandshakeKeyPair, HandshakePublicKey } from './handshake.js';
 export {
+  BINDING_CLOCK_SKEW_MS,
+  BINDING_DOMAIN,
+  BINDING_VERSION,
+  MAX_BINDING_VALIDITY_MS,
+  bindingSigningBytes,
+  bindingSigningBytesHex,
+  canonicalJson,
+  collectBindingStatementIssues,
+  collectSignedBindingIssues,
+  signBinding,
+  verifyBinding,
+  webCryptoSigner,
+} from './binding.js';
+export type {
+  BindingDraft,
+  BindingResult,
+  BindingSigner,
+  BindingState,
+  BindingStatement,
+  BindingVerifyInput,
+  MatrixKeyKind,
+  MatrixKeyMaterial,
+  MatrixKeyProvenance,
+  SignedBinding,
+} from './binding.js';
+export {
   collectMessagingIssues,
   conferenceChatAlias,
   homeserverName,

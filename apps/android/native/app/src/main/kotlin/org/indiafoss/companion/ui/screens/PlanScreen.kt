@@ -29,11 +29,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.core.Schedule
-import org.indiafoss.companion.data.StoredBlock
+import org.indiafoss.companion.core.StoredBlock
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.OutlinedTextField
@@ -57,6 +58,8 @@ fun PlanScreen(
     onRestore: (String) -> Unit = {},
     onAddBlock: (StoredBlock) -> Unit = {},
     onRemoveBlock: (String) -> Unit = {},
+    /** Put a talk that stood aside in a clash back in the running (#271). */
+    onReconsider: (String) -> Unit = {},
     onOpen: (String) -> Unit,
 ) {
     val days = state.days
@@ -150,6 +153,27 @@ fun PlanScreen(
                     Row(Modifier.fillMaxWidth().padding(20.dp, 2.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
                         Text("Removed: ${activity.title}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                         TextButton(onClick = { onRestore(activity.id) }) { Text("Restore") }
+                    }
+                }
+                val stoodAside = state.stoodAsideOn(day)
+                if (stoodAside.isNotEmpty()) item {
+                    Text("Stood aside", style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(20.dp, 10.dp, 20.dp, 0.dp).testTag("stood-aside"))
+                    Text(
+                        "Talks you were interested in that lost a clash. They are not dislikes; reconsider one to put it back in the running.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(20.dp, 2.dp),
+                    )
+                }
+                items(stoodAside, key = { "y-" + it.activity.id }) { row ->
+                    Row(Modifier.fillMaxWidth().padding(20.dp, 2.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            TextButton(onClick = { onOpen(row.activity.id) }, contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) {
+                                Text(row.activity.title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                            }
+                            Text("stood aside for ${row.winner.title}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        TextButton(onClick = { onReconsider(row.activity.id) }) { Text("Reconsider") }
                     }
                 }
                 items(plan.filter { it.source != ResolvedPlan.Source.BLOCK }, key = { it.activity.id }) { item ->

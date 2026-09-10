@@ -1,8 +1,9 @@
 import { base } from '$app/paths';
 import { CompanionStorage } from '@indiafoss/storage';
 import { collectBundleIssues, type EventBundle } from '@indiafoss/model';
+import { DEFAULT_EVENT_ID, isKnownEventId } from '$lib/event-id';
 
-export const DEFAULT_EVENT_ID = 'indiafoss-2026';
+export { DEFAULT_EVENT_ID } from '$lib/event-id';
 /** Static, hash-less asset; precached by the service worker (§34). */
 export const EVENT_BUNDLE_URL = `${base}/events/${DEFAULT_EVENT_ID}/event-bundle.json`;
 export const EVENT_MANIFEST_URL = `${base}/events/${DEFAULT_EVENT_ID}/manifest.json`;
@@ -74,10 +75,9 @@ function selectedEventId(): string {
   if (typeof window === 'undefined') return DEFAULT_EVENT_ID;
   try {
     const requested = new URL(window.location.href).searchParams.get('event');
-    if (requested === 'indiafoss-2025' || requested === 'indiafoss-2026')
-      sessionStorage.setItem('selected-event', requested);
+    if (isKnownEventId(requested)) sessionStorage.setItem('selected-event', requested);
     const selected = sessionStorage.getItem('selected-event');
-    return selected === 'indiafoss-2025' ? selected : DEFAULT_EVENT_ID;
+    return isKnownEventId(selected) ? selected : DEFAULT_EVENT_ID;
   } catch {
     return DEFAULT_EVENT_ID;
   }

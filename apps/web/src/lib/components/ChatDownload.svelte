@@ -6,7 +6,7 @@
   <div class="downloads">
     <a
       class="button"
-      href="https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk"
+      href="https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk"
     >
       Download Chat APK
     </a>
@@ -17,6 +17,15 @@
   <p class="muted">
     Android 7.0 or later. Open the downloaded APK and allow installation from your browser when
     Android asks.
+  </p>
+  <p class="muted">
+    That build is for arm64 phones, which is almost all of them, and is the smaller download. If it
+    will not install, take the
+    <a
+      href="https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk"
+      >build for every architecture</a
+    >
+    instead. Either one updates the other in place.
   </p>
   <p class="muted">
     Keep it updated with

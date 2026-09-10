@@ -8,7 +8,15 @@ change** — a fork whose differences live only in git log is a fork nobody can
 reason about.
 
 Revision pins live in `patches/neutrino/version.json`; this file explains
-them.
+them. The chain from these forks to a handset is:
+`hanthor/neutrino` (`neutrino.rev`) → compiled into `hanthor/neutrino-iroh`
+(`source`/`ref`/`commit`) → `.aar` built by
+[`neutrino-bindings.yml`](../.github/workflows/neutrino-bindings.yml) and
+published as the release `neutrino-bindings-<version>` → pinned by version and
+SHA-256 in the Chat app. `version` names both commits
+(`0.8.2-e2ee.<neutrino rev>-ble.<neutrino-iroh commit>`), and the workflow
+refuses one that does not, so no earlier release asset is ever overwritten
+(`patches/neutrino/README.md`, "How the bindings are pinned").
 
 ## hanthor/neutrino — the embedded homeserver
 
@@ -77,7 +85,10 @@ directory are not conference-specific.
 ## hanthor/neutrino-iroh — the federation medium
 
 Forked from `element-hq/neutrino-iroh` at v0.8.2 (`65e4985`). Branch: `main`,
-4 commits ahead.
+15 commits ahead at `15117e9` (tag `neutrino-kit-15117e9`), which is what the
+bindings are now built from — `version.json`'s `source` names the fork; before
+`0.8.2-e2ee.2d85348-ble.15117e9` the `.aar` was upstream v0.8.2 with only the
+homeserver crates swapped for our fork, so nothing below reached a phone.
 
 - **mDNS LAN discovery** (#1). Upstream discovers peers over BLE only. The
   fork adds iroh's `address-lookup-mdns` (link-local, no internet service —
@@ -96,8 +107,26 @@ Forked from `element-hq/neutrino-iroh` at v0.8.2 (`65e4985`). Branch: `main`,
   is a log line at discovery time rather than a 60-second timeout inside
   somebody's invite.
 
-Pinned to the _fork's_ neutrino branch, so the medium's `.aar` carries the
-directory and the e2ee transport.
+- **`set_discoverable(bool)` on the FFI** (#15). A real BLE hide toggle: the
+  node stops (or never starts) advertising while staying able to browse and
+  dial, and a value sent before `start_ble` is retained, so a user who chose
+  "hidden" is not advertised for the moment between restart and the toggle.
+  This is what [Chat #47](https://github.com/hanthor/indiafoss-chat-android/issues/47)
+  needs to make "switching off keeps you hidden" true rather than a preference
+  that only the UI remembered; uniffi emits it as the static
+  `io.element.neutrino.ble.Neutrino_bleKt.setDiscoverable(boolean)`.
+  BLE-only — mDNS browse/announce is untouched.
+- **Apple build and a media/opus probe** (#7, #8, #11, #12, #14): an
+  XCFramework build of the same medium and loopback proofs that the iroh link
+  carries full-duplex opus. Not consumed by anything here yet.
+
+Pinned to the _fork's_ neutrino branch — `neutrino-ffi-ble/Cargo.toml` depends
+on `hanthor/neutrino` at `e2ee-key-transport` — so the medium's `.aar` carries
+the directory and the e2ee transport. The bindings workflow rewrites that
+branch dependency to `version.json`'s `neutrino.rev` at build time (the fork's
+own lockfile may lag the rev the companion pins: at `15117e9` it resolved
+`4a9972d`, one commit behind `2d85348`), so what a handset runs is always the
+rev this file and `version.json` name.
 
 ## hanthor/indiafoss-chat-android — the phone client
 

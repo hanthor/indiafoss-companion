@@ -1,6 +1,6 @@
 # C-05 — Bookmark three talks and get a useful plan, without ranking anything
 
-- Status: Ready
+- Status: Implemented — discovery/planning (#192 closed); resolved plan PRs #266/#267 and #304 (#221 closed); clash resolution PWA #297, native pending (#110)
 - Repository: indiafoss-companion
 - Tracks: [#192](https://github.com/hanthor/indiafoss-companion/issues/192)
 - Size: M

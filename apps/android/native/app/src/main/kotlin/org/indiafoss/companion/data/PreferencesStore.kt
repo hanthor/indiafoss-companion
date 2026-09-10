@@ -62,12 +62,32 @@ class PreferencesStore(private val context: Context) {
         context.dataStore.edit { it[profileKey] = profile }
     }
 
+    private val dynamicColorKey = booleanPreferencesKey("dynamic-colour")
+
+    /** Material You on Android 12+ for the everyday screens; the event surfaces keep the brand palette either way (#33). */
+    val dynamicColor: Flow<Boolean> = context.dataStore.data.map { it[dynamicColorKey] ?: true }
+
+    suspend fun setDynamicColor(on: Boolean) {
+        context.dataStore.edit { it[dynamicColorKey] = on }
+    }
+
     private val locationKey = stringPreferencesKey("current-location")
 
     val location: Flow<String?> = context.dataStore.data.map { it[locationKey] }
 
     suspend fun setLocation(locationId: String?) {
         context.dataStore.edit { if (locationId == null) it.remove(locationKey) else it[locationKey] = locationId }
+    }
+
+    /** Bookmarks and must-attend together, only if both still equal what the import read; null expectations restore unconditionally (see `PersonalDataRepository`). */
+    suspend fun replaceChoices(expectedBookmarks: Set<String>?, expectedMustAttend: Set<String>?, bookmarks: Set<String>, mustAttend: Set<String>) {
+        context.dataStore.edit { preferences ->
+            val currentBookmarks = preferences[bookmarkKey] ?: emptySet()
+            val currentMust = preferences[mustAttendKey] ?: emptySet()
+            if (expectedBookmarks != null && (currentBookmarks != expectedBookmarks || currentMust != expectedMustAttend)) throw ConcurrentEditException("choices")
+            preferences[bookmarkKey] = bookmarks
+            preferences[mustAttendKey] = mustAttend
+        }
     }
 
     suspend fun toggleBookmark(id: String) = toggle(bookmarkKey, id)

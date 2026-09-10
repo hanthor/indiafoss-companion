@@ -141,3 +141,68 @@ plain per-account switching (already working) remains the fallback.
 Steps 1–4 are individually small and testable on the current base — none of
 them waits for the 26.09.1 port, though landing them _on_ `ex-2609` avoids
 porting them twice.
+
+## Changes since the audit (10 September 2026)
+
+Merged work that touches the anchors above. Each is a merged PR with green CI;
+none is a two-phone or device result.
+
+- **Assumption 16 (`IndiafossLinks.kt`) — partly addressed, still
+  account-blind.** Chat #59 adds `ConferenceLinks.classify` and
+  `ConferenceLinkDispatcher` in `app/…/conference/`: every link the
+  conference surface sees is classified (`InternalConference`, `MatrixLink`,
+  `IndiafossHandoff`, `CompanionRoute`, `ExternalWeb`, `Communication`,
+  `Rejected`) and dispatched with `ActivityNotFoundException` handled;
+  Companion routes go to the installed native Companion
+  (`org.indiafoss.companion.nativeapp`) with a PWA fallback. `IndiafossLinks`
+  remains the parser for `indiafoss://chat|friend`, and `neutrino_server_name`
+  links still resolve to `@n:<hex>` with no session choice — the
+  account-aware routing this note asks for is Chat #46, explicitly out of
+  scope in #59. Chat #61 puts an "Open Companion" action on the same
+  dispatcher.
+- **Assumption 10 (`NeutrinoService`) — grew a discoverability seam, still no
+  `stop()`.** Chat #60/#62 add `setDiscoverable(Boolean): DiscoverableResult`
+  (`Applied` / `Unavailable` / `Failed`), `isDiscoverabilityControlAvailable()`
+  and `start(discoverable)`, which sends `set_discoverable(false)` before
+  `startBle` so a hidden choice survives a restart. The node is still
+  start-once-per-process. The FFI exists because the bindings are now built
+  from `hanthor/neutrino-iroh@15117e9` (Companion #305) and pinned as
+  `0.8.2-e2ee.2d85348-ble.15117e9` in Chat #62.
+- **Fact 3 in the ADR (public profile link, no binding) — corrected in code.**
+  Companion #300 renames `MeshLinkState.verified` to `profile-matched`,
+  migrates stored records on read, and shows card signature, in-person badge
+  comparison, profile match and Chat device verification as four separate
+  states. Companion #324 (below) adds the binding verifier that produces `binding-valid`; nothing produces `verified`. Companion #315 puts
+  every persisted identity behind `identity.version: 1` and retains unread
+  shapes without routing them. `StartDM.kt`'s `dmWouldBeKeyDead` (assumption 15) is untouched; the Stage 1 router still waits on #188.
+- **Companion side of the seam shrank.** `@indiafoss/matrix` now exports only
+  the profile-field, mesh-link and handoff helpers plus what
+  `tools/neutrino-probe` drives (#314). Nothing in this note's Chat-side plan
+  depends on the removed exports.
+
+## The identity binding (#188), as of 10 September 2026
+
+The trust root of Stage 1 is specified in
+[`docs/identity-binding.md`](../identity-binding.md) and implemented as a
+verifier on both platforms. What Chat would need to do to mint one, and what
+it must not assume:
+
+- **Signing.** `OlmMachine::sign(message)` signs a string with the device
+  key and, when cross-signing is set up, the master key — the preferred
+  `matrixKeyKind`. The message is the exact bytes of
+  `docs/identity-binding.md` §3 (`domain ‖ "\n" ‖ canonical JSON`); the
+  Companion signs the same bytes with the card key. The `Signatures` value
+  the SDK returns is keyed `ed25519:<id>`; the binding takes the raw
+  signature under the master key's id, base64url.
+- **Minting** needs both identities on one device: Stage 0's multi-account
+  is a prerequisite, not a nicety. `matrixKeyId` for the master key is
+  `ed25519:<unpadded base64 of the key>`; for a device key it is
+  `ed25519:<DEVICE_ID>`.
+- **Verifying on the Chat side** needs `/keys/query` for the peer's account,
+  which the SDK already does as part of E2EE; the verifier then records the
+  provenance (`server` at best, `user-verified` after emoji/QR on the master
+  key). Chat's existing user verification flow is what lifts a binding from
+  `binding-valid` to `verified`; nothing else may.
+- **Not in the fork yet:** no signing call, no profile field, no `/keys/query`
+  consumer for bindings, no route selection on a binding. The cross-seam DM
+  guard (chat-android#40) stays a refusal.

@@ -4,11 +4,17 @@ name: Neutrino bindings
 # release asset, so building the P2P variant of the Android app needs no
 # credentials from anyone.
 #
-# The .aar is neutrino-iroh (BLE transport + FFI) compiled against OUR fork of
+# The .aar is neutrino-iroh (BLE transport + FFI) — from the repository
+# version.json's `source` names, at its `ref` — compiled against OUR fork of
 # the homeserver, hanthor/neutrino, at the rev pinned in version.json: that is
-# how the E2EE patches in patches/neutrino/ reach a phone. neutrino-iroh pins
-# upstream by git tag, so a cargo [patch] section redirects those two crates
-# at build time. The fork is not offered upstream (see patches/neutrino/README).
+# how the E2EE patches in patches/neutrino/ reach a phone. Two shapes of
+# neutrino-iroh are handled: upstream (element-hq) pins the homeserver crates
+# by git tag, so a cargo [patch] section redirects them; our own fork
+# (hanthor/neutrino-iroh) already depends on hanthor/neutrino by *branch*, and
+# Cargo refuses a [patch] onto the same source URL, so those dependency lines
+# are rewritten to the pinned rev instead. Either way the lockfile must end up
+# naming `?rev=<rev>`, and a step checks that it does. Neither fork is offered
+# upstream (see patches/neutrino/README and docs/forks.md).
 #
 # Why this exists: the upstream artifact is published to GitHub Packages, and
 # GitHub Packages will not serve Maven artifacts anonymously — a request with
@@ -26,7 +32,10 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: 'neutrino-iroh tag to build (e.g. v0.8.2)'
+        description: >-
+          neutrino-iroh tag to build (e.g. neutrino-kit-15117e9). Overrides
+          version.json's ref only; the checked-out commit must still be named
+          in version.json's version, or the build refuses to publish.
         required: false
   push:
     branches: [main]
@@ -56,43 +65,55 @@ jobs:
           if [ -z "$ref" ]; then
             ref=$(node -p "require('$pin').ref")
           fi
-          # The published version names both pins: the neutrino-iroh tag and
-          # the fork rev the homeserver crates come from.
+          # The published version names both pins: the neutrino-iroh commit
+          # and the fork rev the homeserver crates come from (checked below,
+          # once neutrino-iroh is checked out).
           version=$(node -p "require('$pin').version")
+          # `source` is the neutrino-iroh repository URL; owner/name for
+          # actions/checkout and the release body derive from it.
+          source=$(node -p "require('$pin').source")
+          repo=$(node -p "new URL('$source').pathname.replace(/^\/|\.git$/g, '')")
           fork=$(node -p "require('$pin').neutrino.repo")
           rev=$(node -p "require('$pin').neutrino.rev")
-          echo "ref=$ref" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "fork=$fork" >> "$GITHUB_OUTPUT"
-          echo "rev=$rev" >> "$GITHUB_OUTPUT"
-          echo "Building neutrino-iroh $ref against $fork@$rev as $version"
+          case "$repo" in */*) ;; *) echo "cannot derive owner/name from source '$source'"; exit 1 ;; esac
+          {
+            echo "ref=$ref"
+            echo "version=$version"
+            echo "source=$source"
+            echo "repo=$repo"
+            echo "fork=$fork"
+            echo "rev=$rev"
+          } >> "$GITHUB_OUTPUT"
+          echo "Building $repo@$ref against $fork@$rev as $version"
 
       - name: Check out neutrino-iroh
         uses: actions/checkout@v7
         with:
-          repository: element-hq/neutrino-iroh
+          repository: ${{ steps.pin.outputs.repo }}
           ref: ${{ steps.pin.outputs.ref }}
           path: neutrino-iroh
 
-      - name: Point neutrino-iroh at the fork
+      - name: Refuse a version that would clobber an earlier asset
+        # The release step overwrites files on an existing tag, and the Chat
+        # app pins each asset by SHA-256. A rebuild under a version string
+        # that does not name *both* commits it is built from would replace
+        # the asset an older pin points at, so the version must carry the
+        # short SHA of the neutrino-iroh commit actually checked out and of
+        # the homeserver fork rev. (`ref` may be a tag or a branch; the
+        # checked-out commit is what the artifact is made from.)
+        id: head
         working-directory: neutrino-iroh
         run: |
-          # neutrino-ffi-ble depends on neutrino-ffi and neutrino-main from
-          # element-hq/neutrino by tag. Cargo's [patch] replaces that git
-          # source with the fork at a pinned rev; every other neutrino crate
-          # follows as a path dependency of those two. The fork branch is the
-          # same base commit plus the E2EE patches, so the seam is identical.
-          cat >> Cargo.toml <<EOF
-
-          [patch."https://github.com/element-hq/neutrino"]
-          neutrino-ffi = { git = "https://github.com/${{ steps.pin.outputs.fork }}", rev = "${{ steps.pin.outputs.rev }}" }
-          neutrino-main = { git = "https://github.com/${{ steps.pin.outputs.fork }}", rev = "${{ steps.pin.outputs.rev }}" }
-          EOF
-          # build-aar.sh records the neutrino commit from the lockfile by
-          # grepping for the upstream URL; widen it so the fork's rev is what
-          # ends up in the POM.
-          sed -i 's|/element-hq/neutrino\[|/[^/]+/neutrino[|' build-aar.sh
-          grep -n 'NEUTRINO_COMMIT=' build-aar.sh
+          head=$(git rev-parse HEAD)
+          echo "commit=$head" >> "$GITHUB_OUTPUT"
+          version='${{ steps.pin.outputs.version }}'
+          for sha in "$head" '${{ steps.pin.outputs.rev }}'; do
+            case "$version" in
+              *"${sha:0:7}"*) ;;
+              *) echo "version '$version' does not name commit ${sha:0:7}; it would overwrite an asset built from something else"; exit 1 ;;
+            esac
+          done
+          echo "$version names neutrino-iroh ${head:0:7} and neutrino ${{ steps.pin.outputs.rev }}"
 
       - uses: actions/setup-java@v6
         with:
@@ -124,6 +145,45 @@ jobs:
             aarch64-linux-android armv7-linux-androideabi \
             i686-linux-android x86_64-linux-android
 
+      - name: Point neutrino-iroh at the fork
+        working-directory: neutrino-iroh
+        run: |
+          fork='https://github.com/${{ steps.pin.outputs.fork }}'
+          rev='${{ steps.pin.outputs.rev }}'
+          manifest=neutrino-ffi-ble/Cargo.toml
+          if grep -qE "git = \"$fork(\.git)?\"" "$manifest"; then
+            # Our own neutrino-iroh already depends on the fork by branch
+            # (whatever its lockfile happens to resolve). Cargo refuses a
+            # [patch] whose source URL equals the dependency's, so pin the
+            # dependency lines themselves to the rev, then re-resolve only
+            # those two packages so the rest of the lockfile stays as the
+            # fork committed it.
+            sed -i -E "s#^(neutrino-(ffi|main) = \{ git = \"$fork(\.git)?\", )branch = \"[^\"]+\"#\1rev = \"$rev\"#" "$manifest"
+            grep -nE '^neutrino-(ffi|main) = ' "$manifest"
+            grep -qE "^neutrino-ffi = .*rev = \"$rev\"" "$manifest" || { echo "failed to pin neutrino-ffi to $rev"; exit 1; }
+            grep -qE "^neutrino-main = .*rev = \"$rev\"" "$manifest" || { echo "failed to pin neutrino-main to $rev"; exit 1; }
+            cargo update -p neutrino-ffi -p neutrino-main || cargo update --workspace
+          else
+            # Upstream neutrino-ffi-ble depends on neutrino-ffi and
+            # neutrino-main from element-hq/neutrino by tag. Cargo's [patch]
+            # replaces that git source with the fork at a pinned rev; every
+            # other neutrino crate follows as a path dependency of those two.
+            # The fork branch is the same base commit plus the E2EE patches,
+            # so the seam is identical.
+            cat >> Cargo.toml <<EOF
+
+          [patch."https://github.com/element-hq/neutrino"]
+          neutrino-ffi = { git = "$fork", rev = "$rev" }
+          neutrino-main = { git = "$fork", rev = "$rev" }
+          EOF
+          fi
+          grep -E 'name = "neutrino-(ffi|main)"$' -A2 Cargo.lock
+          # build-aar.sh records the neutrino commit from the lockfile by
+          # grepping for the upstream URL; widen it so the fork's rev is what
+          # ends up in the POM.
+          sed -i 's|/element-hq/neutrino\[|/[^/]+/neutrino[|' build-aar.sh
+          grep -n 'NEUTRINO_COMMIT=' build-aar.sh
+
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: neutrino-iroh
@@ -153,8 +213,8 @@ jobs:
           test -n "$aar" || { echo "no .aar produced"; exit 1; }
           cp "$aar" dist/neutrino-bindings-${{ steps.pin.outputs.version }}.aar
           cd dist
-          sha256sum *.aar > neutrino-bindings-${{ steps.pin.outputs.version }}.aar.sha256
-          cat *.sha256
+          sha256sum ./*.aar > neutrino-bindings-${{ steps.pin.outputs.version }}.aar.sha256
+          cat ./*.sha256
           ls -la
 
       - name: Publish as a release asset
@@ -166,11 +226,13 @@ jobs:
           # AGPL-3.0-or-later, redistributed under the same licence as this app.
           body: |
             `io.element.neutrino:bindings:${{ steps.pin.outputs.version }}`, built from source
-            from [element-hq/neutrino-iroh@${{ steps.pin.outputs.ref }}](https://github.com/element-hq/neutrino-iroh/tree/${{ steps.pin.outputs.ref }})
+            from [${{ steps.pin.outputs.repo }}@${{ steps.pin.outputs.ref }}](${{ steps.pin.outputs.source }}/tree/${{ steps.pin.outputs.ref }})
+            (commit `${{ steps.head.outputs.commit }}`)
             with the homeserver crates from
             [${{ steps.pin.outputs.fork }}@${{ steps.pin.outputs.rev }}](https://github.com/${{ steps.pin.outputs.fork }}/commit/${{ steps.pin.outputs.rev }})
             — our fork carrying the E2EE patches in `patches/neutrino/` —
             by [`neutrino-bindings.yml`](../../blob/main/.github/workflows/neutrino-bindings.yml).
+            The provenance of both forks is described in `docs/forks.md`.
 
             **This is not upstream's artifact** and is not offered to upstream.
 
@@ -180,7 +242,8 @@ jobs:
 
             The `.aar` is AGPL-3.0-only (it bundles the AGPL `blew` and
             `iroh-ble-transport` crates); this repository is AGPL-3.0-or-later.
-            Source: <https://github.com/element-hq/neutrino-iroh>.
+            Source: <${{ steps.pin.outputs.source }}> (upstream:
+            <https://github.com/element-hq/neutrino-iroh>).
           files: |
             dist/neutrino-bindings-${{ steps.pin.outputs.version }}.aar
             dist/neutrino-bindings-${{ steps.pin.outputs.version }}.aar.sha256

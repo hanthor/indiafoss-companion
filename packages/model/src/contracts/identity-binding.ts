@@ -1,28 +1,29 @@
 /**
- * IdentityBinding — a statement that one person controls both a mesh identity
- * and a classic Matrix account.
+ * IdentityBinding — the stored envelope for a statement that one person
+ * controls both a mesh identity and a classic Matrix account.
  *
- * ## This module deliberately stops short of verification
+ * ## Envelope here, cryptography in `../binding.ts`
  *
- * The envelope, identifiers, scope, validity and revocation shape are defined
- * here because forward-compatible storage does not need a settled signature
- * format (same argument as #160). The parts that make a binding *mean*
- * something — the canonical signing encoding, the domain separation string,
- * replay and expiry rules, device-deletion and cross-signing-reset handling,
- * and how Matrix device trust is fetched and weighed — are specified in **#188
- * and are not implemented here**.
+ * This module is the *storage* shape (ADR 0009 §4): identifiers, scope,
+ * validity and the slots a verifier's conclusion goes in. The signed
+ * statement itself — canonical encoding, domain separation, both
+ * signatures, and `verifyBinding()` against keys the verifier holds — is
+ * `packages/model/src/binding.ts`, specified normatively in
+ * `docs/identity-binding.md` (#188). `matrixDeviceId` here names the device
+ * that presented the binding; the signing key is named inside the signed
+ * statement (`matrixKeyId`, `matrixKeyKind`), and may be the account's
+ * master key rather than a device key.
  *
- * Until #188 lands: {@link collectIdentityBindingIssues} validates *structure
- * only*. A binding that passes is **not** verified, must not upgrade a contact
- * to `verified`, and must not enable automatic routing between transports. The
- * adversarial case it does not defend against is exactly the one #188 exists
- * to close: someone putting another person's MXID in `matrixUserId` and
- * self-signing.
- *
- * ADR 0006 describes a stronger mechanism than the code implements; that
- * correction is tracked in #188 and restated in
- * `docs/architecture/system.md` ("Identity and trust").
+ * {@link collectIdentityBindingIssues} still validates *structure only*. A
+ * binding that passes is **not** verified, must not upgrade a contact to
+ * `verified`, and must not enable automatic routing between transports. A
+ * verified signature earns `binding-valid` (`contact-card.ts`); `verified`
+ * additionally needs Chat's user verification of the Matrix key, and
+ * {@link mayActOn} keeps refusing `continuation` and `routing` until a
+ * verifier records `presentAsVerified` — which nothing in this repository
+ * does. Automatic routing stays gated on #188's review and Chat #48.
  */
+import { BINDING_DOMAIN } from '../binding.js';
 import {
   collectSchemaVersionIssues,
   isHex64,
@@ -38,12 +39,12 @@ import {
 export const IDENTITY_BINDING_SCHEMA_VERSION = 1;
 
 /**
- * Domain separation prefix for the eventual signing encoding.
- *
- * Declared here so every platform agrees on it from the start. **Nothing signs
- * or verifies with it yet** — the encoding it prefixes is #188's to specify.
+ * Domain separation string of the signed statement — the same value as
+ * `BINDING_DOMAIN` in `../binding.ts`, re-exported here so the envelope and
+ * the signature agree by construction. The version rides in the string; a
+ * `v2` domain reads as `unknown-version`, not as tampering.
  */
-export const IDENTITY_BINDING_DOMAIN = 'in.indiafoss.identity-binding.v1';
+export const IDENTITY_BINDING_DOMAIN = BINDING_DOMAIN;
 
 /** What the binding is claimed to authorize. Narrow by default. */
 export type BindingScope =

@@ -1,6 +1,6 @@
 import { base } from '$app/paths';
-import { diffBundles, summarizeChanges } from '@indiafoss/schedule';
-import type { ScheduleChange } from '@indiafoss/schedule';
+import { describeChanges, diffBundles, summarizeChanges } from '@indiafoss/schedule';
+import type { ScheduleChange, ScheduleChangeDetail } from '@indiafoss/schedule';
 import type { EventBundle } from '@indiafoss/model';
 import { collectBundleIssues } from '@indiafoss/model';
 import { CompanionStorage } from '@indiafoss/storage';
@@ -22,6 +22,14 @@ export const updateState = $state<{
   revision: number | null;
   changes: ScheduleChange[];
   summary: Record<string, number>;
+  /** Every change in `changes`, said in plain language, for the notice (#312). */
+  details: ScheduleChangeDetail[];
+  /**
+   * True only when `details` is the whole list for this revision. False means
+   * the notice must say the programme changed and stop there: a partial list
+   * shown as a complete one is worse than no list.
+   */
+  detailsComplete: boolean;
   error: string | null;
 }>({
   eventId: null,
@@ -30,6 +38,8 @@ export const updateState = $state<{
   revision: null,
   changes: [],
   summary: {},
+  details: [],
+  detailsComplete: false,
   error: null,
 });
 
@@ -79,6 +89,24 @@ function assetUrl(eventId: string, asset: string | undefined): string {
  * behaviour, and the #189 regression tests, live in `update-gate.ts`.
  */
 const gate = new UpdateGate();
+
+/**
+ * Whether this run may build the change list (#312).
+ *
+ * The notice degrades to "the programme changed" with no list when the
+ * previous revision cannot be diffed. The production check holds the
+ * attendee's current bundle in memory and returns early without it, so that
+ * branch is unreachable from the app itself; `?updates=summary-only` reaches
+ * it for a test, the way `?now=` reaches a fixed clock.
+ */
+function mayDescribeChanges(): boolean {
+  if (typeof window === 'undefined') return true;
+  try {
+    return new URL(window.location.href).searchParams.get('updates') !== 'summary-only';
+  } catch {
+    return true;
+  }
+}
 
 /** Forget the check state. Test seam; not part of the app's own flow. */
 export function resetUpdateChecks(): void {
@@ -214,6 +242,8 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
         updateState.available = false;
         updateState.changes = [];
         updateState.summary = {};
+        updateState.details = [];
+        updateState.detailsComplete = false;
       }
       return true;
     }
@@ -224,6 +254,11 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
     updateState.revision = manifest.revision;
     updateState.changes = changes;
     updateState.summary = summarizeChanges(changes);
+    // Both revisions are in hand here, so the list is complete by construction:
+    // the same diff the counts are drawn from, only said out loud.
+    const describable = mayDescribeChanges();
+    updateState.details = describable ? describeChanges(eventState.bundle, next) : [];
+    updateState.detailsComplete = describable;
     return true;
   } catch (error) {
     updateState.error = error instanceof Error ? error.message : String(error);
@@ -252,6 +287,8 @@ export async function applyUpdate(eventId: string): Promise<void> {
       updateState.available = false;
       updateState.changes = [];
       updateState.summary = {};
+      updateState.details = [];
+      updateState.detailsComplete = false;
     }
     updateState.error = null;
   } catch {
