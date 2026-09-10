@@ -313,6 +313,21 @@ class NativePersonalDataTest {
     }
 
     @Test
+    fun `a clash settlement keeps its stood-aside mark and clash flag through native`() {
+        val result = preview(fixture("clash-settlement.json"))
+        val loser = result.change("preferences:talk-b").write as ImportWrite.Preference
+        assertEquals("talk-a", loser.rating.yieldedTo)
+        val clash = result.change("comparisons:clash-1").write as ImportWrite.Comparison
+        assertTrue(clash.comparison.clash)
+        val applied = NativePersonalData.apply(PersonalState(), result.changes, bundle())
+        assertEquals("talk-a", applied.ranking.yieldedTo("talk-b"))
+        assertTrue(applied.ranking.history.single().clash)
+        // Re-exported, the same two fields come back out for the PWA.
+        val text = PersonalDataFiles.encode(NativePersonalData.export(applied, bundle()))
+        assertTrue("\"yieldedTo\":\"talk-a\"" in text && "\"clash\":true" in text, text)
+    }
+
+    @Test
     fun `the same record twice in one file is imported once and named`() {
         val base = fixture("pwa-export.json")
         val event = base["events"]!!.jsonArray[0].jsonObject.toMutableMap()
