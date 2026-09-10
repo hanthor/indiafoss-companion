@@ -772,3 +772,59 @@ test('without the previous revision the notice says so instead of listing part o
   await expect(banner).toBeHidden();
   await expect(page.getByText(RENAMED_TITLE)).toBeHidden();
 });
+
+test('an update that moves a booked talk agrees across detail, Now, plan and map', async ({
+  page,
+  request,
+}) => {
+  // #191: publishing a change mid-conference is only safe if every surface an
+  // attendee might already be looking at tells them the same thing afterwards.
+  // One surface still showing the old room is how someone walks to the wrong
+  // one while the app looks fine.
+  await page.goto(appUrl(`/activity/${KEPT}?setup=done`));
+  await page.getByRole('button', { name: /Must attend/ }).click();
+  await preferenceSaved(page, KEPT);
+
+  await publish(page, 999, movedProgramme(await publishedBundle(request)));
+  const during = 'setup=done&now=2025-09-20T11%3A20%3A00%2B05%3A30';
+  await page.goto(appUrl(`/schedule?${during}`));
+  const banner = page.getByRole('status', { name: 'Schedule update available' });
+  await expect(banner).toBeVisible({ timeout: 10_000 });
+  await banner.getByRole('button', { name: 'Update' }).click();
+  await expect(banner).toBeHidden();
+
+  // Detail: the moved talk's own page.
+  await page.goto(appUrl(`/activity/${KEPT}?${during}`));
+  const detail = page.getByRole('main');
+  await expect(detail).toContainText('Audi 2');
+  await expect(detail).toContainText('11:15');
+  // The old time must be gone. The track name is still Devroom 1 (AOSP) and
+  // correctly stays: the devroom did not move, this session did, and the page
+  // shows a track only once it differs from the room.
+  await expect(detail).not.toContainText('10:15');
+
+  // Now: at 11:20 the moved talk is running, in its new room.
+  await page.goto(appUrl(`/now?${during}`));
+  const now = page.getByRole('main');
+  await expect(now).toContainText(KEPT_TITLE);
+  await expect(now).toContainText('Audi 2');
+
+  // Plan: the itinerary carries the new time, not the one it was booked at.
+  await page.goto(appUrl(`/plan?${during}`));
+  // Scoped to the moved talk's own row: the itinerary is the whole day, so
+  // another session's time would satisfy a page-wide assertion.
+  const booked = page.locator('.itinerary li').filter({ hasText: KEPT_TITLE });
+  await expect(booked).toHaveCount(1);
+  await expect(booked).toContainText('11:15');
+  await expect(booked).toContainText('Audi 2');
+  await expect(booked).not.toContainText('10:15');
+
+  // Map: the plan's destination highlight follows the talk to its new room.
+  // Read just before it starts, because the map highlights what is next in the
+  // plan; during the talk the highlight has already moved on to the one after.
+  const before = 'setup=done&now=2025-09-20T11%3A05%3A00%2B05%3A30';
+  await page.goto(appUrl(`/map?${before}`));
+  const destination = page.locator('.roomlabel[data-planned-destination=true]');
+  await expect(destination).toHaveCount(1);
+  await expect(destination).toContainText('Audi 2');
+});
