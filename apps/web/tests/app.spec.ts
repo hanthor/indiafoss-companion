@@ -359,7 +359,7 @@ test('now screen shows leave-by with a known location', async ({ page }) => {
   // With a known location the NEXT card says where you are and opens the map on the next room.
   await expect(page.getByText(/You are at/)).toBeVisible({ timeout: 10_000 });
   await page.getByRole('link', { name: 'Show on map' }).click();
-  await expect(page.getByText('DESTINATION')).toBeVisible();
+  await expect(page.getByText('DESTINATION', { exact: true })).toBeVisible();
 });
 
 test('booth directory lists and schedules a visit', async ({ page }) => {
