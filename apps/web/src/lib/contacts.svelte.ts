@@ -5,7 +5,12 @@ import type { AttendeeProfile, FriendPayload } from '@indiafoss/model';
 import { parseContactBook } from '@indiafoss/model';
 import { reconcileContact } from '$lib/contact-continuity';
 import { verifyMeshLink } from '@indiafoss/matrix';
-import { claimsMeshLink, meshLinkStale } from '$lib/mesh-link';
+import { accountTrustOf, claimsMeshLink, meshLinkStale } from '$lib/mesh-link';
+import {
+  asReceivedRecord,
+  confirmedInPerson,
+  withoutInPersonConfirmation,
+} from '$lib/contact-trust';
 import type { ContinuityResult } from '$lib/contact-continuity';
 
 let storage: CompanionStorage | null = null;
@@ -158,10 +163,14 @@ export function contactFromMatrixId(userId: string, eventId?: string): ContactRe
   };
 }
 
-/** Save a scanned card with key continuity against the existing list. */
+/**
+ * Save a scanned card with key continuity against the existing list. The
+ * card came from somebody else's device, so every trust field it might carry
+ * is reset first: a card cannot assert its own verification (C-10 step 4).
+ */
 export async function saveScannedContact(draft: ContactRecord): Promise<ContinuityResult> {
   await hydrateContacts();
-  const result = reconcileContact(draft, contactsState.contacts);
+  const result = reconcileContact(asReceivedRecord(draft), contactsState.contacts);
   await saveContact(result.contact);
   return result;
 }
@@ -202,7 +211,11 @@ export async function importContactBook(text: string): Promise<ImportOutcome | n
     format: parsed.format,
   };
   for (const entry of parsed.entries) {
-    const result = reconcileContact(entry as ContactRecord, contactsState.contacts);
+    // A file is wire input like a QR: whatever trust it claims is dropped.
+    const result = reconcileContact(
+      asReceivedRecord(entry as ContactRecord),
+      contactsState.contacts,
+    );
     await saveContact(result.contact);
     if (result.outcome === 'new') outcome.added++;
     else if (result.outcome === 'updated') outcome.updated++;
@@ -221,11 +234,33 @@ export async function verifyContactMeshLink(contact: ContactRecord): Promise<Con
     matrixId: contact.matrixId,
     meshServerName: contact.neutrinoServerName,
   });
-  const updated = { ...contact, meshLink };
-  // Written in place: a check must not reorder the list under the reader.
+  // `meshLink` is the observation; `accountTrust` the conclusion it supports —
+  // at most `profile-matched`, never `verified` (#188).
+  const updated = { ...contact, meshLink, accountTrust: accountTrustOf(meshLink).trust };
+  return saveInPlace(updated);
+}
+
+/** Written in place: a check or a confirmation must not reorder the list under the reader. */
+async function saveInPlace(record: ContactRecord): Promise<ContactRecord> {
+  // The record usually arrives straight out of the reactive list, i.e. as a
+  // `$state` proxy, which IndexedDB cannot structured-clone (DataCloneError).
+  const updated = $state.snapshot(record) as ContactRecord;
   await getStorage().saveContact(updated);
   contactsState.contacts = contactsState.contacts.map((c) => (c.id === updated.id ? updated : c));
   return updated;
+}
+
+/**
+ * The attendee compared key badges with the other person's phone and says
+ * they matched (#31). Their statement, bound to this card's key; it marks no
+ * account or device as verified.
+ */
+export async function confirmBadgeInPerson(contact: ContactRecord): Promise<ContactRecord> {
+  return saveInPlace(confirmedInPerson(contact, nowIso()));
+}
+
+export async function withdrawBadgeConfirmation(contact: ContactRecord): Promise<ContactRecord> {
+  return saveInPlace(withoutInPersonConfirmation(contact));
 }
 
 /**
