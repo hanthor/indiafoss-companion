@@ -176,12 +176,19 @@
     {/if}
 
     {#if activity.scheduleNote}<p role="status">{activity.scheduleNote}</p>{/if}
-    {#if activity.description}
-      <section>
-        <h2>About</h2>
+    <section>
+      <h2>About</h2>
+      {#if activity.description}
         <p class="description">{activity.description}</p>
-      </section>
-    {/if}
+      {:else}
+        <p class="description muted" data-testid="no-description">
+          No description published by the organiser yet{#if activity.sourceUrl}
+            —
+            <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
+            <a href={activity.sourceUrl} rel="noreferrer">view on fossunited.org</a>{/if}.
+        </p>
+      {/if}
+    </section>
 
     {#if activity.keyTakeaways && activity.keyTakeaways.length > 0}
       <section>
@@ -226,7 +233,9 @@
           {/each}
           {#if activity.sourceUrl}
             <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-            <a href={activity.sourceUrl} rel="noreferrer">View original proposal</a>
+            <a href={activity.sourceUrl} rel="noreferrer"
+              >{activity.proposalId ? 'View original proposal' : 'View the official schedule'}</a
+            >
           {/if}
         </div>
       </section>

@@ -18,6 +18,8 @@ class DiscoveryEligibilityTest {
             assertTrue(Activity(id = "talk", title = it).isDiscoveryActivity())
         }
         assertFalse(Activity(id = "lunch", title = "Lunch", type = "meal").isDiscoveryActivity())
+        assertFalse(Activity(id = "awards", title = "FOSS Awards", type = "ceremony").isDiscoveryActivity())
+        assertFalse(Activity(id = "intro", title = "Devroom Intro: Security", type = "intro").isDiscoveryActivity())
         assertFalse(Activity(id = "cancelled", title = "Talk", cancelled = true).isDiscoveryActivity())
     }
 }

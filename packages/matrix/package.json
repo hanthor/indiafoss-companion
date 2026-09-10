@@ -18,7 +18,7 @@
   "dependencies": {
     "@indiafoss/model": "workspace:*",
     "@indiafoss/storage": "workspace:*",
-    "@matrix-org/matrix-sdk-crypto-wasm": "18.7.0"
+    "@matrix-org/matrix-sdk-crypto-wasm": "18.8.0"
   },
   "devDependencies": {
     "eslint": "^10.9.1",
