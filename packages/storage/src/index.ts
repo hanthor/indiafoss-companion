@@ -30,6 +30,13 @@ export interface ActivityPreference {
    * running and is what the head-to-head round is then limited to.
    */
   triage?: 'yes' | 'no';
+  /**
+   * The session this one stood aside for in a clash (#271). A scheduling
+   * loss kept apart from `disposition`: the talk stays an interest, is left
+   * out of the plan only while the winner is live, and is never learnt as a
+   * dislike. Cleared by any later direct answer.
+   */
+  yieldedTo?: string;
 }
 
 export interface ComparisonRecord {
@@ -39,6 +46,8 @@ export interface ComparisonRecord {
   /** Result score for A: 1.0 / 0.5 / 0.0 (+ effective K, see elo package). */
   scoreA: number;
   createdAt: string;
+  /** Answered as a scheduling clash (#271): the loser is not learnt as a dislike. */
+  clash?: boolean;
 }
 
 export interface EventBundleRecord {

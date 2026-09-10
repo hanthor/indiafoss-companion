@@ -101,6 +101,12 @@ export interface RankedActivity {
   disposition: Disposition;
   /** Direct card choice; independent of historical pairwise ratings. */
   interest?: 'yes' | 'no';
+  /**
+   * The session this one stood aside for in a clash (#271). A scheduling
+   * loss, not a dislike: the attendee still wants it, it just cannot be
+   * attended while `yieldedTo` is live. Ignored for must-go sessions.
+   */
+  yieldedTo?: string;
 }
 
 export interface ComparisonSelectionInput {
@@ -142,9 +148,7 @@ export const SETTLED_GAP = 2 * K_FACTOR;
  * Must-attend and normal items compete; not-interested items are excluded.
  */
 export function selectNextComparison(input: ComparisonSelectionInput): ComparisonCandidate | null {
-  const pool = input.activities.filter(
-    (a) => a.disposition !== 'not-interested' && !a.activity.cancelled,
-  );
+  const pool = clashLivePool(input.activities);
   if (pool.length < 2) return null;
 
   let best: {
@@ -195,9 +199,7 @@ export interface ConflictProgress {
 }
 
 export function conflictProgress(input: ComparisonSelectionInput): ConflictProgress {
-  const pool = input.activities.filter(
-    (a) => a.disposition !== 'not-interested' && !a.activity.cancelled,
-  );
+  const pool = clashLivePool(input.activities);
   let conflicts = 0;
   let settled = 0;
   for (let i = 0; i < pool.length; i++) {
@@ -215,6 +217,92 @@ export function conflictProgress(input: ComparisonSelectionInput): ConflictProgr
     }
   }
   return { conflicts, settled, open: conflicts - settled };
+}
+
+/**
+ * Which of a set of sessions are still in the running after clash losses
+ * (#271). A session that stood aside for a winner is out only while that
+ * winner is itself live; if the winner leaves (ruled out, cancelled, or stood
+ * aside for something else in turn) the loser comes back, so a later,
+ * compatible talk is never suppressed by a decision that no longer holds.
+ * Pinned sessions never stand aside. Resolved to a fixed point; a cycle of
+ * yields (impossible through the UI) leaves all of its members live.
+ */
+export function activeAfterYields<T>(
+  items: readonly T[],
+  id: (item: T) => string,
+  yieldsTo: (item: T) => string | undefined,
+  pinned: (item: T) => boolean,
+): Set<string> {
+  const live = new Set(items.map(id));
+  const yielded = items.filter((item) => !pinned(item) && yieldsTo(item) !== undefined);
+  for (let round = 0; round <= yielded.length; round++) {
+    let changed = false;
+    for (const item of yielded) {
+      const winner = yieldsTo(item)!;
+      const shouldBeOut = live.has(winner) && winner !== id(item);
+      const isOut = !live.has(id(item));
+      if (shouldBeOut && !isOut) {
+        live.delete(id(item));
+        changed = true;
+      } else if (!shouldBeOut && isOut) {
+        live.add(id(item));
+        changed = true;
+      }
+    }
+    if (!changed) break;
+  }
+  return live;
+}
+
+/** The sessions a clash question may still be asked about: not ruled out, not cancelled, not stood aside. */
+export function clashLivePool(activities: readonly RankedActivity[]): RankedActivity[] {
+  const eligible = activities.filter(
+    (a) => a.disposition !== 'not-interested' && !a.activity.cancelled,
+  );
+  const live = activeAfterYields(
+    eligible,
+    (a) => a.activity.id,
+    (a) => a.yieldedTo,
+    (a) => a.disposition === 'must-attend',
+  );
+  return eligible.filter((a) => live.has(a.activity.id));
+}
+
+/** The outcome of picking one session in a clash (#271). */
+export interface ClashResolution {
+  winner: string;
+  /** Losers the winner actually overlaps; they stand aside while it is live. */
+  steppedAside: string[];
+  /** Overlapping must-go losers: kept as they are, so the plan keeps showing the conflict. */
+  keptMustGo: string[];
+  /** Members the winner does not overlap (a staggered slot); untouched and still live. */
+  unaffected: string[];
+}
+
+/**
+ * One pick settles the whole clash: every member the winner overlaps stands
+ * aside for it in one action, so the same window is never asked again as a
+ * chain of pairwise "and if that falls through?" questions. A member that
+ * does not overlap the winner is compatible with it and is left alone. A
+ * must-go loser is never resolved silently: it keeps its mark and the
+ * itinerary reports the must-go conflict until the attendee changes it.
+ */
+export function resolveClash(
+  members: readonly RankedActivity[],
+  winnerId: string,
+): ClashResolution {
+  const winner = members.find((m) => m.activity.id === winnerId);
+  const steppedAside: string[] = [];
+  const keptMustGo: string[] = [];
+  const unaffected: string[] = [];
+  for (const m of members) {
+    if (m.activity.id === winnerId) continue;
+    if (!winner || !overlaps(winner.activity, m.activity)) unaffected.push(m.activity.id);
+    else if (m.disposition === 'must-attend') keptMustGo.push(m.activity.id);
+    else steppedAside.push(m.activity.id);
+  }
+  return { winner: winnerId, steppedAside, keptMustGo, unaffected };
 }
 
 export function overlaps(a: Activity, b: Activity): boolean {
@@ -257,8 +345,7 @@ export function pairOpen(
 }
 
 export function conflictSlots(input: ComparisonSelectionInput): ConflictSlot[] {
-  const pool = input.activities
-    .filter((a) => a.disposition !== 'not-interested' && !a.activity.cancelled)
+  const pool = clashLivePool(input.activities)
     .filter((a) => a.activity.start && a.activity.end)
     .sort(
       (x, y) =>
@@ -308,6 +395,12 @@ export interface ComparisonHistoryEntry {
   activityB: string;
   /** Result score for A: 1 (A won), 0.5 (tie), 0 (B won). */
   scoreA: number;
+  /**
+   * Answered as a scheduling clash (#271): the loser could not be attended
+   * alongside the winner, which says nothing about whether it was wanted.
+   * Only the winner's facets are voted for.
+   */
+  clash?: boolean;
 }
 
 /** The facets of a session that a taste can attach to. */
@@ -364,6 +457,10 @@ export function learnAffinity(
   for (const entry of history) {
     const swing = (entry.scoreA - 0.5) * 2; // +1 A won, -1 B won, 0 tie
     if (swing === 0) continue;
+    if (entry.clash) {
+      vote(swing > 0 ? entry.activityA : entry.activityB, 1);
+      continue;
+    }
     vote(entry.activityA, swing);
     vote(entry.activityB, -swing);
   }

@@ -174,6 +174,25 @@ it('retains removed, ambiguous and cross-event legacy records without guessing t
   });
 });
 
+it('exports clash resolution: a stood-aside preference and a clash comparison (#271)', async () => {
+  await storage.saveEventBundle(bundle());
+  await storage.setPreference({ ...defaultPreference('talk-b'), yieldedTo: 'talk-a' });
+  await storage.saveComparison({
+    id: 'clash-1',
+    activityA: 'talk-a',
+    activityB: 'talk-b',
+    scoreA: 1,
+    clash: true,
+    createdAt: exportedAt,
+  });
+  const file = await storage.exportPersonalData(exportedAt);
+  expect(file.events[0]?.sections).toMatchObject({
+    preferences: [expect.objectContaining({ activityId: 'talk-b', yieldedTo: 'talk-a' })],
+    comparisons: [expect.objectContaining({ id: 'clash-1', clash: true })],
+  });
+  expect(decodePersonalData(encodePersonalData(file))).toEqual({ ok: true, data: file });
+});
+
 it('keeps event-scoped edits after their schedule is removed and references both replacement sides', async () => {
   await storage.setSetting(
     'plan-edits-old-event-2025-09-20',

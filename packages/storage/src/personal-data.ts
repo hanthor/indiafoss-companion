@@ -152,7 +152,7 @@ export function personalDataFromSnapshot(
     append(
       'preferences',
       {
-        ...fields(pref, ['activityId', 'disposition', 'triage'], 'string'),
+        ...fields(pref, ['activityId', 'disposition', 'triage', 'yieldedTo'], 'string'),
         ...fields(pref, ['rating', 'comparisons'], 'number'),
         ...fields(pref, ['bookmarked'], 'boolean'),
       },
@@ -168,6 +168,7 @@ export function personalDataFromSnapshot(
       {
         ...fields(comparison, ['id', 'activityA', 'activityB', 'createdAt'], 'string'),
         ...fields(comparison, ['scoreA'], 'number'),
+        ...fields(comparison, ['clash'], 'boolean'),
       },
       [comparison.activityA, comparison.activityB],
     );
