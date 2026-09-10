@@ -5,9 +5,7 @@
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
-  import { ROUTING_LABELS } from '$lib/journey';
-  import { routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
-  import type { RoutingProfile } from '@indiafoss/venue';
+  import { routingPrefs } from '$lib/routingPrefs.svelte';
   import { eventDay } from '$lib/resolved-plan';
   import { livePlanState } from '$lib/resolved-plan.svelte';
   import { bookmarked } from '$lib/prefs.svelte';
@@ -549,19 +547,6 @@
     {:else if !nextRoom && !toChoice && !destinationRoom}
       <p class="muted small">No upcoming talk in your plan. Pick a room to highlight it.</p>
     {/if}
-    <div class="row">
-      <label class="from-to" for="map-routing-profile">Routing profile</label>
-      <select
-        id="map-routing-profile"
-        value={routingPrefs.profile}
-        disabled={!routingPrefs.loaded}
-        onchange={(event) => void setRoutingProfile(event.currentTarget.value as RoutingProfile)}
-      >
-        {#each Object.entries(ROUTING_LABELS) as [value, label] (value)}<option {value}
-            >{label}</option
-          >{/each}
-      </select>
-    </div>
   </section>
 
   <!-- svelte-ignore a11y_no_static_element_interactions -->
