@@ -327,3 +327,36 @@ test('a self-signed card naming somebody else’s account earns nothing above a 
   await expect(detail.getByRole('link', { name: 'Open in a Matrix app' })).toBeVisible();
   await expect(detail).toContainText('This app cannot tell whether one is');
 });
+
+test('a card in an identity format this build cannot read is kept, shown neutrally and never routed (#160)', async ({
+  page,
+}) => {
+  // A card from a build that knows identity version 2: the fields are kept
+  // as they arrived, the preview says so in neutral words, and no chat route
+  // is minted from a value this build cannot vouch for.
+  const future = [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    'FN:Asha Rao',
+    'X-INDIAFOSS-MATRIX:@asha:example.org',
+    `X-INDIAFOSS-MESH:${MESH}`,
+    'X-INDIAFOSS-IDENTITY-VERSION:2',
+    'END:VCARD',
+  ].join('\r\n');
+  await page.goto(appUrl(`/scan?payload=${encodeURIComponent(future)}`));
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await expect(page.getByTestId('identity-retained')).toContainText("can't read yet");
+  await expect(page.getByText("Identity format this app can't read yet")).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Message on mesh' })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Open in a Matrix app' })).toHaveCount(0);
+  await expect(page.locator('.preview')).not.toContainText('Does not match');
+  await expect(page.locator('.preview')).not.toContainText(/\bVerified\b/);
+  await page.getByRole('button', { name: 'Save contact', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Saved Asha Rao');
+  await page.getByRole('link', { name: 'View contact', exact: true }).click();
+  await expect(page.getByRole('button', { name: /Asha Rao/ })).toContainText('UNSIGNED CARD');
+  const detail = page.locator('.persondetail');
+  await expect(detail).toContainText("Identity format this app can't read yet");
+  await expect(detail).not.toContainText('Message on mesh');
+  await expect(detail).not.toContainText(/\bVerified\b/);
+});

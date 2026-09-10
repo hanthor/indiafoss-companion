@@ -6,6 +6,9 @@ import type { AttendeeSocial } from './contact.js';
 import { messengerHandle, normalizePhone } from './contact.js';
 import { parsePublicKey, signCard, verifyCard } from './handshake.js';
 import type { HandshakeKeyPair, HandshakePublicKey } from './handshake.js';
+import { identityMetaOf, IDENTITY_VERSION, readIdentity } from './identity.js';
+import type { IdentityMeta } from './identity.js';
+export { isNeutrinoServerName } from './identity.js';
 
 /**
  * App-aware friend exchange payload (`indiafoss://friend?v=1&…`).
@@ -26,6 +29,12 @@ export interface FriendPayload {
   matrixId?: string;
   /** Neutrino P2P node identity (64 hex chars). Kept separately from `matrixId`. */
   neutrinoServerName?: string;
+  /**
+   * Identity envelope version the `matrix_id` / `neutrino_server_name` fields
+   * were written under (`identity_v`, #160), plus anything this build set
+   * aside unread. Absent on cards written before versioning, which read as v1.
+   */
+  identity?: IdentityMeta;
   fullName?: string;
   organization?: string;
   website?: string;
@@ -36,7 +45,6 @@ export interface FriendPayload {
   signature?: string;
 }
 
-const NEUTRINO_SERVER_NAME_RE = /^[0-9a-f]{64}$/i;
 const TICKET_REF_RE = /^ticket::[A-Za-z0-9_-]{1,64}$/;
 const SAFE_URL_SCHEMES = new Set(['https:', 'http:', 'mailto:']);
 /** Networks whose value is a handle or phone number rather than a profile URL. */
@@ -58,10 +66,6 @@ const SOCIALS: AttendeeSocial[] = [
   'xmpp',
   'deltachat',
 ];
-
-export function isNeutrinoServerName(value: string): boolean {
-  return NEUTRINO_SERVER_NAME_RE.test(value);
-}
 
 export function isTicketRef(value: string): boolean {
   return TICKET_REF_RE.test(value);
@@ -88,11 +92,25 @@ function put(params: URLSearchParams, key: string, value: string | undefined): v
 export function encodeFriendPayload(payload: FriendPayload): string {
   const params = new URLSearchParams();
   params.set('v', '1');
+  // The identity version travels with the identity fields (#160). A field this
+  // build set aside unread goes back out as it arrived: under v1 when only its
+  // shape was the problem, under the version it declared when that was. Each
+  // format has one slot per field, so a readable v1 value wins the slot and a
+  // foreign-version copy is then left to the JSON export, which keeps both.
+  const retained = payload.identity?.retained ?? {};
+  const routable = Boolean(payload.matrixId?.trim() || payload.neutrinoServerName?.trim());
+  const foreign = Boolean(retained.version) && !routable;
+  const carry = foreign || !retained.version;
+  params.set('identity_v', foreign ? retained.version! : String(IDENTITY_VERSION));
   put(params, 'event_id', payload.eventId);
   put(params, 'ticket_ref', payload.ticketRef);
   put(params, 'fossunited_profile_url', payload.fossUnitedProfileUrl);
-  put(params, 'matrix_id', payload.matrixId);
-  put(params, 'neutrino_server_name', payload.neutrinoServerName?.toLowerCase());
+  put(params, 'matrix_id', payload.matrixId ?? (carry ? retained.matrix : undefined));
+  put(
+    params,
+    'neutrino_server_name',
+    payload.neutrinoServerName?.toLowerCase() ?? (carry ? retained.mesh : undefined),
+  );
   put(params, 'fn', payload.fullName);
   put(params, 'org', payload.organization);
   put(params, 'url', payload.website);
@@ -158,11 +176,19 @@ export function decodeFriendPayload(text: string): FriendPayload | null {
   if (ticketRef && isTicketRef(ticketRef)) payload.ticketRef = ticketRef;
   const profileUrl = params.get('fossunited_profile_url');
   if (profileUrl && isSafeUrl(profileUrl)) payload.fossUnitedProfileUrl = profileUrl;
-  const matrixId = params.get('matrix_id');
-  if (matrixId && isMatrixUserId(matrixId)) payload.matrixId = matrixId;
-  const neutrino = params.get('neutrino_server_name');
-  if (neutrino && isNeutrinoServerName(neutrino))
-    payload.neutrinoServerName = neutrino.toLowerCase();
+  // One decision for both identity fields (#160): promoted only when the
+  // declared version and the shape are ones this build reads; kept verbatim
+  // otherwise, and never turned into an address.
+  const identity = readIdentity({
+    version: params.get('identity_v'),
+    mesh: params.get('neutrino_server_name'),
+    matrix: params.get('matrix_id'),
+  });
+  if (identity.matrixId && isMatrixUserId(identity.matrixId)) payload.matrixId = identity.matrixId;
+  if (identity.meshNodeId) payload.neutrinoServerName = identity.meshNodeId;
+  if (identity.matrixId || identity.meshNodeId || identity.retained) {
+    payload.identity = identityMetaOf(identity);
+  }
   const fn = params.get('fn');
   if (fn) payload.fullName = fn.slice(0, 200);
   const org = params.get('org');

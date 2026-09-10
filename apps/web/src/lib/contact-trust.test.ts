@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ContactRecord } from '@indiafoss/storage';
-import { loadContactTrustFixtures } from '@indiafoss/test-fixtures';
+import { loadContactTrustFixtures, loadIdentityEnvelopeFixtures } from '@indiafoss/test-fixtures';
+import { parseVCard } from '@indiafoss/model';
 import {
   asReceivedRecord,
   chatLabel,
@@ -44,6 +45,40 @@ describe('deriveContactTrust against the shared fixture table', () => {
       }).toEqual(c.expect);
     });
   }
+});
+
+describe('chat routes against the identity envelope table (#160)', () => {
+  const table = loadIdentityEnvelopeFixtures();
+  for (const c of table.cases) {
+    it(`${c.name}: ${c.describes}`, () => {
+      const profile = parseVCard(c.vcard.join('\r\n'))!;
+      const trust = deriveContactTrust(
+        contact({
+          matrixId: profile.matrixId,
+          neutrinoServerName: profile.neutrinoServerName,
+          identity: profile.identity,
+        }),
+      );
+      expect(trust.routes.map((r) => r.kind)).toEqual(c.expect.routes);
+      // A retained identity is a claim that cannot be checked: the neutral
+      // state, never "no claim" and never a mismatch.
+      if (Object.keys(c.expect.retained).length > 0 && c.expect.routes.length < 2) {
+        expect(trust.profile).toBe('outdated');
+        expect(trust.contradiction).toBe(false);
+        expect(trust.account).toBe('claimed');
+      }
+    });
+  }
+
+  it('never mints a mesh route from a record whose mesh field is not a node id', () => {
+    const t = deriveContactTrust(contact({ neutrinoServerName: 'converged:asha' }));
+    expect(t.routes).toEqual([]);
+  });
+
+  it('words the unread state neutrally, without accusing the card', () => {
+    expect(profileLabel('outdated')).toBe("Identity format this app can't read yet");
+    expect(profileLabel('outdated')).not.toMatch(/mismatch|does not match|invalid/i);
+  });
 });
 
 describe('the states are independent facts, not one badge', () => {

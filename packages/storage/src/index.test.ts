@@ -228,6 +228,35 @@ describe('contacts', () => {
     expect(contact?.fullName).toBe('Legacy');
     expect(contact?.meshLink).toEqual({ state: 'profile-matched', checkedAt: 1 });
     expect(contact?.verified).toBe(false);
+    // An unversioned record reads as identity v1 (#160); its ids are untouched.
+    expect(contact?.identity).toEqual({ version: 1 });
+    expect(contact?.neutrinoServerName).toBe('ab'.repeat(32));
+  });
+
+  it('reads a record whose mesh identity it does not recognise as retained, not as an address (#160)', async () => {
+    // A future build, or a hand-edited backup, may leave a mesh identity of a
+    // shape this build has never seen. It is kept with the record and moved
+    // out of the routable field, so no chat button is ever minted from it and
+    // a later build that understands it still finds it.
+    await db.contacts.put({
+      id: 'future',
+      vcard: '',
+      fullName: 'Future',
+      socials: {},
+      verified: false,
+      savedAt: '2026-09-02T00:00:00Z',
+      matrixId: '@future:example.org',
+      neutrinoServerName: 'converged:future',
+      identity: { version: 2 },
+    });
+    const [contact] = await storage.listContacts();
+    expect(contact?.id).toBe('future');
+    expect(contact?.neutrinoServerName).toBeUndefined();
+    expect(contact?.matrixId).toBeUndefined();
+    expect(contact?.identity).toEqual({
+      version: 2,
+      retained: { version: '2', mesh: 'converged:future', matrix: '@future:example.org' },
+    });
   });
 });
 

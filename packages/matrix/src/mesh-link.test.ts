@@ -90,7 +90,7 @@ describe('verifyMeshLink', () => {
     expect(meshLinkLabel({ state: 'mismatch', checkedAt: 0 })).toBe('Does not match');
     expect(meshLinkLabel({ state: 'unlinked', checkedAt: 0 })).toBe('Claimed');
     expect(meshLinkLabel({ state: 'outdated', checkedAt: 0 })).toBe(
-      'Card predates a format change',
+      "Identity format this app can't read yet",
     );
     expect(meshLinkLabel({ state: 'unverifiable', checkedAt: 0 })).toBe('Not checked yet');
     expect(meshLinkLabel(undefined)).toBe('Claimed');
@@ -193,9 +193,24 @@ describe('an identity shape this build does not recognise', () => {
     expect(check.state).toBe('mismatch');
   });
 
-  it('labels it as a stale card rather than as a bad one', () => {
+  it('labels it as an unread format rather than as a bad card', () => {
     expect(meshLinkLabel({ state: 'outdated', checkedAt: 0 })).toBe(
-      'Card predates a format change',
+      "Identity format this app can't read yet",
     );
+  });
+
+  it('compares node ids case-insensitively but never across shapes', async () => {
+    const upper = await verifyMeshLink(
+      { matrixId: '@ada:hs.test', meshServerName: NODE.toUpperCase() },
+      profileServing(NODE),
+      () => 1000,
+    );
+    expect(upper.state).toBe('profile-matched');
+    const shorter = await verifyMeshLink(
+      { matrixId: '@ada:hs.test', meshServerName: NODE },
+      profileServing(NODE.slice(0, 32)),
+      () => 1000,
+    );
+    expect(shorter.state).toBe('outdated');
   });
 });

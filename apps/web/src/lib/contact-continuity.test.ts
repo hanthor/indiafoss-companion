@@ -70,4 +70,70 @@ describe('reconcileContact', () => {
     const r = reconcileContact(base({ fullName: 'Unnamed contact' }), [saved]);
     expect(r.outcome).toBe('new');
   });
+
+  describe('identity envelope (#160)', () => {
+    const NODE = 'a'.repeat(64);
+
+    it('re-scan of a known key updates the contact rather than duplicating it', () => {
+      const saved = base({ id: 'c1', fingerprint: 'aaa', neutrinoServerName: NODE, metCount: 1 });
+      const r = reconcileContact(
+        base({ fingerprint: 'aaa', neutrinoServerName: NODE, identity: { version: 1 } }),
+        [saved],
+      );
+      expect(r.outcome).toBe('updated');
+      expect(r.contact.id).toBe('c1');
+      expect(r.contact.metCount).toBe(2);
+      expect(r.contact.neutrinoServerName).toBe(NODE);
+      expect(r.contact.identity).toEqual({ version: 1 });
+    });
+
+    it('a re-scanned card in a format this build cannot read keeps the saved identity and retains the new one', () => {
+      const saved = base({
+        id: 'c1',
+        fingerprint: 'aaa',
+        neutrinoServerName: NODE,
+        matrixId: '@asha:example.org',
+      });
+      // Same card key, so it is the same person; the identity fields came in
+      // under a version this build does not read and were set aside unread.
+      const draft = base({
+        fingerprint: 'aaa',
+        identity: {
+          version: 2,
+          retained: { version: '2', mesh: 'converged:asha', matrix: '@asha:example.org' },
+        },
+      });
+      const r = reconcileContact(draft, [saved]);
+      expect(r.outcome).toBe('updated');
+      expect(r.contact.id).toBe('c1');
+      expect(r.contact.neutrinoServerName).toBe(NODE);
+      expect(r.contact.matrixId).toBe('@asha:example.org');
+      expect(r.contact.identity).toEqual({
+        version: 1,
+        retained: { version: '2', mesh: 'converged:asha', matrix: '@asha:example.org' },
+      });
+    });
+
+    it('a readable re-scan with a different node id still replaces the saved one', () => {
+      const saved = base({ id: 'c1', fingerprint: 'aaa', neutrinoServerName: NODE });
+      const r = reconcileContact(
+        base({ fingerprint: 'aaa', neutrinoServerName: 'b'.repeat(64), identity: { version: 1 } }),
+        [saved],
+      );
+      expect(r.contact.neutrinoServerName).toBe('b'.repeat(64));
+    });
+
+    it('an unread identity alone never matches a saved contact by identifier', () => {
+      const saved = base({ id: 'c1', fullName: 'Someone Else', neutrinoServerName: NODE });
+      const r = reconcileContact(
+        base({
+          fullName: 'Asha',
+          identity: { version: 2, retained: { version: '2', mesh: NODE } },
+        }),
+        [saved],
+      );
+      expect(r.outcome).toBe('new');
+      expect(r.contact.neutrinoServerName).toBeUndefined();
+    });
+  });
 });

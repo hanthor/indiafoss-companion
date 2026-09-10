@@ -245,6 +245,26 @@ export {
 } from './friend.js';
 export type { FriendPayload, FriendSignatureState } from './friend.js';
 export {
+  IDENTITY_VERSION,
+  classifyMeshIdentity,
+  hasRetainedIdentity,
+  identityCompatibility,
+  identityMetaOf,
+  isCanonicalNodeId,
+  isMatrixUserIdShape,
+  mergeIdentity,
+  readIdentity,
+  withIdentityEnvelope,
+} from './identity.js';
+export type {
+  IdentityBearing,
+  IdentityCompatibility,
+  IdentityEnvelope,
+  IdentityMeta,
+  MeshIdentityShape,
+  RawIdentityFields,
+} from './identity.js';
+export {
   canonicalCardString,
   formatPublicKey,
   fromBase64Url,

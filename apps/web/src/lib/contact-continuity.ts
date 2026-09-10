@@ -1,4 +1,5 @@
 import type { ContactRecord } from '@indiafoss/storage';
+import { mergeIdentity } from '@indiafoss/model';
 
 export type ContinuityOutcome = 'new' | 'updated' | 'key-changed';
 
@@ -34,6 +35,11 @@ function sameIdentity(a: ContactRecord, b: ContactRecord): boolean {
  *   flagged `keyChanged`, so a swapped key is visible rather than silently
  *   replacing the trusted one;
  * - otherwise it is a new contact.
+ *
+ * In every update the identity fields go through `mergeIdentity` (#160): a
+ * saved mesh or Matrix id is only replaced by one this build understands. A
+ * re-scanned card whose identity is in a newer or unrecognised format keeps
+ * the saved address and carries the unread fields alongside it.
  */
 export function reconcileContact(
   draft: ContactRecord,
@@ -47,7 +53,7 @@ export function reconcileContact(
     return {
       outcome: 'updated',
       previous: byKey,
-      contact: {
+      contact: mergeIdentity(byKey, {
         ...byKey,
         ...draft,
         id: byKey.id,
@@ -59,7 +65,7 @@ export function reconcileContact(
         lastMetAt: now,
         keyChanged: false,
         previousFingerprint: undefined,
-      },
+      }),
     };
   }
 
@@ -89,7 +95,7 @@ export function reconcileContact(
   return {
     outcome: 'updated',
     previous: match,
-    contact: {
+    contact: mergeIdentity(match, {
       ...match,
       ...draft,
       id: match.id,
@@ -102,6 +108,6 @@ export function reconcileContact(
       metLocationId: match.metLocationId ?? draft.metLocationId,
       metCount: (match.metCount ?? 1) + 1,
       lastMetAt: now,
-    },
+    }),
   };
 }

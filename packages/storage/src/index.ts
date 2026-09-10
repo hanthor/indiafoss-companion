@@ -1,4 +1,5 @@
-import type { EventBundle } from '@indiafoss/model';
+import type { EventBundle, IdentityMeta } from '@indiafoss/model';
+import { withIdentityEnvelope } from '@indiafoss/model';
 import type { AccountClaimTrust, PersonalDataFile } from '@indiafoss/model/contracts';
 import { personalDataFromSnapshot, type PersonalDataSnapshot } from './personal-data.js';
 import { validatePersonalData } from './personal-data-validation.js';
@@ -164,6 +165,13 @@ export interface ContactRecord {
   matrixId?: string;
   /** Neutrino P2P node identity, kept separately from the Matrix id. */
   neutrinoServerName?: string;
+  /**
+   * Identity envelope version `matrixId` / `neutrinoServerName` were read
+   * under, and any identity fields the reading build set aside because it did
+   * not understand them (#160). Records from before versioning gain
+   * `{ version: 1 }` on read.
+   */
+  identity?: IdentityMeta;
   ticketRef?: string;
   socials: Record<string, string>;
   /**
@@ -230,11 +238,17 @@ export type MeshLinkObservation =
  * Bring a record written by an older build up to the current vocabulary.
  * Builds before #31/#188 stored a profile match as `meshLink.state ===
  * 'verified'`; it reads back as `profile-matched` — not dropped, not trusted.
+ * Identity fields go through the versioned envelope (#160): an unversioned
+ * record reads as v1, and a mesh or Matrix value this build does not
+ * recognise is moved to `identity.retained` rather than offered as an address.
  */
 export function migrateContactRecord(raw: ContactRecord): ContactRecord {
   const state = (raw.meshLink as { state?: string } | undefined)?.state;
-  if (state !== 'verified') return raw;
-  return { ...raw, meshLink: { ...raw.meshLink!, state: 'profile-matched' } };
+  const record =
+    state === 'verified'
+      ? { ...raw, meshLink: { ...raw.meshLink!, state: 'profile-matched' as const } }
+      : raw;
+  return withIdentityEnvelope(record);
 }
 
 /** The device's own handshake key pair (non-extractable CryptoKeys, structured-cloned by IndexedDB). */

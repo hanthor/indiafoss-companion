@@ -157,3 +157,39 @@ export function loadContactTrustFixtures(): ContactTrustFixtures {
     readFileSync(fixturesDir('contact-trust', 'states.json'), 'utf8'),
   ) as ContactTrustFixtures;
 }
+
+/**
+ * One row of `fixtures/identity-envelope/cases.json`: a card as it arrives —
+ * vCard lines, and where the format has one, an `indiafoss://friend` link —
+ * and the single outcome every platform must reach for its identity fields
+ * (#160). `null` means the field is not promoted; `retained` is what must be
+ * kept verbatim; `routes` is which chat routes may be offered.
+ */
+export interface IdentityEnvelopeCase {
+  name: string;
+  describes: string;
+  vcard: string[];
+  friend?: string;
+  expect: {
+    version: number;
+    understood: boolean;
+    meshNodeId: string | null;
+    matrixId: string | null;
+    retained: Record<string, string>;
+    routes: string[];
+  };
+}
+
+export interface IdentityEnvelopeFixtures {
+  describes: string;
+  version: number;
+  vocabulary: { retainedKeys: string[]; routes: string[] };
+  cases: IdentityEnvelopeCase[];
+}
+
+/** Load the identity-envelope table. A derivation table, like the trust states, not an `index.json` validator suite. */
+export function loadIdentityEnvelopeFixtures(): IdentityEnvelopeFixtures {
+  return JSON.parse(
+    readFileSync(fixturesDir('identity-envelope', 'cases.json'), 'utf8'),
+  ) as IdentityEnvelopeFixtures;
+}
