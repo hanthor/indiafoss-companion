@@ -11,6 +11,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import org.indiafoss.companion.calendar.CalendarSync
+import org.indiafoss.companion.core.PlannedEntries
+import org.indiafoss.companion.core.PlannedEntry
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.AffinityModel
 import org.indiafoss.companion.core.Calendar
@@ -57,6 +64,10 @@ data class UiState(
     val mustAttend: Set<String> = emptySet(),
     val ranking: RankingState = RankingState(),
     val remindersEnabled: Boolean = false,
+    /** The app-owned "IndiaFOSS" calendar on the phone, kept in step with the plan (#272). */
+    val calendarSyncEnabled: Boolean = false,
+    /** What the last calendar sync did, or why it could not, for Settings. */
+    val calendarSyncStatus: String? = null,
     /** Null until read from the store; false shows the welcome steps once (#107). */
     val onboardingDone: Boolean? = null,
     val profile: ContactCard = ContactCard(),
@@ -165,6 +176,12 @@ data class UiState(
         )
     }
 
+    /** Every planned day as calendar entries: what the phone's calendar should hold (#272). */
+    fun plannedEntries(): List<PlannedEntry> {
+        val b = bundle ?: return emptyList()
+        return PlannedEntries.fromPlans(b, days.mapNotNull(::resolvedPlanFor))
+    }
+
     /**
      * Where each of the day's sessions stands in the attendee's plan (#110),
      * read off the resolved plan (#221) so the Schedule agrees with Now, the
@@ -207,6 +224,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val preferences = PreferencesStore(app)
     private val ratings = RatingsStore(app)
     private val reminders = ReminderScheduler(app)
+    private val calendar = CalendarSync(app)
     private val profiles = ProfileStore(app)
     private val planEdits = PlanEditsStore(app)
     private val venue = VenueRepository(app)
@@ -262,6 +280,69 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         // Whatever changes the resolved plan re-arms the alarms: bookmarks, must-attend, ratings, edits, the bundle.
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
+        }
+        viewModelScope.launch {
+            preferences.calendarSyncEnabled.collect { on -> _state.update { it.copy(calendarSyncEnabled = on) } }
+        }
+        // The phone's calendar follows the resolved plan (#272, #221): a change of plan,
+        // edits or programme, or the switch going on (including at every launch),
+        // reconciles the app-owned calendar.
+        viewModelScope.launch {
+            state.map { s -> if (s.calendarSyncEnabled && s.bundle != null) PlanInputs(s.bundle, s.bookmarks, s.mustAttend, s.ranking, s.blocks, s.removedFromPlan, s.planReplacements) else null }
+                .distinctUntilChanged()
+                .collect { inputs -> if (inputs != null) syncCalendar(state.value.plannedEntries()) }
+        }
+    }
+
+    /** Everything the resolved plan is computed from; the clock is deliberately not part of it. */
+    private data class PlanInputs(
+        val bundle: EventBundle,
+        val bookmarks: Set<String>,
+        val mustAttend: Set<String>,
+        val ranking: RankingState,
+        val blocks: List<StoredBlock>,
+        val removed: Set<String>,
+        val replacements: Map<String, String>,
+    )
+
+    private suspend fun syncCalendar(desired: List<PlannedEntry>) {
+        val status = when (val result = withContext(Dispatchers.IO) { calendar.sync(desired) }) {
+            is CalendarSync.Result.Synced -> {
+                val n = result.entries
+                "$n ${if (n == 1) "entry" else "entries"} in the IndiaFOSS calendar" +
+                    listOf("added" to result.inserted, "updated" to result.updated, "removed" to result.deleted)
+                        .filter { it.second > 0 }.joinToString("") { " · ${it.second} ${it.first}" }
+            }
+            CalendarSync.Result.PermissionDenied -> "Calendar access was withdrawn. Turn the switch off and on to allow it again."
+            is CalendarSync.Result.Failed -> "The calendar could not be updated: ${result.reason}"
+            is CalendarSync.Result.Removed -> null
+        }
+        _state.update { it.copy(calendarSyncStatus = status) }
+    }
+
+    /**
+     * The Settings switch (#272). On, with the permission granted, the calendar is
+     * created and filled by the collector above; off removes the app's calendar and
+     * everything in it. Without the permission nothing is touched and the switch stays off.
+     */
+    fun setCalendarSyncEnabled(on: Boolean) {
+        viewModelScope.launch {
+            if (on && !calendar.hasPermission()) {
+                preferences.setCalendarSyncEnabled(false)
+                _state.update { it.copy(calendarSyncStatus = null, message = "Calendar access is needed to keep the IndiaFOSS calendar in step with your plan.") }
+                return@launch
+            }
+            preferences.setCalendarSyncEnabled(on)
+            if (!on) {
+                val result = withContext(Dispatchers.IO) { calendar.disconnect() }
+                val message = when (result) {
+                    is CalendarSync.Result.Removed -> "The IndiaFOSS calendar was removed from this phone."
+                    CalendarSync.Result.PermissionDenied -> "Calendar access was withdrawn before the IndiaFOSS calendar could be removed; delete it from your calendar app."
+                    is CalendarSync.Result.Failed -> "The IndiaFOSS calendar could not be removed: ${result.reason}"
+                    is CalendarSync.Result.Synced -> null
+                }
+                _state.update { it.copy(calendarSyncStatus = null, message = message) }
+            }
         }
     }
 
