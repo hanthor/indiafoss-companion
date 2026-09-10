@@ -379,7 +379,10 @@
             </div>
           </div>
           {#if changesOpen && updateState.detailsComplete}
-            <div id="schedule-change-list" class="changelist">
+            <!-- The banner is a polite live region so its arrival is announced. The
+                 list is opened deliberately and read by moving into it, so it
+                 opts out rather than being recited in full on every toggle. -->
+            <div id="schedule-change-list" class="changelist" aria-live="off">
               {#if planSplit}
                 <p class="changegroup">In your plan today</p>
                 {#if mineChanges.length > 0}

@@ -762,7 +762,7 @@ test('without the previous revision the notice says so instead of listing part o
   await expect(banner).toBeVisible({ timeout: 10_000 });
 
   await expect(banner).toContainText('What changed cannot be listed for this update.');
-  await expect(banner.getByRole('button', { name: /what changed/ })).toBeHidden();
+  await expect(banner.getByRole('button', { name: /what changed/ })).toHaveCount(0);
   await expect(banner.getByRole('listitem')).toHaveCount(0);
   // No counts either: a partial tally is the same claim in a smaller font.
   await expect(banner).not.toContainText('time change');
