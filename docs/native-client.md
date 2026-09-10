@@ -262,6 +262,24 @@ downloads the hash-addressed asset **in full and parses it** before replacing
 the cache, so a half-finished download never evicts a good schedule. A failed
 refresh is silent: offline is the normal case at a conference.
 
+When a new revision lands while the app is open, Now shows a notice that is
+**openable onto what changed** (#312), the counterpart of the web notice:
+the counts first ("1 room changed"), then **See what changed** discloses the
+whole list, one plain sentence each — "Moved from 10:15–10:30 to
+11:15–11:30", "Moved from Devroom 1 (AOSP) to Audi 2" — ordered by what
+costs an attendee most if acted on late. A time or room move states both
+sides; the day is named only when the session moved days; a room dropped
+from the new bundle is still named from the old one, and an unnamed id falls
+back to the raw id rather than "unknown". Changes to sessions in the
+attendee's resolved plan for today (#221) come first under **In your plan
+today**; when that plan cannot speak for them — none for today, or one an
+unresolved conflict has made infeasible — the list is flat and makes no
+claim about what affects them. `ScheduleDiff.describe` in `:core` produces
+the sentences from the same diff the counts come from, so the two cannot
+disagree; when there is no previous revision to diff against the notice says
+the programme changed and that what changed cannot be listed, and offers no
+list at all.
+
 Settings carries a **Schedule data** card (#191) that keeps three facts apart,
 all of them read from the published bundle:
 
