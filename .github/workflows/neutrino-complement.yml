@@ -73,7 +73,7 @@ jobs:
         with:
           go-version: stable
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - name: Build the Complement image
         # The fork's Dockerfile is cargo-chef-structured, so the dependency
