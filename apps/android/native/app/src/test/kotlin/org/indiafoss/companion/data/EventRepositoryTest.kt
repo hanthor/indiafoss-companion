@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import org.indiafoss.companion.core.EventManifest
+import org.indiafoss.companion.core.EventRevisionCache
 import org.indiafoss.companion.core.bundleJson
 import org.junit.After
 import org.junit.Before
@@ -22,6 +23,7 @@ import java.security.MessageDigest
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertTrue
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -84,6 +86,22 @@ class EventRepositoryTest {
         val expected = File(root, "events/indiafoss-2026/normalized/event-bundle.json").readText()
         val packaged = context.assets.open("event-bundle.json").bufferedReader().use { it.readText() }
         assertEquals(expected, packaged)
+    }
+
+    /**
+     * The event the app opens on (#191). A default naming anything other than
+     * the bundle actually packaged would leave the phone with no schedule, and
+     * would put the native client on a different conference from the PWA.
+     */
+    @Test
+    fun theDefaultEventIsTheConferenceWhoseBundleIsPackaged() {
+        val packaged = EventRevisionCache.decodeBundle(
+            context.assets.open("event-bundle.json").bufferedReader().use { it.readText() },
+            EventRepository.DEFAULT_EVENT_ID,
+        )
+        assertEquals("indiafoss-2026", EventRepository.DEFAULT_EVENT_ID)
+        assertEquals(EventRepository.DEFAULT_EVENT_ID, packaged.id)
+        assertTrue(packaged.activities.isNotEmpty())
     }
 
     @Test

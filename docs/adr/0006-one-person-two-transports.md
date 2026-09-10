@@ -45,10 +45,19 @@ Three facts constrain any answer, and together they determine it:
 
 The proposed client-side person layer depends on the reviewed cryptographic
 binding in #188. Its required statement, keys, freshness, revocation and
-verification rules are not shipped by #111. Until those rules and their tests
-are implemented, a profile match must not authorise automatic account merging
-or transport routing. This corrects the earlier implementation claim without
-approving the proposed protocol or changing the ADR's Proposed status.
+verification rules are not shipped by #111. They are now **specified** in
+[`docs/identity-binding.md`](../identity-binding.md) and **implemented as a
+verifier** (`packages/model/src/binding.ts`, Kotlin twin, shared vectors):
+a statement signed by both the card key and a Matrix key — the cross-signing
+master key preferred, a device key allowed at lower trust — verified offline
+against keys the verifier holds independently. A valid binding earns the
+`binding-valid` account state on the contact screens, and stops there:
+nothing publishes or transports a binding yet, no `/keys/query` is made, and
+a key fetched from a homeserver is the homeserver's word. Until the #188
+review accepts that document and Chat #48 defines delivery, neither a profile
+match nor a valid binding authorises automatic account merging or transport
+routing. This corrects the earlier implementation claim without approving the
+proposed protocol or changing the ADR's Proposed status.
 
 ## The analogy, and exactly where it stops
 
@@ -89,11 +98,12 @@ shippable. Do not merge identities, do not merge crypto, do not bridge.
   (`NeutrinoService` already exposes discovered peers); a classic account is
   reachable when the network is up and its homeserver answers.
 - **Person** — a contact card, optionally binding `{meshId, matrixId}`.
-- **Proposed link state** — `verified` only after the future #188 binding
-  verification succeeds, `claimed` while that evidence is unavailable, or
-  `invalid` when verification fails. These are future routing states, not the
-  current profile-comparison result. An in-person card badge check remains a
-  separate observation.
+- **Proposed link state** — `binding-valid` once the #188 binding verifies
+  against a fetched Matrix key (`docs/identity-binding.md` §7, shipped as a
+  display state), `verified` only after Chat's user verification of that
+  key is also held, `claimed` while that evidence is unavailable, `revoked`
+  when withdrawn. Only `verified` is a routing state, and nothing produces it
+  yet. An in-person card badge check remains a separate observation.
 
 ## Stage 0 — Coexistence
 
@@ -232,7 +242,9 @@ channel only you can read. Not a bridge.
   is bound to `@someone-important:matrix.org`" would receive messages meant
   for them. Mitigation is absolute: merge and auto-route **only** on a
   `verified` binding under the reviewed #188 rules. The current #111 profile
-  match and a card badge alone are insufficient. `claimed` never auto-routes.
+  match and a card badge alone are insufficient, and so is `binding-valid`
+  on its own: the Matrix key behind it came from a server
+  (`docs/identity-binding.md` §6). `claimed` never auto-routes.
 - **Verification does not transfer.** Two accounts are two crypto identities;
   cross-signing one does not vouch for the other. Verification UX doubles,
   and the merged surfaces must show per-identity state rather than one

@@ -1,8 +1,9 @@
 {
-  "ref": "v0.8.2",
-  "version": "0.8.2-e2ee.2d85348",
-  "commit": "65e4985181e7bce3af06a0cd7cebcabc13b3ff0b",
-  "source": "https://github.com/element-hq/neutrino-iroh",
+  "ref": "neutrino-kit-15117e9",
+  "version": "0.8.2-e2ee.2d85348-ble.15117e9",
+  "commit": "15117e9816b259ac156acfb1a45caebacafce530",
+  "source": "https://github.com/hanthor/neutrino-iroh",
+  "base": "element-hq/neutrino-iroh@v0.8.2 (65e4985), the commit the fork branched from",
   "license": "AGPL-3.0-only",
   "neutrino": {
     "repo": "hanthor/neutrino",

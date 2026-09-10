@@ -621,6 +621,29 @@ test('2026 booth directory preserves showcasing days and unassigned availability
   await expect(page.getByRole('link', { name: 'Find on map' })).toHaveCount(0);
 });
 
+test('a booth with a site offers it as a link, not as text in the description', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/booth/booth-2026-debian?event=indiafoss-2026'));
+  await expect(page.getByRole('link', { name: 'Website' })).toHaveAttribute(
+    'href',
+    'https://debian.org',
+  );
+  // The host used to be printed in the description, which is how it was unclickable.
+  await expect(page.getByText('(debian.org)')).toHaveCount(0);
+
+  // A site hosted on a forge is labelled by the forge, not generically.
+  await page.goto(appUrl('/booth/booth-2026-api-dash?event=indiafoss-2026'));
+  await expect(page.getByRole('link', { name: 'GitHub' })).toHaveAttribute(
+    'href',
+    'https://github.com/foss42/apidash',
+  );
+
+  // A booth whose source row names no site simply has no link, rather than a broken one.
+  await page.goto(appUrl('/booth/booth-2026-altsendme?event=indiafoss-2026'));
+  await expect(page.getByRole('link', { name: 'Website' })).toHaveCount(0);
+});
+
 test('2026 fresh and whole-devroom plans do not invent travel between same-room talks', async ({
   page,
 }) => {

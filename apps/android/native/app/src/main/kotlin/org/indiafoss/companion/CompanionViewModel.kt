@@ -45,16 +45,22 @@ import org.indiafoss.companion.core.Reminders
 import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.reminders.ReminderNotifier
 import org.indiafoss.companion.data.PreferencesStore
-import org.indiafoss.companion.data.StoredBlock
+import org.indiafoss.companion.core.StoredBlock
 import org.indiafoss.companion.core.ScheduleDiff
-import org.indiafoss.companion.data.RankingState
+import org.indiafoss.companion.core.RankingState
 import org.indiafoss.companion.data.RatingsStore
+import org.indiafoss.companion.data.BundleSource
 import org.indiafoss.companion.data.RefreshResult
-import org.indiafoss.companion.data.StoredComparison
+import org.indiafoss.companion.core.StoredComparison
 import org.indiafoss.companion.data.VenueRepository
 import org.indiafoss.companion.ui.screens.Floor
 import org.indiafoss.companion.ui.screens.FloorPlans
 import org.indiafoss.companion.reminders.ReminderScheduler
+import org.indiafoss.companion.core.ImportPreview
+import org.indiafoss.companion.core.PersonalDataFiles
+import org.indiafoss.companion.data.DataStorePersonalStores
+import org.indiafoss.companion.data.NotesStore
+import org.indiafoss.companion.data.PersonalDataRepository
 
 data class UiState(
     val loading: Boolean = true,
@@ -99,6 +105,17 @@ data class UiState(
     val update: ScheduleUpdate? = null,
     /** The day simulator (#110, docs/simulator.md): null when the clock is real. */
     val simulation: Simulation? = null,
+    /** A personal-data file read and planned against this device, awaiting the attendee's choice (#240). */
+    val importPreview: ImportPreview? = null,
+    /** An export or import is in progress; the Settings buttons wait. */
+    val personalDataBusy: Boolean = false,
+    /**
+     * Where the rendered bundle came from (#191). A seed copy is as old as the
+     * APK, and Settings says so rather than presenting it as refreshed.
+     */
+    val bundleSource: BundleSource? = null,
+    /** Wall-clock millis of this device's last successful manifest check, if any (#191). */
+    val lastRefreshAt: Long? = null,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
     fun dispositionOf(id: String): Disposition =
@@ -106,7 +123,29 @@ data class UiState(
 
     fun ranked(activity: Activity): RankedActivity {
         val r = ranking.rating(activity.id)
-        return RankedActivity(activity, r.rating, r.comparisons, dispositionOf(activity.id), r.triage)
+        return RankedActivity(activity, r.rating, r.comparisons, dispositionOf(activity.id), r.triage, r.yieldedTo)
+    }
+
+    /** The session `id` stood aside for in a clash (#271), if any. */
+    fun yieldsTo(id: String): String? = ranking.yieldedTo(id)
+
+    /** A talk that stood aside on a day, and the winner it stood aside for. */
+    data class StoodAside(val activity: Activity, val winner: Activity)
+
+    /**
+     * Talks that stood aside in a clash on `day` (#271) and whose winner is
+     * still in the running: interests, not dislikes, listed on the Plan screen
+     * with Reconsider. A must-go talk never stands aside.
+     */
+    fun stoodAsideOn(day: String): List<StoodAside> {
+        val b = bundle ?: return emptyList()
+        val eligible = Schedule.activitiesForDay(b, day)
+            .filter { !it.cancelled && it.type != "meal" && it.start != null && it.end != null && dispositionOf(it.id) != Disposition.NOT_INTERESTED }
+        val live = Ranking.activeAfterYields(eligible, { it.id }, { yieldsTo(it.id) }, { dispositionOf(it.id) == Disposition.MUST_ATTEND })
+        val byId = eligible.associateBy { it.id }
+        return eligible.filter { it.id !in live }
+            .mapNotNull { a -> byId[yieldsTo(a.id)]?.let { StoodAside(a, it) } }
+            .sortedBy { it.activity.start }
     }
 
     /** The taste learnt from every answer so far (docs/ranking.md). */
@@ -130,6 +169,7 @@ data class UiState(
             stayTrackIds = stayTrackIds,
             bookmarked = { it in bookmarks },
             blocks = blocks.filter { it.day == day }.map { it.toBlock() },
+            yieldsTo = ::yieldsTo,
         )
     }
 
@@ -162,6 +202,7 @@ data class UiState(
             ),
             stayTrackIds = stayTrackIds,
             walkSeconds = walkBetween,
+            yieldsTo = ::yieldsTo,
         )
     }
 
@@ -229,6 +270,8 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val calendar = CalendarSync(app)
     private val profiles = ProfileStore(app)
     private val planEdits = PlanEditsStore(app)
+    private val notes = NotesStore(app)
+    private val personalData = PersonalDataRepository(app, DataStorePersonalStores(preferences, ratings, planEdits, profiles, notes))
     private val venue = VenueRepository(app)
     private val floors: List<Floor> = FloorPlans.load(app)
     // nowIso() reads _state.value to check for an active simulation — not yet
@@ -239,8 +282,17 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
-            val cached = repository.cached()
-            _state.update { it.copy(loading = false, bundle = cached, now = nowIso()) }
+            // An import that did not finish is undone before anything reads the stores (#240).
+            withContext(Dispatchers.IO) { personalData.recover() }
+            val cached = repository.cachedWithSource()
+            _state.update {
+                it.copy(
+                    loading = false,
+                    bundle = cached?.bundle,
+                    bundleSource = cached?.source,
+                    now = nowIso(),
+                )
+            }
             preferences.bookmarks.collect { saved ->
                 _state.update { it.copy(bookmarks = saved) }
             }
@@ -379,6 +431,8 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                     _state.update {
                         it.copy(
                             bundle = result.bundle,
+                            bundleSource = BundleSource.REFRESHED,
+                            lastRefreshAt = System.currentTimeMillis(),
                             now = nowIso(),
                             // The banner carries the diff; the snackbar only when there is nothing to list.
                             update = if (changes.isEmpty()) null else ScheduleUpdate(result.revision, changes),
@@ -388,7 +442,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                 }
                 is RefreshResult.Failed ->
                     _state.update { it.copy(message = null) } // offline is normal; stay quiet
-                RefreshResult.UpToDate -> _state.update { it.copy(now = nowIso()) }
+                // Reaching the manifest is a successful check even when nothing changed;
+                // it is recorded as a check, never as evidence that the data is new (#191).
+                RefreshResult.UpToDate ->
+                    _state.update { it.copy(now = nowIso(), lastRefreshAt = System.currentTimeMillis()) }
             }
         }.also { refreshJob = it }
     }
@@ -574,33 +631,61 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** What an answer needs to be taken back: the ratings before it, and the records to forget. */
-    data class Undo(val before: Map<String, org.indiafoss.companion.data.SessionRating>, val comparisonIds: List<String>)
+    /**
+     * What an answer needs to be taken back: every touched session's record
+     * before it (rating, comparisons, disposition, triage, stood-aside mark)
+     * and the comparison records to forget. `resolution` is what a pick did,
+     * for the screen's note.
+     */
+    data class Undo(
+        val before: Map<String, org.indiafoss.companion.core.SessionRating>,
+        val comparisonIds: List<String>,
+        val resolution: Ranking.ClashResolution? = null,
+    )
 
     /**
-     * One tap for a slot: the winner beats every loser in one go, one recorded
-     * comparison per pair. The Elo update works on the stored ratings, never
-     * the prior view; sessions answered about for the first time move further.
+     * Tap the session you would go to: it settles the whole slot in one
+     * action (#271, `resolveClash`). Every member the winner overlaps stands
+     * aside for it — a scheduling loss, not a dislike: they stay interests
+     * and the comparison is recorded as a clash so nothing is learnt against
+     * them — so the same window is never asked again as a chain of backup
+     * questions. A must-go loser keeps its mark and the plan keeps showing
+     * that clash. Members the winner does not overlap are left alone. The
+     * Elo update works on the stored ratings, never the prior view; a pair
+     * already answered is not moved again.
      */
-    fun pickInSlot(winner: Activity, losers: List<Activity>): Undo {
+    fun pickInSlot(winner: Activity, members: List<Activity>): Undo {
         val s = state.value
-        val ids = listOf(winner.id) + losers.map { it.id }
+        val ranked = members.map(s::ranked)
+        val resolution = Ranking.resolveClash(ranked, winner.id)
+        val ids = listOf(winner.id) + resolution.losers
         val before = ids.associateWith { s.ranking.rating(it) }
         val live = HashMap(before.mapValues { it.value.rating to it.value.comparisons })
+        val answered = s.ranking.answeredPairs
         val records = ArrayList<StoredComparison>()
-        for (loser in losers) {
+        for (loserId in resolution.losers) {
+            if (Ranking.pairKey(winner.id, loserId) in answered) continue
             val (rw, cw) = live.getValue(winner.id)
-            val (rl, cl) = live.getValue(loser.id)
+            val (rl, cl) = live.getValue(loserId)
             val result = Ranking.applyComparison(rw, rl, Choice.A, Ranking.pairKScale(cw, cl))
             live[winner.id] = result.ratingA to cw + 1
-            live[loser.id] = result.ratingB to cl + 1
-            records += StoredComparison("cmp-${System.currentTimeMillis()}-${records.size}", winner.id, loser.id, 1.0, System.currentTimeMillis())
+            live[loserId] = result.ratingB to cl + 1
+            records += StoredComparison("cmp-${System.currentTimeMillis()}-${records.size}", winner.id, loserId, 1.0, System.currentTimeMillis(), clash = true)
         }
+        val winnerRecord = before.getValue(winner.id)
         viewModelScope.launch {
             for ((id, r) in live) ratings.setRating(id, r.first, r.second)
             for (record in records) ratings.record(record)
+            for (id in resolution.steppedAside) ratings.setYieldedTo(id, winner.id)
+            // The pick is planned: keep it an interest so the itinerary prefers it.
+            if (s.dispositionOf(winner.id) == Disposition.NORMAL && winnerRecord.triage != "yes") ratings.setTriage(winner.id, "yes")
         }
-        return Undo(before, records.map { it.id })
+        return Undo(before, records.map { it.id }, resolution)
+    }
+
+    /** Put a stood-aside talk back in the running (Plan's "Reconsider", #271). */
+    fun reconsider(id: String) {
+        viewModelScope.launch { ratings.setYieldedTo(id, null) }
     }
 
     /** "Any of these": every open pair among the members is a tie. */
@@ -636,21 +721,95 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         return Undo(before, emptyList())
     }
 
-    /** Take back the last answer: ratings, dispositions and the records. */
+    /** Take back the last answer: every touched record verbatim (stood-aside marks included), and the comparisons forgotten. */
     fun undoLast(undo: Undo) {
         viewModelScope.launch {
-            for ((id, r) in undo.before) {
-                ratings.setRating(id, r.rating, r.comparisons)
-                ratings.setDisposition(id, when (r.disposition) {
-                    "must-attend" -> Disposition.MUST_ATTEND
-                    "not-interested" -> Disposition.NOT_INTERESTED
-                    "watch-later" -> Disposition.WATCH_LATER
-                    else -> Disposition.NORMAL
-                })
-            }
+            for ((id, r) in undo.before) ratings.restore(id, r)
             for (id in undo.comparisonIds) ratings.forget(id)
         }
     }
+
+    // ---------- Personal data transfer (#240, docs/architecture/personal-data-transfer.md) ----------
+
+    /** Write the versioned personal-data file to a document the attendee chose; offline, nothing else is read. */
+    fun exportPersonalData(uri: android.net.Uri) {
+        if (state.value.personalDataBusy) return
+        _state.update { it.copy(personalDataBusy = true) }
+        viewModelScope.launch {
+            val message = try {
+                withContext(Dispatchers.IO) {
+                    val text = personalData.export(state.value.bundle)
+                    val stream = getApplication<Application>().contentResolver.openOutputStream(uri, "wt") ?: error("The file could not be opened")
+                    stream.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+                }
+                "Your personal data was saved. The file contains private details; import it in the PWA or another phone from Settings."
+            } catch (e: Exception) {
+                "Could not save your personal data. Nothing was changed."
+            }
+            _state.update { it.copy(personalDataBusy = false, message = message) }
+        }
+    }
+
+    /** Read a chosen file, validate it and show what importing would change; nothing is written yet. */
+    fun previewPersonalData(uri: android.net.Uri) {
+        if (state.value.personalDataBusy) return
+        _state.update { it.copy(personalDataBusy = true, importPreview = null) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val text = runCatching { readBounded(uri) }.getOrElse { return@withContext PersonalDataRepository.PreviewResult.Rejected("The file could not be read.") }
+                    ?: return@withContext PersonalDataRepository.PreviewResult.Rejected("personal data exceeds the 5 MiB limit")
+                personalData.preview(text, state.value.bundle)
+            }
+            when (result) {
+                is PersonalDataRepository.PreviewResult.Ok -> _state.update { it.copy(personalDataBusy = false, importPreview = result.preview) }
+                is PersonalDataRepository.PreviewResult.Rejected ->
+                    _state.update { it.copy(personalDataBusy = false, message = "That file cannot be imported: ${result.reason}. Nothing was changed.") }
+            }
+        }
+    }
+
+    /** The file's bytes as text, or null when it is larger than the format allows. */
+    private fun readBounded(uri: android.net.Uri): String? {
+        val stream = getApplication<Application>().contentResolver.openInputStream(uri) ?: error("The file could not be opened")
+        val limit = PersonalDataFiles.MAX_BYTES + 1
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(64 * 1024)
+        stream.use { input ->
+            while (out.size() < limit) {
+                val n = input.read(buffer, 0, minOf(buffer.size, limit - out.size()))
+                if (n < 0) break
+                out.write(buffer, 0, n)
+            }
+        }
+        if (out.size() >= limit) return null
+        return out.toString("UTF-8")
+    }
+
+    /**
+     * Apply the chosen changes from the preview, all or none. The stores' flows
+     * then feed the state, so the resolved plan, the reminders and the phone
+     * calendar re-derive from the imported choices without a restart.
+     */
+    fun applyPersonalData(selected: Set<String>) {
+        val preview = state.value.importPreview ?: return
+        if (state.value.personalDataBusy) return
+        val changes = preview.changes.filter { it.id in selected }
+        _state.update { it.copy(personalDataBusy = true) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { personalData.apply(changes, state.value.bundle) }
+            val message = when (result) {
+                is PersonalDataRepository.ApplyResult.Applied ->
+                    "Imported ${result.changes} ${if (result.changes == 1) "record" else "records"}. Your plan, reminders and calendar follow the imported choices."
+                is PersonalDataRepository.ApplyResult.Stale ->
+                    "Something changed on this phone after the preview (${result.labels.joinToString(", ")}). Nothing was imported; choose the file again."
+                is PersonalDataRepository.ApplyResult.Failed ->
+                    "The import could not be completed: ${result.reason}. Your previous data was kept."
+            }
+            _state.update { it.copy(personalDataBusy = false, importPreview = null, message = message) }
+        }
+    }
+
+    fun cancelPersonalDataImport() = _state.update { it.copy(importPreview = null) }
 
     private fun nowIso(): String {
         val sim = _state.value.simulation ?: return IsoClock.now()

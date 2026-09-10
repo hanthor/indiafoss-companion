@@ -1,21 +1,62 @@
 {
-  "describes": "Trust states a contact screen must keep apart (#31, #188). Each case is a stored contact record (the fields that matter) and the separate conclusions every platform must draw from it. No case may produce `verified` for the account or the chat line: nothing in either app holds cross-signing evidence.",
+  "describes": "Trust states a contact screen must keep apart (#31, #188). Each case is a stored contact record (the fields that matter) and the separate conclusions every platform must draw from it. No case may produce `verified` for the account or the chat line: nothing in either app holds cross-signing evidence. A valid signed binding (docs/identity-binding.md) reaches `binding-valid`, and stops there.",
   "vocabulary": {
-    "signature": ["valid", "invalid", "unsigned", "key-changed"],
-    "account": ["claimed", "profile-matched"],
-    "profile": ["no-claim", "unchecked", "profile-matched", "mismatch", "unlinked", "outdated"],
-    "inPerson": ["confirmed", "confirmed-earlier-key", "unconfirmed", "no-badge"],
-    "chat": ["not-verified"],
-    "routes": ["mesh", "matrix"]
+    "signature": [
+      "valid",
+      "invalid",
+      "unsigned",
+      "key-changed"
+    ],
+    "account": [
+      "claimed",
+      "profile-matched",
+      "binding-valid",
+      "revoked"
+    ],
+    "profile": [
+      "no-claim",
+      "unchecked",
+      "profile-matched",
+      "mismatch",
+      "unlinked",
+      "outdated"
+    ],
+    "inPerson": [
+      "confirmed",
+      "confirmed-earlier-key",
+      "unconfirmed",
+      "no-badge"
+    ],
+    "chat": [
+      "not-verified"
+    ],
+    "routes": [
+      "mesh",
+      "matrix"
+    ],
+    "binding": [
+      "none",
+      "valid",
+      "expired",
+      "revoked",
+      "invalid",
+      "unreadable",
+      "unchecked"
+    ]
   },
   "cases": [
     {
       "name": "unsigned-card-from-another-app",
       "describes": "a plain vCard from a camera app: no key, no accounts, no route",
-      "record": { "fullName": "Riya", "verified": false, "socials": {} },
+      "record": {
+        "fullName": "Riya",
+        "verified": false,
+        "socials": {}
+      },
       "expect": {
         "signature": "unsigned",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "no-claim",
         "inPerson": "no-badge",
@@ -36,6 +77,7 @@
       "expect": {
         "signature": "valid",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "no-claim",
         "inPerson": "unconfirmed",
@@ -56,6 +98,7 @@
       "expect": {
         "signature": "invalid",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "no-claim",
         "inPerson": "unconfirmed",
@@ -78,6 +121,7 @@
       "expect": {
         "signature": "key-changed",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "no-claim",
         "inPerson": "unconfirmed",
@@ -100,11 +144,15 @@
       "expect": {
         "signature": "valid",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "unchecked",
         "inPerson": "unconfirmed",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     },
     {
@@ -118,16 +166,23 @@
         "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
         "matrixId": "@asha:example.org",
         "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
-        "meshLink": { "state": "profile-matched", "checkedAt": 1758000000000 }
+        "meshLink": {
+          "state": "profile-matched",
+          "checkedAt": 1758000000000
+        }
       },
       "expect": {
         "signature": "valid",
         "account": "profile-matched",
+        "binding": "none",
         "contradiction": false,
         "profile": "profile-matched",
         "inPerson": "unconfirmed",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     },
     {
@@ -141,16 +196,23 @@
         "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
         "matrixId": "@asha:example.org",
         "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
-        "meshLink": { "state": "mismatch", "checkedAt": 1758000000000 }
+        "meshLink": {
+          "state": "mismatch",
+          "checkedAt": 1758000000000
+        }
       },
       "expect": {
         "signature": "valid",
         "account": "claimed",
+        "binding": "none",
         "contradiction": true,
         "profile": "mismatch",
         "inPerson": "unconfirmed",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     },
     {
@@ -162,16 +224,23 @@
         "socials": {},
         "matrixId": "@asha:example.org",
         "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
-        "meshLink": { "state": "unlinked", "checkedAt": 1758000000000 }
+        "meshLink": {
+          "state": "unlinked",
+          "checkedAt": 1758000000000
+        }
       },
       "expect": {
         "signature": "unsigned",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "unlinked",
         "inPerson": "no-badge",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     },
     {
@@ -183,16 +252,23 @@
         "socials": {},
         "matrixId": "@asha:example.org",
         "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
-        "meshLink": { "state": "outdated", "checkedAt": 1758000000000 }
+        "meshLink": {
+          "state": "outdated",
+          "checkedAt": 1758000000000
+        }
       },
       "expect": {
         "signature": "unsigned",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "outdated",
         "inPerson": "no-badge",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     },
     {
@@ -204,16 +280,23 @@
         "socials": {},
         "matrixId": "@asha:example.org",
         "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
-        "meshLink": { "state": "unverifiable", "checkedAt": 1758000000000 }
+        "meshLink": {
+          "state": "unverifiable",
+          "checkedAt": 1758000000000
+        }
       },
       "expect": {
         "signature": "unsigned",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "unchecked",
         "inPerson": "no-badge",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     },
     {
@@ -227,7 +310,10 @@
         "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
         "matrixId": "@asha:example.org",
         "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
-        "meshLink": { "state": "profile-matched", "checkedAt": 1758000000000 },
+        "meshLink": {
+          "state": "profile-matched",
+          "checkedAt": 1758000000000
+        },
         "inPersonConfirmed": {
           "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
           "at": "2026-09-19T11:00:00.000Z"
@@ -236,11 +322,15 @@
       "expect": {
         "signature": "valid",
         "account": "profile-matched",
+        "binding": "none",
         "contradiction": false,
         "profile": "profile-matched",
         "inPerson": "confirmed",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     },
     {
@@ -260,6 +350,7 @@
       "expect": {
         "signature": "valid",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "no-claim",
         "inPerson": "confirmed-earlier-key",
@@ -279,11 +370,14 @@
       "expect": {
         "signature": "unsigned",
         "account": "claimed",
+        "binding": "none",
         "contradiction": false,
         "profile": "no-claim",
         "inPerson": "no-badge",
         "chat": "not-verified",
-        "routes": ["mesh"]
+        "routes": [
+          "mesh"
+        ]
       }
     },
     {
@@ -298,16 +392,599 @@
         "matrixId": "@alice:matrix.org",
         "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
         "accountTrust": "verified",
-        "meshLink": { "state": "profile-matched", "checkedAt": 1758000000000 }
+        "meshLink": {
+          "state": "profile-matched",
+          "checkedAt": 1758000000000
+        }
       },
       "expect": {
         "signature": "valid",
         "account": "profile-matched",
+        "binding": "none",
         "contradiction": false,
         "profile": "profile-matched",
         "inPerson": "unconfirmed",
         "chat": "not-verified",
-        "routes": ["mesh", "matrix"]
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-valid-key-from-server",
+      "describes": "both signatures check against a Matrix key fetched from the homeserver: binding-valid, and no further (#188)",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "valid",
+            "checkedAt": 1758000000000,
+            "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+            "matrixKeyKind": "master",
+            "matrixKeyProvenance": "server"
+          }
+        },
+        "meshLink": {
+          "state": "profile-matched",
+          "checkedAt": 1758000000000
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "binding-valid",
+        "binding": "valid",
+        "contradiction": false,
+        "profile": "profile-matched",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-valid-user-verified-key-still-not-verified",
+      "describes": "a check recorded with a user-verified key provenance still stops at binding-valid: `verified` is Chat's to say, and this app never sets it",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "valid",
+            "checkedAt": 1758000000000,
+            "matrixKeyProvenance": "user-verified"
+          }
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "binding-valid",
+        "binding": "valid",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-valid-but-profile-mismatch",
+      "describes": "a valid binding beside a profile that names another mesh id: binding-valid, and the contradiction is still shown",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "valid",
+            "checkedAt": 1758000000000
+          }
+        },
+        "meshLink": {
+          "state": "mismatch",
+          "checkedAt": 1758000000000
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "binding-valid",
+        "binding": "valid",
+        "contradiction": true,
+        "profile": "mismatch",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-unverifiable-offline",
+      "describes": "the card half checks but no Matrix key is held (the only source this build ships): the account line stays a claim",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "unverifiable",
+            "reason": "no Matrix key held",
+            "checkedAt": 1758000000000
+          }
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "binding": "unchecked",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-present-not-yet-checked",
+      "describes": "a binding saved before any check ran",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          }
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "binding": "unchecked",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-expired",
+      "describes": "an expired binding earns nothing and the profile match, if any, still counts on its own",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "expired",
+            "checkedAt": 1758000000000
+          }
+        },
+        "meshLink": {
+          "state": "profile-matched",
+          "checkedAt": 1758000000000
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "profile-matched",
+        "binding": "expired",
+        "contradiction": false,
+        "profile": "profile-matched",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-revoked",
+      "describes": "a revoked binding is the strongest thing the owner can say: `revoked`, above every profile observation",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "revoked",
+            "checkedAt": 1758000000000
+          }
+        },
+        "meshLink": {
+          "state": "profile-matched",
+          "checkedAt": 1758000000000
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "revoked",
+        "binding": "revoked",
+        "contradiction": false,
+        "profile": "profile-matched",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-tampered",
+      "describes": "a signature that does not check: a bare claim, and the binding line says so",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "invalid-signature",
+            "reason": "card signature",
+            "checkedAt": 1758000000000
+          }
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "binding": "invalid",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-for-someone-else",
+      "describes": "a genuine binding about other identities, replayed on this card: invalid, not valid-for-someone",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "mismatch",
+            "reason": "matrixUserId",
+            "checkedAt": 1758000000000
+          }
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "binding": "invalid",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "binding-from-a-newer-version",
+      "describes": "a v2 binding is kept and shown neutrally, never as invalid",
+      "record": {
+        "fullName": "Asha",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@asha:example.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v2"
+          },
+          "check": {
+            "state": "unknown-version",
+            "checkedAt": 1758000000000
+          }
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "claimed",
+        "binding": "unreadable",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
+      }
+    },
+    {
+      "name": "adversarial-binding-check-smuggled-in-a-file",
+      "describes": "a record whose file claims a valid check but whose accountTrust says verified: the derivation reads the check, and the check is dropped on import (asReceivedRecord), so this shape only exists in a hand-edited store",
+      "record": {
+        "fullName": "Mallory as Alice",
+        "verified": false,
+        "socials": {},
+        "signature": "valid",
+        "fingerprint": "8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f8f2a9c1d4e6b7a3f",
+        "publicKey": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+        "matrixId": "@alice:matrix.org",
+        "neutrinoServerName": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+        "accountTrust": "verified",
+        "binding": {
+          "signed": {
+            "domain": "in.indiafoss.binding/v1",
+            "statement": {
+              "v": 1,
+              "id": "b-1",
+              "meshNodeId": "845aa456078572639c1543694de69e0a03fb883bd9c1dab1a2f6df811b75897e",
+              "matrixUserId": "@asha:example.org",
+              "cardKeyId": "ed25519:eAzoi_J4GlXU-Imr534qePgMHgt0_XKCE74MkJmccVo",
+              "matrixKeyId": "ed25519:80oru7/um4vAMFly8LhK7QTwUWENK6C6dEbTUo2bkmI",
+              "matrixKeyKind": "master",
+              "issuedAt": "2026-09-10T09:00:00.000Z",
+              "expiresAt": "2026-10-10T09:00:00.000Z",
+              "nonce": "AAECAwQFBgcICQoLDA0ODw"
+            },
+            "signatures": {
+              "card": "(see identity-binding/vectors.json)",
+              "matrix": "(see identity-binding/vectors.json)"
+            }
+          },
+          "check": {
+            "state": "valid",
+            "checkedAt": 1758000000000
+          }
+        }
+      },
+      "expect": {
+        "signature": "valid",
+        "account": "binding-valid",
+        "binding": "valid",
+        "contradiction": false,
+        "profile": "unchecked",
+        "inPerson": "unconfirmed",
+        "chat": "not-verified",
+        "routes": [
+          "mesh",
+          "matrix"
+        ]
       }
     }
   ]

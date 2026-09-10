@@ -6,7 +6,45 @@ companion's mesh rooms to be end-to-end encrypted. They apply to
 [`e2ee-key-transport`](https://github.com/hanthor/neutrino/tree/e2ee-key-transport)
 branch of the `hanthor/neutrino` fork, which is what our own builds come from:
 `.github/workflows/neutrino-bindings.yml` compiles the phone bindings against
-the fork rev pinned in `apps/android/capacitor/neutrino/version.json`.
+the fork rev pinned in `version.json` next to this file.
+
+## How the bindings are pinned (`version.json`)
+
+The phone never sees these patches directly; it gets an `.aar` built by
+`neutrino-bindings.yml` from two forks, both pinned in `version.json`:
+
+- **`source` / `ref` / `commit`** — the neutrino-iroh repository the `.aar`
+  is built from (the BLE/iroh medium and the FFI surface), a tag or branch
+  in it, and the commit that tag names. Today that is
+  [`hanthor/neutrino-iroh`](https://github.com/hanthor/neutrino-iroh), our
+  fork of `element-hq/neutrino-iroh` (`base`); the workflow derives the
+  `owner/name` it checks out from `source`, so pointing it back at upstream is
+  a `source` change, nothing else.
+- **`neutrino.repo` / `neutrino.rev`** — the homeserver crates
+  (`neutrino-ffi`, `neutrino-main`) compiled into that `.aar`: `hanthor/neutrino`
+  at a rev on `e2ee-key-transport`, i.e. these patches. Upstream neutrino-iroh
+  depends on `element-hq/neutrino` by tag, and the workflow redirects that with
+  a Cargo `[patch]`; our fork of neutrino-iroh already depends on
+  `hanthor/neutrino` by _branch_ (Cargo refuses a `[patch]` onto the same
+  source URL), so there the workflow rewrites those two dependency lines to
+  `rev = "<neutrino.rev>"` and re-resolves just those packages. In both cases
+  the build fails unless the lockfile ends up naming `?rev=<neutrino.rev>`.
+- **`version`** — the Maven version and the release tag
+  (`neutrino-bindings-<version>`) the `.aar` is published under, and what the
+  Chat app pins in `gradle/libs.versions.toml` together with the asset's
+  SHA-256.
+
+**The version must be unique per pair of pins.** The release step overwrites
+the files on an existing tag, and every consumer pins an asset by checksum:
+a rebuild published under an old version would silently replace the bytes an
+old pin verifies. So `version` carries the short SHA of _both_ commits —
+`<upstream base>-e2ee.<neutrino.rev[:7]>-ble.<commit[:7]>`, e.g.
+`0.8.2-e2ee.2d85348-ble.15117e9` — and the workflow refuses to build a version
+that does not name the neutrino-iroh commit it checked out and the neutrino
+rev it compiled in. Bumping either pin therefore means a new `version`, a new
+release, and a version + checksum bump in the Chat app; an old release's
+asset is never rewritten. (Versions before `…-ble.<commit>` named only the
+neutrino rev; they were all built from `element-hq/neutrino-iroh@v0.8.2`.)
 
 **These are not offered upstream, and should not be.** Element's policy on
 AI-assisted contributions is not known to us, and a pre-alpha research

@@ -1,0 +1,51 @@
+{
+  "format": "indiafoss-personal-data",
+  "schemaVersion": 1,
+  "exportedAt": "2026-09-10T01:00:00.000Z",
+  "events": [
+    {
+      "eventId": "indiafoss-2026",
+      "activities": [
+        {
+          "eventId": "indiafoss-2026",
+          "activityId": "talk-a"
+        },
+        {
+          "eventId": "indiafoss-2026",
+          "activityId": "talk-b"
+        }
+      ],
+      "sections": {
+        "preferences": [
+          {
+            "activityId": "talk-a",
+            "disposition": "normal",
+            "triage": "yes",
+            "rating": 1232,
+            "comparisons": 1,
+            "bookmarked": false
+          },
+          {
+            "activityId": "talk-b",
+            "disposition": "normal",
+            "triage": "yes",
+            "rating": 1168,
+            "comparisons": 1,
+            "bookmarked": false,
+            "yieldedTo": "talk-a"
+          }
+        ],
+        "comparisons": [
+          {
+            "id": "clash-1",
+            "activityA": "talk-a",
+            "activityB": "talk-b",
+            "createdAt": "2026-09-10T01:00:00.000Z",
+            "scoreA": 1,
+            "clash": true
+          }
+        ]
+      }
+    }
+  ]
+}

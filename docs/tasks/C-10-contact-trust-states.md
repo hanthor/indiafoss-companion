@@ -1,6 +1,6 @@
 # C-10 — Never show a homeserver's word as "Verified"
 
-- Status: Ready
+- Status: Implemented (PWA), PR #300; Kotlin fixture conformance deliberately not wired (step 8)
 - Repository: indiafoss-companion
 - Tracks: [#31](https://github.com/hanthor/indiafoss-companion/issues/31),
   [#188](https://github.com/hanthor/indiafoss-companion/issues/188)

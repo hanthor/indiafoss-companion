@@ -6,6 +6,7 @@ import { parseContactBook } from '@indiafoss/model';
 import { reconcileContact } from '$lib/contact-continuity';
 import { verifyMeshLink } from '@indiafoss/matrix';
 import { accountTrustOf, claimsMeshLink, meshLinkStale } from '$lib/mesh-link';
+import { bindingCheckStale, checkContactBinding } from '$lib/binding';
 import {
   asReceivedRecord,
   confirmedInPerson,
@@ -253,9 +254,17 @@ export async function verifyContactMeshLink(contact: ContactRecord): Promise<Con
     matrixId: contact.matrixId,
     meshServerName: contact.neutrinoServerName,
   });
-  // `meshLink` is the observation; `accountTrust` the conclusion it supports —
-  // at most `profile-matched`, never `verified` (#188).
-  const updated = { ...contact, meshLink, accountTrust: accountTrustOf(meshLink).trust };
+  // A card that carried a signed binding gets it checked in the same pass,
+  // against the card key and whatever Matrix key the app holds — today none
+  // (`noMatrixKeys`), so the card half is checked and the binding stays
+  // "not checked yet" rather than earning anything (#188).
+  const checked = await checkContactBinding({ ...contact, meshLink });
+  // `meshLink` and `binding.check` are the observations; `accountTrust` the
+  // conclusion they support — at most `binding-valid`, never `verified`.
+  const updated = {
+    ...checked,
+    accountTrust: accountTrustOf(meshLink, checked.binding).trust,
+  };
   return saveInPlace(updated);
 }
 
@@ -289,7 +298,9 @@ export async function withdrawBadgeConfirmation(contact: ContactRecord): Promise
  */
 export async function verifyMeshLinks(now: () => number = () => Date.now()): Promise<void> {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
-  const due = contactsState.contacts.filter((c) => claimsMeshLink(c) && meshLinkStale(c, now()));
+  const due = contactsState.contacts.filter(
+    (c) => claimsMeshLink(c) && (meshLinkStale(c, now()) || bindingCheckStale(c, now())),
+  );
   for (const contact of due) {
     await verifyContactMeshLink(contact);
   }

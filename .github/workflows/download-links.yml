@@ -1,0 +1,45 @@
+name: Advertised download links
+
+# The Chat download link pointed at a release that had never been published,
+# so attendees following the app's own instructions got a 404 and nothing
+# noticed. This checks that every release-download URL the project advertises
+# actually resolves.
+#
+# Deliberately not a pull-request gate: it depends on github.com being
+# reachable and on a release existing, neither of which a pull request
+# controls, and a permanently red required check teaches people to ignore it.
+on:
+  schedule:
+    - cron: '43 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: download-links
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check advertised download links
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - name: Test the link parsing
+        run: python3 -m unittest scripts.test_download_links
+      - name: Check every advertised release asset
+        run: |
+          set -o pipefail
+          python3 scripts/check-download-links.py | tee "$RUNNER_TEMP/links.txt"
+      - name: Summarise
+        if: always()
+        run: |
+          {
+            echo '## Advertised download links'
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/links.txt" || echo 'The check produced no output.'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

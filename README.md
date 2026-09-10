@@ -9,7 +9,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8.svg)](https://hanthor.github.io/indiafoss-companion/)
 
-[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [**Download Chat for Android**](https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android.apk) · [Docs](#documentation)
+[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [**Download Chat for Android**](https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk) · [Docs](#documentation)
 
 <img src="docs/screenshots/now.png" width="30%" alt="The Now screen listing three sessions running right now, each with a progress bar and minutes remaining" />
 <img src="docs/screenshots/map.png" width="30%" alt="The venue map in dark mode with three halls lit mint, each labelled with the minutes left in its session, and a dot showing where you are" />
@@ -128,7 +128,7 @@ flowchart LR
 Neither is on unless you switch it on.
 
 - **Conference rooms on Matrix.** FOSDEM-style public rooms on the organiser's homeserver — one per hall, plus announcements and hallway — joined from whatever Matrix account you already have, via Element links. The companion never signs in there. Provisioned by `tools/matrix-rooms`; see [docs/messaging.md](docs/messaging.md).
-- **Peer-to-peer chat.** Session, booth and direct chats over a Bluetooth/Wi-Fi mesh through an embedded Neutrino node in the Android app, with replies, reactions and an offline outbox. Off until you enable it in Settings. Neutrino is pre-alpha, so the mesh has no typing indicators, receipts, media or encryption yet — [measured, not assumed](docs/neutrino-capabilities.md).
+- **Peer-to-peer chat.** Session, booth and direct chats over a Bluetooth/Wi-Fi mesh live in the separate [IndiaFOSS Chat](https://github.com/hanthor/indiafoss-chat-android) app (ADR 0004), not in the Companion. The Companion only hands off: contact cards carry a mesh id and a Matrix id as separate, separately trusted facts, and a saved contact offers "Message on mesh" or "Open in a Matrix app" without claiming either app is installed (PR #300). What the mesh measurably supports is recorded, [not assumed](docs/neutrino-capabilities.md).
 
 ## Try it
 
@@ -254,12 +254,29 @@ sharing with QR scanning. As of
 [ADR 0004](docs/adr/0004-retire-the-capacitor-shell.md) there are three apps —
 the PWA (Web/iOS), the native Compose client (Android,
 [#10](https://github.com/hanthor/indiafoss-companion/issues/10)), and P2P chat
-as its own dedicated app — not a Capacitor shell embedding all three. What is
+as its own dedicated app — not a Capacitor shell embedding all three.
+
+As of 10 September 2026 (every item a merged PR citing its own CI evidence;
+none a device result): the real 2026 programme is published and refreshed
+automatically (#242/#243); one resolved plan drives Now, the map and reminders
+on both platforms (#266/#267, #304; native calendar provider #302); the venue
+and how to get there ship with the bundle (#295) and the map lists route steps
+as an estimate until the graph is walked (#299); the PWA has a desktop layout
+(#298) and exports and imports personal data (#250, #301 — native cannot yet,
+[#240](https://github.com/hanthor/indiafoss-companion/issues/240)); contact
+screens keep card signature, in-person comparison, profile match and Chat
+verification apart and never call a profile read "Verified" (#300, #315);
+Android updates come through Obtainium or our own F-Droid repository, not a
+third-party store (#308,
+[#291](https://github.com/hanthor/indiafoss-companion/issues/291)). What is
 left is tracked in
-[#34](https://github.com/hanthor/indiafoss-companion/issues/34) and
+[#34](https://github.com/hanthor/indiafoss-companion/issues/34),
+[#212](https://github.com/hanthor/indiafoss-companion/issues/212) and
 [docs/roadmap.md](docs/roadmap.md): native parity leftovers
-([#110](https://github.com/hanthor/indiafoss-companion/issues/110)), the real
-2026 programme, and release hardening.
+([#110](https://github.com/hanthor/indiafoss-companion/issues/110)), the venue
+rehearsal, the identity binding
+([#188](https://github.com/hanthor/indiafoss-companion/issues/188)) and release
+hardening.
 
 ## Design
 
@@ -273,8 +290,11 @@ live in `apps/web/src/app.css`.
 `FFF Forward`, the face used on the IndiaFOSS site, is not redistributable, so
 it is referenced first and used only when a visitor already has it;
 [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) (OFL) ships
-as the fallback. The Android app drops the branding entirely in favour of the
-device's own Material You palette.
+as the fallback. The Android app carries the same tokens with one role each
+(PR #313): Material You may colour the everyday screens on Android 12+, but the
+event masthead, welcome flow and devroom art keep the ink surface and mint
+accent under any wallpaper; Inter and Space Mono are bundled and no pixel face
+is used.
 
 ## License
 
