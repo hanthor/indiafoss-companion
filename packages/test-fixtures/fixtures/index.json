@@ -258,6 +258,10 @@
       {
         "file": "pwa-export.json",
         "describes": "a real PWA export retains personal sections and explicit sharing-off fields through native codec round-trip"
+      },
+      {
+        "file": "clash-settlement.json",
+        "describes": "a stood-aside preference (yieldedTo) and a clash comparison (#271) round-trip through both codecs"
       }
     ],
     "invalid": [

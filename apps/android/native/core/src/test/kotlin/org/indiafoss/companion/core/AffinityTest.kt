@@ -39,4 +39,13 @@ class AffinityTest {
         val line = model.tasteLine(listOf(Track("aosp", "AOSP"), Track("science", "Science")))
         assertTrue("AOSP ↑" in line && "Science ↓" in line, line)
     }
+    @Test
+    fun `a clash loss is not learnt as dislike of the loser`() {
+        val asClash = AffinityModel.learn(listOf(a1, s1), listOf(ComparisonEntry("a1", "s1", 1.0, clash = true)))
+        val asTaste = AffinityModel.learn(listOf(a1, s1), listOf(ComparisonEntry("a1", "s1", 1.0)))
+        assertTrue(asClash.affinity.getValue("track:aosp") > 0)
+        // The loser's track is not voted against: it is not in the model at all, or not below zero.
+        assertTrue((asClash.affinity["track:science"] ?: 0.0) >= 0.0)
+        assertTrue(asTaste.affinity.getValue("track:science") < (asClash.affinity["track:science"] ?: 0.0))
+    }
 }
