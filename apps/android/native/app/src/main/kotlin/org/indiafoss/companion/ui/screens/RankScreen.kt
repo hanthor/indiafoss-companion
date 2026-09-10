@@ -92,9 +92,9 @@ fun RankScreen(
     onUndo: (CompanionViewModel.Undo) -> Unit,
     onOpen: (String) -> Unit,
     onOpenSpeaker: (String) -> Unit,
-    onBack: () -> Unit,
     /** Open on the devrooms step (from the Explore gallery) instead of the talks. */
     startWithDevrooms: Boolean = false,
+    onBack: () -> Unit,
 ) {
     val bundle = state.bundle
     val days = state.days
