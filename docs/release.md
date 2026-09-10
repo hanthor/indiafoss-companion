@@ -51,6 +51,10 @@ candidate this way) and a manual `workflow_dispatch`, every gate runs
 unconditionally, so main always carries full evidence regardless of what the
 merged PR touched.
 
+The `Detect changed paths` job writes the decision it took to its step
+summary, so a PR whose gates were skipped shows why without reading the
+filter.
+
 A gate the filter switches off is recorded as **skipped, not passed**. That
 satisfies the ruleset — a skipped required check is a conclusion, whereas a
 missing one is not, which is why the filter lives in job-level `if:`
