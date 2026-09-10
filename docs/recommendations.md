@@ -10,8 +10,9 @@ The maintainer's 8 September direction supersedes the mandatory room → all-tal
 | Want to go — green    | Explicit positive card answer                | Positive topic/track signal                                    | Prioritised over unknown suggestions; feasibility still applies    |
 | Not interested — grey | Explicit negative card answer                | Modest negative topic/track signal                             | Excluded until the attendee changes their answer                   |
 | Stay for this devroom | Event-scoped commitment to a programme track | Positive track preference; no need to answer every member talk | Reserve the published block, including gaps; flag conflicts        |
+| Stood aside (clash)   | `yieldedTo: <winner>` on the losing talk     | None: not a dislike, the interest signal stays                 | Left out while the winner is live; returns on its own; Reconsider  |
 
-“No answer” is not a dislike. Undo removes the direct answer and its must mark while retaining historical pairwise ratings and bookmarks. Existing ratings remain readable, and comparisons can remain an optional conflict-resolution tool. No completion quota or exhaustive ranking is required. Explicit individual exclusions remain excluded even inside a selected devroom.
+“No answer” is not a dislike, and neither is losing a clash: picking one talk in the overlaps step stands every talk it overlaps aside in one action (#271, see [ranking](ranking.md)). Undo removes the direct answer and its must mark while retaining historical pairwise ratings and bookmarks. Existing ratings remain readable, and comparisons can remain an optional conflict-resolution tool. No completion quota or exhaustive ranking is required. Explicit individual exclusions remain excluded even inside a selected devroom.
 
 ## Current local engine
 

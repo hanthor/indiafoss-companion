@@ -9,16 +9,16 @@ client renders natively rather than embedding a WebView.
 
 ## Screens
 
-| Tab / route | State                                                                                                                                                                              |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Now         | "Your plan now" (in progress / up next from the resolved plan, or its conflicts), then live sessions in every room with progress, then the programme's next session                |
-| Schedule    | per day, bookmark from the list                                                                                                                                                    |
-| My plan     | the day planned from must-attend, devroom stays, bookmarks and ratings (`Itinerary`) with removals and blocks layered on top (`ResolvedPlan`); remove/restore; "Rank this day"     |
-| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo |
-| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                        |
-| Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                    |
-| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), privacy, about                                                       |
-| Session     | detail, bookmark, must attend                                                                                                                                                      |
+| Tab / route | State                                                                                                                                                                                          |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Now         | "Your plan now" (in progress / up next from the resolved plan, or its conflicts), then live sessions in every room with progress, then the programme's next session                            |
+| Schedule    | per day; room chips, list or time × room grid (`ScheduleGrid`, the PWA's TimelineGrid rules), plan markers from the resolved plan (`PlanMarker`: planned / interested / must go / stood aside) |
+| My plan     | the day planned from must-attend, devroom stays, bookmarks and ratings (`Itinerary`) with removals and blocks layered on top (`ResolvedPlan`); remove/restore; "Rank this day"                 |
+| Rank        | devrooms (Not interested / Interested / Must go) → talks as swipe cards → overlaps one slot at a time, same rules as the PWA (`docs/ranking.md`), with the affinity prior and undo             |
+| Welcome     | first run only, and from Settings: reminders permission, ticket reference, name and profiles for the card, then Rank (#107)                                                                    |
+| Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                                |
+| Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), privacy, about                                                                   |
+| Session     | detail, bookmark, must attend                                                                                                                                                                  |
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
 resolved plan whenever anything feeding it changes — bookmarks, must-attend
@@ -66,6 +66,13 @@ Deliberate differences from the PWA, rather than claims of identical output:
   feasible plan is planned-tier (must-attend where marked), including the
   programme's ranked pick for a slot and blocks of your own; earlier native
   builds only alerted for bookmarks and must-attend.
+- **The Schedule's plan markers read the resolved plan.** `PlanMarker`
+  (planned / interested / must go / stood aside, on the list and the room
+  grid) is derived from `ResolvedPlan.forDay`, not the greedy base: a
+  removed session loses its mark, a replacement carries one, and a
+  bookmark or must-go that an overlapping planned item beat is shown
+  standing aside rather than silently dropped. Blocks and the lunch gap
+  are never "placed sessions" for this purpose.
 - **Replacements have no native UI yet.** The store and the projection
   handle `replacements` (tested in `ResolvedPlanTest`), but the Plan screen
   offers remove/restore only; locking is stored but unused.

@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.EventBundle
+import org.indiafoss.companion.core.PlanMarker
 import org.indiafoss.companion.core.Schedule
 import org.indiafoss.companion.ui.DevroomBanner
 import org.indiafoss.companion.ui.theme.meta
@@ -36,6 +37,8 @@ fun SessionCard(
     activity: Activity,
     bundle: EventBundle?,
     bookmarked: Boolean = false,
+    /** The session's place in the attendee's day, shown as a chip when it has one (#110). */
+    marker: PlanMarker = PlanMarker.NONE,
     progress: Float? = null,
     onOpen: () -> Unit,
     onBookmark: (() -> Unit)? = null,
@@ -100,6 +103,7 @@ fun SessionCard(
             if (activity.cancelled) {
                 SuggestionChip(onClick = {}, label = { Text("Cancelled") }, enabled = false)
             }
+            if (marker != PlanMarker.NONE) MarkerChip(marker)
             if (progress != null) {
                 LinearProgressIndicator(
                     progress = { progress },
@@ -119,4 +123,19 @@ fun timeAndRoom(activity: Activity, bundle: EventBundle?): String {
     } ?: "Unscheduled"
     val room = bundle?.location(activity.locationId)?.name
     return if (room != null) "$time  ·  $room" else time
+}
+
+/** "Planned", "Interested", "Must go" or "Stood aside", coloured by weight. */
+@Composable
+fun MarkerChip(marker: PlanMarker, modifier: Modifier = Modifier) {
+    val scheme = MaterialTheme.colorScheme
+    val (container, content) = when (marker) {
+        PlanMarker.MUST_GO -> scheme.tertiaryContainer to scheme.onTertiaryContainer
+        PlanMarker.PLANNED, PlanMarker.INTERESTED -> scheme.primaryContainer to scheme.onPrimaryContainer
+        PlanMarker.STOOD_ASIDE -> scheme.surfaceVariant to scheme.onSurfaceVariant
+        PlanMarker.NONE -> return
+    }
+    Surface(color = container, contentColor = content, shape = MaterialTheme.shapes.small, modifier = modifier.padding(top = 6.dp)) {
+        Text(marker.label, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
+    }
 }

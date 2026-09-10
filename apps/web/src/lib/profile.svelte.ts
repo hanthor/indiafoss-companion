@@ -32,24 +32,26 @@ export const SOCIAL_PLACEHOLDER: Partial<Record<AttendeeSocial, string>> = {
   prav: '+91 98765 43210 or you@prav.app',
 };
 
+const DEFAULT_SELECTION: AttendeeShareSelection = {
+  name: true,
+  organization: true,
+  email: false,
+  phone: false,
+  website: true,
+  matrixId: true,
+  neutrinoServerName: true,
+  ticketRef: false,
+  fossUnitedProfileUrl: true,
+  socials: {},
+};
+
 export const profileState = $state<{
   profile: AttendeeProfile;
   selection: AttendeeShareSelection;
   loaded: boolean;
 }>({
   profile: { fullName: '', socials: {} },
-  selection: {
-    name: true,
-    organization: true,
-    email: false,
-    phone: false,
-    website: true,
-    matrixId: true,
-    neutrinoServerName: true,
-    ticketRef: false,
-    fossUnitedProfileUrl: true,
-    socials: {},
-  },
+  selection: structuredClone(DEFAULT_SELECTION),
   loaded: false,
 });
 
@@ -113,4 +115,12 @@ export function setSocial(network: AttendeeSocial, value: string): void {
 
 export function setSocialSelection(network: AttendeeSocial, enabled: boolean): void {
   profileState.selection.socials[network] = enabled;
+}
+
+/** Read the card and its sharing selection back from storage (personal-data import). */
+export async function reloadProfile(): Promise<void> {
+  profileState.loaded = false;
+  profileState.profile = { fullName: '', socials: {} };
+  profileState.selection = structuredClone(DEFAULT_SELECTION);
+  await hydrateProfile();
 }

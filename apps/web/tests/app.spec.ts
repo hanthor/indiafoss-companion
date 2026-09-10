@@ -201,6 +201,36 @@ test('talk discovery keeps archived preferences and pairwise history compatible'
   await expect(page.getByTestId('candidate-a')).toBeVisible();
 });
 
+test('one pick settles a whole slot and undo brings the stood-aside talks back (#271)', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/plan/rank?mode=pairs'));
+  await expect(page.getByTestId('candidate-a')).toBeVisible();
+  const pill = page.locator('.pair .pill');
+  const before = (await pill.textContent())!;
+  const candidates = page.locator('[data-testid^="candidate-"] .title');
+  const titlesBefore = await candidates.allTextContents();
+  expect(titlesBefore.length).toBeGreaterThanOrEqual(2);
+
+  await page.getByTestId('candidate-a').click();
+  const result = page.getByTestId('clash-result');
+  await expect(result).toContainText(`${titlesBefore[0]} is in your plan`);
+  await expect(result).toContainText('stood aside');
+  // The same window never comes back as a chain of backup questions.
+  await expect(page.getByText('And if that falls through?')).toHaveCount(0);
+  const stillGoing = await page
+    .getByTestId('candidate-a')
+    .isVisible()
+    .catch(() => false);
+  if (stillGoing) expect(await pill.textContent()).not.toBe(before);
+
+  // Undo restores the slot exactly: same window, same talks.
+  await page.getByRole('button', { name: /Undo last/ }).click();
+  await expect(page.getByTestId('clash-result')).toHaveCount(0);
+  await expect(pill).toHaveText(before);
+  expect(await candidates.allTextContents()).toEqual(titlesBefore);
+});
+
 test('answered pairs are not asked again after a reload', async ({ page }) => {
   await page.goto(appUrl('/plan/rank?mode=pairs'));
   await expect(page.getByTestId('candidate-a')).toBeVisible();

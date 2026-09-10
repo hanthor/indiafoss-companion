@@ -4,6 +4,7 @@
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
   import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
+  import PersonalDataImport from '$lib/components/PersonalDataImport.svelte';
   import ReminderStatus from '$lib/components/ReminderStatus.svelte';
   import {
     notificationsEnabled,
@@ -94,6 +95,7 @@
   <NativeDownload />
 
   <PersonalDataExport />
+  <PersonalDataImport />
   <ChatDownload />
   <section class="card">
     <h2>Schedule updates</h2>
