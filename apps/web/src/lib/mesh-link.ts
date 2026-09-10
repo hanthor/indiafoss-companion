@@ -51,25 +51,32 @@ export interface AccountClaimConclusion {
 }
 
 /**
- * Map what the profile check observed to the trust an account claim may carry
- * (C-10, #188). The observation is the homeserver's word about its own user;
- * the most it can ever earn is `profile-matched`.
+ * Map what the app holds about an account claim to the trust it may carry
+ * (C-10, #188). Two independent observations feed it: the public-profile
+ * read (the homeserver's word, worth at most `profile-matched`) and this
+ * device's verification of a signed binding (`docs/identity-binding.md`).
  *
- * | Observation                                       | trust               | contradiction |
- * | ------------------------------------------------- | ------------------- | ------------- |
- * | no check, `unverifiable`, `outdated`, `unlinked`  | `claimed`           | false         |
- * | `profile-matched`                                 | `profile-matched`   | false         |
- * | `mismatch`                                        | `claimed`           | true          |
- * | a valid IdentityBinding by an untrusted device    | `binding-valid`     | — no producer |
- * | Matrix device cross-signing succeeded             | `verified`          | — no producer |
+ * | Binding check          | Profile observation             | trust             | contradiction |
+ * | ---------------------- | ------------------------------- | ----------------- | ------------- |
+ * | `revoked`              | any                             | `revoked`         | as profile    |
+ * | `valid`                | any                             | `binding-valid`   | as profile    |
+ * | anything else, or none | none, `unverifiable`, `outdated`, `unlinked` | `claimed` | false |
+ * | anything else, or none | `profile-matched`               | `profile-matched` | false         |
+ * | anything else, or none | `mismatch`                      | `claimed`         | true          |
  *
- * The last two rows are deliberately unreachable: nothing in this repository
- * signs a binding or queries device keys. They are filled in by #188, not by
- * widening this function.
+ * `binding-valid` is where a valid binding stops here: both signatures
+ * check, but the Matrix key was fetched, not verified by a person. The
+ * `verified` row needs Chat's user verification of that key and has no
+ * producer in this repository. A profile `mismatch` is still reported beside
+ * a valid binding — the two disagree, and the attendee should see that.
  */
 export function accountTrustOf(
   check: ContactRecord['meshLink'] | undefined,
+  binding?: ContactRecord['binding'],
 ): AccountClaimConclusion {
+  const contradiction = check?.state === 'mismatch';
+  if (binding?.check?.state === 'revoked') return { trust: 'revoked', contradiction };
+  if (binding?.check?.state === 'valid') return { trust: 'binding-valid', contradiction };
   switch (check?.state) {
     case 'profile-matched':
       return { trust: 'profile-matched', contradiction: false };

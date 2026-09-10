@@ -1,9 +1,17 @@
 # C-12 — Specify the mesh↔Matrix identity binding before anything routes on it
 
+> Status, 10 September 2026: the specification is
+> [`docs/identity-binding.md`](../identity-binding.md), with a verifier on
+> both platforms and shared vectors; the maintainer decisions in #181 are
+> taken as stated assumptions in its §12 rather than cited. It awaits the
+> #188 review. The historical excerpts below describe the envelope as it was
+> before that document and are kept for the record; the domain string was
+> retired in favour of `in.indiafoss.binding/v1`.
+>
 > Status, 9 September 2026: ADR 0006 now distinguishes the shipped public-profile string comparison from the proposed cryptographic binding. #188 still owns the protocol review and implementation gate. Do not treat the legacy `verified` result from #111 as account-key verification; historical excerpts below are not evidence that this protocol exists.
 
-- Status: Blocked — maintainer decision (the choices in
-  [#181](https://github.com/hanthor/indiafoss-companion/issues/181))
+- Status: In review — spec and verifier landed, #188 review pending; #181
+  decisions assumed, not cited
 - Repository: indiafoss-companion
 - Tracks: [#188](https://github.com/hanthor/indiafoss-companion/issues/188),
   [#181](https://github.com/hanthor/indiafoss-companion/issues/181)

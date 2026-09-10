@@ -19,6 +19,7 @@
   import { computeNowState } from '@indiafoss/schedule';
   import { matrixToUrl } from '@indiafoss/matrix';
   import {
+    bindingLabel,
     chatLabel,
     deriveContactTrust,
     inPersonLabel,
@@ -483,6 +484,15 @@
                 <span class="muted"
                   >— the card's Matrix id is checked against that account's public profile once
                   saved and online. A match is the homeserver's word, not proof.</span
+                >
+              </dd>
+            {/if}
+            {#if previewTrust.binding !== 'none'}
+              <dt>Binding</dt>
+              <dd>
+                {bindingLabel(previewTrust.binding)}
+                <span class="muted"
+                  >— checked against the card key once saved. Never verification.</span
                 >
               </dd>
             {/if}

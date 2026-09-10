@@ -8,6 +8,8 @@ import {
   shortFingerprint,
 } from '@indiafoss/model';
 import { accountTrustOf } from './mesh-link';
+import { bindingTrustOf } from './binding';
+import type { BindingTrust } from './binding';
 
 /**
  * The separate things the app knows about a saved contact, kept separate
@@ -20,6 +22,10 @@ import { accountTrustOf } from './mesh-link';
  * - **in person** — the attendee explicitly said they compared key badges
  *   with the other person's phone. A statement about the card key, made by
  *   the attendee, bound to the fingerprint it was made for.
+ * - **binding** — this device's verification of a signed mesh↔Matrix binding
+ *   presented with the card (#188, `docs/identity-binding.md`): both keys
+ *   signed the same statement. Worth `binding-valid`, not `verified`: the
+ *   Matrix key was fetched, not confirmed by a person.
  * - **Chat** — Matrix device verification, the only proof of account control.
  *   Nothing here can produce it; the honest state is "not verified in Chat".
  * - **routes** — what tapping a chat button would open, and what this app
@@ -67,8 +73,10 @@ export interface ChatRoute {
 
 export interface ContactTrust {
   signature: SignatureTrust;
-  /** Conclusion from the profile observation: at most `profile-matched`. */
+  /** Conclusion from the profile observation and the binding check: at most `binding-valid`. */
   account: AccountClaimTrust;
+  /** This device's verification of a presented binding; `none` when the card carried none. */
+  binding: BindingTrust;
   /** The homeserver names a different mesh identity than the card. */
   contradiction: boolean;
   profile: ProfileTrust;
@@ -165,10 +173,11 @@ export function chatTrustOf(contact: Pick<ContactRecord, 'verified'>): ChatTrust
 
 /** Pure: everything the contact screens show about trust, derived from the record alone. */
 export function deriveContactTrust(contact: ContactRecord): ContactTrust {
-  const { trust, contradiction } = accountTrustOf(contact.meshLink);
+  const { trust, contradiction } = accountTrustOf(contact.meshLink, contact.binding);
   return {
     signature: signatureTrustOf(contact),
     account: trust,
+    binding: bindingTrustOf(contact.binding),
     contradiction,
     profile: profileTrustOf(contact),
     inPerson: inPersonTrustOf(contact),
@@ -221,6 +230,28 @@ export function inPersonLabel(state: InPersonTrust): string {
   }
 }
 
+export function bindingLabel(state: BindingTrust): string {
+  // No label here says "verified": a valid binding is two signatures over
+  // one statement, and the Matrix key behind one of them was fetched from a
+  // server. Confirming that key is Chat's job (#188).
+  switch (state) {
+    case 'none':
+      return 'No binding on this card';
+    case 'valid':
+      return 'Binding signed by both keys · Matrix key not confirmed in Chat';
+    case 'expired':
+      return 'Binding expired';
+    case 'revoked':
+      return 'Binding revoked';
+    case 'invalid':
+      return 'Binding does not check out';
+    case 'unreadable':
+      return "Binding format this app can't read yet";
+    case 'unchecked':
+      return 'Binding not checked yet';
+  }
+}
+
 export function chatLabel(state: ChatTrust): string {
   // The `verified` branch is reachable only through cross-signing evidence
   // the app does not hold (#188). Keep it, keep it unreachable.
@@ -238,6 +269,9 @@ export function asReceivedRecord(record: ContactRecord): ContactRecord {
   const received: ContactRecord = { ...record, verified: false, accountTrust: 'claimed' };
   delete received.inPersonConfirmed;
   delete received.meshLink;
+  // The signed binding is data the card carried and stays; the verdict on it
+  // is this device's to reach, so a verdict in the file is dropped.
+  if (received.binding) received.binding = { signed: received.binding.signed };
   return received;
 }
 
