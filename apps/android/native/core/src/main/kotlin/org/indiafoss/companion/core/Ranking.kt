@@ -163,7 +163,8 @@ object Ranking {
      * something else in turn) the loser comes back, so a later, compatible
      * talk is never suppressed by a decision that no longer holds. Pinned
      * sessions never stand aside. Resolved to a fixed point; a cycle of
-     * yields (impossible through the UI) leaves all of its members live.
+     * yields (impossible through the UI) is broken in list order, as in the
+     * elo package.
      */
     fun <T> activeAfterYields(
         items: List<T>,

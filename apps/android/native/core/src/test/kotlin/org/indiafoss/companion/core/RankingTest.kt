@@ -237,12 +237,13 @@ class RankingTest {
     }
 
     @Test
-    fun `a cycle of yields leaves its members live and a chain resolves to a fixed point`() {
-        val loop = listOf(at("a", "11:00", "11:30").copy(yieldedTo = "b"), at("b", "11:00", "11:30").copy(yieldedTo = "a"))
-        assertEquals(listOf("a", "b"), Ranking.livePool(loop).map { it.activity.id })
+    fun `a chain of yields resolves to a fixed point and a cycle is broken in list order`() {
         // c stood aside for b, b stood aside for a: b is out, so c is back.
         val chain = listOf(at("a", "11:00", "11:30"), at("b", "11:00", "11:30").copy(yieldedTo = "a"), at("c", "11:00", "11:30").copy(yieldedTo = "b"))
         assertEquals(listOf("a", "c"), Ranking.livePool(chain).map { it.activity.id })
+        // A cycle cannot be made through the UI; as in the elo package, the first member stands aside and the other stays.
+        val loop = listOf(at("a", "11:00", "11:30").copy(yieldedTo = "b"), at("b", "11:00", "11:30").copy(yieldedTo = "a"))
+        assertEquals(listOf("b"), Ranking.livePool(loop).map { it.activity.id })
     }
 
     @Test
