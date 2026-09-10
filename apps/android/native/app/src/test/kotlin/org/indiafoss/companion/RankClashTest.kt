@@ -19,8 +19,8 @@ import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.Ranking
 import org.indiafoss.companion.core.Track
-import org.indiafoss.companion.data.RankingState
-import org.indiafoss.companion.data.SessionRating
+import org.indiafoss.companion.core.RankingState
+import org.indiafoss.companion.core.SessionRating
 import org.indiafoss.companion.ui.screens.LastPick
 import org.indiafoss.companion.ui.screens.RankScreen
 import org.indiafoss.companion.ui.screens.devroomTitle

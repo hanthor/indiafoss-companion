@@ -45,16 +45,21 @@ import org.indiafoss.companion.core.Reminders
 import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.reminders.ReminderNotifier
 import org.indiafoss.companion.data.PreferencesStore
-import org.indiafoss.companion.data.StoredBlock
+import org.indiafoss.companion.core.StoredBlock
 import org.indiafoss.companion.core.ScheduleDiff
-import org.indiafoss.companion.data.RankingState
+import org.indiafoss.companion.core.RankingState
 import org.indiafoss.companion.data.RatingsStore
 import org.indiafoss.companion.data.RefreshResult
-import org.indiafoss.companion.data.StoredComparison
+import org.indiafoss.companion.core.StoredComparison
 import org.indiafoss.companion.data.VenueRepository
 import org.indiafoss.companion.ui.screens.Floor
 import org.indiafoss.companion.ui.screens.FloorPlans
 import org.indiafoss.companion.reminders.ReminderScheduler
+import org.indiafoss.companion.core.ImportPreview
+import org.indiafoss.companion.core.PersonalDataFiles
+import org.indiafoss.companion.data.DataStorePersonalStores
+import org.indiafoss.companion.data.NotesStore
+import org.indiafoss.companion.data.PersonalDataRepository
 
 data class UiState(
     val loading: Boolean = true,
@@ -99,6 +104,10 @@ data class UiState(
     val update: ScheduleUpdate? = null,
     /** The day simulator (#110, docs/simulator.md): null when the clock is real. */
     val simulation: Simulation? = null,
+    /** A personal-data file read and planned against this device, awaiting the attendee's choice (#240). */
+    val importPreview: ImportPreview? = null,
+    /** An export or import is in progress; the Settings buttons wait. */
+    val personalDataBusy: Boolean = false,
 ) {
     /** Disposition as the ranking store knows it, with the must-attend set folded in. */
     fun dispositionOf(id: String): Disposition =
@@ -253,6 +262,8 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val calendar = CalendarSync(app)
     private val profiles = ProfileStore(app)
     private val planEdits = PlanEditsStore(app)
+    private val notes = NotesStore(app)
+    private val personalData = PersonalDataRepository(app, DataStorePersonalStores(preferences, ratings, planEdits, profiles, notes))
     private val venue = VenueRepository(app)
     private val floors: List<Floor> = FloorPlans.load(app)
     // nowIso() reads _state.value to check for an active simulation — not yet
@@ -263,6 +274,8 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         viewModelScope.launch {
+            // An import that did not finish is undone before anything reads the stores (#240).
+            withContext(Dispatchers.IO) { personalData.recover() }
             val cached = repository.cached()
             _state.update { it.copy(loading = false, bundle = cached, now = nowIso()) }
             preferences.bookmarks.collect { saved ->
@@ -605,7 +618,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
      * for the screen's note.
      */
     data class Undo(
-        val before: Map<String, org.indiafoss.companion.data.SessionRating>,
+        val before: Map<String, org.indiafoss.companion.core.SessionRating>,
         val comparisonIds: List<String>,
         val resolution: Ranking.ClashResolution? = null,
     )
@@ -695,6 +708,88 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             for (id in undo.comparisonIds) ratings.forget(id)
         }
     }
+
+    // ---------- Personal data transfer (#240, docs/architecture/personal-data-transfer.md) ----------
+
+    /** Write the versioned personal-data file to a document the attendee chose; offline, nothing else is read. */
+    fun exportPersonalData(uri: android.net.Uri) {
+        if (state.value.personalDataBusy) return
+        _state.update { it.copy(personalDataBusy = true) }
+        viewModelScope.launch {
+            val message = try {
+                withContext(Dispatchers.IO) {
+                    val text = personalData.export(state.value.bundle)
+                    val stream = getApplication<Application>().contentResolver.openOutputStream(uri, "wt") ?: error("The file could not be opened")
+                    stream.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+                }
+                "Your personal data was saved. The file contains private details; import it in the PWA or another phone from Settings."
+            } catch (e: Exception) {
+                "Could not save your personal data. Nothing was changed."
+            }
+            _state.update { it.copy(personalDataBusy = false, message = message) }
+        }
+    }
+
+    /** Read a chosen file, validate it and show what importing would change; nothing is written yet. */
+    fun previewPersonalData(uri: android.net.Uri) {
+        if (state.value.personalDataBusy) return
+        _state.update { it.copy(personalDataBusy = true, importPreview = null) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val text = runCatching { readBounded(uri) }.getOrElse { return@withContext PersonalDataRepository.PreviewResult.Rejected("The file could not be read.") }
+                    ?: return@withContext PersonalDataRepository.PreviewResult.Rejected("personal data exceeds the 5 MiB limit")
+                personalData.preview(text, state.value.bundle)
+            }
+            when (result) {
+                is PersonalDataRepository.PreviewResult.Ok -> _state.update { it.copy(personalDataBusy = false, importPreview = result.preview) }
+                is PersonalDataRepository.PreviewResult.Rejected ->
+                    _state.update { it.copy(personalDataBusy = false, message = "That file cannot be imported: ${result.reason}. Nothing was changed.") }
+            }
+        }
+    }
+
+    /** The file's bytes as text, or null when it is larger than the format allows. */
+    private fun readBounded(uri: android.net.Uri): String? {
+        val stream = getApplication<Application>().contentResolver.openInputStream(uri) ?: error("The file could not be opened")
+        val limit = PersonalDataFiles.MAX_BYTES + 1
+        val out = java.io.ByteArrayOutputStream()
+        val buffer = ByteArray(64 * 1024)
+        stream.use { input ->
+            while (out.size() < limit) {
+                val n = input.read(buffer, 0, minOf(buffer.size, limit - out.size()))
+                if (n < 0) break
+                out.write(buffer, 0, n)
+            }
+        }
+        if (out.size() >= limit) return null
+        return out.toString("UTF-8")
+    }
+
+    /**
+     * Apply the chosen changes from the preview, all or none. The stores' flows
+     * then feed the state, so the resolved plan, the reminders and the phone
+     * calendar re-derive from the imported choices without a restart.
+     */
+    fun applyPersonalData(selected: Set<String>) {
+        val preview = state.value.importPreview ?: return
+        if (state.value.personalDataBusy) return
+        val changes = preview.changes.filter { it.id in selected }
+        _state.update { it.copy(personalDataBusy = true) }
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { personalData.apply(changes, state.value.bundle) }
+            val message = when (result) {
+                is PersonalDataRepository.ApplyResult.Applied ->
+                    "Imported ${result.changes} ${if (result.changes == 1) "record" else "records"}. Your plan, reminders and calendar follow the imported choices."
+                is PersonalDataRepository.ApplyResult.Stale ->
+                    "Something changed on this phone after the preview (${result.labels.joinToString(", ")}). Nothing was imported; choose the file again."
+                is PersonalDataRepository.ApplyResult.Failed ->
+                    "The import could not be completed: ${result.reason}. Your previous data was kept."
+            }
+            _state.update { it.copy(personalDataBusy = false, importPreview = null, message = message) }
+        }
+    }
+
+    fun cancelPersonalDataImport() = _state.update { it.copy(importPreview = null) }
 
     private fun nowIso(): String {
         val sim = _state.value.simulation ?: return IsoClock.now()
