@@ -57,6 +57,24 @@ describe('published IndiaFOSS 2026 draft', () => {
     expect(normalized.activities).toEqual(bundle.activities);
     expect(normalized.tracks).toEqual(bundle.tracks);
   });
+  it('classifies organiser rows without inventing descriptions', () => {
+    const byTitle = new Map(bundle.activities.map((a) => [a.title, a]));
+    const awards = byTitle.get('FOSS Awards')!;
+    expect(awards.type).toBe('ceremony');
+    expect(awards.description).toBeUndefined();
+    expect(awards.subtitle).toBeUndefined();
+    expect(awards.speakerIds).toEqual([]);
+    expect(awards.sourceUrl).toBe('https://fossunited.org/c/indiafoss/2026/schedule');
+    expect(byTitle.get('Devroom Intro: Open Hardware')?.type).toBe('intro');
+    expect(byTitle.get('Unconference')?.type).toBe('talk');
+    expect(bundle.activities.filter((a) => a.type === 'ceremony')).toHaveLength(8);
+    expect(bundle.activities.filter((a) => a.type === 'intro')).toHaveLength(8);
+    expect(bundle.activities.some((a) => a.subtitle === 'Other' || a.tags.includes('Other'))).toBe(
+      false,
+    );
+    expect(bundle.activities.every((a) => a.sourceUrl)).toBe(true);
+    expect(bundle.activities.every((a) => a.speakerIds.every((id) => id.trim()))).toBe(true);
+  });
   it('separates morning and afternoon programmes occupying Room 1', () => {
     const docs = bundle.activities.filter(
       (a) => a.trackId === 'devroom-documentation-technical-writing',

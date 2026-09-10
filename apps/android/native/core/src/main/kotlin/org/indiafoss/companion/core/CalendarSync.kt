@@ -2,11 +2,10 @@ package org.indiafoss.companion.core
 
 /**
  * The plan as the phone's calendar should show it (#272): the narrow input
- * to the calendar-provider sync. Anything that can say what the attendee
- * means to be at — today the native itinerary, later the resolved plan
- * projection of #221 — produces a list of these; the sync never looks past
- * them. Times are epoch milliseconds so the calendar row and the plan compare
- * without re-parsing offsets.
+ * to the calendar-provider sync. The resolved plan projection of #221
+ * (`PlannedEntries.fromPlans`) produces a list of these; the sync never
+ * looks past them. Times are epoch milliseconds so the calendar row and the
+ * plan compare without re-parsing offsets.
  */
 data class PlannedEntry(
     val identity: PlannedIdentity,
@@ -113,23 +112,31 @@ object CalendarReconciler {
             occurrenceKey == entry.identity.occurrenceKey && proposalKey == entry.identity.proposalKey
 }
 
-/** The current native plan as calendar entries, until the resolved-plan projection (#221) feeds the sync. */
+/**
+ * The resolved plan (#221) as calendar entries: every item of every feasible
+ * day. A day with a blocking conflict contributes nothing, the same rule as
+ * `Reminders.forPlans` — the attendee is asked to resolve it, and the
+ * calendar follows once they have — so the calendar never shows a choice
+ * that Now, the map and the reminders have refused.
+ */
 object PlannedEntries {
-    fun fromItinerary(bundle: EventBundle, items: List<Itinerary.Item>): List<PlannedEntry> =
-        items.mapNotNull { item ->
-            val a = item.activity
-            val start = a.start ?: return@mapNotNull null
-            val end = a.end ?: return@mapNotNull null
-            val speakers = bundle.speakersOf(a).joinToString(", ") { it.name }
-            val description = listOfNotNull(speakers.takeIf { it.isNotBlank() }, a.sourceUrl).joinToString("\n").ifBlank { null }
-            PlannedEntry(
-                identity = PlannedIdentity.of(bundle.id, a),
-                title = a.title,
-                startMs = Schedule.parseInstant(start),
-                endMs = Schedule.parseInstant(end),
-                location = bundle.location(a.locationId)?.name,
-                description = description,
-                appUri = if (item.reason == Itinerary.Reason.BLOCK || item.reason == Itinerary.Reason.LUNCH) null else "indiafoss://activity/${a.id}",
-            )
+    fun fromPlans(bundle: EventBundle, plans: List<ResolvedPlan.Plan>): List<PlannedEntry> =
+        plans.filter { it.feasible }.flatMap { plan ->
+            plan.items.mapNotNull { item ->
+                val a = item.activity
+                val start = a.start ?: return@mapNotNull null
+                val end = a.end ?: return@mapNotNull null
+                val speakers = bundle.speakersOf(a).joinToString(", ") { it.name }
+                val description = listOfNotNull(speakers.takeIf { it.isNotBlank() }, a.sourceUrl).joinToString("\n").ifBlank { null }
+                PlannedEntry(
+                    identity = PlannedIdentity.of(bundle.id, a),
+                    title = a.title,
+                    startMs = Schedule.parseInstant(start),
+                    endMs = Schedule.parseInstant(end),
+                    location = bundle.location(a.locationId)?.name,
+                    description = description,
+                    appUri = if (item.isSession) "indiafoss://activity/${a.id}" else null,
+                )
+            }
         }
 }

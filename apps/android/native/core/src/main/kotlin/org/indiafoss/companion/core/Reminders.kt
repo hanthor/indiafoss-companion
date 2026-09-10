@@ -52,10 +52,60 @@ object Reminders {
         lookaheadMinutes: Long = 24 * 60,
         /** Seconds of walking to a room, or null when it cannot be worked out. */
         walkSecondsTo: (String?) -> Int? = { null },
+    ): List<Reminder> = compute(bundle.activities, bundle::location, nowMs, tierFor, lookaheadMinutes, walkSecondsTo)
+
+    /**
+     * Alerts for every planned day (#221): only feasible plans count, and every
+     * item in one is planned — must attend where the attendee said so, the
+     * planned tier otherwise, blocks of their own included, the lunch gap not.
+     * A day with a blocking conflict schedules nothing until it is resolved,
+     * as on the web.
+     */
+    fun forPlans(
+        plans: List<ResolvedPlan.Plan>,
+        locationOf: (String?) -> Location?,
+        nowMs: Long,
+        dispositionOf: (String) -> Disposition,
+        lookaheadMinutes: Long = 24 * 60,
+        walkSecondsTo: (String?) -> Int? = { null },
+    ): List<Reminder> {
+        val planned = plans.filter { it.feasible }
+            .flatMap { plan -> plan.items.filter { it.source != ResolvedPlan.Source.LUNCH }.map { it.activity } }
+        return compute(
+            planned, locationOf, nowMs,
+            tierFor = { id -> if (dispositionOf(id) == Disposition.MUST_ATTEND) Tier.MUST_ATTEND else Tier.PLANNED },
+            lookaheadMinutes = lookaheadMinutes,
+            walkSecondsTo = walkSecondsTo,
+        )
+    }
+
+    /** What AlarmManager has to do to go from the alarms set last time to `wanted`. */
+    data class Reconciliation(
+        /** Alarm ids to cancel: set before, not wanted now (left the plan, fired, or reminders switched off). */
+        val cancel: Set<String>,
+        /** Alarms to (re)set, one per id, so nothing is armed twice after a refresh or a restart. */
+        val schedule: List<Reminder>,
+        /** The ids armed afterwards, to remember for the next round. */
+        val armed: Set<String>,
+    )
+
+    fun reconcile(previous: Set<String>, wanted: List<Reminder>): Reconciliation {
+        val distinct = wanted.distinctBy { it.id }
+        val next = distinct.map { it.id }.toSet()
+        return Reconciliation(previous - next, distinct, next)
+    }
+
+    fun compute(
+        activities: List<Activity>,
+        locationOf: (String?) -> Location?,
+        nowMs: Long,
+        tierFor: (String) -> Tier,
+        lookaheadMinutes: Long = 24 * 60,
+        walkSecondsTo: (String?) -> Int? = { null },
     ): List<Reminder> {
         val out = ArrayList<Reminder>()
         val horizon = nowMs + lookaheadMinutes * 60_000
-        for (activity in bundle.activities) {
+        for (activity in activities.distinctBy { it.id }) {
             if (activity.cancelled || activity.start == null || activity.end == null) continue
             val tier = tierFor(activity.id)
             if (tier == Tier.NONE) continue
@@ -63,7 +113,7 @@ object Reminders {
             if (startMs < nowMs || startMs > horizon) continue
 
             val name = shortTitle(activity.title)
-            val room = bundle.location(activity.locationId)?.name
+            val room = locationOf(activity.locationId)?.name
             val walkSeconds = walkSecondsTo(activity.locationId)
             val walk = walkSeconds?.let { "${maxOf(1, (it + 30) / 60)} min walk" }
             val startsAt = Schedule.formatTime(activity.start)

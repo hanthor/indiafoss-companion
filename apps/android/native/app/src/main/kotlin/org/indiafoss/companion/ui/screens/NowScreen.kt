@@ -21,13 +21,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.EventPhase
+import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.core.Schedule
 
+/**
+ * Now: "Your plan now" first — the item in progress or the next one from the
+ * attendee's resolved plan (#221), a conflict notice when the plan has one,
+ * never a pick from the whole programme — then what is running in every
+ * room, then the programme's next session, labelled as such.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NowScreen(state: UiState, actions: @Composable () -> Unit, onRefresh: () -> Unit, onDismissUpdate: () -> Unit = {}, onOpen: (String) -> Unit) {
+fun NowScreen(
+    state: UiState,
+    actions: @Composable () -> Unit,
+    onRefresh: () -> Unit,
+    onDismissUpdate: () -> Unit = {},
+    onOpenPlan: () -> Unit = {},
+    onOpen: (String) -> Unit,
+) {
     Scaffold(topBar = { TopAppBar(title = { Text("Now") }, actions = { actions() }) }) { padding ->
         val now = state.nowState
         when {
@@ -76,6 +91,10 @@ fun NowScreen(state: UiState, actions: @Composable () -> Unit, onRefresh: () -> 
                         )
                     }
                 }
+                if (now.phase == EventPhase.DURING) {
+                    item { SectionHeader("Your plan now") }
+                    item { PersonalPlanCard(state, onOpenPlan, onOpen) }
+                }
                 if (now.current.isNotEmpty()) {
                     item { SectionHeader("Happening now") }
                     items(now.current, key = { it.id }) { activity ->
@@ -89,7 +108,7 @@ fun NowScreen(state: UiState, actions: @Composable () -> Unit, onRefresh: () -> 
                     }
                 }
                 now.next?.let { next ->
-                    item { SectionHeader("Up next") }
+                    item { SectionHeader("Next in the programme") }
                     item {
                         SessionCard(
                             activity = next,
@@ -117,6 +136,48 @@ fun NowScreen(state: UiState, actions: @Composable () -> Unit, onRefresh: () -> 
                 }
                 }
             }
+        }
+    }
+}
+
+/** The one card the attendee acts on: in progress or up next in their resolved plan, or why there is none. */
+@Composable
+private fun PersonalPlanCard(state: UiState, onOpenPlan: () -> Unit, onOpen: (String) -> Unit) {
+    val plan = state.todayPlan
+    val next = plan?.nextPlanned(state.now)
+    Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
+        Column(Modifier.padding(16.dp)) {
+            when {
+                plan == null -> Text("No plan for today.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                !plan.feasible -> {
+                    Text("Your plan has conflicting choices", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
+                    plan.blockingConflicts.take(3).forEach { Text(it.message, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp)) }
+                    Text("Resolve them before choosing where to go.", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+                }
+                next == null -> Text("No more items in your plan today. Browse what's on or make time for a break.", style = MaterialTheme.typography.bodyMedium)
+                else -> {
+                    val room = state.bundle?.location(next.locationId)?.name
+                    Text(
+                        "${if (next.inProgress(state.now)) "In progress" else "Up next"} · ${Schedule.formatTime(next.start)}–${Schedule.formatTime(next.end)}" +
+                            (if (next.source == ResolvedPlan.Source.MUST_ATTEND) " · must attend" else ""),
+                        style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        next.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                        modifier = if (next.isSession) Modifier.clickable { onOpen(next.id) } else Modifier,
+                    )
+                    if (room != null) Text(room, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    else if (!next.isSession) Text("Your own time", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (!next.inProgress(state.now)) Text(
+                        "Starts in ${Schedule.minutesUntil(next.start, state.now)} min",
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            plan?.warnings?.firstOrNull()?.let {
+                Text(it.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
+            }
+            TextButton(onClick = onOpenPlan, modifier = Modifier.align(Alignment.End)) { Text("Open your plan") }
         }
     }
 }

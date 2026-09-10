@@ -34,6 +34,43 @@ const CATEGORY_TO_TYPE: Record<string, ActivityType | undefined> = {
   Other: undefined,
 };
 
+/**
+ * The platform's "Other" category carries no attendee meaning; it is the form
+ * default for organiser-authored rows, not a topic.
+ */
+const PLACEHOLDER_CATEGORY = 'Other';
+
+function isPlaceholderCategory(value: string | undefined): boolean {
+  return (value ?? '').trim().toLowerCase() === PLACEHOLDER_CATEGORY.toLowerCase();
+}
+
+/**
+ * Narrow title rules for organiser-authored schedule rows that the platform
+ * only labels "Other". They never apply to a row linked to a CFP proposal or
+ * given a specific `other_category`, so genuine short talks keep their type.
+ */
+const ORGANISER_SESSION_RULES: { pattern: RegExp; type: ActivityType }[] = [
+  { pattern: /^devroom intro(?:duction)?\s*:/i, type: 'intro' },
+  { pattern: /^devroom wrap[-\s]?up\b/i, type: 'ceremony' },
+  { pattern: /^(welcome|opening|closing) (note|remarks)\b/i, type: 'ceremony' },
+  { pattern: /^foss awards\b/i, type: 'ceremony' },
+  { pattern: /^group photo\b/i, type: 'ceremony' },
+  { pattern: /\belection results\b/i, type: 'ceremony' },
+];
+
+export function classifyOrganiserSession(session: {
+  title?: string;
+  category?: string;
+  other_category?: string;
+  linked_cfp?: string;
+}): ActivityType | undefined {
+  if (session.linked_cfp) return undefined;
+  if (session.category && !isPlaceholderCategory(session.category)) return undefined;
+  if (session.other_category && !isPlaceholderCategory(session.other_category)) return undefined;
+  const title = (session.title ?? '').trim();
+  return ORGANISER_SESSION_RULES.find((rule) => rule.pattern.test(title))?.type;
+}
+
 const SESSION_TYPE_TO_TYPE: Record<string, ActivityType> = {
   Talk: 'talk',
   'Invited Talk': 'talk',
@@ -98,9 +135,14 @@ function absoluteUrl(path: string | undefined): string | undefined {
 }
 
 function resolveType(
-  session: { category?: string; linked_cfp?: string; title?: string },
+  session: { category?: string; other_category?: string; linked_cfp?: string; title?: string },
   proposalByCfp: Map<string, FosuProposal>,
+  organiserRules: boolean,
 ): ActivityType {
+  if (organiserRules) {
+    const organiser = classifyOrganiserSession(session);
+    if (organiser) return organiser;
+  }
   const fromCategory = session.category ? CATEGORY_TO_TYPE[session.category] : undefined;
   if (fromCategory) return fromCategory;
   const cfp = session.linked_cfp ? proposalByCfp.get(session.linked_cfp) : undefined;
@@ -216,6 +258,11 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
   const programmeTracks = new Map<string, Track>();
   // This custom question is the programme track in the 2026 CFP; legacy events keep their published track IDs.
   const programmeTracksEnabled = eventId === 'indiafoss-2026';
+  // The 2026 source contract also classifies organiser rows, drops the "Other"
+  // placeholder and links unlinked rows to the public schedule page. The 2025
+  // archive keeps its published shape.
+  const organiserRowsEnabled = programmeTracksEnabled;
+  const scheduleUrl = event.route ? `${absoluteUrl(event.route)}/schedule` : undefined;
   const trackNames = [
     ...new Set(
       proposals
@@ -243,7 +290,7 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
       )) {
         const cfp = s.linked_cfp ? proposalByCfp.get(s.linked_cfp) : undefined;
         const detail = s.linked_cfp ? proposalDetails[s.linked_cfp] : undefined;
-        const type = resolveType(s, proposalByCfp);
+        const type = resolveType(s, proposalByCfp, organiserRowsEnabled);
         if (type === 'meal') currentProgramme = undefined;
         const namedProgramme = programmeTracksEnabled ? cfp?.custom_question_1?.trim() : undefined;
         const programme =
@@ -267,9 +314,12 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           }
         }
 
+        const placeholder = (value: string | undefined) =>
+          organiserRowsEnabled && isPlaceholderCategory(value) ? undefined : value;
+        const otherCategory = placeholder(s.other_category);
         const tags = [
-          s.category,
-          s.other_category,
+          placeholder(s.category),
+          otherCategory,
           cfp?.session_type,
           cfp?.session_categories,
           cfp?.intended_audience,
@@ -277,7 +327,8 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           .filter((t): t is string => Boolean(t))
           .flatMap((t) => t.split('\n'))
           .map((t) => t.trim())
-          .filter((t) => t.length > 0);
+          // CFP category lists also carry a bare "Other" checkbox with no topic meaning.
+          .filter((t) => t.length > 0 && !(organiserRowsEnabled && isPlaceholderCategory(t)));
         const uniqueTags = [...new Set(tags)];
 
         const start = toIsoInKolkata(s.scheduled_date, s.start_time);
@@ -291,8 +342,8 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           title: cleanTitle(
             s.title || s.talk_title || s.proposal_title || cfp?.talk_title || 'Untitled',
           ),
-          ...(s.other_category || cfp?.session_type
-            ? { subtitle: s.other_category ?? cfp?.session_type }
+          ...(otherCategory || cfp?.session_type
+            ? { subtitle: otherCategory ?? cfp?.session_type }
             : {}),
           ...(detail?.description || s.schedule_description
             ? { description: detail?.description ?? s.schedule_description }
@@ -304,7 +355,9 @@ export function normalizeFossUnited(input: FossUnitedNormalizationInput): EventB
           ...(cfp?.status ? { proposalStatus: cfp.status } : {}),
           ...(detail?.sourceUrl || cfp?.route
             ? { sourceUrl: detail?.sourceUrl ?? absoluteUrl(cfp?.route) }
-            : {}),
+            : organiserRowsEnabled && !s.linked_cfp && scheduleUrl
+              ? { sourceUrl: scheduleUrl }
+              : {}),
           start,
           ...(Date.parse(end) > Date.parse(start)
             ? { end }

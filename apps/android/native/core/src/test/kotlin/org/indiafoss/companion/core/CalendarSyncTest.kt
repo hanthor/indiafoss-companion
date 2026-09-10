@@ -113,7 +113,7 @@ class CalendarSyncTest {
     }
 
     @Test
-    fun `the native itinerary becomes entries with identity, room, speakers and a deep link`() {
+    fun `the resolved plan becomes entries with identity, room, speakers and a deep link`() {
         val bundle = EventBundle(
             id = "indiafoss-2026", name = "IndiaFOSS 2026", timezone = "Asia/Kolkata",
             start = "2026-09-26T09:00:00+05:30", end = "2026-09-27T18:00:00+05:30",
@@ -130,7 +130,9 @@ class CalendarSyncTest {
             Itinerary.Item(bundle.activities[1], Itinerary.Reason.RANKED),
             Itinerary.Item(Activity("visit-1", "Visit the booth", type = "custom", start = block.start, end = block.end), Itinerary.Reason.BLOCK, block),
         )
-        val entries = PlannedEntries.fromItinerary(bundle, items)
+        val plan = ResolvedPlan.resolve(bundle, "2026-09-26", items)
+        assertEquals(2, plan.items.size)
+        val entries = PlannedEntries.fromPlans(bundle, listOf(plan))
         assertEquals(2, entries.size)
         val talk = entries[0]
         assertEquals(PlannedIdentity("indiafoss-2026", "act-1", "cfp-1"), talk.identity)
@@ -143,5 +145,21 @@ class CalendarSyncTest {
         val visit = entries[1]
         assertEquals("indiafoss/indiafoss-2026/visit-1", visit.identity.occurrenceKey)
         assertTrue(visit.appUri == null && visit.identity.proposalKey == null)
+    }
+
+    @Test
+    fun `a day with a blocking conflict puts nothing in the calendar`() {
+        val bundle = EventBundle(
+            id = "indiafoss-2026", name = "IndiaFOSS 2026", timezone = "Asia/Kolkata",
+            start = "2026-09-26T09:00:00+05:30", end = "2026-09-27T18:00:00+05:30",
+            activities = listOf(
+                Activity(id = "a", title = "A", start = "2026-09-26T10:00:00+05:30", end = "2026-09-26T11:00:00+05:30"),
+                Activity(id = "b", title = "B", start = "2026-09-26T10:30:00+05:30", end = "2026-09-26T11:30:00+05:30"),
+            ),
+        )
+        val items = bundle.activities.map { Itinerary.Item(it, Itinerary.Reason.MUST_ATTEND) }
+        val plan = ResolvedPlan.resolve(bundle, "2026-09-26", items)
+        assertTrue(!plan.feasible)
+        assertEquals(emptyList<PlannedEntry>(), PlannedEntries.fromPlans(bundle, listOf(plan)))
     }
 }

@@ -8,6 +8,8 @@ The public FOSS United schedule is refreshed hourly by `.github/workflows/schedu
 
 `raw/` contains the captured schedule and proposal inputs. `provenance.json` describes the initial capture; its original counts and hashes are historical, not proof of later captures. `publication.json` retains the source's editorial status. The app no longer shows a persistent draft banner.
 
+Organiser-authored rows (welcome/opening/closing notes, FOSS Awards, group photo, election results, devroom introductions and wrap-ups) arrive with the platform placeholder category `Other`, no speaker and no `schedule_description`. The adapter classifies them as `ceremony` or `intro` by narrow title rules, drops the `Other` placeholder from subtitles and tags, and links them to the public schedule page. It never writes descriptions for them; the app shows a source link until the organiser publishes text.
+
 CFP proposal IDs preserve choices through time and room changes. `activity-ids.json` retains existing IDs; repeated occurrences need their own row identity. Never match a user's choice by title or datetime alone. Physical rooms remain independent of devroom tracks. Repeated room lunch rows are retained as source data and interpreted as lunch windows by the planner.
 
 ## Booths

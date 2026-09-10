@@ -109,6 +109,34 @@ class ScreenshotTest {
     }
 
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
+
+    /** Two overlapping must-go choices: Now says so instead of naming a destination (#221). */
+    @Test fun nowPlanConflict() {
+        val first = bundle.activities.first { it.start != null && it.type != "meal" && it.start!!.startsWith("2026-09-26") }
+        val clash = first.copy(id = "clash", title = "A clashing must-go talk")
+        shoot("now-plan-conflict") {
+            NowScreen(state().copy(bundle = bundle.copy(activities = bundle.activities + clash), mustAttend = setOf(first.id, "clash"), bookmarks = emptySet()), {}, {}) {}
+        }
+        compose.onNodeWithText("Your plan has conflicting choices").assertIsDisplayed()
+    }
+
+    /** A removed session is gone from Now and the banner alike, and the map points at the plan's next room. */
+    @Test fun nowAndMapFollowRemoval() {
+        val first = state().todayPlan!!.nextPlanned(state().now)!!
+        val removed = state().copy(removedFromPlan = setOf(first.id), mustAttend = emptySet())
+        val after = removed.todayPlan!!.nextPlanned(removed.now)
+        assertEquals(false, after?.id == first.id)
+        shoot("map-destination") { MapScreen(removed, {}) {} }
+        compose.onNode(hasText("for you:", substring = true)).assertIsDisplayed()
+    }
+
+    @Test fun planRemoved() {
+        val planned = state().todayPlan!!.items.first { it.source == org.indiafoss.companion.core.ResolvedPlan.Source.RANKED }
+        shoot("plan-removed") { PlanScreen(state().copy(removedFromPlan = setOf(planned.id)), {}, {}, { null }, {}) {} }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("Removed: ${planned.title}"))
+        compose.onNodeWithText("Restore").assertIsDisplayed()
+    }
+
     @Test fun schedule() = shoot("schedule") { ScheduleScreen(state(), {}, {}) {} }
     @Test fun plan() = shoot("plan") { PlanScreen(state(), {}, {}, { null }, {}) {} }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
