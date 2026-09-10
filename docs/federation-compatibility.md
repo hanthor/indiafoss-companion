@@ -16,11 +16,11 @@ the patch that fixes it already exists upstream and is not applied to our fork.
 
 ## Revisions read
 
-| Component | Revision | How it is pinned |
-| --- | --- | --- |
-| Neutrino (the embedded homeserver) | `hanthor/neutrino@2d85348`, branch `e2ee-key-transport` | `patches/neutrino/version.json` → `neutrino.rev` |
-| Federation medium | `hanthor/neutrino-iroh@15117e9`, tag `neutrino-kit-15117e9` | `patches/neutrino/version.json` → `commit` |
-| Spindle | `tuna-os/spindle@ad2283d`, branch `venue-gateway` | `docs/forks.md`; not pinned mechanically |
+| Component                          | Revision                                                    | How it is pinned                                 |
+| ---------------------------------- | ----------------------------------------------------------- | ------------------------------------------------ |
+| Neutrino (the embedded homeserver) | `hanthor/neutrino@2d85348`, branch `e2ee-key-transport`     | `patches/neutrino/version.json` → `neutrino.rev` |
+| Federation medium                  | `hanthor/neutrino-iroh@15117e9`, tag `neutrino-kit-15117e9` | `patches/neutrino/version.json` → `commit`       |
+| Spindle                            | `tuna-os/spindle@ad2283d`, branch `venue-gateway`           | `docs/forks.md`; not pinned mechanically         |
 
 Spindle's `venue-gateway` and `spindle-hub-p2p` differ in only one area that
 matters here, E2EE over federation, plus operator docs. The state-DAG support,
@@ -29,13 +29,13 @@ identical blobs on both branches. Do not attribute those to `venue-gateway`.
 
 ## Room versions and advertised capabilities
 
-| | Neutrino | Spindle |
-| --- | --- | --- |
-| Room versions supported | `org.matrix.msc4242.12` only | `11`, `12`, and `org.matrix.msc4242.12` |
-| Created by default | `org.matrix.msc4242.12` | `11` |
+|                                   | Neutrino                                   | Spindle                                                                 |
+| --------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| Room versions supported           | `org.matrix.msc4242.12` only               | `11`, `12`, and `org.matrix.msc4242.12`                                 |
+| Created by default                | `org.matrix.msc4242.12`                    | `11`                                                                    |
 | `/_matrix/client/v3/capabilities` | default `12`, available `{"12": "stable"}` | default `11`, all three listed, the state-DAG version marked `unstable` |
-| `/_matrix/client/versions` | `["v1.16"]` | `["v1.1", "v1.3"]` |
-| Client-requested room version | never read | honoured if supported, silently substituted if not |
+| `/_matrix/client/versions`        | `["v1.16"]`                                | `["v1.1", "v1.3"]`                                                      |
+| Client-requested room version     | never read                                 | honoured if supported, silently substituted if not                      |
 
 Citations: `crates/neutrino-event/src/lib.rs:39`, `crates/neutrino-http/src/lib.rs:3114-3117`;
 `crates/spindle-server/src/surface.rs:88` and `:91`, `crates/spindle-core/src/version.rs:24`,
@@ -64,12 +64,12 @@ honest shape to copy.
 
 ## Event format and authorisation
 
-| | Neutrino | Spindle, state-DAG room | Spindle, v11 or v12 room |
-| --- | --- | --- | --- |
-| `auth_events` on the wire | rejected | rejected | required |
-| `prev_state_events` on the wire | required except on create | required except on create, capped at 20 | not read |
-| `depth` | not required | optional | required |
-| Auth rules | hand-written v12 | ruma's v12 rules | ruma's rules for the version |
+|                                 | Neutrino                  | Spindle, state-DAG room                 | Spindle, v11 or v12 room     |
+| ------------------------------- | ------------------------- | --------------------------------------- | ---------------------------- |
+| `auth_events` on the wire       | rejected                  | rejected                                | required                     |
+| `prev_state_events` on the wire | required except on create | required except on create, capped at 20 | not read                     |
+| `depth`                         | not required              | optional                                | required                     |
+| Auth rules                      | hand-written v12          | ruma's v12 rules                        | ruma's rules for the version |
 
 Citations: `crates/neutrino-event/src/validate.rs:282-284` and `:344-348`;
 `crates/spindle-core/src/pdu.rs:96-120`, `crates/spindle-core/src/version.rs:43-48`,
@@ -89,15 +89,15 @@ but it is not a wire incompatibility.
 
 ## Signing and key distribution
 
-| | Neutrino | Spindle |
-| --- | --- | --- |
-| `X-Matrix` sent | `origin` and `destination` only, no `key`, no `sig` | `origin`, `key`, `sig` |
-| `X-Matrix` verified on receipt | `origin` parsed, `key` and `sig` discarded | all three required, signature verified, no lenient mode |
-| Inbound PDU signatures | not checked on `/send` | verified; bad content hash redacts, bad signature refuses |
-| Room version used to verify a PDU | per-room | per-room, falling back to `11` for an unknown room |
-| `/_matrix/key/v2/server` | served, 404 on a trusted-network deployment | served, self-signed |
-| Peer key documents fetched | never; no key-fetch client exists | fetched over HTTP, self-signature and server name checked |
-| A 64-hex node id as a server name | is the signing key, decoded directly | treated as an ordinary hostname, key fetched over HTTP |
+|                                   | Neutrino                                            | Spindle                                                   |
+| --------------------------------- | --------------------------------------------------- | --------------------------------------------------------- |
+| `X-Matrix` sent                   | `origin` and `destination` only, no `key`, no `sig` | `origin`, `key`, `sig`                                    |
+| `X-Matrix` verified on receipt    | `origin` parsed, `key` and `sig` discarded          | all three required, signature verified, no lenient mode   |
+| Inbound PDU signatures            | not checked on `/send`                              | verified; bad content hash redacts, bad signature refuses |
+| Room version used to verify a PDU | per-room                                            | per-room, falling back to `11` for an unknown room        |
+| `/_matrix/key/v2/server`          | served, 404 on a trusted-network deployment         | served, self-signed                                       |
+| Peer key documents fetched        | never; no key-fetch client exists                   | fetched over HTTP, self-signature and server name checked |
+| A 64-hex node id as a server name | is the signing key, decoded directly                | treated as an ordinary hostname, key fetched over HTTP    |
 
 Citations: `crates/neutrino-http/src/federation/client.rs:173`,
 `crates/neutrino-http/src/federation/auth.rs:4-20`,
@@ -155,24 +155,24 @@ acceptable to Spindle without making Neutrino itself verify what it receives.
 
 ## Federation endpoints
 
-| Endpoint | Neutrino | Spindle |
-| --- | --- | --- |
-| `PUT /v1/send/{txn}` | yes | yes |
-| `GET /v1/backfill/{room}` | yes | yes |
-| `POST /v1/get_missing_events/{room}` | yes | yes |
-| `GET /v1/make_join`, `PUT /v2/send_join` | yes, v2 only | yes, v1 and v2 |
-| `GET /v1/make_leave`, `PUT /v2/send_leave` | yes, v2 only | yes, v1 and v2 |
-| `PUT /v2/invite` | yes, v2 only | yes, v2 only |
-| `GET /v1/make_knock`, `PUT /v1/send_knock` | absent | yes |
-| `GET /v1/state`, `/v1/state_ids` | absent by design | yes |
-| `GET /v1/event/{id}` | absent | yes |
-| `GET /v1/event_auth` | absent | absent |
-| `GET /v1/version` | absent | yes |
-| `GET /v1/query/directory` | yes | yes |
-| `GET /v1/query/profile` | absent | yes |
-| `GET /v1/media/download/{id}` | yes | yes |
-| `GET /v1/media/thumbnail/{id}` | absent | absent |
-| `/_matrix/key/v2/query` (notary) | absent | absent |
+| Endpoint                                   | Neutrino         | Spindle        |
+| ------------------------------------------ | ---------------- | -------------- |
+| `PUT /v1/send/{txn}`                       | yes              | yes            |
+| `GET /v1/backfill/{room}`                  | yes              | yes            |
+| `POST /v1/get_missing_events/{room}`       | yes              | yes            |
+| `GET /v1/make_join`, `PUT /v2/send_join`   | yes, v2 only     | yes, v1 and v2 |
+| `GET /v1/make_leave`, `PUT /v2/send_leave` | yes, v2 only     | yes, v1 and v2 |
+| `PUT /v2/invite`                           | yes, v2 only     | yes, v2 only   |
+| `GET /v1/make_knock`, `PUT /v1/send_knock` | absent           | yes            |
+| `GET /v1/state`, `/v1/state_ids`           | absent by design | yes            |
+| `GET /v1/event/{id}`                       | absent           | yes            |
+| `GET /v1/event_auth`                       | absent           | absent         |
+| `GET /v1/version`                          | absent           | yes            |
+| `GET /v1/query/directory`                  | yes              | yes            |
+| `GET /v1/query/profile`                    | absent           | yes            |
+| `GET /v1/media/download/{id}`              | yes              | yes            |
+| `GET /v1/media/thumbnail/{id}`             | absent           | absent         |
+| `/_matrix/key/v2/query` (notary)           | absent           | absent         |
 
 Citations: `crates/neutrino-http/src/lib.rs:716-909`;
 `crates/spindle-server/src/routes.rs:1070-1153`.
@@ -184,10 +184,10 @@ state DAG instead.
 
 Spindle returns two different shapes depending on the room.
 
-| Room | Spindle returns |
-| --- | --- |
-| state-DAG | `{origin, event, state_dag, timeline}` |
-| v11 or v12 | `{origin, event, state, auth_chain}` |
+| Room       | Spindle returns                        |
+| ---------- | -------------------------------------- |
+| state-DAG  | `{origin, event, state_dag, timeline}` |
+| v11 or v12 | `{origin, event, state, auth_chain}`   |
 
 Neutrino returns `{state_dag, timeline, event}`
 (`crates/neutrino-http/src/federation/send_join.rs:41-50`). Spindle's state-DAG
@@ -202,14 +202,14 @@ is a deliberate interoperability affordance, not an accident.
 
 ## Keys and to-device across federation
 
-| | Neutrino | Spindle |
-| --- | --- | --- |
-| `POST /v1/user/keys/query` | yes | yes |
-| `POST /v1/user/keys/claim` | yes | yes |
-| `GET /v1/user/devices/{user}` | yes | yes |
-| `m.direct_to_device` EDU | sent and acted on | acted on |
-| `m.device_list_update` EDU | sent, with a stream id | acted on, and announced outbound |
-| Other EDUs | accepted and dropped | `m.typing` applied, rest dropped |
+|                               | Neutrino               | Spindle                          |
+| ----------------------------- | ---------------------- | -------------------------------- |
+| `POST /v1/user/keys/query`    | yes                    | yes                              |
+| `POST /v1/user/keys/claim`    | yes                    | yes                              |
+| `GET /v1/user/devices/{user}` | yes                    | yes                              |
+| `m.direct_to_device` EDU      | sent and acted on      | acted on                         |
+| `m.device_list_update` EDU    | sent, with a stream id | acted on, and announced outbound |
+| Other EDUs                    | accepted and dropped   | `m.typing` applied, rest dropped |
 
 Citations: `crates/neutrino-http/src/lib.rs:899-909`,
 `crates/neutrino-http/src/federation/keys.rs`,
