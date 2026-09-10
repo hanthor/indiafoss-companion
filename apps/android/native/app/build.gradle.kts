@@ -61,7 +61,10 @@ android {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
 
-    sourceSets["main"].assets.srcDir(seedAssets)
+    // AGP 9 refuses a Provider here. The directory is known at configuration
+    // time and preBuild already dependsOn copySeedBundle, so the task ordering
+    // does not rely on the provider carrying it.
+    sourceSets["main"].assets.srcDir(seedAssets.get().asFile)
 }
 
 dependencies {
