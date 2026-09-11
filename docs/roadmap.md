@@ -59,7 +59,8 @@ changes, update the issue first, then this file, so neither drifts.
     (#314).
   - **Install channels**: Obtainium and our own F-Droid repository, Accrescent
     removed (#308); the repository's unsigned catalogue pipeline
-    (hanthor/indiafoss-android-repo#6); repository not yet live (#291).
+    (hanthor/indiafoss-android-repo#6); deployment endpoint and index signing pipeline activation pending (#291, #364).
+  - **F-Droid Signed Index Activation**: Deployment of the custom F-Droid repository hosting endpoint (#291) with signed index generation and automated sync for release APK updates (#364).
   - **Bindings provenance** (#305): the `.aar` is built from
     `hanthor/neutrino-iroh@15117e9` over `hanthor/neutrino@2d85348` and
     released as `neutrino-bindings-0.8.2-e2ee.2d85348-ble.15117e9`; Chat pins

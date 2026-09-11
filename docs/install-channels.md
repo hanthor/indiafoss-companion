@@ -35,8 +35,8 @@ identity and how it is verified in CI).
 
 A maintainer-run F-Droid repository for reviewed Companion and Chat builds is
 being set up in [hanthor/indiafoss-android-repo](https://github.com/hanthor/indiafoss-android-repo)
-(tracking issue
-[#291](https://github.com/hanthor/indiafoss-companion/issues/291)). It will
+(tracking issues [#291](https://github.com/hanthor/indiafoss-companion/issues/291)
+and [#364](https://github.com/hanthor/indiafoss-companion/issues/364)). It will
 serve the same signed APKs under a separately signed index. Until that endpoint
 is live the PWA does not show an _Add repository_ link; when it is, the link,
 its fingerprint and a QR code will appear next to the download buttons.
