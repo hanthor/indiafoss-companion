@@ -46,6 +46,7 @@ changes, update the issue first, then this file, so neither drifts.
   - **Personal-data import in the PWA** (#301, refs #240): validation,
     CFP-resolved preview, keep-existing conflicts, one-transaction apply.
     Native export/import still open under #240.
+  - **Strategic Roadmap & Adoption Gaps** (#362): tracking native data import parity, Matrix federation automation, and pre-event validation.
   - **Venue** (closes #278, #223, #205, #270): organiser venue and
     OpenStreetMap / `geo:` arrival handoff (#295); From/To panel with route
     steps labelled an estimate while the graph is `_draft` (#299); desktop
