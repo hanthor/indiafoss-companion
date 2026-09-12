@@ -25,7 +25,7 @@ export {
 export type { FossUnitedProfile, ProfileSocialNetwork } from './fossunited/parse-profile.js';
 export { FixtureSource, repoRoot } from './fixture.js';
 export { StaticBundleSource } from './static-bundle.js';
-export type { EventSource, SourceEvent, FossUnitedSourceEvent } from './types.js';
+export type { BundleLoader, EventSource, SourceEvent, FossUnitedSourceEvent } from './types.js';
 
 /**
  * Merge an authored booth list into a normalized bundle (booths are not
