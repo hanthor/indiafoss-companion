@@ -24,10 +24,17 @@ export interface FossUnitedSourceEvent {
   booths?: Booth[];
 }
 
-/** Core source abstraction (§6). */
-export interface EventSource {
-  /** Fetch the raw event payload for a reference. */
-  fetchEvent(ref: EventReference): Promise<SourceEvent>;
-  /** Convert a fetched payload into the canonical bundle. */
-  normalize(source: SourceEvent): Promise<EventBundle>;
+/** Direct bundle loader interface (§6). */
+export interface BundleLoader {
+  /** Load a normalized event bundle directly from disk or cache. */
+  loadBundle(ref: EventReference): Promise<EventBundle>;
 }
+
+/** Core raw event source abstraction (§6). */
+export interface EventSource<S extends { kind: string } = SourceEvent> {
+  /** Fetch the raw event payload for a reference. */
+  fetchEvent(ref: EventReference): Promise<S>;
+  /** Convert a fetched payload into the canonical bundle. */
+  normalize(source: S): Promise<EventBundle>;
+}
+
