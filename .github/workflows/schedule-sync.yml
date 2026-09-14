@@ -95,6 +95,9 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.changed == 'true'
     uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      pull-requests: read
     with:
       ref: ${{ needs.prepare.outputs.head }}
 
