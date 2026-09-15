@@ -653,6 +653,719 @@
       }
     ]
   },
+  "96gh03hfud": {
+    "proposalId": "96gh03hfud",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96gh03hfud",
+    "description": "Contribute to open source. This is the advice almost everyone in the FOSS community has given or received. Well said. But most newcomers hit a wall, especially the ones who don’t come with a technical background. How do we lower the barrier of entry? Is there a starting point that gently takes someone from being interested to becoming a contributor?\n\nDocumentation is one of the most impactful yet underserved areas in open source. It is also one of the most accessible places to begin. The Open Documentation Academy is a free, open programme designed around exactly this idea. It connects people who want to contribute to open source with real documentation tasks on real projects along with mentorship, structured guidance, and a community to work with. This talk introduces the Open Documentation Academy initiative led by technical authors at Canonical and invites new contributors to participate.\n\nIf you are looking for an entry point into open source, then this talk is for you.",
+    "keyTakeaways": [
+      "Introduction to Open Documentation Academy",
+      "How to join as a contributor",
+      "Collaborate with the academy: bring a project in",
+      "Ideas for writing better beginner-friendly documentation issues in their own projects"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/canonical/open-documentation-academy",
+        "url": "https://github.com/canonical/open-documentation-academy"
+      },
+      {
+        "label": "https://documentation.academy/",
+        "url": "https://documentation.academy/"
+      },
+      {
+        "label": "https://www.youtube.com/watch?v=BS2SdC2v9Ns",
+        "url": "https://www.youtube.com/watch?v=BS2SdC2v9Ns"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "clniq3em1j": {
+    "proposalId": "clniq3em1j",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/clniq3em1j",
+    "description": "Documentation is one of the most important parts of a software project, yet the experience of writing it often feels far behind the experience of writing code. Modern IDEs provide features such as diagnostics, syntax highlighting, code navigation and instant feedback while programming, but documentation authors frequently discover broken links, invalid references and structural issues only after generating the final documentation.\n\nThis talk explores how language-server technology can help bridge that gap by bringing IDE-style feedback and navigation to documentation workflows. Through the lens of my Google Summer of Code project with SourceKit-LSP, I will discuss how documentation can be treated as a first-class artifact rather than plain text, enabling richer tooling and a faster feedback loop for writers and maintainers.\n\nI will begin with a brief overview of my journey into open source and how it led me to work on developer tooling through GSoC. From there, the talk will focus on the broader ecosystem of documentation tooling: what documentation compilers are, why documentation workflows often lack the tooling available for source code and how language servers power modern editor experiences.\n\nUsing DocC, Apple's documentation compiler for Swift and Objective-C, as a case study, I will explain how language-server concepts such as diagnostics, syntax highlighting and navigation can be applied to documentation files. The talk will also cover the architecture of SourceKit-LSP, the challenges involved in extending language-server functionality to new document types and the design decisions made while implementing support for DocC.\n\nThe session will conclude with a live demonstration showing how documentation authors can benefit from IDE features directly while writing documentation, reducing context switching and catching issues before documentation is built.",
+    "keyTakeaways": [
+      "Why documentation should be treated as a part of the development workflow rather than plain text.",
+      "How language servers power features such as diagnostics, code navigation, and editor intelligence.",
+      "How language-server techniques can be applied beyond programming languages to documentation and other structured content.",
+      "What challenges arise when extending language servers to support new document types and workflows.",
+      "Practical insights into contributing to large open-source developer tooling projects."
+    ],
+    "references": [
+      {
+        "label": "https://github.com/Padmashree06/sourcekit-lsp",
+        "url": "https://github.com/Padmashree06/sourcekit-lsp"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "db4ufng84v": {
+    "proposalId": "db4ufng84v",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/db4ufng84v",
+    "description": "I've been working with Bruno, an open source API client, for more than two years and have been closely involved in building and maintaining its documentation from the ground up. While documenting both small and large features, I learned a lot about what works, what doesn't, and how documentation can become a growth driver for an open source project.\n\nIn this talk, I'll share real examples, mistakes we made, approaches that failed, and lessons that helped us improve the overall documentation experience. I'll cover topics such as creating an effective starter guide for new users, using analytics not just to measure page views but to understand where users struggle, and using product mockups to explain complex workflows that are difficult to communicate through text alone.\n\nI'll also talk about our experience evaluating documentation platforms such as Nextra, Docusaurus, and MkDocs, and the lessons we learned while improving discoverability, searchability, and documentation structure.\n\nAs AI-powered search and agents become a growing source of traffic, documentation also needs to be structured in a way that is easier for machines to understand and retrieve.\n\nTarget Audience - This talk is intended for open source maintainers, technical writers, Developer Relations professionals, developer advocates, product engineers, and contributors who are responsible for creating or maintaining documentation for developer-focused products.\n\nConclusion - Attendees will learn a practical framework for designing documentation that improves onboarding, increases discoverability, reduces support overhead, and drives both open source community growth and product adoption.",
+    "keyTakeaways": [
+      "Why Starter Guides Matters - The starter guide is often the first interaction users have with your product. I'll explain how a well-designed onboarding flow can help users experience value quickly and improve adoption.",
+      "How to Use Product Mockups Effectively - People often understand visuals faster than written explanations. I'll discuss when mockups are more effective than text, how we use them in documentation, and the challenges of keeping them updated as the product evolves.",
+      "Improving Documentation Search Experience - What users search for is not always how documentation is organized. I'll share practical approaches to structuring titles, navigation, and content around user intent. For example, a user may search for \"developer tools\" while the documentation refers to the same concept as \"debugging tools.\"",
+      "How to Make Documentation AI-Friendly - As more content is consumed through AI tools and agents, documentation needs to provide clear context and structure. I'll share practical techniques for making documentation easier to discover, understand, and retrieve through modern AI-powered experiences.",
+      "How Feedback Loop Work - Continuous feedback from different sources is essential for improving documentation. Whether it comes from GitHub issues, community discussions, support requests, or analytics, feedback helps you understand what users are struggling with and where documentation gaps exist."
+    ],
+    "references": [
+      {
+        "label": "https://youtu.be/7ZIxQ7pJSmM?si=6L9iPptPgL7XZzfs",
+        "url": "https://youtu.be/7ZIxQ7pJSmM?si=6L9iPptPgL7XZzfs"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "en28h8l81s": {
+    "proposalId": "en28h8l81s",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/en28h8l81s",
+    "description": "I did engineering, but I'd never really call myself a developer. I was always more drawn to how policy shapes technology than to building the technology itself. For a long time, those two worlds felt separate. Then AI happened, and suddenly the gap between \"I wonder if this exists\" and \"I just built it\" collapsed to a weekend.\n\nIn 2025, I attended IndiaFOSS for the first time. I'd been to a lot of policy and tech conferences, but this one felt different; there was a genuine energy in the room. People were passionate about what they were building, and more importantly, why. Submitting this proposal for IndiaFOSS 2026 feels like a full-circle moment.\n\nFor the last few months, I’ve been trying to understand how India's government actually built its digital infrastructure. I was more interested in the ground-level account of what worked, what didn't, and who made it happen rather than press releases and policy documents. That trail led me to the NIC Informatics newsletter.\n\nThe National Informatics Centre has been the invisible backbone of India's digital government for over 50 years — election results, land records, passport systems, Aarogya Setu. For 34 of those years, NIC published a quarterly newsletter called Informatics, documenting what it built and how. 3,865 articles. 1,852 authors. Public servants from every Indian state writing about the systems that now run the country.\n\nThe only problem was that all of it was sitting in unsearchable PDFs on a government website. You couldn't Ctrl+F it. You couldn't search across issues. You couldn't find stories and correlations unless you knew exactly where to look. So I decided to build it.\n\nI spent a few weekends with some open source tools and cheap LLM APIs (no serious coding involved) and tried to build an archive that might change that. Here’s a glimpse of a few things I found that surprised me:\n\nThis talk is the story of how I stumbled into the project, what I found when I got there, and what I think it means. The code is commoditised. Curiosity is the hard part. A lot of public data in India is technically available, but available and usable are very different things. With the tools we now have, there's no excuse for the gap between the two.",
+    "keyTakeaways": [
+      "Public data and usable data are not the same thing. Availability means nothing without searchability.",
+      "With current AI tools, the barrier to building public commons is lower than it's ever been. The entire NIC Archives cost under Rs 500 to build.",
+      "India's institutional knowledge is quietly sitting in PDFs. The first step is finding it, the second is making it findable for everyone else.",
+      "You don't have to be a developer to use technology for public good. You just have to be curious."
+    ],
+    "references": [
+      {
+        "label": "https://vinamraharkar.github.io/nic-archives/index.html",
+        "url": "https://vinamraharkar.github.io/nic-archives/index.html"
+      },
+      {
+        "label": "https://github.com/vinamraharkar/nic-archives",
+        "url": "https://github.com/vinamraharkar/nic-archives"
+      },
+      {
+        "label": "https://informatics.nic.in/archive",
+        "url": "https://informatics.nic.in/archive"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "9cl0lf8t0j": {
+    "proposalId": "9cl0lf8t0j",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9cl0lf8t0j",
+    "description": "Open source has never had more contributors, and yet, more and more projects struggle with adoption, onboarding, and retention. Ever wondered why?\n\nThe bottleneck isn't code quality. It's the experience. More specifically the Contributor experience. Bad READMEs, undocumented APIs, broken setup scripts, and hostile first-timer experiences kill more projects every year than any technical limitation ever will.\n\nDeveloper experience is now the highest-leverage contribution you can make to open source. Yet it remains the most overlooked.\n\nIn this talk, we will prove it with evidence. We'll share concrete examples of what broke and what we fixed across API ecosystems and cloud-native infrastructure: onboarding flows that cut time-to-first-PR, documentation architectures that actually scaled, API design decisions that reduced support burden, and contributor ladder structures that turned drive-by visitors into long-term contributors and maintainers. If you care about scaling your open source project, this talk is for you.",
+    "keyTakeaways": [
+      "Is Developer Experience just contributing to documentation?",
+      "How most open source projects unintentionally become uninteresting to people before their first move (and how the reason is almost never technical difficulty)?",
+      "Why you are loosing contributors? Bad onboarding, broken setup scripts, and outdated docs.",
+      "How small DevX fixes like better READMEs, clearer error messages, faster setup, etc. have outsized impact on contributor retention/product success.",
+      "How Contributor ladders designed intentionally can turn one-time visitors into long-term maintainers.",
+      "A practical DevX audit framework that works on any open source project, regardless of size or ecosystem"
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/results?search_query=eeshaan+sawant",
+        "url": "https://www.youtube.com/results?search_query=eeshaan+sawant"
+      },
+      {
+        "label": "https://youtu.be/UpsBuo1Bt8E?si=dOX2wCg0aQWvcM0n",
+        "url": "https://youtu.be/UpsBuo1Bt8E?si=dOX2wCg0aQWvcM0n"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "6dpd2lbkma": {
+    "proposalId": "6dpd2lbkma",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6dpd2lbkma",
+    "description": "Docs-as-code borrowed a lot from software engineering. Docs live in Git, go through review, run through CI, and ship as versioned sites. Most editors still treat a documentation project as plain text, so the moment you rename a heading, move a page, or split a topic, cross-links and anchors can break with nobody noticing until a reader hits a 404.\n\nI'm a technical writer, and most of my open-source contributions are documentation work, so I keep meeting this problem from the inside. Recently I fixed a few links in the Fluree DB docs that 404'd because mdBook rewrites source .md links to .html but renders a README.md as index.html; a link check then surfaced more broken links across the site. In CocoIndex, I restored links that broke when a release branch was removed, and earlier added a lychee link-checking workflow to its docs CI. The projects and tools differ, but the failure is the same: change the structure, links rot, and CI tells you only after the damage is already public.\n\nThis lightning talk treats that as a refactoring problem, not only a writing or publishing one. I'll use Zensical Studio, a newly launched FOSS extension for VS Code, as a worked example of what editor-integrated docs tooling can do: flag broken links as you type, parse Python Markdown the way MkDocs and Zensical read it, and show every incoming link to a heading so one rename updates them all instead of leaving cleanup to CI.",
+    "keyTakeaways": [
+      "Documentation has a refactoring problem that's separate from writing or publishing it. Renaming a heading or moving a page can break links, and most editors won't warn you.",
+      "Broken links and shifting anchors erode reader trust. CI catches them, but only after you push.",
+      "Editor-integrated tooling can make structural changes safer. I'll use Zensical Studio to show what that looks like in practice: in-editor broken-link diagnostics, Python Markdown awareness for MkDocs and Zensical, and renames that fix incoming links."
+    ],
+    "references": [
+      {
+        "label": "https://zensical.org/studio/",
+        "url": "https://zensical.org/studio/"
+      },
+      {
+        "label": "https://zensical.org/studio/write/",
+        "url": "https://zensical.org/studio/write/"
+      },
+      {
+        "label": "https://zensical.org/studio/write/links/",
+        "url": "https://zensical.org/studio/write/links/"
+      },
+      {
+        "label": "https://github.com/cocoindex-io/cocoindex/pull/1425",
+        "url": "https://github.com/cocoindex-io/cocoindex/pull/1425"
+      },
+      {
+        "label": "https://github.com/cocoindex-io/cocoindex/pull/1959",
+        "url": "https://github.com/cocoindex-io/cocoindex/pull/1959"
+      }
+    ],
+    "links": [
+      {
+        "label": "fixed",
+        "url": "https://github.com/fluree/db/pull/1376"
+      },
+      {
+        "label": "restored links",
+        "url": "https://github.com/cocoindex-io/cocoindex/pull/1959"
+      },
+      {
+        "label": "lychee link-checking workflow",
+        "url": "https://github.com/cocoindex-io/cocoindex/pull/1425"
+      },
+      {
+        "label": "Zensical Studi",
+        "url": "https://zensical.org/studio/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "76r6ku6p9h": {
+    "proposalId": "76r6ku6p9h",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/76r6ku6p9h",
+    "description": "Large open source projects do not only need documentation. They also need memory.\n\nKubernetes moves through hundreds of issues, pull requests, merges, enhancements, deprecations, release updates, meetings, and discussions. A changelog can tell you what changed, but it often cannot tell a new contributor what deserves attention, why something matters, where to look next, or how a project is moving as a community.\n\nThis talk is about Last Week in Kubernetes Development, or LWKD, a weekly newsletter that summarizes Kubernetes development activity: code merges, PRs, deprecations, version updates, release schedules, and community meetings. LWKD is a Kubernetes SIG Contributor Experience project, and its repository contains the Markdown files used to produce the weekly updates, with contributions accepted through pull requests.\n\nI will use my experience as a writer and editor for LWKD to talk about technical writing as a real open source contribution path. The talk will explain how editorial judgment works in a fast-moving FOSS project: deciding what is worth including, summarizing technical changes without flattening nuance, preserving uncertainty, linking claims to sources, making review easy, and helping readers orient themselves inside a large project.\n\nThe talk is also prescriptive. I will share a practical contribution path for people who want to enter FOSS through writing: how to pick a recurring publication or documentation surface, study its format, start with one small section, summarize one technical change, cite the source, handle review on prose, and build consistency over time.\n\nThe goal is to show that writing in open source is not a fallback for people who do not code. In large projects, writing is infrastructure. It helps communities remember what changed, why it mattered, and how contributors can participate.",
+    "keyTakeaways": [
+      "Why large FOSS projects need community memory, not just documentation, changelogs, and release notes.",
+      "What LWKD is, how it helps Kubernetes contributors stay updated, and how a weekly technical newsletter can support contributor experience.",
+      "How technical writing becomes a real contribution path in open source, especially for newcomers who are still learning the codebase.",
+      "How to summarize fast-moving technical work without losing accuracy, context, or nuance.",
+      "How editorial judgment works in FOSS writing: what to include, what to omit, how to cite sources, and how to separate fact from interpretation.",
+      "How prose review differs from code review, and why feedback on wording, structure, and framing is part of maintainership.",
+      "A practical starting path for new documentation contributors: read existing editions, pick one section, summarize one change, submit a pull request, respond to review, and repeat.",
+      "Why writing is not a consolation prize in open source. It is one of the ways communities scale knowledge, trust, and participation."
+    ],
+    "references": [
+      {
+        "label": "https://lwkd.info/",
+        "url": "https://lwkd.info/"
+      },
+      {
+        "label": "https://github.com/kubernetes-sigs/lwkd",
+        "url": "https://github.com/kubernetes-sigs/lwkd"
+      },
+      {
+        "label": "https://github.com/kubernetes/community/tree/master/sig-contributor-experience",
+        "url": "https://github.com/kubernetes/community/tree/master/sig-contributor-experience"
+      },
+      {
+        "label": "https://www.kubernetes.dev/docs/guide/",
+        "url": "https://www.kubernetes.dev/docs/guide/"
+      },
+      {
+        "label": "https://www.kubernetes.dev/community/code-of-conduct/",
+        "url": "https://www.kubernetes.dev/community/code-of-conduct/"
+      },
+      {
+        "label": "https://github.com/inirah02",
+        "url": "https://github.com/inirah02"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "eqr1r1mp5b": {
+    "proposalId": "eqr1r1mp5b",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eqr1r1mp5b",
+    "description": "Your documentation now has a second reader, and it reads nothing like the first. Alongside the human skimming for an answer, an LLM or agent is pulling fragments of your docs to answer a question or drive a workflow, and the two readers want opposite things.\n\nA person reads top to bottom, follows a screenshot, and fills gaps from context. An agent pulls one isolated chunk, ignores the layout entirely, cannot see the screenshot, and falls apart when the real meaning was in a diagram or an unstated assumption. The same page that works fine for a human can hand an agent a confidently wrong answer.\n\nThis talk shows what actually changes when you write for both. It covers structuring content so a retrieval system returns a correct, self-contained answer, what conventions like llms.txt do, and exposing docs through the Model Context Protocol so an agent queries them at runtime instead of scraping a rendered page. It is also honest about the cost: optimizing for machines can flatten the voice and context that make docs good for humans, and some advice going around right now trades real quality for retrieval scores.\n\nWhat this talk covers:\n\nHow an agent reads your docs differently from a human, shown concretely\n\nStructuring content for self-contained retrieval without dumbing it down\n\nWhat llms.txt and MCP actually solve, and what they do not\n\nA live look at the same docs page answered well versus badly by an agent\n\nA page-by-page rule for when to optimize for the machine and when to refuse\n\nThis is for anyone maintaining docs for an open source project who has noticed AI assistants quoting those docs and wants them to be right.",
+    "keyTakeaways": [
+      "Audit one of your own doc pages for how an agent would actually read it",
+      "Restructure a page so that a retrieval system returns a complete, correct chunk",
+      "Decide what belongs in llms.txt or an MCP server versus the human-facing page",
+      "Tell the difference between machine-readability that helps and advice that just wrecks your docs"
+    ],
+    "references": [
+      {
+        "label": "https://modelcontextprotocol.io",
+        "url": "https://modelcontextprotocol.io/"
+      },
+      {
+        "label": "https://llmstxt.org",
+        "url": "https://llmstxt.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "7dfgb98p8p": {
+    "proposalId": "7dfgb98p8p",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/7dfgb98p8p",
+    "description": "Most people in India learn to code in their second or third language. The syntax is hard enough. Then the documentation, the part that's supposed to help, is in English too. For a learner who thinks in Tamil, that's two walls instead of one.\n\nWe decided to take one of those walls down. Our team has been translating Python's official documentation into Tamil, and this isn't a fork or a side-blog. It's the real thing. The translation has been officially recognized by the Python Software Foundation's CPython Core Developers and is now part of Python's official documentation translation effort, listed alongside the other languages Python ships docs in.\n\nThis talk is the honest story of how that happened, and how anyone in the room can do it for their own language.\n\nI'll walk through the actual machinery: how Python governs translated documentation under PEP 545, how the docs are structured as Sphinx .po files, how the translation work flows through the coordination process, and the completion bar you have to clear before Python will publish your language officially. None of this is obvious from the outside, and that opacity is exactly why most language communities never start.\n\nThen the harder part, the part no tool solves. There is no settled Tamil word for \"iterator,\" \"decorator,\" or \"thread.\" Every contributor has an opinion. Keeping terminology consistent across thousands of strings, recruiting people who know both Tamil and Python well, and keeping reviewers from burning out turned out to be the real project. The code was the easy bit.\n\nI'll close on why this matters beyond Python. Localization is one of the most underrated forms of FOSS contribution. It needs no deep systems knowledge, it directly widens who gets to participate in open source, and almost every major FOSS project has docs sitting in English waiting for someone to start. By the end, you'll know how to be that someone.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://github.com/Terminal-Joint/python-docs-ta",
+        "url": "https://github.com/Terminal-Joint/python-docs-ta"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "c9kecg3h9i": {
+    "proposalId": "c9kecg3h9i",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/c9kecg3h9i",
+    "description": "Every documentation failure has a technical explanation. The heading structure was inconsistent. The error message did not suggest a fix. The getting-started guide assumed the reader already had the environment configured. The warning was buried three paragraphs below the command it was warning about.\n\nBut underneath every one of these failures is the same root cause: the writer forgot what it felt like to not know the thing.\n\nThis talk is about empathy as a documentation practice, not the soft, abstract kind, but the specific, actionable kind that changes how you write an error message, structure a tutorial, or decide what context to include before a code example. As a technical writer at Red Hat and an open source contributor, I have audited documentation that was technically correct, structurally sound, and completely useless to the person who needed it most because it was written from the inside out rather than the outside in.\n\nWe will look at four concrete places where empathy breaks down in documentation: the assumptions we bake in without declaring them, the context we omit because it feels obvious, the error guidance we write for ourselves rather than for someone in a panic at a broken terminal, and the accessibility failures that signal to entire categories of users that this documentation was not written for them. Each failure mode gets a real example, a diagnosis, and a fix.\n\nThe talk is structured around a simple provocation: the user who cannot follow your documentation is not failing. Your documentation is failing them. And in open source, where documentation is often the only onboarding a new contributor or user gets, that failure has a direct cost to community health, contributor retention, and the long-term sustainability of the project.\n\nEmpathy is not a personality trait. It is a skill, and it can be taught, practised, and built into review processes. This talk shows you how.",
+    "keyTakeaways": [
+      "The four specific places empathy breaks down in technical documentation are assumed knowledge, missing context, poor error guidance, and inaccessible design, with real before and after examples",
+      "How to audit your own documentation for empathy failures without needing user research infrastructure, practical techniques any contributor can use today",
+      "Why \"the user is confused\" is rarely the right diagnosis and how reframing documentation failures as empathy failures changes how you fix them",
+      "How to build empathy checkpoints into documentation review processes so that individual writers do not have to carry the entire cognitive load alone",
+      "A reframe of documentation quality from correctness and completeness to usefulness and welcome, and what that shift means for how FOSS projects prioritise their writing work"
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/watch?v=gFShEOtXATc",
+        "url": "https://www.youtube.com/watch?v=gFShEOtXATc"
+      },
+      {
+        "label": "https://www.youtube.com/watch?v=vXyLxQpw-1s&t=196s",
+        "url": "https://www.youtube.com/watch?v=vXyLxQpw-1s&t=196s"
+      },
+      {
+        "label": "https://www.youtube.com/watch?v=mVeOitKAd5Q&t=65s",
+        "url": "https://www.youtube.com/watch?v=mVeOitKAd5Q&t=65s"
+      },
+      {
+        "label": "https://www.youtube.com/watch?v=9_N5_aTu5P8",
+        "url": "https://www.youtube.com/watch?v=9_N5_aTu5P8"
+      },
+      {
+        "label": "https://www.youtube.com/watch?v=XQ-hOq0UP2M",
+        "url": "https://www.youtube.com/watch?v=XQ-hOq0UP2M"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "0hs9gpkgp4": {
+    "proposalId": "0hs9gpkgp4",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0hs9gpkgp4",
+    "description": "The PDF file format has stood the test of time as a versatile and highly portable means to producing print-oriented media, reports, documents, and knowledge works, to facilitate information exchange in varied settings. This talk advocates for the proliferation of distributing FOSS project documentation in the PDF file format. I would like to highlight various incentives towards such a paradigm where documentation is browsed offline, while also being balanced and offering a sense into its pitfalls.\n\nWhile most projects consider offline documentation (via PDF, and other formats such as EPUB) as an afterthought in comparison to web-based documentation, there is a case to be made for it—as a missed opportunity—to reach a wider variety of users. A well-structured PDF is something a documentation website cannot replicate easily – it works without an internet connection, works on all sorts of PDF readers and devices, offers features such as annotations, comments, can go places on compact data storage devices such as flash drives, and lastly, can be printed and handed over to users in the form of manuals and booklets. This matters for remote and low-resource regions with limited internet access – for instance, in countries where metered mobile data costs are high and broadband being evenly distributed is a privilege. Another benefit is accessibility, in that it is easier for a PDF with a semantic heading structure to be more navigable with a screen reader, than a documentation site that may layer custom JavaScript navigation widgets over its content.\n\nThe most common form of PDF/offline documentation generation is via typesetting tools such as LaTeX, but the tooling landscape in the world of FOSS has changed considerably, having gone through various advancements – to the point where LaTeX is not the sole choice for a FOSS project wanting to share offline documentation. For instance:\n\nBesides documentation authors, there are also projects for users, i.e., documentation readers. Offline documentation readers, such as Zeal are worth knowing about and pointing to.\n\nHowever, as can be expected, there are also pitfalls to offline documentation, such as math rendering differences across tools, SVG and figure handling, font embedding, maintaining the accessibility conformance of the generated outputs, how EPUB fares across different reader applications, and maintenance questions of who takes up building documentation for such formats and keeps it going.\n\nHere is a proposed (read: provisional) outline of my talk:",
+    "keyTakeaways": [
+      "A practical survey of FOSS tools for building offline (PDF/EPUB) documentation, with enough specifics to evaluate tradeoffs for your project",
+      "A case for offline documentation, including accessibility and connectivity arguments, and how it serves different user needs",
+      "Specific failure modes to anticipate in offline builds before they find you in production",
+      "When not to build offline documentation"
+    ],
+    "references": [
+      {
+        "label": "https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.latex.LaTeXBuilder",
+        "url": "https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.latex.LaTeXBuilder"
+      },
+      {
+        "label": "https://typst.app",
+        "url": "https://typst.app/"
+      },
+      {
+        "label": "https://github.com/useblocks/sphinx-simplepdf",
+        "url": "https://github.com/useblocks/sphinx-simplepdf"
+      },
+      {
+        "label": "https://github.com/brechtm/rinohtype",
+        "url": "https://github.com/brechtm/rinohtype"
+      },
+      {
+        "label": "https://weasyprint.org",
+        "url": "https://weasyprint.org/"
+      },
+      {
+        "label": "https://tectonic-typesetting.github.io",
+        "url": "https://tectonic-typesetting.github.io/"
+      },
+      {
+        "label": "https://calibre-ebook.com",
+        "url": "https://calibre-ebook.com/"
+      },
+      {
+        "label": "https://zealdocs.org",
+        "url": "https://zealdocs.org/"
+      },
+      {
+        "label": "https://github.com/johnfactotum/foliate",
+        "url": "https://github.com/johnfactotum/foliate"
+      },
+      {
+        "label": "https://devdocs.io",
+        "url": "https://devdocs.io/"
+      },
+      {
+        "label": "https://accessible-pdf.info",
+        "url": "https://accessible-pdf.info/"
+      },
+      {
+        "label": "https://pdfa.org/accessibility",
+        "url": "https://pdfa.org/accessibility"
+      },
+      {
+        "label": "https://www.mkdocs.org",
+        "url": "https://www.mkdocs.org/"
+      },
+      {
+        "label": "https://github.com/zhaoterryy/mkdocs-pdf-export-plugin",
+        "url": "https://github.com/zhaoterryy/mkdocs-pdf-export-plugin"
+      },
+      {
+        "label": "https://quarto.org",
+        "url": "https://quarto.org/"
+      },
+      {
+        "label": "https://mystmd.org",
+        "url": "https://mystmd.org/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4etfsdh6i4": {
+    "proposalId": "4etfsdh6i4",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4etfsdh6i4",
+    "description": "The Android Open Source Project (AOSP) has undergone significant changes over the past year or so. Not just in new features, but also in how the project itself is developed and governed. This lightning talk provides a quick overview of the recent developments in the AOSP ecosystem, including the transition of AOSP main to read-only, introduction to android-latest-release branch, mandatory registration for app developers, the Android Automotive OS (AAOS) Software Defined Vehicle (SDV) release, updates from aosp-devs.org community and other updates shaping Android's future.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd",
+        "url": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd"
+      }
+    ],
+    "links": [
+      {
+        "label": "aosp-devs.org",
+        "url": "https://aosp-devs.org/"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "beqsttjcbn": {
+    "proposalId": "beqsttjcbn",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/beqsttjcbn",
+    "description": "Have you ever stopped to think about what actually happens inside your smartphone the second you tap an app icon? Instead of booting up from scratch every single time , our phone uses a shortcut to clone a ready to go template which is why our apps launch in the blink of an eye.We build apps every day , many complex ones as well relying on APIs that make UI magically appear but how many of us actually understand the heavy lifting happening underneath? This talk will cover that black box of Android’s operating system for developers who want to look past the surface layer. Did you know that the app doesn’t boot a fresh JVM every time but instead forks from a pre warmed Zygote process to launch instantly. Most importantly, because this entire operating system is open - source , you never have to just guess how things work , we can actually read the blueprints. I’ll show you how to navigate this massive public codebase so you can look up exactly what happens under the hood whenever you get stuck",
+    "keyTakeaways": [
+      "Understand the Zygote forking model and why Android app startup is fast",
+      "Know the journey from tapping an icon -> process creation -> first frame on screen",
+      "Understand how Compose's compiler plugin + slot table architecture differs from the legacy View system"
+    ],
+    "references": [
+      {
+        "label": "https://source.android.com/docs/core/runtime",
+        "url": "https://source.android.com/docs/core/runtime"
+      },
+      {
+        "label": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java",
+        "url": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java"
+      },
+      {
+        "label": "https://developer.android.com/develop/ui/compose/mental-model",
+        "url": "https://developer.android.com/develop/ui/compose/mental-model"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "bb06npb4u0": {
+    "proposalId": "bb06npb4u0",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bb06npb4u0",
+    "description": "Launcher3 is one of the most frequently used yet least understood applications in the Android ecosystem. Every interaction on an Android device eventually flows through it, unlocking the device, launching applications, accessing widgets, navigating recent tasks, searching for content, or interacting with personalized experiences such as Google Feed.\n\nOver the last year, while maintaining and customizing Launcher3 across multiple Android releases, I repeatedly dived into parts of the launcher that are rarely documented and even less frequently discussed in public. It started from writing features and maintenance and swiftly became a deep exploration into Launcher3's architecture, integration, plugin overlays, feed provider, the mechanism that power the familiar -1 screen experience found on millions of Android devices.\n\nMany Android developers work on Launcher3, but few get the opportunity to understand why it is structured the way it is. This talk aims to bridge that gap.\n\nLauncher3 is not just an app that opens other apps. It is one of the central part of the Android experience, such as navigation, recents, search, widgets and personalisation. This session will cover its core architecture, workspace, states, and integration with SystemUI. We will also examine how OEMs and custom ROMs extend the same codebase to create different launcher experiences\n\nA major focus of the session will be understanding the architecture behind the Google Feed (-1) screen. Through practical examples and analysis, we will explore how overlay provider plugin communicate with Launcher3, how overlay services are implemented, and what developers can learn when building their own custom launcher experiences.\n\nAlong the way, I will also share real-world lessons learned from maintaining Launcher3 customizations, debugging launcher issues across Android releases, and studying the components that make modern Android launchers feel seamless to users.\n\nWhether you maintain a custom ROM, work on the Android platform, or are simply interested in how Android launchers work, this session will help you understand how Launcher3 is structured, how its major components interact, and how modern launcher features are implemented.",
+    "keyTakeaways": [
+      "Understand how Launcher3 evolved from a simple application launcher into a core component of the modern Android user experience.",
+      "Learn how Launcher3 interacts with SystemUI, Recents, Search, and many more platform services.",
+      "Explore the architecture behind Google Feed and the implementation of Android's -1 screen experience.",
+      "Understand launcher overlay plugins and other mechanisms used by libgooglefeed.",
+      "Learn practical techniques for customizing Launcher3 and implementing alternative feed experiences.",
+      "Gain insights for Launcher3 maintenance, debugging, and reverse-engineering efforts across Android releases.",
+      "Walk away with a mental model of Launcher3 that makes future customization and platform development significantly easier."
+    ],
+    "references": [
+      {
+        "label": "https://android.googlesource.com/platform/packages/apps/Launcher3/",
+        "url": "https://android.googlesource.com/platform/packages/apps/Launcher3/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "4v0vd3g01j": {
+    "proposalId": "4v0vd3g01j",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4v0vd3g01j",
+    "description": "Building an Android keyboard is fundamentally different from building a traditional Android application. Keyboards operate inside a unique part of the Android ecosystem interacting directly with the Input Method Framework (IMF), communicating across applications, handling sensitive user input, and operating under strict performance and lifecycle constraints.\n\nIn this session, I will use lessons from maintaining Scribe-Android, an open-source keyboard project, as a practical case study to explore how Android keyboards (IMEs) actually work. We will examine the architecture behind IME, input flows, lifecycle behavior, and the challenges of building software that integrates deeply with the Android system while interacting seamlessly with other applications.\n\nThe talk will also cover real-world engineering challenges encountered while building a production keyboard experience: lifecycle quirks, latency and responsiveness tradeoffs, multilingual input support, debugging behavior across fragmented Android devices, and privacy and security considerations unique to keyboard software.\n\nRather than serving as a project showcase, this talk uses a real-world open-source IME to explore Android system behavior, architectural decisions, and the engineering tradeoffs required to build responsive, privacy-conscious input experiences.",
+    "keyTakeaways": [
+      "Understand how Android keyboards (IMEs) work and integrate with the Input Method Framework",
+      "Learn core IME architecture: IME input flows, and system interaction",
+      "Explore engineering tradeoffs around lifecycle behavior, latency, multilingual input, and performance",
+      "Understand UI tradeoffs between XML and Compose in the Keyboard Layouts",
+      "Learn debugging strategies for OEM quirks, fragmented Android environments, and platform changes (including API 36 breakages)",
+      "Understand privacy and security considerations in keyboard software",
+      "Gain deeper insight into Android internals through building unconventional system-facing software"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/scribe-org/Scribe-Android",
+        "url": "https://github.com/scribe-org/Scribe-Android"
+      },
+      {
+        "label": "https://github.com/scribe-org/",
+        "url": "https://github.com/scribe-org/"
+      },
+      {
+        "label": "https://github.com/scribe-org/slides",
+        "url": "https://github.com/scribe-org/slides"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "e08r7fa8ja": {
+    "proposalId": "e08r7fa8ja",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/e08r7fa8ja",
+    "description": "Bootloaders are an essential block for booting an Android device. They handle tasks from reading the partitions, loading, and authenticating the Android images to preparing the board and finally handing over thec ontrol to kernel. Currently each vendor maintains different bootloader. To address the issue of fragmentation in the Android bootloader implementation across the community, Generic BootLoader (GBL) was introduced by Google.\n\nGBL is an EFI application which supports x86, ARM64 and RISC-V architectures and can be run across various firmware such as U-Boot, EDK2, and LittleKernel. By leveraging RUST memory safety and trusted components such as libufdt and libavb, GBL provides a uniform, secure, and robust environment.\n\nThis session provides a technical breakdown into GBL’s integration within the UEFI ecosystem. We will explore how GBL utilizes standard upstream protocols and interfaces with firmware to select platform-appropriate Device Trees, apply essential DT fixups, and prepare critical data for the Android kernel, including bootconfig and command-line parameters. Overall, the session provides a practical look at the enhancements required to bring GBL into the boot chain along with the challenges that might be encountered, offering a comprehensive roadmap for developers looking to reduce maintenance overhead and accelerate future-ready Android deployments.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/",
+        "url": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "d883e2uauk": {
+    "proposalId": "d883e2uauk",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d883e2uauk",
+    "description": "With our recent efforts to get upstream Linux Kernel support for Allwinner Sunxi A133 and A523 platforms, this also includes the Display Engine. Although the whole upstream effort relies on reverse engineering the vendor blobs, we have managed to get the end-to-end display pipeline working with GPU and got LVDS and MIPI working. In some cases, we are able to get 2 parallel displays working.\n\nAllwinner ships the most affordable SoCs / silicons for gaming consoles and handheld devices including tablets, all running vendor-provided Android. All of the devices come with closed source and proprietary blobs from Imagination Technologies, ARM Mali, and CedarX for the media pipelines.\n\nThis talk walks through our adventurous journey in building AOSP with upstream Linux Kernel 7.1 without any vendor-provided components to run an end-to-end display pipeline. We started our tinkering with Android 16 and easily moved to 17 (only released 6 days ago - relative to the date of this submission).",
+    "keyTakeaways": [
+      "One doesn't need to get locked in with vendor-provided Android",
+      "How to reverse engineer all the needed components to get an end-to-end working AOSP",
+      "How the community can lead the way to try this for the A733 or any upcoming silicons from Allwinner, or any SoC vendor for that matter"
+    ],
+    "references": [
+      {
+        "label": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/",
+        "url": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/"
+      },
+      {
+        "label": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/",
+        "url": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "3ltumiotgu": {
+    "proposalId": "3ltumiotgu",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3ltumiotgu",
+    "description": "Many Android phones come with heavy vendor skins and a lot of Google services built in. I wanted something lighter and more private, so I moved from that setup to a custom ROM with less Google dependence.\n\nThat shift was not smooth. I ran into soft bricks, a hard brick, SafetyNet and Play Integrity problems, and notifications that did not always behave the way they should. I also tried microG, but in the end I went with a fully vanilla custom ROM setup because that fit my privacy goals better. Along the way, I managed to fix most of the issues I ran into, but a few things never really had a clean or satisfying fix.\n\nFor family devices, though, a fully degoogled setup did not make sense. They needed something that was easier to live with, so those phones stayed on a normal GApps-based custom ROM. That ended up being one of the biggest lessons for me: the same setup that feels fine for one person can be too much trouble for someone else.\n\nThis talk is about that move, the things that broke along the way, the fixes that worked, the things that stayed broken, and the trade-offs between privacy and daily use.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://wiki.lineageos.org/",
+        "url": "https://wiki.lineageos.org/"
+      },
+      {
+        "label": "https://github.com/microg/GmsCore/wiki",
+        "url": "https://github.com/microg/GmsCore/wiki"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "dojgnoj06v": {
+    "proposalId": "dojgnoj06v",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dojgnoj06v",
+    "description": "Building a Physical Volume Knob for AOSP on Raspberry Pi 5\n\nIn this talk, I'll show how I connected a rotary potentiometer to a Raspberry Pi 5 running AOSP Android 15 and made it control the media volume — using a 250-line C++ daemon in the vendor layer, with zero changes to the Android framework.\n\nAlong the way we hit real walls: a library blocked by VNDK, build and runtime errors, three SELinux types that don't exist in AOSP 15, and a hardware bus number that wasn't what we expected.",
+    "keyTakeaways": [
+      "How the AOSP vendor layer is structured and what belongs in it",
+      "How to read hardware sensors from a native C++ daemon using standard Linux kernel ABIs",
+      "How uinput works and why it is sometimes the right way to talk to Android audio from vendor code",
+      "How to write and debug SELinux policy for a vendor service from scratch",
+      "The difference between BOARD_VENDOR_SEPOLICY_DIRS and PRODUCT_PRIVATE_SEPOLICY_DIRS and why it matters",
+      "How to iterate on a vendor service without reflashing the entire image"
+    ],
+    "references": [
+      {
+        "label": "https://www.youtube.com/shorts/9k3If_49M78",
+        "url": "https://www.youtube.com/shorts/9k3If_49M78"
+      },
+      {
+        "label": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf",
+        "url": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf"
+      },
+      {
+        "label": "https://github.com/ProArun/fossinida2026/blob/main/README.md",
+        "url": "https://github.com/ProArun/fossinida2026/blob/main/README.md"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "armmpc3k1l": {
+    "proposalId": "armmpc3k1l",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/armmpc3k1l",
+    "description": "Android's security model is a chain of promises. Bootloader trusts TrustZone. TrustZone backs HWKM. HWKM feeds Keystore2. Keystore2 trusts VINTF manifests. Every security writeup, every hardening guide, every architecture diagram assumes this chain is intact and working.\n\nBring-up doesn't get that luxury. Bring-up starts from nothing. This talk is about porting YAAP (Android 16/17) to the Motorola Vienna (MT6878, Dimensity 6300) and watching Android's security stack fail to assemble itself - in three specific, revealing ways.\n\nFailure 1 - The Silent Boot Loop\n\ninlinecrypt in fstab tells the kernel to use inline hardware encryption\n\nThe key lives inside a Trustonic TA inside TrustZone - which isn't initialized yet during early bring-up\n\nThe kernel just waits. No panic. No log entry. Absolute silence.\n\nWhat this exposes: the kernel-TEE dependency is far tighter than anything in the framework-level docs suggests\n\nFailure 2 - The VINTF Lie\n\nThe vendor blob dump shipped with Thales StrongBox VINTF declarations intact\n\nStrongBox wasn't actually there. The manifest said it was.\n\nKeystore2 believed the manifest. Watchdog crashes started firing.\n\nWhat this exposes: VINTF is a contract, and when the vendor side of that contract is wrong, the framework has no graceful fallback - it just breaks\n\nFailure 3 - The Upstream Bug\n\nA casing inconsistency in libwifi_hal/Android.bp in AOSP 17 silently killed the WiFi HAL\n\nNot a vendor issue. A bug in mainline AOSP itself.\n\nDebug path: logcat -> VINTF resolution failure -> build system trace -> the single wrong-case character in Android.bp\n\nThe security angle most bring-up talks never touch:\n\nWhen Keystore2 is running without hardware backing, what actually happens to credential-backed keys?\n\nWhen a VINTF manifest lies about StrongBox, which guarantees does the framework silently drop?\n\nThree concrete observations on what a device in mid-bring-up state actually exposes\n\nThe failure modes during bring-up aren't random. They map directly to architectural decisions. Bring-up is the only context where you get to watch those decisions matter in real time - layer by layer, from nothing.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://source.android.com/docs/security/features/keystore",
+        "url": "https://source.android.com/docs/security/features/keystore"
+      },
+      {
+        "label": "https://source.android.com/docs/core/architecture/vintf",
+        "url": "https://source.android.com/docs/core/architecture/vintf"
+      },
+      {
+        "label": "https://source.android.com/docs/security/features/keystore/implementer-ref",
+        "url": "https://source.android.com/docs/security/features/keystore/implementer-ref"
+      },
+      {
+        "label": "https://source.android.com/docs/security/features/keystore/tags",
+        "url": "https://source.android.com/docs/security/features/keystore/tags"
+      },
+      {
+        "label": "https://github.com/yaap",
+        "url": "https://github.com/yaap"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "41r3mau7ga": {
+    "proposalId": "41r3mau7ga",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/41r3mau7ga",
+    "description": "Android is transitioning from HIDL to Stable AIDL to improve HAL interface stability and long-term maintainability. However, many production devices still depend on legacy HIDL implementations, making upgrades difficult.\n\nThis talk presents a migration of a HAL from HIDL to Stable AIDL, focusing on real-world challenges. It covers key differences in interface definition, versioning, Binder IPC, and VINTF compatibility. The session walks through a step-by-step migration: rewriting interfaces, updating services, and modifying manifests.\n\nHands-on guide for engineers who must modernize existing HIDL HALs to Stable AIDL in shipping devices.\n\nAs Android continues adopting Rust to improve security and reliability, platform developers are gaining new ways to build safer system components. This talk introduces Android Hardware Abstraction Layers (HALs) developed using Rust and AIDL, covering how Rust integrates with AOSP, Binder IPC, and modern Android architecture.\n\nThrough a practical example, attendees will learn how to create and integrate a Rust-based HAL, understand the benefits of memory safety, and explore why Rust is becoming an important part of Android's future.",
+    "keyTakeaways": [
+      "Explain the core architectural differences between HIDL and AIDL in the Android HAL stack.",
+      "List the Android version milestones that make AIDL mandatory for new and production devices.",
+      "Execute a step-by-step HIDL → AIDL migration for a real hardware interface.",
+      "Address SELinux policy changes, VINTF manifest updates, and compatibility matrix versioning required by the migration.",
+      "Identify and mitigate common failure, validation.",
+      "Understand why Android is adopting Rust for system-level development.",
+      "Explain how AIDL-based HALs fit into the modern Android architecture.",
+      "Create and integrate a Rust-based HAL in AOSP.",
+      "Implement Binder IPC communication between Android services and Rust HALs.",
+      "Identify common challenges when developing and debugging Rust HAL services."
+    ],
+    "references": [
+      {
+        "label": "https://source.android.com/docs/core/architecture/aidl/stable-aidl",
+        "url": "https://source.android.com/docs/core/architecture/aidl/stable-aidl"
+      },
+      {
+        "label": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns",
+        "url": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "0le8m0bk3i": {
+    "proposalId": "0le8m0bk3i",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0le8m0bk3i",
+    "description": "We all have been through this tough battle at least once in our lives with MTP (Media Transfer Protocol), which is what every OS uses when you plug an Android phone in via USB. It was designed in 2008 for portable media players and transfers file metadata one item at a time with no caching or parallel requests. It does a round trip every time new info is needed because it works as a request-response protocol, so when you club this with modern tech with 100s of GBs of storage and tens of thousands of files, even calculating folder sizes takes several minutes, and if you are on macOS, the Finder app doesn't even show folder sizes at all. SocketSweep is an open source desktop app that bypasses this agonising MTP entirely. The main source of architectural inspiration is the scrcpy project by Genymobile, the idea of pushing a native binary to an Android device via ADB and communicating over a local socket.\n\nSo here's how it works: we have a cross-compiled C++ daemon (~1MB static binary, built with the Android NDK for aarch64) that gets pushed to the phone via adb push. Now the transferred daemon binds to a TCP socket on port 5050 and scans the filesystem using native POSIX calls like opendir/readdir/stat directly on the device, so there's no MTP bottleneck, it's plain raw system calls. Now the ADB port forwarding tunnels TCP 5050 on the phone to localhost:5050 on the PC, giving us a reliable bidirectional channel through the USB cable (with future scope of making it work over WiFi). Coming to the desktop side, we have a Rust/Tauri backend on the PC which manages the full lifecycle from pushing the daemon, setting up port forwarding, handling scoped storage permissions, and managing the TCP connection. The app uses a React frontend with an interactive treemap visualization.\n\nA full /sdcard scan on my device, which is a Samsung S24 Ultra (256GB, ~47k files), took about 7 seconds.\n\nIn this lightning talk i'll walk through why MTP is slow at the protocol level, how the \"push binary + socket\" pattern from scrcpy can be applied to other problems, cross-compiling C++ for Android with the NDK, and how ADB port forwarding works as a communication layer.",
+    "keyTakeaways": [
+      "Why MTP is slow at the protocol level and why building better file manager apps on top of it doesn't fix the core problem",
+      "How scrcpy's \"push a native binary via ADB, communicate over a local socket\" pattern can be reused to build your own Android tools",
+      "A working example of this pattern: scanning 47k files in ~7 seconds vs several minutes over MTP",
+      "Why this approach is future-proof: it runs through ADB debugging, not sideloading, so it continues to work even as Google tightens sideloading restrictions on Android"
+    ],
+    "references": [
+      {
+        "label": "https://github.com/VishnuSrivatsava/SocketSweep",
+        "url": "https://github.com/VishnuSrivatsava/SocketSweep"
+      },
+      {
+        "label": "https://youtu.be/ttsc6Xf6Xb4",
+        "url": "https://youtu.be/ttsc6Xf6Xb4"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "7pt1ibasdd": {
     "proposalId": "7pt1ibasdd",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/7pt1ibasdd",
@@ -1203,773 +1916,6 @@
       }
     ]
   },
-  "96gh03hfud": {
-    "proposalId": "96gh03hfud",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96gh03hfud",
-    "description": "Contribute to open source. This is the advice almost everyone in the FOSS community has given or received. Well said. But most newcomers hit a wall, especially the ones who don’t come with a technical background. How do we lower the barrier of entry? Is there a starting point that gently takes someone from being interested to becoming a contributor?\n\nDocumentation is one of the most impactful yet underserved areas in open source. It is also one of the most accessible places to begin. The Open Documentation Academy is a free, open programme designed around exactly this idea. It connects people who want to contribute to open source with real documentation tasks on real projects along with mentorship, structured guidance, and a community to work with. This talk introduces the Open Documentation Academy initiative led by technical authors at Canonical and invites new contributors to participate.\n\nIf you are looking for an entry point into open source, then this talk is for you.",
-    "keyTakeaways": [
-      "Introduction to Open Documentation Academy",
-      "How to join as a contributor",
-      "Collaborate with the academy: bring a project in",
-      "Ideas for writing better beginner-friendly documentation issues in their own projects"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/canonical/open-documentation-academy",
-        "url": "https://github.com/canonical/open-documentation-academy"
-      },
-      {
-        "label": "https://documentation.academy/",
-        "url": "https://documentation.academy/"
-      },
-      {
-        "label": "https://www.youtube.com/watch?v=BS2SdC2v9Ns",
-        "url": "https://www.youtube.com/watch?v=BS2SdC2v9Ns"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "clniq3em1j": {
-    "proposalId": "clniq3em1j",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/clniq3em1j",
-    "description": "Documentation is one of the most important parts of a software project, yet the experience of writing it often feels far behind the experience of writing code. Modern IDEs provide features such as diagnostics, syntax highlighting, code navigation and instant feedback while programming, but documentation authors frequently discover broken links, invalid references and structural issues only after generating the final documentation.\n\nThis talk explores how language-server technology can help bridge that gap by bringing IDE-style feedback and navigation to documentation workflows. Through the lens of my Google Summer of Code project with SourceKit-LSP, I will discuss how documentation can be treated as a first-class artifact rather than plain text, enabling richer tooling and a faster feedback loop for writers and maintainers.\n\nI will begin with a brief overview of my journey into open source and how it led me to work on developer tooling through GSoC. From there, the talk will focus on the broader ecosystem of documentation tooling: what documentation compilers are, why documentation workflows often lack the tooling available for source code and how language servers power modern editor experiences.\n\nUsing DocC, Apple's documentation compiler for Swift and Objective-C, as a case study, I will explain how language-server concepts such as diagnostics, syntax highlighting and navigation can be applied to documentation files. The talk will also cover the architecture of SourceKit-LSP, the challenges involved in extending language-server functionality to new document types and the design decisions made while implementing support for DocC.\n\nThe session will conclude with a live demonstration showing how documentation authors can benefit from IDE features directly while writing documentation, reducing context switching and catching issues before documentation is built.",
-    "keyTakeaways": [
-      "Why documentation should be treated as a part of the development workflow rather than plain text.",
-      "How language servers power features such as diagnostics, code navigation, and editor intelligence.",
-      "How language-server techniques can be applied beyond programming languages to documentation and other structured content.",
-      "What challenges arise when extending language servers to support new document types and workflows.",
-      "Practical insights into contributing to large open-source developer tooling projects."
-    ],
-    "references": [
-      {
-        "label": "https://github.com/Padmashree06/sourcekit-lsp",
-        "url": "https://github.com/Padmashree06/sourcekit-lsp"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "db4ufng84v": {
-    "proposalId": "db4ufng84v",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/db4ufng84v",
-    "description": "I've been working with Bruno, an open source API client, for more than two years and have been closely involved in building and maintaining its documentation from the ground up. While documenting both small and large features, I learned a lot about what works, what doesn't, and how documentation can become a growth driver for an open source project.\n\nIn this talk, I'll share real examples, mistakes we made, approaches that failed, and lessons that helped us improve the overall documentation experience. I'll cover topics such as creating an effective starter guide for new users, using analytics not just to measure page views but to understand where users struggle, and using product mockups to explain complex workflows that are difficult to communicate through text alone.\n\nI'll also talk about our experience evaluating documentation platforms such as Nextra, Docusaurus, and MkDocs, and the lessons we learned while improving discoverability, searchability, and documentation structure.\n\nAs AI-powered search and agents become a growing source of traffic, documentation also needs to be structured in a way that is easier for machines to understand and retrieve.\n\nTarget Audience - This talk is intended for open source maintainers, technical writers, Developer Relations professionals, developer advocates, product engineers, and contributors who are responsible for creating or maintaining documentation for developer-focused products.\n\nConclusion - Attendees will learn a practical framework for designing documentation that improves onboarding, increases discoverability, reduces support overhead, and drives both open source community growth and product adoption.",
-    "keyTakeaways": [
-      "Why Starter Guides Matters - The starter guide is often the first interaction users have with your product. I'll explain how a well-designed onboarding flow can help users experience value quickly and improve adoption.",
-      "How to Use Product Mockups Effectively - People often understand visuals faster than written explanations. I'll discuss when mockups are more effective than text, how we use them in documentation, and the challenges of keeping them updated as the product evolves.",
-      "Improving Documentation Search Experience - What users search for is not always how documentation is organized. I'll share practical approaches to structuring titles, navigation, and content around user intent. For example, a user may search for \"developer tools\" while the documentation refers to the same concept as \"debugging tools.\"",
-      "How to Make Documentation AI-Friendly - As more content is consumed through AI tools and agents, documentation needs to provide clear context and structure. I'll share practical techniques for making documentation easier to discover, understand, and retrieve through modern AI-powered experiences.",
-      "How Feedback Loop Work - Continuous feedback from different sources is essential for improving documentation. Whether it comes from GitHub issues, community discussions, support requests, or analytics, feedback helps you understand what users are struggling with and where documentation gaps exist."
-    ],
-    "references": [
-      {
-        "label": "https://youtu.be/7ZIxQ7pJSmM?si=6L9iPptPgL7XZzfs",
-        "url": "https://youtu.be/7ZIxQ7pJSmM?si=6L9iPptPgL7XZzfs"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "en28h8l81s": {
-    "proposalId": "en28h8l81s",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/en28h8l81s",
-    "description": "I did engineering, but I'd never really call myself a developer. I was always more drawn to how policy shapes technology than to building the technology itself. For a long time, those two worlds felt separate. Then AI happened, and suddenly the gap between \"I wonder if this exists\" and \"I just built it\" collapsed to a weekend.\n\nIn 2025, I attended IndiaFOSS for the first time. I'd been to a lot of policy and tech conferences, but this one felt different; there was a genuine energy in the room. People were passionate about what they were building, and more importantly, why. Submitting this proposal for IndiaFOSS 2026 feels like a full-circle moment.\n\nFor the last few months, I’ve been trying to understand how India's government actually built its digital infrastructure. I was more interested in the ground-level account of what worked, what didn't, and who made it happen rather than press releases and policy documents. That trail led me to the NIC Informatics newsletter.\n\nThe National Informatics Centre has been the invisible backbone of India's digital government for over 50 years — election results, land records, passport systems, Aarogya Setu. For 34 of those years, NIC published a quarterly newsletter called Informatics, documenting what it built and how. 3,865 articles. 1,852 authors. Public servants from every Indian state writing about the systems that now run the country.\n\nThe only problem was that all of it was sitting in unsearchable PDFs on a government website. You couldn't Ctrl+F it. You couldn't search across issues. You couldn't find stories and correlations unless you knew exactly where to look. So I decided to build it.\n\nI spent a few weekends with some open source tools and cheap LLM APIs (no serious coding involved) and tried to build an archive that might change that. Here’s a glimpse of a few things I found that surprised me:\n\nThis talk is the story of how I stumbled into the project, what I found when I got there, and what I think it means. The code is commoditised. Curiosity is the hard part. A lot of public data in India is technically available, but available and usable are very different things. With the tools we now have, there's no excuse for the gap between the two.",
-    "keyTakeaways": [
-      "Public data and usable data are not the same thing. Availability means nothing without searchability.",
-      "With current AI tools, the barrier to building public commons is lower than it's ever been. The entire NIC Archives cost under Rs 500 to build.",
-      "India's institutional knowledge is quietly sitting in PDFs. The first step is finding it, the second is making it findable for everyone else.",
-      "You don't have to be a developer to use technology for public good. You just have to be curious."
-    ],
-    "references": [
-      {
-        "label": "https://vinamraharkar.github.io/nic-archives/index.html",
-        "url": "https://vinamraharkar.github.io/nic-archives/index.html"
-      },
-      {
-        "label": "https://github.com/vinamraharkar/nic-archives",
-        "url": "https://github.com/vinamraharkar/nic-archives"
-      },
-      {
-        "label": "https://informatics.nic.in/archive",
-        "url": "https://informatics.nic.in/archive"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "9cl0lf8t0j": {
-    "proposalId": "9cl0lf8t0j",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/9cl0lf8t0j",
-    "description": "Open source has never had more contributors, and yet, more and more projects struggle with adoption, onboarding, and retention. Ever wondered why?\n\nThe bottleneck isn't code quality. It's the experience. More specifically the Contributor experience. Bad READMEs, undocumented APIs, broken setup scripts, and hostile first-timer experiences kill more projects every year than any technical limitation ever will.\n\nDeveloper experience is now the highest-leverage contribution you can make to open source. Yet it remains the most overlooked.\n\nIn this talk, we will prove it with evidence. We'll share concrete examples of what broke and what we fixed across API ecosystems and cloud-native infrastructure: onboarding flows that cut time-to-first-PR, documentation architectures that actually scaled, API design decisions that reduced support burden, and contributor ladder structures that turned drive-by visitors into long-term contributors and maintainers. If you care about scaling your open source project, this talk is for you.",
-    "keyTakeaways": [
-      "Is Developer Experience just contributing to documentation?",
-      "How most open source projects unintentionally become uninteresting to people before their first move (and how the reason is almost never technical difficulty)?",
-      "Why you are loosing contributors? Bad onboarding, broken setup scripts, and outdated docs.",
-      "How small DevX fixes like better READMEs, clearer error messages, faster setup, etc. have outsized impact on contributor retention/product success.",
-      "How Contributor ladders designed intentionally can turn one-time visitors into long-term maintainers.",
-      "A practical DevX audit framework that works on any open source project, regardless of size or ecosystem"
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/results?search_query=eeshaan+sawant",
-        "url": "https://www.youtube.com/results?search_query=eeshaan+sawant"
-      },
-      {
-        "label": "https://youtu.be/UpsBuo1Bt8E?si=dOX2wCg0aQWvcM0n",
-        "url": "https://youtu.be/UpsBuo1Bt8E?si=dOX2wCg0aQWvcM0n"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "6dpd2lbkma": {
-    "proposalId": "6dpd2lbkma",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6dpd2lbkma",
-    "description": "Docs-as-code borrowed a lot from software engineering. Docs live in Git, go through review, run through CI, and ship as versioned sites. Most editors still treat a documentation project as plain text, so the moment you rename a heading, move a page, or split a topic, cross-links and anchors can break with nobody noticing until a reader hits a 404.\n\nI'm a technical writer, and most of my open-source contributions are documentation work, so I keep meeting this problem from the inside. Recently I fixed a few links in the Fluree DB docs that 404'd because mdBook rewrites source .md links to .html but renders a README.md as index.html; a link check then surfaced more broken links across the site. In CocoIndex, I restored links that broke when a release branch was removed, and earlier added a lychee link-checking workflow to its docs CI. The projects and tools differ, but the failure is the same: change the structure, links rot, and CI tells you only after the damage is already public.\n\nThis lightning talk treats that as a refactoring problem, not only a writing or publishing one. I'll use Zensical Studio, a newly launched FOSS extension for VS Code, as a worked example of what editor-integrated docs tooling can do: flag broken links as you type, parse Python Markdown the way MkDocs and Zensical read it, and show every incoming link to a heading so one rename updates them all instead of leaving cleanup to CI.",
-    "keyTakeaways": [
-      "Documentation has a refactoring problem that's separate from writing or publishing it. Renaming a heading or moving a page can break links, and most editors won't warn you.",
-      "Broken links and shifting anchors erode reader trust. CI catches them, but only after you push.",
-      "Editor-integrated tooling can make structural changes safer. I'll use Zensical Studio to show what that looks like in practice: in-editor broken-link diagnostics, Python Markdown awareness for MkDocs and Zensical, and renames that fix incoming links."
-    ],
-    "references": [
-      {
-        "label": "https://zensical.org/studio/",
-        "url": "https://zensical.org/studio/"
-      },
-      {
-        "label": "https://zensical.org/studio/write/",
-        "url": "https://zensical.org/studio/write/"
-      },
-      {
-        "label": "https://zensical.org/studio/write/links/",
-        "url": "https://zensical.org/studio/write/links/"
-      },
-      {
-        "label": "https://github.com/cocoindex-io/cocoindex/pull/1425",
-        "url": "https://github.com/cocoindex-io/cocoindex/pull/1425"
-      },
-      {
-        "label": "https://github.com/cocoindex-io/cocoindex/pull/1959",
-        "url": "https://github.com/cocoindex-io/cocoindex/pull/1959"
-      }
-    ],
-    "links": [
-      {
-        "label": "fixed",
-        "url": "https://github.com/fluree/db/pull/1376"
-      },
-      {
-        "label": "restored links",
-        "url": "https://github.com/cocoindex-io/cocoindex/pull/1959"
-      },
-      {
-        "label": "lychee link-checking workflow",
-        "url": "https://github.com/cocoindex-io/cocoindex/pull/1425"
-      },
-      {
-        "label": "Zensical Studi",
-        "url": "https://zensical.org/studio/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "76r6ku6p9h": {
-    "proposalId": "76r6ku6p9h",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/76r6ku6p9h",
-    "description": "Large open source projects do not only need documentation. They also need memory.\n\nKubernetes moves through hundreds of issues, pull requests, merges, enhancements, deprecations, release updates, meetings, and discussions. A changelog can tell you what changed, but it often cannot tell a new contributor what deserves attention, why something matters, where to look next, or how a project is moving as a community.\n\nThis talk is about Last Week in Kubernetes Development, or LWKD, a weekly newsletter that summarizes Kubernetes development activity: code merges, PRs, deprecations, version updates, release schedules, and community meetings. LWKD is a Kubernetes SIG Contributor Experience project, and its repository contains the Markdown files used to produce the weekly updates, with contributions accepted through pull requests.\n\nI will use my experience as a writer and editor for LWKD to talk about technical writing as a real open source contribution path. The talk will explain how editorial judgment works in a fast-moving FOSS project: deciding what is worth including, summarizing technical changes without flattening nuance, preserving uncertainty, linking claims to sources, making review easy, and helping readers orient themselves inside a large project.\n\nThe talk is also prescriptive. I will share a practical contribution path for people who want to enter FOSS through writing: how to pick a recurring publication or documentation surface, study its format, start with one small section, summarize one technical change, cite the source, handle review on prose, and build consistency over time.\n\nThe goal is to show that writing in open source is not a fallback for people who do not code. In large projects, writing is infrastructure. It helps communities remember what changed, why it mattered, and how contributors can participate.",
-    "keyTakeaways": [
-      "Why large FOSS projects need community memory, not just documentation, changelogs, and release notes.",
-      "What LWKD is, how it helps Kubernetes contributors stay updated, and how a weekly technical newsletter can support contributor experience.",
-      "How technical writing becomes a real contribution path in open source, especially for newcomers who are still learning the codebase.",
-      "How to summarize fast-moving technical work without losing accuracy, context, or nuance.",
-      "How editorial judgment works in FOSS writing: what to include, what to omit, how to cite sources, and how to separate fact from interpretation.",
-      "How prose review differs from code review, and why feedback on wording, structure, and framing is part of maintainership.",
-      "A practical starting path for new documentation contributors: read existing editions, pick one section, summarize one change, submit a pull request, respond to review, and repeat.",
-      "Why writing is not a consolation prize in open source. It is one of the ways communities scale knowledge, trust, and participation."
-    ],
-    "references": [
-      {
-        "label": "https://lwkd.info/",
-        "url": "https://lwkd.info/"
-      },
-      {
-        "label": "https://github.com/kubernetes-sigs/lwkd",
-        "url": "https://github.com/kubernetes-sigs/lwkd"
-      },
-      {
-        "label": "https://github.com/kubernetes/community/tree/master/sig-contributor-experience",
-        "url": "https://github.com/kubernetes/community/tree/master/sig-contributor-experience"
-      },
-      {
-        "label": "https://www.kubernetes.dev/docs/guide/",
-        "url": "https://www.kubernetes.dev/docs/guide/"
-      },
-      {
-        "label": "https://www.kubernetes.dev/community/code-of-conduct/",
-        "url": "https://www.kubernetes.dev/community/code-of-conduct/"
-      },
-      {
-        "label": "https://github.com/inirah02",
-        "url": "https://github.com/inirah02"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "eqr1r1mp5b": {
-    "proposalId": "eqr1r1mp5b",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/eqr1r1mp5b",
-    "description": "Your documentation now has a second reader, and it reads nothing like the first. Alongside the human skimming for an answer, an LLM or agent is pulling fragments of your docs to answer a question or drive a workflow, and the two readers want opposite things.\n\nA person reads top to bottom, follows a screenshot, and fills gaps from context. An agent pulls one isolated chunk, ignores the layout entirely, cannot see the screenshot, and falls apart when the real meaning was in a diagram or an unstated assumption. The same page that works fine for a human can hand an agent a confidently wrong answer.\n\nThis talk shows what actually changes when you write for both. It covers structuring content so a retrieval system returns a correct, self-contained answer, what conventions like llms.txt do, and exposing docs through the Model Context Protocol so an agent queries them at runtime instead of scraping a rendered page. It is also honest about the cost: optimizing for machines can flatten the voice and context that make docs good for humans, and some advice going around right now trades real quality for retrieval scores.\n\nWhat this talk covers:\n\nHow an agent reads your docs differently from a human, shown concretely\n\nStructuring content for self-contained retrieval without dumbing it down\n\nWhat llms.txt and MCP actually solve, and what they do not\n\nA live look at the same docs page answered well versus badly by an agent\n\nA page-by-page rule for when to optimize for the machine and when to refuse\n\nThis is for anyone maintaining docs for an open source project who has noticed AI assistants quoting those docs and wants them to be right.",
-    "keyTakeaways": [
-      "Audit one of your own doc pages for how an agent would actually read it",
-      "Restructure a page so that a retrieval system returns a complete, correct chunk",
-      "Decide what belongs in llms.txt or an MCP server versus the human-facing page",
-      "Tell the difference between machine-readability that helps and advice that just wrecks your docs"
-    ],
-    "references": [
-      {
-        "label": "https://modelcontextprotocol.io",
-        "url": "https://modelcontextprotocol.io/"
-      },
-      {
-        "label": "https://llmstxt.org",
-        "url": "https://llmstxt.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "7dfgb98p8p": {
-    "proposalId": "7dfgb98p8p",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/7dfgb98p8p",
-    "description": "Most people in India learn to code in their second or third language. The syntax is hard enough. Then the documentation, the part that's supposed to help, is in English too. For a learner who thinks in Tamil, that's two walls instead of one.\n\nWe decided to take one of those walls down. Our team has been translating Python's official documentation into Tamil, and this isn't a fork or a side-blog. It's the real thing. The translation has been officially recognized by the Python Software Foundation's CPython Core Developers and is now part of Python's official documentation translation effort, listed alongside the other languages Python ships docs in.\n\nThis talk is the honest story of how that happened, and how anyone in the room can do it for their own language.\n\nI'll walk through the actual machinery: how Python governs translated documentation under PEP 545, how the docs are structured as Sphinx .po files, how the translation work flows through the coordination process, and the completion bar you have to clear before Python will publish your language officially. None of this is obvious from the outside, and that opacity is exactly why most language communities never start.\n\nThen the harder part, the part no tool solves. There is no settled Tamil word for \"iterator,\" \"decorator,\" or \"thread.\" Every contributor has an opinion. Keeping terminology consistent across thousands of strings, recruiting people who know both Tamil and Python well, and keeping reviewers from burning out turned out to be the real project. The code was the easy bit.\n\nI'll close on why this matters beyond Python. Localization is one of the most underrated forms of FOSS contribution. It needs no deep systems knowledge, it directly widens who gets to participate in open source, and almost every major FOSS project has docs sitting in English waiting for someone to start. By the end, you'll know how to be that someone.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://github.com/Terminal-Joint/python-docs-ta",
-        "url": "https://github.com/Terminal-Joint/python-docs-ta"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "c9kecg3h9i": {
-    "proposalId": "c9kecg3h9i",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/c9kecg3h9i",
-    "description": "Every documentation failure has a technical explanation. The heading structure was inconsistent. The error message did not suggest a fix. The getting-started guide assumed the reader already had the environment configured. The warning was buried three paragraphs below the command it was warning about.\n\nBut underneath every one of these failures is the same root cause: the writer forgot what it felt like to not know the thing.\n\nThis talk is about empathy as a documentation practice, not the soft, abstract kind, but the specific, actionable kind that changes how you write an error message, structure a tutorial, or decide what context to include before a code example. As a technical writer at Red Hat and an open source contributor, I have audited documentation that was technically correct, structurally sound, and completely useless to the person who needed it most because it was written from the inside out rather than the outside in.\n\nWe will look at four concrete places where empathy breaks down in documentation: the assumptions we bake in without declaring them, the context we omit because it feels obvious, the error guidance we write for ourselves rather than for someone in a panic at a broken terminal, and the accessibility failures that signal to entire categories of users that this documentation was not written for them. Each failure mode gets a real example, a diagnosis, and a fix.\n\nThe talk is structured around a simple provocation: the user who cannot follow your documentation is not failing. Your documentation is failing them. And in open source, where documentation is often the only onboarding a new contributor or user gets, that failure has a direct cost to community health, contributor retention, and the long-term sustainability of the project.\n\nEmpathy is not a personality trait. It is a skill, and it can be taught, practised, and built into review processes. This talk shows you how.",
-    "keyTakeaways": [
-      "The four specific places empathy breaks down in technical documentation are assumed knowledge, missing context, poor error guidance, and inaccessible design, with real before and after examples",
-      "How to audit your own documentation for empathy failures without needing user research infrastructure, practical techniques any contributor can use today",
-      "Why \"the user is confused\" is rarely the right diagnosis and how reframing documentation failures as empathy failures changes how you fix them",
-      "How to build empathy checkpoints into documentation review processes so that individual writers do not have to carry the entire cognitive load alone",
-      "A reframe of documentation quality from correctness and completeness to usefulness and welcome, and what that shift means for how FOSS projects prioritise their writing work"
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/watch?v=gFShEOtXATc",
-        "url": "https://www.youtube.com/watch?v=gFShEOtXATc"
-      },
-      {
-        "label": "https://www.youtube.com/watch?v=vXyLxQpw-1s&t=196s",
-        "url": "https://www.youtube.com/watch?v=vXyLxQpw-1s&t=196s"
-      },
-      {
-        "label": "https://www.youtube.com/watch?v=mVeOitKAd5Q&t=65s",
-        "url": "https://www.youtube.com/watch?v=mVeOitKAd5Q&t=65s"
-      },
-      {
-        "label": "https://www.youtube.com/watch?v=9_N5_aTu5P8",
-        "url": "https://www.youtube.com/watch?v=9_N5_aTu5P8"
-      },
-      {
-        "label": "https://www.youtube.com/watch?v=XQ-hOq0UP2M",
-        "url": "https://www.youtube.com/watch?v=XQ-hOq0UP2M"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "0hs9gpkgp4": {
-    "proposalId": "0hs9gpkgp4",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0hs9gpkgp4",
-    "description": "The PDF file format has stood the test of time as a versatile and highly portable means to producing print-oriented media, reports, documents, and knowledge works, to facilitate information exchange in varied settings. This talk advocates for the proliferation of distributing FOSS project documentation in the PDF file format. I would like to highlight various incentives towards such a paradigm where documentation is browsed offline, while also being balanced and offering a sense into its pitfalls.\n\nWhile most projects consider offline documentation (via PDF, and other formats such as EPUB) as an afterthought in comparison to web-based documentation, there is a case to be made for it—as a missed opportunity—to reach a wider variety of users. A well-structured PDF is something a documentation website cannot replicate easily – it works without an internet connection, works on all sorts of PDF readers and devices, offers features such as annotations, comments, can go places on compact data storage devices such as flash drives, and lastly, can be printed and handed over to users in the form of manuals and booklets. This matters for remote and low-resource regions with limited internet access – for instance, in countries where metered mobile data costs are high and broadband being evenly distributed is a privilege. Another benefit is accessibility, in that it is easier for a PDF with a semantic heading structure to be more navigable with a screen reader, than a documentation site that may layer custom JavaScript navigation widgets over its content.\n\nThe most common form of PDF/offline documentation generation is via typesetting tools such as LaTeX, but the tooling landscape in the world of FOSS has changed considerably, having gone through various advancements – to the point where LaTeX is not the sole choice for a FOSS project wanting to share offline documentation. For instance:\n\nBesides documentation authors, there are also projects for users, i.e., documentation readers. Offline documentation readers, such as Zeal are worth knowing about and pointing to.\n\nHowever, as can be expected, there are also pitfalls to offline documentation, such as math rendering differences across tools, SVG and figure handling, font embedding, maintaining the accessibility conformance of the generated outputs, how EPUB fares across different reader applications, and maintenance questions of who takes up building documentation for such formats and keeps it going.\n\nHere is a proposed (read: provisional) outline of my talk:",
-    "keyTakeaways": [
-      "A practical survey of FOSS tools for building offline (PDF/EPUB) documentation, with enough specifics to evaluate tradeoffs for your project",
-      "A case for offline documentation, including accessibility and connectivity arguments, and how it serves different user needs",
-      "Specific failure modes to anticipate in offline builds before they find you in production",
-      "When not to build offline documentation"
-    ],
-    "references": [
-      {
-        "label": "https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.latex.LaTeXBuilder",
-        "url": "https://www.sphinx-doc.org/en/master/usage/builders/index.html#sphinx.builders.latex.LaTeXBuilder"
-      },
-      {
-        "label": "https://typst.app",
-        "url": "https://typst.app/"
-      },
-      {
-        "label": "https://github.com/useblocks/sphinx-simplepdf",
-        "url": "https://github.com/useblocks/sphinx-simplepdf"
-      },
-      {
-        "label": "https://github.com/brechtm/rinohtype",
-        "url": "https://github.com/brechtm/rinohtype"
-      },
-      {
-        "label": "https://weasyprint.org",
-        "url": "https://weasyprint.org/"
-      },
-      {
-        "label": "https://tectonic-typesetting.github.io",
-        "url": "https://tectonic-typesetting.github.io/"
-      },
-      {
-        "label": "https://calibre-ebook.com",
-        "url": "https://calibre-ebook.com/"
-      },
-      {
-        "label": "https://zealdocs.org",
-        "url": "https://zealdocs.org/"
-      },
-      {
-        "label": "https://github.com/johnfactotum/foliate",
-        "url": "https://github.com/johnfactotum/foliate"
-      },
-      {
-        "label": "https://devdocs.io",
-        "url": "https://devdocs.io/"
-      },
-      {
-        "label": "https://accessible-pdf.info",
-        "url": "https://accessible-pdf.info/"
-      },
-      {
-        "label": "https://pdfa.org/accessibility",
-        "url": "https://pdfa.org/accessibility"
-      },
-      {
-        "label": "https://www.mkdocs.org",
-        "url": "https://www.mkdocs.org/"
-      },
-      {
-        "label": "https://github.com/zhaoterryy/mkdocs-pdf-export-plugin",
-        "url": "https://github.com/zhaoterryy/mkdocs-pdf-export-plugin"
-      },
-      {
-        "label": "https://quarto.org",
-        "url": "https://quarto.org/"
-      },
-      {
-        "label": "https://mystmd.org",
-        "url": "https://mystmd.org/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "4v0vd3g01j": {
-    "proposalId": "4v0vd3g01j",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4v0vd3g01j",
-    "description": "Building an Android keyboard is fundamentally different from building a traditional Android application. Keyboards operate inside a unique part of the Android ecosystem interacting directly with the Input Method Framework (IMF), communicating across applications, handling sensitive user input, and operating under strict performance and lifecycle constraints.\n\nIn this session, I will use lessons from maintaining Scribe-Android, an open-source keyboard project, as a practical case study to explore how Android keyboards (IMEs) actually work. We will examine the architecture behind IME, input flows, lifecycle behavior, and the challenges of building software that integrates deeply with the Android system while interacting seamlessly with other applications.\n\nThe talk will also cover real-world engineering challenges encountered while building a production keyboard experience: lifecycle quirks, latency and responsiveness tradeoffs, multilingual input support, debugging behavior across fragmented Android devices, and privacy and security considerations unique to keyboard software.\n\nRather than serving as a project showcase, this talk uses a real-world open-source IME to explore Android system behavior, architectural decisions, and the engineering tradeoffs required to build responsive, privacy-conscious input experiences.",
-    "keyTakeaways": [
-      "Understand how Android keyboards (IMEs) work and integrate with the Input Method Framework",
-      "Learn core IME architecture: IME input flows, and system interaction",
-      "Explore engineering tradeoffs around lifecycle behavior, latency, multilingual input, and performance",
-      "Understand UI tradeoffs between XML and Compose in the Keyboard Layouts",
-      "Learn debugging strategies for OEM quirks, fragmented Android environments, and platform changes (including API 36 breakages)",
-      "Understand privacy and security considerations in keyboard software",
-      "Gain deeper insight into Android internals through building unconventional system-facing software"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/scribe-org/Scribe-Android",
-        "url": "https://github.com/scribe-org/Scribe-Android"
-      },
-      {
-        "label": "https://github.com/scribe-org/",
-        "url": "https://github.com/scribe-org/"
-      },
-      {
-        "label": "https://github.com/scribe-org/slides",
-        "url": "https://github.com/scribe-org/slides"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "41r3mau7ga": {
-    "proposalId": "41r3mau7ga",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/41r3mau7ga",
-    "description": "Android is transitioning from HIDL to Stable AIDL to improve HAL interface stability and long-term maintainability. However, many production devices still depend on legacy HIDL implementations, making upgrades difficult.This talk presents a migration of a HAL from HIDL to Stable AIDL, focusing on real-world challenges. It covers key differences in interface definition, versioning, Binder IPC, and VINTF compatibility. The session walks through a step-by-step migration: rewriting interfaces, updating services, and modifying manifests.Hands-on guide for engineers who must modernize existing HIDL HALs to Stable AIDL in shipping devices.",
-    "keyTakeaways": [
-      "Explain the core architectural differences between HIDL and AIDL in the Android HAL stack.",
-      "List the Android version milestones that make AIDL mandatory for new and production devices.",
-      "Execute a step-by-step HIDL → AIDL migration for a real hardware interface.",
-      "Address SELinux policy changes, VINTF manifest updates, and compatibility matrix versioning required by the migration.",
-      "Identify and mitigate common failure, validation."
-    ],
-    "references": [
-      {
-        "label": "https://source.android.com/docs/core/architecture/aidl/stable-aidl",
-        "url": "https://source.android.com/docs/core/architecture/aidl/stable-aidl"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "3ltumiotgu": {
-    "proposalId": "3ltumiotgu",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3ltumiotgu",
-    "description": "Many Android phones come with heavy vendor skins and a lot of Google services built in. I wanted something lighter and more private, so I moved from that setup to a custom ROM with less Google dependence.\n\nThat shift was not smooth. I ran into soft bricks, a hard brick, SafetyNet and Play Integrity problems, and notifications that did not always behave the way they should. I also tried microG, but in the end I went with a fully vanilla custom ROM setup because that fit my privacy goals better. Along the way, I managed to fix most of the issues I ran into, but a few things never really had a clean or satisfying fix.\n\nFor family devices, though, a fully degoogled setup did not make sense. They needed something that was easier to live with, so those phones stayed on a normal GApps-based custom ROM. That ended up being one of the biggest lessons for me: the same setup that feels fine for one person can be too much trouble for someone else.\n\nThis talk is about that move, the things that broke along the way, the fixes that worked, the things that stayed broken, and the trade-offs between privacy and daily use.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://wiki.lineageos.org/",
-        "url": "https://wiki.lineageos.org/"
-      },
-      {
-        "label": "https://github.com/microg/GmsCore/wiki",
-        "url": "https://github.com/microg/GmsCore/wiki"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "dojgnoj06v": {
-    "proposalId": "dojgnoj06v",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dojgnoj06v",
-    "description": "Building a Physical Volume Knob for AOSP on Raspberry Pi 5\n\nIn this talk, I'll show how I connected a rotary potentiometer to a Raspberry Pi 5 running AOSP Android 15 and made it control the media volume — using a 250-line C++ daemon in the vendor layer, with zero changes to the Android framework.\n\nAlong the way we hit real walls: a library blocked by VNDK, build and runtime errors, three SELinux types that don't exist in AOSP 15, and a hardware bus number that wasn't what we expected.",
-    "keyTakeaways": [
-      "How the AOSP vendor layer is structured and what belongs in it",
-      "How to read hardware sensors from a native C++ daemon using standard Linux kernel ABIs",
-      "How uinput works and why it is sometimes the right way to talk to Android audio from vendor code",
-      "How to write and debug SELinux policy for a vendor service from scratch",
-      "The difference between BOARD_VENDOR_SEPOLICY_DIRS and PRODUCT_PRIVATE_SEPOLICY_DIRS and why it matters",
-      "How to iterate on a vendor service without reflashing the entire image"
-    ],
-    "references": [
-      {
-        "label": "https://www.youtube.com/shorts/9k3If_49M78",
-        "url": "https://www.youtube.com/shorts/9k3If_49M78"
-      },
-      {
-        "label": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf",
-        "url": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf"
-      },
-      {
-        "label": "https://github.com/ProArun/fossinida2026/blob/main/README.md",
-        "url": "https://github.com/ProArun/fossinida2026/blob/main/README.md"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "beqsttjcbn": {
-    "proposalId": "beqsttjcbn",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/beqsttjcbn",
-    "description": "Have you ever stopped to think about what actually happens inside your smartphone the second you tap an app icon? Instead of booting up from scratch every single time , our phone uses a shortcut to clone a ready to go template which is why our apps launch in the blink of an eye.We build apps every day , many complex ones as well relying on APIs that make UI magically appear but how many of us actually understand the heavy lifting happening underneath? This talk will cover that black box of Android’s operating system for developers who want to look past the surface layer. Did you know that the app doesn’t boot a fresh JVM every time but instead forks from a pre warmed Zygote process to launch instantly. Most importantly, because this entire operating system is open - source , you never have to just guess how things work , we can actually read the blueprints. I’ll show you how to navigate this massive public codebase so you can look up exactly what happens under the hood whenever you get stuck",
-    "keyTakeaways": [
-      "Understand the Zygote forking model and why Android app startup is fast",
-      "Know the journey from tapping an icon -> process creation -> first frame on screen",
-      "Understand how Compose's compiler plugin + slot table architecture differs from the legacy View system"
-    ],
-    "references": [
-      {
-        "label": "https://source.android.com/docs/core/runtime",
-        "url": "https://source.android.com/docs/core/runtime"
-      },
-      {
-        "label": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java",
-        "url": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java"
-      },
-      {
-        "label": "https://developer.android.com/develop/ui/compose/mental-model",
-        "url": "https://developer.android.com/develop/ui/compose/mental-model"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "coqs2rc43i": {
-    "proposalId": "coqs2rc43i",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/coqs2rc43i",
-    "description": "As Android continues adopting Rust to improve security and reliability, platform developers are gaining new ways to build safer system components. This talk introduces Android Hardware Abstraction Layers (HALs) developed using Rust and AIDL, covering how Rust integrates with AOSP, Binder IPC, and modern Android architecture.\n\nThrough a practical example, attendees will learn how to create and integrate a Rust-based HAL, understand the benefits of memory safety, and explore why Rust is becoming an important part of Android's future.",
-    "keyTakeaways": [
-      "Understand why Android is adopting Rust for system-level development.",
-      "Explain how AIDL-based HALs fit into the modern Android architecture.",
-      "Create and integrate a Rust-based HAL in AOSP.",
-      "Implement Binder IPC communication between Android services and Rust HALs.",
-      "Identify common challenges when developing and debugging Rust HAL services."
-    ],
-    "references": [
-      {
-        "label": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns",
-        "url": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "bb06npb4u0": {
-    "proposalId": "bb06npb4u0",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bb06npb4u0",
-    "description": "Launcher3 is one of the most frequently used yet least understood applications in the Android ecosystem. Every interaction on an Android device eventually flows through it, unlocking the device, launching applications, accessing widgets, navigating recent tasks, searching for content, or interacting with personalized experiences such as Google Feed.\n\nOver the last year, while maintaining and customizing Launcher3 across multiple Android releases, I repeatedly dived into parts of the launcher that are rarely documented and even less frequently discussed in public. It started from writing features and maintenance and swiftly became a deep exploration into Launcher3's architecture, integration, plugin overlays, feed provider, the mechanism that power the familiar -1 screen experience found on millions of Android devices.\n\nMany Android developers work on Launcher3, but few get the opportunity to understand why it is structured the way it is. This talk aims to bridge that gap.\n\nLauncher3 is not just an app that opens other apps. It is one of the central part of the Android experience, such as navigation, recents, search, widgets and personalisation. This session will cover its core architecture, workspace, states, and integration with SystemUI. We will also examine how OEMs and custom ROMs extend the same codebase to create different launcher experiences\n\nA major focus of the session will be understanding the architecture behind the Google Feed (-1) screen. Through practical examples and analysis, we will explore how overlay provider plugin communicate with Launcher3, how overlay services are implemented, and what developers can learn when building their own custom launcher experiences.\n\nAlong the way, I will also share real-world lessons learned from maintaining Launcher3 customizations, debugging launcher issues across Android releases, and studying the components that make modern Android launchers feel seamless to users.\n\nWhether you maintain a custom ROM, work on the Android platform, or are simply interested in how Android launchers work, this session will help you understand how Launcher3 is structured, how its major components interact, and how modern launcher features are implemented.",
-    "keyTakeaways": [
-      "Understand how Launcher3 evolved from a simple application launcher into a core component of the modern Android user experience.",
-      "Learn how Launcher3 interacts with SystemUI, Recents, Search, and many more platform services.",
-      "Explore the architecture behind Google Feed and the implementation of Android's -1 screen experience.",
-      "Understand launcher overlay plugins and other mechanisms used by libgooglefeed.",
-      "Learn practical techniques for customizing Launcher3 and implementing alternative feed experiences.",
-      "Gain insights for Launcher3 maintenance, debugging, and reverse-engineering efforts across Android releases.",
-      "Walk away with a mental model of Launcher3 that makes future customization and platform development significantly easier."
-    ],
-    "references": [
-      {
-        "label": "https://android.googlesource.com/platform/packages/apps/Launcher3/",
-        "url": "https://android.googlesource.com/platform/packages/apps/Launcher3/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "0le8m0bk3i": {
-    "proposalId": "0le8m0bk3i",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0le8m0bk3i",
-    "description": "We all have been through this tough battle at least once in our lives with MTP (Media Transfer Protocol), which is what every OS uses when you plug an Android phone in via USB. It was designed in 2008 for portable media players and transfers file metadata one item at a time with no caching or parallel requests. It does a round trip every time new info is needed because it works as a request-response protocol, so when you club this with modern tech with 100s of GBs of storage and tens of thousands of files, even calculating folder sizes takes several minutes, and if you are on macOS, the Finder app doesn't even show folder sizes at all. SocketSweep is an open source desktop app that bypasses this agonising MTP entirely. The main source of architectural inspiration is the scrcpy project by Genymobile, the idea of pushing a native binary to an Android device via ADB and communicating over a local socket.\n\nSo here's how it works: we have a cross-compiled C++ daemon (~1MB static binary, built with the Android NDK for aarch64) that gets pushed to the phone via adb push. Now the transferred daemon binds to a TCP socket on port 5050 and scans the filesystem using native POSIX calls like opendir/readdir/stat directly on the device, so there's no MTP bottleneck, it's plain raw system calls. Now the ADB port forwarding tunnels TCP 5050 on the phone to localhost:5050 on the PC, giving us a reliable bidirectional channel through the USB cable (with future scope of making it work over WiFi). Coming to the desktop side, we have a Rust/Tauri backend on the PC which manages the full lifecycle from pushing the daemon, setting up port forwarding, handling scoped storage permissions, and managing the TCP connection. The app uses a React frontend with an interactive treemap visualization.\n\nA full /sdcard scan on my device, which is a Samsung S24 Ultra (256GB, ~47k files), took about 7 seconds.\n\nIn this lightning talk i'll walk through why MTP is slow at the protocol level, how the \"push binary + socket\" pattern from scrcpy can be applied to other problems, cross-compiling C++ for Android with the NDK, and how ADB port forwarding works as a communication layer.",
-    "keyTakeaways": [
-      "Why MTP is slow at the protocol level and why building better file manager apps on top of it doesn't fix the core problem",
-      "How scrcpy's \"push a native binary via ADB, communicate over a local socket\" pattern can be reused to build your own Android tools",
-      "A working example of this pattern: scanning 47k files in ~7 seconds vs several minutes over MTP",
-      "Why this approach is future-proof: it runs through ADB debugging, not sideloading, so it continues to work even as Google tightens sideloading restrictions on Android"
-    ],
-    "references": [
-      {
-        "label": "https://github.com/VishnuSrivatsava/SocketSweep",
-        "url": "https://github.com/VishnuSrivatsava/SocketSweep"
-      },
-      {
-        "label": "https://youtu.be/ttsc6Xf6Xb4",
-        "url": "https://youtu.be/ttsc6Xf6Xb4"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "armmpc3k1l": {
-    "proposalId": "armmpc3k1l",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/armmpc3k1l",
-    "description": "Android's security model is a chain of promises. Bootloader trusts TrustZone. TrustZone backs HWKM. HWKM feeds Keystore2. Keystore2 trusts VINTF manifests. Every security writeup, every hardening guide, every architecture diagram assumes this chain is intact and working.\n\nBring-up doesn't get that luxury. Bring-up starts from nothing. This talk is about porting YAAP (Android 16/17) to the Motorola Vienna (MT6878, Dimensity 6300) and watching Android's security stack fail to assemble itself - in three specific, revealing ways.\n\nFailure 1 - The Silent Boot Loop\n\ninlinecrypt in fstab tells the kernel to use inline hardware encryption\n\nThe key lives inside a Trustonic TA inside TrustZone - which isn't initialized yet during early bring-up\n\nThe kernel just waits. No panic. No log entry. Absolute silence.\n\nWhat this exposes: the kernel-TEE dependency is far tighter than anything in the framework-level docs suggests\n\nFailure 2 - The VINTF Lie\n\nThe vendor blob dump shipped with Thales StrongBox VINTF declarations intact\n\nStrongBox wasn't actually there. The manifest said it was.\n\nKeystore2 believed the manifest. Watchdog crashes started firing.\n\nWhat this exposes: VINTF is a contract, and when the vendor side of that contract is wrong, the framework has no graceful fallback - it just breaks\n\nFailure 3 - The Upstream Bug\n\nA casing inconsistency in libwifi_hal/Android.bp in AOSP 17 silently killed the WiFi HAL\n\nNot a vendor issue. A bug in mainline AOSP itself.\n\nDebug path: logcat -> VINTF resolution failure -> build system trace -> the single wrong-case character in Android.bp\n\nThe security angle most bring-up talks never touch:\n\nWhen Keystore2 is running without hardware backing, what actually happens to credential-backed keys?\n\nWhen a VINTF manifest lies about StrongBox, which guarantees does the framework silently drop?\n\nThree concrete observations on what a device in mid-bring-up state actually exposes\n\nThe failure modes during bring-up aren't random. They map directly to architectural decisions. Bring-up is the only context where you get to watch those decisions matter in real time - layer by layer, from nothing.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://source.android.com/docs/security/features/keystore",
-        "url": "https://source.android.com/docs/security/features/keystore"
-      },
-      {
-        "label": "https://source.android.com/docs/core/architecture/vintf",
-        "url": "https://source.android.com/docs/core/architecture/vintf"
-      },
-      {
-        "label": "https://source.android.com/docs/security/features/keystore/implementer-ref",
-        "url": "https://source.android.com/docs/security/features/keystore/implementer-ref"
-      },
-      {
-        "label": "https://source.android.com/docs/security/features/keystore/tags",
-        "url": "https://source.android.com/docs/security/features/keystore/tags"
-      },
-      {
-        "label": "https://github.com/yaap",
-        "url": "https://github.com/yaap"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "4etfsdh6i4": {
-    "proposalId": "4etfsdh6i4",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4etfsdh6i4",
-    "description": "The Android Open Source Project (AOSP) has undergone significant changes over the past year or so. Not just in new features, but also in how the project itself is developed and governed. This lightning talk provides a quick overview of the recent developments in the AOSP ecosystem, including the transition of AOSP main to read-only, introduction to android-latest-release branch, mandatory registration for app developers, the Android Automotive OS (AAOS) Software Defined Vehicle (SDV) release, updates from aosp-devs.org community and other updates shaping Android's future.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd",
-        "url": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd"
-      }
-    ],
-    "links": [
-      {
-        "label": "aosp-devs.org",
-        "url": "https://aosp-devs.org/"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "e08r7fa8ja": {
-    "proposalId": "e08r7fa8ja",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/e08r7fa8ja",
-    "description": "Bootloaders are an essential block for booting an Android device. They handle tasks from reading the partitions, loading, and authenticating the Android images to preparing the board and finally handing over thec ontrol to kernel. Currently each vendor maintains different bootloader. To address the issue of fragmentation in the Android bootloader implementation across the community, Generic BootLoader (GBL) was introduced by Google.\n\nGBL is an EFI application which supports x86, ARM64 and RISC-V architectures and can be run across various firmware such as U-Boot, EDK2, and LittleKernel. By leveraging RUST memory safety and trusted components such as libufdt and libavb, GBL provides a uniform, secure, and robust environment.\n\nThis session provides a technical breakdown into GBL’s integration within the UEFI ecosystem. We will explore how GBL utilizes standard upstream protocols and interfaces with firmware to select platform-appropriate Device Trees, apply essential DT fixups, and prepare critical data for the Android kernel, including bootconfig and command-line parameters. Overall, the session provides a practical look at the enhancements required to bring GBL into the boot chain along with the challenges that might be encountered, offering a comprehensive roadmap for developers looking to reduce maintenance overhead and accelerate future-ready Android deployments.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/",
-        "url": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "d883e2uauk": {
-    "proposalId": "d883e2uauk",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d883e2uauk",
-    "description": "With our recent efforts to get upstream Linux Kernel support for Allwinner Sunxi A133 and A523 platforms, this also includes the Display Engine. Although the whole upstream effort relies on reverse engineering the vendor blobs, we have managed to get the end-to-end display pipeline working with GPU and got LVDS and MIPI working. In some cases, we are able to get 2 parallel displays working.\n\nAllwinner ships the most affordable SoCs / silicons for gaming consoles and handheld devices including tablets, all running vendor-provided Android. All of the devices come with closed source and proprietary blobs from Imagination Technologies, ARM Mali, and CedarX for the media pipelines.\n\nThis talk walks through our adventurous journey in building AOSP with upstream Linux Kernel 7.1 without any vendor-provided components to run an end-to-end display pipeline. We started our tinkering with Android 16 and easily moved to 17 (only released 6 days ago - relative to the date of this submission).",
-    "keyTakeaways": [
-      "One doesn't need to get locked in with vendor-provided Android",
-      "How to reverse engineer all the needed components to get an end-to-end working AOSP",
-      "How the community can lead the way to try this for the A733 or any upcoming silicons from Allwinner, or any SoC vendor for that matter"
-    ],
-    "references": [
-      {
-        "label": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/",
-        "url": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/"
-      },
-      {
-        "label": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/",
-        "url": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/"
-      }
-    ],
-    "links": [
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "92adqrmbh1": {
-    "proposalId": "92adqrmbh1",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
-    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
-    "keyTakeaways": [],
-    "references": [],
-    "links": [
-      {
-        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
-        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
-  "dagd2l28tm": {
-    "proposalId": "dagd2l28tm",
-    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
-    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
-    "keyTakeaways": [],
-    "references": [
-      {
-        "label": "https://fosstodon.org/@badrihippo",
-        "url": "https://fosstodon.org/@badrihippo"
-      }
-    ],
-    "links": [
-      {
-        "label": "@Muneer_S’s thread",
-        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
-      },
-      {
-        "label": "Source code",
-        "url": "https://github.com/fossunited/fossunited"
-      }
-    ]
-  },
   "37sjgknrj3": {
     "proposalId": "37sjgknrj3",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/37sjgknrj3",
@@ -2011,18 +1957,84 @@
     "keyTakeaways": [],
     "references": [
       {
-        "label": "https://mastodon.online/@japoo",
-        "url": "https://mastodon.online/@japoo"
+        "label": "https://en.wikipedia.org/wiki/Worker_cooperative",
+        "url": "https://en.wikipedia.org/wiki/Worker_cooperative"
       },
       {
-        "label": "https://bsky.app/profile/japoo.dev",
-        "url": "https://bsky.app/profile/japoo.dev"
+        "label": "https://platform.coop/",
+        "url": "https://platform.coop/"
       }
     ],
     "links": [
       {
         "label": "Co-operatives",
         "url": "https://en.wikipedia.org/wiki/Cooperative"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "59ok1dm8kb": {
+    "proposalId": "59ok1dm8kb",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/59ok1dm8kb",
+    "description": "Strudel turns writing code into making music. Live in the browser with nothing to install. This workshop introduces complete beginners to live coding. Strudel, a browser-based live coding environment, removes almost every piece of friction that normally stands between a beginner and making music with code: no installs, no setup, no prior musical or programming background required.",
+    "keyTakeaways": [
+      "Write your first working musical pattern in Strudel",
+      "Perform live with paired partners contributing to a shared piece in real time",
+      "Run everything from a phone, tablet, laptop, or anything that runs a relatively modern browser with JavaScript. No installation required.",
+      "Leave with the confidence and vocabulary to keep exploring Strudel and the live coding community independently"
+    ],
+    "references": [
+      {
+        "label": "https://azan-n.com/projects/20250924-music-at-indiafoss-with-strudelcc/",
+        "url": "https://azan-n.com/projects/20250924-music-at-indiafoss-with-strudelcc/"
+      },
+      {
+        "label": "https://azan-n.com/notes/20260228-music-at-hack4play-with-strudelcc/",
+        "url": "https://azan-n.com/notes/20260228-music-at-hack4play-with-strudelcc/"
+      }
+    ],
+    "links": [
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "92adqrmbh1": {
+    "proposalId": "92adqrmbh1",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/92adqrmbh1",
+    "description": "FOSS United Foundation’s 20,000-member+ community is primarily driven by volunteers spread all across the nation. Most peoples’ imagination of our work does not go beyond events, which is one of the reasons we have not been able to engage with volunteers interested in helping out with other efforts. One such part of our work is with the Indian social sector.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nWhile just volunteers can’t solve for this vast requirement (which is why the OASIS alliance was created), techies can do wonders in this sector, just spending a little bit of time and effort with small organisations.\n\nhttps://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1\n\nThe idea of this discussion is to -",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1",
+        "url": "https://forum.fossunited.org/t/the-need-for-tech-volunteering-in-the-social-development-sector/1417/1"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
+  "dagd2l28tm": {
+    "proposalId": "dagd2l28tm",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dagd2l28tm",
+    "description": "This is inspired by @Muneer_S’s thread on how to engage the average citizen to care about FOSS.\n\nTo paraphrase the linked discussion: we have numerous FOSS events, and while they have their purpose, a lot of them are “preaching to the converted” in the sense that they are limited in getting more people to learn about FOSS. If you look at the reach of such meetups and conference outside tech circles, this reach plummets to nearly zero.\n\nWe need to think of ways to spread awareness about FOSS to people outside tech circles. Often, this could start with simply making people aware about better alternatives for the services they use—whether that “better” means ad-free, using less resources, or other practical benefits. This could be creators realising their platform of choice is slowly locking them down and squeezing their assets; small business having a niggling feeling that the data they share in benefiting platforms more than the platforms are benefitting them; or simply people thinking they’ve been asked to share their phone number in one place too many.\n\nOn the other hand, there are groups of people who share similar ideas to to FOSS (and the Free Software movement especially) such as wanting things to be run by the community in an open way and with people having a say, but they may not know how to apply this to software. One example at the institutional level: NGOs or research institutes collecting research data meant for the public good, but using proprietary software which causes the data to be locked down into proprietary formats.\n\nHow does one spread awareness of FOSS outside of tech circles?\n\nOne idea I had was to go and give talks about FOSS related topics in non-tech events and aimed at a non-tech audience. Other ideas included creating social media graphics and videos, advertising on buses and in metro stations, and sitting and interacting with people in public spaces (such as Church Street in Bangalore).\n\nComing up with more such ideas and turning them into concrete action points is, in essence, the agenda of this BoF.\n\nThese can be fine-tuned later based on feedback or live based on how the discussion progresses, but this would be the general idea.\n\nAn introduction to set the context, followed by a round-table discussion. We will leave a few minutes open at the end for free-flowing discussion and to exchange contacts in case people want to take this beyond the BoF and coordinate further.",
+    "keyTakeaways": [],
+    "references": [
+      {
+        "label": "https://fosstodon.org/@badrihippo",
+        "url": "https://fosstodon.org/@badrihippo"
+      }
+    ],
+    "links": [
+      {
+        "label": "@Muneer_S’s thread",
+        "url": "https://forum.fossunited.org/t/how-do-we-engage-avg-citizens-to-care-about-foss/8200"
       },
       {
         "label": "Source code",
@@ -2716,6 +2728,23 @@
       }
     ]
   },
+  "946qm38m58": {
+    "proposalId": "946qm38m58",
+    "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/946qm38m58",
+    "description": "Attending IndiaFOSS 2026 in-person, and have something interesting to share with fellow attendees ? Everyone has a shot at a 10 minute slot on our biggest stage....\n\nCFP opens on Friday, 25th September - day before the conference, and closes on the evening of Day 1. Proposals will then be put to community voting. The most voted 7 talks get to take the stage in this slot !\n\nFull details, including CFP here : Communi-Con @ IndiaFOSS 2026",
+    "keyTakeaways": [],
+    "references": [],
+    "links": [
+      {
+        "label": "Communi-Con @ IndiaFOSS 2026",
+        "url": "https://fossunited.org/c/indiafoss/2026communi-con"
+      },
+      {
+        "label": "Source code",
+        "url": "https://github.com/fossunited/fossunited"
+      }
+    ]
+  },
   "2tsmo50knt": {
     "proposalId": "2tsmo50knt",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/2tsmo50knt",
@@ -3075,12 +3104,11 @@
   "5h4d5uhuro": {
     "proposalId": "5h4d5uhuro",
     "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5h4d5uhuro",
-    "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
+    "description": "As critical infrastructure, aerospace, and defense hardware scale across the country, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. This session introduces redkillOS - an indigenous RTOS built for safety-critical use - through its networking subsystem.\n\nWe cover the sources of network latency in an embedded system: some problems shared by common RTOS stacks, how PREEMPT_RT improves the Linux scheduler but not the network stack, and how an RTOS's own primitives (locks, mailboxes, context switches) affect network behaviour.\n\nWe benchmark five RTOSes: FreeRTOS, Zephyr, Threadx, Linux-RT and RedkillOS, then look at what happens to a deadline-bound flow when a bulk transfer saturates the network stack. We cover deterministic networking (TSN, DetNet) and its use in industry. Finally, we discuss the requirements for safety certification and its implications for the network stack.",
     "keyTakeaways": [
-      "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
-      "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
-      "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
-      "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
+      "OS primitives measurably change network behaviour but do not guarantee bounded latency.",
+      "Stock lwIP provides no per-flow bound, and a deadline flow survives only if the surrounding system supplies one.",
+      "Performance and safety-certification are separate problems."
     ],
     "references": [
       {
