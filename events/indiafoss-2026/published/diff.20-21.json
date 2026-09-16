@@ -1,0 +1,429 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 21,
+  "from": 20,
+  "changes": [
+    {
+      "activityId": "act-9iel9jibqu",
+      "title": "Registrations and Breakfast (Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ieldeah6o",
+      "title": "Welcome Note",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielsdltc6",
+      "title": "Opening Note",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel2iuj1e",
+      "title": "Devroom Intro: Documentation & Technical Writing",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielgrta3p",
+      "title": "Devroom Intro: Open Hardware",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iellg089c",
+      "title": "Group Photo",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielrumrna",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielr3l14o",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iele5moj6",
+      "title": "2026 GB Elections. Meet the Candidates",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ieli4jvhh",
+      "title": "Devroom Wrap-Up",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ieluo8fto",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielp9p13s",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielqmp2r4",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel70dlp8",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel9i87m5",
+      "title": "Devroom Intro: Compilers, Programming Languages & Systems",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28laqr9ecm",
+      "title": "Keeping up with the AOSP",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la3ltjcq",
+      "title": "Under the Hood of Android , What Really Happens When You Open an App?",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lar6l8ag",
+      "title": "Launcher3 Internals: Understanding Android's Home Screen, Google Feed Integration, and Custom -1 Panels",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la93vrf8",
+      "title": "Inside Android Keyboards: Building an Open Source IME",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lajt6fl6",
+      "title": "Adapting Generic Boot Loader on Android Platforms",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lajt6fl6",
+      "title": "Adapting Generic Boot Loader on Android Platforms",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-28lap8q3re",
+      "title": "Porting AOSP to Allwinner Sunxi platform",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-ab8viuj62q",
+      "title": "Building OpenSpeaks tools for language documentation and archiving",
+      "type": "speaker-changed"
+    },
+    {
+      "activityId": "act-cfp-59ok1dm8kb",
+      "title": "Making music with strudel.cc",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28laau6e4o",
+      "title": "Living With a DeGoogled Phone: Privacy, Trade-offs, and Daily Use",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lahmuq69",
+      "title": "Volume Controller using Knob (Potentiometer)",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la55ehov",
+      "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la55ehov",
+      "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-28la55ehov",
+      "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "type": "speaker-changed"
+    },
+    {
+      "activityId": "act-9ielmu7g7j",
+      "title": "What's new at FOSS United Foundation",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28laeusjrp",
+      "title": "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast storage analysis",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-9ielqglfp6",
+      "title": "FOSS Awards",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielm0sq0r",
+      "title": "Reflections from GB Members",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel30efb7",
+      "title": "Opening Note",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel4i8otg",
+      "title": "Devroom Intro: Open Design",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iela7dbek",
+      "title": "Devroom Intro: Security",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel874n9h",
+      "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielspcgkn",
+      "title": "Unconference",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielofdn0h",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielo0d44d",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel525blt",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielj0gnfj",
+      "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel93uad2",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel3q9sbb",
+      "title": "Devroom Intro: Cloud & DevOps",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielsucjlk",
+      "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-946qm38m58",
+      "title": "Communi-Con : CFP Opens Sep 25",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9ielpa1gfg",
+      "title": "GB Election Results",
+      "type": "added"
+    },
+    {
+      "activityId": "act-9iel7o9u8v",
+      "title": "Closing Remarks, Feedback Session",
+      "type": "added"
+    },
+    {
+      "activityId": "act-543a71asfp",
+      "title": "Registrations and Breakfast (Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t2bsj44",
+      "title": "Welcome Note",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5to9iht3",
+      "title": "Opening Note",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tc0pju4",
+      "title": "Devroom Intro: Documentation & Technical Writing",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28latk6vs1",
+      "title": "Devroom Intro: Open Hardware",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28ladjk67i",
+      "title": "Group Photo",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t5c8t57",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tk8jgaa",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t2pjeqp",
+      "title": "2026 GB Elections. Meet the Candidates",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tc1ppib",
+      "title": "Devroom Wrap-Up",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t1o9k38",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tu34gje",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t091a1i",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t6vl7ef",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t6oijso",
+      "title": "Devroom Intro: Android Open Source Project (AOSP)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tapk6u7",
+      "title": "Devroom Intro: Compilers, Programming Languages & Systems",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laibfej4",
+      "title": "Rust in Android: Building Secure HALs for the Next Generation of AOSP",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t5e261u",
+      "title": "What's new at FOSS United Foundation",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la7q52h1",
+      "title": "FOSS Awards",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laqivva5",
+      "title": "Reflections from GB Members",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tg0077i",
+      "title": "Opening Note",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laac7vdq",
+      "title": "Devroom Intro: Open Design",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lat7k13l",
+      "title": "Devroom Intro: Security",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5ti5f6jv",
+      "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lao4nnm4",
+      "title": "Unconference",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tm1051s",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5td49n4f",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tidiu4b",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t7ni20b",
+      "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t8uuiph",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la4pp2q4",
+      "title": "Devroom Intro: Cloud & DevOps",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5tf2jbhq",
+      "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-5fhpunas6r",
+      "title": "Communi-Con : 7 Community Voted Flash Talks",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laa2io5q",
+      "title": "GB Election Results",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28lam1ecee",
+      "title": "Closing Remarks, Feedback Session",
+      "type": "cancelled"
+    }
+  ],
+  "summary": {
+    "added": 34,
+    "time-changed": 10,
+    "title-changed": 2,
+    "speaker-changed": 2,
+    "cancelled": 35
+  }
+}
