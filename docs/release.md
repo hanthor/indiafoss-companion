@@ -216,7 +216,7 @@ cancelled, time, room, title, speaker, recording) are unit-tested in
 - [ ] **Capability record produced, validated and committed** beside its
       evidence under `docs/evidence/records/<id>.json`, and linked from the
       release notes. `just release-record <id> <event> <chat sha> <bindings>
-  <aar sha256> <apk sha256>` writes the pins and refuses an invalid record;
+<aar sha256> <apk sha256>` writes the pins and refuses an invalid record;
       the claims are filled in by hand from `docs/evidence/`. A release without
       a valid capability record is not a release.
 
