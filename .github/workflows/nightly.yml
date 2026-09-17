@@ -86,7 +86,7 @@ jobs:
           git push -f origin nightly
 
       - name: Publish to the nightly pre-release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: nightly
           name: IndiaFOSS 2026 nightly · ${{ steps.build.outputs.date }} · ${{ steps.build.outputs.version }}
