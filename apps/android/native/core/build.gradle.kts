@@ -23,4 +23,6 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    // ContractConformanceTest reads the shared fixtures; `native` -> `android` -> `apps` -> repository root.
+    systemProperty("repoRoot", rootProject.projectDir.parentFile.parentFile.parentFile.absolutePath)
 }

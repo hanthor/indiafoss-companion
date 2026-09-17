@@ -3,6 +3,8 @@ import { decodeFriendPayload, isTicketRef } from './friend.js';
 import type { FriendPayload } from './friend.js';
 import { isMatrixUserId } from './messaging.js';
 import { identityMetaOf, readIdentity } from './identity.js';
+import { isHandoffUrl, parseHandoffUrl } from './contracts/app-handoff.js';
+import type { AppHandoff } from './contracts/app-handoff.js';
 
 import { MAX_SCAN_PAYLOAD_BYTES, utf8ByteLength } from './payload-limits.js';
 export { MAX_SCAN_PAYLOAD_BYTES } from './payload-limits.js';
@@ -54,6 +56,14 @@ export interface ScannedTicket {
   ticketRef: string;
 }
 
+/** A session reference from a `view-session` handoff (either encoding). */
+export interface ScannedSession {
+  kind: 'session';
+  activityId: string;
+  /** The event the handoff named, when it did. The receiver decides whether it matches. */
+  eventId?: string;
+}
+
 export type ScannedPayload =
   | ScannedLocation
   | ScannedContact
@@ -61,6 +71,7 @@ export type ScannedPayload =
   | ScannedMatrixUser
   | ScannedMatrixRoom
   | ScannedTicket
+  | ScannedSession
   | ScanError;
 
 const ROOM_TARGET = /^[#!][^:\s]+:[^\s]+$/;
@@ -94,6 +105,40 @@ function splitStructured(value: string): string[] {
 }
 
 const LOCATION_ID = /^[a-z0-9][a-z0-9-]*$/i;
+
+/**
+ * The one meaning of a handoff, whichever encoding carried it. Both the
+ * `indiafoss://` and the `https://` branches of {@link parseScannedPayload}
+ * come through here, so the two cannot drift apart (C-09).
+ */
+export function handoffToScanned(handoff: AppHandoff): ScannedPayload {
+  switch (handoff.action) {
+    case 'view-location':
+      if (!LOCATION_ID.test(handoff.ref)) {
+        return { kind: 'error', reason: 'malformed', message: 'The location link is malformed.' };
+      }
+      return { kind: 'location', locationId: handoff.ref };
+    case 'open-dm':
+      return { kind: 'matrix-user', userId: handoff.ref };
+    case 'join-room':
+      return { kind: 'matrix-room', idOrAlias: handoff.ref };
+    case 'view-session':
+      if (!LOCATION_ID.test(handoff.ref)) {
+        return { kind: 'error', reason: 'malformed', message: 'The session link is malformed.' };
+      }
+      return handoff.eventId
+        ? { kind: 'session', activityId: handoff.ref, eventId: handoff.eventId }
+        : { kind: 'session', activityId: handoff.ref };
+    case 'import-contact':
+      // A card key alone cannot be resolved to a card here; the card itself
+      // travels as a vCard or friend payload. Say so rather than guess.
+      return {
+        kind: 'error',
+        reason: 'unsupported',
+        message: 'Contact-import links are not supported yet; scan the contact card itself.',
+      };
+  }
+}
 
 function unescapeVCard(value: string): string {
   let out = '';
@@ -349,6 +394,9 @@ export function parseScannedPayload(input: string): ScannedPayload {
       if (join && ROOM_TARGET.test(join)) return { kind: 'matrix-room', idOrAlias: join };
       return { kind: 'error', reason: 'malformed', message: 'The chat link has no valid target.' };
     }
+    // The `indiafoss://<action>?ref=` grammar, after the legacy shapes above.
+    const handoff = parseHandoffUrl(payload);
+    if (handoff) return handoffToScanned(handoff);
     return {
       kind: 'error',
       reason: 'unsupported',
@@ -378,6 +426,14 @@ export function parseScannedPayload(input: string): ScannedPayload {
       return { kind: 'matrix-room', idOrAlias: `!${rest}` };
     }
     return { kind: 'error', reason: 'malformed', message: 'The matrix: link is malformed.' };
+  }
+
+  // First-party https handoffs, on the allow-listed hosts only. matrix.to was
+  // handled above and is a public permalink, never a handoff.
+  if (/^https:\/\//i.test(payload) && isHandoffUrl(payload)) {
+    const handoff = parseHandoffUrl(payload);
+    if (handoff) return handoffToScanned(handoff);
+    return { kind: 'error', reason: 'malformed', message: 'The IndiaFOSS link is malformed.' };
   }
 
   if (/^BEGIN:VCARD/i.test(payload)) {

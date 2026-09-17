@@ -28,7 +28,9 @@ test('first run opens the welcome wizard once: reminders, you, then rank', async
   await page.getByLabel('Name', { exact: true }).fill('Asha Menon');
   await page.getByLabel('GitHub').fill('https://github.com/asha');
   await page.getByRole('button', { name: /Save →/ }).click();
-  await page.getByRole('button', { name: /Find talks for me/ }).click();
+  // The wizard offers both ways to choose talks (#470); the swipe path first.
+  await expect(page.getByRole('button', { name: /Pick from the room grid/ })).toBeVisible();
+  await page.getByRole('button', { name: /Swipe through the talks/ }).click();
   await expect(page).toHaveURL(/\/plan\/rank$/);
   // What was entered is on the card; the wizard does not come back.
   await page.goto(appUrl('/connect'));
@@ -466,6 +468,46 @@ test('scan: manual location entry previews and sets the current location', async
   await expect(page.getByRole('status')).toContainText(/Location set to/);
 });
 
+test('scan: a first-party handoff link means the same as the custom scheme, a foreign host does not', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/scan'));
+  const select = page.getByLabel('Set current location');
+  await expect(select.locator('option').nth(1)).toBeAttached();
+  const locationId = (await select.locator('option').nth(1).getAttribute('value'))!;
+  const entry = page.getByLabel('Paste a vCard');
+  const preview = page.getByRole('button', { name: 'Preview contact', exact: true });
+
+  // The https encoding previews the same location the legacy deep link does.
+  await entry.fill(
+    `https://hanthor.github.io/indiafoss-companion/h/view-location?ref=${locationId}&v=1`,
+  );
+  await preview.click();
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Set location' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+
+  // A session handoff previews the session and offers to open it, nothing more.
+  await entry.fill('indiafoss://view-session?ref=act-1&v=1');
+  await preview.click();
+  await expect(page.getByRole('link', { name: 'Open session' })).toHaveAttribute(
+    'href',
+    /\/activity\/act-1$/,
+  );
+  await page.getByRole('button', { name: 'Cancel' }).click();
+
+  // A look-alike host is not a handoff, so it gets the generic rejection and no preview.
+  for (const url of [
+    'https://evil.example/h/open-dm?ref=@a:b&v=1',
+    'https://hanthor.github.io.evil.example/indiafoss-companion/h/view-session?ref=keynote&v=1',
+  ]) {
+    await entry.fill(url);
+    await preview.click();
+    await expect(page.getByRole('alert')).toContainText(/not an IndiaFOSS location/);
+    await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toHaveCount(0);
+  }
+});
+
 test('scan: pasting a vCard previews the shared fields and rejects junk', async ({ page }) => {
   await page.goto(appUrl('/scan'));
   const vcard = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:Riya Verma', 'ORG:KDE', 'END:VCARD'].join(
@@ -787,4 +829,64 @@ test('schedule re-resolves a saved plan when choices change without reopening Pl
   await page.reload();
   await expect(welcome).toBeVisible();
   await expect(welcome.getByText('Planned', { exact: true })).toHaveCount(0);
+});
+
+test('room-grid planning on a phone: tap a talk, read it, answer, and the cell shows it', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(appUrl('/plan/rank?mode=grid&event=indiafoss-2025'));
+  await expect(page.getByRole('tab', { name: 'Room grid' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  const cells = page.getByTestId('grid-cell');
+  await expect(cells.first()).toBeVisible();
+  const title = await cells.first().locator('strong').textContent();
+  await cells.first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('heading', { level: 2 })).toHaveText(title!);
+  await dialog.getByRole('button', { name: 'Must go' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(cells.first()).toHaveAttribute('aria-label', /must go$/);
+  await expect(cells.first()).toContainText('Must go');
+  // The cards step sees the same answer, so the two views cannot disagree.
+  await page.getByRole('tab', { name: /Talks for you/ }).click();
+  await expect(page.getByTestId('talk-card').first()).not.toContainText(title!);
+});
+
+test('the welcome wizard can send an attendee to the room grid instead of the cards', async ({
+  page,
+}) => {
+  await expect(page).toHaveURL(/\/welcome$/);
+  await page.getByRole('button', { name: 'Not now' }).click();
+  await page.getByRole('button', { name: /Skip for now →/ }).click();
+  await page.getByRole('button', { name: /Pick from the room grid/ }).click();
+  await expect(page).toHaveURL(/\/plan\/rank\?mode=grid$/);
+  await expect(page.getByRole('tab', { name: 'Room grid' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.getByTestId('grid-cell').first()).toBeVisible();
+});
+
+test('the room grid labels each devroom block once along the column edge', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(appUrl('/plan/rank?mode=grid&event=indiafoss-2026'));
+  await expect(page.getByTestId('grid-cell').first()).toBeVisible();
+  const bands = page.getByTestId('devroom-band');
+  // Day 1: two devrooms each in Hall 3 and Room 1, one band per booking.
+  await expect(bands).toHaveCount(4);
+  await expect(bands.filter({ hasText: 'Open Hardware' })).toHaveCount(1);
+  await expect(bands.filter({ hasText: 'Android Open Source Project' })).toHaveCount(1);
+  // A main hall's own programme is not a devroom booking, so it gets no band.
+  await expect(bands.filter({ hasText: 'Hall 1' })).toHaveCount(0);
+  const band = await bands.first().boundingBox();
+  const cell = await page
+    .getByTestId('grid-cell')
+    .filter({ hasText: 'Minnow' })
+    .first()
+    .boundingBox();
+  expect(band && cell && band.x + band.width <= cell.x + 1).toBe(true);
 });

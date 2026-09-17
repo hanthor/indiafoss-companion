@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { EventBundle } from '@indiafoss/model';
-import { devroomTrackNames, isMainRoom, labelHeadingFor, splitTrackName } from './devrooms';
+import {
+  devroomBlocks,
+  devroomTrackNames,
+  isMainRoom,
+  labelHeadingFor,
+  splitTrackName,
+} from './devrooms';
 
 const bundle = {
   id: 'test',
@@ -53,5 +59,52 @@ describe('devrooms', () => {
     expect(splitTrackName('Audi 1')).toEqual({ title: 'Audi 1' });
     expect(splitTrackName('Devroom 2')).toEqual({ title: 'Devroom 2' });
     expect(splitTrackName('BoF Room')).toEqual({ title: 'BoF Room' });
+  });
+});
+
+describe('devroomBlocks', () => {
+  const names = new Map([
+    ['aosp', 'AOSP'],
+    ['docs', 'Documentation'],
+  ]);
+  const at = (h: number, m = 0) =>
+    `2026-09-26T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00+05:30`;
+
+  it('labels each contiguous run of one devroom once, ending at its last session', () => {
+    const blocks = devroomBlocks(
+      [
+        { devroomId: 'aosp', start: at(11), end: at(11, 30) },
+        { devroomId: 'aosp', start: at(10), end: at(10, 30) },
+        { devroomId: 'aosp', start: at(10, 30), end: at(11) },
+        { devroomId: 'docs', start: at(14), end: at(14, 30) },
+        { devroomId: 'docs', start: at(14, 30), end: at(15) },
+      ],
+      names,
+    );
+    expect(blocks).toEqual([
+      { trackId: 'aosp', name: 'AOSP', start: at(10), end: at(11, 30) },
+      { trackId: 'docs', name: 'Documentation', start: at(14), end: at(15) },
+    ]);
+  });
+
+  it('breaks a run at a session with no devroom, and skips unnamed or untimed ones', () => {
+    const blocks = devroomBlocks(
+      [
+        { devroomId: 'aosp', start: at(10), end: at(11) },
+        { start: at(11), end: at(12) },
+        { devroomId: 'aosp', start: at(12), end: at(13) },
+        { devroomId: 'aosp', start: undefined, end: undefined },
+        { devroomId: 'unknown', start: at(13), end: at(14) },
+      ],
+      names,
+    );
+    expect(blocks.map((b) => [b.start, b.end])).toEqual([
+      [at(10), at(11)],
+      [at(12), at(13)],
+    ]);
+  });
+
+  it('ignores a session that only has a track, so main halls get no band', () => {
+    expect(devroomBlocks([{ start: at(9), end: at(10) }], names)).toEqual([]);
   });
 });
