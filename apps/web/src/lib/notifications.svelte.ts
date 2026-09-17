@@ -65,6 +65,12 @@ function getTransport(): Promise<NotificationTransport> {
   return transportPromise;
 }
 
+/** Capacitor sets this global on Android; nothing is imported to find out. */
+function isNativeShell(): boolean {
+  const shell = (globalThis as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
+  return Boolean(shell?.isNativePlatform?.());
+}
+
 /** Drop everything armed so far; the next `armNotifications()` starts clean. */
 export async function disarmNotifications(): Promise<void> {
   await reconciler.clear();
@@ -101,7 +107,17 @@ export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
   notificationsEnabled.value = false;
   try {
     // Request first, directly from the user action; never persist success before permission.
+    // On the web the prompt is opened before anything is awaited: Firefox and Safari only
+    // honour a request made within the tap, and the transport lookup imports a module first.
+    const webPrompt =
+      enabled &&
+      !isNativeShell() &&
+      typeof Notification !== 'undefined' &&
+      Notification.permission === 'default'
+        ? Notification.requestPermission()
+        : null;
     const transport = await getTransport();
+    if (webPrompt) await webPrompt;
     const granted = enabled && (await transport.requestPermission());
     const permission = await transport.permission();
     await getStorage().setSetting('notifications-enabled', String(granted));

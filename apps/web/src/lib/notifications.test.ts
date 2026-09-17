@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { EventBundle } from '@indiafoss/model';
 import { EVENT_BUNDLE_SCHEMA_VERSION } from '@indiafoss/model';
+import { vi } from 'vitest';
 import {
+  catchUpLateAlerts,
   computeBlockNotifications,
   computeNotifications,
   staleNotificationIds,
+  WebLocalNotificationTransport,
 } from './notifications.js';
 
 const ROOMS = [
@@ -177,5 +180,110 @@ describe('computeNotifications', () => {
       'soon-a',
       'leave-z',
     ]);
+  });
+});
+
+describe('catching up after the page was frozen', () => {
+  const now = '2026-09-19T10:08:00+05:30';
+  const noWalk = () => null;
+
+  it('delivers at once the latest alert that fell due in the last 20 minutes', () => {
+    // A bookmarked 10:15 talk: "in 15 min" was due at 10:00, eight minutes ago.
+    const out = computeNotifications(
+      bundle([act('a', '2026-09-19T10:15:00+05:30', '2026-09-19T10:45:00+05:30')]),
+      now,
+      noWalk,
+      () => 'planned',
+    );
+    expect(out.map((n) => [n.id, n.at])).toEqual([['soon-a', now]]);
+  });
+
+  it('shows only the latest late alert for a session, not the whole missed run', () => {
+    // Must-attend 10:15 talk: heads-up 09:45, soon 10:00, both late; start 10:15 still ahead.
+    const out = computeNotifications(
+      bundle([act('a', '2026-09-19T10:15:00+05:30', '2026-09-19T10:45:00+05:30')]),
+      now,
+      noWalk,
+      () => 'must-attend',
+    );
+    expect(out.map((n) => n.id).sort()).toEqual(['soon-a', 'start-a']);
+    expect(out.find((n) => n.id === 'soon-a')?.at).toBe(now);
+    expect(out.find((n) => n.id === 'start-a')?.at).toBe('2026-09-19T04:45:00.000Z');
+  });
+
+  it('still says "starting now" for a must-attend session that began a few minutes ago', () => {
+    const out = computeNotifications(
+      bundle([act('a', '2026-09-19T10:03:00+05:30', '2026-09-19T10:45:00+05:30')]),
+      now,
+      noWalk,
+      () => 'must-attend',
+    );
+    expect(out.map((n) => [n.id, n.at])).toEqual([['start-a', now]]);
+  });
+
+  it('lets a session go once it is well under way or the alert is older than the grace', () => {
+    const out = computeNotifications(
+      bundle([
+        act('old', '2026-09-19T09:50:00+05:30', '2026-09-19T10:45:00+05:30'),
+        act('stale', '2026-09-19T09:56:00+05:30', '2026-09-19T10:45:00+05:30'),
+      ]),
+      now,
+      noWalk,
+      () => 'must-attend',
+    );
+    expect(out).toEqual([]);
+  });
+
+  it('does the same for a plan block, until the block starts', () => {
+    const out = computeBlockNotifications(
+      [
+        { id: 'b', label: 'Booth walk', start: '2026-09-19T10:12:00+05:30' },
+        { id: 'gone', label: 'Coffee', start: '2026-09-19T10:05:00+05:30' },
+      ],
+      now,
+    );
+    expect(out.map((n) => [n.id, n.at])).toEqual([['block-b', now]]);
+  });
+
+  it('keeps ahead alerts as they are and moves only the late ones', () => {
+    const out = catchUpLateAlerts(
+      [
+        { id: 'x1', title: '', body: '', at: '2026-09-19T04:20:00.000Z', url: '/activity/x' },
+        { id: 'x2', title: '', body: '', at: '2026-09-19T04:30:00.000Z', url: '/activity/x' },
+        { id: 'y', title: '', body: '', at: '2026-09-19T05:00:00.000Z', url: '/activity/y' },
+        { id: 'ancient', title: '', body: '', at: '2026-09-19T04:00:00.000Z', url: '/activity/z' },
+      ],
+      '2026-09-19T04:38:00.000Z',
+      20,
+    );
+    expect(out.map((n) => [n.id, n.at])).toEqual([
+      ['x2', '2026-09-19T04:38:00.000Z'],
+      ['y', '2026-09-19T05:00:00.000Z'],
+    ]);
+  });
+});
+
+describe('WebLocalNotificationTransport', () => {
+  it('shows a reminder once, even when a plan change re-arms it after it fired', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-19T04:00:00.000Z'));
+    // No Notification API here: the system notification fails quietly, the fire is still recorded.
+    vi.stubGlobal('window', { location: { origin: 'https://example.org' } });
+    const fired: string[] = [];
+    const transport = new WebLocalNotificationTransport(
+      { nowMs: () => Date.now(), speed: () => 1 },
+      (n) => fired.push(n.id),
+    );
+    const alert = { id: 'soon-a', title: 't', body: 'b', at: '2026-09-19T04:01:00.000Z' };
+    await transport.schedule(alert);
+    await vi.advanceTimersByTimeAsync(61_000);
+    expect(fired).toEqual(['soon-a']);
+    // The reconciler cancels and re-arms everything on a plan change.
+    await transport.cancel(alert.id);
+    await transport.schedule({ ...alert, at: '2026-09-19T04:01:00.000Z' });
+    await vi.advanceTimersByTimeAsync(1_000);
+    expect(fired).toEqual(['soon-a']);
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 });

@@ -83,7 +83,11 @@
     if (page.url.searchParams.get('setup') === 'done') void markOnboardingDone();
     else void hydrateOnboarding();
     const refreshPermission = () => {
-      if (document.visibilityState === 'visible') void hydrateNotifications();
+      if (document.visibilityState !== 'visible') return;
+      void hydrateNotifications();
+      // A phone that was in a pocket froze the timers; anything that fell
+      // due meanwhile is delivered now rather than at the next minute tick.
+      void armNotifications(true).catch(() => {});
     };
     window.addEventListener('focus', refreshPermission);
     document.addEventListener('visibilitychange', refreshPermission);

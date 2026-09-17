@@ -48,6 +48,9 @@ export class WebLocalNotificationTransport implements NotificationTransport {
 
   private readonly deliveries = new Map<string, object>();
 
+  /** Ids already shown: a plan change re-arms everything, and must not re-show these. */
+  private readonly delivered = new Set<string>();
+
   constructor(
     private readonly clock: TransportClock = RealTransportClock,
     /** Called when a notification fires, before the system notification. */
@@ -71,6 +74,7 @@ export class WebLocalNotificationTransport implements NotificationTransport {
   async schedule(notification: AppNotification): Promise<void> {
     const speed = this.clock.speed();
     if (speed <= 0) return; // paused: re-armed on resume
+    if (this.delivered.has(notification.id)) return;
     const delay = (Date.parse(notification.at) - this.clock.nowMs()) / speed;
     await this.cancel(notification.id);
     const delivery = {};
@@ -78,6 +82,7 @@ export class WebLocalNotificationTransport implements NotificationTransport {
     const timer = setTimeout(
       () => {
         this.timers.delete(notification.id);
+        this.delivered.add(notification.id);
         this.onFire(notification);
         const url = new URL(
           `${this.basePath}${notification.url ?? '/plan'}`,
@@ -183,12 +188,51 @@ export interface NotificationWindow {
   startingSoonMinutes: number;
   /** Fire a 'leave now' alert this many minutes before it becomes critical. */
   leaveBufferMinutes: number;
+  /**
+   * How long after its time an alert is still worth showing. A phone in a
+   * pocket freezes the page, so a timer set for 10:00 fires when the screen
+   * comes back on, not at 10:00; an alert that fell due within this window
+   * is delivered at once instead of being dropped as "in the past" (which is
+   * what made reminders look like they never worked). Only the latest late
+   * alert for a session is shown, and none once the session is well under way.
+   */
+  graceMinutes: number;
 }
 
 export const DEFAULT_NOTIFICATION_WINDOW: NotificationWindow = {
   startingSoonMinutes: 15,
   leaveBufferMinutes: 10,
+  graceMinutes: 20,
 };
+
+/** A late "starting now" is still useful this long into the session. */
+export const LATE_START_MINUTES = 10;
+
+/**
+ * The alerts still worth showing at `now`: those ahead of it unchanged, and of
+ * those that fell due within the grace period the latest one per session,
+ * moved to `now`. The others in the same run are dropped: a "leave now" that
+ * is five minutes late says everything the "in 15 min" before it said.
+ */
+export function catchUpLateAlerts(
+  alerts: AppNotification[],
+  now: string,
+  graceMinutes: number,
+): AppNotification[] {
+  const nowMs = Date.parse(now);
+  const oldest = nowMs - graceMinutes * 60_000;
+  const ahead = alerts.filter((a) => Date.parse(a.at) > nowMs);
+  const latestLate = new Map<string, AppNotification>();
+  for (const alert of alerts) {
+    const atMs = Date.parse(alert.at);
+    if (atMs > nowMs || atMs < oldest) continue;
+    const key = alert.url ?? alert.id;
+    const current = latestLate.get(key);
+    if (!current || atMs > Date.parse(current.at)) latestLate.set(key, alert);
+  }
+  const late = [...latestLate.values()].map((a) => ({ ...a, at: now }));
+  return [...late, ...ahead];
+}
 
 /**
  * How much reminding a session gets. `must-attend` is the attendee's own
@@ -219,12 +263,14 @@ export function computeBlockNotifications(
 ): AppNotification[] {
   const nowMs = Date.parse(now);
   const lookaheadMs = 90 * 60_000;
+  const graceMs = DEFAULT_NOTIFICATION_WINDOW.graceMinutes * 60_000;
   const out: AppNotification[] = [];
   for (const block of blocks) {
     const startMs = Date.parse(block.start);
     if (Number.isNaN(startMs) || startMs < nowMs || startMs > nowMs + lookaheadMs) continue;
     const at = startMs - minutesBefore * 60_000;
-    if (at <= nowMs) continue;
+    // A block alert that fell due while the page was frozen still fires, once, until the block starts.
+    if (at <= nowMs - graceMs) continue;
     out.push({
       id: `block-${block.id}`,
       title: `In ${minutesBefore} min: ${shortTitle(block.label)}`,
@@ -235,7 +281,7 @@ export function computeBlockNotifications(
       url: '/plan',
     });
   }
-  return out;
+  return catchUpLateAlerts(out, now, DEFAULT_NOTIFICATION_WINDOW.graceMinutes);
 }
 
 /** Ids armed last time that are no longer wanted: cancel them (room or time changed, unbookmarked). */
@@ -303,6 +349,8 @@ export function computeNotifications(
 ): AppNotification[] {
   const nowMs = Date.parse(now);
   const lookaheadMs = 90 * 60_000;
+  // Alerts that fell due this recently are still armed (delivered at once), see catchUpLateAlerts.
+  const oldestMs = nowMs - window.graceMinutes * 60_000;
   const out: AppNotification[] = [];
   const roomFor = (locationId: string | undefined): string | undefined =>
     bundle.locations.find((l) => l.id === locationId)?.name;
@@ -312,7 +360,7 @@ export function computeNotifications(
     const tier = tierFor(activity.id);
     if (tier === 'none') continue;
     const startMs = Date.parse(activity.start);
-    if (startMs < nowMs || startMs > nowMs + lookaheadMs) continue;
+    if (startMs + LATE_START_MINUTES * 60_000 < nowMs || startMs > nowMs + lookaheadMs) continue;
 
     const name = shortTitle(activity.title);
     const url = `/activity/${activity.id}`;
@@ -327,7 +375,7 @@ export function computeNotifications(
 
     if (tier === 'must-attend') {
       const headsUpAt = startMs - MUST_ATTEND_HEADS_UP_MINUTES * 60_000;
-      if (headsUpAt > nowMs) {
+      if (headsUpAt > oldestMs) {
         out.push({
           id: `must-${activity.id}`,
           title: `In ${MUST_ATTEND_HEADS_UP_MINUTES} min: ${name}`,
@@ -336,13 +384,15 @@ export function computeNotifications(
           url,
         });
       }
-      out.push({
-        id: `start-${activity.id}`,
-        title: `Starting now: ${name}`,
-        body: [room, 'you marked it must attend'].filter(Boolean).join(' · '),
-        at: new Date(startMs).toISOString(),
-        url,
-      });
+      if (startMs > oldestMs) {
+        out.push({
+          id: `start-${activity.id}`,
+          title: `Starting now: ${name}`,
+          body: [room, 'you marked it must attend'].filter(Boolean).join(' · '),
+          at: new Date(startMs).toISOString(),
+          url,
+        });
+      }
     }
 
     const startingSoonAt = startMs - window.startingSoonMinutes * 60_000;
@@ -355,7 +405,7 @@ export function computeNotifications(
     const merged =
       bothAhead && Math.abs(leaveAtMs - startingSoonAt) <= MERGE_WINDOW_MINUTES * 60_000;
 
-    if (startingSoonAt > nowMs && !merged) {
+    if (startingSoonAt > oldestMs && !merged) {
       out.push({
         id: `soon-${activity.id}`,
         title: `In ${window.startingSoonMinutes} min: ${name}`,
@@ -365,7 +415,7 @@ export function computeNotifications(
       });
     }
 
-    if (leaveAtMs > nowMs) {
+    if (leaveAtMs > oldestMs) {
       out.push({
         id: `leave-${activity.id}`,
         title: `Leave now: ${name}`,
@@ -377,5 +427,5 @@ export function computeNotifications(
       });
     }
   }
-  return out;
+  return catchUpLateAlerts(out, now, window.graceMinutes);
 }
