@@ -1,7 +1,7 @@
 import type { EventBundle, EventReference } from '@indiafoss/model';
 import { readFile } from 'node:fs/promises';
 import { repoRoot } from './fixture.js';
-import type { BundleLoader } from './types.js';
+import type { BundleLoader } from './loader.js';
 
 /**
  * Loads an already-normalized event bundle (events/<eventId>/normalized/
