@@ -63,6 +63,19 @@
   --coral: #df5447;
   --teal: #04c7bd;
 
+  /* The eight 2026 devroom colours, taken from the landing page's devroom
+     artwork (apps/web/static/branding/2026/devroom-*.svg), so a talk carries
+     its devroom's colour wherever it is listed (#469). Never the only cue:
+     the devroom is always named beside it. */
+  --devroom-aosp: #00c603;
+  --devroom-compilers: #df5447;
+  --devroom-design: #cf2797;
+  --devroom-devops: #5f84ff;
+  --devroom-docs: #a14cec;
+  --devroom-hardware: #e37601;
+  --devroom-rtos: #a6af00;
+  --devroom-security: #04c7bd;
+
   /* Legacy aliases kept for existing components */
   --event-primary: var(--mint);
   --event-primary-dark: var(--mint-ink);

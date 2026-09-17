@@ -4,6 +4,7 @@
   import { formatTime } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
   import TypeBadge from './TypeBadge.svelte';
+  import { activityDevroomColor } from '$lib/devroom-art';
 
   let {
     activity,
@@ -44,6 +45,7 @@
   class:planned
   class:cancelled={activity.cancelled}
   class:compact={compactTime}
+  style:--devroom={activityDevroomColor(activity, bundle.id)}
 >
   {#if !compactTime}
     <time class="times" datetime={activity.start}>
@@ -112,6 +114,9 @@
     align-items: start;
     padding: 0.65rem 0.25rem;
     border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+    /* The devroom's colour down the left edge (issue 469); the name in the meta line says which. */
+    border-left: 3px solid var(--devroom, transparent);
+    padding-left: 0.45rem;
   }
 
   .session.cancelled h3 a,
