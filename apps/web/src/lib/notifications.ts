@@ -401,9 +401,12 @@ export function computeNotifications(
       travel === null
         ? Number.NaN
         : Date.parse(leaveByInstant(activity.start, travel, window.leaveBufferMinutes * 60));
-    const bothAhead = startingSoonAt > nowMs && leaveAtMs > nowMs;
+    // Judged on the armed window, not on `now`: once the clock passes the
+    // starting-soon time the pair is still a pair, and the late one must not
+    // be caught up beside the leave-now it was merged into.
+    const bothArmed = startingSoonAt > oldestMs && leaveAtMs > oldestMs;
     const merged =
-      bothAhead && Math.abs(leaveAtMs - startingSoonAt) <= MERGE_WINDOW_MINUTES * 60_000;
+      bothArmed && Math.abs(leaveAtMs - startingSoonAt) <= MERGE_WINDOW_MINUTES * 60_000;
 
     if (startingSoonAt > oldestMs && !merged) {
       out.push({

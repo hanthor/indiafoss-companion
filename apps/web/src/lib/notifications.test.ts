@@ -234,6 +234,18 @@ describe('catching up after the page was frozen', () => {
     expect(out).toEqual([]);
   });
 
+  it('keeps a merged-away starting-soon merged once its time has passed', () => {
+    // 10:15 talk, one-minute walk: leave-now at 10:04, starting-soon at 10:00 merged into it.
+    // At 10:01 the starting-soon is late but must not be caught up beside the leave-now.
+    const out = computeNotifications(
+      bundle([act('a', '2026-09-19T10:15:00+05:30', '2026-09-19T10:45:00+05:30')]),
+      '2026-09-19T10:01:00+05:30',
+      () => 60,
+      () => 'planned',
+    );
+    expect(out.map((n) => n.id)).toEqual(['leave-a']);
+  });
+
   it('does the same for a plan block, until the block starts', () => {
     const out = computeBlockNotifications(
       [
