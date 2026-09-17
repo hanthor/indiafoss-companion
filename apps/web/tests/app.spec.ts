@@ -904,3 +904,30 @@ test("scan: LinkedIn's own QR code saves a contact with the LinkedIn link", asyn
   await page.getByRole('button', { name: 'Save contact' }).click();
   await expect(page.getByRole('status')).toContainText(/Saved jane-doe-1a2b3c/);
 });
+
+test('IndiaFOSS Chat can hand its mesh id to the card, which asks before writing it', async ({
+  page,
+}) => {
+  const nodeId = 'b'.repeat(64);
+  await page.goto(appUrl(`/connect?setup=done&event=indiafoss-2026&mesh=${nodeId}`));
+  await expect(
+    page.getByRole('heading', { name: 'IndiaFOSS Chat sent your chat id' }),
+  ).toBeVisible();
+  // Nothing is written until the attendee says so.
+  await expect(page.getByLabel('Mesh id', { exact: true })).toHaveValue('');
+  await page.getByRole('button', { name: 'Add to my card' }).click();
+  await expect(page.getByLabel('Mesh id', { exact: true })).toHaveValue(nodeId);
+  await expect(page.getByRole('switch', { name: 'Share Mesh id' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  );
+  await expect(
+    page.getByRole('status').filter({ hasText: /mesh id is on your card/ }),
+  ).toBeVisible();
+  await expect(page).not.toHaveURL(/mesh=/);
+  // A junk value never even asks.
+  await page.goto(appUrl('/connect?setup=done&event=indiafoss-2026&mesh=nope'));
+  await expect(page.getByRole('heading', { name: 'IndiaFOSS Chat sent your chat id' })).toHaveCount(
+    0,
+  );
+});

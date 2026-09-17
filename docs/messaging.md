@@ -258,15 +258,15 @@ are sent when a room is opened and while it stays open.
 
 The scanner (`packages/model/src/scan.ts`) accepts, in this order:
 
-| Payload                                                                | Result                                  |
-| ---------------------------------------------------------------------- | --------------------------------------- |
-| `BEGIN:VCARD…` (incl. `X-MATRIX-ID`, `IMPP`, `X-NEUTRINO-SERVER-NAME`) | contact preview → save / message        |
-| `indiafoss://friend?v=1&…`                                             | friend card preview (see below)         |
-| `@user:server`, `https://matrix.to/#/@…`, `matrix:u/…`                 | DM confirmation                         |
-| `#alias:server`, `!id:server`, matrix.to / `matrix:r/…` room links     | join confirmation                       |
-| `indiafoss://chat?dm=…` / `?join=…`                                    | same as above, app-native form          |
-| `indiafoss://location/<id>`                                            | set current location                    |
-| bare ticket id / `ticket::<id>`                                        | shown as an event-scoped reference only |
+| Payload                                                                | Result                                                                                                  |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `BEGIN:VCARD…` (incl. `X-MATRIX-ID`, `IMPP`, `X-NEUTRINO-SERVER-NAME`) | contact preview → save / message                                                                        |
+| `indiafoss://friend?v=1&…`                                             | friend card preview (see below)                                                                         |
+| `@user:server`, `https://matrix.to/#/@…`, `matrix:u/…`                 | DM confirmation                                                                                         |
+| `#alias:server`, `!id:server`, matrix.to / `matrix:r/…` room links     | join confirmation                                                                                       |
+| `indiafoss://chat?dm=…` / `?join=…`                                    | same as above, app-native form; the Companion only reads it (it opens the scan preview), never emits it |
+| `indiafoss://location/<id>`                                            | set current location                                                                                    |
+| bare ticket id / `ticket::<id>`                                        | shown as an event-scoped reference only                                                                 |
 
 Every result is previewed and confirmed before anything is saved, joined or
 sent. Nothing auto-messages. PWA users who prefer a full client get an

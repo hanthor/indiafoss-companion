@@ -90,7 +90,28 @@ export const NO_ROUTE_LABEL = 'No known chat route';
 export const MESH_ROUTE_CAVEAT =
   'Opens IndiaFOSS Chat if it is installed and the mesh is up. This app cannot tell whether it is.';
 export const MATRIX_ROUTE_CAVEAT =
-  'Opens whatever Matrix app is installed. This app cannot tell whether one is, or whether this account answers.';
+  'Opens whatever Matrix app is installed; this app cannot tell whether one is. It needs an internet Matrix account in that app: a mesh-only IndiaFOSS Chat cannot reach this address.';
+
+/** IndiaFOSS Chat's Android package, the only app that answers a mesh address. */
+export const CHAT_PACKAGE = 'org.indiafoss.chat';
+
+/** Android Chrome and its WebView honour `intent://` links; nothing else does. */
+export function isAndroidChrome(userAgent: string): boolean {
+  return /Android/.test(userAgent) && /Chrome\//.test(userAgent) && !/Firefox/.test(userAgent);
+}
+
+/**
+ * On Android Chrome a `matrix:` link to an app that is not installed is a
+ * dead tap: nothing opens and nothing says why. The `intent://` form names
+ * the app and a page to fall back to, so a missing Chat lands the attendee
+ * on the download card instead of nowhere. Elsewhere the `matrix:` URI is
+ * returned unchanged.
+ */
+export function intentHrefFor(matrixUri: string, fallbackUrl: string, userAgent: string): string {
+  if (!isAndroidChrome(userAgent) || !matrixUri.startsWith('matrix:')) return matrixUri;
+  const body = matrixUri.slice('matrix:'.length);
+  return `intent://${body}#Intent;scheme=matrix;package=${CHAT_PACKAGE};S.browser_fallback_url=${encodeURIComponent(fallbackUrl)};end`;
+}
 
 export function chatRoutesFor(
   contact: Pick<ContactRecord, 'matrixId' | 'neutrinoServerName'>,

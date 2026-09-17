@@ -160,6 +160,29 @@ gated on #188).
   dense QR codes scan poorly on phone cameras. Error-correction level `M`
   balances resilience against density.
 
+## Getting your chat id onto the card
+
+Nobody reads a 64-hex node id off one screen and types it into another at a
+booth, so IndiaFOSS Chat hands it over. The "My code" sheet on a mesh
+account's own profile has **Add to my Companion card**, which opens
+`indiafoss://conference/connect?mesh=<node id>` (an internet account sends
+`?matrix=<@user:server>`). `ConferenceActivity` routes that to the Companion,
+native app or PWA, where `/connect` shows the id and asks before writing it
+(`apps/web/src/lib/identity-handback.ts`). On yes, the field is filled and
+its share switch turned on; a junk value never asks. Only the public address
+the card would carry anyway crosses the app boundary.
+
+## Reaching someone you saved
+
+A saved contact offers its chat routes as links: the mesh address first,
+then a public Matrix id. A web page cannot see which apps are installed, so
+the caveats say so, and the Matrix caveat says the honest extra thing: a
+mesh-only IndiaFOSS Chat cannot reach a public Matrix account. On Android
+Chrome the mesh route is an `intent://` link naming Chat's package with the
+Settings download card as its browser fallback (`intentHrefFor()` in
+`apps/web/src/lib/contact-trust.ts`), so a missing Chat lands on "Get
+IndiaFOSS Chat" instead of a tap that does nothing.
+
 ## Sharing surfaces
 
 - **QR code** for in-person, camera-based exchange.

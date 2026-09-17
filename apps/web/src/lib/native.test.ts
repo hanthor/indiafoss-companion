@@ -9,7 +9,9 @@ describe('routeForDeepLink', () => {
     expect(routeForDeepLink('indiafoss://location/audi-1')).toBe(
       '/scan?payload=indiafoss%3A%2F%2Flocation%2Faudi-1',
     );
-    expect(routeForDeepLink('indiafoss://chat?dm=%40a%3Ab')).toBe('/chat?dm=%40a%3Ab');
+    expect(routeForDeepLink('indiafoss://chat?dm=%40a%3Ab')).toBe(
+      `/scan?payload=${encodeURIComponent('indiafoss://chat?dm=%40a%3Ab')}`,
+    );
     expect(routeForDeepLink('indiafoss://friend?v=1&fn=A')).toBe(
       '/scan?payload=indiafoss%3A%2F%2Ffriend%3Fv%3D1%26fn%3DA',
     );
