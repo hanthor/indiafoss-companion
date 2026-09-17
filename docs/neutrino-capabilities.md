@@ -128,6 +128,7 @@ On the mesh path, of the chat features we ship:
 | Read receipts           | ❌\* | stock: endpoint missing. \*With the patches: `m.receipt` over federation  |
 | Typing indicators       | ❌\* | stock: endpoint missing. \*With the patches: `m.typing` over federation   |
 | Files and photos        | ❌\* | stock: no media repository. \*With the patches: capped at 256 KiB per hop |
+| Voice messages          | ❌\* | stock: no media. \*With the patches: MSC3245 Ogg/Opus notes up to 78 s    |
 | E2EE                    | ❌\* | stock: no key claim or to-device. \*With `patches/neutrino/`: DMs encrypt |
 
 Our own docs previously implied typing, files and photos worked over the mesh.
