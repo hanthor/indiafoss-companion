@@ -28,7 +28,9 @@ test('first run opens the welcome wizard once: reminders, you, then rank', async
   await page.getByLabel('Name', { exact: true }).fill('Asha Menon');
   await page.getByLabel('GitHub').fill('https://github.com/asha');
   await page.getByRole('button', { name: /Save →/ }).click();
-  await page.getByRole('button', { name: /Find talks for me/ }).click();
+  // The wizard offers both ways to choose talks (#470); the swipe path first.
+  await expect(page.getByRole('button', { name: /Pick from the room grid/ })).toBeVisible();
+  await page.getByRole('button', { name: /Swipe through the talks/ }).click();
   await expect(page).toHaveURL(/\/plan\/rank$/);
   // What was entered is on the card; the wizard does not come back.
   await page.goto(appUrl('/connect'));
@@ -827,4 +829,44 @@ test('schedule re-resolves a saved plan when choices change without reopening Pl
   await page.reload();
   await expect(welcome).toBeVisible();
   await expect(welcome.getByText('Planned', { exact: true })).toHaveCount(0);
+});
+
+test('room-grid planning on a phone: tap a talk, read it, answer, and the cell shows it', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(appUrl('/plan/rank?mode=grid&event=indiafoss-2025'));
+  await expect(page.getByRole('tab', { name: 'Room grid' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  const cells = page.getByTestId('grid-cell');
+  await expect(cells.first()).toBeVisible();
+  const title = await cells.first().locator('strong').textContent();
+  await cells.first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole('heading', { level: 2 })).toHaveText(title!);
+  await dialog.getByRole('button', { name: 'Must go' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(cells.first()).toHaveAttribute('aria-label', /must go$/);
+  await expect(cells.first()).toContainText('Must go');
+  // The cards step sees the same answer, so the two views cannot disagree.
+  await page.getByRole('tab', { name: /Talks for you/ }).click();
+  await expect(page.getByTestId('talk-card').first()).not.toContainText(title!);
+});
+
+test('the welcome wizard can send an attendee to the room grid instead of the cards', async ({
+  page,
+}) => {
+  await expect(page).toHaveURL(/\/welcome$/);
+  await page.getByRole('button', { name: 'Not now' }).click();
+  await page.getByRole('button', { name: /Skip for now →/ }).click();
+  await page.getByRole('button', { name: /Pick from the room grid/ }).click();
+  await expect(page).toHaveURL(/\/plan\/rank\?mode=grid$/);
+  await expect(page.getByRole('tab', { name: 'Room grid' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.getByTestId('grid-cell').first()).toBeVisible();
 });
