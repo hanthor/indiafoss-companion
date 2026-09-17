@@ -870,3 +870,23 @@ test('the welcome wizard can send an attendee to the room grid instead of the ca
   );
   await expect(page.getByTestId('grid-cell').first()).toBeVisible();
 });
+
+test('the room grid labels each devroom block once along the column edge', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(appUrl('/plan/rank?mode=grid&event=indiafoss-2026'));
+  await expect(page.getByTestId('grid-cell').first()).toBeVisible();
+  const bands = page.getByTestId('devroom-band');
+  // Day 1: two devrooms each in Hall 3 and Room 1, one band per booking.
+  await expect(bands).toHaveCount(4);
+  await expect(bands.filter({ hasText: 'Open Hardware' })).toHaveCount(1);
+  await expect(bands.filter({ hasText: 'Android Open Source Project' })).toHaveCount(1);
+  // A main hall's own programme is not a devroom booking, so it gets no band.
+  await expect(bands.filter({ hasText: 'Hall 1' })).toHaveCount(0);
+  const band = await bands.first().boundingBox();
+  const cell = await page
+    .getByTestId('grid-cell')
+    .filter({ hasText: 'Minnow' })
+    .first()
+    .boundingBox();
+  expect(band && cell && band.x + band.width <= cell.x + 1).toBe(true);
+});

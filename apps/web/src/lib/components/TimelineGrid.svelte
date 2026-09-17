@@ -2,7 +2,8 @@
   import type { Activity, EventBundle } from '@indiafoss/model';
   import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
-  import { activityDevroomColor } from '$lib/devroom-art';
+  import { activityDevroomColor, devroomColor } from '$lib/devroom-art';
+  import { devroomBlocks, devroomTrackNames } from '$lib/devrooms';
 
   /** What the attendee has said about a talk, for the grid's colouring. */
   export type GridChoice = 'yes' | 'must' | 'no';
@@ -111,6 +112,20 @@
     }));
   }
 
+  const devroomNames = $derived(devroomTrackNames(bundle));
+
+  /** The label bands: one per contiguous run of a devroom's sessions in a room. */
+  function bands(
+    acts: Activity[],
+  ): { name: string; top: number; height: number; color: string | undefined }[] {
+    return devroomBlocks(acts, devroomNames).map((block) => ({
+      name: block.name,
+      top: ((Date.parse(block.start) - dayStartMs) / 60000) * PPM,
+      height: ((Date.parse(block.end) - Date.parse(block.start)) / 60000) * PPM,
+      color: devroomColor(block.trackId, bundle.id),
+    }));
+  }
+
   const locationName = (id: string): string | undefined =>
     bundle.locations.find((l) => l.id === id)?.name;
 
@@ -140,59 +155,73 @@
 
   <div class="columns">
     {#each byLocation as [locId, acts] (locId)}
+      {@const columnBands = bands(acts)}
       <div class="column" style:--column-width="{COLUMN_WIDTH}px">
         <h3 class="colhead">{locationName(locId) ?? locId}</h3>
-        <div class="colbody">
-          {#each layout(acts) as slot (slot.act.id)}
-            {@const choice = choices.get(slot.act.id)}
-            {@const label = `${slot.act.title}, ${formatTime(slot.act.start!)}–${formatTime(slot.act.end!)}, ${locationName(locId)}${choice === 'must' ? ', must go' : choice === 'yes' ? ', interested' : choice === 'no' ? ', not for me' : ''}`}
-            {#if onSelect && selectable(slot.act)}
-              <button
-                type="button"
-                class="cell choose"
-                class:planned={plannedIds.has(slot.act.id)}
-                class:cancelled={slot.act.cancelled}
-                class:yes={choice === 'yes'}
-                class:must={choice === 'must'}
-                class:no={choice === 'no'}
-                aria-label={label}
-                aria-pressed={choice !== undefined}
-                data-testid="grid-cell"
-                onclick={() => onSelect(slot.act)}
-                style:top="{slot.top}px"
-                style:height="{slot.height}px"
-                style:left="{slot.left}%"
-                style:width="{slot.width}%"
-                style:--devroom={activityDevroomColor(slot.act, bundle.id)}
-                title={slot.act.title}
-              >
-                {#if choice === 'must'}<span class="planned-mark">Must go · </span>
-                {:else if choice === 'yes'}<span class="planned-mark">Interested · </span>
-                {:else if plannedIds.has(slot.act.id)}<span class="planned-mark"
-                    >Planned ·
-                  </span>{/if}
-                <strong>{slot.act.title}</strong>
-              </button>
-            {:else}
-              <a
-                class="cell"
-                class:planned={plannedIds.has(slot.act.id)}
-                class:cancelled={slot.act.cancelled}
-                class:meal={slot.act.type === 'meal'}
-                aria-label={label}
-                href={resolve(`/activity/${slot.act.id}`)}
-                style:top="{slot.top}px"
-                style:height="{slot.height}px"
-                style:left="{slot.left}%"
-                style:width="{slot.width}%"
-                style:--devroom={activityDevroomColor(slot.act, bundle.id)}
-                title={slot.act.title}
-              >
-                {#if plannedIds.has(slot.act.id)}<span class="planned-mark">Planned · </span>{/if}
-                <strong>{slot.act.title}</strong>
-              </a>
-            {/if}
+        <div class="colbody" class:banded={columnBands.length > 0}>
+          {#each columnBands as band (band.top)}
+            <div
+              class="band"
+              data-testid="devroom-band"
+              style:top="{band.top}px"
+              style:height="{band.height}px"
+              style:--devroom={band.color}
+            >
+              <span>{band.name}</span>
+            </div>
           {/each}
+          <div class="lanes">
+            {#each layout(acts) as slot (slot.act.id)}
+              {@const choice = choices.get(slot.act.id)}
+              {@const label = `${slot.act.title}, ${formatTime(slot.act.start!)}–${formatTime(slot.act.end!)}, ${locationName(locId)}${choice === 'must' ? ', must go' : choice === 'yes' ? ', interested' : choice === 'no' ? ', not for me' : ''}`}
+              {#if onSelect && selectable(slot.act)}
+                <button
+                  type="button"
+                  class="cell choose"
+                  class:planned={plannedIds.has(slot.act.id)}
+                  class:cancelled={slot.act.cancelled}
+                  class:yes={choice === 'yes'}
+                  class:must={choice === 'must'}
+                  class:no={choice === 'no'}
+                  aria-label={label}
+                  aria-pressed={choice !== undefined}
+                  data-testid="grid-cell"
+                  onclick={() => onSelect(slot.act)}
+                  style:top="{slot.top}px"
+                  style:height="{slot.height}px"
+                  style:left="{slot.left}%"
+                  style:width="{slot.width}%"
+                  style:--devroom={activityDevroomColor(slot.act, bundle.id)}
+                  title={slot.act.title}
+                >
+                  {#if choice === 'must'}<span class="planned-mark">Must go · </span>
+                  {:else if choice === 'yes'}<span class="planned-mark">Interested · </span>
+                  {:else if plannedIds.has(slot.act.id)}<span class="planned-mark"
+                      >Planned ·
+                    </span>{/if}
+                  <strong>{slot.act.title}</strong>
+                </button>
+              {:else}
+                <a
+                  class="cell"
+                  class:planned={plannedIds.has(slot.act.id)}
+                  class:cancelled={slot.act.cancelled}
+                  class:meal={slot.act.type === 'meal'}
+                  aria-label={label}
+                  href={resolve(`/activity/${slot.act.id}`)}
+                  style:top="{slot.top}px"
+                  style:height="{slot.height}px"
+                  style:left="{slot.left}%"
+                  style:width="{slot.width}%"
+                  style:--devroom={activityDevroomColor(slot.act, bundle.id)}
+                  title={slot.act.title}
+                >
+                  {#if plannedIds.has(slot.act.id)}<span class="planned-mark">Planned · </span>{/if}
+                  <strong>{slot.act.title}</strong>
+                </a>
+              {/if}
+            {/each}
+          </div>
         </div>
       </div>
     {/each}
@@ -274,6 +303,43 @@
   .colbody {
     position: relative;
     height: var(--total-height);
+    --band-width: 0px;
+  }
+  .colbody.banded {
+    --band-width: 1.1rem;
+  }
+  /* The devroom's name runs down the column's edge for as long as it has
+     the room, so a run of talks reads as one block rather than a stack of
+     stripes. Cells step right to leave it the edge. */
+  .band {
+    position: absolute;
+    left: 0;
+    width: var(--band-width);
+    box-sizing: border-box;
+    overflow: hidden;
+    border-radius: 4px 0 0 4px;
+    background: color-mix(in srgb, var(--devroom, var(--event-primary)) 85%, var(--text));
+    color: var(--surface);
+  }
+  .band span {
+    position: sticky;
+    top: 2.4rem;
+    display: block;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    padding: 0.3rem 0;
+    margin: 0.3rem auto;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    line-height: var(--band-width);
+    width: var(--band-width);
+    text-align: left;
+  }
+  .lanes {
+    position: absolute;
+    inset: 0 0 0 var(--band-width);
   }
   .cell.meal {
     background: var(--surface-raised);
