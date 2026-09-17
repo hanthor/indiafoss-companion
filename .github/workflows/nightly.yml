@@ -30,6 +30,11 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
+        with:
+          # The legacy `tools` package this action installs by default is no
+          # longer in Google's repository, so sdkmanager fails on it; the
+          # command-line tools it ships are what the builds actually use.
+          packages: platform-tools
 
       - uses: gradle/actions/setup-gradle@v6
 
