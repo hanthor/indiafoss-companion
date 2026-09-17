@@ -73,7 +73,7 @@ jobs:
           done
           echo "Spindle did not come up"; cat spindle.log; exit 1
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 12.4.2
 

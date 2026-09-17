@@ -116,7 +116,7 @@ jobs:
               || { echo "node $port did not start"; cat /tmp/node-$port/log; exit 1; }
           done
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 12.4.2
 
@@ -220,7 +220,7 @@ jobs:
           # the first federation request, or it pays a dial timeout.
           sleep 30
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 12.4.2
 
@@ -297,7 +297,7 @@ jobs:
         working-directory: neutrino-iroh
         run: cargo build --release -p neutrino-ffi-ble --bin neutrino-lan
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 12.4.2
 

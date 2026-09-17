@@ -40,7 +40,7 @@ jobs:
             echo "present=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         if: steps.key.outputs.present == 'true'
         with:
           version: 12.4.2
