@@ -1,10 +1,14 @@
 import type { Activity, EventBundle } from '@indiafoss/model';
 
 function sameTalk(a: Activity, b: Activity): boolean {
-  if (a.proposalId && b.proposalId) return a.proposalId === b.proposalId;
-  // Compatibility with revisions published before proposalId was explicit.
-  if (a.sourceUrl && b.sourceUrl) return a.sourceUrl === b.sourceUrl;
-  if (a.proposalId || b.proposalId || a.sourceUrl || b.sourceUrl) return false;
+  if (a.proposalId || b.proposalId) {
+    if (a.proposalId && b.proposalId) return a.proposalId === b.proposalId;
+    // Compatibility with revisions published before proposalId was explicit.
+    return !!a.sourceUrl && !!b.sourceUrl && a.sourceUrl === b.sourceUrl;
+  }
+  // Organiser rows (breaks, intros, ceremonies) all cite the same schedule
+  // page, so a shared URL identifies nothing; only a differing one rules out.
+  if (a.sourceUrl && b.sourceUrl && a.sourceUrl !== b.sourceUrl) return false;
   return (
     a.title === b.title &&
     a.start?.slice(0, 10) === b.start?.slice(0, 10) &&
