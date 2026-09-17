@@ -24,7 +24,10 @@ describe('event-sync', () => {
       const m1 = await syncEvent(eventId, 'fixture', dir);
       expect(m1.revision).toBe(1);
       expect(m1.assets['event']).toMatch(/^event\.[0-9a-f]{8}\.json$/);
-      expect(Object.keys(m1.assets).sort()).toEqual(['booths', 'event', 'people', 'schedule']);
+      // Only an event with an authored messaging block publishes a room directory.
+      const expected = ['booths', 'event', 'people', 'schedule'];
+      if (eventId === 'indiafoss-2025') expected.push('directory');
+      expect(Object.keys(m1.assets).sort()).toEqual(expected.sort());
 
       const m2 = await syncEvent(eventId, 'fixture', dir);
       expect(m2.revision).toBe(m1.revision); // unchanged -> no bump

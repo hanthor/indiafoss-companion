@@ -23,7 +23,8 @@ export const CARD_GROUPS: Record<CardGroup, { title: string; note: string; tone?
 };
 
 /** Networks shown as rows before the attendee taps "+ Add". */
-export const DEFAULT_LINK_NETWORKS: AttendeeSocial[] = ['github', 'linkedin', 'mastodon', 'prav'];
+/** LinkedIn leads: it is what most attendees network on (#474). */
+export const DEFAULT_LINK_NETWORKS: AttendeeSocial[] = ['linkedin', 'github', 'mastodon', 'prav'];
 
 export const CARD_FIELDS: CardFieldSpec[] = [
   {
@@ -120,7 +121,7 @@ export const LINK_LABELS: Record<AttendeeSocial, string> = {
 export const LINK_PLACEHOLDERS: Record<AttendeeSocial, string> = {
   github: 'you, or https://github.com/you',
   gitlab: 'you, or https://gitlab.com/you',
-  linkedin: 'you, or https://linkedin.com/in/you',
+  linkedin: 'you, or https://linkedin.com/in/you (or scan your LinkedIn QR)',
   mastodon: '@you@fosstodon.org, or the profile URL',
   bluesky: 'you.bsky.social, or the profile URL',
   x: 'you, or https://x.com/you',

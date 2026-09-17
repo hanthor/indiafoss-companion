@@ -58,6 +58,24 @@ shade.
 hands the result to the transport; ids are stable (`must-`, `soon-`, `leave-`,
 `start-` + activity id) so re-arming replaces rather than duplicates.
 
+## When the phone is in a pocket
+
+On the web the timers only run while the page runs. A locked phone freezes
+the page, so a timer set for 10:00 fires when the screen comes back on. Alerts
+used to be dropped at that point as "in the past", which is what made
+reminders look as if they never worked. Now an alert that fell due within
+`graceMinutes` (20) is delivered the moment the page is visible again
+(`catchUpLateAlerts()`): the latest late one per session, since a five-minute
+late "leave now" says everything the "in 15 min" before it said; a "starting
+now" stays useful `LATE_START_MINUTES` (10) into the session. The web
+transport remembers what it has shown so a plan change, which re-arms
+everything, never shows one twice. The layout re-arms on `visibilitychange`
+so this happens at once, not at the next minute tick.
+
+Only the Android app's alarms ring with the app closed. iPhone Safari tabs
+have no Notification API at all; the installed (Home Screen) app does, and
+the status text says so on iOS.
+
 ## Must attend
 
 "Must attend" is one of the session dispositions (`must-attend`,
