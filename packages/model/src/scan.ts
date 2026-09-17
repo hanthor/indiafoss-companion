@@ -1,3 +1,4 @@
+import { socialFromLink } from './contact.js';
 import type { AttendeeProfile, AttendeeSocial } from './contact.js';
 import { decodeFriendPayload, isTicketRef } from './friend.js';
 import type { FriendPayload } from './friend.js';
@@ -56,6 +57,21 @@ export interface ScannedTicket {
   ticketRef: string;
 }
 
+/**
+ * A public profile link on a known network, which is what LinkedIn's own
+ * QR code carries (`https://www.linkedin.com/in/<handle>?…`) and what people
+ * paste from any other profile page (#474). The link is saved as the
+ * contact's link on that network; nothing is fetched from it.
+ */
+export interface ScannedProfileLink {
+  kind: 'profile-link';
+  network: AttendeeSocial;
+  /** Canonical https URL, tracking parameters dropped. */
+  url: string;
+  /** The profile's handle when the URL's path carries one. */
+  handle?: string;
+}
+
 /** A session reference from a `view-session` handoff (either encoding). */
 export interface ScannedSession {
   kind: 'session';
@@ -72,6 +88,7 @@ export type ScannedPayload =
   | ScannedMatrixRoom
   | ScannedTicket
   | ScannedSession
+  | ScannedProfileLink
   | ScanError;
 
 const ROOM_TARGET = /^[#!][^:\s]+:[^\s]+$/;
@@ -467,6 +484,10 @@ export function parseScannedPayload(input: string): ScannedPayload {
     /* Bare references are handled below. */
   }
 
+  // A profile page on a network the card knows: LinkedIn's QR, a GitHub link.
+  const profileLink = parseProfileLink(payload);
+  if (profileLink) return profileLink;
+
   // FOSS United ticket QR codes carry the bare ticket id; explicit refs use ticket::<id>.
   if (isTicketRef(payload)) return { kind: 'ticket', ticketRef: payload };
   if (/^[A-Za-z0-9_-]{6,64}$/.test(payload))
@@ -477,4 +498,46 @@ export function parseScannedPayload(input: string): ScannedPayload {
     reason: 'unsupported',
     message: 'This code is not an IndiaFOSS location, contact card, chat link or ticket.',
   };
+}
+
+/** Path shapes whose first segment after the prefix is the profile's handle. */
+const HANDLE_PATHS: Partial<Record<AttendeeSocial, RegExp>> = {
+  linkedin: /^\/in\/([^/?#]+)/i,
+  github: /^\/([^/?#]+)\/?$/,
+  gitlab: /^\/([^/?#]+)\/?$/,
+  x: /^\/([^/?#]+)\/?$/,
+  instagram: /^\/([^/?#]+)\/?$/,
+  bluesky: /^\/profile\/([^/?#]+)/,
+  medium: /^\/@([^/?#]+)/,
+  devto: /^\/([^/?#]+)\/?$/,
+  youtube: /^\/@([^/?#]+)/,
+};
+
+/**
+ * An https link to a profile on a known network, or null. Only the
+ * `https://` form counts: a bare handle could be anyone's, and a network
+ * the card cannot hold a link for (a plain website) is not a contact.
+ */
+export function parseProfileLink(payload: string): ScannedProfileLink | null {
+  if (!/^https:\/\//i.test(payload)) return null;
+  const sorted = socialFromLink(payload);
+  if (!sorted || sorted.network === 'website') return null;
+  let url: URL;
+  try {
+    url = new URL(sorted.value);
+  } catch {
+    return null;
+  }
+  if (url.username || url.password) return null;
+  // LinkedIn's QR appends ?utm_source=qr_code…; none of it names the person.
+  url.search = '';
+  url.hash = '';
+  const handle = safeDecode(url.pathname.match(HANDLE_PATHS[sorted.network] ?? /$^/)?.[1] ?? '');
+  const result: ScannedProfileLink = {
+    kind: 'profile-link',
+    network: sorted.network,
+    url: url.href,
+  };
+  if (handle) result.handle = handle;
+  return result;
 }
