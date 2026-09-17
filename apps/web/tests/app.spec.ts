@@ -466,6 +466,46 @@ test('scan: manual location entry previews and sets the current location', async
   await expect(page.getByRole('status')).toContainText(/Location set to/);
 });
 
+test('scan: a first-party handoff link means the same as the custom scheme, a foreign host does not', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/scan'));
+  const select = page.getByLabel('Set current location');
+  await expect(select.locator('option').nth(1)).toBeAttached();
+  const locationId = (await select.locator('option').nth(1).getAttribute('value'))!;
+  const entry = page.getByLabel('Paste a vCard');
+  const preview = page.getByRole('button', { name: 'Preview contact', exact: true });
+
+  // The https encoding previews the same location the legacy deep link does.
+  await entry.fill(
+    `https://hanthor.github.io/indiafoss-companion/h/view-location?ref=${locationId}&v=1`,
+  );
+  await preview.click();
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Set location' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+
+  // A session handoff previews the session and offers to open it, nothing more.
+  await entry.fill('indiafoss://view-session?ref=act-1&v=1');
+  await preview.click();
+  await expect(page.getByRole('link', { name: 'Open session' })).toHaveAttribute(
+    'href',
+    /\/activity\/act-1$/,
+  );
+  await page.getByRole('button', { name: 'Cancel' }).click();
+
+  // A look-alike host is not a handoff, so it gets the generic rejection and no preview.
+  for (const url of [
+    'https://evil.example/h/open-dm?ref=@a:b&v=1',
+    'https://hanthor.github.io.evil.example/indiafoss-companion/h/view-session?ref=keynote&v=1',
+  ]) {
+    await entry.fill(url);
+    await preview.click();
+    await expect(page.getByRole('alert')).toContainText(/not an IndiaFOSS location/);
+    await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toHaveCount(0);
+  }
+});
+
 test('scan: pasting a vCard previews the shared fields and rejects junk', async ({ page }) => {
   await page.goto(appUrl('/scan'));
   const vcard = ['BEGIN:VCARD', 'VERSION:3.0', 'FN:Riya Verma', 'ORG:KDE', 'END:VCARD'].join(
