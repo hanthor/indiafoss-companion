@@ -2,6 +2,10 @@
   import type { Activity, EventBundle } from '@indiafoss/model';
   import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
+  import { activityDevroomColor } from '$lib/devroom-art';
+
+  /** What the attendee has said about a talk, for the grid's colouring. */
+  export type GridChoice = 'yes' | 'must' | 'no';
 
   /** Pixel height per minute of wall time. */
   const PPM = 2;
@@ -13,11 +17,20 @@
     bundle,
     day,
     plannedIds = new Set<string>(),
+    choices = new Map<string, GridChoice>(),
+    onSelect,
+    selectable = () => true,
   }: {
     activities: Activity[];
     bundle: EventBundle;
     day: string;
     plannedIds?: Set<string>;
+    /** Choices to reflect on the cells (the planning grid, #470). */
+    choices?: Map<string, GridChoice>;
+    /** When given, a cell is a button that hands its session here instead of a link. */
+    onSelect?: (activity: Activity) => void;
+    /** Which sessions may be chosen in that mode; the rest stay links. */
+    selectable?: (activity: Activity) => boolean;
   } = $props();
 
   // locationId -> activities, as a plain array of entries (kept non-reactive).
@@ -131,22 +144,54 @@
         <h3 class="colhead">{locationName(locId) ?? locId}</h3>
         <div class="colbody">
           {#each layout(acts) as slot (slot.act.id)}
-            <a
-              class="cell"
-              class:planned={plannedIds.has(slot.act.id)}
-              class:cancelled={slot.act.cancelled}
-              class:meal={slot.act.type === 'meal'}
-              aria-label={`${slot.act.title}, ${formatTime(slot.act.start!)}–${formatTime(slot.act.end!)}, ${locationName(locId)}`}
-              href={resolve(`/activity/${slot.act.id}`)}
-              style:top="{slot.top}px"
-              style:height="{slot.height}px"
-              style:left="{slot.left}%"
-              style:width="{slot.width}%"
-              title={slot.act.title}
-            >
-              {#if plannedIds.has(slot.act.id)}<span class="planned-mark">Planned · </span>{/if}
-              <strong>{slot.act.title}</strong>
-            </a>
+            {@const choice = choices.get(slot.act.id)}
+            {@const label = `${slot.act.title}, ${formatTime(slot.act.start!)}–${formatTime(slot.act.end!)}, ${locationName(locId)}${choice === 'must' ? ', must go' : choice === 'yes' ? ', interested' : choice === 'no' ? ', not for me' : ''}`}
+            {#if onSelect && selectable(slot.act)}
+              <button
+                type="button"
+                class="cell choose"
+                class:planned={plannedIds.has(slot.act.id)}
+                class:cancelled={slot.act.cancelled}
+                class:yes={choice === 'yes'}
+                class:must={choice === 'must'}
+                class:no={choice === 'no'}
+                aria-label={label}
+                aria-pressed={choice !== undefined}
+                data-testid="grid-cell"
+                onclick={() => onSelect(slot.act)}
+                style:top="{slot.top}px"
+                style:height="{slot.height}px"
+                style:left="{slot.left}%"
+                style:width="{slot.width}%"
+                style:--devroom={activityDevroomColor(slot.act, bundle.id)}
+                title={slot.act.title}
+              >
+                {#if choice === 'must'}<span class="planned-mark">Must go · </span>
+                {:else if choice === 'yes'}<span class="planned-mark">Interested · </span>
+                {:else if plannedIds.has(slot.act.id)}<span class="planned-mark"
+                    >Planned ·
+                  </span>{/if}
+                <strong>{slot.act.title}</strong>
+              </button>
+            {:else}
+              <a
+                class="cell"
+                class:planned={plannedIds.has(slot.act.id)}
+                class:cancelled={slot.act.cancelled}
+                class:meal={slot.act.type === 'meal'}
+                aria-label={label}
+                href={resolve(`/activity/${slot.act.id}`)}
+                style:top="{slot.top}px"
+                style:height="{slot.height}px"
+                style:left="{slot.left}%"
+                style:width="{slot.width}%"
+                style:--devroom={activityDevroomColor(slot.act, bundle.id)}
+                title={slot.act.title}
+              >
+                {#if plannedIds.has(slot.act.id)}<span class="planned-mark">Planned · </span>{/if}
+                <strong>{slot.act.title}</strong>
+              </a>
+            {/if}
           {/each}
         </div>
       </div>
@@ -239,14 +284,39 @@
     position: absolute;
     display: block;
     overflow: hidden;
-    background: color-mix(in srgb, var(--event-primary) 12%, var(--surface));
-    border: 1px solid color-mix(in srgb, var(--event-primary) 45%, transparent);
+    /* A devroom talk wears its devroom's colour; everything else the event's. */
+    --cell-hue: var(--devroom, var(--event-primary));
+    background: color-mix(in srgb, var(--cell-hue) 12%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--cell-hue) 45%, transparent);
+    border-left: 3px solid color-mix(in srgb, var(--cell-hue) 85%, var(--text));
     border-radius: 6px;
     padding: 0.2rem 0.35rem;
     color: var(--text);
     text-decoration: none;
+    text-align: left;
+    font: inherit;
     font-size: 0.68rem;
     line-height: 1.25;
+  }
+  .cell.choose {
+    cursor: pointer;
+  }
+  .cell.choose:focus-visible {
+    outline: 2px solid var(--event-accent);
+    outline-offset: 1px;
+  }
+  .cell.yes {
+    background: var(--choice-want);
+    color: var(--choice-want-text);
+  }
+  .cell.must {
+    background: var(--choice-must);
+    color: var(--choice-must-text);
+  }
+  .cell.no {
+    background: var(--choice-no);
+    color: var(--choice-no-text);
+    opacity: 0.75;
   }
   .cell strong {
     display: block;

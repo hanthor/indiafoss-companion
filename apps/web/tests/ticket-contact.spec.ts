@@ -88,7 +88,7 @@ test('contact file fills blanks, preserves typed name, and keeps private fields 
     await expect(page.getByLabel(label!, { exact: true })).toHaveAttribute('autocomplete', token!);
   }
   await page.getByRole('button', { name: 'Save →', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Rank the sessions' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Plan your day' })).toBeVisible();
   await page.goto(appUrl('/connect'));
   await expect(page.getByLabel('Email', { exact: true })).toHaveValue('me@example.com');
   await expect(page.getByRole('switch', { name: 'Share Email', exact: true })).toHaveAttribute(

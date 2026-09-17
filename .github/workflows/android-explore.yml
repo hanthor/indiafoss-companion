@@ -60,6 +60,11 @@ jobs:
       - name: Set up Android SDK
         if: steps.key.outputs.present == 'true'
         uses: android-actions/setup-android@v4
+        with:
+          # The legacy `tools` package this action installs by default is no
+          # longer in Google's repository, so sdkmanager fails on it; the
+          # command-line tools it ships are what the builds actually use.
+          packages: platform-tools
 
       - name: Install dependencies
         if: steps.key.outputs.present == 'true'

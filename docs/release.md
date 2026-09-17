@@ -213,10 +213,46 @@ cancelled, time, room, title, speaker, recording) are unit-tested in
 - [ ] GitHub Pages deploy succeeds; a production smoke test confirms the
       deployed app can launch offline, search, rank, route, and retain local
       state.
-- [ ] Android artifact checksums recorded.
+- [ ] **Capability record produced, validated and committed** beside its
+      evidence under `docs/evidence/records/<id>.json`, and linked from the
+      release notes. `just release-record <id> <event> <chat sha> <bindings>
+<aar sha256> <apk sha256>` writes the pins and refuses an invalid record;
+      the claims are filled in by hand from `docs/evidence/`. A release without
+      a valid capability record is not a release.
+
+### Release scenarios
+
+Each scenario a release exercises produces an evidence file under
+`docs/evidence/` in the `<what>-<yyyy-mm-dd>.md` convention (exact revisions,
+exact command, raw output, conclusion), and the record's claim for it points at
+that file through `evidence`. A scenario that was not run is recorded as not
+run in `limitations`, never omitted.
+
+- [ ] fresh install (`scenario.fresh-install`)
+- [ ] upgrade over the installed build (`scenario.upgrade`)
+- [ ] airplane mode (`scenario.airplane-mode`)
+- [ ] WAN loss with LAN retained (`scenario.wan-loss-lan-retained`)
+- [ ] permission denial (`scenario.permission-denial`)
+- [ ] background and lock (`scenario.background-lock`)
+- [ ] restart (`scenario.restart`)
+- [ ] lost acknowledgement (`scenario.lost-acknowledgement`)
+- [ ] low storage (`scenario.low-storage`)
+- [ ] key rotation (`scenario.key-rotation`)
+- [ ] account expiry (`scenario.account-expiry`)
+- [ ] gateway restore (`scenario.gateway-restore`)
+
+Two rules from the contract (`packages/model/src/contracts/capability-record.ts`)
+apply to everyone who reads a record, the app included: **an unknown
+capability is unavailable**, never "probably fine"; and **`supported: false` is
+a record, distinct from absence**, saying somebody looked, on what, and what
+they found. The capability names and their meanings live in
+`packages/model/src/capabilities.ts`; the app's Settings page renders the
+current record through `supportsCapability()` and shows every row as
+unavailable unless the record says otherwise.
 
 ## Related docs
 
+- [Evidence and capability records](./evidence/README.md)
 - [Event onboarding](./event-onboarding.md)
 - [Install channels](./install-channels.md)
 - [Venue route review checklist](./venue-route-review-checklist.md)
