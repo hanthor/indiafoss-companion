@@ -4,6 +4,7 @@
   import { formatTime } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf, setDisposition, toggleBookmark } from '$lib/prefs.svelte';
   import TypeBadge from './TypeBadge.svelte';
+  import { activityDevroomColor } from '$lib/devroom-art';
 
   let {
     activity,
@@ -25,6 +26,7 @@
   );
 
   const mustAttend = $derived(dispositionOf(activity.id) === 'must-attend');
+  const devroomColor = $derived(activityDevroomColor(activity, bundle.id));
 
   async function onMustAttend(event: MouseEvent) {
     event.preventDefault();
@@ -44,6 +46,8 @@
   class:planned
   class:cancelled={activity.cancelled}
   class:compact={compactTime}
+  class:devroom={Boolean(devroomColor)}
+  style:--devroom={devroomColor}
 >
   {#if !compactTime}
     <time class="times" datetime={activity.start}>
@@ -94,11 +98,11 @@
 
 <style>
   .session.planned {
-    box-shadow: inset 3px 0 0 var(--mint);
+    box-shadow: inset 3px 0 0 var(--devroom, var(--mint));
     padding-left: 0.65rem;
   }
   .planned-mark {
-    color: var(--mint-ink);
+    color: var(--badge-ink);
     font-size: 0.72rem;
     font-weight: 600;
   }
@@ -112,6 +116,9 @@
     align-items: start;
     padding: 0.65rem 0.25rem;
     border-bottom: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
+    /* The devroom's colour down the left edge (issue 469); the name in the meta line says which. */
+    border-left: 3px solid var(--devroom, transparent);
+    padding-left: 0.45rem;
   }
 
   .session.cancelled h3 a,
@@ -129,7 +136,7 @@
     padding-top: 0.2rem;
   }
   .session:hover {
-    box-shadow: inset 4px 0 0 var(--mint);
+    box-shadow: inset 4px 0 0 var(--devroom, var(--mint));
   }
 
   h3 {

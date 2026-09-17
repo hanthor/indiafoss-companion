@@ -64,7 +64,7 @@
     }
   }
   // You
-  const SOCIALS_HERE: AttendeeSocial[] = ['github', 'linkedin', 'mastodon'];
+  const SOCIALS_HERE: AttendeeSocial[] = ['linkedin', 'github', 'mastodon'];
   async function saveYou(): Promise<void> {
     profileState.profile.fullName = profileState.profile.fullName.trim();
     await saveProfile();
@@ -79,9 +79,12 @@
     const at = STEPS.indexOf(step);
     if (at > 0) step = STEPS[at - 1]!;
   }
-  async function finish(to: '/plan/rank' | '/'): Promise<void> {
+  async function finish(to: '/plan/rank' | '/', mode?: 'grid'): Promise<void> {
     await markOnboardingDone();
-    await goto(resolve(to));
+    // `?mode=` is the rank screen's own switch, so the choice made here is the
+    // same one an attendee can make on that screen later.
+    // eslint-disable-next-line svelte/no-navigation-without-resolve -- the path is resolved; only the query is appended
+    await goto(mode ? `${resolve(to)}?mode=${mode}` : resolve(to));
   }
 </script>
 
@@ -235,14 +238,21 @@
       </form>
     {:else}
       <div class="eyebrow">3 · YOUR DAY</div>
-      <h2>Rank the sessions</h2>
+      <h2>Plan your day</h2>
       <p class="muted">
-        Say which devrooms are for you, swipe through the talks, settle the overlaps: a few minutes
-        now and the app builds a plan around what you would actually go to.
+        Say which devrooms are for you, then choose the talks: a few minutes now and the app builds
+        a plan around what you would actually go to. Two ways to choose, same answers, and you can
+        switch between them any time.
       </p>
       <div class="actions">
-        <button class="button dark" onclick={() => finish('/plan/rank')}>Find talks for me →</button
+        <button class="button dark" onclick={() => finish('/plan/rank')}
+          >Swipe through the talks →</button
         >
+        <button class="button dark" onclick={() => finish('/plan/rank', 'grid')}
+          >Pick from the room grid →</button
+        >
+      </div>
+      <div class="actions">
         <button class="button secondary" onclick={() => finish('/')}>Later, show me around</button>
         <button class="linkbtn" onclick={back}>← Back</button>
       </div>

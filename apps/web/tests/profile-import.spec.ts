@@ -112,7 +112,7 @@ test('onboarding can create a card from a profile without a phone contact', asyn
   await page.getByRole('button', { name: 'Use this profile', exact: true }).click();
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Asha Menon');
   await page.getByRole('button', { name: 'Save →', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Rank the sessions', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Plan your day', exact: true })).toBeVisible();
   await page.goto(appUrl('/connect'));
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Asha Menon');
 });

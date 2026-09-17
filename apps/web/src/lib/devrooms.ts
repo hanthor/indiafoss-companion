@@ -1,4 +1,4 @@
-import type { EventBundle, Track } from '@indiafoss/model';
+import type { Activity, EventBundle, Track } from '@indiafoss/model';
 
 /**
  * A main hall is where a keynote runs; everything else with a programme of
@@ -48,4 +48,47 @@ export function labelHeadingFor(
 export function splitTrackName(name: string): { title: string; subtitle?: string } {
   const match = name.match(/^(.+?)\s*\(([^()]+)\)$/);
   return match ? { title: match[2]!, subtitle: match[1] } : { title: name };
+}
+
+/** A contiguous run of one devroom's sessions in one room, for the grid's label band. */
+export interface DevroomBlock {
+  trackId: string;
+  name: string;
+  /** ISO timestamps: the first session's start and the last session's end. */
+  start: string;
+  end: string;
+}
+
+/**
+ * The devroom blocks in one room's timed sessions. A devroom books a room for
+ * a run of sessions, so each run gets one label rather than a badge on every
+ * cell. Only a session's `devroomId` counts: a main hall's own track is not a
+ * devroom booking. A session with no devroom (a meal, a keynote, a hall talk)
+ * ends the run; the next devroom session starts another. Sessions without a
+ * start or end are ignored.
+ */
+export function devroomBlocks(
+  activities: readonly Pick<Activity, 'devroomId' | 'start' | 'end'>[],
+  names: Map<string, string>,
+): DevroomBlock[] {
+  const sorted = activities
+    .filter((a) => a.start && a.end)
+    .sort((a, b) => Date.parse(a.start!) - Date.parse(b.start!));
+  const blocks: DevroomBlock[] = [];
+  let open: DevroomBlock | null = null;
+  for (const activity of sorted) {
+    const trackId = activity.devroomId;
+    const name = trackId ? names.get(trackId) : undefined;
+    if (!trackId || !name) {
+      open = null;
+      continue;
+    }
+    if (open && open.trackId === trackId) {
+      if (Date.parse(activity.end!) > Date.parse(open.end)) open.end = activity.end!;
+    } else {
+      open = { trackId, name, start: activity.start!, end: activity.end! };
+      blocks.push(open);
+    }
+  }
+  return blocks;
 }
