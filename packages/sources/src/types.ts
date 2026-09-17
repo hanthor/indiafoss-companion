@@ -24,11 +24,6 @@ export interface FossUnitedSourceEvent {
   booths?: Booth[];
 }
 
-/** Direct bundle loader interface (§6). */
-export interface BundleLoader {
-  /** Load a normalized event bundle directly from disk or cache. */
-  loadBundle(ref: EventReference): Promise<EventBundle>;
-}
 
 /** Core raw event source abstraction (§6). */
 export interface EventSource<S extends { kind: string } = SourceEvent> {
