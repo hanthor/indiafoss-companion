@@ -116,7 +116,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.26.0
+          version: 12.4.2
 
       - uses: actions/setup-node@v7
         with:
@@ -178,7 +178,7 @@ jobs:
 
       - uses: pnpm/action-setup@v4
         with:
-          version: 11.26.0
+          version: 12.4.2
 
       - uses: actions/setup-node@v7
         with:
@@ -245,6 +245,11 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
+        with:
+          # The legacy `tools` package this action installs by default is no
+          # longer in Google's repository, so sdkmanager fails on it; the
+          # command-line tools it ships are what the builds actually use.
+          packages: platform-tools
 
       - uses: gradle/actions/setup-gradle@v6
 
@@ -339,9 +344,24 @@ jobs:
           disable-animations: false
           script: echo "AVD created and cached"
 
+      # Pinned to a release and its checksum rather than piping the vendor's
+      # installer into bash (#385, #388). The zip is what the installer unpacks:
+      # a `maestro/` folder with `bin/` and `lib/`. Bump both lines together;
+      # the hash is `sha256sum` of the release asset.
       - name: Install Maestro
+        env:
+          MAESTRO_VERSION: 2.10.0
+          MAESTRO_SHA256: 29b675e10cc12080e445e9bfb2e2b4e4dfb9c0f2e30d5884120d258b5e1cd991
         run: |
-          curl -Ls "https://get.maestro.mobile.dev" | bash
+          set -euo pipefail
+          curl --fail --location --silent --show-error \
+            "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip" \
+            -o /tmp/maestro.zip
+          echo "${MAESTRO_SHA256}  /tmp/maestro.zip" | sha256sum --check --strict
+          mkdir -p "$HOME/.maestro"
+          unzip -qo /tmp/maestro.zip -d /tmp/maestro-unpacked
+          cp -R /tmp/maestro-unpacked/maestro/. "$HOME/.maestro/"
+          chmod +x "$HOME/.maestro/bin/maestro"
           echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
 
       - name: Boot, install and drive the app

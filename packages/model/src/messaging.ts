@@ -21,6 +21,14 @@ export interface MessagingRoom {
   boothId?: string;
   /** Rooms the app should suggest joining right after sign-in. */
   recommended?: boolean;
+  /**
+   * How the published directory says this room is reached. Defaults to
+   * `classic` (a normal homeserver room). `mesh` and `federated` are intents
+   * the organiser records deliberately; nothing here ever defaults to them.
+   */
+  route?: 'classic' | 'mesh' | 'federated';
+  /** Who can find and join it in the published directory. Defaults to `public`. */
+  visibility?: 'public' | 'invite' | 'knock';
 }
 
 export interface MessagingConfig {

@@ -1,8 +1,11 @@
+import { socialFromLink } from './contact.js';
 import type { AttendeeProfile, AttendeeSocial } from './contact.js';
 import { decodeFriendPayload, isTicketRef } from './friend.js';
 import type { FriendPayload } from './friend.js';
 import { isMatrixUserId } from './messaging.js';
 import { identityMetaOf, readIdentity } from './identity.js';
+import { isHandoffUrl, parseHandoffUrl } from './contracts/app-handoff.js';
+import type { AppHandoff } from './contracts/app-handoff.js';
 
 import { MAX_SCAN_PAYLOAD_BYTES, utf8ByteLength } from './payload-limits.js';
 export { MAX_SCAN_PAYLOAD_BYTES } from './payload-limits.js';
@@ -54,6 +57,29 @@ export interface ScannedTicket {
   ticketRef: string;
 }
 
+/**
+ * A public profile link on a known network, which is what LinkedIn's own
+ * QR code carries (`https://www.linkedin.com/in/<handle>?…`) and what people
+ * paste from any other profile page (#474). The link is saved as the
+ * contact's link on that network; nothing is fetched from it.
+ */
+export interface ScannedProfileLink {
+  kind: 'profile-link';
+  network: AttendeeSocial;
+  /** Canonical https URL, tracking parameters dropped. */
+  url: string;
+  /** The profile's handle when the URL's path carries one. */
+  handle?: string;
+}
+
+/** A session reference from a `view-session` handoff (either encoding). */
+export interface ScannedSession {
+  kind: 'session';
+  activityId: string;
+  /** The event the handoff named, when it did. The receiver decides whether it matches. */
+  eventId?: string;
+}
+
 export type ScannedPayload =
   | ScannedLocation
   | ScannedContact
@@ -61,6 +87,8 @@ export type ScannedPayload =
   | ScannedMatrixUser
   | ScannedMatrixRoom
   | ScannedTicket
+  | ScannedSession
+  | ScannedProfileLink
   | ScanError;
 
 const ROOM_TARGET = /^[#!][^:\s]+:[^\s]+$/;
@@ -94,6 +122,40 @@ function splitStructured(value: string): string[] {
 }
 
 const LOCATION_ID = /^[a-z0-9][a-z0-9-]*$/i;
+
+/**
+ * The one meaning of a handoff, whichever encoding carried it. Both the
+ * `indiafoss://` and the `https://` branches of {@link parseScannedPayload}
+ * come through here, so the two cannot drift apart (C-09).
+ */
+export function handoffToScanned(handoff: AppHandoff): ScannedPayload {
+  switch (handoff.action) {
+    case 'view-location':
+      if (!LOCATION_ID.test(handoff.ref)) {
+        return { kind: 'error', reason: 'malformed', message: 'The location link is malformed.' };
+      }
+      return { kind: 'location', locationId: handoff.ref };
+    case 'open-dm':
+      return { kind: 'matrix-user', userId: handoff.ref };
+    case 'join-room':
+      return { kind: 'matrix-room', idOrAlias: handoff.ref };
+    case 'view-session':
+      if (!LOCATION_ID.test(handoff.ref)) {
+        return { kind: 'error', reason: 'malformed', message: 'The session link is malformed.' };
+      }
+      return handoff.eventId
+        ? { kind: 'session', activityId: handoff.ref, eventId: handoff.eventId }
+        : { kind: 'session', activityId: handoff.ref };
+    case 'import-contact':
+      // A card key alone cannot be resolved to a card here; the card itself
+      // travels as a vCard or friend payload. Say so rather than guess.
+      return {
+        kind: 'error',
+        reason: 'unsupported',
+        message: 'Contact-import links are not supported yet; scan the contact card itself.',
+      };
+  }
+}
 
 function unescapeVCard(value: string): string {
   let out = '';
@@ -349,6 +411,9 @@ export function parseScannedPayload(input: string): ScannedPayload {
       if (join && ROOM_TARGET.test(join)) return { kind: 'matrix-room', idOrAlias: join };
       return { kind: 'error', reason: 'malformed', message: 'The chat link has no valid target.' };
     }
+    // The `indiafoss://<action>?ref=` grammar, after the legacy shapes above.
+    const handoff = parseHandoffUrl(payload);
+    if (handoff) return handoffToScanned(handoff);
     return {
       kind: 'error',
       reason: 'unsupported',
@@ -378,6 +443,14 @@ export function parseScannedPayload(input: string): ScannedPayload {
       return { kind: 'matrix-room', idOrAlias: `!${rest}` };
     }
     return { kind: 'error', reason: 'malformed', message: 'The matrix: link is malformed.' };
+  }
+
+  // First-party https handoffs, on the allow-listed hosts only. matrix.to was
+  // handled above and is a public permalink, never a handoff.
+  if (/^https:\/\//i.test(payload) && isHandoffUrl(payload)) {
+    const handoff = parseHandoffUrl(payload);
+    if (handoff) return handoffToScanned(handoff);
+    return { kind: 'error', reason: 'malformed', message: 'The IndiaFOSS link is malformed.' };
   }
 
   if (/^BEGIN:VCARD/i.test(payload)) {
@@ -411,6 +484,10 @@ export function parseScannedPayload(input: string): ScannedPayload {
     /* Bare references are handled below. */
   }
 
+  // A profile page on a network the card knows: LinkedIn's QR, a GitHub link.
+  const profileLink = parseProfileLink(payload);
+  if (profileLink) return profileLink;
+
   // FOSS United ticket QR codes carry the bare ticket id; explicit refs use ticket::<id>.
   if (isTicketRef(payload)) return { kind: 'ticket', ticketRef: payload };
   if (/^[A-Za-z0-9_-]{6,64}$/.test(payload))
@@ -421,4 +498,46 @@ export function parseScannedPayload(input: string): ScannedPayload {
     reason: 'unsupported',
     message: 'This code is not an IndiaFOSS location, contact card, chat link or ticket.',
   };
+}
+
+/** Path shapes whose first segment after the prefix is the profile's handle. */
+const HANDLE_PATHS: Partial<Record<AttendeeSocial, RegExp>> = {
+  linkedin: /^\/in\/([^/?#]+)/i,
+  github: /^\/([^/?#]+)\/?$/,
+  gitlab: /^\/([^/?#]+)\/?$/,
+  x: /^\/([^/?#]+)\/?$/,
+  instagram: /^\/([^/?#]+)\/?$/,
+  bluesky: /^\/profile\/([^/?#]+)/,
+  medium: /^\/@([^/?#]+)/,
+  devto: /^\/([^/?#]+)\/?$/,
+  youtube: /^\/@([^/?#]+)/,
+};
+
+/**
+ * An https link to a profile on a known network, or null. Only the
+ * `https://` form counts: a bare handle could be anyone's, and a network
+ * the card cannot hold a link for (a plain website) is not a contact.
+ */
+export function parseProfileLink(payload: string): ScannedProfileLink | null {
+  if (!/^https:\/\//i.test(payload)) return null;
+  const sorted = socialFromLink(payload);
+  if (!sorted || sorted.network === 'website') return null;
+  let url: URL;
+  try {
+    url = new URL(sorted.value);
+  } catch {
+    return null;
+  }
+  if (url.username || url.password) return null;
+  // LinkedIn's QR appends ?utm_source=qr_code…; none of it names the person.
+  url.search = '';
+  url.hash = '';
+  const handle = safeDecode(url.pathname.match(HANDLE_PATHS[sorted.network] ?? /$^/)?.[1] ?? '');
+  const result: ScannedProfileLink = {
+    kind: 'profile-link',
+    network: sorted.network,
+    url: url.href,
+  };
+  if (handle) result.handle = handle;
+  return result;
 }

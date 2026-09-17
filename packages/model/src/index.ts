@@ -363,3 +363,5 @@ export { resolvePortableActivity } from './portable-activity.js';
 export type { PortableActivityReference, ActivityResolution } from './portable-activity.js';
 
 export { isDiscoveryActivity } from './discovery.js';
+export { CAPABILITIES, RELEASE_SCENARIOS, capabilityDefinition } from './capabilities.js';
+export type { CapabilityDefinition } from './capabilities.js';
