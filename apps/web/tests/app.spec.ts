@@ -890,3 +890,17 @@ test('the room grid labels each devroom block once along the column edge', async
     .boundingBox();
   expect(band && cell && band.x + band.width <= cell.x + 1).toBe(true);
 });
+
+test("scan: LinkedIn's own QR code saves a contact with the LinkedIn link", async ({ page }) => {
+  await page.goto(appUrl('/scan'));
+  await page
+    .getByLabel('Paste a vCard')
+    .fill('https://www.linkedin.com/in/jane-doe-1a2b3c?utm_source=qr_code&utm_medium=member_app');
+  await page.getByRole('button', { name: 'Preview contact' }).click();
+  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
+  await expect(page.getByText('A profile link on LinkedIn')).toBeVisible();
+  const link = page.getByRole('link', { name: 'LinkedIn' });
+  await expect(link).toHaveAttribute('href', 'https://www.linkedin.com/in/jane-doe-1a2b3c');
+  await page.getByRole('button', { name: 'Save contact' }).click();
+  await expect(page.getByRole('status')).toContainText(/Saved jane-doe-1a2b3c/);
+});

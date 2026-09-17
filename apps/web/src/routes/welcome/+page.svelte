@@ -64,7 +64,7 @@
     }
   }
   // You
-  const SOCIALS_HERE: AttendeeSocial[] = ['github', 'linkedin', 'mastodon'];
+  const SOCIALS_HERE: AttendeeSocial[] = ['linkedin', 'github', 'mastodon'];
   async function saveYou(): Promise<void> {
     profileState.profile.fullName = profileState.profile.fullName.trim();
     await saveProfile();

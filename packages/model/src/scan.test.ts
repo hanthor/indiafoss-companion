@@ -290,3 +290,46 @@ describe('handoff links (C-09): one meaning in both encodings', () => {
     });
   });
 });
+
+describe('profile links (#474)', () => {
+  it("reads LinkedIn's own QR code as a LinkedIn link, tracking dropped", () => {
+    expect(
+      parseScannedPayload('https://www.linkedin.com/in/jane-doe-1a2b3c?utm_source=qr_code&trk=x'),
+    ).toEqual({
+      kind: 'profile-link',
+      network: 'linkedin',
+      url: 'https://www.linkedin.com/in/jane-doe-1a2b3c',
+      handle: 'jane-doe-1a2b3c',
+    });
+  });
+
+  it('reads a GitHub profile page the same way', () => {
+    expect(parseScannedPayload('https://github.com/octocat')).toEqual({
+      kind: 'profile-link',
+      network: 'github',
+      url: 'https://github.com/octocat',
+      handle: 'octocat',
+    });
+  });
+
+  it('keeps a link with no handle in its path, without inventing one', () => {
+    expect(parseScannedPayload('https://www.linkedin.com/company/fossunited')).toEqual({
+      kind: 'profile-link',
+      network: 'linkedin',
+      url: 'https://www.linkedin.com/company/fossunited',
+    });
+  });
+
+  it('does not turn a plain website, a bare handle or an http link into a contact', () => {
+    expect(parseScannedPayload('https://example.org/about').kind).toBe('error');
+    expect(parseScannedPayload('jane-doe').kind).toBe('ticket');
+    expect(parseScannedPayload('http://linkedin.com/in/jane').kind).toBe('error');
+  });
+
+  it('leaves the earlier shapes alone: tickets, matrix.to and handoffs win first', () => {
+    expect(parseScannedPayload('https://matrix.to/#/@a:b').kind).toBe('matrix-user');
+    expect(parseScannedPayload('https://fossunited.org/get_tickets?id=6k1ha138pb').kind).toBe(
+      'ticket',
+    );
+  });
+});

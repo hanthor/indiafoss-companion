@@ -35,6 +35,7 @@
   import {
     contactFromFriend,
     contactFromMatrixId,
+    contactFromProfileLink,
     contactFromVCard,
     saveScannedContact,
   } from '$lib/contacts.svelte';
@@ -42,6 +43,7 @@
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
+  import { LINK_LABELS } from '$lib/card-fields';
 
   type Pending = Exclude<ScannedPayload, { kind: 'error' }>;
 
@@ -190,6 +192,7 @@
       return contactFromFriend(pending.friend, eventId, cardIdentity ?? undefined, meeting);
     }
     if (pending.kind === 'matrix-user') return contactFromMatrixId(pending.userId, eventId);
+    if (pending.kind === 'profile-link') return contactFromProfileLink(pending, eventId);
     return null;
   });
 
@@ -386,6 +389,13 @@
           Opening shows the session's page. Nothing is bookmarked or shared.
         </p>
       {:else if contactPreview}
+        {#if pending.kind === 'profile-link'}
+          <p class="muted small">
+            A profile link on {LINK_LABELS[pending.network]}. It is saved as this person's link
+            there; nothing is fetched from it, and it proves nothing about who showed it. Edit the
+            name once you know it.
+          </p>
+        {/if}
         {#if continuity?.outcome === 'key-changed'}
           <p class="warning" role="alert">
             You already have {continuity.previous?.fullName} saved with a different key badge. This card
