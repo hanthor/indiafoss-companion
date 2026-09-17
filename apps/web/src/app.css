@@ -76,6 +76,10 @@
   --devroom-rtos: #a6af00;
   --devroom-security: #04c7bd;
 
+  /* What the type badge and other green marks use; a devroom overrides them. */
+  --badge-bg: var(--mint-soft);
+  --badge-ink: var(--mint-ink);
+
   /* Legacy aliases kept for existing components */
   --event-primary: var(--mint);
   --event-primary-dark: var(--mint-ink);
@@ -548,4 +552,12 @@ input[type='radio'] {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Inside a devroom's session (`--devroom` set) the badge and the green marks
+   take the devroom's colour instead of the event's, so a card, a swipe card
+   and the session page all read as that devroom's. */
+.devroom {
+  --badge-bg: color-mix(in srgb, var(--devroom) 18%, var(--surface));
+  --badge-ink: color-mix(in srgb, var(--devroom) 55%, var(--text));
 }

@@ -16,8 +16,8 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--mint-ink);
-    background: var(--mint-soft);
+    color: var(--badge-ink);
+    background: var(--badge-bg);
     border-radius: 3px;
     padding: 0.15rem 0.5rem;
   }

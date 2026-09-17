@@ -50,6 +50,7 @@
   } from '$lib/roomPrefs.svelte';
   import { roomSummary } from '$lib/roomInfo';
   import { splitTrackName } from '$lib/devrooms';
+  import { activityDevroomColor } from '$lib/devroom-art';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -881,6 +882,8 @@
     />
     <dialog
       class="talkdialog"
+      class:devroom={Boolean(gridTalk && activityDevroomColor(gridTalk, bundle.id))}
+      style:--devroom={gridTalk ? activityDevroomColor(gridTalk, bundle.id) : undefined}
       bind:this={gridDialog}
       aria-labelledby="grid-talk-title"
       onclose={() => (gridTalk = null)}
@@ -971,7 +974,12 @@
       </p>
       <div class="stack" aria-live="polite">
         {#if nextCard}
-          <article class="talkcard behind" aria-hidden="true">
+          <article
+            class="talkcard behind"
+            class:devroom={Boolean(activityDevroomColor(nextCard, bundle.id))}
+            style:--devroom={activityDevroomColor(nextCard, bundle.id)}
+            aria-hidden="true"
+          >
             <span class="talkhead">
               <TypeBadge type={nextCard.type} />
               <span class="when">{timeRange(nextCard)}</span>
@@ -987,11 +995,15 @@
             class:dragging
             class:leaving-left={leaving === 'left'}
             class:leaving-right={leaving === 'right'}
+            class:devroom={Boolean(activityDevroomColor(card, bundle.id))}
             data-testid="talk-card"
             tabindex="0"
             aria-describedby="discovery-keys"
             aria-label={card.title}
-            style="--dx:{dragX}px;--rot:{dragX / 18}deg"
+            style="--dx:{dragX}px;--rot:{dragX / 18}deg;--devroom:{activityDevroomColor(
+              card,
+              bundle.id,
+            ) ?? 'transparent'}"
             onpointerdown={onCardDown}
             onpointermove={onCardMove}
             onpointerup={onCardUp}
@@ -1527,6 +1539,8 @@
     user-select: none;
     cursor: grab;
     overflow: hidden;
+    /* The devroom's colour along the top, so the swipe card matches its list card. */
+    border-top: 4px solid var(--devroom, var(--line));
   }
   .talkcard.dragging {
     transition: none;
@@ -2131,6 +2145,7 @@
     background: var(--surface-raised);
     color: var(--text);
     padding: 1rem;
+    border-top: 4px solid var(--devroom, var(--line));
   }
   .talkdialog::backdrop {
     background: color-mix(in srgb, var(--ink) 55%, transparent);
