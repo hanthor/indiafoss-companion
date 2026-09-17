@@ -297,6 +297,41 @@ card carries `pk` (`alg:base64url`) and `sig` over its other fields.
   records the comparison the attendee actually did, bound to the card key it
   was done for.
 
+### Dated cards: a live code versus a photograph (borrowed from SimpleX)
+
+SimpleX hands out one-time invitation links so a copied link is worthless.
+A QR on a badge cannot be one-time, but it can be **dated**: every signed
+rendering carries `X-INDIAFOSS-ISSUED` (ISO 8601) and `X-INDIAFOSS-NONCE`
+(nine random bytes) inside the signed body, and the friend payload carries
+the same as `issued` and `nonce`. The Connect screen re-issues the card
+every five minutes while it is showing and whenever it comes back to the
+front, so the code on a phone is never more than a few minutes old.
+
+- **Scanning** reads the issue time only off a card whose signature is
+  valid (`cardFreshnessOf`): an unsigned or altered card can claim any
+  date. A code older than `CARD_FRESH_MINUTES` (60) is flagged in the
+  preview as a photograph or screenshot, and the row keeps that verdict as
+  "code older than 60 min when scanned". The verdict is judged against the
+  scan time (`freshnessAtScan`), never against now: a card saved yesterday
+  is not stale for having aged in the list.
+- A card from a build that does not date its cards is `unknown`, which is
+  no warning at all.
+- The nonce is stored as `cardNonce`; two scans that carry the same nonce
+  saw the same rendering. Nothing reads it yet beyond storing it.
+
+### "Now show yours": the reciprocal half (borrowed from SimpleX)
+
+A SimpleX contact is never one-sided. After a card is saved, the scan
+screen shows the attendee's own card, freshly issued, under **Now show
+yours**, with one button: **They scanned mine**. That sets
+`ContactRecord.mutual`, shown as MUTUAL EXCHANGE on the row and reversible
+from the row's actions.
+
+There is still no channel by which one phone learns that the other scanned
+it, so `mutual` is the attendee's own statement, like the badge comparison,
+and is dropped on import with every other local conclusion. It does not
+touch the account, in-person or chat lines.
+
 Ideas that build on the same primitives (not implemented): mutual-scan
 confirmation carried over the mesh, an NFC tap that writes the friend card to a
 badge, and a local "hallway passport" that stamps sessions, booths and people

@@ -195,6 +195,20 @@ export interface ContactRecord {
   fingerprint?: string;
   /** Result of verifying the card signature at scan time. */
   signature?: 'valid' | 'invalid' | 'unsigned';
+  /**
+   * When the scanned rendering of the card was issued, read off the signed
+   * body. With `lastMetAt` it says how old the code was when scanned: a
+   * card hours old was a photograph, not a phone. Wire data, kept as read.
+   */
+  cardIssuedAt?: string;
+  /** Per-rendering nonce of the last scan; the same nonce twice is the same code twice. */
+  cardNonce?: string;
+  /**
+   * The attendee's own statement that the other person scanned their card
+   * back (#exchange). A QR cannot report being scanned, so this is set by a
+   * tap, never by the wire, and is dropped on import like every conclusion.
+   */
+  mutual?: { at: string };
   /** Where and when you met: the session running at scan time. */
   metActivityId?: string;
   metLocationId?: string;

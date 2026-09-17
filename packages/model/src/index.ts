@@ -353,11 +353,16 @@ export type {
 export {
   VCARD_KEY_FIELD,
   VCARD_SIG_FIELD,
+  VCARD_ISSUED_FIELD,
+  VCARD_NONCE_FIELD,
+  CARD_FRESH_MINUTES,
+  cardFreshnessOf,
+  newCardNonce,
   canonicalVCardBody,
   signedAttendeeVCard,
   verifyVCardSignature,
 } from './signed-vcard.js';
-export type { VCardIdentity, VCardSignatureState } from './signed-vcard.js';
+export type { CardFreshness, VCardIdentity, VCardSignatureState } from './signed-vcard.js';
 
 export { resolvePortableActivity } from './portable-activity.js';
 export type { PortableActivityReference, ActivityResolution } from './portable-activity.js';

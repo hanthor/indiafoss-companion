@@ -325,7 +325,7 @@ test('a self-signed card naming somebody else’s account earns nothing above a 
   await expect(detail).toContainText('Not verified in Chat');
   await expect(detail).toContainText('not proof the account is theirs');
   await expect(detail.getByRole('link', { name: 'Open in a Matrix app' })).toBeVisible();
-  await expect(detail).toContainText('This app cannot tell whether one is');
+  await expect(detail).toContainText('this app cannot tell whether one is');
 });
 
 test('a card in an identity format this build cannot read is kept, shown neutrally and never routed (#160)', async ({

@@ -13,6 +13,8 @@
     verifyFriendPayload,
     verifyVCardSignature,
     formatPublicKey,
+    cardFreshnessOf,
+    CARD_FRESH_MINUTES,
     type FriendSignatureState,
     type ScannedPayload,
   } from '@indiafoss/model';
@@ -37,8 +39,10 @@
     contactFromMatrixId,
     contactFromProfileLink,
     contactFromVCard,
+    markMutual,
     saveScannedContact,
   } from '$lib/contacts.svelte';
+  import MyCardQr from '$lib/components/MyCardQr.svelte';
   import { reconcileContact } from '$lib/contact-continuity';
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
@@ -76,7 +80,14 @@
     signature: FriendSignatureState;
     fingerprint?: string;
     publicKey?: string;
+    issuedAt?: string;
+    nonce?: string;
   } | null>(null);
+  /** Whether the code on the other screen was issued recently, or is a photograph of one. */
+  const freshness = $derived(cardIdentity ? cardFreshnessOf(cardIdentity, Date.now()) : null);
+  /** The contact just saved, kept for the "now show yours" half of the exchange. */
+  let savedContact = $state<ContactRecord | null>(null);
+  let mutualMarked = $state(false);
   let manualLocation = $state('');
   let manualVCard = $state('');
   /** Manual entry stays tucked away unless the camera cannot be used. */
@@ -146,6 +157,7 @@
     error = '';
     status = '';
     savedContactId = null;
+    savedContact = null;
     const result = parseScannedPayload(raw);
     if (result.kind === 'error') {
       error = result.message;
@@ -157,23 +169,29 @@
     pending = result;
     cardIdentity = null;
     if (result.kind === 'friend') {
-      void verifyFriendPayload(raw.trim()).then(async ({ signature, publicKey }) => {
+      void verifyFriendPayload(raw.trim()).then(async ({ payload, signature, publicKey }) => {
         cardIdentity = {
           signature,
           fingerprint: publicKey ? await keyFingerprint(publicKey) : undefined,
           publicKey: publicKey ? formatPublicKey(publicKey) : undefined,
+          issuedAt: payload.issuedAt,
+          nonce: payload.nonce,
         };
       });
     } else if (result.kind === 'contact') {
-      void verifyVCardSignature(result.vcard).then(async ({ signature, publicKey }) => {
-        // A card from any other app is simply unsigned; only a companion card carries a key.
-        if (!publicKey) return;
-        cardIdentity = {
-          signature,
-          fingerprint: await keyFingerprint(publicKey),
-          publicKey: formatPublicKey(publicKey),
-        };
-      });
+      void verifyVCardSignature(result.vcard).then(
+        async ({ signature, publicKey, issuedAt, nonce }) => {
+          // A card from any other app is simply unsigned; only a companion card carries a key.
+          if (!publicKey) return;
+          cardIdentity = {
+            signature,
+            fingerprint: await keyFingerprint(publicKey),
+            publicKey: formatPublicKey(publicKey),
+            issuedAt,
+            nonce,
+          };
+        },
+      );
     }
   }
 
@@ -252,6 +270,13 @@
     }
   }
 
+  /** The other person scanned your card back: their tap on the other phone, your statement here. */
+  async function theyScannedMine(): Promise<void> {
+    if (!savedContact) return;
+    savedContact = await markMutual(savedContact);
+    mutualMarked = true;
+  }
+
   function stopCamera(): void {
     scanner?.stop();
     scanning = false;
@@ -285,6 +310,8 @@
       // Contact import is local: keep it in the on-device contact list (unverified).
       const result = await saveScannedContact(draft);
       savedContactId = result.contact.id;
+      savedContact = result.contact;
+      mutualMarked = Boolean(result.contact.mutual);
       savedHadBadge = !!result.contact.fingerprint;
       status =
         result.outcome === 'updated'
@@ -369,6 +396,21 @@
       {/if}
       <button class="button secondary" onclick={startCamera}>Scan another</button>
     </div>
+    <section class="card show-yours" data-testid="show-yours">
+      <h2>Now show yours</h2>
+      <p class="muted small">
+        A contact goes both ways. Let {savedContact?.fullName ?? 'them'} scan this code, freshly issued
+        for them, then say so below. This app cannot tell when your card is scanned; only you can.
+      </p>
+      <div class="qrwrap"><MyCardQr size={216} /></div>
+      {#if mutualMarked}
+        <p class="ok" role="status">Marked as a mutual exchange.</p>
+      {:else}
+        <button class="button" onclick={theyScannedMine} data-testid="they-scanned-mine"
+          >They scanned mine</button
+        >
+      {/if}
+    </section>
   {/if}
 
   {#if pending}
@@ -428,7 +470,16 @@
           not verify anyone. Three separate things, each its own step: save the contact, compare
           badges in person, and open a chat in your own chat app.
         </p>
-        {#if pending.kind === 'friend'}
+        {#if freshness === 'stale'}
+          <p class="warning" role="alert" data-testid="card-stale">
+            This code was issued more than {CARD_FRESH_MINUTES} minutes ago. A live card is re-issued
+            every few minutes, so this is a photograph or a screenshot of one. Ask them to open Connect
+            on their phone and scan that instead, or save it knowing it may not be theirs.
+          </p>
+        {:else if freshness === 'fresh'}
+          <p class="muted small" data-testid="card-fresh">Live code: issued in the last hour.</p>
+        {/if}
+        {#if pending.kind === 'friend' || cardIdentity}
           <div class="handshake">
             {#if cardIdentity?.fingerprint}
               <!-- eslint-disable-next-line svelte/no-at-html-tags (SVG generated locally from a hex fingerprint) -->
@@ -806,6 +857,15 @@
   .warning {
     color: var(--warning);
     font-size: 0.85rem;
+  }
+  .show-yours {
+    display: grid;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+  }
+  .qrwrap {
+    display: flex;
+    justify-content: center;
   }
   .handshake {
     display: flex;

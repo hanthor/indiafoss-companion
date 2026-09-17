@@ -43,7 +43,14 @@ export interface FriendPayload {
   publicKey?: string;
   /** Signature over the other fields (base64url); see handshake.ts. */
   signature?: string;
+  /** When this rendering was issued (ISO 8601); signed, so trust it only with a valid signature. */
+  issuedAt?: string;
+  /** Random per-rendering value; two scans with the same nonce saw the same code. */
+  nonce?: string;
 }
+
+const ISSUED_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+const NONCE_RE = /^[A-Za-z0-9_-]{8,32}$/;
 
 const TICKET_REF_RE = /^ticket::[A-Za-z0-9_-]{1,64}$/;
 const SAFE_URL_SCHEMES = new Set(['https:', 'http:', 'mailto:']);
@@ -115,6 +122,8 @@ export function encodeFriendPayload(payload: FriendPayload): string {
   put(params, 'org', payload.organization);
   put(params, 'url', payload.website);
   for (const network of SOCIALS) put(params, `social_${network}`, payload.socials[network]);
+  put(params, 'issued', payload.issuedAt);
+  put(params, 'nonce', payload.nonce);
   put(params, 'pk', payload.publicKey);
   put(params, 'sig', payload.signature);
   return `indiafoss://friend?${params.toString()}`;
@@ -205,6 +214,10 @@ export function decodeFriendPayload(text: string): FriendPayload | null {
       payload.socials[network] = value;
     }
   }
+  const issued = params.get('issued');
+  if (issued && ISSUED_RE.test(issued)) payload.issuedAt = issued;
+  const nonce = params.get('nonce');
+  if (nonce && NONCE_RE.test(nonce)) payload.nonce = nonce;
   const pk = params.get('pk');
   if (pk && parsePublicKey(pk)) payload.publicKey = pk;
   const sig = params.get('sig');

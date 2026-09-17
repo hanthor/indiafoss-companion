@@ -10,11 +10,15 @@ import {
   chatLabel,
   confirmedInPerson,
   deriveContactTrust,
+  freshnessAtScan,
+  freshnessLabel,
   inPersonLabel,
+  markedMutual,
   NO_ROUTE_LABEL,
   profileLabel,
   signatureLabel,
   withoutInPersonConfirmation,
+  withoutMutual,
 } from './contact-trust';
 
 const FP = 'ab'.repeat(32);
@@ -177,14 +181,19 @@ describe('asReceivedRecord: nothing on the wire asserts its own trust (C-10 step
       accountTrust: 'verified',
       meshLink: { state: 'profile-matched', checkedAt: 1 },
       inPersonConfirmed: { fingerprint: FP, at: '2026-09-19T11:00:00Z' },
+      mutual: { at: '2026-09-19T11:00:00Z' },
       fingerprint: FP,
       signature: 'valid',
+      cardIssuedAt: '2026-09-19T09:59:00Z',
     });
     const received = asReceivedRecord(wire);
     expect(received.verified).toBe(false);
     expect(received.accountTrust).toBe('claimed');
     expect(received.meshLink).toBeUndefined();
     expect(received.inPersonConfirmed).toBeUndefined();
+    expect(received.mutual).toBeUndefined();
+    // The issue time is what the signed card said and stays with it.
+    expect(received.cardIssuedAt).toBe('2026-09-19T09:59:00Z');
     // The signature check is this device's own observation and survives.
     expect(received.signature).toBe('valid');
     expect(received.fingerprint).toBe(FP);
@@ -213,5 +222,61 @@ describe('a dead tap becomes a download prompt on Android Chrome', () => {
     expect(intentHrefFor(uri, fallback, 'Mozilla/5.0 (X11; Linux x86_64) Chrome/128.0')).toBe(uri);
     expect(isAndroidChrome(ANDROID)).toBe(true);
     expect(isAndroidChrome(FIREFOX)).toBe(false);
+  });
+});
+
+describe('a mutual exchange is the attendee’s statement, never the wire’s', () => {
+  it('is set and withdrawn by a tap and reaches no other trust line', () => {
+    const marked = markedMutual(
+      contact({ fingerprint: FP, signature: 'valid' }),
+      '2026-09-19T11:00:00Z',
+    );
+    expect(marked.mutual).toEqual({ at: '2026-09-19T11:00:00Z' });
+    const t = deriveContactTrust(marked);
+    expect(t.inPerson).toBe('unconfirmed');
+    expect(t.account).toBe('claimed');
+    expect(t.chat).toBe('not-verified');
+    expect(withoutMutual(marked).mutual).toBeUndefined();
+  });
+});
+
+describe('freshness is judged at scan time, not at reading time', () => {
+  it('reads the issue time only off a validly signed card', () => {
+    const scannedAt = '2026-09-19T10:00:00.000Z';
+    expect(
+      freshnessAtScan(
+        contact({ signature: 'valid', cardIssuedAt: '2026-09-19T09:50:00Z', savedAt: scannedAt }),
+      ),
+    ).toBe('fresh');
+    expect(
+      freshnessAtScan(
+        contact({ signature: 'valid', cardIssuedAt: '2026-09-19T07:00:00Z', savedAt: scannedAt }),
+      ),
+    ).toBe('stale');
+    expect(
+      freshnessAtScan(
+        contact({
+          signature: 'unsigned',
+          cardIssuedAt: '2026-09-19T07:00:00Z',
+          savedAt: scannedAt,
+        }),
+      ),
+    ).toBe('unknown');
+    expect(freshnessAtScan(contact({ signature: 'valid', savedAt: scannedAt }))).toBe('unknown');
+  });
+
+  it('uses the latest meeting, so a re-scan judges the new code', () => {
+    const rescanned = contact({
+      signature: 'valid',
+      cardIssuedAt: '2026-09-20T09:58:00Z',
+      savedAt: '2026-09-19T10:00:00Z',
+      lastMetAt: '2026-09-20T10:00:00Z',
+    });
+    expect(freshnessAtScan(rescanned)).toBe('fresh');
+  });
+
+  it('has no label for the unknown state, which is not a warning', () => {
+    expect(freshnessLabel('unknown')).toBe('');
+    expect(freshnessLabel('stale')).toMatch(/older than/);
   });
 });
