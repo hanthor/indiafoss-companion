@@ -36,8 +36,23 @@ Output under events/<event-id>/published/:
   changes.<revision>.json
 `;
 
-import { isValidEventManifest, type EventManifest } from '@indiafoss/model/contracts';
+import {
+  EVENT_MANIFEST_SCHEMA_VERSION,
+  collectEventManifestIssues,
+  supersedes,
+} from '@indiafoss/model/contracts';
+import type { EventManifest } from '@indiafoss/model/contracts';
 export type { EventManifest } from '@indiafoss/model/contracts';
+
+/** A manifest on disk is untrusted until the owning contract says otherwise. */
+function readManifest(path: string): EventManifest {
+  const value: unknown = JSON.parse(readFileSync(path, 'utf8'));
+  const issues = collectEventManifestIssues(value);
+  if (issues.length > 0) {
+    throw new Error(`${path} is not a valid manifest:\n  ${issues.join('\n  ')}`);
+  }
+  return value as EventManifest;
+}
 
 function hash(data: string): string {
   return createHash('sha256').update(data).digest('hex').slice(0, 8);
@@ -133,11 +148,12 @@ export async function syncEvent(
   // Previous revision for diffing.
   let prevRevision = 0;
   let prevBundle: EventBundle | null = null;
+  let prevManifest: EventManifest | undefined;
   const manifestPath = join(publishedDir, 'manifest.json');
   if (existsSync(manifestPath)) {
-    const prev = JSON.parse(readFileSync(manifestPath, 'utf8')) as EventManifest;
-    prevRevision = prev.revision;
-    const prevAsset = prev.assets['event'];
+    prevManifest = readManifest(manifestPath);
+    prevRevision = prevManifest.revision;
+    const prevAsset = prevManifest.assets['event'];
     if (prevAsset) {
       const prevPath = join(publishedDir, prevAsset);
       if (existsSync(prevPath)) prevBundle = JSON.parse(readFileSync(prevPath, 'utf8'));
@@ -190,8 +206,7 @@ export async function syncEvent(
   const eventHash = hash(eventJson);
 
   // No-op sync: same content hash as the current revision — keep revision.
-  if (existsSync(manifestPath) && prevBundle) {
-    const prevManifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as EventManifest;
+  if (prevManifest && prevBundle) {
     const prevAsset = prevManifest.assets['event'];
     if (prevAsset && existsSync(join(publishedDir, prevAsset))) {
       const prevAssetContent = readFileSync(join(publishedDir, prevAsset), 'utf8');
@@ -244,7 +259,7 @@ export async function syncEvent(
     writeFileSync(join(publishedDir, `diff.${prevRevision}-${revision}.json`), changesJson);
 
   const manifest: EventManifest = {
-    schemaVersion: 1,
+    schemaVersion: EVENT_MANIFEST_SCHEMA_VERSION,
     eventId,
     revision,
     generatedAt: new Date().toISOString(),
@@ -254,7 +269,15 @@ export async function syncEvent(
       : {}),
     assets,
   };
-  if (!isValidEventManifest(manifest)) throw new Error('generated manifest failed validation');
+  const issues = collectEventManifestIssues(manifest);
+  if (issues.length > 0) {
+    throw new Error(`refusing to publish an invalid manifest:\n  ${issues.join('\n  ')}`);
+  }
+  if (!supersedes(manifest, prevManifest)) {
+    throw new Error(
+      `refusing to publish rev ${revision}: it does not supersede rev ${prevManifest?.revision}`,
+    );
+  }
   writeFileSync(join(publishedDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
 
   console.log(
@@ -278,7 +301,7 @@ export function publishEvent(eventId: string, publishedDirIn?: string, destDirIn
   if (!existsSync(manifestPath)) {
     throw new Error(`no published manifest for ${eventId}; run 'event-sync sync ${eventId}' first`);
   }
-  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as EventManifest;
+  const manifest = readManifest(manifestPath);
   const destDir = destDirIn ?? repoRoot('apps', 'web', 'static', 'events', eventId);
   mkdirSync(destDir, { recursive: true });
   const asset = manifest.assets['event']!;
