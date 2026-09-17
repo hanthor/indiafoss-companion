@@ -35,6 +35,7 @@
   import {
     contactFromFriend,
     contactFromMatrixId,
+    contactFromProfileLink,
     contactFromVCard,
     saveScannedContact,
   } from '$lib/contacts.svelte';
@@ -42,6 +43,7 @@
   import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
+  import { LINK_LABELS } from '$lib/card-fields';
 
   type Pending = Exclude<ScannedPayload, { kind: 'error' }>;
 
@@ -190,6 +192,7 @@
       return contactFromFriend(pending.friend, eventId, cardIdentity ?? undefined, meeting);
     }
     if (pending.kind === 'matrix-user') return contactFromMatrixId(pending.userId, eventId);
+    if (pending.kind === 'profile-link') return contactFromProfileLink(pending, eventId);
     return null;
   });
 
@@ -377,7 +380,22 @@
       {:else if pending.kind === 'matrix-room'}
         <p>Matrix room <code>{pending.idOrAlias}</code></p>
         <p class="muted small">Joining reveals your Matrix id to the room's members.</p>
+      {:else if pending.kind === 'session'}
+        <p>Session <code>{pending.activityId}</code></p>
+        {#if pending.eventId && pending.eventId !== eventState.bundle?.id}
+          <p class="warning">This link is for {pending.eventId}, not the event loaded here.</p>
+        {/if}
+        <p class="muted small">
+          Opening shows the session's page. Nothing is bookmarked or shared.
+        </p>
       {:else if contactPreview}
+        {#if pending.kind === 'profile-link'}
+          <p class="muted small">
+            A profile link on {LINK_LABELS[pending.network]}. It is saved as this person's link
+            there; nothing is fetched from it, and it proves nothing about who showed it. Edit the
+            name once you know it.
+          </p>
+        {/if}
         {#if continuity?.outcome === 'key-changed'}
           <p class="warning" role="alert">
             You already have {continuity.previous?.fullName} saved with a different key badge. This card
@@ -533,6 +551,10 @@
           >
         {:else if pending.kind === 'ticket'}
           <button class="button primary" onclick={confirmPending}>Save my ticket reference</button>
+        {:else if pending.kind === 'session'}
+          <a class="button primary" href={resolve(`/activity/${pending.activityId}`)}
+            >Open session</a
+          >
         {:else}
           <button class="button primary" onclick={confirmPending}>Save contact</button>
           <button class="button secondary" onclick={downloadDraft}>Download .vcf</button>
@@ -541,7 +563,7 @@
           {pending.kind === 'ticket' ? 'Dismiss' : 'Cancel'}
         </button>
       </div>
-      {#if previewTrust && pending.kind !== 'location' && pending.kind !== 'ticket' && pending.kind !== 'matrix-room'}
+      {#if previewTrust && pending.kind !== 'location' && pending.kind !== 'ticket' && pending.kind !== 'matrix-room' && pending.kind !== 'session'}
         <!-- Opening a chat is a separate step from saving, and a handoff to whatever
              client the OS has (ADR 0004). A web page cannot see what is installed. -->
         <div class="routes">

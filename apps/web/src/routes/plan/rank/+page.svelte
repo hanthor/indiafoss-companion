@@ -50,15 +50,22 @@
   } from '$lib/roomPrefs.svelte';
   import { roomSummary } from '$lib/roomInfo';
   import { splitTrackName } from '$lib/devrooms';
+  import { activityDevroomColor } from '$lib/devroom-art';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
+  import TimelineGrid from '$lib/components/TimelineGrid.svelte';
+  import type { GridChoice } from '$lib/components/TimelineGrid.svelte';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
-  /** The three steps (#108): devrooms, one talk at a time, then each slot's overlaps. */
-  type Mode = 'rooms' | 'cards' | 'slots';
+  /**
+   * The three steps (#108): devrooms, one talk at a time, then each slot's
+   * overlaps. `grid` is the second step for someone who would rather pick
+   * from the room grid than swipe (#470); it records the same answers.
+   */
+  type Mode = 'rooms' | 'cards' | 'grid' | 'slots';
 
   let selectedDay = $state<string | null>(null);
   let busy = $state(false);
@@ -461,6 +468,63 @@
     }
   }
 
+  // ---------- Step 2, grid form: pick from the room grid (#470) ----------
+  /** The whole day, meals included, so the grid reads like the schedule; only talks are choosable. */
+  const gridSessions = $derived<Activity[]>(
+    selectedDay ? activitiesForDay(bundle, selectedDay) : [],
+  );
+  /** What has been said about each talk, for the cells. */
+  const gridChoices = $derived.by(() => {
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity -- rebuilt per derivation
+    const map = new Map<string, GridChoice>();
+    for (const a of daySessions) {
+      if (dispositionOf(a.id) === 'must-attend') map.set(a.id, 'must');
+      else if (dispositionOf(a.id) === 'not-interested' || triageOf(a.id) === 'no')
+        map.set(a.id, 'no');
+      else if (triageOf(a.id) === 'yes') map.set(a.id, 'yes');
+    }
+    return map;
+  });
+  /** The talk whose details are open over the grid. */
+  let gridTalk = $state<Activity | null>(null);
+  let gridDialog = $state<HTMLDialogElement | null>(null);
+  function openGridTalk(activity: Activity): void {
+    gridTalk = activity;
+    gridDialog?.showModal();
+  }
+  function closeGridTalk(): void {
+    gridDialog?.close();
+    gridTalk = null;
+  }
+  async function answerGridTalk(answer: 'yes' | 'no' | 'must' | undefined): Promise<void> {
+    if (!gridTalk || busy) return;
+    busy = true;
+    try {
+      await setTalkChoice(gridTalk.id, answer);
+      saveError = '';
+      closeGridTalk();
+    } catch {
+      saveError = 'Your choice could not be saved. Please try again.';
+    } finally {
+      busy = false;
+    }
+  }
+  const gridSpeakers = $derived(
+    gridTalk
+      ? gridTalk.speakerIds
+          .map((id) => bundle.people.find((p) => p.id === id))
+          .filter((p): p is NonNullable<typeof p> => Boolean(p))
+      : [],
+  );
+  const gridLocation = $derived(
+    gridTalk ? bundle.locations.find((l) => l.id === gridTalk!.locationId)?.name : undefined,
+  );
+  const gridTrack = $derived(
+    gridTalk
+      ? bundle.tracks.find((t) => t.id === (gridTalk!.devroomId ?? gridTalk!.trackId))?.name
+      : undefined,
+  );
+
   /**
    * Which step to show. Devrooms first, once per event; then the talks while
    * there are unanswered ones and no slot answered yet; then the overlaps.
@@ -473,6 +537,7 @@
         rooms: 'rooms',
         cards: 'cards',
         quick: 'cards',
+        grid: 'grid',
         slots: 'slots',
         pairs: 'slots',
       } as Record<string, Mode>
@@ -670,6 +735,14 @@
     </button>
     <button
       role="tab"
+      aria-selected={mode === 'grid'}
+      class:active={mode === 'grid'}
+      onclick={() => (chosenMode = 'grid')}
+    >
+      Room grid
+    </button>
+    <button
+      role="tab"
       aria-selected={mode === 'slots'}
       class:active={mode === 'slots'}
       onclick={() => (chosenMode = 'slots')}
@@ -787,6 +860,76 @@
         </button>
       </div>
     {/if}
+  {:else if mode === 'grid'}
+    <p class="muted small lead">
+      The day by room and time. Tap a talk to read what it is about and say <b>Interested</b>,
+      <b>Must go</b> or <b>Not for me</b>; the same answers the cards record, so you can switch
+      between the two at any time. Colours are the devrooms'.
+    </p>
+    <div class="gridlegend" aria-hidden="true">
+      <span class="swatch want">Interested</span>
+      <span class="swatch must">Must go</span>
+      <span class="swatch no">Not for me</span>
+    </div>
+    {#if saveError}<p class="error" role="alert">{saveError}</p>{/if}
+    <TimelineGrid
+      activities={gridSessions}
+      {bundle}
+      day={selectedDay ?? ''}
+      choices={gridChoices}
+      onSelect={openGridTalk}
+      selectable={isDiscoveryActivity}
+    />
+    <dialog
+      class="talkdialog"
+      class:devroom={Boolean(gridTalk && activityDevroomColor(gridTalk, bundle.id))}
+      style:--devroom={gridTalk ? activityDevroomColor(gridTalk, bundle.id) : undefined}
+      bind:this={gridDialog}
+      aria-labelledby="grid-talk-title"
+      onclose={() => (gridTalk = null)}
+    >
+      {#if gridTalk}
+        <div class="talkhead">
+          <TypeBadge type={gridTalk.type} />
+          <span class="muted small">
+            {#if gridTalk.start && gridTalk.end}{formatTime(gridTalk.start)}–{formatTime(
+                gridTalk.end,
+              )}{/if}
+            {#if gridLocation}· {gridLocation}{/if}
+            {#if gridTrack}· {gridTrack}{/if}
+          </span>
+        </div>
+        <h2 id="grid-talk-title">{gridTalk.title}</h2>
+        {#if gridSpeakers.length > 0}
+          <p class="muted small">{gridSpeakers.map((p) => p.name).join(', ')}</p>
+        {/if}
+        {#if gridTalk.description}
+          <p class="abstract">{gridTalk.description}</p>
+        {:else}
+          <p class="muted small">No description published by the organiser yet.</p>
+        {/if}
+        <div class="actions">
+          <button class="button dark" onclick={() => answerGridTalk('yes')} disabled={busy}
+            >Interested</button
+          >
+          <button class="button secondary" onclick={() => answerGridTalk('must')} disabled={busy}
+            >Must go</button
+          >
+          <button class="button secondary" onclick={() => answerGridTalk('no')} disabled={busy}
+            >Not for me</button
+          >
+        </div>
+        <div class="actions">
+          {#if gridChoices.has(gridTalk.id)}
+            <button class="linkbtn" onclick={() => answerGridTalk(undefined)} disabled={busy}
+              >Clear my answer</button
+            >
+          {/if}
+          <a class="linkbtn" href={resolve(`/activity/${gridTalk.id}`)}>Open session page</a>
+          <button class="linkbtn" onclick={closeGridTalk}>Close</button>
+        </div>
+      {/if}
+    </dialog>
   {:else if mode === 'cards'}
     <p class="muted small" role="status">
       {triaged.length} choices saved ·
@@ -831,7 +974,12 @@
       </p>
       <div class="stack" aria-live="polite">
         {#if nextCard}
-          <article class="talkcard behind" aria-hidden="true">
+          <article
+            class="talkcard behind"
+            class:devroom={Boolean(activityDevroomColor(nextCard, bundle.id))}
+            style:--devroom={activityDevroomColor(nextCard, bundle.id)}
+            aria-hidden="true"
+          >
             <span class="talkhead">
               <TypeBadge type={nextCard.type} />
               <span class="when">{timeRange(nextCard)}</span>
@@ -847,11 +995,15 @@
             class:dragging
             class:leaving-left={leaving === 'left'}
             class:leaving-right={leaving === 'right'}
+            class:devroom={Boolean(activityDevroomColor(card, bundle.id))}
             data-testid="talk-card"
             tabindex="0"
             aria-describedby="discovery-keys"
             aria-label={card.title}
-            style="--dx:{dragX}px;--rot:{dragX / 18}deg"
+            style="--dx:{dragX}px;--rot:{dragX / 18}deg;--devroom:{activityDevroomColor(
+              card,
+              bundle.id,
+            ) ?? 'transparent'}"
             onpointerdown={onCardDown}
             onpointermove={onCardMove}
             onpointerup={onCardUp}
@@ -1387,6 +1539,8 @@
     user-select: none;
     cursor: grab;
     overflow: hidden;
+    /* The devroom's colour along the top, so the swipe card matches its list card. */
+    border-top: 4px solid var(--devroom, var(--line));
   }
   .talkcard.dragging {
     transition: none;
@@ -1958,5 +2112,56 @@
     font-size: 0.72rem;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
+  }
+  .gridlegend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.72rem;
+  }
+  .swatch {
+    padding: 0.1rem 0.5rem;
+    border-radius: 3px;
+  }
+  .swatch.want {
+    background: var(--choice-want);
+    color: var(--choice-want-text);
+  }
+  .swatch.must {
+    background: var(--choice-must);
+    color: var(--choice-must-text);
+  }
+  .swatch.no {
+    background: var(--choice-no);
+    color: var(--choice-no-text);
+  }
+  .talkdialog {
+    width: min(92vw, 34rem);
+    max-height: 85dvh;
+    overflow: auto;
+    border: 1px solid color-mix(in srgb, var(--text-muted) 25%, transparent);
+    border-radius: var(--radius);
+    background: var(--surface-raised);
+    color: var(--text);
+    padding: 1rem;
+    border-top: 4px solid var(--devroom, var(--line));
+  }
+  .talkdialog::backdrop {
+    background: color-mix(in srgb, var(--ink) 55%, transparent);
+  }
+  .talkdialog h2 {
+    margin: 0.35rem 0;
+    font-size: 1.1rem;
+  }
+  .talkhead {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+  .abstract {
+    white-space: pre-line;
+    font-size: 0.92rem;
   }
 </style>

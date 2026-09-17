@@ -104,6 +104,12 @@ venue-validate event="synthetic":
 venue-report event="indiafoss-2026":
     pnpm --filter @indiafoss/venue-validator exec tsx src/index.ts "$PWD/events" {{event}} --markdown > events/{{event}}/venue/validation-report.md
 
+# Assemble and validate a draft capability record from the repository's exact pins (C-11).
+# Pins are emitted; claims start unsupported and are filled in from docs/evidence by hand.
+# Example: just release-record release-2026-09-27 indiafoss-2026 <chat sha> 0.8.2-e2ee.x-ble.y <aar sha256> <apk sha256>
+release-record id="draft" event="indiafoss-2026" chat="" bindings="" aar_sha256="" apk_sha256="":
+    pnpm --filter @indiafoss/release-record exec tsx src/index.ts --id {{id}} --event {{event}} --chat "{{chat}}" --bindings "{{bindings}}" --aar-sha256 "{{aar_sha256}}" --apk-sha256 "{{apk_sha256}}"
+
 # Test Android core and app (including Compose screen renders; JDK 21 and SDK required).
 android-test:
     bash scripts/android-test.sh
