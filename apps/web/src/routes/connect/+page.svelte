@@ -40,6 +40,8 @@
     deleteContact,
     hydrateContacts,
     importContactBook,
+    markMutual,
+    unmarkMutual,
     verifyContactMeshLink,
     verifyMeshLinks,
     withdrawBadgeConfirmation,
@@ -48,6 +50,8 @@
     bindingLabel,
     chatLabel,
     deriveContactTrust,
+    freshnessAtScan,
+    freshnessLabel,
     inPersonLabel,
     NO_ROUTE_LABEL,
     profileLabel,
@@ -199,8 +203,23 @@
     if (profileState.loaded && identityState.ready) scheduleCard();
   });
 
-  onMount(() => () => {
-    if (qrTimer) clearTimeout(qrTimer);
+  // Each rendering is dated and signed, so a scanner can tell a live card from
+  // a photograph. Re-issue while the page is showing, and again when it comes
+  // back to the front, so the code on screen is never older than a few minutes.
+  const REISSUE_MS = 5 * 60_000;
+  onMount(() => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') scheduleCard();
+    }, REISSUE_MS);
+    const onVisible = (): void => {
+      if (document.visibilityState === 'visible') scheduleCard();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+      if (qrTimer) clearTimeout(qrTimer);
+    };
   });
 
   // ---------- Rows ----------
@@ -677,7 +696,7 @@
     {#if fieldCount > 0}
       <div class="meta">
         <span>{fieldCount} {fieldCount === 1 ? 'FIELD' : 'FIELDS'} SHARED</span>
-        <span class="ok">vCARD 3.0{signed ? ' · SIGNED' : ''}</span>
+        <span class="ok">vCARD 3.0{signed ? ' · SIGNED · DATED' : ''}</span>
       </div>
     {/if}
     {#if cardMessage && qrDataUrl}<p class="warning small">{cardMessage}</p>{/if}
@@ -1059,6 +1078,20 @@
                         >{inPersonLabel(trust.inPerson).toUpperCase()}</span
                       >
                     {/if}
+                    {#if c.mutual}
+                      <span
+                        class="line3 sig-ok"
+                        title="Your own statement that they scanned your card back"
+                        data-testid="mutual-chip">MUTUAL EXCHANGE</span
+                      >
+                    {/if}
+                    {#if freshnessAtScan(c) === 'stale'}
+                      <span
+                        class="line3 sig-bad"
+                        title="The code was a photograph or screenshot, not a live card"
+                        >{freshnessLabel('stale').toUpperCase()}</span
+                      >
+                    {/if}
                     {#if c.matrixId && c.neutrinoServerName}
                       <!-- A profile match is the homeserver's word: neutral, never the success colour. -->
                       <span
@@ -1179,6 +1212,15 @@
                             >Badges matched in person</button
                           >
                         {/if}
+                      {/if}
+                      {#if c.mutual}
+                        <button class="button ghost small" onclick={() => unmarkMutual(c)}
+                          >Undo mutual exchange</button
+                        >
+                      {:else}
+                        <button class="button ghost small" onclick={() => markMutual(c)}
+                          >They scanned mine</button
+                        >
                       {/if}
                       {#if c.matrixId && c.neutrinoServerName}
                         <button

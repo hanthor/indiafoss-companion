@@ -48,6 +48,11 @@ export interface ContactBookEntry {
   accountTrust?: 'claimed' | 'profile-matched' | 'binding-valid' | 'verified' | 'revoked';
   /** The attendee's own in-person badge comparison; dropped on import. */
   inPersonConfirmed?: { fingerprint: string; at: string };
+  /** The attendee's own statement that the other person scanned their card back; dropped on import. */
+  mutual?: { at: string };
+  /** Issue time and nonce of the scanned rendering, off the signed card. */
+  cardIssuedAt?: string;
+  cardNonce?: string;
   previousFingerprint?: string;
 }
 

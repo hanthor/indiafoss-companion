@@ -4,8 +4,11 @@ import { DEFAULT_ATTENDEE_SHARE_SELECTION } from './contact.js';
 import { parseVCard } from './scan.js';
 import {
   canonicalVCardBody,
+  cardFreshnessOf,
   signedAttendeeVCard,
+  VCARD_ISSUED_FIELD,
   VCARD_KEY_FIELD,
+  VCARD_NONCE_FIELD,
   VCARD_SIG_FIELD,
   verifyVCardSignature,
 } from './signed-vcard.js';
@@ -74,5 +77,70 @@ describe('signedAttendeeVCard', () => {
       `BEGIN:VCARD\r\nFN:Asha Rao\r\n${VCARD_SIG_FIELD}:abc\r\nEND:VCARD\r\n`,
     );
     expect(body).toBe('BEGIN:VCARD\r\nFN:Asha Rao\r\nEND:VCARD');
+  });
+
+  it('dates every signed rendering and gives each a fresh nonce', async () => {
+    const pair = await generateHandshakeKeyPair();
+    const first = await signedAttendeeVCard(profile, selection, pair);
+    const second = await signedAttendeeVCard(profile, selection, pair);
+    expect(first).toContain(`${VCARD_ISSUED_FIELD}:`);
+    expect(first).toContain(`${VCARD_NONCE_FIELD}:`);
+    const a = await verifyVCardSignature(first);
+    const b = await verifyVCardSignature(second);
+    expect(a.signature).toBe('valid');
+    expect(a.issuedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    expect(a.nonce).not.toBe(b.nonce);
+    // Camera apps still read the plain fields.
+    expect(parseVCard(first)?.fullName).toBe('Asha Rao');
+  });
+
+  it('keeps the issue time under the signature so a replay cannot re-date itself', async () => {
+    const pair = await generateHandshakeKeyPair();
+    const vcard = await signedAttendeeVCard(profile, selection, pair, {
+      issuedAt: '2026-09-17T09:00:00.000Z',
+    });
+    const redated = vcard.replace('2026-09-17T09:00:00.000Z', new Date().toISOString());
+    await expect(verifyVCardSignature(redated)).resolves.toMatchObject({ signature: 'invalid' });
+  });
+
+  it('leaves unsigned cards undated', async () => {
+    const plain = await signedAttendeeVCard(profile, selection, null);
+    expect(plain).not.toContain(VCARD_ISSUED_FIELD);
+    expect(plain).not.toContain(VCARD_NONCE_FIELD);
+  });
+});
+
+describe('cardFreshnessOf', () => {
+  const now = Date.parse('2026-09-17T10:00:00Z');
+  it('calls a valid card fresh within the hour and stale after it', () => {
+    expect(cardFreshnessOf({ signature: 'valid', issuedAt: '2026-09-17T09:30:00Z' }, now)).toBe(
+      'fresh',
+    );
+    expect(cardFreshnessOf({ signature: 'valid', issuedAt: '2026-09-17T08:59:00Z' }, now)).toBe(
+      'stale',
+    );
+    expect(cardFreshnessOf({ signature: 'valid', issuedAt: '2026-09-16T10:00:00Z' }, now)).toBe(
+      'stale',
+    );
+  });
+
+  it('never reads a date off an unsigned or tampered card', () => {
+    expect(cardFreshnessOf({ signature: 'unsigned', issuedAt: '2026-09-17T09:59:00Z' }, now)).toBe(
+      'unknown',
+    );
+    expect(cardFreshnessOf({ signature: 'invalid', issuedAt: '2026-09-17T09:59:00Z' }, now)).toBe(
+      'unknown',
+    );
+    expect(cardFreshnessOf({ signature: 'valid' }, now)).toBe('unknown');
+    expect(cardFreshnessOf({ signature: 'valid', issuedAt: 'yesterday' }, now)).toBe('unknown');
+  });
+
+  it('tolerates a few minutes of clock skew, not a card from the future', () => {
+    expect(cardFreshnessOf({ signature: 'valid', issuedAt: '2026-09-17T10:05:00Z' }, now)).toBe(
+      'fresh',
+    );
+    expect(cardFreshnessOf({ signature: 'valid', issuedAt: '2026-09-17T11:00:00Z' }, now)).toBe(
+      'unknown',
+    );
   });
 });

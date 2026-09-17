@@ -56,6 +56,8 @@ describe('friend payload', () => {
       organization: 'FOSS & Co',
       website: 'https://example.org',
       socials: { github: 'https://github.com/hanthor' },
+      issuedAt: '2026-09-17T09:00:00.000Z',
+      nonce: 'AbC-_12345xy',
     });
     expect(encoded.startsWith('indiafoss://friend?v=1&')).toBe(true);
     expect(decodeFriendPayload(encoded)).toEqual({
@@ -70,7 +72,18 @@ describe('friend payload', () => {
       organization: 'FOSS & Co',
       website: 'https://example.org',
       socials: { github: 'https://github.com/hanthor' },
+      issuedAt: '2026-09-17T09:00:00.000Z',
+      nonce: 'AbC-_12345xy',
     });
+  });
+
+  it('drops a malformed issue time or nonce instead of failing the scan', () => {
+    const decoded = decodeFriendPayload(
+      'indiafoss://friend?v=1&fn=Asha&issued=yesterday&nonce=%3Cscript%3E',
+    );
+    expect(decoded?.fullName).toBe('Asha');
+    expect(decoded?.issuedAt).toBeUndefined();
+    expect(decoded?.nonce).toBeUndefined();
   });
 
   it('retains malformed identities unread and drops unsafe urls, trusting neither', () => {

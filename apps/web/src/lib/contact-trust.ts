@@ -1,4 +1,6 @@
 import type { ContactRecord } from '@indiafoss/storage';
+import { CARD_FRESH_MINUTES, cardFreshnessOf } from '@indiafoss/model';
+import type { CardFreshness } from '@indiafoss/model';
 import type { AccountClaimTrust } from '@indiafoss/model/contracts';
 import {
   classifyMeshIdentity,
@@ -289,6 +291,7 @@ export function chatLabel(state: ChatTrust): string {
 export function asReceivedRecord(record: ContactRecord): ContactRecord {
   const received: ContactRecord = { ...record, verified: false, accountTrust: 'claimed' };
   delete received.inPersonConfirmed;
+  delete received.mutual;
   delete received.meshLink;
   // The signed binding is data the card carried and stays; the verdict on it
   // is this device's to reach, so a verdict in the file is dropped.
@@ -306,4 +309,41 @@ export function withoutInPersonConfirmation(record: ContactRecord): ContactRecor
   const withdrawn: ContactRecord = { ...record };
   delete withdrawn.inPersonConfirmed;
   return withdrawn;
+}
+
+/** The attendee's own statement that the other person scanned their card back. */
+export function markedMutual(record: ContactRecord, at: string): ContactRecord {
+  return { ...record, mutual: { at } };
+}
+
+export function withoutMutual(record: ContactRecord): ContactRecord {
+  const oneWay: ContactRecord = { ...record };
+  delete oneWay.mutual;
+  return oneWay;
+}
+
+/**
+ * How old the code was when it was scanned. Judged against the scan time,
+ * not now: a card saved yesterday is not stale for having aged in the list.
+ */
+export function freshnessAtScan(
+  record: Pick<ContactRecord, 'signature' | 'cardIssuedAt' | 'lastMetAt' | 'savedAt'>,
+): CardFreshness {
+  const scannedAt = Date.parse(record.lastMetAt ?? record.savedAt);
+  if (Number.isNaN(scannedAt)) return 'unknown';
+  return cardFreshnessOf(
+    { signature: record.signature ?? 'unsigned', issuedAt: record.cardIssuedAt },
+    scannedAt,
+  );
+}
+
+export function freshnessLabel(state: CardFreshness): string {
+  switch (state) {
+    case 'fresh':
+      return 'Live code when scanned';
+    case 'stale':
+      return `Code older than ${CARD_FRESH_MINUTES} min when scanned`;
+    default:
+      return '';
+  }
 }

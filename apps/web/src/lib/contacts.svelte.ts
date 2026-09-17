@@ -10,7 +10,9 @@ import { bindingCheckStale, checkContactBinding } from '$lib/binding';
 import {
   asReceivedRecord,
   confirmedInPerson,
+  markedMutual,
   withoutInPersonConfirmation,
+  withoutMutual,
 } from '$lib/contact-trust';
 import type { ContinuityResult } from '$lib/contact-continuity';
 import type { IdentityMeta } from '@indiafoss/model';
@@ -61,16 +63,30 @@ export interface MeetingContext {
   locationId?: string;
 }
 
+/** What the scanner learned about the card's key and rendering. */
+export interface ScannedIdentity {
+  fingerprint?: string;
+  signature?: 'valid' | 'invalid' | 'unsigned';
+  publicKey?: string;
+  issuedAt?: string;
+  nonce?: string;
+}
+
+/** The issue time is only worth keeping when the signature vouches for it. */
+function issueMeta(identity?: ScannedIdentity): Pick<ContactRecord, 'cardIssuedAt' | 'cardNonce'> {
+  if (identity?.signature !== 'valid') return {};
+  return {
+    ...(identity.issuedAt ? { cardIssuedAt: identity.issuedAt } : {}),
+    ...(identity.nonce ? { cardNonce: identity.nonce } : {}),
+  };
+}
+
 /** Build a contact from a scanned vCard; nothing is saved until the user confirms. */
 export function contactFromVCard(
   card: AttendeeProfile,
   vcard: string,
   eventId?: string,
-  identity?: {
-    fingerprint?: string;
-    signature?: 'valid' | 'invalid' | 'unsigned';
-    publicKey?: string;
-  },
+  identity?: ScannedIdentity,
   met?: MeetingContext,
 ): ContactRecord {
   return {
@@ -79,6 +95,7 @@ export function contactFromVCard(
     ...(identity?.publicKey ? { publicKey: identity.publicKey } : {}),
     ...(identity?.fingerprint ? { fingerprint: identity.fingerprint } : {}),
     ...(identity?.signature ? { signature: identity.signature } : {}),
+    ...issueMeta(identity),
     ...(met?.activityId ? { metActivityId: met.activityId } : {}),
     ...(met?.locationId ? { metLocationId: met.locationId } : {}),
     fullName: card.fullName || card.matrixId || 'Unnamed contact',
@@ -102,7 +119,7 @@ export function contactFromVCard(
 export function contactFromFriend(
   friend: FriendPayload,
   eventId?: string,
-  identity?: { fingerprint?: string; signature?: 'valid' | 'invalid' | 'unsigned' },
+  identity?: ScannedIdentity,
   met?: MeetingContext,
 ): ContactRecord {
   const vcard = attendeeProfileToVCard(
@@ -151,6 +168,7 @@ export function contactFromFriend(
     publicKey: friend.publicKey,
     fingerprint: identity?.fingerprint,
     signature: identity?.signature ?? (friend.publicKey ? 'unsigned' : undefined),
+    ...issueMeta({ ...identity, issuedAt: friend.issuedAt, nonce: friend.nonce }),
     metActivityId: met?.activityId,
     metLocationId: met?.locationId,
   };
@@ -325,6 +343,15 @@ export async function confirmBadgeInPerson(contact: ContactRecord): Promise<Cont
 
 export async function withdrawBadgeConfirmation(contact: ContactRecord): Promise<ContactRecord> {
   return saveInPlace(withoutInPersonConfirmation(contact));
+}
+
+/** The attendee says the other person scanned their card back: a tap, never the wire. */
+export async function markMutual(contact: ContactRecord): Promise<ContactRecord> {
+  return saveInPlace(markedMutual(contact, nowIso()));
+}
+
+export async function unmarkMutual(contact: ContactRecord): Promise<ContactRecord> {
+  return saveInPlace(withoutMutual(contact));
 }
 
 /**

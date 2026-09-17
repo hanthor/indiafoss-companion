@@ -8,6 +8,41 @@ import { parsePublicKey } from './handshake.js';
 export const VCARD_KEY_FIELD = 'X-INDIAFOSS-KEY';
 /** vCard property carrying the signature over the canonical body. */
 export const VCARD_SIG_FIELD = 'X-INDIAFOSS-SIG';
+/** When the card was issued (ISO 8601); inside the signed body, so a replay cannot re-date it. */
+export const VCARD_ISSUED_FIELD = 'X-INDIAFOSS-ISSUED';
+/** Random per-issue value that makes every rendering of the card distinct. */
+export const VCARD_NONCE_FIELD = 'X-INDIAFOSS-NONCE';
+/** A signed card older than this is a photograph until the sharer shows a live one. */
+export const CARD_FRESH_MINUTES = 60;
+/** Clock skew tolerated before an issue time in the future stops counting as fresh. */
+const FUTURE_SKEW_MINUTES = 10;
+
+export type CardFreshness = 'fresh' | 'stale' | 'unknown';
+
+/** Nine random bytes, base64url: short enough for a QR, unique enough per rendering. */
+export function newCardNonce(): string {
+  const bytes = new Uint8Array(9);
+  globalThis.crypto.getRandomValues(bytes);
+  return toBase64Url(bytes);
+}
+
+/**
+ * Whether a scanned card was issued recently enough to have come off a live
+ * screen. Only a valid signature makes the issue time worth reading: an
+ * unsigned or tampered card can claim any date. `unknown` is not a warning,
+ * just a card from a build (or an app) that does not date its cards.
+ */
+export function cardFreshnessOf(
+  card: { signature: 'valid' | 'invalid' | 'unsigned'; issuedAt?: string },
+  nowMs: number,
+): CardFreshness {
+  if (card.signature !== 'valid' || !card.issuedAt) return 'unknown';
+  const issued = Date.parse(card.issuedAt);
+  if (Number.isNaN(issued)) return 'unknown';
+  const ageMinutes = (nowMs - issued) / 60_000;
+  if (ageMinutes < -FUTURE_SKEW_MINUTES) return 'unknown';
+  return ageMinutes <= CARD_FRESH_MINUTES ? 'fresh' : 'stale';
+}
 
 async function subtle(): Promise<SubtleCrypto> {
   const c = globalThis.crypto;
@@ -48,14 +83,18 @@ export async function signedAttendeeVCard(
   profile: AttendeeProfile,
   selection: AttendeeShareSelection,
   pair: HandshakeKeyPair | null,
-  options?: { gravatarUrl?: string | null },
+  options?: { gravatarUrl?: string | null; issuedAt?: string; nonce?: string },
 ): Promise<string> {
   const base = attendeeProfileToVCard(profile, selection, options);
   if (!pair) return base;
 
+  // Issue time and nonce sit inside the signed body: a photographed code keeps
+  // its original date, and a scanner can tell it from a card shown live.
+  const issuedAt = options?.issuedAt ?? new Date().toISOString();
+  const nonce = options?.nonce ?? newCardNonce();
   const withKey = base.replace(
     /END:VCARD\r?\n?$/,
-    `${VCARD_KEY_FIELD}:${formatPublicKey(pair.exported)}\r\nEND:VCARD\r\n`,
+    `${VCARD_ISSUED_FIELD}:${issuedAt}\r\n${VCARD_NONCE_FIELD}:${nonce}\r\n${VCARD_KEY_FIELD}:${formatPublicKey(pair.exported)}\r\nEND:VCARD\r\n`,
   );
   const data = bufferSource(new TextEncoder().encode(canonicalVCardBody(withKey)));
   const raw = new Uint8Array(
@@ -83,6 +122,21 @@ export type VCardSignatureState = 'valid' | 'invalid' | 'unsigned';
 export interface VCardIdentity {
   signature: VCardSignatureState;
   publicKey: HandshakePublicKey | null;
+  /** Issue time the card carried, meaningful only with a `valid` signature. */
+  issuedAt?: string;
+  nonce?: string;
+}
+
+const ISSUED_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$/;
+const NONCE_RE = /^[A-Za-z0-9_-]{8,32}$/;
+
+function issueMeta(vcard: string): { issuedAt?: string; nonce?: string } {
+  const issuedAt = readField(vcard, VCARD_ISSUED_FIELD);
+  const nonce = readField(vcard, VCARD_NONCE_FIELD);
+  return {
+    ...(issuedAt && ISSUED_RE.test(issuedAt) ? { issuedAt } : {}),
+    ...(nonce && NONCE_RE.test(nonce) ? { nonce } : {}),
+  };
 }
 
 /**
@@ -94,6 +148,7 @@ export async function verifyVCardSignature(vcard: string): Promise<VCardIdentity
   const publicKey = parsePublicKey(readField(vcard, VCARD_KEY_FIELD));
   const sig = readField(vcard, VCARD_SIG_FIELD);
   if (!publicKey || !sig) return { signature: 'unsigned', publicKey };
+  const meta = issueMeta(vcard);
   try {
     const s = await subtle();
     const rawKey = bufferSource(fromBase64Url(publicKey.key));
@@ -111,8 +166,8 @@ export async function verifyVCardSignature(vcard: string): Promise<VCardIdentity
       bufferSource(fromBase64Url(sig)),
       bufferSource(new TextEncoder().encode(canonicalVCardBody(vcard))),
     );
-    return { signature: ok ? 'valid' : 'invalid', publicKey };
+    return { signature: ok ? 'valid' : 'invalid', publicKey, ...meta };
   } catch {
-    return { signature: 'invalid', publicKey };
+    return { signature: 'invalid', publicKey, ...meta };
   }
 }
