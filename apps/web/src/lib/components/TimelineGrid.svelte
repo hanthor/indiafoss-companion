@@ -318,8 +318,11 @@
     box-sizing: border-box;
     overflow: hidden;
     border-radius: 4px 0 0 4px;
-    background: color-mix(in srgb, var(--devroom, var(--event-primary)) 85%, var(--text));
-    color: var(--surface);
+    /* The colour lifted 30% towards white with ink on it: 5.9:1 or better for
+       all eight devrooms in both themes. Darkening it for light text fails
+       the greens, the teal and the olive (measured 2.7:1 to 3.0:1). */
+    background: color-mix(in srgb, var(--devroom, var(--event-primary)) 70%, var(--on-ink));
+    color: var(--ink);
   }
   .band span {
     position: sticky;
@@ -352,8 +355,8 @@
     overflow: hidden;
     /* A devroom talk wears its devroom's colour; everything else the event's. */
     --cell-hue: var(--devroom, var(--event-primary));
-    background: color-mix(in srgb, var(--cell-hue) 12%, var(--surface));
-    border: 1px solid color-mix(in srgb, var(--cell-hue) 45%, transparent);
+    background: color-mix(in srgb, var(--cell-hue) var(--devroom-tint), var(--surface));
+    border: 1px solid color-mix(in srgb, var(--cell-hue) var(--devroom-edge), transparent);
     border-left: 3px solid color-mix(in srgb, var(--cell-hue) 85%, var(--text));
     border-radius: 6px;
     padding: 0.2rem 0.35rem;

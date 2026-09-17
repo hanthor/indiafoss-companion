@@ -10,6 +10,7 @@
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
+  import { activityDevroomColor } from '$lib/devroom-art';
 
   const activityId = $derived(page.params.id);
   const bundle = $derived(eventState.bundle!);
@@ -58,7 +59,10 @@
       <a href={resolve('/schedule')}>Schedule</a>
     </nav>
 
-    <header>
+    <header
+      class:devroom={Boolean(activityDevroomColor(activity, bundle.id))}
+      style:--devroom={activityDevroomColor(activity, bundle.id)}
+    >
       <h1>{activity.title}</h1>
       <p class="muted">
         <TypeBadge type={activity.type} />
@@ -270,9 +274,9 @@
     margin-top: 0.6rem;
   }
   .meta-badge {
-    border: 1px solid color-mix(in srgb, var(--event-primary-dark) 35%, transparent);
+    border: 1px solid color-mix(in srgb, var(--badge-ink) 35%, transparent);
     border-radius: 999px;
-    color: var(--event-primary-dark);
+    color: var(--badge-ink);
     font-size: 0.72rem;
     padding: 0.2rem 0.55rem;
   }

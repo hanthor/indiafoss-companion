@@ -26,6 +26,7 @@
   );
 
   const mustAttend = $derived(dispositionOf(activity.id) === 'must-attend');
+  const devroomColor = $derived(activityDevroomColor(activity, bundle.id));
 
   async function onMustAttend(event: MouseEvent) {
     event.preventDefault();
@@ -45,7 +46,8 @@
   class:planned
   class:cancelled={activity.cancelled}
   class:compact={compactTime}
-  style:--devroom={activityDevroomColor(activity, bundle.id)}
+  class:devroom={Boolean(devroomColor)}
+  style:--devroom={devroomColor}
 >
   {#if !compactTime}
     <time class="times" datetime={activity.start}>
@@ -96,11 +98,11 @@
 
 <style>
   .session.planned {
-    box-shadow: inset 3px 0 0 var(--mint);
+    box-shadow: inset 3px 0 0 var(--devroom, var(--mint));
     padding-left: 0.65rem;
   }
   .planned-mark {
-    color: var(--mint-ink);
+    color: var(--badge-ink);
     font-size: 0.72rem;
     font-weight: 600;
   }
@@ -134,7 +136,7 @@
     padding-top: 0.2rem;
   }
   .session:hover {
-    box-shadow: inset 4px 0 0 var(--mint);
+    box-shadow: inset 4px 0 0 var(--devroom, var(--mint));
   }
 
   h3 {
