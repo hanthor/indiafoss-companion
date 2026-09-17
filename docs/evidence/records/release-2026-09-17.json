@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "id": "release-2026-09-17",
+  "recordedAt": "2026-09-17T08:00:00.000Z",
+  "eventId": "indiafoss-2026",
+  "components": [
+    {
+      "name": "companion",
+      "revision": "763491e2a0455bffcec3d324f82ca92f064ce755",
+      "source": "https://github.com/hanthor/indiafoss-companion"
+    },
+    {
+      "name": "neutrino",
+      "revision": "2d85348ee5a0086c3f30725a31b68439f4fe89b4",
+      "source": "https://github.com/hanthor/neutrino"
+    },
+    {
+      "name": "neutrino-iroh",
+      "revision": "15117e9816b259ac156acfb1a45caebacafce530",
+      "checksum": "sha256:26cf81315af5d9f06ee0c6a12d15578570f1a218e3191aa8406b9cd83d4fc3af",
+      "source": "https://github.com/hanthor/neutrino-iroh"
+    },
+    {
+      "name": "chat-android",
+      "revision": "b23e77faf5a2956dd68f061f2d71299122f4f542",
+      "source": "https://github.com/hanthor/indiafoss-chat-android (bindings 0.8.2-e2ee.2d85348-ble.15117e9)"
+    }
+  ],
+  "claims": [
+    {
+      "name": "schedule.offline",
+      "supported": true,
+      "level": "host-tested",
+      "evidence": "apps/web/tests/offline.spec.ts, run by the e2e gate in .github/workflows/ci.yml",
+      "limitations": "Headless Chromium on a build host. No installed-device result."
+    },
+    {
+      "name": "schedule.update",
+      "supported": true,
+      "level": "host-tested",
+      "evidence": "apps/web/tests/updates.spec.ts; docs/reviews/native-seed-2026-09-09.md for the native seed",
+      "limitations": "No mid-conference publish has reached a phone yet; the schedule sync was blocked 16 to 17 September (#461)."
+    },
+    {
+      "name": "room.directory.published",
+      "supported": false,
+      "level": "implemented",
+      "limitations": "The generator and read path exist (C-06) but events/indiafoss-2026 has no messaging.json: the server, room policy and routes are open on #166, so no 2026 directory is published."
+    },
+    {
+      "name": "mesh.text",
+      "supported": true,
+      "level": "host-tested",
+      "evidence": "docs/evidence/rung1-interop-2026-09-06.md, docs/evidence/rung2-shaped-2026-09-06.md",
+      "limitations": "Loopback and shaped-link runs on one host. No two-phone, real-radio result (Chat #49, X-01)."
+    },
+    {
+      "name": "mesh.media.passthrough",
+      "supported": false,
+      "level": "implemented",
+      "limitations": "hanthor/neutrino#11 merged on 7 September; whether pinned rev 2d85348 contains it was not verified for this record, and no APK built from it has been exercised."
+    },
+    {
+      "name": "mesh.media.photo",
+      "supported": false,
+      "level": "implemented",
+      "limitations": "Sender-side upload cap and thumbnail behaviour untested on a device; passthrough alone would not establish this (X-01, Chat #45)."
+    },
+    {
+      "name": "mesh.media.voice",
+      "supported": false,
+      "level": "implemented",
+      "limitations": "Opus over the iroh link is proven in loopback only (hanthor/neutrino-iroh#16); no voice message has been sent between phones (Chat #26)."
+    },
+    {
+      "name": "mesh.discovery.toggle",
+      "supported": true,
+      "level": "host-tested",
+      "evidence": "Chat #60 and #62: the toggle calls set_discoverable on the pinned bindings; unit tests only",
+      "limitations": "Not observed with a BLE scanner on a second phone."
+    },
+    {
+      "name": "chat.outbox.durable",
+      "supported": true,
+      "level": "host-tested",
+      "evidence": "Chat #64, docs/indiafoss/durable-outbox-2026-09-10.md in hanthor/indiafoss-chat-android",
+      "limitations": "State machine and storage unit tests. No force-stop on a device, no lost-acknowledgement run."
+    },
+    {
+      "name": "seam.encrypted.async",
+      "supported": false,
+      "level": "implemented",
+      "limitations": "Protocol review pending in #176 (C-13); no disconnected-endpoint proof exists."
+    },
+    { "name": "scenario.fresh-install", "supported": false, "level": "implemented", "limitations": "Not run for this record." },
+    { "name": "scenario.upgrade", "supported": false, "level": "implemented", "limitations": "Not run for this record; #226 owns the nightly signing identity that an upgrade test depends on." },
+    { "name": "scenario.airplane-mode", "supported": false, "level": "implemented", "limitations": "Not run on a device; the host offline gate is recorded under schedule.offline." },
+    { "name": "scenario.wan-loss-lan-retained", "supported": false, "level": "implemented", "limitations": "Not run for this record." },
+    { "name": "scenario.permission-denial", "supported": false, "level": "implemented", "limitations": "Not run for this record." },
+    { "name": "scenario.background-lock", "supported": false, "level": "implemented", "limitations": "Not run for this record." },
+    { "name": "scenario.restart", "supported": false, "level": "implemented", "limitations": "Not run for this record; the session-directory deletion audit is in Chat #72." },
+    { "name": "scenario.lost-acknowledgement", "supported": false, "level": "implemented", "limitations": "Not run for this record." },
+    { "name": "scenario.low-storage", "supported": false, "level": "implemented", "limitations": "Not run for this record." },
+    { "name": "scenario.key-rotation", "supported": false, "level": "implemented", "limitations": "Not run for this record." },
+    { "name": "scenario.account-expiry", "supported": false, "level": "implemented", "limitations": "Not run; temporary-account lifetime and operator are undecided on #181." },
+    { "name": "scenario.gateway-restore", "supported": false, "level": "implemented", "limitations": "Not run; the venue gateway rehearsal is C-14 (#163, #165)." }
+  ]
+}

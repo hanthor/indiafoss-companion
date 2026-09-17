@@ -1,6 +1,7 @@
 <script lang="ts">
   import ChatDownload from '$lib/components/ChatDownload.svelte';
   import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
+  import Readiness from '$lib/components/Readiness.svelte';
   import { directoryState, loadDirectory } from '$lib/directory.svelte';
   import NativeDownload from '$lib/components/NativeDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
@@ -120,6 +121,7 @@
   <PersonalDataImport />
   <ConferenceRooms bundle={eventState.bundle} directory={directoryState.directory} />
   <ChatDownload />
+  <Readiness />
   <section class="card">
     <h2>Schedule updates</h2>
     {#if freshness.statusLine}
