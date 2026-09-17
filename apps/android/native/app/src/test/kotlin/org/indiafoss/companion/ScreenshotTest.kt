@@ -364,11 +364,18 @@ class ScreenshotTest {
         shoot("settings-import-preview") {
             SettingsScreen(state().copy(importPreview = preview), {}, {}, onApplyImport = { applied = it }) {}
         }
-        compose.onNode(hasScrollAction()).performScrollToNode(hasText("New on this phone (1)"))
-        compose.onNodeWithText("New on this phone (1)").assertIsDisplayed()
-        compose.onNodeWithText("Different on this phone (1) — kept unless ticked").assertIsDisplayed()
-        compose.onNodeWithText("Here: 1 field, 0 social links").assertIsDisplayed()
-        compose.onNodeWithText("Already the same here: 3").assertIsDisplayed()
+        // Scroll to each heading before asserting it: Compose 1.9 scrolls a node just
+        // into view, so the headings after the first sit below the viewport.
+        for (text in listOf(
+            "New on this phone (1)",
+            "Different on this phone (1) — kept unless ticked",
+            "Here: 1 field, 0 social links",
+            "Already the same here: 3",
+        )) {
+            compose.onNode(hasScrollAction()).performScrollToNode(hasText(text))
+            compose.onNodeWithText(text).assertIsDisplayed()
+        }
+        compose.onNode(hasScrollAction()).performScrollToNode(hasText("talk-old — repeated CFP entry", substring = true))
         compose.onNode(hasText("talk-old — repeated CFP entry", substring = true)).assertIsDisplayed()
         compose.onNodeWithText("events[0].sections.settings").assertIsDisplayed()
         // Only the addition is ticked; importing sends exactly that id.
