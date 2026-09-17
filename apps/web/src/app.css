@@ -76,6 +76,12 @@
   --devroom-rtos: #a6af00;
   --devroom-security: #04c7bd;
 
+  /* How strongly a devroom's colour tints a grid cell and edges it. A 12%
+     tint reads on white but vanishes on a dark surface, so dark mode raises
+     both (measured: ~1.1:1 cell-to-column either way at 12%; ~1.6:1 at 28%). */
+  --devroom-tint: 12%;
+  --devroom-edge: 45%;
+
   /* What the type badge and other green marks use; a devroom overrides them. */
   --badge-bg: var(--mint-soft);
   --badge-ink: var(--mint-ink);
@@ -166,6 +172,16 @@
     --event-primary-text: hsl(144 80% 60%);
     --event-primary-dark: hsl(144 80% 60%);
     --event-accent-text: #f3c46f;
+    --devroom-tint: 28%;
+    --devroom-edge: 60%;
+    /* The choice pairs keep their meaning but sit on the dark canvas as
+       darkened fills with light text (6.8:1 or better), not pale slabs. */
+    --choice-must: #5c4600;
+    --choice-must-text: #ffdd85;
+    --choice-want: #1c4a2c;
+    --choice-want-text: #b9efc9;
+    --choice-no: #3a3a3a;
+    --choice-no-text: #dcdcdc;
   }
 }
 
