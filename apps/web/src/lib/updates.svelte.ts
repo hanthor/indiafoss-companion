@@ -8,6 +8,7 @@ import { isValidEventManifest } from '@indiafoss/model/contracts';
 import { UpdateGate } from '$lib/update-gate';
 import { eventAssetMatches } from '$lib/event-asset';
 import { eventState, storedRevision } from '$lib/event.svelte';
+import { refreshDirectory } from '$lib/directory.svelte';
 
 let storage: CompanionStorage | null = null;
 function getStorage(): CompanionStorage {
@@ -182,6 +183,9 @@ async function runCheck(eventId: string, current: EventBundle): Promise<boolean>
     }
     // Clear the previous failure while validating the remaining data.
     updateState.error = null;
+    // The room directory rides the same manifest; it is kept or replaced on
+    // its own last-good rule and never blocks the schedule check.
+    void refreshDirectory(eventId, manifest, controller.signal);
     const local = await storedRevision(eventId);
     if (!manifest.revision || (local !== null && manifest.revision <= local)) return true;
 

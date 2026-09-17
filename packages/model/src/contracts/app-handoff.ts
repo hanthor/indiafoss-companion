@@ -228,13 +228,10 @@ export function toHandoffUrl(
  * on, and distinguishing them in a UI invites a confusing error for what is
  * usually just an ordinary link.
  *
- * Note the deliberate asymmetry with {@link collectAppHandoffIssues}: an
- * *object* carrying a credential-shaped field is rejected outright, because
- * that is a sender bug worth surfacing, while a *URL* carrying one simply has
- * it ignored — only the recognised query parameters are read, so the token
- * never reaches the result. Dropping it silently is right here: an attacker
- * can append any parameter to a link, and refusing the whole handoff would
- * hand them a denial-of-service on every poster QR code.
+ * A URL carrying a credential-shaped query parameter is refused whole, the
+ * same as an object carrying such a field: a sender that puts a token in a
+ * handoff has a bug, and accepting the rest of the link would hide it. The
+ * link an attacker appends a parameter to was already theirs to break.
  */
 export function parseHandoffUrl(input: string): AppHandoff | undefined {
   if (utf8ByteLength(input) > MAX_HANDOFF_BYTES) return undefined;
@@ -255,6 +252,10 @@ export function parseHandoffUrl(input: string): AppHandoff | undefined {
       ? url.hostname || url.pathname.replace(/^\/+/, '').split('/')[0]
       : /(?:^|\/)h\/([^/]+)\/?$/.exec(url.pathname)?.[1];
   if (!action) return undefined;
+
+  for (const field of FORBIDDEN_FIELDS) {
+    if (url.searchParams.has(field)) return undefined;
+  }
 
   const ref = url.searchParams.get('ref');
   if (!ref) return undefined;

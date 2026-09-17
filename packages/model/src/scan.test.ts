@@ -206,3 +206,87 @@ describe('official ticket URL QR codes', () => {
     expect(parseScannedPayload(url).kind).toBe('error');
   });
 });
+
+describe('handoff links (C-09): one meaning in both encodings', () => {
+  const host = 'https://hanthor.github.io/indiafoss-companion/h';
+
+  it('maps view-session identically from the custom scheme and https', () => {
+    const expected = { kind: 'session', activityId: 'keynote' };
+    expect(parseScannedPayload('indiafoss://view-session?ref=keynote&v=1')).toEqual(expected);
+    expect(parseScannedPayload(`${host}/view-session?ref=keynote&v=1`)).toEqual(expected);
+  });
+
+  it('maps open-dm onto the same matrix-user result as the legacy chat link', () => {
+    const expected = { kind: 'matrix-user', userId: '@a:b' };
+    expect(parseScannedPayload('indiafoss://chat?dm=@a:b')).toEqual(expected);
+    expect(parseScannedPayload(`${host}/open-dm?ref=@a:b&v=1`)).toEqual(expected);
+    expect(parseScannedPayload('indiafoss://open-dm?ref=@a:b&v=1')).toEqual(expected);
+  });
+
+  it('maps view-location and join-room onto the existing kinds', () => {
+    expect(parseScannedPayload(`${host}/view-location?ref=audi-1&v=1`)).toEqual({
+      kind: 'location',
+      locationId: 'audi-1',
+    });
+    expect(parseScannedPayload(`${host}/join-room?ref=%23a:b&v=1`)).toEqual({
+      kind: 'matrix-room',
+      idOrAlias: '#a:b',
+    });
+  });
+
+  it('keeps matrix.to a permalink, never a handoff', () => {
+    expect(parseScannedPayload('https://matrix.to/#/@a:b')).toEqual({
+      kind: 'matrix-user',
+      userId: '@a:b',
+    });
+  });
+
+  it('refuses https handoffs on any other host, including a suffix look-alike', () => {
+    expect(parseScannedPayload('https://evil.example/h/open-dm?ref=@a:b&v=1')).toMatchObject({
+      kind: 'error',
+      reason: 'unsupported',
+    });
+    expect(
+      parseScannedPayload(
+        'https://hanthor.github.io.evil.example/indiafoss-companion/h/view-session?ref=k',
+      ),
+    ).toMatchObject({ kind: 'error', reason: 'unsupported' });
+  });
+
+  it('refuses a link carrying a token and never returns it', () => {
+    const result = parseScannedPayload(`${host}/join-room?ref=%23a:b&v=1&access_token=secret`);
+    expect(result).toMatchObject({ kind: 'error', reason: 'malformed' });
+    expect(JSON.stringify(result)).not.toContain('secret');
+  });
+
+  it('calls a well-formed link with the wrong reference malformed, not a DM with nobody', () => {
+    expect(parseScannedPayload(`${host}/open-dm?ref=keynote&v=1`)).toMatchObject({
+      kind: 'error',
+      reason: 'malformed',
+    });
+  });
+
+  it('is oversized before anything is parsed, in both encodings', () => {
+    const pad = 'a'.repeat(MAX_SCAN_PAYLOAD_BYTES);
+    expect(parseScannedPayload(`indiafoss://view-session?ref=${pad}`)).toMatchObject({
+      reason: 'oversized',
+    });
+    expect(parseScannedPayload(`${host}/view-session?ref=${pad}`)).toMatchObject({
+      reason: 'oversized',
+    });
+  });
+
+  it('still rejects an unknown indiafoss:// link', () => {
+    expect(parseScannedPayload('indiafoss://something-unknown')).toMatchObject({
+      kind: 'error',
+      reason: 'unsupported',
+    });
+  });
+
+  it('names import-contact as unsupported instead of guessing', () => {
+    expect(parseScannedPayload('indiafoss://import-contact?ref=k3y&v=1')).toMatchObject({
+      kind: 'error',
+      reason: 'unsupported',
+    });
+  });
+});
