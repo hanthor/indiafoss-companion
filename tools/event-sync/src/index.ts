@@ -38,9 +38,12 @@ Output under events/<event-id>/published/:
 
 import {
   EVENT_MANIFEST_SCHEMA_VERSION,
+  collectConferenceDirectoryIssues,
   collectEventManifestIssues,
   supersedes,
 } from '@indiafoss/model/contracts';
+import { buildConferenceDirectory } from './directory.js';
+export { buildConferenceDirectory } from './directory.js';
 import type { EventManifest } from '@indiafoss/model/contracts';
 export type { EventManifest } from '@indiafoss/model/contracts';
 
@@ -218,6 +221,18 @@ export async function syncEvent(
   }
 
   const revision = prevRevision + 1;
+  const generatedAt = new Date().toISOString();
+  // The room directory ships beside the manifest and is refused, like the
+  // manifest, rather than published broken (C-06).
+  const directory = buildConferenceDirectory(bundle, generatedAt);
+  if (directory) {
+    const directoryIssues = collectConferenceDirectoryIssues(directory);
+    if (directoryIssues.length > 0) {
+      throw new Error(
+        `refusing to publish an invalid room directory:\n  ${directoryIssues.join('\n  ')}`,
+      );
+    }
+  }
   const changes = prevBundle ? diffBundles(prevBundle, bundle) : [];
   const changesJson = JSON.stringify(
     {
@@ -242,6 +257,7 @@ export async function syncEvent(
     ),
     people: JSON.stringify({ people: bundle.people }, null, 2),
     booths: JSON.stringify({ booths: bundle.booths }, null, 2),
+    ...(directory ? { directory: JSON.stringify(directory, null, 2) } : {}),
   };
   const assets: Record<string, string> = {};
   for (const [name, content] of Object.entries(slices)) {
@@ -262,7 +278,7 @@ export async function syncEvent(
     schemaVersion: EVENT_MANIFEST_SCHEMA_VERSION,
     eventId,
     revision,
-    generatedAt: new Date().toISOString(),
+    generatedAt,
     timezone: bundle.timezone,
     ...(bundle.sourceMetadata.sourceUpdatedAt
       ? { sourceUpdatedAt: bundle.sourceMetadata.sourceUpdatedAt }
@@ -308,12 +324,16 @@ export function publishEvent(eventId: string, publishedDirIn?: string, destDirIn
   // Hash-less copy for the precache, plus the immutable asset the manifest names.
   copyFileSync(join(publishedDir, asset), join(destDir, 'event-bundle.json'));
   copyFileSync(join(publishedDir, asset), join(destDir, asset));
+  const directory = manifest.assets['directory'];
+  if (directory) copyFileSync(join(publishedDir, directory), join(destDir, directory));
   writeFileSync(join(destDir, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');
   // The asset name carries a content hash, so a changed bundle publishes under a
   // new name and the old one would linger forever. Nothing serves it once the
   // manifest stops naming it, and the sync runs hourly, so sweep it now.
   const stale = readdirSync(destDir).filter(
-    (name) => /^event\.[0-9a-f]{8}\.json$/.test(name) && name !== asset,
+    (name) =>
+      (/^event\.[0-9a-f]{8}\.json$/.test(name) && name !== asset) ||
+      (/^directory\.[0-9a-f]{8}\.json$/.test(name) && name !== directory),
   );
   for (const name of stale) rmSync(join(destDir, name));
   console.log(

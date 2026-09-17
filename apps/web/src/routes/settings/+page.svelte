@@ -1,5 +1,7 @@
 <script lang="ts">
   import ChatDownload from '$lib/components/ChatDownload.svelte';
+  import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
+  import { directoryState, loadDirectory } from '$lib/directory.svelte';
   import NativeDownload from '$lib/components/NativeDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
   import { resolve } from '$app/paths';
@@ -36,7 +38,7 @@
 
   $effect(() => {
     hydrateSimulator();
-    void loadEvent();
+    void loadEvent().then((bundle) => bundle && loadDirectory(bundle.id));
   });
 
   // The revision actually stored on this device, not the one we hoped to
@@ -116,6 +118,7 @@
 
   <PersonalDataExport />
   <PersonalDataImport />
+  <ConferenceRooms bundle={eventState.bundle} directory={directoryState.directory} />
   <ChatDownload />
   <section class="card">
     <h2>Schedule updates</h2>
