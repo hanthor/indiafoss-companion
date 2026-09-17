@@ -28,6 +28,21 @@ request. The answer is one of three:
 Stored under `room-prefs-<eventId>` (`apps/web/src/lib/roomPrefs.svelte.ts`;
 `devrooms()` is the list, `roomSummary()` the blurb).
 
+## Step 2, the other way: the room grid
+
+Someone who would rather see the day laid out than be dealt it one card at
+a time takes the same step from the room grid (#470): the welcome wizard
+offers both, and the Rank screen's **Room grid** tab (`?mode=grid`) is the
+same choice later. The grid is the schedule's timeline by room and time,
+meals included for orientation; tapping a talk opens a dialog with its
+type, time, room, devroom, speakers and abstract, and the same three
+answers the cards record, so the two views never disagree and an attendee
+can switch between them mid-day. Cells wear the devroom's colour (#469)
+and the choice palette once answered, and say the answer in their
+accessible name. On a phone the grid scrolls sideways as it does on the
+Schedule screen; `tests/app.spec.ts` exercises the tap-to-answer flow at a
+390-pixel viewport.
+
 ## Step 2: the talks, one card at a time
 
 Every talk of the day is dealt once as a card: type, time and room, title,
