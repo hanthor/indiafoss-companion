@@ -295,6 +295,18 @@ interchangeable**.
 
 See [neutrino-e2ee.md](./neutrino-e2ee.md) for what Neutrino itself needs before Megolm works on the mesh.
 
+### Voice and video
+
+Voice notes follow the Matrix voice message spec (MSC3245) unchanged and are
+the one voice feature that works on every leg of the mesh; the Chat client
+caps a recording at the seconds that fit the node's upload limit, 78 s on a
+256 KiB cap, so a note never fails after the fact. Live calls do not fit:
+Element Call needs an SFU and MatrixRTC state Neutrino cannot carry, and BLE
+cannot carry real-time audio at all. A 1:1 push-to-talk stream over iroh on
+the Wi-Fi leg is the only real-time option worth prototyping; group and
+video calls belong to a venue-hosted LiveKit beside the Spindle, a LAN
+feature rather than a mesh one.
+
 ### Neutrino identity model
 
 Neutrino is Element's embedded Rust homeserver that federates over Iroh

@@ -330,7 +330,28 @@ Reactions are deliberately unencrypted, as the spec requires. A client
 **SHOULD** strip the `> …` fallback body on read and render the quote from its
 own timeline.
 
-### 6.3 What the mesh cannot do yet
+### 6.3 Voice messages
+
+Voice notes are the one voice feature that fits every leg of the mesh,
+Bluetooth included, because they are asynchronous and ride the same outbox
+as text. A conformant client **MUST** send them as the Matrix voice message
+event ([MSC3245](https://github.com/matrix-org/matrix-spec-proposals/pull/3245)):
+an `m.room.message` of `msgtype: m.audio` carrying `org.matrix.msc1767.audio`
+(duration, waveform) and the `org.matrix.msc3245.voice` marker, with the
+audio as Ogg/Opus. This is what Element X, Element Web and the reference
+client already send, so nothing mesh-specific is invented.
+
+- **Size, not length, is the limit.** A node's media cap comes from
+  `GET /_matrix/media/v3/config` (`m.upload.size`, 256 KiB with the fork's
+  media patch). A client **MUST** read it and stop recording before the note
+  exceeds it, rather than fail the upload afterwards. At 24 kbps Opus with a
+  tenth kept back for the container, 256 KiB is 78 seconds.
+- A client **MUST NOT** re-encode a note on relay; it is one media object,
+  fetched across nodes and cached like a photo.
+- Live calls are out of scope for the mesh: see
+  [messaging.md](./messaging.md#voice-and-video).
+
+### 6.4 What the mesh cannot do yet
 
 Neutrino is pre-alpha and implements a fraction of the client–server API.
 `tools/neutrino-probe` measures it rather than trusting the README; the current
@@ -434,7 +455,7 @@ Read this section before shipping anything to attendees.
   secure for untrusted networks_. Any peer can, in principle, forge an event.
   Treat the mesh as a demo transport until upstream says otherwise.
 - **There is no E2EE on the mesh**, notwithstanding the key endpoints
-  answering `200` (§6.3).
+  answering `200` (§6.4).
 - **Peer discovery reveals presence, on every transport.** Where BLE is in
   use, a node broadcasts its identity and display name to everyone in radio
   range; on a shared venue Wi-Fi, a node is reachable by everyone else on that
@@ -488,3 +509,6 @@ wording do not.
 
 - **v1** — first publication. Describes the mesh as of the join-storm work
   ([#120](https://github.com/hanthor/indiafoss-companion/issues/120)).
+- **v1, voice notes** — §6.3 added: voice messages are MSC3245 events,
+  capped by the node's media limit. No existing client behaviour changes, so
+  no version bump.
