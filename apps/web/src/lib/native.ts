@@ -25,7 +25,8 @@ export function routeForDeepLink(url: string): string | null {
     case 'location':
       return safeId ? `/scan?payload=${encodeURIComponent(url)}` : '/map';
     case 'chat':
-      return `/chat${parsed.search}`;
+      // The in-app chat was retired (ADR 0004); the link is a scannable handoff now.
+      return `/scan?payload=${encodeURIComponent(url)}`;
     case 'friend':
       return `/scan?payload=${encodeURIComponent(url)}`;
     default:

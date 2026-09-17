@@ -44,6 +44,18 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { LINK_LABELS } from '$lib/card-fields';
+  import { intentHrefFor } from '$lib/contact-trust';
+  import type { ChatRoute } from '$lib/contact-trust';
+
+  /** A mesh route names Chat and falls back to its download card when Chat is missing. */
+  const routeHref = (route: ChatRoute): string =>
+    route.kind === 'mesh'
+      ? intentHrefFor(
+          route.href,
+          `${window.location.origin}${resolve('/settings')}#get-chat`,
+          navigator.userAgent,
+        )
+      : route.href;
 
   type Pending = Exclude<ScannedPayload, { kind: 'error' }>;
 
@@ -572,7 +584,9 @@
           {:else}
             {#each previewTrust.routes as route (route.kind)}
               <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-              <a class="button secondary small" href={route.href} rel="noreferrer">{route.label}</a>
+              <a class="button secondary small" href={routeHref(route)} rel="noreferrer"
+                >{route.label}</a
+              >
               <span class="muted small">{route.caveat}</span>
             {/each}
           {/if}

@@ -1,4 +1,4 @@
-<section class="card" aria-label="Get IndiaFOSS Chat">
+<section class="card" id="get-chat" aria-label="Get IndiaFOSS Chat">
   <h2>Get IndiaFOSS Chat</h2>
   <p class="muted">
     Install the separate Matrix and P2P chat app for Android. This is a preview build.
