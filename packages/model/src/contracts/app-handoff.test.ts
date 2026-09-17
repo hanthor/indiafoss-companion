@@ -69,12 +69,11 @@ describe('toHandoffUrl / parseHandoffUrl', () => {
     ).toBeUndefined();
   });
 
-  it('returns undefined for a payload carrying a token', () => {
+  it('refuses a link carrying a token rather than quietly dropping it', () => {
     const url =
       'https://hanthor.github.io/indiafoss-companion/h/open-dm?ref=@a:b.org&v=1&access_token=syt_x';
-    // The token is not a recognised parameter, so it is dropped rather than
-    // parsed — but the result must still not carry it.
-    expect(parseHandoffUrl(url)).not.toHaveProperty('access_token');
+    expect(parseHandoffUrl(url)).toBeUndefined();
+    expect(parseHandoffUrl('indiafoss://join-room?ref=%23a:b&v=1&secret=x')).toBeUndefined();
   });
 
   it('refuses an oversized payload before parsing it', () => {

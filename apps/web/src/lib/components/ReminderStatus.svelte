@@ -1,13 +1,23 @@
 <script lang="ts">
   import { resolve } from '$app/paths';
   import { reminderState, testReminder } from '$lib/notifications.svelte';
+
+  const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/.test(navigator.userAgent);
 </script>
 
 <p class="muted">
-  Browser reminders need this app open and active. They may stop when the app is closed, the screen
-  locks, or the browser suspends it. For reminders outside the app,
-  <a href={resolve('/plan')}>open your plan and add it to your calendar</a>.
+  Browser reminders fire while this app is open. With the screen locked or the app in the
+  background, one that falls due is shown the moment you come back to the app, up to 20 minutes
+  late. For reminders that ring on their own,
+  <a href={resolve('/plan')}>add your plan to your calendar</a> or install the Android app.
 </p>
+{#if reminderState.status === 'unsupported' && isIOS}
+  <p class="muted">
+    On iPhone, Safari tabs cannot show notifications. Add the Companion to your Home Screen (Share,
+    then "Add to Home Screen") and open it from there; reminders can be turned on in the installed
+    app.
+  </p>
+{/if}
 <p role="status">
   {#if reminderState.status === 'requesting'}
     Waiting for notification permission…

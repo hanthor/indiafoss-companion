@@ -1,7 +1,7 @@
 import { CompanionStorage } from '@indiafoss/storage';
 import type { ContactRecord } from '@indiafoss/storage';
 import { attendeeProfileToVCard } from '@indiafoss/model';
-import type { AttendeeProfile, FriendPayload } from '@indiafoss/model';
+import type { AttendeeProfile, AttendeeSocial, FriendPayload } from '@indiafoss/model';
 import { parseContactBook } from '@indiafoss/model';
 import { reconcileContact } from '$lib/contact-continuity';
 import { verifyMeshLink } from '@indiafoss/matrix';
@@ -177,6 +177,42 @@ export function contactFromMatrixId(userId: string, eventId?: string): ContactRe
     fullName: userId,
     matrixId: userId,
     socials: {},
+    verified: false,
+    savedAt: nowIso(),
+    eventId,
+  };
+}
+
+/**
+ * A contact from a scanned profile link (#474). The handle stands in for the
+ * name, as the Matrix id does above, until the attendee edits it; the link
+ * is the contact's link on that network and nothing else is claimed.
+ */
+export function contactFromProfileLink(
+  link: { network: AttendeeSocial; url: string; handle?: string },
+  eventId?: string,
+): ContactRecord {
+  const fullName = link.handle ?? link.url;
+  const socials = { [link.network]: link.url } as Record<string, string>;
+  return {
+    id: newId(),
+    vcard: attendeeProfileToVCard(
+      { fullName, socials },
+      {
+        name: true,
+        organization: false,
+        email: false,
+        phone: false,
+        website: false,
+        matrixId: false,
+        neutrinoServerName: false,
+        ticketRef: false,
+        fossUnitedProfileUrl: false,
+        socials: { [link.network]: true },
+      },
+    ),
+    fullName,
+    socials,
     verified: false,
     savedAt: nowIso(),
     eventId,
