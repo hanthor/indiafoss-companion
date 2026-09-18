@@ -1,0 +1,57 @@
+name: Defect
+description: Something the app does wrong, with evidence from a named revision.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A defect is something reproduced, inspected or measured, not a suspicion. Placeholder text is closed unread (#193).
+  - type: input
+    id: revision
+    attributes:
+      label: Revision
+      description: Commit, PR, release tag or nightly build where this was seen.
+      placeholder: 166609363719e2eab403d6a01226f44d31a5c2d7 or nightly 2026.127
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Evidence
+      description: What kind of evidence backs this (the distinction the backlog keeps).
+      options:
+        - Reproduced defect (steps below reproduce it)
+        - Inspected risk (read in the code, not yet reproduced)
+        - Upstream capability probe (measured against a server or SDK)
+        - Device-verified (seen on a named phone or browser)
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happens, and what an attendee sees
+      description: One concrete consequence. Name the surface (PWA, native Compose, Chat) and the identifiers involved.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps or evidence
+      description: Steps to reproduce, a failing test, a CI run link, or the measurement. Paste error text in a code block.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Done means
+      description: A bounded, checkable condition. "Works" is not one.
+    validations:
+      required: true
+  - type: checkboxes
+    id: duplicate
+    attributes:
+      label: Duplicate search
+      options:
+        - label: I searched open and closed issues and this is not already tracked.
+          required: true

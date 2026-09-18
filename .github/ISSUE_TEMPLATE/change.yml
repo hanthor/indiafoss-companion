@@ -1,0 +1,41 @@
+name: Change
+description: Something the app should do, tied to an attendee outcome and a bounded acceptance condition.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A change names the attendee outcome it serves and how anyone can tell it is done. Strategy without a first concrete step belongs in a discussion on #34, not here (#193).
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Attendee outcome
+      description: What someone at the conference can do afterwards that they cannot do today.
+    validations:
+      required: true
+  - type: textarea
+    id: first_step
+    attributes:
+      label: First concrete step
+      description: The smallest change that moves this, with the files, contract or screen it touches.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Done means
+      description: A bounded, checkable condition, including any device or venue evidence required.
+    validations:
+      required: true
+  - type: input
+    id: owner
+    attributes:
+      label: Owning issue or milestone
+      description: The roadmap item this belongs to, if any (see #34 and #194).
+  - type: checkboxes
+    id: duplicate
+    attributes:
+      label: Duplicate search
+      options:
+        - label: I searched open and closed issues and this is not already tracked.
+          required: true
