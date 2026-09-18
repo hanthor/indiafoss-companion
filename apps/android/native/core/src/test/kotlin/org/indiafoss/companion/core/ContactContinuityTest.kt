@@ -5,9 +5,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class ContactContinuityTest {
-    private fun met(name: String, fp: String? = null, id: String = "c-$name", at: Long = 1_000) = MetContact(
+    private fun met(name: String, fp: String? = null, id: String = "c-$name", at: Long = 1_000, label: String? = null) = MetContact(
         id = id, card = ContactCard(fullName = name), vcard = "", savedAt = at,
-        signature = if (fp != null) "valid" else "unsigned", fingerprint = fp,
+        signature = if (fp != null) "valid" else "unsigned", fingerprint = fp, metLabel = label,
     )
 
     @Test
@@ -28,6 +28,14 @@ class ContactContinuityTest {
         assertEquals(1_000, only.savedAt)
         assertEquals(2_000, only.lastMetAt)
         assertEquals(2, only.metCount)
+    }
+
+    @Test
+    fun `where you met is the first scan's, filled in only when the first scan had none`() {
+        val kept = ContactContinuity.reconcile(listOf(met("Asha", "aa", label = "Lunch, day 1")), met("Asha", "aa", id = "new", at = 2_000, label = "Keynote"))
+        assertEquals("Lunch, day 1", kept.contacts.single().metLabel)
+        val filled = ContactContinuity.reconcile(listOf(met("Asha", "aa")), met("Asha", "aa", id = "new", at = 2_000, label = "Keynote"))
+        assertEquals("Keynote", filled.contacts.single().metLabel)
     }
 
     @Test

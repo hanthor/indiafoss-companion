@@ -30,13 +30,12 @@ class ResolvedPlanTest {
         bookmarks: Set<String> = emptySet(),
         edits: ResolvedPlan.Edits = ResolvedPlan.Edits.NONE,
         stay: Set<String> = emptySet(),
-        walk: (String, String) -> Int? = { _, _ -> null },
     ) = ResolvedPlan.forDay(
         bundle, day,
         ratingOf = { 1200.0 },
         dispositionOf = { if (it in mustAttend) Disposition.MUST_ATTEND else Disposition.NORMAL },
         bookmarked = { it in bookmarks },
-        edits = edits, stayTrackIds = stay, walkSeconds = walk,
+        edits = edits, stayTrackIds = stay,
     )
 
     @Test
@@ -150,15 +149,13 @@ class ResolvedPlanTest {
     }
 
     @Test
-    fun `a tight transfer is a warning, not an infeasible plan`() {
+    fun `a tight transfer between rooms is neither a conflict nor a warning`() {
         val first = act("first", "10:00", "10:30", room = "hall-1")
         val second = act("second", "10:32", "11:00", room = "hall-2")
-        val p = plan(bundle(first, second), mustAttend = setOf("first", "second"), walk = { _, _ -> 300 })
+        val p = plan(bundle(first, second), mustAttend = setOf("first", "second"))
         assertTrue(p.feasible)
-        assertEquals(ResolvedPlan.ConflictKind.TRAVEL, p.warnings.single().kind)
+        assertTrue(p.conflicts.isEmpty())
         assertEquals("first", p.nextPlanned(iso("09:00"))?.id)
-        // Same room: no walk, no warning.
-        assertTrue(plan(bundle(first, second.copy(locationId = "hall-1")), mustAttend = setOf("first", "second"), walk = { _, _ -> 300 }).warnings.isEmpty())
     }
 
     @Test
@@ -167,9 +164,9 @@ class ResolvedPlanTest {
         val ok = plan(bundle(a, c, d), mustAttend = setOf("c"), bookmarks = setOf("a"))
         val ids = Reminders.forPlans(listOf(ok), { null }, now, { if (it == "c") Disposition.MUST_ATTEND else Disposition.NORMAL }).map { it.id }
         assertTrue("must-c" in ids && "start-c" in ids, ids.toString())
-        assertTrue("leave-a" in ids, ids.toString())
+        assertTrue("soon-a" in ids, ids.toString())
         // d is only the programme's pick, and still on the plan, so it is planned too.
-        assertTrue("leave-d" in ids, ids.toString())
+        assertTrue("soon-d" in ids, ids.toString())
         assertTrue(ids.none { it.startsWith("must-a") })
 
         val conflicted = plan(bundle(a, b, c), mustAttend = setOf("a", "b"))
@@ -180,7 +177,7 @@ class ResolvedPlanTest {
         val withLunch = plan(bundle(a, lunch, d), bookmarks = setOf("a"), edits = ResolvedPlan.Edits(blocks = listOf(Itinerary.CustomBlock("blk", "Coffee", iso("11:00"), iso("11:20")))))
         val lunchIds = Reminders.forPlans(listOf(withLunch), { null }, now, { Disposition.NORMAL }).map { it.id }
         assertTrue(lunchIds.none { it.contains("flex-lunch") }, lunchIds.toString())
-        assertTrue("leave-blk" in lunchIds, lunchIds.toString())
+        assertTrue("soon-blk" in lunchIds, lunchIds.toString())
     }
 
     @Test
@@ -189,7 +186,7 @@ class ResolvedPlanTest {
         val withA = plan(bundle(a, c), bookmarks = setOf("a", "c"))
         val first = Reminders.reconcile(emptySet(), Reminders.forPlans(listOf(withA), { null }, now, { Disposition.NORMAL }))
         assertEquals(emptySet(), first.cancel)
-        assertEquals(setOf("leave-a", "leave-c"), first.armed)
+        assertEquals(setOf("soon-a", "soon-c"), first.armed)
         // A refresh with the same plan re-sets the same ids and cancels nothing: no duplicates.
         val again = Reminders.reconcile(first.armed, Reminders.forPlans(listOf(withA), { null }, now, { Disposition.NORMAL }))
         assertEquals(emptySet(), again.cancel)
@@ -198,9 +195,9 @@ class ResolvedPlanTest {
         // a leaves the plan: its alarm is cancelled, c's stays.
         val withoutA = plan(bundle(a, c), bookmarks = setOf("a", "c"), edits = ResolvedPlan.Edits(removed = setOf("a")))
         val after = Reminders.reconcile(again.armed, Reminders.forPlans(listOf(withoutA), { null }, now, { Disposition.NORMAL }))
-        assertEquals(setOf("leave-a"), after.cancel)
-        assertEquals(setOf("leave-c"), after.armed)
+        assertEquals(setOf("soon-a"), after.cancel)
+        assertEquals(setOf("soon-c"), after.armed)
         // Reminders off: everything armed is cancelled.
-        assertEquals(setOf("leave-c"), Reminders.reconcile(after.armed, emptyList()).cancel)
+        assertEquals(setOf("soon-c"), Reminders.reconcile(after.armed, emptyList()).cancel)
     }
 }

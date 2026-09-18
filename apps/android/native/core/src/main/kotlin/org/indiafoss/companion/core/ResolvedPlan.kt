@@ -2,7 +2,7 @@ package org.indiafoss.companion.core
 
 /**
  * The attendee's resolved plan for one day: the one projection Now, the map
- * destination, the leave-by banner, the calendar export and the reminders all
+ * destination, the next-up banner, the calendar export and the reminders all
  * read (#221), so a session removed, replaced, retimed or cancelled disagrees
  * on none of them.
  *
@@ -19,8 +19,8 @@ package org.indiafoss.companion.core
  * never stands aside in a clash, #271), devroom clashes
  * and overlapping blocks make the plan infeasible, and an infeasible plan
  * names no current/next item, no destination and no reminders — the attendee
- * is asked to resolve it, as on the web. A tight transfer between rooms is a
- * warning only (see docs/native-client.md for why that differs from the PWA).
+ * is asked to resolve it, as on the web. The venue is small (every walk is
+ * under five minutes), so transfers between rooms are never checked.
  */
 object ResolvedPlan {
     /** The saved edits, by stable activity/block id only. */
@@ -68,7 +68,6 @@ object ResolvedPlan {
         DEVROOM(true),
         UNKNOWN_ACTIVITY(true),
         INVALID_TIME(true),
-        TRAVEL(false),
     }
 
     data class Conflict(val kind: ConflictKind, val a: String, val b: String? = null, val message: String)
@@ -93,7 +92,7 @@ object ResolvedPlan {
             return items.firstOrNull { Schedule.parseInstant(it.end) > nowMs }
         }
 
-        /** The next item that has not started, within `horizonMinutes`: what the leave-by banner counts down to. */
+        /** The next item that has not started, within `horizonMinutes`: what the next-up banner counts down to. */
         fun upcoming(now: String, horizonMinutes: Int = 180): Item? {
             if (!feasible) return null
             val nowMs = Schedule.parseInstant(now)
@@ -117,7 +116,6 @@ object ResolvedPlan {
         bookmarked: (String) -> Boolean,
         edits: Edits = Edits.NONE,
         stayTrackIds: Set<String> = emptySet(),
-        walkSeconds: (String, String) -> Int? = { _, _ -> null },
         minimumRating: Double = 0.0,
         /** The session a talk stood aside for in a clash (#271), if any; see `Itinerary.forDay`. */
         yieldsTo: (String) -> String? = { null },
@@ -138,7 +136,7 @@ object ResolvedPlan {
             if (a.id in edits.removed || b.id in edits.removed) continue
             conflicts += Conflict(ConflictKind.DEVROOM, a.id, b.id, "\"${a.title}\" clashes with \"${b.title}\" in a devroom you are staying for.")
         }
-        return resolve(bundle, day, base, edits, walkSeconds, conflicts.distinctBy { setOf(it.a, it.b) })
+        return resolve(bundle, day, base, edits, conflicts.distinctBy { setOf(it.a, it.b) })
     }
 
     /**
@@ -151,7 +149,6 @@ object ResolvedPlan {
         day: String,
         base: List<Itinerary.Item>,
         edits: Edits = Edits.NONE,
-        walkSeconds: (String, String) -> Int? = { _, _ -> null },
         extraConflicts: List<Conflict> = emptyList(),
     ): Plan {
         // Cancelled sessions are not lookup targets: a replacement pointing at one is a conflict.
@@ -202,19 +199,7 @@ object ResolvedPlan {
             val next = items[i + 1]
             val curEnd = Schedule.parseInstant(cur.end)
             val nextStart = Schedule.parseInstant(next.start)
-            if (curEnd > nextStart) {
-                conflicts += Conflict(ConflictKind.OVERLAP, cur.id, next.id, "\"${cur.title}\" overlaps \"${next.title}\".")
-                continue
-            }
-            if (cur.flexible || next.flexible) continue
-            val from = cur.locationId ?: continue
-            val to = next.locationId ?: continue
-            if (from == to) continue
-            val walk = walkSeconds(from, to) ?: continue
-            if (curEnd + walk * 1000L > nextStart) conflicts += Conflict(
-                ConflictKind.TRAVEL, cur.id, next.id,
-                "Not enough time to reach \"${next.title}\" (about ${(walk + 59) / 60} min walk).",
-            )
+            if (curEnd > nextStart) conflicts += Conflict(ConflictKind.OVERLAP, cur.id, next.id, "\"${cur.title}\" overlaps \"${next.title}\".")
         }
         return Plan(day, items, conflicts)
     }

@@ -3,13 +3,13 @@ package org.indiafoss.companion.core
 /**
  * Local reminders, the same tiers and the same words as the web app
  * (docs/reminders.md): a must-attend session gets a heads-up 30 minutes
- * before, "starting soon" at 15, "leave now" once it is time to walk, and an
- * alert at the start; a bookmarked one gets starting soon and leave now;
- * everything else is silent.
+ * before, "starting soon" at 15 and an alert at the start; a planned one
+ * gets starting soon; everything else is silent.
  *
- * Every alert names the session, the room and — when the attendee's location
- * is known — the walk, because a reminder that does not say where to go is
- * only half a reminder. Pure: the app hands the result to AlarmManager.
+ * Every alert names the session, the room and the start time, because a
+ * reminder that does not say where to go is only half a reminder. The venue
+ * is small, so no alert mentions a walk. Pure: the app hands the result to
+ * AlarmManager.
  */
 object Reminders {
     enum class Tier { MUST_ATTEND, PLANNED, NONE }
@@ -24,7 +24,6 @@ object Reminders {
     )
 
     const val STARTING_SOON_MINUTES = 15
-    const val LEAVE_MINUTES = 10
 
     /** A notification title gets one line on a phone; a longer session title is trimmed on a word. */
     const val MAX_TITLE = 56
@@ -38,21 +37,12 @@ object Reminders {
         return kept.trimEnd(' ', ',', '.', ':', ';', '-') + "\u2026"
     }
 
-    /**
-     * Two alerts a few minutes apart saying nearly the same thing is noise, so
-     * "starting soon" is dropped when "leave now" lands within this window:
-     * leave-now carries the walk and the start time, so it says strictly more.
-     */
-    const val MERGE_WINDOW_MINUTES = 5
-
     fun compute(
         bundle: EventBundle,
         nowMs: Long,
         tierFor: (String) -> Tier,
         lookaheadMinutes: Long = 24 * 60,
-        /** Seconds of walking to a room, or null when it cannot be worked out. */
-        walkSecondsTo: (String?) -> Int? = { null },
-    ): List<Reminder> = compute(bundle.activities, bundle::location, nowMs, tierFor, lookaheadMinutes, walkSecondsTo)
+    ): List<Reminder> = compute(bundle.activities, bundle::location, nowMs, tierFor, lookaheadMinutes)
 
     /**
      * Alerts for every planned day (#221): only feasible plans count, and every
@@ -67,7 +57,6 @@ object Reminders {
         nowMs: Long,
         dispositionOf: (String) -> Disposition,
         lookaheadMinutes: Long = 24 * 60,
-        walkSecondsTo: (String?) -> Int? = { null },
     ): List<Reminder> {
         val planned = plans.filter { it.feasible }
             .flatMap { plan -> plan.items.filter { it.source != ResolvedPlan.Source.LUNCH }.map { it.activity } }
@@ -75,7 +64,6 @@ object Reminders {
             planned, locationOf, nowMs,
             tierFor = { id -> if (dispositionOf(id) == Disposition.MUST_ATTEND) Tier.MUST_ATTEND else Tier.PLANNED },
             lookaheadMinutes = lookaheadMinutes,
-            walkSecondsTo = walkSecondsTo,
         )
     }
 
@@ -101,7 +89,6 @@ object Reminders {
         nowMs: Long,
         tierFor: (String) -> Tier,
         lookaheadMinutes: Long = 24 * 60,
-        walkSecondsTo: (String?) -> Int? = { null },
     ): List<Reminder> {
         val out = ArrayList<Reminder>()
         val horizon = nowMs + lookaheadMinutes * 60_000
@@ -114,13 +101,9 @@ object Reminders {
 
             val name = shortTitle(activity.title)
             val room = locationOf(activity.locationId)?.name
-            val walkSeconds = walkSecondsTo(activity.locationId)
-            val walk = walkSeconds?.let { "${maxOf(1, (it + 30) / 60)} min walk" }
             val startsAt = Schedule.formatTime(activity.start)
-            val whereAndWhen = listOfNotNull(
-                if (room != null) "$startsAt in $room" else "Starts $startsAt",
-                walk,
-            ).joinToString(" · ")
+            /** "10:15 in Devroom 1 (AOSP)", or just the time when the room is unknown. */
+            val whereAndWhen = if (room != null) "$startsAt in $room" else "Starts $startsAt"
 
             if (tier == Tier.MUST_ATTEND) {
                 val headsUp = startMs - Schedule.MUST_ATTEND_HEADS_UP_MINUTES * 60_000L
@@ -141,22 +124,8 @@ object Reminders {
             }
 
             val soon = startMs - STARTING_SOON_MINUTES * 60_000L
-            val leave = startMs - ((walkSeconds ?: 300) + LEAVE_MINUTES * 60) * 1000L
-            val bothAhead = soon > nowMs && leave > nowMs
-            val merged = bothAhead && kotlin.math.abs(leave - soon) <= MERGE_WINDOW_MINUTES * 60_000L
-
-            if (soon > nowMs && !merged) out += Reminder(
+            if (soon > nowMs) out += Reminder(
                 "soon-${activity.id}", "In $STARTING_SOON_MINUTES min: $name", whereAndWhen, soon, activity.id,
-            )
-            if (leave > nowMs) out += Reminder(
-                "leave-${activity.id}",
-                "Leave now: $name",
-                listOfNotNull(
-                    if (walk != null) "$walk to ${room ?: "the room"}" else room,
-                    "starts $startsAt",
-                ).joinToString(" · "),
-                leave,
-                activity.id,
             )
         }
         return out.sortedBy { it.atMs }
