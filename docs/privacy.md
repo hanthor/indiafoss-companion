@@ -10,8 +10,8 @@ linked docs.
 - **No tracking, no analytics, no telemetry.** The app makes no outbound
   requests that transmit usage or personal data to third parties.
 - **All attendee state is local.** Schedule bookmarks, Elo ratings, session
-  dispositions, itinerary and manual edits, notes, current location, routing
-  profile, and your contact card live only in this device's IndexedDB /
+  dispositions, itinerary and manual edits, notes, and your contact card live
+  only in this device's IndexedDB /
   local settings. Nothing is uploaded.
 - **Network is only for event data.** The single network dependency is
   downloading (and later updating) the published `EventBundle` and venue
@@ -32,8 +32,8 @@ See [contact sharing & QR scanning](./contact-sharing.md).
 
 ## Location
 
-- Your current location (set manually or by scanning an `indiafoss://location/…`
-  marker) is stored locally and used only for on-device leave-by/routing.
+- The app never records where you are. A scanned `indiafoss://location/…`
+  marker only opens that room on the map; nothing is stored.
 - Camera permission for QR scanning is requested lazily — only when you open the
   scanner — and denial falls back to manual entry.
 

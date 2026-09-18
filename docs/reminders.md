@@ -11,42 +11,33 @@ off until the attendee switches them on in Settings.
 `computeNotifications()` in `apps/web/src/lib/notifications.ts` is pure and
 takes a `tierFor(activityId)` callback:
 
-| Tier          | Who                         | Alerts                                                                                     |
-| ------------- | --------------------------- | ------------------------------------------------------------------------------------------ |
-| `must-attend` | disposition "★ Must attend" | heads-up 30 min before, starting soon (15 min), "time to head over" (10 min), at the start |
-| `planned`     | bookmarked sessions         | starting soon, leave now                                                                   |
-| `none`        | everything else             | silent                                                                                     |
+| Tier          | Who                         | Alerts                                                       |
+| ------------- | --------------------------- | ------------------------------------------------------------ |
+| `must-attend` | disposition "★ Must attend" | heads-up 30 min before, starting soon (15 min), at the start |
+| `planned`     | bookmarked sessions         | starting soon                                                |
+| `none`        | everything else             | silent                                                       |
 
 ## What an alert says
 
 A reminder that does not say where to go is only half a reminder, so every
-alert names the session in the **title** and the room, the walk and the start
-time in the **body**:
+alert names the session in the **title** and the room and the start time in
+the **body**:
 
-| When                | Title                                 | Body                                                   |
-| ------------------- | ------------------------------------- | ------------------------------------------------------ |
-| must-attend, 30 min | `In 30 min: First Step into Open So…` | `Must attend · 10:15 in Devroom 1 (AOSP) · 4 min walk` |
-| starting soon       | `In 15 min: <session>`                | `10:15 in Devroom 1 (AOSP) · 4 min walk`               |
-| leave now           | `Leave now: <session>`                | `4 min walk to Devroom 1 (AOSP) · starts 10:15`        |
-| at the start        | `Starting now: <session>`             | `Devroom 1 (AOSP) · you marked it must attend`         |
-| your own block      | `In 10 min: <label>`                  | `On your plan · Food Area · starts 13:00`              |
+| When                | Title                                 | Body                                           |
+| ------------------- | ------------------------------------- | ---------------------------------------------- |
+| must-attend, 30 min | `In 30 min: First Step into Open So…` | `Must attend · 10:15 in Devroom 1 (AOSP)`      |
+| starting soon       | `In 15 min: <session>`                | `10:15 in Devroom 1 (AOSP)`                    |
+| at the start        | `Starting now: <session>`             | `Devroom 1 (AOSP) · you marked it must attend` |
+| your own block      | `In 10 min: <label>`                  | `On your plan · Food Area · starts 13:00`      |
 
 The session goes in the title because a shade with three reminders in it must
 be readable without opening any of them; five identical "Starting soon" rows
 are not. Titles longer than `MAX_NOTIFICATION_TITLE` (56) are trimmed on a
 word boundary so the time cue at the front survives.
 
-The walk comes from the venue graph and only appears when the attendee has
-said where they are; with no location the alert leaves it out rather than
-inventing an estimate, while the leave-by time still allows a default five
-minutes.
-
-**Near-duplicates are merged.** For a room a couple of minutes away,
-"starting soon" (15 min before) and "leave now" land within
-`MERGE_WINDOW_MINUTES` (5) of each other and say almost the same thing, so
-only the leave-now alert fires — it carries the walk and the start time, so it
-says strictly more. On the 2025 day-one walk-through this took a must-attend
-session from four alerts to three, and a bookmarked one from two to one.
+There is no walk time and no "leave now" alert: the venue is small enough
+that every room is under five minutes away, so the 15-minute "starting soon"
+is already the cue to move.
 
 Tapping a reminder opens the session it is about: `url` on the web
 notification, `indiafoss://activity/<id>` on the native alarm. Each alert
@@ -66,7 +57,7 @@ used to be dropped at that point as "in the past", which is what made
 reminders look as if they never worked. Now an alert that fell due within
 `graceMinutes` (20) is delivered the moment the page is visible again
 (`catchUpLateAlerts()`): the latest late one per session, since a five-minute
-late "leave now" says everything the "in 15 min" before it said; a "starting
+late "starting now" says everything the "in 15 min" before it said; a "starting
 now" stays useful `LATE_START_MINUTES` (10) into the session. The web
 transport remembers what it has shown so a plan change, which re-arms
 everything, never shows one twice. The layout re-arms on `visibilitychange`

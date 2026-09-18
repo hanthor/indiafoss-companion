@@ -212,6 +212,8 @@ export interface ContactRecord {
   /** Where and when you met: the session running at scan time. */
   metActivityId?: string;
   metLocationId?: string;
+  /** What the attendee's plan said they were doing: "Lunch, day 1". */
+  metLabel?: string;
   /** How many times this card was scanned (key continuity, issue #31). */
   metCount?: number;
   lastMetAt?: string;

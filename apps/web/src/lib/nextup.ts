@@ -1,8 +1,5 @@
 import type { Activity, EventBundle } from '@indiafoss/model';
-import { computeNowState, leaveByInstant, parseInstant } from '@indiafoss/schedule';
-import { journeyRoute } from './journey';
-import type { RoutingProfile } from '@indiafoss/venue';
-import type { LoadedVenue } from '$lib/venue.svelte';
+import { computeNowState, parseInstant } from '@indiafoss/schedule';
 
 export interface NextUp {
   activity: Activity;
@@ -11,13 +8,6 @@ export interface NextUp {
   /** The attendee marked it must attend: it wins over bookmarks and gets extra reminders. */
   mustAttend: boolean;
   startsInMinutes: number;
-  /** Set when the venue graph and a current location give a walk. */
-  travelSeconds: number | null;
-  leaveBy: string | null;
-  /** Minutes until leave-by; negative once it has passed. */
-  leaveInMinutes: number | null;
-  floorChange: boolean;
-  restricted: boolean;
 }
 
 export interface NextUpInput {
@@ -27,10 +17,6 @@ export interface NextUpInput {
   bookmarked: (activityId: string) => boolean;
   /** Must-attend sessions come first, whatever else is bookmarked. */
   mustAttend?: (activityId: string) => boolean;
-  venue: LoadedVenue | null;
-  currentLocation: string | null;
-  profile: RoutingProfile;
-  bufferSeconds: number;
   /** Ignore sessions further out than this. */
   horizonMinutes?: number;
   /** When present, only upcoming entries in this resolved plan may be selected. */
@@ -40,8 +26,8 @@ export interface NextUpInput {
 /**
  * The one session the leave-by banner is about: the earliest upcoming
  * bookmarked session, or failing that the programme's next session, within
- * the horizon. Walk time and leave-by need a known location and the venue
- * graph; without them the banner still names the session.
+ * the horizon. The venue is small enough that every walk is under five
+ * minutes, so the banner counts down to the start rather than to a leave-by.
  */
 export function computeNextUp(input: NextUpInput): NextUp | null {
   const { bundle, now } = input;
@@ -67,39 +53,11 @@ export function computeNextUp(input: NextUpInput): NextUp | null {
   if (!activity?.start || parseInstant(activity.start) - nowMs > horizon) return null;
 
   const startsInMinutes = Math.ceil((parseInstant(activity.start) - nowMs) / 60_000);
-  let travelSeconds: number | null = null;
-  let leaveBy: string | null = null;
-  let leaveInMinutes: number | null = null;
-  let floorChange = false;
-  let restricted = false;
-
-  const route = journeyRoute(
-    input.venue,
-    input.currentLocation,
-    activity.locationId,
-    input.profile,
-  );
-  if (route) {
-    travelSeconds = route.durationSeconds;
-    floorChange =
-      new Set(
-        route.nodeIds.map((id) => input.venue?.graph.nodes.find((node) => node.id === id)?.floor),
-      ).size > 1;
-    restricted = route.restricted;
-    leaveBy = leaveByInstant(activity.start, travelSeconds, input.bufferSeconds);
-    leaveInMinutes = Math.ceil((parseInstant(leaveBy) - nowMs) / 60_000);
-  }
-
   return {
     activity,
     planned: !!planned,
     mustAttend: input.mustAttend?.(activity.id) ?? false,
     startsInMinutes,
-    travelSeconds,
-    leaveBy,
-    leaveInMinutes,
-    floorChange,
-    restricted,
   };
 }
 

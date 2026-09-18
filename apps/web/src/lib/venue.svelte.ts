@@ -1,17 +1,16 @@
 import { base } from '$app/paths';
-import type { VenueGraph, VenueMetadata } from '@indiafoss/venue';
+import type { VenueMetadata } from '@indiafoss/venue';
 
 export interface LoadedVenue {
   key: string;
   svg: string;
-  graph: VenueGraph;
   metadata: VenueMetadata;
 }
 
 const cache: Record<string, LoadedVenue> = {};
 
 /**
- * Load a venue asset set (svg + graph + metadata) from static files.
+ * Load a venue asset set (svg + metadata) from static files.
  * Precached by the service worker, so the map works offline (§33).
  *
  * The 2025 schedule (Audi 1/2, Devrooms) is mapped to the synthetic venue;
@@ -21,15 +20,13 @@ export async function loadVenue(key: string): Promise<LoadedVenue> {
   const cached = cache[key];
   if (cached) return cached;
   const venueBase = `${base}/venues/${key}`;
-  const [svg, graph, metadata] = await Promise.all([
+  const [svg, metadata] = await Promise.all([
     fetch(`${venueBase}/venue.svg`).then((r) => r.text()),
-    fetch(`${venueBase}/venue.graph.json`).then((r) => r.json()),
     fetch(`${venueBase}/venue.metadata.json`).then((r) => r.json()),
   ]);
   const venue: LoadedVenue = {
     key,
     svg,
-    graph: graph as VenueGraph,
     metadata: metadata as VenueMetadata,
   };
   cache[key] = venue;

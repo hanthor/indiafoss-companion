@@ -18,7 +18,7 @@
     type FriendSignatureState,
     type ScannedPayload,
   } from '@indiafoss/model';
-  import { computeNowState } from '@indiafoss/schedule';
+  import { goto } from '$app/navigation';
   import { matrixToUrl } from '@indiafoss/matrix';
   import {
     bindingLabel,
@@ -32,8 +32,8 @@
   import { hydrateProfile, profileState, saveProfile } from '$lib/profile.svelte';
   import { downloadTextFile } from '$lib/calendar';
   import { eventState, loadEvent } from '$lib/event.svelte';
-  import { currentLocation, hydrateLocation, setCurrentLocation } from '$lib/location.svelte';
-  import { loadVenue, venueKeyForEvent, type LoadedVenue } from '$lib/venue.svelte';
+  import { livePlanState } from '$lib/resolved-plan.svelte';
+  import { eventDay, metDuringLabel } from '$lib/resolved-plan';
   import {
     contactFromFriend,
     contactFromMatrixId,
@@ -44,7 +44,7 @@
   } from '$lib/contacts.svelte';
   import MyCardQr from '$lib/components/MyCardQr.svelte';
   import { reconcileContact } from '$lib/contact-continuity';
-  import { contactsState, hydrateContacts } from '$lib/contacts.svelte';
+  import { contactsState, hydrateContacts, type MeetingContext } from '$lib/contacts.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import SocialLinks from '$lib/components/SocialLinks.svelte';
   import { LINK_LABELS } from '$lib/card-fields';
@@ -88,18 +88,14 @@
   /** The contact just saved, kept for the "now show yours" half of the exchange. */
   let savedContact = $state<ContactRecord | null>(null);
   let mutualMarked = $state(false);
-  let manualLocation = $state('');
   let manualVCard = $state('');
   /** Manual entry stays tucked away unless the camera cannot be used. */
   let manualOpen = $state(false);
   $effect(() => {
     if (cameraBlocked || cameraError) manualOpen = true;
   });
-  let venue = $state<LoadedVenue | null>(null);
-
   $effect(() => {
     void loadEvent();
-    void hydrateLocation();
     void hydrateContacts();
   });
 
@@ -129,18 +125,6 @@
     const payload = sharedPayload();
     if (payload) handlePayload(payload);
   });
-
-  $effect(() => {
-    const eventId = eventState.bundle?.id;
-    if (!eventId) return;
-    void loadVenue(venueKeyForEvent(eventId)).then((v) => {
-      venue = v;
-    });
-  });
-
-  const venueLocations = $derived(
-    venue ? Object.keys(venue.metadata.locations).sort((a, b) => a.localeCompare(b)) : [],
-  );
 
   function labelForLocation(id: string): string {
     return id.replace(/-/g, ' ');
@@ -195,14 +179,22 @@
     }
   }
 
-  /** The session running right now (or by ?now= developer time) and where you are. */
-  const meeting = $derived.by(() => {
+  /**
+   * What you were doing when you met, assuming you followed your plan: the
+   * planned talk or block under way now, else the programme's running session.
+   */
+  const meeting = $derived.by((): MeetingContext => {
     const bundle = eventState.bundle;
     if (!bundle) return {};
-    const nowState = computeNowState(bundle, new Date().toISOString());
+    const now = new Date().toISOString();
+    const plan =
+      livePlanState.bundle === bundle && livePlanState.day === eventDay(now, bundle.timezone)
+        ? (livePlanState.result?.edited ?? null)
+        : null;
+    const met = metDuringLabel(plan, bundle, now);
     return {
-      activityId: nowState.current[0]?.id,
-      locationId: currentLocation.value ?? nowState.current[0]?.locationId,
+      ...met,
+      locationId: bundle.activities.find((a) => a.id === met.activityId)?.locationId,
     };
   });
 
@@ -225,12 +217,6 @@
     if (pending.kind === 'profile-link') return contactFromProfileLink(pending, eventId);
     return null;
   });
-
-  const locationKnown = $derived(
-    pending?.kind === 'location' && venue
-      ? Boolean(venue.metadata.locations[pending.locationId])
-      : false,
-  );
 
   async function startCamera(): Promise<void> {
     cameraError = '';
@@ -282,11 +268,6 @@
     scanning = false;
   }
 
-  function submitManualLocation(): void {
-    if (!manualLocation) return;
-    handlePayload(`indiafoss://location/${manualLocation}`);
-  }
-
   function submitManualVCard(): void {
     if (!manualVCard.trim()) return;
     handlePayload(manualVCard);
@@ -295,12 +276,8 @@
   async function confirmPending(): Promise<void> {
     if (!pending) return;
     if (pending.kind === 'location') {
-      if (!locationKnown) {
-        error = 'This location marker is not part of the venue map.';
-        return;
-      }
-      await setCurrentLocation(pending.locationId);
-      status = `Location set to ${labelForLocation(pending.locationId)}.`;
+      await goto(resolve(`/map/to/${pending.locationId}`));
+      return;
     } else if (pending.kind === 'ticket') {
       await hydrateProfile();
       profileState.profile.ticketRef = pending.ticketRef;
@@ -321,7 +298,6 @@
             : `Saved ${result.contact.fullName} to your contacts. Saving is not verification: compare badges in person, and verify accounts in your chat app.`;
     }
     pending = null;
-    manualLocation = '';
     manualVCard = '';
   }
 
@@ -375,9 +351,6 @@
       <button class="button primary" onclick={startCamera}>Start camera</button>
     {/if}
     {#if cameraError}<p class="warning">{cameraError}</p>{/if}
-    {#if currentLocation.value}
-      <p class="muted small">Your current location: {labelForLocation(currentLocation.value)}</p>
-    {/if}
   </section>
 
   {#if error}<p class="error" role="alert">{error}</p>{/if}
@@ -418,12 +391,8 @@
       <h2>Confirm before importing</h2>
       {#if pending.kind === 'location'}
         <p>
-          Set your current location to
-          <strong>{labelForLocation(pending.locationId)}</strong>?
+          This marker is <strong>{labelForLocation(pending.locationId)}</strong>.
         </p>
-        {#if venue && !locationKnown}
-          <p class="warning">This marker does not match any location on the venue map.</p>
-        {/if}
       {:else if pending.kind === 'ticket'}
         <p>Ticket reference <code>{pending.ticketRef}</code></p>
         <p class="muted small">
@@ -505,13 +474,10 @@
               {/if}
             </div>
           </div>
-          {#if meeting.activityId}
+          {#if meeting.label}
             <p class="muted small">
-              You're meeting during
-              <strong
-                >{eventState.bundle?.activities.find((a) => a.id === meeting.activityId)
-                  ?.title}</strong
-              >; that context is saved with the contact.
+              Met during <strong>{meeting.label}</strong>, going by your plan; that is saved with
+              the contact.
             </p>
           {/if}
         {/if}
@@ -599,13 +565,7 @@
       {/if}
       <div class="preview-actions">
         {#if pending.kind === 'location'}
-          <button
-            class="button primary"
-            onclick={confirmPending}
-            disabled={venue !== null && !locationKnown}
-          >
-            Set location
-          </button>
+          <button class="button primary" onclick={confirmPending}>Show on map</button>
         {:else if pending.kind === 'matrix-room'}
           <!-- Public Matrix rooms live in a real Matrix client, not in the mesh chat. -->
           <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
@@ -648,26 +608,7 @@
 
   <details class="card manualentry" bind:open={manualOpen}>
     <summary>Enter a code by hand</summary>
-    <p class="muted small">Only if the camera cannot: pick a location, or paste a card or link.</p>
-
-    <form
-      class="manual"
-      onsubmit={(event) => {
-        event.preventDefault();
-        submitManualLocation();
-      }}
-    >
-      <label>
-        Set current location
-        <select bind:value={manualLocation}>
-          <option value="">Choose a location…</option>
-          {#each venueLocations as id (id)}
-            <option value={id}>{labelForLocation(id)}</option>
-          {/each}
-        </select>
-      </label>
-      <button class="button secondary" type="submit" disabled={!manualLocation}>Preview</button>
-    </form>
+    <p class="muted small">Only if the camera cannot: paste a card or link.</p>
 
     <form
       class="manual"

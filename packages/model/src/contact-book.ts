@@ -32,6 +32,7 @@ export interface ContactBookEntry {
   signature?: 'valid' | 'invalid' | 'unsigned';
   metActivityId?: string;
   metLocationId?: string;
+  metLabel?: string;
   metCount?: number;
   lastMetAt?: string;
   keyChanged?: boolean;

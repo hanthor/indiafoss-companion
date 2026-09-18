@@ -76,15 +76,15 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   const fired = log
     .filter((e) => e.kind === 'notification')
     .map((e) => `${e.simAt.slice(11, 16)} ${e.title}`);
-  // 30-min heads-up at 09:45, the leave-now alert on the way, the start at 10:15.
+  // 30-min heads-up at 09:45, starting-soon at 10:00, the start at 10:15.
   expect(fired).toContain('09:45 In 30 min: First Step into Open Source with AOSP');
-  expect(fired.some((f) => f.includes('Leave now: First Step'))).toBe(true);
+  expect(fired).toContain('10:00 In 15 min: First Step into Open Source with AOSP');
   expect(fired).toContain('10:15 Starting now: First Step into Open Source with AOSP');
   // The banner counted down and was logged as it changed.
-  expect(log.some((e) => e.kind === 'banner' && /LEAVE BY|LEAVE NOW/.test(e.title))).toBe(true);
+  expect(log.some((e) => e.kind === 'banner' && /STARTS IN|STARTING NOW/.test(e.title))).toBe(true);
   // The strip shows the latest thing that happened: a reminder or the banner moving on.
   await expect(page.getByTestId('sim-latest')).toContainText(
-    /STARTS IN|STARTING NOW|LEAVE BY|LEAVE NOW|Starting now|Leave now|In \d+ min/,
+    /STARTS IN|STARTING NOW|Starting now|In \d+ min/,
   );
 
   // Pause holds the clock; stop ends the run and the log records both.
@@ -153,12 +153,6 @@ test('every reminder names the session, the room and the walk, and opens it when
 
   await page.goto(appUrl('/?setup=done'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
-
-  // Standing somewhere known, so the alerts can work out the walk.
-  await page.goto(appUrl('/map'));
-  await page.getByRole('button', { name: /^Audi 2/ }).click();
-  await page.getByRole('button', { name: "I'm here" }).click();
-  await settingSaved(page, 'current-location', 'audi-2');
 
   await page.goto(appUrl(`/activity/${SESSION}`));
   await page.getByRole('button', { name: /Must attend/ }).click();
@@ -230,15 +224,12 @@ test('every reminder names the session, the room and the walk, and opens it when
     expect(shown.body).toContain('Devroom 1 (AOSP)');
     // Tapping opens that session, and a re-armed alert replaces rather than stacks.
     expect(shown.hasClick).toBe(true);
-    expect(shown.tag).toMatch(/^(must|soon|leave|start)-/);
+    expect(shown.tag).toMatch(/^(must|soon|start)-/);
     expect(shown.icon).toContain('icon-192.png');
   }
 
-  const leave = fired.find((n) => n.title.startsWith('Leave now'))!;
-  expect(leave.body).toMatch(/\d+ min walk to Devroom 1 \(AOSP\) · starts 10:15/);
-  // Starting-soon lands within minutes of leave-now for a near room, so it is
-  // merged away rather than firing twice about the same talk.
-  expect(fired.filter((n) => n.title.startsWith('In 15 min'))).toHaveLength(0);
+  const soon = fired.find((n) => n.title.startsWith('In 15 min'))!;
+  expect(soon.body).toBe('10:15 in Devroom 1 (AOSP)');
 });
 
 test('removing a must-go from the edited plan suppresses its reminders', async ({ page }) => {

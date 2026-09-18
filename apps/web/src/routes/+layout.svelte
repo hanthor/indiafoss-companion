@@ -4,8 +4,6 @@
   import { page } from '$app/state';
   import { base, resolve } from '$app/paths';
   import { registerSW } from 'virtual:pwa-register';
-  import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
-  import { currentLocation, hydrateLocation } from '$lib/location.svelte';
   import { hydratePreferences } from '$lib/prefs.svelte';
   import { applyUpdate, checkForUpdates, updateState, refreshStatus } from '$lib/updates.svelte';
   import { UpdatePoller, updatePollInterval, updateRetryDelay } from '$lib/update-poller';
@@ -72,8 +70,6 @@
 
   onMount(() => {
     void hydratePreferences();
-    void hydrateRoutingProfile();
-    void hydrateLocation();
     void hydrateNotifications();
     // Deep-link targets are validated in routeForDeepLink() before navigation.
     // eslint-disable-next-line svelte/no-navigation-without-resolve
@@ -120,9 +116,6 @@
     // which nothing can fire (#159).
     trackPlanInputs(eventState.bundle);
     void notificationsEnabled.value;
-    void routingPrefs.profile;
-    void routingPrefs.loaded;
-    void currentLocation.value;
     const every = run ? untrack(() => tickInterval(60_000)) : 60_000;
     const timer = setInterval(() => {
       void armNotifications(true).catch(() => {});

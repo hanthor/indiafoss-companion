@@ -73,17 +73,16 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await page.goto(appUrl('/plan'));
   await expect(page.locator('.itinerary li').first()).toBeVisible({ timeout: 10_000 });
 
-  // 11. Map: mark a room as here, open another and read the walk.
+  // 11. Map: the cached floor plan opens a room on another floor offline.
   await page.goto(appUrl('/map'));
-  await page.getByRole('button', { name: /^(Audi 1|Hall 1)/ }).click();
-  await page.getByRole('button', { name: "I'm here" }).click();
   await page.getByRole('button', { name: /^First/ }).click();
   await page.getByRole('button', { name: /^Room 2/ }).click();
   await expect(page.getByRole('heading', { name: 'Room 2' })).toBeVisible();
 
-  // 12. Schedule-aware routing: the Now leave-by uses the cached venue graph
-  // to compute walk time offline (§29, §52).
+  // 12. The Now screen still points at the next room from the cached schedule.
   const during = '2026-09-26T10:20:00+05:30';
-  await page.goto(appUrl(`/now?now=${encodeURIComponent(during)}&at=hall-1`));
-  await expect(page.getByText(/You are at/)).toBeVisible({ timeout: 10_000 });
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(during)}`));
+  await expect(page.getByRole('link', { name: 'Show on map' }).first()).toBeVisible({
+    timeout: 10_000,
+  });
 });

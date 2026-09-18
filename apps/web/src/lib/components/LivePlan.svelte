@@ -6,7 +6,6 @@
   import { planEdits, readPlanEdits } from '$lib/planEdits.svelte';
   import { preferenceFor } from '$lib/prefs.svelte';
   import { roomPreferences } from '$lib/roomPrefs.svelte';
-  import { routingPrefs } from '$lib/routingPrefs.svelte';
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
 
@@ -31,7 +30,6 @@
     void JSON.stringify(roomPreferences());
     const editsSnapshot = JSON.stringify(planEdits.edits);
     const editingThisDay = planEdits.eventId === bundle?.id && planEdits.day === currentDay;
-    void routingPrefs.profile;
     void planInputs.revision;
     let active = true;
     livePlanState.bundle = bundle;

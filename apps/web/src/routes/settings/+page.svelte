@@ -9,9 +9,6 @@
   import PersonalDataExport from '$lib/components/PersonalDataExport.svelte';
   import PersonalDataImport from '$lib/components/PersonalDataImport.svelte';
   import ReminderStatus from '$lib/components/ReminderStatus.svelte';
-  import { ROUTING_LABELS } from '$lib/journey';
-  import { routingPrefs, setRoutingProfile } from '$lib/routingPrefs.svelte';
-  import type { RoutingProfile } from '@indiafoss/venue';
   import {
     notificationsEnabled,
     reminderState,
@@ -166,29 +163,11 @@
     </button>
   </section>
   <section class="card">
-    <h2>Getting around</h2>
-    <p class="muted">
-      How the app works out the walk between rooms. It sets the "leave by" time on your plan and on
-      the map, and when a "leave now" reminder fires.
-    </p>
-    <label class="routing" for="routing-profile">Routing profile</label>
-    <select
-      id="routing-profile"
-      value={routingPrefs.profile}
-      disabled={!routingPrefs.loaded}
-      onchange={(event) => void setRoutingProfile(event.currentTarget.value as RoutingProfile)}
-    >
-      {#each Object.entries(ROUTING_LABELS) as [value, label] (value)}<option {value}
-          >{label}</option
-        >{/each}
-    </select>
-  </section>
-  <section class="card">
     <h2>Reminders</h2>
     <p class="muted">
-      Local "starting soon" and "leave now" alerts for your bookmarked sessions, timed with the walk
-      from your last scanned location. Sessions marked <strong>★ Must attend</strong> also get a heads-up
-      30 minutes before and an alert as they start. No push service, nothing leaves the device.
+      Local "starting soon" alerts for the sessions on your plan. Every room is under five minutes'
+      walk, so 15 minutes' notice is plenty. Sessions marked <strong>★ Must attend</strong> also get a
+      heads-up 30 minutes before and an alert as they start. No push service, nothing leaves the device.
     </p>
     <label class="switch">
       <input

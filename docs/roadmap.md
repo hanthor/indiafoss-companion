@@ -281,6 +281,11 @@ deployed (#291).
   2026-09-10 (#299, closes #223): the map's From/To panel shows route steps and
   a walking estimate again, labelled "Estimate: draft venue graph" until the
   graph is signed off; the Now screen and banner still show no walk time._
+  _Settled 2026-09-18 (owner): the venue is small and every walk is under five
+  minutes, so "I'm here", the From select, room-to-room directions, walk
+  estimates, leave-by times, the "leave now" reminder and the routing profile
+  are removed on both platforms. The map only highlights a destination. Contacts
+  record where you met from your plan ("Met during Lunch, day 1")._
 - 2026-09-02: Event revisions publish immutable hash-addressed assets and the
   client downloads the named asset in full before replacing anything; the
   committed normalized bundle is rewritten by the same sync so the two cannot
