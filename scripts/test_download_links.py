@@ -84,7 +84,8 @@ class Advertised(unittest.TestCase):
         # A URL built from workflow expressions cannot be resolved from here.
         root = self._repo(
             {
-                "w.yml": "https://github.com/${{ github.repository }}/releases/download/nightly/a.apk"
+                "w.yml": "https://github.com/${{ github.repository }}/releases/download/nightly/a.apk",
+                "ci.yml": "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip",
             }
         )
         with working_directory(root):
