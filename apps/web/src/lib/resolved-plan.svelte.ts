@@ -4,7 +4,6 @@ import { solveForDay } from './solver.svelte';
 import { planEdits, readPlanEdits } from './planEdits.svelte';
 import { preferenceFor } from './prefs.svelte';
 import { roomPreferences } from './roomPrefs.svelte';
-import { routingPrefs } from './routingPrefs.svelte';
 
 /** Resolve from current source data and explicit edits, never a cached list of planned IDs. */
 export async function resolveDayPlan(bundle: EventBundle, day: string, edits: PlanEdits) {
@@ -54,7 +53,6 @@ export function trackPlanInputs(bundle: EventBundle | null) {
   void JSON.stringify(planEdits.edits);
   void planEdits.eventId;
   void planEdits.day;
-  void routingPrefs.profile;
   void planInputs.revision;
 }
 

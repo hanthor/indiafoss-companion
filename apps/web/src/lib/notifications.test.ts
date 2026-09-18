@@ -51,56 +51,22 @@ const act = (
 });
 
 describe('computeNotifications', () => {
-  // A long walk, so starting-soon and leave-now stay far enough apart to be
-  // two separate alerts (the near case is covered by the merge test below).
-  const travel = () => 900;
   const planned = () => 'planned' as const;
 
-  it('schedules starting-soon and leave-now alerts for an upcoming session', () => {
+  it('schedules a starting-soon alert for an upcoming session', () => {
     const b = bundle([
       act('a', '2026-09-19T11:00:00+05:30', '2026-09-19T12:00:00+05:30', {
         locationId: 'audi-1',
       }),
     ]);
-    const notifications = computeNotifications(b, '2026-09-19T10:30:00+05:30', travel, planned);
-    const soon = notifications.find((n) => n.id === 'soon-a');
-    const leave = notifications.find((n) => n.id === 'leave-a');
-    expect(soon).toBeDefined();
-    expect(Date.parse(soon!.at)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 15 * 60 * 1000);
-    expect(leave).toBeDefined();
-    // leave = start - travel(900s) - buffer(600s)
-    expect(Date.parse(leave!.at)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 1500 * 1000);
-    // Every alert names the session, the room and the walk, and opens it when tapped.
-    expect(soon!.title).toBe('In 15 min: a');
-    expect(soon!.body).toBe('11:00 in Audi 1 · 15 min walk');
-    expect(leave!.title).toBe('Leave now: a');
-    expect(leave!.body).toBe('15 min walk to Audi 1 · starts 11:00');
-    expect(leave!.url).toBe('/activity/a');
-  });
-
-  it('leaves the walk out when the attendee has not said where they are', () => {
-    const b = bundle([
-      act('a', '2026-09-19T11:00:00+05:30', '2026-09-19T12:00:00+05:30', {
-        locationId: 'audi-1',
-      }),
-    ]);
-    const notifications = computeNotifications(b, '2026-09-19T10:30:00+05:30', () => null, planned);
-    expect(notifications.find((n) => n.id === 'leave-a')).toBeUndefined();
-    const soon = notifications.find((n) => n.id === 'soon-a')!;
+    const notifications = computeNotifications(b, '2026-09-19T10:30:00+05:30', planned);
+    expect(notifications.map((n) => n.id)).toEqual(['soon-a']);
+    const soon = notifications[0]!;
+    expect(Date.parse(soon.at)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 15 * 60 * 1000);
+    // Every alert names the session and the room, and opens it when tapped.
+    expect(soon.title).toBe('In 15 min: a');
     expect(soon.body).toBe('11:00 in Audi 1');
-    expect(Date.parse(soon.at)).toBe(Date.parse('2026-09-19T11:00:00+05:30') - 900 * 1000);
-  });
-
-  it('merges leave-now and starting-soon when they would land minutes apart', () => {
-    const b = bundle([
-      act('a', '2026-09-19T11:00:00+05:30', '2026-09-19T12:00:00+05:30', {
-        locationId: 'audi-1',
-      }),
-    ]);
-    // A two-minute walk puts leave-now at 10:48 and starting-soon at 10:45.
-    const notifications = computeNotifications(b, '2026-09-19T10:00:00+05:30', () => 120, planned);
-    expect(notifications.map((n) => n.id)).toEqual(['leave-a']);
-    expect(notifications[0]!.body).toBe('2 min walk to Audi 1 · starts 11:00');
+    expect(soon.url).toBe('/activity/a');
   });
 
   it('trims a very long session title so the time cue stays readable', () => {
@@ -109,7 +75,7 @@ describe('computeNotifications', () => {
     const b = bundle([
       act('a', '2026-09-19T11:00:00+05:30', '2026-09-19T12:00:00+05:30', { title: long }),
     ]);
-    const soon = computeNotifications(b, '2026-09-19T10:30:00+05:30', travel, planned).find(
+    const soon = computeNotifications(b, '2026-09-19T10:30:00+05:30', planned).find(
       (n) => n.id === 'soon-a',
     )!;
     expect(soon.title.length).toBeLessThanOrEqual('In 15 min: '.length + 56);
@@ -119,8 +85,8 @@ describe('computeNotifications', () => {
 
   it('does not schedule alerts in the past', () => {
     const b = bundle([act('a', '2026-09-19T10:30:00+05:30', '2026-09-19T11:30:00+05:30')]);
-    const notifications = computeNotifications(b, '2026-09-19T10:40:00+05:30', travel, planned);
-    // starting-soon at 10:15 is past; leave at 10:15 is past
+    const notifications = computeNotifications(b, '2026-09-19T10:40:00+05:30', planned);
+    // starting-soon at 10:15 is past the grace window
     expect(notifications).toEqual([]);
   });
 
@@ -128,12 +94,12 @@ describe('computeNotifications', () => {
     const b = bundle([
       act('a', '2026-09-19T11:00:00+05:30', '2026-09-19T12:00:00+05:30', { cancelled: true }),
     ]);
-    expect(computeNotifications(b, '2026-09-19T10:30:00+05:30', travel, planned)).toEqual([]);
+    expect(computeNotifications(b, '2026-09-19T10:30:00+05:30', planned)).toEqual([]);
   });
 
   it('stays silent for sessions that are neither planned nor must-attend', () => {
     const b = bundle([act('a', '2026-09-19T11:00:00+05:30', '2026-09-19T12:00:00+05:30')]);
-    expect(computeNotifications(b, '2026-09-19T10:30:00+05:30', travel, () => 'none')).toEqual([]);
+    expect(computeNotifications(b, '2026-09-19T10:30:00+05:30', () => 'none')).toEqual([]);
   });
 
   it('adds an early heads-up and a starting-now alert for must-attend sessions', () => {
@@ -142,10 +108,8 @@ describe('computeNotifications', () => {
       act('b', '2026-09-19T11:00:00+05:30', '2026-09-19T12:00:00+05:30'),
     ]);
     const tier = (id: string) => (id === 'a' ? ('must-attend' as const) : ('planned' as const));
-    const notifications = computeNotifications(b, '2026-09-19T10:00:00+05:30', travel, tier);
+    const notifications = computeNotifications(b, '2026-09-19T10:00:00+05:30', tier);
     expect(notifications.map((n) => n.id).sort()).toEqual([
-      'leave-a',
-      'leave-b',
       'must-a',
       'soon-a',
       'soon-b',
@@ -154,7 +118,7 @@ describe('computeNotifications', () => {
     const must = notifications.find((n) => n.id === 'must-a')!;
     expect(Date.parse(must.at)).toBe(Date.parse('2026-09-19T10:30:00+05:30'));
     expect(must.title).toBe('In 30 min: a');
-    expect(must.body).toBe('Must attend · Starts 11:00 · 15 min walk');
+    expect(must.body).toBe('Must attend · Starts 11:00');
     expect(notifications.find((n) => n.id === 'start-a')!.title).toBe('Starting now: a');
     expect(Date.parse(notifications.find((n) => n.id === 'start-a')!.at)).toBe(
       Date.parse('2026-09-19T11:00:00+05:30'),
@@ -185,14 +149,12 @@ describe('computeNotifications', () => {
 
 describe('catching up after the page was frozen', () => {
   const now = '2026-09-19T10:08:00+05:30';
-  const noWalk = () => null;
 
   it('delivers at once the latest alert that fell due in the last 20 minutes', () => {
     // A bookmarked 10:15 talk: "in 15 min" was due at 10:00, eight minutes ago.
     const out = computeNotifications(
       bundle([act('a', '2026-09-19T10:15:00+05:30', '2026-09-19T10:45:00+05:30')]),
       now,
-      noWalk,
       () => 'planned',
     );
     expect(out.map((n) => [n.id, n.at])).toEqual([['soon-a', now]]);
@@ -203,7 +165,6 @@ describe('catching up after the page was frozen', () => {
     const out = computeNotifications(
       bundle([act('a', '2026-09-19T10:15:00+05:30', '2026-09-19T10:45:00+05:30')]),
       now,
-      noWalk,
       () => 'must-attend',
     );
     expect(out.map((n) => n.id).sort()).toEqual(['soon-a', 'start-a']);
@@ -215,7 +176,6 @@ describe('catching up after the page was frozen', () => {
     const out = computeNotifications(
       bundle([act('a', '2026-09-19T10:03:00+05:30', '2026-09-19T10:45:00+05:30')]),
       now,
-      noWalk,
       () => 'must-attend',
     );
     expect(out.map((n) => [n.id, n.at])).toEqual([['start-a', now]]);
@@ -228,22 +188,9 @@ describe('catching up after the page was frozen', () => {
         act('stale', '2026-09-19T09:56:00+05:30', '2026-09-19T10:45:00+05:30'),
       ]),
       now,
-      noWalk,
       () => 'must-attend',
     );
     expect(out).toEqual([]);
-  });
-
-  it('keeps a merged-away starting-soon merged once its time has passed', () => {
-    // 10:15 talk, one-minute walk: leave-now at 10:04, starting-soon at 10:00 merged into it.
-    // At 10:01 the starting-soon is late but must not be caught up beside the leave-now.
-    const out = computeNotifications(
-      bundle([act('a', '2026-09-19T10:15:00+05:30', '2026-09-19T10:45:00+05:30')]),
-      '2026-09-19T10:01:00+05:30',
-      () => 60,
-      () => 'planned',
-    );
-    expect(out.map((n) => n.id)).toEqual(['leave-a']);
   });
 
   it('does the same for a plan block, until the block starts', () => {

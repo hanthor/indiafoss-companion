@@ -265,7 +265,7 @@ The scanner (`packages/model/src/scan.ts`) accepts, in this order:
 | `@user:server`, `https://matrix.to/#/@…`, `matrix:u/…`                 | DM confirmation                                                                                         |
 | `#alias:server`, `!id:server`, matrix.to / `matrix:r/…` room links     | join confirmation                                                                                       |
 | `indiafoss://chat?dm=…` / `?join=…`                                    | same as above, app-native form; the Companion only reads it (it opens the scan preview), never emits it |
-| `indiafoss://location/<id>`                                            | set current location                                                                                    |
+| `indiafoss://location/<id>`                                            | open that room on the map                                                                               |
 | bare ticket id / `ticket::<id>`                                        | shown as an event-scoped reference only                                                                 |
 
 Every result is previewed and confirmed before anything is saved, joined or

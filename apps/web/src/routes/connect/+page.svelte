@@ -469,8 +469,13 @@
       timeZone: eventState.bundle?.timezone ?? 'Asia/Kolkata',
     });
   };
-  const metWhere = (c: { metActivityId?: string; metLocationId?: string }): string | null => {
+  const metWhere = (c: {
+    metActivityId?: string;
+    metLocationId?: string;
+    metLabel?: string;
+  }): string | null => {
     const bundle = eventState.bundle;
+    if (c.metLabel) return c.metLabel;
     if (c.metActivityId) {
       return bundle?.activities.find((a) => a.id === c.metActivityId)?.title ?? 'a session';
     }

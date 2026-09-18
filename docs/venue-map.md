@@ -48,36 +48,33 @@ Now):
 - **TO** (amber): the journey's destination — the room of your next planned
   session (`computeNextUp` over the shared resolved plan, within three hours),
   the destination of a `/map/to/<location>` link, or a room chosen in the
-  From/To panel or with "Go here" in the sheet.
+  destination panel or with "Go here" in the sheet.
 - **Selected** (black outline): the room whose sheet is open.
-- **You** (green dot): the room of your current location.
 
 Floor chips carry a green dot when that floor has live sessions; a corner hint
-says when you or your next talk are on the other floor.
+says when your next talk is on the other floor. The map never asks where you
+are: the venue is small enough that every walk is under five minutes.
 
 ## Room sheet
 
 Tapping a room (shape or label) pans it into the strip above the sheet and
 opens a bottom sheet that **peeks** (name, floor and seats, ON NOW) and expands
-on the grabber to NEXT HERE and "I'm here" / "Clear location" (the same state a
-room QR's `?at=` deep link sets). This is the Google I/O app's map pattern:
+on the grabber to NEXT HERE and "Go here" / "Clear destination". This is the
+Google I/O app's map pattern:
 full-screen vector map, floor selector, small markers, a peeking bottom sheet.
 No route is drawn on the plan and no walking directions are given: the
 destination room is highlighted and the floor chips say which floor it is on.
 Labels hide once they leave the plan rather than dangling off-screen, and the
 drawing's viewBox carries 6 % padding so no wing is clipped at any aspect ratio.
 
-## From / To panel
+## Destination panel
 
-Above the plan (#223): **From** is the manually set location (a select over the
-drawn rooms, the same state as "I'm here" and a room QR's `?at=`), labelled
-MANUALLY SET with a Clear control; **To** defaults to the next planned talk or a
+Above the plan (#223): **Go to** defaults to the next planned talk or a
 `/map/to/` link and otherwise lists every room, so an attendee without a plan
 picks one directly, and picking one highlights it and switches to its floor.
-When the destination is the next planned talk the panel names it with its start
-and leave-by time. The saved routing profile sits alongside: it no longer
-changes anything drawn on the map, but it is the only control for the
-preference the leave-by banner, the itinerary solver and reminders all read.
+When the destination is the next planned talk the panel names it with its
+start time. There is no "From": the app does not track or ask for a current
+location, and there are no routing profiles or walk estimates.
 
 ## Next-up banner
 

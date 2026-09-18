@@ -12,7 +12,7 @@
 [**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [**Download Chat for Android**](https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk) · [Docs](#documentation)
 
 <img src="docs/screenshots/now.png" width="30%" alt="The Now screen listing three sessions running right now, each with a progress bar and minutes remaining" />
-<img src="docs/screenshots/map.png" width="30%" alt="The venue map in dark mode with three halls lit mint, each labelled with the minutes left in its session, and a dot showing where you are" />
+<img src="docs/screenshots/map.png" width="30%" alt="The venue map in dark mode with three halls lit mint, each labelled with the minutes left in its session" />
 <img src="docs/screenshots/rank.png" width="30%" alt="Two overlapping keynotes stacked as cards under a CLOSE CALL pill, waiting for a pick" />
 
 </div>
@@ -64,9 +64,9 @@ Your ratings never leave the phone.
 <tr>
 <td width="60%">
 
-The venue's real floor plan, with halls lit up while sessions run in them and a dot for where you are — set by scanning the QR on a room door, or by tapping **I'm here**.
+The venue's real floor plan, with halls lit up while sessions run in them and your next room highlighted — from your plan, a room's QR, or a tap on **Go here**.
 
-Both floors are drawn as vectors, so pinch, drag and wheel zoom stay sharp, and a corner hint tells you when your next talk is on the other floor. Underneath is a routing graph with A\* pathfinding and accessible profiles (lift instead of stairs).
+Both floors are drawn as vectors, so pinch, drag and wheel zoom stay sharp, and a corner hint tells you when your next talk is on the other floor. The venue is small, every walk is under five minutes, so there are no directions and the app never asks where you are.
 
 Before you are inside: a **Getting there** card with the organiser's venue name and address, a copy button, and a handoff to the organiser's OpenStreetMap destination or your own maps app — cached with the programme, so it works without signal.
 
@@ -107,7 +107,7 @@ Beyond the four screens above: a **personal itinerary** solved from your ratings
 
 ## Why it is built this way
 
-- **Offline-first, not offline-tolerant.** After one download everything works in airplane mode — schedule, search, map, routing, Elo, itinerary. The release gate is a Playwright suite that walks the whole attendee flow with the network disabled.
+- **Offline-first, not offline-tolerant.** After one download everything works in airplane mode — schedule, search, map, Elo, itinerary. The release gate is a Playwright suite that walks the whole attendee flow with the network disabled.
 - **No account, no tracking, no server.** Preferences, ratings, itinerary, notes and contacts live in IndexedDB on the device. There is nothing to sign into and nothing to leak.
 - **One canonical bundle.** Every upstream source (FOSS United, Pretalx, fixtures) is normalised into a single `EventBundle` schema; no screen ever reads raw upstream data. Updates are hash-addressed and immutable, downloaded in full and parsed before they replace anything, so a half-finished download can never show you a broken schedule.
 - **Accessibility is tested, not asserted.** axe-core WCAG A/AA runs over every core screen in _both_ colour schemes on every PR.

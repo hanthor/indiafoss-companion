@@ -382,17 +382,16 @@ test('must attend stays pinned while the banner follows plan order', async ({ pa
   await expect(list.getByRole('link', { name: /First Step into Open Source/ })).toHaveCount(0);
 });
 
-test('map sets a location from a room and shows the walk to another', async ({ page }) => {
+test('map opens a room sheet on another floor and zooms', async ({ page }) => {
   await page.goto(appUrl('/map'));
-  // Tap a room on the floor plan, mark it as where you are.
-  await page.getByRole('button', { name: /^Audi 1/ }).click();
-  await page.getByRole('button', { name: "I'm here" }).click();
   // Devroom 2 is on the first floor; switch floors and open its sheet.
   await page.getByRole('button', { name: /^First/ }).click();
   await page.getByRole('button', { name: /^Devroom 2/ }).click();
   await expect(page.getByRole('heading', { name: 'Devroom 2' })).toBeVisible();
-  // The other-floor hint points back down to where you are.
-  await expect(page.getByText("YOU'RE DOWNSTAIRS")).toBeVisible();
+  // Going there highlights it, and the other-floor hint follows the destination.
+  await page.getByRole('button', { name: 'Go here', exact: true }).click();
+  await page.getByRole('button', { name: /^Ground/ }).click();
+  await expect(page.getByText('DESTINATION UPSTAIRS')).toBeVisible();
   // The plan zooms; labels grow their detail once zoomed in.
   await page.getByRole('button', { name: 'Zoom in' }).click();
   await expect(page.locator('.drawing')).toHaveAttribute('style', /scale\(1\.5/);
@@ -400,12 +399,12 @@ test('map sets a location from a room and shows the walk to another', async ({ p
   await expect(page.locator('.drawing')).toHaveAttribute('style', /scale\(1\)/);
 });
 
-test('now screen shows leave-by with a known location', async ({ page }) => {
+test('now screen opens the map on the next room', async ({ page }) => {
   const DURING = '2025-09-20T10:20:00+05:30';
-  await page.goto(appUrl(`/now?now=${encodeURIComponent(DURING)}&at=audi-1`));
-  // With a known location the NEXT card says where you are and opens the map on the next room.
-  await expect(page.getByText(/You are at/)).toBeVisible({ timeout: 10_000 });
-  await page.getByRole('link', { name: 'Show on map' }).click();
+  await page.goto(appUrl(`/now?now=${encodeURIComponent(DURING)}`));
+  // The NEXT card opens the map on the next room; no location of your own is asked for.
+  await expect(page.getByText(/Where are you|You are at/)).toHaveCount(0);
+  await page.getByRole('link', { name: 'Show on map' }).first().click();
   await expect(page.getByText('DESTINATION', { exact: true })).toBeVisible();
 });
 
@@ -451,30 +450,11 @@ test('connect keeps a live QR card and downloads a vCard', async ({ page }) => {
   expect(file.suggestedFilename()).toMatch(/\.vcf$/);
 });
 
-test('scan: manual location entry previews and sets the current location', async ({ page }) => {
-  await page.goto(appUrl('/scan'));
-  await expect(page.getByRole('heading', { name: 'Scan a code' })).toBeVisible();
-  // Choose a venue location via the keyboard/manual fallback, tucked behind a disclosure.
-  // Headless Chromium has no camera, so the manual disclosure opens on its own.
-  await expect(page.getByText(/No camera was found|could not be started/)).toBeVisible();
-  const select = page.getByLabel('Set current location');
-  await expect(select.locator('option').nth(1)).toBeAttached();
-  const value = await select.locator('option').nth(1).getAttribute('value');
-  await select.selectOption(value!);
-  await page.getByRole('button', { name: 'Preview', exact: true }).click();
-  // Nothing is applied until the preview is confirmed.
-  await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
-  await page.getByRole('button', { name: 'Set location' }).click();
-  await expect(page.getByRole('status')).toContainText(/Location set to/);
-});
-
 test('scan: a first-party handoff link means the same as the custom scheme, a foreign host does not', async ({
   page,
 }) => {
   await page.goto(appUrl('/scan'));
-  const select = page.getByLabel('Set current location');
-  await expect(select.locator('option').nth(1)).toBeAttached();
-  const locationId = (await select.locator('option').nth(1).getAttribute('value'))!;
+  const locationId = 'audi-1';
   const entry = page.getByLabel('Paste a vCard');
   const preview = page.getByRole('button', { name: 'Preview contact', exact: true });
 
@@ -484,7 +464,7 @@ test('scan: a first-party handoff link means the same as the custom scheme, a fo
   );
   await preview.click();
   await expect(page.getByRole('heading', { name: 'Confirm before importing' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Set location' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Show on map' })).toBeEnabled();
   await page.getByRole('button', { name: 'Cancel' }).click();
 
   // A session handoff previews the session and offers to open it, nothing more.

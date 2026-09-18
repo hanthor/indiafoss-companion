@@ -1,6 +1,5 @@
 import { showBrowserNotification } from './browser-notification';
 import type { EventBundle } from '@indiafoss/model';
-import { leaveByInstant } from '@indiafoss/schedule';
 
 /**
  * Local notifications (§37). Delivery is abstracted behind a transport so the
@@ -186,8 +185,6 @@ export class NativeLocalNotificationTransport implements NotificationTransport {
 export interface NotificationWindow {
   /** Fire a 'starting soon' alert this many minutes before the session. */
   startingSoonMinutes: number;
-  /** Fire a 'leave now' alert this many minutes before it becomes critical. */
-  leaveBufferMinutes: number;
   /**
    * How long after its time an alert is still worth showing. A phone in a
    * pocket freezes the page, so a timer set for 10:00 fires when the screen
@@ -201,7 +198,6 @@ export interface NotificationWindow {
 
 export const DEFAULT_NOTIFICATION_WINDOW: NotificationWindow = {
   startingSoonMinutes: 15,
-  leaveBufferMinutes: 10,
   graceMinutes: 20,
 };
 
@@ -211,8 +207,8 @@ export const LATE_START_MINUTES = 10;
 /**
  * The alerts still worth showing at `now`: those ahead of it unchanged, and of
  * those that fell due within the grace period the latest one per session,
- * moved to `now`. The others in the same run are dropped: a "leave now" that
- * is five minutes late says everything the "in 15 min" before it said.
+ * moved to `now`. The others in the same run are dropped: a "starting now"
+ * that is five minutes late says everything the "in 15 min" before it said.
  */
 export function catchUpLateAlerts(
   alerts: AppNotification[],
@@ -237,8 +233,8 @@ export function catchUpLateAlerts(
 /**
  * How much reminding a session gets. `must-attend` is the attendee's own
  * "do not let me miss this" tier: an early heads-up, the usual starting-soon
- * and leave-now alerts, and one more at the start. `planned` (bookmarked or
- * on the itinerary) gets starting-soon and leave-now. Everything else is
+ * alert and one more at the start. `planned` (bookmarked or on the
+ * itinerary) gets starting-soon. Everything else is
  * silent: the programme has hundreds of sessions and nobody wants them all.
  */
 export type ReminderTier = 'must-attend' | 'planned' | 'none';
@@ -317,33 +313,18 @@ function clockTime(iso: string): string {
   return iso.slice(11, 16);
 }
 
-function walkText(seconds: number | null): string | null {
-  if (seconds === null || !Number.isFinite(seconds)) return null;
-  return `${Math.max(1, Math.round(seconds / 60))} min walk`;
-}
-
-/**
- * Two alerts a few minutes apart saying nearly the same thing is noise, so
- * "starting soon" is dropped when "leave now" lands within this window: the
- * leave-now alert carries the walk and the start time, so it says strictly
- * more.
- */
-export const MERGE_WINDOW_MINUTES = 5;
-
 /**
  * Compute the local notifications the app should have armed for `now`.
  * Pure and testable — returns notifications whose fire time is in the
  * future but within the lookahead window.
  *
- * Every alert names the session, the room and (when the attendee's location
- * is known) the walk, because a reminder that does not say where to go is
- * only half a reminder. `travelSecondsFor` returns null when the walk cannot
- * be worked out; omit the departure alert and retain the starting-soon alert.
+ * Every alert names the session and the room, because a reminder that does
+ * not say where to go is only half a reminder. The venue is small enough that
+ * every walk is under five minutes, so no separate departure alert is needed.
  */
 export function computeNotifications(
   bundle: EventBundle,
   now: string,
-  travelSecondsFor: (locationId: string | undefined) => number | null,
   tierFor: (activityId: string) => ReminderTier,
   window: NotificationWindow = DEFAULT_NOTIFICATION_WINDOW,
 ): AppNotification[] {
@@ -365,13 +346,9 @@ export function computeNotifications(
     const name = shortTitle(activity.title);
     const url = `/activity/${activity.id}`;
     const room = roomFor(activity.locationId);
-    const travel = travelSecondsFor(activity.locationId);
-    const walk = walkText(travel);
     const startsAt = clockTime(activity.start);
-    /** "10:15 in Devroom 1 (AOSP) · 4 min walk", with whatever is known. */
-    const whereAndWhen = [room ? `${startsAt} in ${room}` : `Starts ${startsAt}`, walk]
-      .filter(Boolean)
-      .join(' · ');
+    /** "10:15 in Devroom 1 (AOSP)", or just the time when the room is unknown. */
+    const whereAndWhen = room ? `${startsAt} in ${room}` : `Starts ${startsAt}`;
 
     if (tier === 'must-attend') {
       const headsUpAt = startMs - MUST_ATTEND_HEADS_UP_MINUTES * 60_000;
@@ -396,36 +373,12 @@ export function computeNotifications(
     }
 
     const startingSoonAt = startMs - window.startingSoonMinutes * 60_000;
-    // No route means no departure estimate; keep the ordinary starting-soon alert.
-    const leaveAtMs =
-      travel === null
-        ? Number.NaN
-        : Date.parse(leaveByInstant(activity.start, travel, window.leaveBufferMinutes * 60));
-    // Judged on the armed window, not on `now`: once the clock passes the
-    // starting-soon time the pair is still a pair, and the late one must not
-    // be caught up beside the leave-now it was merged into.
-    const bothArmed = startingSoonAt > oldestMs && leaveAtMs > oldestMs;
-    const merged =
-      bothArmed && Math.abs(leaveAtMs - startingSoonAt) <= MERGE_WINDOW_MINUTES * 60_000;
-
-    if (startingSoonAt > oldestMs && !merged) {
+    if (startingSoonAt > oldestMs) {
       out.push({
         id: `soon-${activity.id}`,
         title: `In ${window.startingSoonMinutes} min: ${name}`,
         body: whereAndWhen,
         at: new Date(startingSoonAt).toISOString(),
-        url,
-      });
-    }
-
-    if (leaveAtMs > oldestMs) {
-      out.push({
-        id: `leave-${activity.id}`,
-        title: `Leave now: ${name}`,
-        body: [walk ? `${walk} to ${room ?? 'the room'}` : room, `starts ${startsAt}`]
-          .filter(Boolean)
-          .join(' · '),
-        at: new Date(leaveAtMs).toISOString(),
         url,
       });
     }

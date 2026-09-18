@@ -13,13 +13,6 @@
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
-  import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
-  import {
-    currentLocation,
-    hydrateLocation,
-    locationIdFromDeepLink,
-    setCurrentLocation,
-  } from '$lib/location.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
@@ -57,28 +50,8 @@
   );
   const personalActivity = $derived(bundle?.activities.find((a) => a.id === personalNext?.id));
 
-  const venueKey = $derived(bundle ? venueKeyForEvent(bundle.id) : 'synthetic');
-  let venue = $state<Awaited<ReturnType<typeof loadVenue>> | null>(null);
-
-  // Deep-link / QR entry: ?at=<location-id> sets the current location.
-  // Hydrate first so the stored value never clobbers the deep link.
-  $effect(() => {
-    const at = page.url.searchParams.get('at');
-    void (async () => {
-      await hydrateLocation();
-      if (at) await setCurrentLocation(locationIdFromDeepLink(at) ?? at);
-    })();
-    void loadVenue(venueKey).then((v) => {
-      venue = v;
-    });
-  });
-
   const locationName = (a: Activity): string | undefined =>
     bundle?.locations.find((l) => l.id === a.locationId)?.name;
-
-  const venueLocations = $derived(
-    (venue ? Object.entries(venue.metadata.locations) : []) as [string, { floor?: string }][],
-  );
 
   function minutesUntil(endIso: string, nowIso: string): string {
     const mins = Math.max(0, Math.ceil((Date.parse(endIso) - Date.parse(nowIso)) / 60000));
@@ -232,36 +205,10 @@
             {minutesUntil(nowState!.next.start!, now)}
           </p>
 
-          {#if currentLocation.value}
-            <p class="leave">
-              You are at <strong
-                >{locationName({ locationId: currentLocation.value } as Activity) ??
-                  currentLocation.value.replace(/-/g, ' ')}</strong
-              >.
-            </p>
+          {#if nowState!.next.locationId}
             <div class="actions">
               <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show on map</a>
-              <button class="ghost" onclick={() => setCurrentLocation(null)}
-                >Clear my location</button
-              >
             </div>
-          {:else}
-            <p class="muted small">Tell the app where you are and the map opens on your room.</p>
-            <label>
-              <span class="sr-only">Set your current location</span>
-              <select
-                aria-label="Set your current location"
-                value={currentLocation.value ?? ''}
-                onchange={(e) => setCurrentLocation(e.currentTarget.value || null)}
-              >
-                <option value="">Where are you?</option>
-                {#each venueLocations as [id, ref] (id)}
-                  <option value={id}
-                    >{ref.floor === 'first' ? '↑ ' : ''}{id.replace(/-/g, ' ')}</option
-                  >
-                {/each}
-              </select>
-            </label>
           {/if}
         </section>
       {/if}
@@ -375,10 +322,6 @@
     border-radius: 999px;
     transition: width 1s linear;
   }
-  .leave {
-    margin: 0.35rem 0;
-    font-size: 0.95rem;
-  }
   .actions {
     display: flex;
     gap: 0.6rem;
@@ -395,32 +338,9 @@
     text-decoration: none;
     font-weight: 600;
   }
-  .ghost {
-    border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
-    background: var(--surface);
-    border-radius: 999px;
-    padding: 0.5rem 0.9rem;
-    cursor: pointer;
-    font-size: 0.85rem;
-  }
-  select {
-    width: 100%;
-    padding: 0.6rem 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
-    border-radius: 10px;
-    font-size: 0.95rem;
-    margin-top: 0.3rem;
-  }
   @media (prefers-reduced-motion: reduce) {
     .fill {
       transition: none;
     }
-  }
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
   }
 </style>

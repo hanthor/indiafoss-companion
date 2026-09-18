@@ -31,7 +31,7 @@ app (Element X / Neutrino fork).
       current time.
 - [ ] "Nothing scheduled" empty state outside conference hours.
 - [ ] "That's a wrap" state after the event ends.
-- [ ] Leave-by banner appears/updates as the walk-time countdown ticks.
+- [ ] Next-up banner counts down to the start and turns amber at five minutes.
 - [ ] Behaviour under the day simulator (see §8) at each simulated hour,
       not just real wall-clock time.
 
@@ -76,11 +76,9 @@ app (Element X / Neutrino fork).
 
 - [ ] Floor plan renders for every floor the venue has.
 - [ ] Room/location pins are tappable and open the right detail.
-- [ ] "Map to" a location (`/map/to/[location]`) draws a route.
-- [ ] Route uses the correct floor and crosses stairs/lifts where it should
-      (per `docs/venue-route-review-checklist.md` if the venue map changed).
-- [ ] Scanning a location QR code sets "last scanned" position and updates
-      leave-by walk-time estimates.
+- [ ] "Map to" a location (`/map/to/[location]`) highlights that room and
+      switches to its floor.
+- [ ] Scanning a location QR code opens the map on that room.
 
 ## 7. Connect & contact sharing
 
@@ -163,8 +161,6 @@ least once to catch OS-level throttling issues):
 - [ ] "In X min: <session>" — must-attend heads-up (bookmarked/highly
       ranked sessions get earlier warning).
 - [ ] "Starting now: <session>".
-- [ ] "Leave now: <session>" — timed off the walk distance from wherever
-      you last scanned a location QR.
 - [ ] Notification tap opens the right Activity detail screen.
 - [ ] Notifications respect the OS "Do not disturb" / notification
       permission being denied (no crash, and a way to grant later).

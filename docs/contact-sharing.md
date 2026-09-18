@@ -206,8 +206,8 @@ always shows a confirmation preview before importing anything.
 ## Supported payloads
 
 - **Location marker:** `indiafoss://location/<location-id>`. On confirm, the
-  scanned id is written to the local `current-location` setting via
-  `setCurrentLocation`, which drives leave-by / routing on the Now screen.
+  map opens on that room (`/map/to/<id>`). Nothing is stored: the app does
+  not track a current location.
 - **Contact card:** a vCard 3.0 payload (as produced by the Connect screen).
   On confirm, the received card is offered as a local `.vcf` download. It is
   never merged into the attendee's own profile automatically.
@@ -259,10 +259,9 @@ Every scan path has a no-camera equivalent:
 
 - **In-app scanning (both platforms):** identical behaviour. The `/scan` route
   parses payloads locally and previews before applying.
-- **Web/PWA URL deep links:** the Now screen already accepts
-  `indiafoss://location/<id>` / `?at=<id>` via `locationIdFromDeepLink`
-  (`apps/web/src/lib/location.svelte.ts`), so a scanned or shared link resolves
-  to the same current-location state.
+- **Web/PWA URL deep links:** `indiafoss://location/<id>` and the
+  `/h/view-location` handoff both land in the scan preview and open the map
+  on that room.
 - **Android custom-scheme deep links:** the native app registers the
   `indiafoss` scheme so an OS-level scan of `indiafoss://location/<id>` opens
   the app on the location. Contact vCards are handled in-app rather than via a
@@ -283,9 +282,10 @@ card carries `pk` (`alg:base64url`) and `sig` over its other fields.
   from the SHA-256 fingerprint of the public key. The same badge is shown on
   the owner's Connect screen, so two people can compare badges in person — a
   quick, playful check that the card really came from that device.
-- **Meeting context** is saved with the contact: the session running when
-  you scanned and your current location, so the contact list reads "Met
-  during _Kernel devroom_".
+- **Meeting context** is saved with the contact, assuming you were following
+  your plan: the planned talk or block under way when you scanned (else the
+  programme's running session), so the contact list reads "Met during
+  _Kernel devroom_" or "Met during _Lunch, day 1_".
 - This is a **handshake, not identity verification**: it proves the card was
   produced by the holder of a key, not who they are. Matrix cross-signing
   remains the authenticity mechanism for messaging, and every contact still

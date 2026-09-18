@@ -14,10 +14,6 @@ import { resolveSavedDayPlan } from './resolved-plan.svelte';
 import { ReminderReconciler } from './reminder-reconciler';
 import { dispositionOf } from '$lib/prefs.svelte';
 import { eventState } from '$lib/event.svelte';
-import { currentLocation } from '$lib/location.svelte';
-import { loadVenue, venueKeyForEvent } from '$lib/venue.svelte';
-import { journeyRoute } from '$lib/journey';
-import { hydrateRoutingProfile, routingPrefs } from '$lib/routingPrefs.svelte';
 import { appNowMs, appSpeed, logSimEvent, simActive } from '$lib/simulator.svelte';
 
 let storage: CompanionStorage | null = null;
@@ -175,19 +171,9 @@ export async function armNotifications(clockRefresh = false): Promise<void> {
   await reconcile(async () => {
     const bundle = eventState.bundle;
     if (!notificationsEnabled.value || !bundle) return null;
-    await hydrateRoutingProfile();
     const plans = await Promise.all(
       getEventDays(bundle).map((day) => resolveSavedDayPlan(bundle, day)),
     );
-    let venue: Awaited<ReturnType<typeof loadVenue>> | null = null;
-    try {
-      venue = await loadVenue(venueKeyForEvent(bundle.id));
-    } catch {
-      /* no invented walk */
-    }
-    const travelSecondsFor = (locationId: string | undefined): number | null =>
-      journeyRoute(venue, currentLocation.value, locationId, routingPrefs.profile)
-        ?.durationSeconds ?? null;
     const validPlans = plans.filter((p) => p.edited.feasible && p.mustAttendConflicts.length === 0);
     // eslint-disable-next-line svelte/prefer-svelte-reactivity
     const ids = new Set(validPlans.flatMap((p) => p.edited.items.map((item) => item.id)));
@@ -210,7 +196,7 @@ export async function armNotifications(clockRefresh = false): Promise<void> {
     return {
       transport: await getTransport(),
       notifications: [
-        ...computeNotifications(bundle, now, travelSecondsFor, tierFor),
+        ...computeNotifications(bundle, now, tierFor),
         ...computeBlockNotifications(blocks, now),
       ],
     };

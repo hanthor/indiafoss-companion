@@ -60,10 +60,10 @@ export function buildRecap(contacts: ContactRecord[], bundle: EventBundle | null
 
     const session = activity(contact.metActivityId);
     const room = location(contact.metLocationId);
-    const key = session?.id ?? room?.id ?? 'elsewhere';
+    const key = session?.id ?? contact.metLabel ?? room?.id ?? 'elsewhere';
     const place = places.get(key) ?? {
       key,
-      label: session?.title ?? room?.name ?? 'Around the venue',
+      label: session?.title ?? contact.metLabel ?? room?.name ?? 'Around the venue',
       ...(session?.start && session.end
         ? { when: `${formatTime(session.start)}–${formatTime(session.end)}` }
         : {}),

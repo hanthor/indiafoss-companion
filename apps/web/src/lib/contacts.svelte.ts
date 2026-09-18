@@ -61,6 +61,8 @@ function plainIdentity(meta: IdentityMeta | undefined): { identity?: IdentityMet
 export interface MeetingContext {
   activityId?: string;
   locationId?: string;
+  /** The plan item you were following when you met: "Lunch, day 1". */
+  label?: string;
 }
 
 /** What the scanner learned about the card's key and rendering. */
@@ -98,6 +100,7 @@ export function contactFromVCard(
     ...issueMeta(identity),
     ...(met?.activityId ? { metActivityId: met.activityId } : {}),
     ...(met?.locationId ? { metLocationId: met.locationId } : {}),
+    ...(met?.label ? { metLabel: met.label } : {}),
     fullName: card.fullName || card.matrixId || 'Unnamed contact',
     organization: card.organization,
     email: card.email,
@@ -171,6 +174,7 @@ export function contactFromFriend(
     ...issueMeta({ ...identity, issuedAt: friend.issuedAt, nonce: friend.nonce }),
     metActivityId: met?.activityId,
     metLocationId: met?.locationId,
+    metLabel: met?.label,
   };
 }
 
