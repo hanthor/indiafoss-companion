@@ -4,9 +4,12 @@ These documents are the reviewed architecture for Companion and Chat. They are
 **proposals and recommendations**, not claims that anything below is
 implemented or that the maintainer has accepted every default. Where a document
 recommends something, the acceptance record lives in
-[#181](https://github.com/hanthor/indiafoss-companion/issues/181).
+[#181](https://github.com/hanthor/indiafoss-companion/issues/181). The issues
+each document came from are closed: the text here is the record, and the work
+each stage names is tracked by its owning issue under the roadmap,
+[#34](https://github.com/hanthor/indiafoss-companion/issues/34).
 
-| Document                                     | Scope                                                                                                          | Tracking issue                                                    |
+| Document                                     | Scope                                                                                                          | Origin issue                                                      |
 | -------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | [system.md](system.md)                       | App boundaries, shared contracts, identity and trust, delivery and recovery, gateways, branding, release gates | [#194](https://github.com/hanthor/indiafoss-companion/issues/194) |
 | [ios.md](ios.md)                             | Companion and Chat paths on iOS, upstream findings, notifications, permissions, device validation              | [#199](https://github.com/hanthor/indiafoss-companion/issues/199) |
