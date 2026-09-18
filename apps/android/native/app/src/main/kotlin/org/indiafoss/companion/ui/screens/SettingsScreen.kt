@@ -51,7 +51,6 @@ import org.indiafoss.companion.core.ImportChange
 fun SettingsScreen(
     state: UiState,
     onReminders: (Boolean) -> Unit,
-    onRoutingProfile: (String) -> Unit,
     onStartSimulation: (day: String, time: String, speed: Int) -> Unit = { _, _, _ -> },
     onStopSimulation: () -> Unit = {},
     onDynamicColor: (Boolean) -> Unit = {},
@@ -130,7 +129,7 @@ fun SettingsScreen(
                 Column(Modifier.padding(16.dp)) {
                     Text("Reminders", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Local \"starting soon\" and \"leave now\" alerts for your bookmarked sessions. " +
+                        "A local \"starting soon\" alert, with the room and the start time, for every session on your plan. " +
                             "Sessions marked must attend also get a heads-up 30 minutes before and an alert as they start. " +
                             "Alarms on this phone, no push service, nothing leaves the device.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -213,31 +212,9 @@ fun SettingsScreen(
             }
             Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                 Column(Modifier.padding(16.dp)) {
-                    Text("Getting around", style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        "How walk times between rooms are worked out.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-                    )
-                    val options = listOf("fastest" to "Fastest", "avoid-stairs" to "Avoid stairs", "accessible" to "Step-free")
-                    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                        options.forEachIndexed { index, (value, label) ->
-                            SegmentedButton(
-                                selected = state.routingProfile == value,
-                                onClick = { onRoutingProfile(value) },
-                                shape = SegmentedButtonDefaults.itemShape(index, options.size),
-                                label = { Text(label) },
-                            )
-                        }
-                    }
-                }
-            }
-            Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
-                Column(Modifier.padding(16.dp)) {
                     Text("Simulate the day", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Run the app through a conference day in minutes: Now, the leave-by banner and every reminder behave as they would, on a clock that runs faster than real time. Your bookmarks and ratings are the real ones.",
+                        "Run the app through a conference day in minutes: Now, the next-up banner and every reminder behave as they would, on a clock that runs faster than real time. Your bookmarks and ratings are the real ones.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),

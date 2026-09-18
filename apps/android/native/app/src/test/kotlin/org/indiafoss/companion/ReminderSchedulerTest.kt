@@ -50,10 +50,11 @@ class ReminderSchedulerTest {
     @Test
     fun anEntryLeavingThePlanLosesItsAlarmsAndRearmingNeverDuplicates() {
         scheduler.arm(state())
-        // Must attend with no walk known: heads-up, start, and leave-now (starting-soon merged into it) — plus the other planned talk's leave-now.
+        // Must attend: heads-up, starting soon and start — plus the other planned talk's starting soon. Never a leave-now.
         val first = armedIds()
-        assertTrue(first.toString(), "must-t" in first && "start-t" in first && "leave-t" in first)
-        assertTrue(first.toString(), "leave-o" in first)
+        assertTrue(first.toString(), "must-t" in first && "soon-t" in first && "start-t" in first)
+        assertTrue(first.toString(), "soon-o" in first)
+        assertTrue(first.toString(), first.none { it.startsWith("leave-") })
         assertEquals(first.toSet().size, first.size)
 
         scheduler.arm(state())
@@ -62,10 +63,10 @@ class ReminderSchedulerTest {
         scheduler.arm(state(removed = setOf("t")))
         val afterRemoval = armedIds()
         assertTrue(afterRemoval.toString(), afterRemoval.none { it.endsWith("-t") })
-        assertTrue(afterRemoval.toString(), "leave-o" in afterRemoval)
+        assertTrue(afterRemoval.toString(), "soon-o" in afterRemoval)
 
         scheduler.arm(state(removed = setOf("t"), mustAttend = emptySet()))
-        assertTrue(armedIds().toString(), "leave-o" in armedIds())
+        assertTrue(armedIds().toString(), "soon-o" in armedIds())
 
         scheduler.arm(state(enabled = false))
         assertEquals(emptyList<String>(), armedIds())

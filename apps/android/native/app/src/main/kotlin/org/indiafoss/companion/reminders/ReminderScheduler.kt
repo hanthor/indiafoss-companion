@@ -66,7 +66,7 @@ class ReminderScheduler(private val context: Context) {
             if (manager.getNotificationChannel(CHANNEL) == null) {
                 manager.createNotificationChannel(
                     NotificationChannel(CHANNEL, "Session reminders", NotificationManager.IMPORTANCE_HIGH).apply {
-                        description = "Starting soon, leave now and must-attend alerts for your plan."
+                        description = "Starting soon, starting now and must-attend alerts for your plan."
                     },
                 )
             }

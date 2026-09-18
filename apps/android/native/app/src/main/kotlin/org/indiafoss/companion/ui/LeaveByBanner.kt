@@ -21,7 +21,8 @@ import org.indiafoss.companion.core.Schedule
  * and the map call next, never a bookmark or must-go that has left the plan,
  * and never a pick from the whole programme. While the plan has a blocking
  * conflict the strip says so and opens the plan instead. Amber-ish
- * (tertiary) once it is five minutes away or the walk says leave now.
+ * (tertiary) once it is five minutes away; the venue is small, so there is
+ * no leave-by time, only the countdown to the start.
  */
 @Composable
 fun LeaveByBanner(state: UiState, onOpenPlan: () -> Unit = {}, onOpen: (String) -> Unit) {
@@ -44,20 +45,10 @@ fun LeaveByBanner(state: UiState, onOpenPlan: () -> Unit = {}, onOpen: (String) 
     val start = next.start
     val must = next.source == ResolvedPlan.Source.MUST_ATTEND
     val minutes = Schedule.minutesUntil(start, state.now)
-    val walk = next.locationId?.let(state.walkSecondsTo)
-    // Leave-by: the start minus the walk minus a five-minute buffer, as on the web.
-    val leaveIn = walk?.let { minutes - (it + 300 + 59) / 60 }
-    val urgent = minutes <= 5 || (leaveIn != null && leaveIn <= 0)
+    val urgent = minutes <= 5
     val kicker = buildString {
         if (must) append("MUST ATTEND · ")
-        append(
-            when {
-                minutes <= 0 -> "STARTING NOW"
-                leaveIn != null && leaveIn <= 0 -> "LEAVE NOW"
-                leaveIn != null -> "LEAVE IN $leaveIn MIN · WALK ${(walk + 59) / 60} MIN"
-                else -> "STARTS IN $minutes MIN"
-            },
-        )
+        append(if (minutes <= 0) "STARTING NOW" else "STARTS IN $minutes MIN")
         append(" · ").append(Schedule.formatTime(start))
     }
     val room = bundle.location(next.locationId)?.name

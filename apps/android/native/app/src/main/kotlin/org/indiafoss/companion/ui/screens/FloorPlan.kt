@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -73,12 +72,12 @@ object FloorPlans {
     }.getOrDefault(emptyList())
 }
 
-/** What a room is drawn with: lit while a session runs, marked where the attendee is. */
-data class RoomState(val live: String? = null, val here: Boolean = false, val next: Boolean = false, val title: String? = null, val name: String? = null)
+/** What a room is drawn with: lit while a session runs, outlined when it is the plan's destination. */
+data class RoomState(val live: String? = null, val next: Boolean = false, val title: String? = null, val name: String? = null)
 
 /**
  * One floor as vectors, pinch-to-zoom and drag, rooms lit while sessions
- * run in them and labelled with the minutes left, a dot for where you are.
+ * run in them and labelled with the minutes left, the destination outlined.
  * Tapping a room reports it.
  */
 @Composable
@@ -137,11 +136,7 @@ fun FloorPlanView(floor: Floor, states: Map<String, RoomState>, modifier: Modifi
             drawPath(paths.outline, scheme.outline, style = Stroke(width = hair * 2))
             for ((room, path) in paths.rooms) {
                 val state = states[room.id] ?: states[room.key ?: ""]
-                val fill = when {
-                    state?.here == true -> scheme.tertiaryContainer
-                    state?.live != null -> scheme.primaryContainer
-                    else -> scheme.surfaceContainer
-                }
+                val fill = if (state?.live != null) scheme.primaryContainer else scheme.surfaceContainer
                 drawPath(path, fill)
                 drawPath(path, if (state?.next == true) scheme.tertiary else scheme.outlineVariant, style = Stroke(width = if (state?.next == true) hair * 4 else hair))
             }
@@ -174,10 +169,6 @@ fun FloorPlanView(floor: Floor, states: Map<String, RoomState>, modifier: Modifi
             state?.live?.let { live ->
                 val sub = measurer.measure(live, minutesStyle, maxLines = 1, overflow = TextOverflow.Ellipsis, constraints = constraints)
                 drawText(sub, topLeft = Offset(sx - sub.size.width / 2f, detailY))
-            }
-            if (state?.here == true) {
-                drawCircle(scheme.tertiary, radius = 14f, center = Offset(sx, sy - label.size.height))
-                drawCircle(Color.White, radius = 5f, center = Offset(sx, sy - label.size.height))
             }
         }
     }
