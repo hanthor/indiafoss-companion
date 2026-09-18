@@ -26,7 +26,7 @@ URL = re.compile(r"https://github\.com/[\w.-]+/[\w.-]+/releases/download/[^\s\"'
 SEARCHED = ("*.md", "*.svelte", "*.ts", "*.kt", "*.yml", "*.yaml")
 
 # A URL built from workflow expressions cannot be checked from here.
-TEMPLATED = ("${{", "$GITHUB", "{{")
+TEMPLATED = ("${{", "$GITHUB", "{{", "${")
 
 
 def advertised() -> dict[str, list[str]]:
