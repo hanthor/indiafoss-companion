@@ -8,25 +8,13 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.indiafoss.companion.core.ContactCard
+import org.indiafoss.companion.core.ContactContinuity
+import org.indiafoss.companion.core.MetContact
 
 private val Context.contactStore: DataStore<Preferences> by preferencesDataStore(name = "contacts")
-
-/** Someone met: their card as scanned, and where and when. */
-@Serializable
-data class MetContact(
-    val id: String,
-    val card: ContactCard,
-    val vcard: String,
-    val savedAt: Long,
-    val metActivityId: String? = null,
-    /** valid | invalid | unsigned | unchecked, from the card's signature at scan time. */
-    val signature: String = "unsigned",
-    val fingerprint: String? = null,
-)
 
 /** The attendee's own card and the people they met, on device only. */
 class ProfileStore(private val context: Context) {
@@ -56,18 +44,17 @@ class ProfileStore(private val context: Context) {
         }
     }
 
-    suspend fun addContact(contact: MetContact) {
+    /** Save a scanned card with key continuity; returns what happened for the message. */
+    suspend fun addContact(contact: MetContact): ContactContinuity.Outcome {
+        var outcome = ContactContinuity.Outcome.NEW
         context.contactStore.edit { prefs ->
             val current = prefs[contactsKey]?.let { runCatching { json.decodeFromString<List<MetContact>>(it) }.getOrNull() }
                 ?: emptyList()
-            // The same person scanned again updates their entry rather than duplicating it.
-            val same = current.firstOrNull {
-                it.card.fullName.isNotBlank() && it.card.fullName.equals(contact.card.fullName, ignoreCase = true)
-            }
-            val next = if (same != null) current.map { if (it.id == same.id) contact.copy(id = same.id) else it }
-            else listOf(contact) + current
-            prefs[contactsKey] = json.encodeToString(next)
+            val result = ContactContinuity.reconcile(current, contact)
+            outcome = result.outcome
+            prefs[contactsKey] = json.encodeToString(result.contacts)
         }
+        return outcome
     }
 
     suspend fun removeContact(id: String) {
