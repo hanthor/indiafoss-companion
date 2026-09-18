@@ -1,0 +1,7 @@
+# Every issue goes through a form (#193): a concrete problem or outcome, the
+# revision it was seen at, evidence, a duplicate search and bounded acceptance.
+blank_issues_enabled: false
+contact_links:
+  - name: Roadmap and delivery gates
+    url: https://github.com/hanthor/indiafoss-companion/issues/34
+    about: Where the conference-day and Matrix/P2P work is sequenced. Read before filing a plan.
