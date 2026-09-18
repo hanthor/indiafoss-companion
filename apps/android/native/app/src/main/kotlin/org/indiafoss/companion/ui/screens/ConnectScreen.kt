@@ -48,7 +48,7 @@ import com.google.zxing.qrcode.QRCodeWriter
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import org.indiafoss.companion.core.ContactCard
 import org.indiafoss.companion.core.VCard
-import org.indiafoss.companion.data.MetContact
+import org.indiafoss.companion.core.MetContact
 
 /** Payloads above this scan poorly on a phone screen. */
 private const val MAX_QR_BYTES = 1500
@@ -251,6 +251,23 @@ fun ConnectScreen(
                                 },
                                 style = MaterialTheme.typography.labelSmall,
                                 color = if (met.signature == "invalid") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            val extras = buildList {
+                                if (met.metCount > 1) add("Met ${met.metCount}×")
+                                if (met.keyChanged) add("Key changed since an earlier card")
+                                if (met.signature == "valid" && met.cardIssuedAt.isNotBlank() &&
+                                    org.indiafoss.companion.core.Handshake.freshness(
+                                        org.indiafoss.companion.core.Handshake.Identity(
+                                            org.indiafoss.companion.core.Handshake.Verdict.VALID, null, null, met.cardIssuedAt,
+                                        ),
+                                        met.lastMetAt,
+                                    ) == org.indiafoss.companion.core.Handshake.Freshness.STALE
+                                ) add("Code older than an hour when scanned")
+                            }
+                            if (extras.isNotEmpty()) Text(
+                                extras.joinToString(" · "),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (met.keyChanged) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     },

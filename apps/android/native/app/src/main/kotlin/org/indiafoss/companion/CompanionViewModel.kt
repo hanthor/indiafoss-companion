@@ -26,7 +26,9 @@ import org.indiafoss.companion.core.ContactCard
 import org.indiafoss.companion.core.Handshake
 import org.indiafoss.companion.core.VCard
 import org.indiafoss.companion.data.DeviceKey
-import org.indiafoss.companion.data.MetContact
+import org.indiafoss.companion.core.ContactContinuity
+import org.indiafoss.companion.core.MetContact
+import org.indiafoss.companion.core.ScannedIdentity
 import org.indiafoss.companion.data.ProfileStore
 import org.indiafoss.companion.core.Choice
 import org.indiafoss.companion.core.Disposition
@@ -270,6 +272,9 @@ data class ScheduleUpdate(val revision: Int, val changes: List<ScheduleDiff.Deta
     val summary: String? get() = changes?.let { list -> ScheduleDiff.summary(list.map(ScheduleDiff.Detail::change)) }
 }
 
+/** Re-issue the signed card this often so the code on screen is never older than a few minutes. */
+private const val REISSUE_MS = 5 * 60_000L
+
 class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val repository = EventRepository(app)
     private val preferences = PreferencesStore(app)
@@ -323,6 +328,15 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             profiles.profile.collect { card ->
                 val signed = DeviceKey.sign(VCard.encode(card))
                 _state.update { it.copy(profile = card, signedCard = signed) }
+            }
+        }
+        viewModelScope.launch {
+            // Each rendering is dated inside the signature, so a scanner can tell a
+            // live card from a photograph; re-issue while the app is running.
+            while (true) {
+                delay(REISSUE_MS)
+                val card = state.value.profile
+                _state.update { it.copy(signedCard = DeviceKey.sign(VCard.encode(card))) }
             }
         }
         viewModelScope.launch { profiles.contacts.collect { met -> _state.update { it.copy(contacts = met) } } }
@@ -519,19 +533,24 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                 return
             }
         }
-        val card = VCard.parse(text)
-        if (card == null || card.fullName.isBlank()) {
+        // A card, or an address on its own: Chat's mesh code, a matrix.to link, a friend card.
+        val parsed = VCard.parse(text)
+        val card = if (parsed != null && parsed.fullName.isNotBlank()) parsed else ScannedIdentity.parse(text)
+        if (card == null) {
             _state.update { it.copy(message = "That code is not a contact card.") }
             return
         }
         val running = state.value.nowState?.current?.firstOrNull()?.id
-        val identity = Handshake.verify(text)
+        val identity = if (parsed != null) Handshake.verify(text) else Handshake.Identity(Handshake.Verdict.UNSIGNED, null, null)
+        val now = System.currentTimeMillis()
+        val freshness = Handshake.freshness(identity, now)
         viewModelScope.launch {
-            profiles.addContact(
+            val outcome = profiles.addContact(
                 MetContact(
-                    id = "contact-${System.currentTimeMillis()}", card = card, vcard = text,
-                    savedAt = System.currentTimeMillis(), metActivityId = running,
+                    id = "contact-$now", card = card, vcard = if (parsed != null) text else VCard.encode(card),
+                    savedAt = now, metActivityId = running,
                     signature = identity.verdict.name.lowercase(), fingerprint = identity.fingerprint,
+                    cardIssuedAt = if (identity.verdict == Handshake.Verdict.VALID) identity.issuedAt.orEmpty() else "",
                 ),
             )
             val note = when (identity.verdict) {
@@ -540,7 +559,13 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                 Handshake.Verdict.UNCHECKED -> " · signed, not checked"
                 Handshake.Verdict.UNSIGNED -> ""
             }
-            _state.update { it.copy(message = "Saved ${card.fullName}$note") }
+            val stale = if (freshness == Handshake.Freshness.STALE) " · code older than an hour, maybe a photo" else ""
+            val verb = when (outcome) {
+                ContactContinuity.Outcome.NEW -> "Saved"
+                ContactContinuity.Outcome.UPDATED -> "Updated"
+                ContactContinuity.Outcome.KEY_CHANGED -> "Saved as a new entry (different key than before)"
+            }
+            _state.update { it.copy(message = "$verb ${card.fullName}$note$stale") }
         }
     }
 

@@ -19,6 +19,17 @@ client renders natively rather than embedding a WebView.
 | Map         | the floor plan with what is on in every room, plus the room the resolved plan sends you to next                                                                                                  |
 | Settings    | reminders switch (POST_NOTIFICATIONS on 13+, exact-alarm hint on 12+), appearance (wallpaper colours on 12+), phone calendar, personal-data export/import (#240), privacy, about                 |
 | Session     | detail, bookmark, must attend                                                                                                                                                                    |
+| Connect     | your signed card as a QR (re-issued every five minutes, dated and nonced inside the signature: `Handshake.signCard`), fill from profiles or the phone's contacts, and the people you met         |
+| Scan        | zxing, no Google services: a vCard (`VCard.parse`), or an address on its own (`ScannedIdentity`: Chat's `matrix:u/…` code, a `matrix.to` link, a bare Matrix id, an `indiafoss://friend` card)   |
+
+A scanned card is saved with key continuity (`ContactContinuity`, the PWA's
+rules): the same key updates the entry in place and counts the meeting, the
+same person with a different key is saved as a new entry flagged "Key
+changed", and an unsigned re-scan never drops a key already known. The
+signature verdict and the card's issue time are kept on the contact
+(`MetContact`), so the row can say "Code older than an hour when scanned"
+about a signed card that was a photograph rather than a live screen
+(`Handshake.freshness`, the same hour the PWA uses).
 
 Reminders are `AlarmManager` alarms (`ReminderScheduler`) recomputed from the
 resolved plan whenever anything feeding it changes — bookmarks, must-attend

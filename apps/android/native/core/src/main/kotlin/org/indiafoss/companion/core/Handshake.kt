@@ -11,6 +11,8 @@ import java.security.spec.ECPublicKeySpec
 import java.security.spec.ECGenParameterSpec
 import java.security.AlgorithmParameters
 import java.security.spec.ECParameterSpec
+import java.security.SecureRandom
+import java.time.Instant
 import java.util.Base64
 
 /**
@@ -25,10 +27,47 @@ import java.util.Base64
 object Handshake {
     const val KEY_FIELD = "X-INDIAFOSS-KEY"
     const val SIG_FIELD = "X-INDIAFOSS-SIG"
+    /** When the rendering was issued (ISO 8601); inside the signed body, so a replay cannot re-date it. */
+    const val ISSUED_FIELD = "X-INDIAFOSS-ISSUED"
+    /** Random per-issue value that makes every rendering of the card distinct. */
+    const val NONCE_FIELD = "X-INDIAFOSS-NONCE"
+    /** A signed card older than this is a photograph until the sharer shows a live one. */
+    const val FRESH_MINUTES = 60L
+    private const val FUTURE_SKEW_MINUTES = 10L
 
     enum class Verdict { VALID, INVALID, UNSIGNED, UNCHECKED }
 
-    data class Identity(val verdict: Verdict, val publicKey: String?, val fingerprint: String?)
+    /** Whether a scanned code was issued recently enough to have come off a live screen. */
+    enum class Freshness { FRESH, STALE, UNKNOWN }
+
+    data class Identity(
+        val verdict: Verdict,
+        val publicKey: String?,
+        val fingerprint: String?,
+        /** Issue time the card carried; meaningful only with a [Verdict.VALID] signature. */
+        val issuedAt: String? = null,
+        val nonce: String? = null,
+    )
+
+    private val ISSUED_RE = Regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$")
+    private val NONCE_RE = Regex("^[A-Za-z0-9_-]{8,32}$")
+
+    /** Nine random bytes, base64url: short enough for a QR, unique enough per rendering. */
+    fun newNonce(): String = base64Url(ByteArray(9).also { SecureRandom().nextBytes(it) })
+
+    /**
+     * Only a valid signature makes the issue time worth reading: an unsigned or
+     * tampered card can claim any date. UNKNOWN is not a warning, just a card
+     * from a build that does not date its cards.
+     */
+    fun freshness(identity: Identity, nowMs: Long): Freshness {
+        if (identity.verdict != Verdict.VALID) return Freshness.UNKNOWN
+        val issued = identity.issuedAt?.let { runCatching { Instant.parse(it).toEpochMilli() }.getOrNull() }
+            ?: return Freshness.UNKNOWN
+        val ageMinutes = (nowMs - issued) / 60_000.0
+        if (ageMinutes < -FUTURE_SKEW_MINUTES) return Freshness.UNKNOWN
+        return if (ageMinutes <= FRESH_MINUTES) Freshness.FRESH else Freshness.STALE
+    }
 
     fun base64Url(bytes: ByteArray): String = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
 
@@ -55,9 +94,22 @@ object Handshake {
         return base64Url(derToRaw(signer.sign()))
     }
 
-    /** Add the key and signature lines to a vCard that has neither. */
-    fun signCard(vcard: String, formattedKey: String, privateKey: PrivateKey): String {
-        val withKey = vcard.replace(Regex("END:VCARD\r?\n?$"), "$KEY_FIELD:$formattedKey\r\nEND:VCARD\r\n")
+    /**
+     * Add the issue time, nonce, key and signature lines to a vCard that has
+     * none. The date and nonce sit inside the signed body, so a photographed
+     * code keeps its original date and a scanner can tell it from a live one.
+     */
+    fun signCard(
+        vcard: String,
+        formattedKey: String,
+        privateKey: PrivateKey,
+        issuedAt: String = Instant.now().toString(),
+        nonce: String = newNonce(),
+    ): String {
+        val withKey = vcard.replace(
+            Regex("END:VCARD\r?\n?$"),
+            "$ISSUED_FIELD:$issuedAt\r\n$NONCE_FIELD:$nonce\r\n$KEY_FIELD:$formattedKey\r\nEND:VCARD\r\n",
+        )
         val sig = sign(canonicalBody(withKey), privateKey)
         return withKey.replace(Regex("END:VCARD\r?\n?$"), "$SIG_FIELD:$sig\r\nEND:VCARD\r\n")
     }
@@ -71,10 +123,12 @@ object Handshake {
         val key = field(vcard, KEY_FIELD) ?: return Identity(Verdict.UNSIGNED, null, null)
         val sig = field(vcard, SIG_FIELD)
         val print = fingerprint(key)
+        val issuedAt = field(vcard, ISSUED_FIELD)?.takeIf { ISSUED_RE.matches(it) }
+        val nonce = field(vcard, NONCE_FIELD)?.takeIf { NONCE_RE.matches(it) }
         val match = Regex("^(ed25519|p256):([A-Za-z0-9_-]{20,200})$").find(key)
-            ?: return Identity(Verdict.INVALID, key, print)
-        if (sig == null) return Identity(Verdict.INVALID, key, print)
-        if (match.groupValues[1] == "ed25519") return Identity(Verdict.UNCHECKED, key, print)
+            ?: return Identity(Verdict.INVALID, key, print, issuedAt, nonce)
+        if (sig == null) return Identity(Verdict.INVALID, key, print, issuedAt, nonce)
+        if (match.groupValues[1] == "ed25519") return Identity(Verdict.UNCHECKED, key, print, issuedAt, nonce)
         val ok = runCatching {
             val publicKey = p256PublicKey(fromBase64Url(match.groupValues[2]))
             val verifier = Signature.getInstance("SHA256withECDSA").apply {
@@ -83,7 +137,7 @@ object Handshake {
             }
             verifier.verify(rawToDer(fromBase64Url(sig)))
         }.getOrDefault(false)
-        return Identity(if (ok) Verdict.VALID else Verdict.INVALID, key, print)
+        return Identity(if (ok) Verdict.VALID else Verdict.INVALID, key, print, issuedAt, nonce)
     }
 
     fun p256PublicKey(raw: ByteArray): PublicKey {
