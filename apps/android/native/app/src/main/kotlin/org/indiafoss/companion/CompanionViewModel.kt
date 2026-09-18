@@ -21,7 +21,6 @@ import org.indiafoss.companion.core.PlannedEntry
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.AffinityModel
 import org.indiafoss.companion.core.Calendar
-import org.indiafoss.companion.core.RoutingProfile
 import org.indiafoss.companion.core.ContactCard
 import org.indiafoss.companion.core.Handshake
 import org.indiafoss.companion.core.VCard
@@ -54,9 +53,6 @@ import org.indiafoss.companion.data.RatingsStore
 import org.indiafoss.companion.data.BundleSource
 import org.indiafoss.companion.data.RefreshResult
 import org.indiafoss.companion.core.StoredComparison
-import org.indiafoss.companion.data.VenueRepository
-import org.indiafoss.companion.ui.screens.Floor
-import org.indiafoss.companion.ui.screens.FloorPlans
 import org.indiafoss.companion.reminders.ReminderScheduler
 import org.indiafoss.companion.core.ImportPreview
 import org.indiafoss.companion.core.PersonalDataFiles
@@ -85,15 +81,8 @@ data class UiState(
     val deviceFingerprint: String? = null,
     /** The card as shared: signed by this device. */
     val signedCard: String = "",
-    /** Where the attendee is, as a bundle location id: set on the map or by a room's code. */
-    val currentLocation: String? = null,
-    /** Seconds of walking from where the attendee is to a location, when both are on the plan. */
-    val walkSecondsTo: (String) -> Int? = { null },
-    /** Seconds of walking between two locations, for the plan's transfer warnings; null when unknown. */
-    val walkBetween: (String, String) -> Int? = { _, _ -> null },
     /** A route asked for by a deep link, consumed by the navigation host. */
     val pendingRoute: String? = null,
-    val routingProfile: String = "fastest",
     /** Wallpaper (Material You) colour for the everyday screens; off keeps the event scheme throughout. */
     val dynamicColor: Boolean = true,
     val message: String? = null,
@@ -187,7 +176,7 @@ data class UiState(
      * The attendee's resolved plan for a day (#221): base plan, must-go,
      * devroom reservations, interested talks, blocks, removals and
      * replacements, resolved against the current bundle every time. Now, the
-     * map destination, the leave-by banner, the calendar and the reminders
+     * map destination, the next-up banner, the calendar and the reminders
      * all read this and nothing else.
      */
     fun resolvedPlanFor(day: String): ResolvedPlan.Plan? {
@@ -203,7 +192,6 @@ data class UiState(
                 blocks = blocks.filter { it.day == day }.map { it.toBlock() },
             ),
             stayTrackIds = stayTrackIds,
-            walkSeconds = walkBetween,
             yieldsTo = ::yieldsTo,
         )
     }
@@ -215,10 +203,7 @@ data class UiState(
     /** Every alert the resolved plans want from `nowMs` on: the input to the alarm reconciliation. */
     fun plannedReminders(nowMs: Long): List<Reminders.Reminder> {
         val b = bundle ?: return emptyList()
-        return Reminders.forPlans(
-            days.mapNotNull(::resolvedPlanFor), b::location, nowMs, ::dispositionOf,
-            walkSecondsTo = { locationId -> locationId?.let(walkSecondsTo) },
-        )
+        return Reminders.forPlans(days.mapNotNull(::resolvedPlanFor), b::location, nowMs, ::dispositionOf)
     }
 
     /** Every planned day as calendar entries: what the phone's calendar should hold (#272). */
@@ -242,6 +227,26 @@ data class UiState(
         get() = bundle?.let { Schedule.nowState(it, now) }
 
     val days: List<String> get() = bundle?.let(Schedule::eventDays) ?: emptyList()
+
+    /**
+     * Who you met is described from the plan, assuming you were following it
+     * (the PWA's `metDuringLabel`): the planned talk or block under way now —
+     * a block reads "Lunch, day 1" — or else the programme's running session.
+     */
+    fun metDuring(): MetDuring {
+        val plan = todayPlan
+        val planned = plan?.inProgress(now)
+        if (plan != null && planned != null) {
+            if (planned.isSession) return MetDuring(planned.title, planned.id)
+            val dayIndex = days.indexOf(plan.day)
+            val dayPart = if (dayIndex >= 0) ", day ${dayIndex + 1}" else ""
+            return MetDuring(planned.title.split(" · ")[0] + dayPart, null)
+        }
+        val running = nowState?.current?.firstOrNull()
+        return MetDuring(running?.title, running?.id)
+    }
+
+    data class MetDuring(val label: String?, val activityId: String?)
 
     fun activitiesFor(day: String): List<Activity> =
         bundle?.let { Schedule.activitiesForDay(it, day) } ?: emptyList()
@@ -285,12 +290,10 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     private val planEdits = PlanEditsStore(app)
     private val notes = NotesStore(app)
     private val personalData = PersonalDataRepository(app, DataStorePersonalStores(preferences, ratings, planEdits, profiles, notes))
-    private val venue = VenueRepository(app)
-    private val floors: List<Floor> = FloorPlans.load(app)
     // nowIso() reads _state.value to check for an active simulation — not yet
     // assigned while computing _state's own initial value, and there is no
     // simulation to be mid-way through before the ViewModel exists anyway.
-    private val _state = MutableStateFlow(UiState(now = IsoClock.now(), walkSecondsTo = { null }))
+    private val _state = MutableStateFlow(UiState(now = IsoClock.now()))
     val state: StateFlow<UiState> = _state.asStateFlow()
 
     init {
@@ -345,15 +348,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
                 _state.update { it.copy(blocks = e.blocks, removedFromPlan = e.removed.toSet(), planReplacements = e.replacements) }
             }
         }
-        viewModelScope.launch {
-            preferences.location.collect { at -> _state.update { it.copy(currentLocation = at, walkSecondsTo = walker(at)) } }
-        }
         viewModelScope.launch { preferences.dynamicColor.collect { on -> _state.update { it.copy(dynamicColor = on) } } }
-        viewModelScope.launch {
-            preferences.routingProfile.collect { p ->
-                _state.update { it.copy(routingProfile = p, walkSecondsTo = walker(it.currentLocation, p), walkBetween = between(p)) }
-            }
-        }
         // Whatever changes the resolved plan re-arms the alarms: bookmarks, must-attend, ratings, edits, the bundle.
         viewModelScope.launch {
             state.collect { s -> if (s.bundle != null) reminders.arm(s) }
@@ -523,13 +518,12 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch { profiles.saveProfile(card) }
     }
 
-    /** A scanned QR: a vCard becomes a saved contact, tagged with the session running now. */
+    /** A scanned QR: a vCard becomes a saved contact, tagged with what the plan had the attendee at (`metDuring`). */
     fun addScanned(text: String) {
-        // A room's code: indiafoss://location/<id>, or a bare location id.
+        // A room's code (indiafoss://location/<id>) opens the map; the app keeps no "you are here".
         Regex("^indiafoss://location/([A-Za-z0-9-]+)").find(text.trim())?.groupValues?.get(1)?.let { id ->
             if (state.value.bundle?.locations?.any { it.id == id } == true) {
-                setLocation(id)
-                _state.update { it.copy(message = "You are at ${it.bundle?.location(id)?.name ?: id}") }
+                _state.update { it.copy(pendingRoute = "map", message = "That is ${it.bundle?.location(id)?.name ?: id}") }
                 return
             }
         }
@@ -540,7 +534,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             _state.update { it.copy(message = "That code is not a contact card.") }
             return
         }
-        val running = state.value.nowState?.current?.firstOrNull()?.id
+        val met = state.value.metDuring()
         val identity = if (parsed != null) Handshake.verify(text) else Handshake.Identity(Handshake.Verdict.UNSIGNED, null, null)
         val now = System.currentTimeMillis()
         val freshness = Handshake.freshness(identity, now)
@@ -548,7 +542,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
             val outcome = profiles.addContact(
                 MetContact(
                     id = "contact-$now", card = card, vcard = if (parsed != null) text else VCard.encode(card),
-                    savedAt = now, metActivityId = running,
+                    savedAt = now, metActivityId = met.activityId, metLabel = met.label,
                     signature = identity.verdict.name.lowercase(), fingerprint = identity.fingerprint,
                     cardIssuedAt = if (identity.verdict == Handshake.Verdict.VALID) identity.issuedAt.orEmpty() else "",
                 ),
@@ -569,37 +563,9 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    fun setLocation(locationId: String?) {
-        _state.update { it.copy(currentLocation = locationId, walkSecondsTo = walker(locationId)) }
-        viewModelScope.launch { preferences.setLocation(locationId) }
-    }
-
-    private fun walker(from: String?, profile: String = state.value.routingProfile): (String) -> Int? {
-        val routing = when (profile) {
-            "accessible" -> RoutingProfile.ACCESSIBLE
-            "avoid-stairs" -> RoutingProfile.AVOID_STAIRS
-            else -> RoutingProfile.FASTEST
-        }
-        return if (from == null) { _ -> null } else { to -> venue.walkSeconds(floors, from, to, routing) }
-    }
-
-    private fun between(profile: String = state.value.routingProfile): (String, String) -> Int? {
-        val routing = when (profile) {
-            "accessible" -> RoutingProfile.ACCESSIBLE
-            "avoid-stairs" -> RoutingProfile.AVOID_STAIRS
-            else -> RoutingProfile.FASTEST
-        }
-        return { from, to -> venue.walkSeconds(floors, from, to, routing) }
-    }
-
     fun setDynamicColor(on: Boolean) {
         _state.update { it.copy(dynamicColor = on) }
         viewModelScope.launch { preferences.setDynamicColor(on) }
-    }
-
-    fun setRoutingProfile(profile: String) {
-        _state.update { it.copy(routingProfile = profile, walkSecondsTo = walker(it.currentLocation, profile), walkBetween = between(profile)) }
-        viewModelScope.launch { preferences.setRoutingProfile(profile) }
     }
 
     /** The resolved plan for a day as an .ics for the system share sheet (calendar apps import it). */
@@ -620,7 +586,7 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
         val (kind, id) = match.destructured
         when (kind.lowercase()) {
             "activity" -> _state.update { it.copy(pendingRoute = "activity/$id") }
-            "location" -> { setLocation(id); _state.update { it.copy(pendingRoute = "map") } }
+            "location" -> _state.update { it.copy(pendingRoute = "map") }
             "speaker" -> _state.update { it.copy(pendingRoute = "speaker/$id") }
         }
     }

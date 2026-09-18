@@ -30,15 +30,15 @@ import org.indiafoss.companion.core.Schedule
 
 /**
  * The venue's floor plan, drawn natively from the same vectors as the web
- * map: rooms lit while sessions run, the minutes left in each, a dot where
- * you are (set by tapping a room or scanning a room's code), the room the
+ * map: rooms lit while sessions run, the minutes left in each, the room the
  * attendee's resolved plan sends them to next (#221, the same item Now and
- * the banner name), and the room list underneath. Pinch, drag and
- * double-tap as on any map.
+ * the banner name) outlined, and the room list underneath. Pinch, drag and
+ * double-tap as on any map. The venue is small, so there is no "you are
+ * here" and no walk time: the map only highlights a destination.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (String?) -> Unit) {
+fun MapScreen(state: UiState, actions: @Composable () -> Unit) {
     val context = LocalContext.current
     val floors = remember { FloorPlans.load(context) }
     var floorIndex by remember { mutableStateOf(0) }
@@ -55,7 +55,6 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (S
             title = running?.title,
             name = room.name,
             live = running?.end?.let { "${Schedule.minutesUntil(it, state.now)} min left" },
-            here = state.currentLocation == room.id,
             next = destination?.locationId == room.id,
         )
     }
@@ -77,9 +76,6 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (S
                     floors.forEachIndexed { index, floor ->
                         FilterChip(selected = index == floorIndex, onClick = { floorIndex = index }, label = { Text(floor.label) })
                     }
-                    if (state.currentLocation != null) {
-                        TextButton(onClick = { onSetLocation(null) }) { Text("Clear my spot") }
-                    }
                 }
                 val floor = floors[floorIndex.coerceIn(0, floors.lastIndex)]
                 Box(Modifier.fillMaxWidth().weight(1f)) {
@@ -90,9 +86,6 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (S
                     Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
                         Column(Modifier.padding(16.dp)) {
                             Text(room?.name ?: floor.roomFor(id)?.name ?: id, style = MaterialTheme.typography.titleMedium)
-                            state.walkSecondsTo(id)?.takeIf { state.currentLocation != id }?.let { seconds ->
-                                Text("Walk ${(seconds + 59) / 60} min from where you are", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
-                            }
                             if (destination?.locationId == id) Text("Your next: ${destination.title} at ${Schedule.formatTime(destination.start)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                             val running = live[id].orEmpty()
                             if (running.isEmpty()) Text("Nothing on right now", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -100,10 +93,7 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit, onSetLocation: (S
                                 Text(a.title, style = MaterialTheme.typography.bodyMedium)
                                 a.end?.let { Text("until ${Schedule.formatTime(it)}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                             }
-                            Row {
-                                TextButton(onClick = { onSetLocation(id); sheet = null }) { Text("I'm here") }
-                                TextButton(onClick = { sheet = null }) { Text("Close") }
-                            }
+                            TextButton(onClick = { sheet = null }) { Text("Close") }
                         }
                     }
                 }

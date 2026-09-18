@@ -10,7 +10,7 @@ package org.indiafoss.companion.core
  * day, and never when it is must-go. One lunch opportunity may
  * occupy a free official lunch window. This is the greedy core of the web solver
  * (`@indiafoss/solver`), enough for a native plan that agrees with the
- * ranking; walking time between rooms is left to the leave-by logic.
+ * ranking; transfers between rooms are never checked, the venue being small.
  */
 object Itinerary {
     data class Item(val activity: Activity, val reason: Reason, val block: CustomBlock? = null)

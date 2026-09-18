@@ -201,6 +201,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                 ConnectScreen(
                     profile = state.profile,
                     contacts = state.contacts,
+                    activityTitleOf = { id -> state.activity(id)?.title },
                     signedCard = state.signedCard,
                     fingerprint = state.deviceFingerprint,
                     onSave = viewModel::saveProfile,
@@ -232,7 +233,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
                     onBack = { navController.popBackStack() },
                 )
             }
-            composable("map") { MapScreen(state, topActions, viewModel::setLocation) }
+            composable("map") { MapScreen(state, topActions) }
             composable("welcome") {
                 WelcomeScreen(
                     state = state,
@@ -246,7 +247,7 @@ fun CompanionApp(viewModel: CompanionViewModel) {
             }
             composable("settings") {
                 SettingsScreen(
-                    state, viewModel::setRemindersEnabled, viewModel::setRoutingProfile,
+                    state, viewModel::setRemindersEnabled,
                     onStartSimulation = viewModel::startSimulation, onStopSimulation = viewModel::stopSimulation,
                     onDynamicColor = viewModel::setDynamicColor,
                     onCalendarSync = viewModel::setCalendarSyncEnabled,

@@ -67,7 +67,6 @@ class ScreenshotTest {
     private fun state(now: String = "2026-09-26T10:20:00+05:30") = UiState(
         loading = false, bundle = bundle, now = now,
         bookmarks = setOf("act-28laimsqbf"), mustAttend = setOf("act-28laimsqbf"),
-        currentLocation = "audi-1",
     )
 
     private fun shoot(name: String, content: @androidx.compose.runtime.Composable () -> Unit) {
@@ -136,7 +135,7 @@ class ScreenshotTest {
         val removed = state().copy(removedFromPlan = setOf(first.id), mustAttend = emptySet())
         val after = removed.todayPlan!!.nextPlanned(removed.now)
         assertEquals(false, after?.id == first.id)
-        shoot("map-destination") { MapScreen(removed, {}) {} }
+        shoot("map-destination") { MapScreen(removed) {} }
         compose.onNode(hasText("for you:", substring = true)).assertIsDisplayed()
     }
 
@@ -203,13 +202,13 @@ class ScreenshotTest {
         val one = StoredComparison("cmp-1", "act-28lagehf47", "act-28la68il6o", 1.0, 0L)
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
-    @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
+    @Test fun map() = shoot("map") { MapScreen(state()) {} }
     @Test fun mapLongCurrentTalk() = shoot("map-long-current-talk") {
         val talk = bundle.activities.first().copy(
             id = "map-long", title = "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast file transfers",
             locationId = "hall-1", start = "2026-09-26T10:00:00+05:30", end = "2026-09-26T11:00:00+05:30",
         )
-        MapScreen(state().copy(bundle = bundle.copy(activities = listOf(talk))), {}) {}
+        MapScreen(state().copy(bundle = bundle.copy(activities = listOf(talk)))) {}
     }
     @Test fun speakerDetail() = shoot("speaker-detail") {
         val person = bundle.people.first { !it.bio.isNullOrBlank() }
@@ -327,16 +326,16 @@ class ScreenshotTest {
             emptyList(), fingerprint = "8a79ebf182010f3a91c20d4e", onSave = {}, onScan = {}, onRemoveContact = {},
         ) {}
     }
-    @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}, {}) {} }
+    @Test fun settings() = shoot("settings") { SettingsScreen(state(), {}) {} }
     @Test fun settingsCalendarOn() {
         shoot("settings-calendar-on") {
-            SettingsScreen(state().copy(calendarSyncEnabled = true, calendarSyncStatus = "6 entries in the IndiaFOSS calendar · 2 added"), {}, {}) {}
+            SettingsScreen(state().copy(calendarSyncEnabled = true, calendarSyncStatus = "6 entries in the IndiaFOSS calendar · 2 added"), {}) {}
         }
         compose.onNodeWithText("Disconnect and remove the calendar").performScrollTo().assertIsDisplayed()
     }
     /** Settings offers the personal-data file both ways, offline (#240). */
     @Test fun settingsPersonalData() {
-        shoot("settings-personal-data") { SettingsScreen(state(), {}, {}) {} }
+        shoot("settings-personal-data") { SettingsScreen(state(), {}) {} }
         compose.onNodeWithText("Save personal data").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Import from a file").assertIsDisplayed()
     }
@@ -362,7 +361,7 @@ class ScreenshotTest {
         )
         var applied: Set<String>? = null
         shoot("settings-import-preview") {
-            SettingsScreen(state().copy(importPreview = preview), {}, {}, onApplyImport = { applied = it }) {}
+            SettingsScreen(state().copy(importPreview = preview), {}, onApplyImport = { applied = it }) {}
         }
         // The preview is one long scrolling column; whether a given line is on screen
         // depends on the viewport, which Compose 1.9 no longer over-scrolls for us. What
@@ -418,10 +417,10 @@ class DarkScreenshotTest {
         File("build/screenshots/$name-dark.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
     }
 
-    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"), currentLocation = "audi-1")
+    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"))
 
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
-    @Test fun map() = shoot("map") { MapScreen(state(), {}) {} }
+    @Test fun map() = shoot("map") { MapScreen(state()) {} }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
 }
 
@@ -463,7 +462,7 @@ class LargeTextScreenshotTest {
         File("build/screenshots/$name-large-text.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
     }
 
-    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"), currentLocation = "audi-1")
+    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"))
 
     @Test fun now() {
         shoot("now") { NowScreen(state(), {}, {}) {} }
@@ -484,7 +483,7 @@ class LargeTextScreenshotTest {
     }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
     @Test fun settings() {
-        shoot("settings") { SettingsScreen(state(), {}, {}) {} }
+        shoot("settings") { SettingsScreen(state(), {}) {} }
         // Refresh state leads the screen (#191): what the schedule is and how
         // old it is, before any of the switches.
         compose.onNodeWithText("Schedule data").assertIsDisplayed()
@@ -526,7 +525,7 @@ class DynamicColorScreenshotTest {
         File("build/screenshots/$name-dynamic.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 90, it) }
     }
 
-    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"), currentLocation = "audi-1")
+    private fun state() = UiState(loading = false, bundle = bundle, now = "2026-09-26T10:20:00+05:30", mustAttend = setOf("act-28laimsqbf"))
 
     @Test fun now() {
         shoot("now") { NowScreen(state(), {}, {}) {} }

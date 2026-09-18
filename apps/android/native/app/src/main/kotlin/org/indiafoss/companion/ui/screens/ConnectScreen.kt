@@ -83,6 +83,8 @@ private val PRIVATE = listOf(
 fun ConnectScreen(
     profile: ContactCard,
     contacts: List<MetContact>,
+    /** The title of a programme session by id, for contacts saved before `metLabel` existed. */
+    activityTitleOf: (String) -> String? = { null },
     signedCard: String = "",
     fingerprint: String? = null,
     onSave: (ContactCard) -> Unit,
@@ -253,6 +255,7 @@ fun ConnectScreen(
                                 color = if (met.signature == "invalid") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             val extras = buildList {
+                                (met.metLabel ?: met.metActivityId?.let(activityTitleOf))?.let { add("Met during $it") }
                                 if (met.metCount > 1) add("Met ${met.metCount}×")
                                 if (met.keyChanged) add("Key changed since an earlier card")
                                 if (met.signature == "valid" && met.cardIssuedAt.isNotBlank() &&

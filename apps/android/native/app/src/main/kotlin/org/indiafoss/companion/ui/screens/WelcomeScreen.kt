@@ -103,7 +103,7 @@ fun WelcomeScreen(
                         0 -> {
                             Text("Never miss a talk you picked", style = MaterialTheme.typography.titleLarge)
                             Text(
-                                "A local \"starting soon\" and \"leave now\" alarm for the sessions you bookmark, timed with the walk from wherever you last scanned. No push service, nothing leaves the phone.",
+                                "A local \"starting soon\" alarm for the sessions on your plan, naming the room and the start time. No push service, nothing leaves the phone.",
                                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             if (state.remindersEnabled) {

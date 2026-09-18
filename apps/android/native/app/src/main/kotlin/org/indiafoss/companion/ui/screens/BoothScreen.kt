@@ -60,11 +60,9 @@ fun BoothScreen(
         }
         Column(Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState())) {
             val where = bundle.location(booth.locationId)
-            val walk = booth.locationId?.let { state.walkSecondsTo(it) }
             val line = listOfNotNull(
                 booth.category?.replace('-', ' ')?.replaceFirstChar { it.uppercase() },
                 where?.name,
-                walk?.let { "${(it + 59) / 60} min walk" },
             ).joinToString(" · ")
             if (line.isNotBlank()) Text(line, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(20.dp, 8.dp))
             booth.description?.takeIf { it.isNotBlank() }?.let {

@@ -3,7 +3,6 @@ package org.indiafoss.companion.data
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -53,15 +52,6 @@ class PreferencesStore(private val context: Context) {
         context.dataStore.edit { it[onboardingKey] = done }
     }
 
-    private val profileKey = stringPreferencesKey("routing-profile")
-
-    /** fastest | avoid-stairs | accessible, as the web's routing preference. */
-    val routingProfile: Flow<String> = context.dataStore.data.map { it[profileKey] ?: "fastest" }
-
-    suspend fun setRoutingProfile(profile: String) {
-        context.dataStore.edit { it[profileKey] = profile }
-    }
-
     private val dynamicColorKey = booleanPreferencesKey("dynamic-colour")
 
     /** Material You on Android 12+ for the everyday screens; the event surfaces keep the brand palette either way (#33). */
@@ -69,14 +59,6 @@ class PreferencesStore(private val context: Context) {
 
     suspend fun setDynamicColor(on: Boolean) {
         context.dataStore.edit { it[dynamicColorKey] = on }
-    }
-
-    private val locationKey = stringPreferencesKey("current-location")
-
-    val location: Flow<String?> = context.dataStore.data.map { it[locationKey] }
-
-    suspend fun setLocation(locationId: String?) {
-        context.dataStore.edit { if (locationId == null) it.remove(locationKey) else it[locationKey] = locationId }
     }
 
     /** Bookmarks and must-attend together, only if both still equal what the import read; null expectations restore unconditionally (see `PersonalDataRepository`). */

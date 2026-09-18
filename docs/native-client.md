@@ -40,9 +40,13 @@ so a refresh or a restart never arms it twice. `ReminderReceiver` posts the
 notification. Ratings, answered pairs and room preferences live in
 `RatingsStore` as one JSON document in DataStore.
 
-Every tab carries the leave-by banner under its app bar: the next item in
-the resolved plan counting down, tertiary-coloured within five minutes. When
-the plan has a blocking conflict the banner says so and opens the plan.
+Every tab carries the next-up banner under its app bar: the next item in
+the resolved plan counting down ("STARTS IN N MIN", then "STARTING NOW"
+once the start has passed), tertiary-coloured within five minutes. The
+venue is small — every walk is under five minutes — so there is no
+leave-by time, no walk time and no "I'm here": the map only highlights a
+destination. When the plan has a blocking conflict the banner says so and
+opens the plan.
 
 ## The resolved plan (#221)
 
@@ -69,11 +73,10 @@ Deliberate differences from the PWA, rather than claims of identical output:
   ratings. Explicit choices (must-attend, stays, bookmarks, blocks,
   removals, clash losses and the devroom left for one pick) resolve the
   same way on both.
-- **Tight transfers are warnings, not conflicts.** The PWA's
-  `travel-buffer` conflict makes a plan infeasible; the native base would
-  trip it on most days, so `ResolvedPlan.ConflictKind.TRAVEL` (not enough
-  walk time between two rooms, only when the walk is known) is shown beside
-  the plan and does not block Now, the map or the reminders.
+- **Transfers between rooms are never checked.** Every walk in the venue
+  is under five minutes, so neither app has a travel conflict or warning
+  any more; the resolved plan only reports overlaps, must-attend and
+  devroom clashes, and edits that no longer resolve.
 - **Every planned item gets reminders.** As on the web, an item in a
   feasible plan is planned-tier (must-attend where marked), including the
   programme's ranked pick for a slot and blocks of your own; earlier native
@@ -210,14 +213,16 @@ file between real devices yet; the evidence is `NativePersonalDataTest`,
 `PersonalDataRepositoryTest`, the `settingsImportPreview` render and the two
 shared fixtures.
 
-Walk times come from the venue graph (`venue.graph.json` and
-`venue.metadata.json`, shipped in assets; `Routing` is the web package's
-shortest-walk logic ported, with the fastest / avoid-stairs / accessible
-profiles and tests): once a location is set, the banner says "LEAVE IN N
-MIN · WALK M MIN" (start minus the walk minus a five-minute buffer) and a
-tapped room on the map says how far it is. `indiafoss://activity/<id>`,
-`indiafoss://location/<id>` and `indiafoss://speaker/<id>` open the right
-screen from a launch or a running app.
+There are no walk times, directions or routing profile (the venue graph
+is not shipped in assets; the floor plans are). Reminders keep the
+must-attend heads-up, "starting soon" at 15 minutes and "starting now",
+each naming the room and the start time. Who you met is read from the
+plan, assuming you followed it: a scanned card is tagged `metLabel` with
+the planned talk under way, or a block as "Lunch, day 1", falling back to
+the programme's running session; Connect shows it as "Met during …".
+`indiafoss://activity/<id>`, `indiafoss://location/<id>` (opens the map)
+and `indiafoss://speaker/<id>` open the right screen from a launch or a
+running app.
 
 Native feel: edge-to-edge, predictive back, pull-to-refresh on Now, the
 system share sheet for cards and calendars, Material You colour on the

@@ -10,6 +10,9 @@ data class MetContact(
     val vcard: String,
     val savedAt: Long,
     val metActivityId: String? = null,
+    val metLocationId: String? = null,
+    /** What the attendee's plan had them at when they scanned ("Lunch, day 1", a talk title); see `CompanionViewModel.addScanned`. */
+    val metLabel: String? = null,
     /** valid | invalid | unsigned | unchecked, from the card's signature at scan time. */
     val signature: String = "unsigned",
     val fingerprint: String? = null,
@@ -40,6 +43,8 @@ object ContactContinuity {
                 id = byKey.id,
                 savedAt = byKey.savedAt,
                 metActivityId = byKey.metActivityId ?: draft.metActivityId,
+                metLocationId = byKey.metLocationId ?: draft.metLocationId,
+                metLabel = byKey.metLabel ?: draft.metLabel,
                 metCount = byKey.metCount + 1,
                 lastMetAt = now,
                 keyChanged = false,
@@ -61,6 +66,8 @@ object ContactContinuity {
             fingerprint = draft.fingerprint ?: match.fingerprint,
             signature = if (draft.fingerprint != null) draft.signature else match.signature,
             metActivityId = match.metActivityId ?: draft.metActivityId,
+            metLocationId = match.metLocationId ?: draft.metLocationId,
+            metLabel = match.metLabel ?: draft.metLabel,
             metCount = match.metCount + 1,
             lastMetAt = now,
         )
