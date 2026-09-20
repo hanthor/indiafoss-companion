@@ -105,8 +105,11 @@ Debug APKs are produced in CI with a sha256 checksum. For release builds:
 
 The [repository implementation plan](tasks/own-fdroid-repository.md) specifies a
 shared Companion/Chat update catalogue using the existing signed APKs and a
-separate index key. It is not deployed yet; direct APK downloads remain the
-available distribution path.
+separate index key. The [IndiaFOSS Preview repository](https://hanthor.github.io/indiafoss-android-repo/fdroid/repo/)
+is now deployed with the reviewed Companion Preview (index fingerprint
+`AD932C530715E9CAA39415F94E007002FB3DA0DD2583FF92DFC7F6DFE46CCCC2`). Chat
+metadata remains disabled until a signed public Chat APK and its upgrade path
+are verified. Direct APK downloads remain available.
 
 ### Nightly signing and upgrades
 
@@ -159,11 +162,12 @@ Acceptance has two levels:
 
 ### Update channels
 
-Attendees keep the app current through **Obtainium** (tracking the GitHub
-release page) or, once it is published, **our own F-Droid repository**. Both
-deliver the same signed APK that the direct download link serves, so the
-signing identity never changes between channels. We do not direct attendees to
-any third-party app store. Attendee-facing instructions and the state of the
+Attendees keep Companion current through **Obtainium** (tracking the GitHub
+release page) or **our own F-Droid Preview repository**. Both deliver the same
+signed APK that the direct download link serves, so the signing identity never
+changes between channels. Chat remains on its release page until its own
+repository inclusion is verified. We do not direct attendees to any
+third-party app store. Attendee-facing instructions and the state of the
 F-Droid repository are in [install-channels.md](./install-channels.md).
 
 ## iOS

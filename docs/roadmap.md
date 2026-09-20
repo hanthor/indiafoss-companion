@@ -57,9 +57,10 @@ changes, update the issue first, then this file, so neither drifts.
     binding.
   - **`@indiafoss/matrix`** pruned to profile checks and handoff helpers
     (#314).
-  - **Install channels**: Obtainium and our own F-Droid repository, Accrescent
-    removed (#308); the repository's unsigned catalogue pipeline
-    (hanthor/indiafoss-android-repo#6); repository not yet live (#291).
+  - **Install channels**: Obtainium and the live Companion Preview F-Droid
+    repository, Accrescent removed (#308); signed catalogue and Pages deployment
+    (hanthor/indiafoss-android-repo#6/#291). Physical upgrade rehearsal and Chat
+    inclusion remain open.
   - **Bindings provenance** (#305): the `.aar` is built from
     `hanthor/neutrino-iroh@15117e9` over `hanthor/neutrino@2d85348` and
     released as `neutrino-bindings-0.8.2-e2ee.2d85348-ble.15117e9`; Chat pins
@@ -111,18 +112,21 @@ FFI (#60, pinned in #62), 2026 identity (#61, closes Chat #50); Chat #12 and
 `hanthor/neutrino-iroh` (bindings and BLE transport): #16 media ALPN on the
 shared federation endpoint and the MatrixRTC `call.member` model, loopback only.
 
-`hanthor/indiafoss-android-repo` (our F-Droid repository): #6 app metadata,
-hash-pinned fdroidserver and unsigned catalogue generation; no index key, nothing
-deployed (#291).
+`hanthor/indiafoss-android-repo` (our F-Droid repository): #6 app metadata and
+hash-pinned fdroidserver; #291 provisioned the separate index key and deployed
+the reviewed Companion Preview at
+`https://hanthor.github.io/indiafoss-android-repo/fdroid/repo/`. Chat remains
+disabled until its signed APK and upgrade path are verified.
 
 ## Decisions log
 
 - 2026-09-10: **Update channels are Obtainium and our own F-Droid repository;
   Accrescent is out** (maintainer direction, #308). The PWA download cards
   carry an `obtainium://add/` link and name the repository; the _Add
-  repository_ link appears only once #291's endpoint is live. The repository
-  pipeline builds an unsigned, verified catalogue and keeps Chat out of the
-  index until reviewed (hanthor/indiafoss-android-repo#6).
+  repository_ link is now present because #291's endpoint is live. The
+  repository serves a signed Companion Preview catalogue and keeps Chat out of
+  the index until reviewed (hanthor/indiafoss-android-repo#6/#291); physical
+  upgrade evidence is still outstanding.
 - 2026-09-10: **One resolved plan, both platforms** (#221 closed). Now, the map
   destination, the leave-by banner, the calendar and the reminders read one
   projection resolved from the current bundle every time (PWA #266/#267,

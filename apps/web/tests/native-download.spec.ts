@@ -16,7 +16,14 @@ for (const route of ['/?setup=done', '/settings']) {
       'href',
       'https://github.com/hanthor/indiafoss-companion/releases/tag/nightly',
     );
+    await expect(
+      section.getByRole('link', { name: 'Add IndiaFOSS Preview repository to F-Droid' }),
+    ).toHaveAttribute(
+      'href',
+      'fdroidrepos://hanthor.github.io/indiafoss-android-repo/fdroid/repo?fingerprint=AD932C530715E9CAA39415F94E007002FB3DA0DD2583FF92DFC7F6DFE46CCCC2',
+    );
     await expect(section).toContainText('Browser and Android data are currently separate.');
+    await expect(section).toContainText('Chat is not in this repository yet.');
     await expect(section.getByRole('link', { name: 'Obtainium', exact: true })).toHaveAttribute(
       'href',
       'obtainium://add/https://github.com/hanthor/indiafoss-companion',

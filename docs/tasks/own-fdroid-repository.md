@@ -1,16 +1,23 @@
 # Our Android update repository
 
-Status: implementation plan, 9 September 2026. No repository index or add-repository link is published yet.
+Status: live Preview catalogue, 20 September 2026. Companion is published; Chat
+remains disabled pending its signed APK and upgrade rehearsal.
 
 ## Attendee experience
 
-The PWA offers Download APK and Add our F-Droid repository. One subscription lists Companion and Chat. The client checks for updates; installation confirmation and automatic-update behaviour depend on the client and Android permissions. Direct APK downloads remain available without an F-Droid client.
+The PWA offers Download APK and Add our F-Droid repository. The live catalogue
+currently lists Companion only; Chat will be added after its signed APK and
+upgrade path are verified. The client checks for updates; installation
+confirmation and automatic-update behaviour depend on the client and Android
+permissions. Direct APK downloads remain available without an F-Droid client.
 
 The first catalogue is explicitly **IndiaFOSS Preview**. Publish reviewed builds that passed their required CI, not every main-branch build. Do not call these stable releases or imply inclusion in the official f-droid.org catalogue. Add Companion first; add Chat only after its signed public APK is available and verified. Keep Chat's current discovery/Matrix limitations visible in its description.
 
 ## Distribution decision
 
-Use a separate public repository, proposed name `hanthor/indiafoss-android-repo`, with a GitHub Actions Pages deployment. Proposed endpoint: `https://hanthor.github.io/indiafoss-android-repo/fdroid/repo/`. This URL is a plan, not a working download destination.
+Use the separate public repository `hanthor/indiafoss-android-repo` with its
+GitHub Actions Pages deployment. The live endpoint is
+`https://hanthor.github.io/indiafoss-android-repo/fdroid/repo/`.
 
 The publisher consumes already-signed release APKs and uses fdroidserver to generate the catalogue. It does not rebuild or re-sign apps. Keep APKs out of git history; stage them in a Pages deployment artifact. The Companion PWA's SPA fallback and service worker must not intercept repository indexes or APK requests.
 
@@ -33,7 +40,11 @@ Generate a separate, backed-up repository-index key once. The publisher needs th
 4. **Generate and verify the index.** Derive version data from the APKs, use fdroidserver metadata for names/descriptions/source links, and check that every indexed file exists with the expected hash. Pin the reviewed recommended version explicitly. Keep newer experimental nightlies out of the recommended update channel.
 5. **Sign and deploy.** Only trusted publication jobs receive the index key. PR builds validate unsigned output without secrets. A manual promotion workflow initially validates the source commit's required CI, signs the staged index, verifies its fingerprint and uploads the complete Pages artifact. Concurrent promotions must be serialised.
 6. **Rehearse upgrades.** Add the repository to F-Droid and another compatible client using the published fingerprint. Install from direct APK, then update through the repository; preserve talk choices, saved contacts and identity. Test Chat separately with actual accounts. Verify client behaviour with a missing APK, corrupt index, wrong signer and interrupted download.
-7. **Expose attendee links.** After anonymous HTTPS index/APK checks and the upgrade rehearsal pass, add the fingerprint-bearing repository link, copyable URL and QR to PWA Home/Settings and the download page. Explain installing a compatible client when absent. Keep direct APK as the fallback.
+7. **Expose attendee links.** The endpoint and anonymous HTTPS index/APK checks
+   now pass. Add the fingerprint-bearing repository link, copyable URL and QR
+   to PWA Home/Settings and the download page after the device upgrade
+   rehearsal. Explain installing a compatible client when absent. Keep direct
+   APK as the fallback.
 8. **Automate promotion later.** Once the manual path is reliable, release events can propose a promotion manifest. A publication failure keeps the last valid catalogue. Removing a bad release can stop further installs, but cannot downgrade phones; ship a fixed APK with a higher version code.
 
 ## Acceptance evidence
