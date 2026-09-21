@@ -199,7 +199,8 @@ class ScreenshotTest {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true)), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun rankSlots() = shoot("rank-slots") {
-        val one = StoredComparison("cmp-1", "act-28lagehf47", "act-28la68il6o", 1.0, 0L)
+        // Use stable IDs that survive schedule churn (act-28lagehf47 was cancelled in rev 21).
+        val one = StoredComparison("cmp-1", "act-cfp-65cksuhmhn", "act-28la68il6o", 1.0, 0L)
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun map() = shoot("map") { MapScreen(state()) {} }
