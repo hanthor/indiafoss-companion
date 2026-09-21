@@ -1,0 +1,199 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 21,
+  "from": 20,
+  "changes": [
+    {
+      "activityId": "act-cfp-65cksuhmhn",
+      "title": "What FOSS Documentation Needs to Thrive in the Age of AI Search",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-0hgfa2n1kg",
+      "title": "Porting Pipecat to Rust: The story of Rustvani-Fast Cheap Voice Ai for Bharat",
+      "type": "added"
+    },
+    {
+      "activityId": "act-8kkt204mk4",
+      "title": "Lunch Break – 1:30 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28laqr9ecm",
+      "title": "Keeping up with the AOSP",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la3ltjcq",
+      "title": "Under the Hood of Android , What Really Happens When You Open an App?",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lar6l8ag",
+      "title": "Launcher3 Internals: Understanding Android's Home Screen, Google Feed Integration, and Custom -1 Panels",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la93vrf8",
+      "title": "Inside Android Keyboards: Building an Open Source IME",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lajt6fl6",
+      "title": "Adapting Generic Boot Loader on Android Platforms",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lajt6fl6",
+      "title": "Adapting Generic Boot Loader on Android Platforms",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-28lap8q3re",
+      "title": "Porting AOSP to Allwinner Sunxi platform",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-0evl4k18m0",
+      "title": "Beyond the ICT Period: Can FOSS Communities Reshape School-Level Tech Education in India?",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-ab8viuj62q",
+      "title": "Building OpenSpeaks tools for language documentation and archiving",
+      "type": "speaker-changed"
+    },
+    {
+      "activityId": "act-cfp-59ok1dm8kb",
+      "title": "Making music with strudel.cc",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28laau6e4o",
+      "title": "Living With a DeGoogled Phone: Privacy, Trade-offs, and Daily Use",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28lahmuq69",
+      "title": "Volume Controller using Knob (Potentiometer)",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la55ehov",
+      "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28la55ehov",
+      "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "type": "title-changed"
+    },
+    {
+      "activityId": "act-28la55ehov",
+      "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "type": "speaker-changed"
+    },
+    {
+      "activityId": "act-cfp-96goef7o3q",
+      "title": "What can we do about open weight models enabling non consensual intimate imagery?",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28laeusjrp",
+      "title": "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast storage analysis",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-5pig94v0sa",
+      "title": "Opening the Archives: Building Digital Infrastructure for Public Participation in Archival Records",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-aq5t5e261u",
+      "title": "What's new at FOSS United Foundation",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-28laq0mp6c",
+      "title": "Telling India's story through data",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-6pb727vn12",
+      "title": "The future of FOSS, SWE and Technical Education",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-cfp-6pb727vn12",
+      "title": "The future of FOSS, SWE and Technical Education",
+      "type": "speaker-changed"
+    },
+    {
+      "activityId": "act-8kkt8bdvdc",
+      "title": "Lunch Break – 1:30 PM to 2:30 PM (in Food Area)",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-bk39jtqjkk",
+      "title": "Tiles: Own your AI with open models and decentralized protocols",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-fefrvv4n7q",
+      "title": "Flexibility is complexity in disguise: Building frappe-ui for 10+ Products",
+      "type": "time-changed"
+    },
+    {
+      "activityId": "act-8kktc233h6",
+      "title": "FOSS Awards",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-946qm38m58",
+      "title": "Communi-Con : CFP Opens Sep 25",
+      "type": "added"
+    },
+    {
+      "activityId": "act-28lagehf47",
+      "title": "Your first open source contribution does not have to be code",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t6vl7ef",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t6oijso",
+      "title": "Devroom Intro: Android Open Source Project (AOSP)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28laibfej4",
+      "title": "Rust in Android: Building Secure HALs for the Next Generation of AOSP",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-28la7q52h1",
+      "title": "FOSS Awards",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-aq5t8uuiph",
+      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "type": "cancelled"
+    },
+    {
+      "activityId": "act-5fhpunas6r",
+      "title": "Communi-Con : 7 Community Voted Flash Talks",
+      "type": "cancelled"
+    }
+  ],
+  "summary": {
+    "added": 9,
+    "time-changed": 16,
+    "title-changed": 2,
+    "speaker-changed": 3,
+    "cancelled": 7
+  }
+}
