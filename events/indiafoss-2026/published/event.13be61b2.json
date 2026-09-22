@@ -8,7 +8,7 @@
   "activities": [
     {
       "id": "act-543a71asfp",
-      "sourceId": "chg3oh0klv",
+      "sourceId": "8kktl9ilmu",
       "type": "meal",
       "title": "Registrations and Breakfast (Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -23,7 +23,7 @@
     },
     {
       "id": "act-aq5t2bsj44",
-      "sourceId": "chg34kmrb1",
+      "sourceId": "8kktoglpkb",
       "type": "ceremony",
       "title": "Welcome Note",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -38,7 +38,7 @@
     },
     {
       "id": "act-cfp-062rh0sg2r",
-      "sourceId": "chg3nhf65l",
+      "sourceId": "8kkt12jdi7",
       "proposalId": "062rh0sg2r",
       "type": "talk",
       "title": "From Pull Requests to Patients: Building Open Healthcare Infrastructure in the Open",
@@ -101,7 +101,7 @@
     },
     {
       "id": "act-aq5to9iht3",
-      "sourceId": "chg3cr2708",
+      "sourceId": "8kkti57k2b",
       "type": "ceremony",
       "title": "Opening Note",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -116,7 +116,7 @@
     },
     {
       "id": "act-cfp-advandigma",
-      "sourceId": "chg31ram81",
+      "sourceId": "8kktdt12pe",
       "proposalId": "advandigma",
       "type": "talk",
       "title": "Building Zasper: Inception to Growth",
@@ -169,7 +169,7 @@
     },
     {
       "id": "act-aq5tc0pju4",
-      "sourceId": "chg3sj5rg7",
+      "sourceId": "8kktoartkt",
       "type": "intro",
       "title": "Devroom Intro: Documentation & Technical Writing",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -185,7 +185,7 @@
     },
     {
       "id": "act-28latk6vs1",
-      "sourceId": "chg34b4cnc",
+      "sourceId": "8kkts48k8a",
       "type": "intro",
       "title": "Devroom Intro: Open Hardware",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -201,7 +201,7 @@
     },
     {
       "id": "act-28la68il6o",
-      "sourceId": "chg3f343cf",
+      "sourceId": "8kktuif83j",
       "proposalId": "7pt1ibasdd",
       "type": "talk",
       "title": "Minnow: An Open Platform for Ground Swarm Robotics",
@@ -248,31 +248,22 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28lagehf47",
-      "sourceId": "chg3dhu18d",
-      "proposalId": "96gh03hfud",
+      "id": "act-cfp-65cksuhmhn",
+      "sourceId": "8kktobcm3m",
+      "proposalId": "65cksuhmhn",
       "type": "lightning-talk",
-      "title": "Your first open source contribution does not have to be code",
+      "title": "What FOSS Documentation Needs to Thrive in the Age of AI Search",
       "subtitle": "",
-      "description": "Contribute to open source. This is the advice almost everyone in the FOSS community has given or received. Well said. But most newcomers hit a wall, especially the ones who don’t come with a technical background. How do we lower the barrier of entry? Is there a starting point that gently takes someone from being interested to becoming a contributor?\n\nDocumentation is one of the most impactful yet underserved areas in open source. It is also one of the most accessible places to begin. The Open Documentation Academy is a free, open programme designed around exactly this idea. It connects people who want to contribute to open source with real documentation tasks on real projects along with mentorship, structured guidance, and a community to work with. This talk introduces the Open Documentation Academy initiative led by technical authors at Canonical and invites new contributors to participate.\n\nIf you are looking for an entry point into open source, then this talk is for you.",
+      "description": "Search behaviour is evolving in ways that matter for everyone who writes for open source software. Developers increasingly reach for AI tools mid-workflow to make decisions and/or to get unstuck. They ask specific questions and get synthesized answers. If your documentation, README, or technical blog post are not the sources that answers come from, you've most likely lost a moment of visibility.\n\nThis talk is about what it means for FOSS documentation and technical writing to get cited rather than just indexed. This talk looks at what specific, well-scoped, and deeply useful writing actually looks like across the formats open source projects produce: README files, API references, tutorials, contributor guides, and technical blog posts.",
       "keyTakeaways": [
-        "Introduction to Open Documentation Academy",
-        "How to join as a contributor",
-        "Collaborate with the academy: bring a project in",
-        "Ideas for writing better beginner-friendly documentation issues in their own projects"
+        "Documentation that is vague or thin makes your project invisible in AI-assisted developer workflows",
+        "What content that is written to be cited actually looks like",
+        "How these structural and editorial content properties apply across formats: READMEs, tutorials, API docs, and technical blog posts"
       ],
       "references": [
         {
-          "label": "https://github.com/canonical/open-documentation-academy",
-          "url": "https://github.com/canonical/open-documentation-academy"
-        },
-        {
-          "label": "https://documentation.academy/",
-          "url": "https://documentation.academy/"
-        },
-        {
-          "label": "https://www.youtube.com/watch?v=BS2SdC2v9Ns",
-          "url": "https://www.youtube.com/watch?v=BS2SdC2v9Ns"
+          "label": "https://www.youtube.com/watch?v=Xj4HJi55LvA",
+          "url": "https://www.youtube.com/watch?v=Xj4HJi55LvA"
         }
       ],
       "links": [
@@ -281,20 +272,21 @@
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Beginner",
+      "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96gh03hfud",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/65cksuhmhn",
       "start": "2026-09-26T10:05:00+05:30",
       "end": "2026-09-26T10:15:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-keirthana-t-s"
+        "person-pooja-sanwal"
       ],
       "tags": [
         "Lightning Talk",
+        "Contributing to FOSS",
         "Community",
-        "Beginner"
+        "Intermediate"
       ],
       "trackId": "devroom-documentation-technical-writing",
       "devroomId": "devroom-documentation-technical-writing",
@@ -302,7 +294,7 @@
     },
     {
       "id": "act-cfp-2bfslonj72",
-      "sourceId": "chg3oen36n",
+      "sourceId": "8kkt8p43gs",
       "proposalId": "2bfslonj72",
       "type": "talk",
       "title": "From Institution to Community: Building COSH and a Culture of Open Source",
@@ -350,7 +342,7 @@
     },
     {
       "id": "act-28laimsqbf",
-      "sourceId": "chg3ua8h98",
+      "sourceId": "8kktdgoqig",
       "proposalId": "clniq3em1j",
       "type": "lightning-talk",
       "title": "Why Documentation Shouldn't Feel Like Plain Text",
@@ -397,7 +389,7 @@
     },
     {
       "id": "act-28la7k72kp",
-      "sourceId": "chg3fackhs",
+      "sourceId": "8kktbpftav",
       "proposalId": "db4ufng84v",
       "type": "talk",
       "title": "Documentation That Drives OSS Adoption: Lessons From Bruno",
@@ -445,7 +437,7 @@
     },
     {
       "id": "act-28la7s63ku",
-      "sourceId": "chg36pt0k3",
+      "sourceId": "8kktb88upa",
       "proposalId": "32f9jjkob0",
       "type": "talk",
       "title": "Build your own open source keyboard with ZMK/QMK",
@@ -499,7 +491,7 @@
     },
     {
       "id": "act-cfp-0k2f61lkrj",
-      "sourceId": "chg34pnd0s",
+      "sourceId": "8kktha0sh6",
       "proposalId": "0k2f61lkrj",
       "type": "talk",
       "title": "Repub: Launching the Open Post-Processing Workflow for Digital Archiving in India",
@@ -555,7 +547,7 @@
     },
     {
       "id": "act-28la54hqh4",
-      "sourceId": "chg344a81p",
+      "sourceId": "8kktkdbr27",
       "proposalId": "en28h8l81s",
       "type": "lightning-talk",
       "title": "Ctrl+F for 34 Years of India's GovTech (Building a Public Commons for India's Digital Governance History)",
@@ -608,7 +600,7 @@
     },
     {
       "id": "act-cfp-8s4g5qj3oq",
-      "sourceId": "chg3e83iv6",
+      "sourceId": "8kktq4gf58",
       "proposalId": "8s4g5qj3oq",
       "type": "talk",
       "title": "Textbooks that run: interactive, zero-install CS education in the browser",
@@ -662,7 +654,7 @@
     },
     {
       "id": "act-28lar2a71m",
-      "sourceId": "chg3tdl45j",
+      "sourceId": "8kktjiau5m",
       "proposalId": "9cl0lf8t0j",
       "type": "talk",
       "title": "Developer Experience is the New Open Source Contribution. Here's Why",
@@ -718,7 +710,7 @@
     },
     {
       "id": "act-28la283qdf",
-      "sourceId": "chg3sbqlfq",
+      "sourceId": "8kktat3uhp",
       "proposalId": "3nr9benq94",
       "type": "talk",
       "title": "Building Open Source Music Hardware in India - Tarab Instruments",
@@ -782,7 +774,7 @@
     },
     {
       "id": "act-cfp-37sjgknrj3",
-      "sourceId": "chg3nrjolo",
+      "sourceId": "8kkt52jeln",
       "proposalId": "37sjgknrj3",
       "type": "bof",
       "title": "Do Open Source Companies Pay Competitively?",
@@ -837,7 +829,7 @@
     },
     {
       "id": "act-cfp-92adqrmbh1",
-      "sourceId": "chg379qc8r",
+      "sourceId": "8kkth380ja",
       "proposalId": "92adqrmbh1",
       "type": "bof",
       "title": "FOSS4Good - Techies in the social sector",
@@ -872,7 +864,7 @@
     },
     {
       "id": "act-cfp-42vnv417j4",
-      "sourceId": "chg3on0hn4",
+      "sourceId": "8kktggosho",
       "proposalId": "42vnv417j4",
       "type": "talk",
       "title": "How to Build Long-Lasting Tech Communities That Thrive — A Playbook",
@@ -920,7 +912,7 @@
     },
     {
       "id": "act-28la2f67h1",
-      "sourceId": "chg3q3pkam",
+      "sourceId": "8kktrkb9ld",
       "proposalId": "6dpd2lbkma",
       "type": "lightning-talk",
       "title": "Refactoring documentation without breaking it",
@@ -997,7 +989,7 @@
     },
     {
       "id": "act-cfp-44no6v1fbb",
-      "sourceId": "chg3ro6la7",
+      "sourceId": "8kkt05e1m4",
       "proposalId": "44no6v1fbb",
       "type": "talk",
       "title": "Tracking-free and hackable network cameras - powered by libre software",
@@ -1046,7 +1038,7 @@
     },
     {
       "id": "act-28ladjk67i",
-      "sourceId": "chg3rcgd6o",
+      "sourceId": "8kkth8lvdb",
       "type": "ceremony",
       "title": "Group Photo",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1062,7 +1054,7 @@
     },
     {
       "id": "act-28la2b9bfd",
-      "sourceId": "chg34gkjcn",
+      "sourceId": "8kktitu4fa",
       "proposalId": "76r6ku6p9h",
       "type": "lightning-talk",
       "title": "Changelogs Are Not Enough: Writing Community Memory for Kubernetes",
@@ -1134,7 +1126,7 @@
     },
     {
       "id": "act-28lahhqhja",
-      "sourceId": "chg3p0n7ft",
+      "sourceId": "8kktgm5cn7",
       "proposalId": "1cbj5bhfhf",
       "type": "talk",
       "title": "CNC4Everyone - How we built a CNC machine for every classroom, college and makerspace",
@@ -1191,7 +1183,7 @@
     },
     {
       "id": "act-cfp-9ojc3pnp7u",
-      "sourceId": "chg3g2i9ha",
+      "sourceId": "8kkte7bjg4",
       "proposalId": "9ojc3pnp7u",
       "type": "talk",
       "title": "Optimizing Performance of GUIs",
@@ -1229,7 +1221,7 @@
     },
     {
       "id": "act-28lafff71r",
-      "sourceId": "chg3m6a9hf",
+      "sourceId": "8kktago0vp",
       "proposalId": "eqr1r1mp5b",
       "type": "talk",
       "title": "Writing Docs for Two Readers: Humans and AI Agents",
@@ -1278,7 +1270,7 @@
     },
     {
       "id": "act-cfp-4svti9mp47",
-      "sourceId": "chg3nho510",
+      "sourceId": "8kkte24f3v",
       "proposalId": "4svti9mp47",
       "type": "lightning-talk",
       "title": "Fork Around and Find Out: How I Built a GNOME Extension Used by 200K+ People",
@@ -1338,7 +1330,7 @@
     },
     {
       "id": "act-cfp-658mrgdc1b",
-      "sourceId": "chg3vva7d6",
+      "sourceId": "8kkt3cbege",
       "proposalId": "658mrgdc1b",
       "type": "lightning-talk",
       "title": "FQ-PIE: Contributing to Open Standards by Contributing to FOSS",
@@ -1415,7 +1407,7 @@
     },
     {
       "id": "act-cfp-0dkd3hateq",
-      "sourceId": "chg3efjb3t",
+      "sourceId": "8kkt1hbbhh",
       "proposalId": "0dkd3hateq",
       "type": "lightning-talk",
       "title": "It takes a village to raise a repo",
@@ -1466,23 +1458,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5t5c8t57",
-      "sourceId": "chg32php2f",
-      "type": "meal",
-      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
-      "start": "2026-09-26T12:00:00+05:30",
-      "end": "2026-09-26T14:30:00+05:30",
-      "flexible": false,
-      "locationId": "room-3",
-      "speakerIds": [],
-      "tags": [],
-      "trackId": "room-3",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5tk8jgaa",
-      "sourceId": "chg3kjogli",
+      "sourceId": "8kkthqnih1",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1496,8 +1473,23 @@
       "source": "fossunited"
     },
     {
+      "id": "act-aq5t5c8t57",
+      "sourceId": "8kktk00v02",
+      "type": "meal",
+      "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
+      "start": "2026-09-26T12:00:00+05:30",
+      "end": "2026-09-26T14:30:00+05:30",
+      "flexible": false,
+      "locationId": "room-3",
+      "speakerIds": [],
+      "tags": [],
+      "trackId": "room-3",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lai08gg0",
-      "sourceId": "chg3pmq53o",
+      "sourceId": "8kkt60dd7d",
       "proposalId": "9e9bajmm07",
       "type": "talk",
       "title": "My zero-to-hero journey deploying a fiber-optic and wireless community mesh",
@@ -1542,7 +1534,7 @@
     },
     {
       "id": "act-28la6nvldv",
-      "sourceId": "chg30jqqa0",
+      "sourceId": "8kkt3qg27i",
       "proposalId": "7dfgb98p8p",
       "type": "lightning-talk",
       "title": "Python Now Speaks Tamil: Getting Official Docs Translated for a Mother Tongue",
@@ -1584,7 +1576,7 @@
     },
     {
       "id": "act-28la8gj1tt",
-      "sourceId": "chg3a55lk8",
+      "sourceId": "8kktds6hu3",
       "proposalId": "c9kecg3h9i",
       "type": "talk",
       "title": "404: Empathy Not Found",
@@ -1648,7 +1640,7 @@
     },
     {
       "id": "act-aq5t2pjeqp",
-      "sourceId": "chg3mqo7e8",
+      "sourceId": "8kkt4q5e8g",
       "type": "talk",
       "title": "2026 GB Elections. Meet the Candidates",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1663,7 +1655,7 @@
     },
     {
       "id": "act-cfp-bemvjh2dac",
-      "sourceId": "chg30gitfq",
+      "sourceId": "8kkth8dfcq",
       "proposalId": "bemvjh2dac",
       "type": "lightning-talk",
       "title": "Mapping India in seconds, for one and all",
@@ -1726,7 +1718,7 @@
     },
     {
       "id": "act-28lap89l42",
-      "sourceId": "chg358sduk",
+      "sourceId": "8kkttn2ou2",
       "proposalId": "4pm3u3odmn",
       "type": "talk",
       "title": "HackerFab IITB: democratizing semiconductor fabrication",
@@ -1782,8 +1774,64 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-0hgfa2n1kg",
+      "sourceId": "8kkttarmkd",
+      "proposalId": "0hgfa2n1kg",
+      "type": "talk",
+      "title": "Porting Pipecat to Rust: The story of Rustvani-Fast Cheap Voice Ai for Bharat",
+      "subtitle": "",
+      "description": "Voice AI is having its infrastructure moment. But if we look closely at the stack everyone recommends: For eg: Pipecat with 12k git stars is getting popular. but every pipecat layer assumes you have AWS credits, and Series A funding. For the vast majority of Indian builders who are cash-strapped startups, solo developers, govtech contractors working on ₹-denominated contracts, this stack simply burns. Due to startup time they have to run warm instances, that too atleast 512mb perpetually.\n\nRustvani is a direct response to this mismatch. It is a Rust-native voice AI framework inspired by Pipecat's pipeline architecture, rebuilt from scratch to run on cheap infrastructure, serve Indian languages using Indian providers, and fit inside a 30MB static binary.(pipecat takes 400mb and 2 sec start). which means it can run 3 instances comfortably on a 128 mb flyio instance.\n\nThis talk is the story of that build and the decisions, the dead ends, and the design principles that emerged. I'll walk through why I started with Python Pipecat, what broke when I tried to deploy it under real Indian cost constraints, and why Rust became the answer. Eventhough the title says porting pipecat to rust, Rustvani can do much more. Along the way I'll cover: replacing the ONNX Runtime dependency with a pure Rust Silero VAD implementation, building RAVI (a lightweight inter-component protocol), the Dhara conversation flow engine (a node-based state machine for managing dialogue), and integrating Sarvam AI for Indian language STT and TTS. The result deploys as a single static musl binary to a Fly.io instance in the Mumbai region. Absolutely no GPU, no Python runtime, no cloud vendor lock-in.Also a 300ms cold start on fly io (of which 200ms is firecracker startup)\n\nThe deeper argument of this talk is about who this FOSS infrastructure is designed for. Most voice AI tooling is built by well-funded San Francisco companies, for well-funded San Francisco companies. Rustvani is an attempt to build from the other direction ie, starting with the constraints of an Indian indie builder and working outward. I think that inversion produces better software for most of the world.",
+      "references": [
+        {
+          "label": "https://crates.io/crates/rustvani",
+          "url": "https://crates.io/crates/rustvani"
+        },
+        {
+          "label": "https://dev.to/allen_george_4d037f39d509/i-rewrote-pipecat-in-rust-heres-what-i-learned-building-a-voice-agent-framework-from-scratch-4oj6",
+          "url": "https://dev.to/allen_george_4d037f39d509/i-rewrote-pipecat-in-rust-heres-what-i-learned-building-a-voice-agent-framework-from-scratch-4oj6"
+        },
+        {
+          "label": "https://github.com/Allenmylath/rustvani",
+          "url": "https://github.com/Allenmylath/rustvani"
+        },
+        {
+          "label": "https://github.com/Allenmylath/rustvani_vad",
+          "url": "https://github.com/Allenmylath/rustvani_vad"
+        }
+      ],
+      "links": [
+        {
+          "label": "Fly.io",
+          "url": "http://fly.io/"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0hgfa2n1kg",
+      "start": "2026-09-26T12:30:00+05:30",
+      "end": "2026-09-26T13:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-2",
+      "speakerIds": [
+        "person-allenmylath"
+      ],
+      "tags": [
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Contributing to FOSS",
+        "Story of a FOSS project - from inception to growth",
+        "Intermediate"
+      ],
+      "trackId": "hall-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lapvjakp",
-      "sourceId": "chg3q1ijia",
+      "sourceId": "8kkths20oh",
       "proposalId": "0hs9gpkgp4",
       "type": "lightning-talk",
       "title": "Printable, Downloadable, Forever: An Ode to Offline Documentation",
@@ -1891,7 +1939,7 @@
     },
     {
       "id": "act-aq5tc1ppib",
-      "sourceId": "chg3cl24n4",
+      "sourceId": "8kkt36p5v9",
       "type": "ceremony",
       "title": "Devroom Wrap-Up",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1906,46 +1954,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28laq0mp6c",
-      "sourceId": "chg3n5sh79",
-      "proposalId": "1oleu7iev5",
-      "type": "talk",
-      "title": "Telling India's story through data",
-      "subtitle": "",
-      "description": "Over the last ten years, working with Indian public data has come a long way. Problems of access are becoming a thing of the past, while the need for context has become greater than ever. After moving out of Indian newsrooms, I have with my team been working on building out Data For India, a public platform to advance the understanding of India, through data.\n\nIn this talk, I will first explain a little bit about our process behind asking questions, doing research and collating the data, as well as the communication including visualisation, with examples. I will then focus on the role of open data in our process and our work; this will include our thinking about the data we choose to use, the format we currently share it in, and our aim to play a larger role in the open data community. Lastly, I will share some key learnings about the state of Indian public data, and some thoughts, hopes and concerns about the way ahead. With the advancement of integrated tools to access Indian public data, including MCP servers, there is a great opportunity to further democratise access to data. Using some examples, I will talk about some of the transformative things that we have learned about the country through access to unit-level data. However, through a few examples, I will also highlight the challenges this brings with it, and the dangers of losing context.\n\nTwo themes will run through the talk:\n\nOne: moving away from false binaries, including those between tech/ data and social sciences research/ communication.\n\nTwo: pushing ourselves to expand our vision of what happens next.\n\nIf the ultimate aim of open data is for knowledge to advance and decision-making to get better - whether for governments, private companies or individuals - I will end the talk with some thoughts on what's needed to close this gap, technically, conceptually, pedagogically and democratically.",
-      "references": [
-        {
-          "label": "https://dataforindia.com",
-          "url": "https://dataforindia.com/"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Beginner",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1oleu7iev5",
-      "start": "2026-09-26T12:45:00+05:30",
-      "end": "2026-09-26T13:30:00+05:30",
-      "flexible": false,
-      "locationId": "hall-1",
-      "speakerIds": [
-        "person-rukmini-s"
-      ],
-      "tags": [
-        "Invited Talk",
-        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
-        "Beginner"
-      ],
-      "trackId": "hall-1",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5t1o9k38",
-      "sourceId": "chg3ookra4",
+      "sourceId": "8kktj8hiob",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1959,23 +1969,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5tu34gje",
-      "sourceId": "chg3u74n8c",
-      "type": "meal",
-      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
-      "start": "2026-09-26T13:00:00+05:30",
-      "end": "2026-09-26T14:00:00+05:30",
-      "flexible": false,
-      "locationId": "hall-3",
-      "speakerIds": [],
-      "tags": [],
-      "trackId": "hall-3",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5t091a1i",
-      "sourceId": "chg3b4f11d",
+      "sourceId": "8kkt2fvo46",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1989,10 +1984,25 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5t6vl7ef",
-      "sourceId": "chg3e530fu",
+      "id": "act-aq5tu34gje",
+      "sourceId": "8kkt5d58gn",
       "type": "meal",
-      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
+      "start": "2026-09-26T13:00:00+05:30",
+      "end": "2026-09-26T14:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [],
+      "tags": [],
+      "trackId": "hall-3",
+      "source": "fossunited"
+    },
+    {
+      "id": "act-8kkt204mk4",
+      "sourceId": "8kkt204mk4",
+      "type": "meal",
+      "title": "Lunch Break – 1:30 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T13:30:00+05:30",
       "end": "2026-09-26T14:30:00+05:30",
@@ -2004,24 +2014,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5t6oijso",
-      "sourceId": "chg340p4pv",
-      "type": "intro",
-      "title": "Devroom Intro: Android Open Source Project (AOSP)",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
-      "start": "2026-09-26T14:00:00+05:30",
-      "end": "2026-09-26T14:05:00+05:30",
-      "flexible": false,
-      "locationId": "room-1",
-      "speakerIds": [],
-      "tags": [],
-      "trackId": "devroom-android-open-source-project-aosp",
-      "devroomId": "devroom-android-open-source-project-aosp",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5tapk6u7",
-      "sourceId": "chg3qr4l10",
+      "sourceId": "8kktbo0ckf",
       "type": "intro",
       "title": "Devroom Intro: Compilers, Programming Languages & Systems",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -2036,7 +2030,7 @@
     },
     {
       "id": "act-cfp-dticdhpupe",
-      "sourceId": "chg3gdap45",
+      "sourceId": "8kktk6k8er",
       "proposalId": "dticdhpupe",
       "type": "talk",
       "title": "FOSS for the Forgotten Middle: Open-Sourcing Finance Software for India's 50,000 Microgyms",
@@ -2090,58 +2084,42 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28la93vrf8",
-      "sourceId": "chg3f46npq",
-      "proposalId": "4v0vd3g01j",
+      "id": "act-28laqr9ecm",
+      "sourceId": "8kkthobafa",
+      "proposalId": "4etfsdh6i4",
       "type": "lightning-talk",
-      "title": "Inside Android Keyboards: Building an Open Source IME",
+      "title": "Keeping up with the AOSP",
       "subtitle": "",
-      "description": "Building an Android keyboard is fundamentally different from building a traditional Android application. Keyboards operate inside a unique part of the Android ecosystem interacting directly with the Input Method Framework (IMF), communicating across applications, handling sensitive user input, and operating under strict performance and lifecycle constraints.\n\nIn this session, I will use lessons from maintaining Scribe-Android, an open-source keyboard project, as a practical case study to explore how Android keyboards (IMEs) actually work. We will examine the architecture behind IME, input flows, lifecycle behavior, and the challenges of building software that integrates deeply with the Android system while interacting seamlessly with other applications.\n\nThe talk will also cover real-world engineering challenges encountered while building a production keyboard experience: lifecycle quirks, latency and responsiveness tradeoffs, multilingual input support, debugging behavior across fragmented Android devices, and privacy and security considerations unique to keyboard software.\n\nRather than serving as a project showcase, this talk uses a real-world open-source IME to explore Android system behavior, architectural decisions, and the engineering tradeoffs required to build responsive, privacy-conscious input experiences.",
-      "keyTakeaways": [
-        "Understand how Android keyboards (IMEs) work and integrate with the Input Method Framework",
-        "Learn core IME architecture: IME input flows, and system interaction",
-        "Explore engineering tradeoffs around lifecycle behavior, latency, multilingual input, and performance",
-        "Understand UI tradeoffs between XML and Compose in the Keyboard Layouts",
-        "Learn debugging strategies for OEM quirks, fragmented Android environments, and platform changes (including API 36 breakages)",
-        "Understand privacy and security considerations in keyboard software",
-        "Gain deeper insight into Android internals through building unconventional system-facing software"
-      ],
+      "description": "The Android Open Source Project (AOSP) has undergone significant changes over the past year or so. Not just in new features, but also in how the project itself is developed and governed. This lightning talk provides a quick overview of the recent developments in the AOSP ecosystem, including the transition of AOSP main to read-only, introduction to android-latest-release branch, mandatory registration for app developers, the Android Automotive OS (AAOS) Software Defined Vehicle (SDV) release, updates from aosp-devs.org community and other updates shaping Android's future.",
       "references": [
         {
-          "label": "https://github.com/scribe-org/Scribe-Android",
-          "url": "https://github.com/scribe-org/Scribe-Android"
-        },
-        {
-          "label": "https://github.com/scribe-org/",
-          "url": "https://github.com/scribe-org/"
-        },
-        {
-          "label": "https://github.com/scribe-org/slides",
-          "url": "https://github.com/scribe-org/slides"
+          "label": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd",
+          "url": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd"
         }
       ],
       "links": [
+        {
+          "label": "aosp-devs.org",
+          "url": "https://aosp-devs.org/"
+        },
         {
           "label": "Source code",
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Intermediate",
+      "audience": "Beginner",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4v0vd3g01j",
-      "start": "2026-09-26T14:05:00+05:30",
-      "end": "2026-09-26T14:20:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4etfsdh6i4",
+      "start": "2026-09-26T14:00:00+05:30",
+      "end": "2026-09-26T14:10:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-gautham-mohanraj"
+        "person-amit-pundir"
       ],
       "tags": [
         "Lightning Talk",
-        "Technology architecture",
-        "Introducing a FOSS project or a new version of a popular project",
-        "Engineering practice - productivity, debugging",
-        "Intermediate"
+        "Beginner"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
       "devroomId": "devroom-android-open-source-project-aosp",
@@ -2149,7 +2127,7 @@
     },
     {
       "id": "act-28lapes3il",
-      "sourceId": "chg31mse54",
+      "sourceId": "8kktp8uip5",
       "proposalId": "381kk089so",
       "type": "lightning-talk",
       "title": "Semantic Quantization in KV Cache Eviction",
@@ -2206,8 +2184,61 @@
       "source": "fossunited"
     },
     {
+      "id": "act-28la3ltjcq",
+      "sourceId": "8kktebajrh",
+      "proposalId": "beqsttjcbn",
+      "type": "lightning-talk",
+      "title": "Under the Hood of Android , What Really Happens When You Open an App?",
+      "subtitle": "",
+      "description": "Have you ever stopped to think about what actually happens inside your smartphone the second you tap an app icon? Instead of booting up from scratch every single time , our phone uses a shortcut to clone a ready to go template which is why our apps launch in the blink of an eye.We build apps every day , many complex ones as well relying on APIs that make UI magically appear but how many of us actually understand the heavy lifting happening underneath? This talk will cover that black box of Android’s operating system for developers who want to look past the surface layer. Did you know that the app doesn’t boot a fresh JVM every time but instead forks from a pre warmed Zygote process to launch instantly. Most importantly, because this entire operating system is open - source , you never have to just guess how things work , we can actually read the blueprints. I’ll show you how to navigate this massive public codebase so you can look up exactly what happens under the hood whenever you get stuck",
+      "keyTakeaways": [
+        "Understand the Zygote forking model and why Android app startup is fast",
+        "Know the journey from tapping an icon -> process creation -> first frame on screen",
+        "Understand how Compose's compiler plugin + slot table architecture differs from the legacy View system"
+      ],
+      "references": [
+        {
+          "label": "https://source.android.com/docs/core/runtime",
+          "url": "https://source.android.com/docs/core/runtime"
+        },
+        {
+          "label": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java",
+          "url": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java"
+        },
+        {
+          "label": "https://developer.android.com/develop/ui/compose/mental-model",
+          "url": "https://developer.android.com/develop/ui/compose/mental-model"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/beqsttjcbn",
+      "start": "2026-09-26T14:10:00+05:30",
+      "end": "2026-09-26T14:25:00+05:30",
+      "flexible": false,
+      "locationId": "room-1",
+      "speakerIds": [
+        "person-owm-dubey"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Technology architecture",
+        "Community",
+        "Beginner"
+      ],
+      "trackId": "devroom-android-open-source-project-aosp",
+      "devroomId": "devroom-android-open-source-project-aosp",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28la1ogl62",
-      "sourceId": "chg36n0pq2",
+      "sourceId": "8kktfhp2jo",
       "proposalId": "3ni2uq8bkg",
       "type": "lightning-talk",
       "title": "Databases in Ethereum Nodes",
@@ -2267,24 +2298,26 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28la55ehov",
-      "sourceId": "chg3t74et4",
-      "proposalId": "41r3mau7ga",
+      "id": "act-28lar6l8ag",
+      "sourceId": "8kktvcc5jb",
+      "proposalId": "bb06npb4u0",
       "type": "lightning-talk",
-      "title": "From HIDL to Stable AIDL: Modernizing Android HAL Interfaces",
+      "title": "Launcher3 Internals: Understanding Android's Home Screen, Google Feed Integration, and Custom -1 Panels",
       "subtitle": "",
-      "description": "Android is transitioning from HIDL to Stable AIDL to improve HAL interface stability and long-term maintainability. However, many production devices still depend on legacy HIDL implementations, making upgrades difficult.This talk presents a migration of a HAL from HIDL to Stable AIDL, focusing on real-world challenges. It covers key differences in interface definition, versioning, Binder IPC, and VINTF compatibility. The session walks through a step-by-step migration: rewriting interfaces, updating services, and modifying manifests.Hands-on guide for engineers who must modernize existing HIDL HALs to Stable AIDL in shipping devices.",
+      "description": "Launcher3 is one of the most frequently used yet least understood applications in the Android ecosystem. Every interaction on an Android device eventually flows through it, unlocking the device, launching applications, accessing widgets, navigating recent tasks, searching for content, or interacting with personalized experiences such as Google Feed.\n\nOver the last year, while maintaining and customizing Launcher3 across multiple Android releases, I repeatedly dived into parts of the launcher that are rarely documented and even less frequently discussed in public. It started from writing features and maintenance and swiftly became a deep exploration into Launcher3's architecture, integration, plugin overlays, feed provider, the mechanism that power the familiar -1 screen experience found on millions of Android devices.\n\nMany Android developers work on Launcher3, but few get the opportunity to understand why it is structured the way it is. This talk aims to bridge that gap.\n\nLauncher3 is not just an app that opens other apps. It is one of the central part of the Android experience, such as navigation, recents, search, widgets and personalisation. This session will cover its core architecture, workspace, states, and integration with SystemUI. We will also examine how OEMs and custom ROMs extend the same codebase to create different launcher experiences\n\nA major focus of the session will be understanding the architecture behind the Google Feed (-1) screen. Through practical examples and analysis, we will explore how overlay provider plugin communicate with Launcher3, how overlay services are implemented, and what developers can learn when building their own custom launcher experiences.\n\nAlong the way, I will also share real-world lessons learned from maintaining Launcher3 customizations, debugging launcher issues across Android releases, and studying the components that make modern Android launchers feel seamless to users.\n\nWhether you maintain a custom ROM, work on the Android platform, or are simply interested in how Android launchers work, this session will help you understand how Launcher3 is structured, how its major components interact, and how modern launcher features are implemented.",
       "keyTakeaways": [
-        "Explain the core architectural differences between HIDL and AIDL in the Android HAL stack.",
-        "List the Android version milestones that make AIDL mandatory for new and production devices.",
-        "Execute a step-by-step HIDL → AIDL migration for a real hardware interface.",
-        "Address SELinux policy changes, VINTF manifest updates, and compatibility matrix versioning required by the migration.",
-        "Identify and mitigate common failure, validation."
+        "Understand how Launcher3 evolved from a simple application launcher into a core component of the modern Android user experience.",
+        "Learn how Launcher3 interacts with SystemUI, Recents, Search, and many more platform services.",
+        "Explore the architecture behind Google Feed and the implementation of Android's -1 screen experience.",
+        "Understand launcher overlay plugins and other mechanisms used by libgooglefeed.",
+        "Learn practical techniques for customizing Launcher3 and implementing alternative feed experiences.",
+        "Gain insights for Launcher3 maintenance, debugging, and reverse-engineering efforts across Android releases.",
+        "Walk away with a mental model of Launcher3 that makes future customization and platform development significantly easier."
       ],
       "references": [
         {
-          "label": "https://source.android.com/docs/core/architecture/aidl/stable-aidl",
-          "url": "https://source.android.com/docs/core/architecture/aidl/stable-aidl"
+          "label": "https://android.googlesource.com/platform/packages/apps/Launcher3/",
+          "url": "https://android.googlesource.com/platform/packages/apps/Launcher3/"
         }
       ],
       "links": [
@@ -2295,18 +2328,19 @@
       ],
       "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/41r3mau7ga",
-      "start": "2026-09-26T14:20:00+05:30",
-      "end": "2026-09-26T14:35:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bb06npb4u0",
+      "start": "2026-09-26T14:25:00+05:30",
+      "end": "2026-09-26T14:40:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-ankit-siddhapura"
+        "person-saalim-quadri"
       ],
       "tags": [
         "Lightning Talk",
+        "Contributing to FOSS",
         "Technology architecture",
-        "Engineering practice - productivity, debugging",
+        "Community",
         "Intermediate"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
@@ -2315,7 +2349,7 @@
     },
     {
       "id": "act-cfp-0j48rt6d3s",
-      "sourceId": "chg3u9adp2",
+      "sourceId": "8kktj5gnlm",
       "proposalId": "0j48rt6d3s",
       "type": "bof",
       "title": "FOSS and Co-operatives",
@@ -2323,12 +2357,12 @@
       "description": "FOSS and Co-operatives have a lot in common, especially in countering neoliberalism and privatisation in general. And every year we see talks and discussions around ways to make money in FOSS, seldom we talk about how we structure these financial entities and businesses.\n\nThe point of this BOF is to raise awareness of co-operatives, initiate a discussion about software and aligned co-operatives, talk about existing examples, and what it would take to incubate and nurture co-operatives with FOSS at its core and how a financially viable company can be run.\n\nA small intro to co-ops, their functioning and examples so that the space can be inclusive to people who are new to the idea. And then open the floor with the prompts\n\nPeople interested in FOSS-based enterprises and who are looking to learn and discuss about alternative enterprise forms",
       "references": [
         {
-          "label": "https://mastodon.online/@japoo",
-          "url": "https://mastodon.online/@japoo"
+          "label": "https://en.wikipedia.org/wiki/Worker_cooperative",
+          "url": "https://en.wikipedia.org/wiki/Worker_cooperative"
         },
         {
-          "label": "https://bsky.app/profile/japoo.dev",
-          "url": "https://bsky.app/profile/japoo.dev"
+          "label": "https://platform.coop/",
+          "url": "https://platform.coop/"
         }
       ],
       "links": [
@@ -2353,6 +2387,7 @@
       ],
       "tags": [
         "Birds of Feather(BoF)",
+        "Community",
         "Intermediate"
       ],
       "trackId": "room-2",
@@ -2360,7 +2395,7 @@
     },
     {
       "id": "act-cfp-dagd2l28tm",
-      "sourceId": "chg39cbd90",
+      "sourceId": "8kktveohuu",
       "proposalId": "dagd2l28tm",
       "type": "bof",
       "title": "FOSS in the Public Consciousness",
@@ -2401,7 +2436,7 @@
     },
     {
       "id": "act-cfp-9lmiio7p5b",
-      "sourceId": "chg3ee11td",
+      "sourceId": "8kkt54btk1",
       "proposalId": "9lmiio7p5b",
       "type": "panel",
       "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for Democratic Accountability",
@@ -2438,7 +2473,7 @@
     },
     {
       "id": "act-cfp-8knf7bja7g",
-      "sourceId": "chg3vh07tb",
+      "sourceId": "8kktfpr2vf",
       "proposalId": "8knf7bja7g",
       "type": "talk",
       "title": "Navigating the FOSS Contribution Journey",
@@ -2472,7 +2507,7 @@
         }
       ],
       "audience": "Beginner",
-      "proposalStatus": "Screening",
+      "proposalStatus": "Approved",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/8knf7bja7g",
       "start": "2026-09-26T14:30:00+05:30",
       "end": "2026-09-26T15:00:00+05:30",
@@ -2491,7 +2526,7 @@
     },
     {
       "id": "act-28laigg511",
-      "sourceId": "chg3pqd4vk",
+      "sourceId": "8kkta8htl3",
       "proposalId": "d8b9uvdntg",
       "type": "talk",
       "title": "Bend, don't Break. Modern Techniques for Flexibility in Strongly Typed Functional Programming",
@@ -2539,21 +2574,34 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28laau6e4o",
-      "sourceId": "chg36plpvf",
-      "proposalId": "3ltumiotgu",
+      "id": "act-28la93vrf8",
+      "sourceId": "8kktb7lgbu",
+      "proposalId": "4v0vd3g01j",
       "type": "lightning-talk",
-      "title": "Living With a DeGoogled Phone: Privacy, Trade-offs, and Daily Use",
+      "title": "Inside Android Keyboards: Building an Open Source IME",
       "subtitle": "",
-      "description": "Many Android phones come with heavy vendor skins and a lot of Google services built in. I wanted something lighter and more private, so I moved from that setup to a custom ROM with less Google dependence.\n\nThat shift was not smooth. I ran into soft bricks, a hard brick, SafetyNet and Play Integrity problems, and notifications that did not always behave the way they should. I also tried microG, but in the end I went with a fully vanilla custom ROM setup because that fit my privacy goals better. Along the way, I managed to fix most of the issues I ran into, but a few things never really had a clean or satisfying fix.\n\nFor family devices, though, a fully degoogled setup did not make sense. They needed something that was easier to live with, so those phones stayed on a normal GApps-based custom ROM. That ended up being one of the biggest lessons for me: the same setup that feels fine for one person can be too much trouble for someone else.\n\nThis talk is about that move, the things that broke along the way, the fixes that worked, the things that stayed broken, and the trade-offs between privacy and daily use.",
+      "description": "Building an Android keyboard is fundamentally different from building a traditional Android application. Keyboards operate inside a unique part of the Android ecosystem interacting directly with the Input Method Framework (IMF), communicating across applications, handling sensitive user input, and operating under strict performance and lifecycle constraints.\n\nIn this session, I will use lessons from maintaining Scribe-Android, an open-source keyboard project, as a practical case study to explore how Android keyboards (IMEs) actually work. We will examine the architecture behind IME, input flows, lifecycle behavior, and the challenges of building software that integrates deeply with the Android system while interacting seamlessly with other applications.\n\nThe talk will also cover real-world engineering challenges encountered while building a production keyboard experience: lifecycle quirks, latency and responsiveness tradeoffs, multilingual input support, debugging behavior across fragmented Android devices, and privacy and security considerations unique to keyboard software.\n\nRather than serving as a project showcase, this talk uses a real-world open-source IME to explore Android system behavior, architectural decisions, and the engineering tradeoffs required to build responsive, privacy-conscious input experiences.",
+      "keyTakeaways": [
+        "Understand how Android keyboards (IMEs) work and integrate with the Input Method Framework",
+        "Learn core IME architecture: IME input flows, and system interaction",
+        "Explore engineering tradeoffs around lifecycle behavior, latency, multilingual input, and performance",
+        "Understand UI tradeoffs between XML and Compose in the Keyboard Layouts",
+        "Learn debugging strategies for OEM quirks, fragmented Android environments, and platform changes (including API 36 breakages)",
+        "Understand privacy and security considerations in keyboard software",
+        "Gain deeper insight into Android internals through building unconventional system-facing software"
+      ],
       "references": [
         {
-          "label": "https://wiki.lineageos.org/",
-          "url": "https://wiki.lineageos.org/"
+          "label": "https://github.com/scribe-org/Scribe-Android",
+          "url": "https://github.com/scribe-org/Scribe-Android"
         },
         {
-          "label": "https://github.com/microg/GmsCore/wiki",
-          "url": "https://github.com/microg/GmsCore/wiki"
+          "label": "https://github.com/scribe-org/",
+          "url": "https://github.com/scribe-org/"
+        },
+        {
+          "label": "https://github.com/scribe-org/slides",
+          "url": "https://github.com/scribe-org/slides"
         }
       ],
       "links": [
@@ -2562,53 +2610,39 @@
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Beginner",
+      "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3ltumiotgu",
-      "start": "2026-09-26T14:35:00+05:30",
-      "end": "2026-09-26T14:50:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4v0vd3g01j",
+      "start": "2026-09-26T14:40:00+05:30",
+      "end": "2026-09-26T14:55:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-jasil-faras"
+        "person-gautham-mohanraj"
       ],
       "tags": [
         "Lightning Talk",
-        "Community",
-        "Beginner"
+        "Technology architecture",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Engineering practice - productivity, debugging",
+        "Intermediate"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
       "devroomId": "devroom-android-open-source-project-aosp",
       "source": "fossunited"
     },
     {
-      "id": "act-28lahmuq69",
-      "sourceId": "chg3rdek2f",
-      "proposalId": "dojgnoj06v",
+      "id": "act-28lajt6fl6",
+      "sourceId": "8kktfe9be1",
+      "proposalId": "e08r7fa8ja",
       "type": "lightning-talk",
-      "title": "Volume Controller using Knob (Potentiometer)",
+      "title": "Adapting Generic Boot Loader on Android Platforms",
       "subtitle": "",
-      "description": "Building a Physical Volume Knob for AOSP on Raspberry Pi 5\n\nIn this talk, I'll show how I connected a rotary potentiometer to a Raspberry Pi 5 running AOSP Android 15 and made it control the media volume — using a 250-line C++ daemon in the vendor layer, with zero changes to the Android framework.\n\nAlong the way we hit real walls: a library blocked by VNDK, build and runtime errors, three SELinux types that don't exist in AOSP 15, and a hardware bus number that wasn't what we expected.",
-      "keyTakeaways": [
-        "How the AOSP vendor layer is structured and what belongs in it",
-        "How to read hardware sensors from a native C++ daemon using standard Linux kernel ABIs",
-        "How uinput works and why it is sometimes the right way to talk to Android audio from vendor code",
-        "How to write and debug SELinux policy for a vendor service from scratch",
-        "The difference between BOARD_VENDOR_SEPOLICY_DIRS and PRODUCT_PRIVATE_SEPOLICY_DIRS and why it matters",
-        "How to iterate on a vendor service without reflashing the entire image"
-      ],
+      "description": "Bootloaders are an essential block for booting an Android device. They handle tasks from reading the partitions, loading, and authenticating the Android images to preparing the board and finally handing over thec ontrol to kernel. Currently each vendor maintains different bootloader. To address the issue of fragmentation in the Android bootloader implementation across the community, Generic BootLoader (GBL) was introduced by Google.\n\nGBL is an EFI application which supports x86, ARM64 and RISC-V architectures and can be run across various firmware such as U-Boot, EDK2, and LittleKernel. By leveraging RUST memory safety and trusted components such as libufdt and libavb, GBL provides a uniform, secure, and robust environment.\n\nThis session provides a technical breakdown into GBL’s integration within the UEFI ecosystem. We will explore how GBL utilizes standard upstream protocols and interfaces with firmware to select platform-appropriate Device Trees, apply essential DT fixups, and prepare critical data for the Android kernel, including bootconfig and command-line parameters. Overall, the session provides a practical look at the enhancements required to bring GBL into the boot chain along with the challenges that might be encountered, offering a comprehensive roadmap for developers looking to reduce maintenance overhead and accelerate future-ready Android deployments.",
       "references": [
         {
-          "label": "https://www.youtube.com/shorts/9k3If_49M78",
-          "url": "https://www.youtube.com/shorts/9k3If_49M78"
-        },
-        {
-          "label": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf",
-          "url": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf"
-        },
-        {
-          "label": "https://github.com/ProArun/fossinida2026/blob/main/README.md",
-          "url": "https://github.com/ProArun/fossinida2026/blob/main/README.md"
+          "label": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/",
+          "url": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/"
         }
       ],
       "links": [
@@ -2617,21 +2651,19 @@
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Beginner",
+      "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dojgnoj06v",
-      "start": "2026-09-26T14:50:00+05:30",
-      "end": "2026-09-26T15:05:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/e08r7fa8ja",
+      "start": "2026-09-26T14:55:00+05:30",
+      "end": "2026-09-26T15:10:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-arun-kumar-aditya"
+        "person-naina-mehta"
       ],
       "tags": [
         "Lightning Talk",
-        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
-        "Technology architecture",
-        "Beginner"
+        "Intermediate"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
       "devroomId": "devroom-android-open-source-project-aosp",
@@ -2639,7 +2671,7 @@
     },
     {
       "id": "act-28lam87dir",
-      "sourceId": "chg3rpmuvh",
+      "sourceId": "8kkteg6an2",
       "proposalId": "09lln6s8nq",
       "type": "talk",
       "title": "PeerDAS: Erasure Coding When You Can't Trust the Storage",
@@ -2697,7 +2729,7 @@
     },
     {
       "id": "act-cfp-ck74mbe1ds",
-      "sourceId": "chg30qubnu",
+      "sourceId": "8kktmdhje6",
       "proposalId": "ck74mbe1ds",
       "type": "talk",
       "title": "How FOSS and AI are Changing Government Workflows at NHAI",
@@ -2772,30 +2804,26 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28la3ltjcq",
-      "sourceId": "chg361u199",
-      "proposalId": "beqsttjcbn",
-      "type": "lightning-talk",
-      "title": "Under the Hood of Android , What Really Happens When You Open an App?",
+      "id": "act-28lap8q3re",
+      "sourceId": "8kktm2vb1j",
+      "proposalId": "d883e2uauk",
+      "type": "talk",
+      "title": "Porting AOSP to Allwinner Sunxi platform",
       "subtitle": "",
-      "description": "Have you ever stopped to think about what actually happens inside your smartphone the second you tap an app icon? Instead of booting up from scratch every single time , our phone uses a shortcut to clone a ready to go template which is why our apps launch in the blink of an eye.We build apps every day , many complex ones as well relying on APIs that make UI magically appear but how many of us actually understand the heavy lifting happening underneath? This talk will cover that black box of Android’s operating system for developers who want to look past the surface layer. Did you know that the app doesn’t boot a fresh JVM every time but instead forks from a pre warmed Zygote process to launch instantly. Most importantly, because this entire operating system is open - source , you never have to just guess how things work , we can actually read the blueprints. I’ll show you how to navigate this massive public codebase so you can look up exactly what happens under the hood whenever you get stuck",
+      "description": "With our recent efforts to get upstream Linux Kernel support for Allwinner Sunxi A133 and A523 platforms, this also includes the Display Engine. Although the whole upstream effort relies on reverse engineering the vendor blobs, we have managed to get the end-to-end display pipeline working with GPU and got LVDS and MIPI working. In some cases, we are able to get 2 parallel displays working.\n\nAllwinner ships the most affordable SoCs / silicons for gaming consoles and handheld devices including tablets, all running vendor-provided Android. All of the devices come with closed source and proprietary blobs from Imagination Technologies, ARM Mali, and CedarX for the media pipelines.\n\nThis talk walks through our adventurous journey in building AOSP with upstream Linux Kernel 7.1 without any vendor-provided components to run an end-to-end display pipeline. We started our tinkering with Android 16 and easily moved to 17 (only released 6 days ago - relative to the date of this submission).",
       "keyTakeaways": [
-        "Understand the Zygote forking model and why Android app startup is fast",
-        "Know the journey from tapping an icon -> process creation -> first frame on screen",
-        "Understand how Compose's compiler plugin + slot table architecture differs from the legacy View system"
+        "One doesn't need to get locked in with vendor-provided Android",
+        "How to reverse engineer all the needed components to get an end-to-end working AOSP",
+        "How the community can lead the way to try this for the A733 or any upcoming silicons from Allwinner, or any SoC vendor for that matter"
       ],
       "references": [
         {
-          "label": "https://source.android.com/docs/core/runtime",
-          "url": "https://source.android.com/docs/core/runtime"
+          "label": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/",
+          "url": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/"
         },
         {
-          "label": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java",
-          "url": "https://cs.android.com/android/platform/superproject/+/main:frameworks/base/core/java/android/app/ActivityThread.java"
-        },
-        {
-          "label": "https://developer.android.com/develop/ui/compose/mental-model",
-          "url": "https://developer.android.com/develop/ui/compose/mental-model"
+          "label": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/",
+          "url": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/"
         }
       ],
       "links": [
@@ -2806,18 +2834,17 @@
       ],
       "audience": "Beginner",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/beqsttjcbn",
-      "start": "2026-09-26T15:05:00+05:30",
-      "end": "2026-09-26T15:20:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d883e2uauk",
+      "start": "2026-09-26T15:10:00+05:30",
+      "end": "2026-09-26T15:35:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-owm-dubey"
+        "person-karthikeyan",
+        "person-bharathiraja"
       ],
       "tags": [
-        "Lightning Talk",
-        "Technology architecture",
-        "Community",
+        "Talk",
         "Beginner"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
@@ -2826,7 +2853,7 @@
     },
     {
       "id": "act-28lauslk84",
-      "sourceId": "chg3vifu5a",
+      "sourceId": "8kktf1dvjl",
       "proposalId": "6aasju7noq",
       "type": "lightning-talk",
       "title": "Benchmarking can be hard, here's why we're still creating a new one for OCaml",
@@ -2869,27 +2896,28 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28laibfej4",
-      "sourceId": "chg3q9355o",
-      "proposalId": "coqs2rc43i",
-      "type": "lightning-talk",
-      "title": "Rust in Android: Building Secure HALs for the Next Generation of AOSP",
+      "id": "act-cfp-0evl4k18m0",
+      "sourceId": "8kkt73ucuq",
+      "proposalId": "0evl4k18m0",
+      "type": "bof",
+      "title": "Beyond the ICT Period: Can FOSS Communities Reshape School-Level Tech Education in India?",
       "subtitle": "",
-      "description": "As Android continues adopting Rust to improve security and reliability, platform developers are gaining new ways to build safer system components. This talk introduces Android Hardware Abstraction Layers (HALs) developed using Rust and AIDL, covering how Rust integrates with AOSP, Binder IPC, and modern Android architecture.\n\nThrough a practical example, attendees will learn how to create and integrate a Rust-based HAL, understand the benefits of memory safety, and explore why Rust is becoming an important part of Android's future.",
+      "description": "IndiaFOSS 2026 — BoF Proposal\n\nTitle: Beyond the ICT Period: Can FOSS Communities Reshape School-Level Tech Education in India?\n\nThe Problem\n\nIn most Indian schools, \"ICT\" is a once-a-week period — graded but low-stakes, often outsourced to a vendor or a single teacher, and focused mostly on device handling, file management, and office applications. It is introduced as a subject, not a tool. This framing has largely stayed the same.\n\nA few things follow from this:\n\nThe subject carries little timetable weight, especially in low-budget schools with constrained infrastructure.\n\nThe focus stays on operating devices rather than on collaboration, problem-solving, prototyping, or learning from failure — the competencies that actually transfer to other subjects and to life.\n\nTech remains siloed from the rest of the curriculum, instead of becoming a thinking tool across science, mathematics, art, and social studies.\n\nQuality and continuity depend entirely on one vendor or one teacher's knowledge — and collapse the moment either leaves.\n\nRecent policy moves are steps in the right direction: NEP 2020 introduces computational thinking from Grade 6, CBSE offers an AI elective from Grade 8, and NCF 2023 pushes for digital skills embedded across subjects. But these remain input-focused — new syllabi, new electives — with little attention to learning outcomes, teacher capacity, or the infrastructure reality in non-elite, non-urban schools.\n\nThe missing piece isn't a better syllabus. It's an ecosystem — one that connects students, mentors, tools, and community in a way that outlasts any single vendor, teacher, or policy cycle.\n\nWhy FOSS?\n\nFOSS isn't just a sourcing choice. In the context of school-level tech education, it does three things that matter:\n\nIt makes quality tech education accessible — no recurring licence costs, runs on low-spec hardware.\n\nIt gives students freedom to tinker — exploring and modifying, rather than following a fixed vendor workflow.\n\nIt builds a community of making, rather than a transactional vendor-client relationship between schools and ed-tech companies.\n\nThis isn't a new idea internationally — researchers in maker education (e.g., Korhonen, Kangas & Salo's work on invention pedagogy in Finland) have long argued that collaborative, fabrication-based learning builds problem-solving and creative capacities that formal schooling otherwise leaves underdeveloped.\n\nWhat's less explored is what that model requires when the starting infrastructure, teacher continuity, and budget is restricted — which is precisely the gap TinkerQubits and FOSS-first approaches are built to close.\n\nWhat TinkerQubits Has Found\n\nWe run Tech for Schools, an in-school fellowship model (Grades 1–10) built on a concept-first curriculum — not software-first. The programme spans Digital Literacy and Coding, Electronics, Robotics, 3D Design and Printing, and AI, reinforcing the same underlying concepts — sequencing, input-output logic, pattern recognition, prototyping, ethics — through different tools at each grade level.\n\nIn the primary grades (1–4), this concept-first approach starts deliberately unplugged. Before a child touches a device, they build the reasoning that computational thinking depends on — sequencing instructions, sorting and continuing patterns, and acting out conditional logic to build their first board game in Grade 4. This isn't a workaround for missing infrastructure; it's a better fit for how young children reason — concrete and physical before symbolic and screen-based — and it gives every child an entry point regardless of whether their school has a working computer lab. The concepts named here (sequence, pattern, condition) resurface explicitly when tools are introduced from Grade 5 onward, so the unplugged stage isn't separate from the \"tech\" curriculum — it's the foundation of it.\n\nOur curriculum rests on four pillars: Digital Learning and Skilling (technical foundation, critical thinking, creativity); Digital Safety and Citizenship (responsible and ethical use); Digital Sustainability (environmental impact of technology); and Digital Opportunities and Emerging Tech (from Grade 7: exposure to careers, Python, and app development).\n\nTwo structures carry students through the progression. Tech Tribes are student-led after-school clubs (Grades 6–9) where learners become digital leaders, collaborators, and problem-solvers — we are piloting this. The ICT period creates the space to learn and apply.\n\nThe Thinkers Makers Mela (TMM) is our annual showcase where students present team-built solutions to a public audience. To date, it has produced 70 software and hardware projects from Grade 6–9 students across 2,500+ learners — including a safety-device prototype presented at a KJ Somaiya-Mumbai Makers Mela, and student teams from Grades 7–10 selected to present at the 10th National Cyber Psychology Conference 2026, showcasing solutions ranging from a child cyber-safety tool and an English-learning app built by vernacular-medium students, to a girls' safety device. We have approximately 18% children opting for IT as their vocational subject in Grade 11 and 12. Every year a few students come back to work and guide existing students.\n\nThe spirit of FOSS grew organically for us — not as a policy position, but through practice: choosing tools students could own, modify, and carry forward, and watching that choice quietly shape how they related to technology.\n\nThe progression we are working toward: Basic Digital Literacy → Learner → Maker → Contributor → Community Member — a student doesn't just pass the ICT subject; they grow into someone who eventually contributes back to a tech community.\n\nThe biggest bottleneck we have found is not curriculum — it is people. Schools need better teachers in tech but most low-budget schools cannot access or retain them. Our belief is that this movement gets built by mobilising fresh graduates and engineering pass-outs as tech-teachers — the didi/bhaiya in the classroom — who are close enough in age and background to be genuine role models for children, and who, in the act of teaching, also build their own capacities: better in tech, programme management, communication, mentorship, ownership. Through our Tech for Teachers programme, we train fresh BCA and BSc-IT graduates as computer educators and place them in low-income schools and government schools.\n\nScaling this mentor pipeline is fundamentally a community-building problem — which is why it belongs in a FOSS Birds of a Feather session.\n\nWhat We Want to Discuss\n\nHow can FOSS communities — local chapters, meetups, college clubs — become a sustainable pipeline of volunteer and part-time mentors for school-level tech education? What makes this work for the volunteers, not just the schools?\n\nWhat would a genuinely concept-first, FOSS-tool-based curriculum look like across grade levels — and where do existing efforts already overlap?\n\nWhat does a viable, low-cost, FOSS-first school lab actually require — especially in non-elite, non-urban schools where the infrastructure gap is most acute and where STEM labs exist, are often siloed and computerless?\n\nHow can FOSS communities connect with structures like Tech Tribes and the Thinkers Makers Mela to give students a real path from school maker to open-source contributor?\n\nModerator: Rinsa Perapadan\n\nHappy to have more collaborators",
       "keyTakeaways": [
-        "Understand why Android is adopting Rust for system-level development.",
-        "Explain how AIDL-based HALs fit into the modern Android architecture.",
-        "Create and integrate a Rust-based HAL in AOSP.",
-        "Implement Binder IPC communication between Android services and Rust HALs.",
-        "Identify common challenges when developing and debugging Rust HAL services."
+        "A clear picture of the school-level tech education gap — not as an abstract policy problem but as a concrete, localised one with specific bottlenecks (people, continuity, infrastructure)",
+        "An entry point: what it actually looks like for a FOSS community member — college club, local chapter, hobbyist — to plug into school-level work without it being extractive of their time"
       ],
       "references": [
         {
-          "label": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns",
-          "url": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns"
+          "label": "https://www.tinkerqubits.org/",
+          "url": "https://www.tinkerqubits.org/"
         }
       ],
       "links": [
+        {
+          "label": "Rinsa Perapadan",
+          "url": "mailto:rinsa.sbt@gmail.com"
+        },
         {
           "label": "Source code",
           "url": "https://github.com/fossunited/fossunited"
@@ -2897,27 +2925,27 @@
       ],
       "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/coqs2rc43i",
-      "start": "2026-09-26T15:20:00+05:30",
-      "end": "2026-09-26T15:35:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0evl4k18m0",
+      "start": "2026-09-26T15:30:00+05:30",
+      "end": "2026-09-26T16:30:00+05:30",
       "flexible": false,
-      "locationId": "room-1",
+      "locationId": "room-3",
       "speakerIds": [
-        "person-jaimin-kalariya"
+        "person-rinsa-perapadan"
       ],
       "tags": [
-        "Lightning Talk",
-        "Engineering practice - productivity, debugging",
-        "Technology architecture",
+        "Birds of Feather(BoF)",
+        "Story of a FOSS project - from inception to growth",
+        "Community",
+        "Contributing to FOSS",
         "Intermediate"
       ],
-      "trackId": "devroom-android-open-source-project-aosp",
-      "devroomId": "devroom-android-open-source-project-aosp",
+      "trackId": "room-3",
       "source": "fossunited"
     },
     {
       "id": "act-cfp-ab8viuj62q",
-      "sourceId": "chg3j2koku",
+      "sourceId": "8kktgqme1j",
       "proposalId": "ab8viuj62q",
       "type": "talk",
       "title": "Building OpenSpeaks tools for language documentation and archiving",
@@ -2948,6 +2976,7 @@
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [
+        "person-sneha-mundari",
         "person-subhashish-panigrahi"
       ],
       "tags": [
@@ -2963,8 +2992,58 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-59ok1dm8kb",
+      "sourceId": "8kktmggatg",
+      "proposalId": "59ok1dm8kb",
+      "type": "workshop",
+      "title": "Making music with strudel.cc",
+      "subtitle": "",
+      "description": "Strudel turns writing code into making music. Live in the browser with nothing to install. This workshop introduces complete beginners to live coding. Strudel, a browser-based live coding environment, removes almost every piece of friction that normally stands between a beginner and making music with code: no installs, no setup, no prior musical or programming background required.",
+      "keyTakeaways": [
+        "Write your first working musical pattern in Strudel",
+        "Perform live with paired partners contributing to a shared piece in real time",
+        "Run everything from a phone, tablet, laptop, or anything that runs a relatively modern browser with JavaScript. No installation required.",
+        "Leave with the confidence and vocabulary to keep exploring Strudel and the live coding community independently"
+      ],
+      "references": [
+        {
+          "label": "https://azan-n.com/projects/20250924-music-at-indiafoss-with-strudelcc/",
+          "url": "https://azan-n.com/projects/20250924-music-at-indiafoss-with-strudelcc/"
+        },
+        {
+          "label": "https://azan-n.com/notes/20260228-music-at-hack4play-with-strudelcc/",
+          "url": "https://azan-n.com/notes/20260228-music-at-hack4play-with-strudelcc/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/59ok1dm8kb",
+      "start": "2026-09-26T15:30:00+05:30",
+      "end": "2026-09-26T16:30:00+05:30",
+      "flexible": false,
+      "locationId": "room-2",
+      "speakerIds": [
+        "person-azan"
+      ],
+      "tags": [
+        "Workshop",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Tutorial about using a FOSS project",
+        "Engineering practice - productivity, debugging",
+        "Intermediate"
+      ],
+      "trackId": "room-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-cfp-dmsksuju3d",
-      "sourceId": "chg3vvp28a",
+      "sourceId": "8kkta33dr4",
       "proposalId": "dmsksuju3d",
       "type": "talk",
       "title": "Offline-first mobile apps on Frappe: a metadata-driven Flutter SDK with server-side control",
@@ -3022,7 +3101,7 @@
     },
     {
       "id": "act-28la1809t3",
-      "sourceId": "chg3j99h96",
+      "sourceId": "8kktopskth",
       "proposalId": "33ogils4n5",
       "type": "lightning-talk",
       "title": "What LLVM Does Differently When The Target Is CPU VS GPU",
@@ -3080,26 +3159,21 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28lar6l8ag",
-      "sourceId": "chg3qth90r",
-      "proposalId": "bb06npb4u0",
+      "id": "act-28laau6e4o",
+      "sourceId": "8kkttrep8a",
+      "proposalId": "3ltumiotgu",
       "type": "lightning-talk",
-      "title": "Launcher3 Internals: Understanding Android's Home Screen, Google Feed Integration, and Custom -1 Panels",
+      "title": "Living With a DeGoogled Phone: Privacy, Trade-offs, and Daily Use",
       "subtitle": "",
-      "description": "Launcher3 is one of the most frequently used yet least understood applications in the Android ecosystem. Every interaction on an Android device eventually flows through it, unlocking the device, launching applications, accessing widgets, navigating recent tasks, searching for content, or interacting with personalized experiences such as Google Feed.\n\nOver the last year, while maintaining and customizing Launcher3 across multiple Android releases, I repeatedly dived into parts of the launcher that are rarely documented and even less frequently discussed in public. It started from writing features and maintenance and swiftly became a deep exploration into Launcher3's architecture, integration, plugin overlays, feed provider, the mechanism that power the familiar -1 screen experience found on millions of Android devices.\n\nMany Android developers work on Launcher3, but few get the opportunity to understand why it is structured the way it is. This talk aims to bridge that gap.\n\nLauncher3 is not just an app that opens other apps. It is one of the central part of the Android experience, such as navigation, recents, search, widgets and personalisation. This session will cover its core architecture, workspace, states, and integration with SystemUI. We will also examine how OEMs and custom ROMs extend the same codebase to create different launcher experiences\n\nA major focus of the session will be understanding the architecture behind the Google Feed (-1) screen. Through practical examples and analysis, we will explore how overlay provider plugin communicate with Launcher3, how overlay services are implemented, and what developers can learn when building their own custom launcher experiences.\n\nAlong the way, I will also share real-world lessons learned from maintaining Launcher3 customizations, debugging launcher issues across Android releases, and studying the components that make modern Android launchers feel seamless to users.\n\nWhether you maintain a custom ROM, work on the Android platform, or are simply interested in how Android launchers work, this session will help you understand how Launcher3 is structured, how its major components interact, and how modern launcher features are implemented.",
-      "keyTakeaways": [
-        "Understand how Launcher3 evolved from a simple application launcher into a core component of the modern Android user experience.",
-        "Learn how Launcher3 interacts with SystemUI, Recents, Search, and many more platform services.",
-        "Explore the architecture behind Google Feed and the implementation of Android's -1 screen experience.",
-        "Understand launcher overlay plugins and other mechanisms used by libgooglefeed.",
-        "Learn practical techniques for customizing Launcher3 and implementing alternative feed experiences.",
-        "Gain insights for Launcher3 maintenance, debugging, and reverse-engineering efforts across Android releases.",
-        "Walk away with a mental model of Launcher3 that makes future customization and platform development significantly easier."
-      ],
+      "description": "Many Android phones come with heavy vendor skins and a lot of Google services built in. I wanted something lighter and more private, so I moved from that setup to a custom ROM with less Google dependence.\n\nThat shift was not smooth. I ran into soft bricks, a hard brick, SafetyNet and Play Integrity problems, and notifications that did not always behave the way they should. I also tried microG, but in the end I went with a fully vanilla custom ROM setup because that fit my privacy goals better. Along the way, I managed to fix most of the issues I ran into, but a few things never really had a clean or satisfying fix.\n\nFor family devices, though, a fully degoogled setup did not make sense. They needed something that was easier to live with, so those phones stayed on a normal GApps-based custom ROM. That ended up being one of the biggest lessons for me: the same setup that feels fine for one person can be too much trouble for someone else.\n\nThis talk is about that move, the things that broke along the way, the fixes that worked, the things that stayed broken, and the trade-offs between privacy and daily use.",
       "references": [
         {
-          "label": "https://android.googlesource.com/platform/packages/apps/Launcher3/",
-          "url": "https://android.googlesource.com/platform/packages/apps/Launcher3/"
+          "label": "https://wiki.lineageos.org/",
+          "url": "https://wiki.lineageos.org/"
+        },
+        {
+          "label": "https://github.com/microg/GmsCore/wiki",
+          "url": "https://github.com/microg/GmsCore/wiki"
         }
       ],
       "links": [
@@ -3108,22 +3182,20 @@
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Intermediate",
+      "audience": "Beginner",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bb06npb4u0",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/3ltumiotgu",
       "start": "2026-09-26T15:35:00+05:30",
       "end": "2026-09-26T15:50:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-saalim-quadri"
+        "person-jasil-faras"
       ],
       "tags": [
         "Lightning Talk",
-        "Contributing to FOSS",
-        "Technology architecture",
         "Community",
-        "Intermediate"
+        "Beginner"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
       "devroomId": "devroom-android-open-source-project-aosp",
@@ -3131,7 +3203,7 @@
     },
     {
       "id": "act-28lar32res",
-      "sourceId": "chg3agpe4e",
+      "sourceId": "8kktk5k3ae",
       "proposalId": "299lpkmuqh",
       "type": "talk",
       "title": "PythonBPF - now with loops, custom funcs, and more maps!",
@@ -3188,27 +3260,33 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28laeusjrp",
-      "sourceId": "chg3cmect8",
-      "proposalId": "0le8m0bk3i",
+      "id": "act-28lahmuq69",
+      "sourceId": "8kktjaqoc6",
+      "proposalId": "dojgnoj06v",
       "type": "lightning-talk",
-      "title": "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast storage analysis",
+      "title": "Volume Controller using Knob (Potentiometer)",
       "subtitle": "",
-      "description": "We all have been through this tough battle at least once in our lives with MTP (Media Transfer Protocol), which is what every OS uses when you plug an Android phone in via USB. It was designed in 2008 for portable media players and transfers file metadata one item at a time with no caching or parallel requests. It does a round trip every time new info is needed because it works as a request-response protocol, so when you club this with modern tech with 100s of GBs of storage and tens of thousands of files, even calculating folder sizes takes several minutes, and if you are on macOS, the Finder app doesn't even show folder sizes at all. SocketSweep is an open source desktop app that bypasses this agonising MTP entirely. The main source of architectural inspiration is the scrcpy project by Genymobile, the idea of pushing a native binary to an Android device via ADB and communicating over a local socket.\n\nSo here's how it works: we have a cross-compiled C++ daemon (~1MB static binary, built with the Android NDK for aarch64) that gets pushed to the phone via adb push. Now the transferred daemon binds to a TCP socket on port 5050 and scans the filesystem using native POSIX calls like opendir/readdir/stat directly on the device, so there's no MTP bottleneck, it's plain raw system calls. Now the ADB port forwarding tunnels TCP 5050 on the phone to localhost:5050 on the PC, giving us a reliable bidirectional channel through the USB cable (with future scope of making it work over WiFi). Coming to the desktop side, we have a Rust/Tauri backend on the PC which manages the full lifecycle from pushing the daemon, setting up port forwarding, handling scoped storage permissions, and managing the TCP connection. The app uses a React frontend with an interactive treemap visualization.\n\nA full /sdcard scan on my device, which is a Samsung S24 Ultra (256GB, ~47k files), took about 7 seconds.\n\nIn this lightning talk i'll walk through why MTP is slow at the protocol level, how the \"push binary + socket\" pattern from scrcpy can be applied to other problems, cross-compiling C++ for Android with the NDK, and how ADB port forwarding works as a communication layer.",
+      "description": "Building a Physical Volume Knob for AOSP on Raspberry Pi 5\n\nIn this talk, I'll show how I connected a rotary potentiometer to a Raspberry Pi 5 running AOSP Android 15 and made it control the media volume — using a 250-line C++ daemon in the vendor layer, with zero changes to the Android framework.\n\nAlong the way we hit real walls: a library blocked by VNDK, build and runtime errors, three SELinux types that don't exist in AOSP 15, and a hardware bus number that wasn't what we expected.",
       "keyTakeaways": [
-        "Why MTP is slow at the protocol level and why building better file manager apps on top of it doesn't fix the core problem",
-        "How scrcpy's \"push a native binary via ADB, communicate over a local socket\" pattern can be reused to build your own Android tools",
-        "A working example of this pattern: scanning 47k files in ~7 seconds vs several minutes over MTP",
-        "Why this approach is future-proof: it runs through ADB debugging, not sideloading, so it continues to work even as Google tightens sideloading restrictions on Android"
+        "How the AOSP vendor layer is structured and what belongs in it",
+        "How to read hardware sensors from a native C++ daemon using standard Linux kernel ABIs",
+        "How uinput works and why it is sometimes the right way to talk to Android audio from vendor code",
+        "How to write and debug SELinux policy for a vendor service from scratch",
+        "The difference between BOARD_VENDOR_SEPOLICY_DIRS and PRODUCT_PRIVATE_SEPOLICY_DIRS and why it matters",
+        "How to iterate on a vendor service without reflashing the entire image"
       ],
       "references": [
         {
-          "label": "https://github.com/VishnuSrivatsava/SocketSweep",
-          "url": "https://github.com/VishnuSrivatsava/SocketSweep"
+          "label": "https://www.youtube.com/shorts/9k3If_49M78",
+          "url": "https://www.youtube.com/shorts/9k3If_49M78"
         },
         {
-          "label": "https://youtu.be/ttsc6Xf6Xb4",
-          "url": "https://youtu.be/ttsc6Xf6Xb4"
+          "label": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf",
+          "url": "https://github.com/ProArun/fossinida2026/blob/main/FOSSIndia2026_PotVolume.pdf"
+        },
+        {
+          "label": "https://github.com/ProArun/fossinida2026/blob/main/README.md",
+          "url": "https://github.com/ProArun/fossinida2026/blob/main/README.md"
         }
       ],
       "links": [
@@ -3217,21 +3295,21 @@
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Intermediate",
+      "audience": "Beginner",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0le8m0bk3i",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/dojgnoj06v",
       "start": "2026-09-26T15:50:00+05:30",
       "end": "2026-09-26T16:05:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-vishnu-srivatsava"
+        "person-arun-kumar-aditya"
       ],
       "tags": [
         "Lightning Talk",
-        "Introducing a FOSS project or a new version of a popular project",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
         "Technology architecture",
-        "Intermediate"
+        "Beginner"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
       "devroomId": "devroom-android-open-source-project-aosp",
@@ -3239,7 +3317,7 @@
     },
     {
       "id": "act-28lad7fd91",
-      "sourceId": "chg3ud5amu",
+      "sourceId": "8kktc879gb",
       "proposalId": "8cbv4mpi6o",
       "type": "lightning-talk",
       "title": "LGTM Is Not A Theorem",
@@ -3281,7 +3359,7 @@
     },
     {
       "id": "act-cfp-cpno9khavs",
-      "sourceId": "chg3g57kmv",
+      "sourceId": "8kkt0s3ue7",
       "proposalId": "cpno9khavs",
       "type": "talk",
       "title": "Open Code, Curated Data: Building Open Water Intelligence for Indian Cities",
@@ -3334,7 +3412,7 @@
     },
     {
       "id": "act-cfp-5jvkd5u7mk",
-      "sourceId": "chg37bejkr",
+      "sourceId": "8kktat8ooj",
       "proposalId": "5jvkd5u7mk",
       "type": "talk",
       "title": "Physics at 60FPS",
@@ -3376,7 +3454,7 @@
     },
     {
       "id": "act-28laung17t",
-      "sourceId": "chg370jaml",
+      "sourceId": "8kktai6d3p",
       "proposalId": "armmpc3k1l",
       "type": "lightning-talk",
       "title": "Zero Trust, Zero TEE: Porting Android 16 to a Device Whose Security Stack Doesn't Exist Yet",
@@ -3432,7 +3510,7 @@
     },
     {
       "id": "act-28la91lu3s",
-      "sourceId": "chg37cdiqo",
+      "sourceId": "8kktuquu8k",
       "proposalId": "3akfugngg7",
       "type": "lightning-talk",
       "title": "One Language, All GPU: How Julia Targets different GPU backends from a Single Kernel.",
@@ -3490,42 +3568,57 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28laqr9ecm",
-      "sourceId": "chg3qnfrcv",
-      "proposalId": "4etfsdh6i4",
-      "type": "lightning-talk",
-      "title": "Keeping up with the AOSP",
+      "id": "act-28la55ehov",
+      "sourceId": "8kkthdjo81",
+      "proposalId": "41r3mau7ga",
+      "type": "talk",
+      "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
       "subtitle": "",
-      "description": "The Android Open Source Project (AOSP) has undergone significant changes over the past year or so. Not just in new features, but also in how the project itself is developed and governed. This lightning talk provides a quick overview of the recent developments in the AOSP ecosystem, including the transition of AOSP main to read-only, introduction to android-latest-release branch, mandatory registration for app developers, the Android Automotive OS (AAOS) Software Defined Vehicle (SDV) release, updates from aosp-devs.org community and other updates shaping Android's future.",
+      "description": "Android is transitioning from HIDL to Stable AIDL to improve HAL interface stability and long-term maintainability. However, many production devices still depend on legacy HIDL implementations, making upgrades difficult.\n\nThis talk presents a migration of a HAL from HIDL to Stable AIDL, focusing on real-world challenges. It covers key differences in interface definition, versioning, Binder IPC, and VINTF compatibility. The session walks through a step-by-step migration: rewriting interfaces, updating services, and modifying manifests.\n\nHands-on guide for engineers who must modernize existing HIDL HALs to Stable AIDL in shipping devices.\n\nAs Android continues adopting Rust to improve security and reliability, platform developers are gaining new ways to build safer system components. This talk introduces Android Hardware Abstraction Layers (HALs) developed using Rust and AIDL, covering how Rust integrates with AOSP, Binder IPC, and modern Android architecture.\n\nThrough a practical example, attendees will learn how to create and integrate a Rust-based HAL, understand the benefits of memory safety, and explore why Rust is becoming an important part of Android's future.",
+      "keyTakeaways": [
+        "Explain the core architectural differences between HIDL and AIDL in the Android HAL stack.",
+        "List the Android version milestones that make AIDL mandatory for new and production devices.",
+        "Execute a step-by-step HIDL → AIDL migration for a real hardware interface.",
+        "Address SELinux policy changes, VINTF manifest updates, and compatibility matrix versioning required by the migration.",
+        "Identify and mitigate common failure, validation.",
+        "Understand why Android is adopting Rust for system-level development.",
+        "Explain how AIDL-based HALs fit into the modern Android architecture.",
+        "Create and integrate a Rust-based HAL in AOSP.",
+        "Implement Binder IPC communication between Android services and Rust HALs.",
+        "Identify common challenges when developing and debugging Rust HAL services."
+      ],
       "references": [
         {
-          "label": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd",
-          "url": "https://ossindia2025.sched.com/event/23Jkt/bootloops-coffee-the-daily-grind-of-an-aosp-developer-sumit-semwal-amit-pundir-linaro-ltd"
+          "label": "https://source.android.com/docs/core/architecture/aidl/stable-aidl",
+          "url": "https://source.android.com/docs/core/architecture/aidl/stable-aidl"
+        },
+        {
+          "label": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns",
+          "url": "https://source.android.com/docs/setup/build/rust/building-rust-modules/android-rust-patterns"
         }
       ],
       "links": [
-        {
-          "label": "aosp-devs.org",
-          "url": "https://aosp-devs.org/"
-        },
         {
           "label": "Source code",
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Beginner",
+      "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/4etfsdh6i4",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/41r3mau7ga",
       "start": "2026-09-26T16:20:00+05:30",
-      "end": "2026-09-26T16:35:00+05:30",
+      "end": "2026-09-26T16:45:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-amit-pundir"
+        "person-ankit-siddhapura",
+        "person-jaimin-kalariya"
       ],
       "tags": [
-        "Lightning Talk",
-        "Beginner"
+        "Talk",
+        "Technology architecture",
+        "Engineering practice - productivity, debugging",
+        "Intermediate"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
       "devroomId": "devroom-android-open-source-project-aosp",
@@ -3533,7 +3626,7 @@
     },
     {
       "id": "act-28labhid7f",
-      "sourceId": "chg3ad3gaf",
+      "sourceId": "8kkt0i02v7",
       "proposalId": "0p3ti1uq2b",
       "type": "talk",
       "title": "Rust Is Not an HDL, So I Built a Tiny One.",
@@ -3612,32 +3705,84 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5t5e261u",
-      "sourceId": "chg3je4h28",
-      "type": "talk",
-      "title": "What's new at FOSS United Foundation",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
+      "id": "act-cfp-96goef7o3q",
+      "sourceId": "8kktni3sig",
+      "proposalId": "96goef7o3q",
+      "type": "lightning-talk",
+      "title": "What can we do about open weight models enabling non consensual intimate imagery?",
+      "subtitle": "",
+      "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
+      "keyTakeaways": [
+        "How open source interacts with the ecosystem of non consensual intimate imagery",
+        "The human impact of non consensual intimate imagery",
+        "The distinct challenge for India, as a country that doesn’t control the AI value chain",
+        "Risk mitigation strategies for open weight models",
+        "The effect of policies on model hosting platforms"
+      ],
+      "references": [
+        {
+          "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
+          "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+        },
+        {
+          "label": "https://arxiv.org/abs/2602.04759",
+          "url": "https://arxiv.org/abs/2602.04759"
+        },
+        {
+          "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
+          "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
+        }
+      ],
+      "links": [
+        {
+          "label": "recent research",
+          "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
       "start": "2026-09-26T16:30:00+05:30",
-      "end": "2026-09-26T17:00:00+05:30",
+      "end": "2026-09-26T16:45:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
-      "speakerIds": [],
-      "tags": [],
+      "speakerIds": [
+        "person-tarunima-prabhakar"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
+        "Intermediate"
+      ],
       "trackId": "hall-1",
       "source": "fossunited"
     },
     {
-      "id": "act-28lajt6fl6",
-      "sourceId": "chg39tpp3f",
-      "proposalId": "e08r7fa8ja",
-      "type": "talk",
-      "title": "Adapting Generic Boot Loader on Android platforms",
+      "id": "act-28laeusjrp",
+      "sourceId": "8kktkra8bl",
+      "proposalId": "0le8m0bk3i",
+      "type": "lightning-talk",
+      "title": "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast storage analysis",
       "subtitle": "",
-      "description": "Bootloaders are an essential block for booting an Android device. They handle tasks from reading the partitions, loading, and authenticating the Android images to preparing the board and finally handing over thec ontrol to kernel. Currently each vendor maintains different bootloader. To address the issue of fragmentation in the Android bootloader implementation across the community, Generic BootLoader (GBL) was introduced by Google.\n\nGBL is an EFI application which supports x86, ARM64 and RISC-V architectures and can be run across various firmware such as U-Boot, EDK2, and LittleKernel. By leveraging RUST memory safety and trusted components such as libufdt and libavb, GBL provides a uniform, secure, and robust environment.\n\nThis session provides a technical breakdown into GBL’s integration within the UEFI ecosystem. We will explore how GBL utilizes standard upstream protocols and interfaces with firmware to select platform-appropriate Device Trees, apply essential DT fixups, and prepare critical data for the Android kernel, including bootconfig and command-line parameters. Overall, the session provides a practical look at the enhancements required to bring GBL into the boot chain along with the challenges that might be encountered, offering a comprehensive roadmap for developers looking to reduce maintenance overhead and accelerate future-ready Android deployments.",
+      "description": "We all have been through this tough battle at least once in our lives with MTP (Media Transfer Protocol), which is what every OS uses when you plug an Android phone in via USB. It was designed in 2008 for portable media players and transfers file metadata one item at a time with no caching or parallel requests. It does a round trip every time new info is needed because it works as a request-response protocol, so when you club this with modern tech with 100s of GBs of storage and tens of thousands of files, even calculating folder sizes takes several minutes, and if you are on macOS, the Finder app doesn't even show folder sizes at all. SocketSweep is an open source desktop app that bypasses this agonising MTP entirely. The main source of architectural inspiration is the scrcpy project by Genymobile, the idea of pushing a native binary to an Android device via ADB and communicating over a local socket.\n\nSo here's how it works: we have a cross-compiled C++ daemon (~1MB static binary, built with the Android NDK for aarch64) that gets pushed to the phone via adb push. Now the transferred daemon binds to a TCP socket on port 5050 and scans the filesystem using native POSIX calls like opendir/readdir/stat directly on the device, so there's no MTP bottleneck, it's plain raw system calls. Now the ADB port forwarding tunnels TCP 5050 on the phone to localhost:5050 on the PC, giving us a reliable bidirectional channel through the USB cable (with future scope of making it work over WiFi). Coming to the desktop side, we have a Rust/Tauri backend on the PC which manages the full lifecycle from pushing the daemon, setting up port forwarding, handling scoped storage permissions, and managing the TCP connection. The app uses a React frontend with an interactive treemap visualization.\n\nA full /sdcard scan on my device, which is a Samsung S24 Ultra (256GB, ~47k files), took about 7 seconds.\n\nIn this lightning talk i'll walk through why MTP is slow at the protocol level, how the \"push binary + socket\" pattern from scrcpy can be applied to other problems, cross-compiling C++ for Android with the NDK, and how ADB port forwarding works as a communication layer.",
+      "keyTakeaways": [
+        "Why MTP is slow at the protocol level and why building better file manager apps on top of it doesn't fix the core problem",
+        "How scrcpy's \"push a native binary via ADB, communicate over a local socket\" pattern can be reused to build your own Android tools",
+        "A working example of this pattern: scanning 47k files in ~7 seconds vs several minutes over MTP",
+        "Why this approach is future-proof: it runs through ADB debugging, not sideloading, so it continues to work even as Google tightens sideloading restrictions on Android"
+      ],
       "references": [
         {
-          "label": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/",
-          "url": "https://cs.android.com/android/_/android/platform/bootable/libbootloader/+/main:gbl/"
+          "label": "https://github.com/VishnuSrivatsava/SocketSweep",
+          "url": "https://github.com/VishnuSrivatsava/SocketSweep"
+        },
+        {
+          "label": "https://youtu.be/ttsc6Xf6Xb4",
+          "url": "https://youtu.be/ttsc6Xf6Xb4"
         }
       ],
       "links": [
@@ -3648,16 +3793,18 @@
       ],
       "audience": "Intermediate",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/e08r7fa8ja",
-      "start": "2026-09-26T16:35:00+05:30",
-      "end": "2026-09-26T16:50:00+05:30",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0le8m0bk3i",
+      "start": "2026-09-26T16:45:00+05:30",
+      "end": "2026-09-26T17:00:00+05:30",
       "flexible": false,
       "locationId": "room-1",
       "speakerIds": [
-        "person-naina-mehta"
+        "person-vishnu-srivatsava"
       ],
       "tags": [
-        "Talk",
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Technology architecture",
         "Intermediate"
       ],
       "trackId": "devroom-android-open-source-project-aosp",
@@ -3665,8 +3812,55 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-5pig94v0sa",
+      "sourceId": "8kktnpr1ee",
+      "proposalId": "5pig94v0sa",
+      "type": "lightning-talk",
+      "title": "Opening the Archives: Building Digital Infrastructure for Public Participation in Archival Records",
+      "subtitle": "",
+      "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
+      "keyTakeaways": [
+        "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
+        "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
+      ],
+      "references": [
+        {
+          "label": "https://github.com/tattle-made/archive-annotation",
+          "url": "https://github.com/tattle-made/archive-annotation"
+        },
+        {
+          "label": "https://milli.link/",
+          "url": "https://milli.link/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
+      "start": "2026-09-26T16:45:00+05:30",
+      "end": "2026-09-26T17:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-1",
+      "speakerIds": [
+        "person-ojas-k",
+        "person-maanas-bhardwaj"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Beginner"
+      ],
+      "trackId": "hall-1",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lak6c90f",
-      "sourceId": "chg3m2e4ph",
+      "sourceId": "8kkttnf41l",
       "proposalId": "9qjtkvb2gi",
       "type": "talk",
       "title": "Formal Verification: An Introduction through Elementary Arithmetic",
@@ -3712,58 +3906,10 @@
       "source": "fossunited"
     },
     {
-      "id": "act-28lap8q3re",
-      "sourceId": "chg32furf9",
-      "proposalId": "d883e2uauk",
+      "id": "act-aq5t5e261u",
+      "sourceId": "8kktljhkm7",
       "type": "talk",
-      "title": "Porting AOSP to Allwinner Sunxi platform",
-      "subtitle": "",
-      "description": "With our recent efforts to get upstream Linux Kernel support for Allwinner Sunxi A133 and A523 platforms, this also includes the Display Engine. Although the whole upstream effort relies on reverse engineering the vendor blobs, we have managed to get the end-to-end display pipeline working with GPU and got LVDS and MIPI working. In some cases, we are able to get 2 parallel displays working.\n\nAllwinner ships the most affordable SoCs / silicons for gaming consoles and handheld devices including tablets, all running vendor-provided Android. All of the devices come with closed source and proprietary blobs from Imagination Technologies, ARM Mali, and CedarX for the media pipelines.\n\nThis talk walks through our adventurous journey in building AOSP with upstream Linux Kernel 7.1 without any vendor-provided components to run an end-to-end display pipeline. We started our tinkering with Android 16 and easily moved to 17 (only released 6 days ago - relative to the date of this submission).",
-      "keyTakeaways": [
-        "One doesn't need to get locked in with vendor-provided Android",
-        "How to reverse engineer all the needed components to get an end-to-end working AOSP",
-        "How the community can lead the way to try this for the A733 or any upcoming silicons from Allwinner, or any SoC vendor for that matter"
-      ],
-      "references": [
-        {
-          "label": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/",
-          "url": "https://lore.kernel.org/linux-sunxi/a5f6aeb1-b038-462e-8989-c4da65966134@linumiz.com/"
-        },
-        {
-          "label": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/",
-          "url": "https://lore.kernel.org/linux-sunxi/02b20361-23cf-4aa7-8f85-875261e6cdc9@linumiz.com/"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Beginner",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/d883e2uauk",
-      "start": "2026-09-26T16:50:00+05:30",
-      "end": "2026-09-26T17:15:00+05:30",
-      "flexible": false,
-      "locationId": "room-1",
-      "speakerIds": [
-        "person-karthikeyan",
-        "person-bharathiraja"
-      ],
-      "tags": [
-        "Talk",
-        "Beginner"
-      ],
-      "trackId": "devroom-android-open-source-project-aosp",
-      "devroomId": "devroom-android-open-source-project-aosp",
-      "source": "fossunited"
-    },
-    {
-      "id": "act-28la7q52h1",
-      "sourceId": "chg3426k01",
-      "type": "ceremony",
-      "title": "FOSS Awards",
+      "title": "What's new at FOSS United Foundation",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-26T17:00:00+05:30",
       "end": "2026-09-26T17:30:00+05:30",
@@ -3776,7 +3922,7 @@
     },
     {
       "id": "act-28laqivva5",
-      "sourceId": "chg36l8uj1",
+      "sourceId": "8kktgchj09",
       "type": "talk",
       "title": "Reflections from GB Members",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3791,7 +3937,7 @@
     },
     {
       "id": "act-cfp-4llmgcq50k",
-      "sourceId": "chg3qkv5k7",
+      "sourceId": "8kktqbhm5q",
       "proposalId": "4llmgcq50k",
       "type": "talk",
       "title": "How India’s Largest G2C Platform Migrated to FOSS and Broke Free from Oracle",
@@ -3833,7 +3979,7 @@
     },
     {
       "id": "act-aq5tg0077i",
-      "sourceId": "chg3q91i1i",
+      "sourceId": "8kktomflkq",
       "type": "ceremony",
       "title": "Opening Note",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3848,7 +3994,7 @@
     },
     {
       "id": "act-28laac7vdq",
-      "sourceId": "chg3ir75bu",
+      "sourceId": "8kkt3esfud",
       "type": "intro",
       "title": "Devroom Intro: Open Design",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3864,7 +4010,7 @@
     },
     {
       "id": "act-28lat7k13l",
-      "sourceId": "chg3vidbbb",
+      "sourceId": "8kkt7uphn7",
       "type": "intro",
       "title": "Devroom Intro: Security",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3880,7 +4026,7 @@
     },
     {
       "id": "act-cfp-ccd7lpdj1o",
-      "sourceId": "chg3ej8uo8",
+      "sourceId": "8kktgj8tml",
       "proposalId": "ccd7lpdj1o",
       "type": "lightning-talk",
       "title": "Don't Model Every Leaf: The Magic of Blender Geometry Nodes",
@@ -3923,7 +4069,7 @@
     },
     {
       "id": "act-cfp-a45o8u74jv",
-      "sourceId": "chg3mbosda",
+      "sourceId": "8kktrs5fj9",
       "proposalId": "a45o8u74jv",
       "type": "lightning-talk",
       "title": "Reverse Engineering the PAN QR Code",
@@ -3975,7 +4121,7 @@
     },
     {
       "id": "act-28lajil88v",
-      "sourceId": "chg31odbhh",
+      "sourceId": "8kkt68v4is",
       "proposalId": "2tsmo50knt",
       "type": "talk",
       "title": "Forkable design",
@@ -4033,7 +4179,7 @@
     },
     {
       "id": "act-cfp-8dso3avp9l",
-      "sourceId": "chg3j3phre",
+      "sourceId": "8kkt2mnmml",
       "proposalId": "8dso3avp9l",
       "type": "talk",
       "title": "How exactly can we teach students the right FOSS etiquette?",
@@ -4079,7 +4225,7 @@
     },
     {
       "id": "act-cfp-84efmkj2n3",
-      "sourceId": "chg3oe9joa",
+      "sourceId": "8kkt0186tq",
       "proposalId": "84efmkj2n3",
       "type": "lightning-talk",
       "title": "Property-based testing for UIs",
@@ -4127,7 +4273,7 @@
     },
     {
       "id": "act-cfp-cmc3ntipr8",
-      "sourceId": "chg352d9l2",
+      "sourceId": "8kktdeiba3",
       "proposalId": "cmc3ntipr8",
       "type": "lightning-talk",
       "title": "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
@@ -4176,7 +4322,7 @@
     },
     {
       "id": "act-cfp-4eh569dvq9",
-      "sourceId": "chg3po7044",
+      "sourceId": "8kktqj5auh",
       "proposalId": "4eh569dvq9",
       "type": "bof",
       "title": "Can We Build a Copyleft License for Community Data in the Age of AI",
@@ -4207,7 +4353,7 @@
     },
     {
       "id": "act-cfp-5inuh3i6co",
-      "sourceId": "chg3tpjp2p",
+      "sourceId": "8kktg2q15k",
       "proposalId": "5inuh3i6co",
       "type": "bof",
       "title": "Community-Centred Technology",
@@ -4247,7 +4393,7 @@
     },
     {
       "id": "act-28lamk3q73",
-      "sourceId": "chg3u63m19",
+      "sourceId": "8kkth6p4qk",
       "proposalId": "an3ot6c0v0",
       "type": "talk",
       "title": "Shaili Sanchaya: Reviving Indic Typography from Archival Metadata",
@@ -4303,7 +4449,7 @@
     },
     {
       "id": "act-cfp-2git32fbo6",
-      "sourceId": "chg3n2f0jf",
+      "sourceId": "8kkth7nant",
       "proposalId": "2git32fbo6",
       "type": "talk",
       "title": "Surviving as an Open Source Startup : Xeneva",
@@ -4367,7 +4513,7 @@
     },
     {
       "id": "act-cfp-erphckugi7",
-      "sourceId": "chg3kbm3i0",
+      "sourceId": "8kktionpjn",
       "proposalId": "erphckugi7",
       "type": "lightning-talk",
       "title": "Extracting AES Keys from Embedded Devices Using Open Source Hardware",
@@ -4415,7 +4561,7 @@
     },
     {
       "id": "act-cfp-f4ko2mik8q",
-      "sourceId": "chg3fa24ai",
+      "sourceId": "8kktfc5a3s",
       "proposalId": "f4ko2mik8q",
       "type": "talk",
       "title": "Seqout: search engine for the world’s genomic data",
@@ -4471,7 +4617,7 @@
     },
     {
       "id": "act-28lai8vuts",
-      "sourceId": "chg3h8qme0",
+      "sourceId": "8kkt0f1h78",
       "proposalId": "f89n581n5c",
       "type": "talk",
       "title": "Designing for Reality: Where UI Meets the Physical World",
@@ -4517,7 +4663,7 @@
     },
     {
       "id": "act-cfp-9611q7a3nk",
-      "sourceId": "chg3vpq0vo",
+      "sourceId": "8kktidjfe8",
       "proposalId": "9611q7a3nk",
       "type": "talk",
       "title": "The Art of Userspace Sandboxing on Linux",
@@ -4570,7 +4716,7 @@
     },
     {
       "id": "act-cfp-66qapl9qoe",
-      "sourceId": "chg3qohig1",
+      "sourceId": "8kktrd0bml",
       "proposalId": "66qapl9qoe",
       "type": "lightning-talk",
       "title": "OpenTCAD: A FOSS Python Pipeline for Semiconductor Process and Device Simulation",
@@ -4615,7 +4761,7 @@
     },
     {
       "id": "act-28latubece",
-      "sourceId": "chg3jhd8hf",
+      "sourceId": "8kkt58mjg1",
       "proposalId": "5fle5u3fll",
       "type": "talk",
       "title": "Creating Design Systems in p5JS to accelerate Content Creation",
@@ -4675,7 +4821,7 @@
     },
     {
       "id": "act-cfp-89tt0o6uio",
-      "sourceId": "chg37bilq2",
+      "sourceId": "8kkt66b9r8",
       "proposalId": "89tt0o6uio",
       "type": "talk",
       "title": "How we build Community Projects from the Community for the Community",
@@ -4739,7 +4885,7 @@
     },
     {
       "id": "act-cfp-6565fh5jve",
-      "sourceId": "chg38rjd2h",
+      "sourceId": "8kkt4u85gh",
       "proposalId": "6565fh5jve",
       "type": "lightning-talk",
       "title": "Open, decentralized language assessment software for the public school system",
@@ -4781,7 +4927,7 @@
     },
     {
       "id": "act-cfp-anvlvjqect",
-      "sourceId": "chg3r2iaq9",
+      "sourceId": "8kktqms92s",
       "proposalId": "anvlvjqect",
       "type": "lightning-talk",
       "title": "Extending Capa for Malicious Script Analysis",
@@ -4831,7 +4977,7 @@
     },
     {
       "id": "act-cfp-9c2a8js5lj",
-      "sourceId": "chg3p8ch8l",
+      "sourceId": "8kkt7r0if9",
       "proposalId": "9c2a8js5lj",
       "type": "talk",
       "title": "Computationalizing landscapes: The CoRE stack data structure for social-ecological diagnostics and planning",
@@ -4879,7 +5025,7 @@
     },
     {
       "id": "act-cfp-1vj5aoro8u",
-      "sourceId": "chg39nsk0k",
+      "sourceId": "8kkt6r1k0a",
       "proposalId": "1vj5aoro8u",
       "type": "bof",
       "title": "How do we scale and sustain AI adoption without burning the planet?",
@@ -4932,7 +5078,7 @@
     },
     {
       "id": "act-28la1p92o8",
-      "sourceId": "chg32p3h6j",
+      "sourceId": "8kktmn1b62",
       "proposalId": "1vuu1c1ma7",
       "type": "talk",
       "title": "KaiOS Design Notes: UX observations from a feature phone",
@@ -4981,7 +5127,7 @@
     },
     {
       "id": "act-28la3jufi5",
-      "sourceId": "chg3ussph7",
+      "sourceId": "8kktr5ings",
       "proposalId": "82fbs78uua",
       "type": "bof",
       "title": "Micro-granting in India",
@@ -5012,7 +5158,7 @@
     },
     {
       "id": "act-cfp-edu2vnri2u",
-      "sourceId": "chg39a9ttd",
+      "sourceId": "8kkt7roekh",
       "proposalId": "edu2vnri2u",
       "type": "talk",
       "title": "Keeping an Eye on your Eye: Disassembling and Reassembling Smart Camera Hardware to breach YOUR Security",
@@ -5074,65 +5220,46 @@
       "source": "fossunited"
     },
     {
-      "id": "act-cfp-96goef7o3q",
-      "sourceId": "chg3227gta",
-      "proposalId": "96goef7o3q",
-      "type": "lightning-talk",
-      "title": "What can we do about open weight models enabling non consensual intimate imagery?",
+      "id": "act-28laq0mp6c",
+      "sourceId": "8kkt0iuagt",
+      "proposalId": "1oleu7iev5",
+      "type": "talk",
+      "title": "Telling India's story through data",
       "subtitle": "",
-      "description": "Our recent research into AI generated non consensual intimate imagery(NCII) has shown that open weight models such as Stable Diffusion and Wan, and model hosting websites such as Hugging face are key pieces of the infrastructure that enables the generation of NCII. It is harder to dismiss the role of these components as mere tools used to wrong ends when the predominant use is gendered and sexualized- in April 2026, over 60% of the models on Hugging Face that use an image to generate a video based on a text prompt were for generating sexual scenes. All the models with the word Desi on CivitAI are devoted to generating images of women. Policies that mandate that the images used on different sites be consensual cannot be enforced.\n\nOur commitment to open source in AI should also be matched with a commitment to make the ecosystem as safe as possible. After briefly introducing the findings from our investigation, I will describe the options available to mitigate risks from open source in AI in the generation of non consensual intimate imagery. This is still an evolving space and the talk will conclude with unanswered questions that the open source community can be deliberate on together.",
-      "keyTakeaways": [
-        "How open source interacts with the ecosystem of non consensual intimate imagery",
-        "The human impact of non consensual intimate imagery",
-        "The distinct challenge for India, as a country that doesn’t control the AI value chain",
-        "Risk mitigation strategies for open weight models",
-        "The effect of policies on model hosting platforms"
-      ],
+      "description": "Over the last ten years, working with Indian public data has come a long way. Problems of access are becoming a thing of the past, while the need for context has become greater than ever. After moving out of Indian newsrooms, I have with my team been working on building out Data For India, a public platform to advance the understanding of India, through data.\n\nIn this talk, I will first explain a little bit about our process behind asking questions, doing research and collating the data, as well as the communication including visualisation, with examples. I will then focus on the role of open data in our process and our work; this will include our thinking about the data we choose to use, the format we currently share it in, and our aim to play a larger role in the open data community. Lastly, I will share some key learnings about the state of Indian public data, and some thoughts, hopes and concerns about the way ahead. With the advancement of integrated tools to access Indian public data, including MCP servers, there is a great opportunity to further democratise access to data. Using some examples, I will talk about some of the transformative things that we have learned about the country through access to unit-level data. However, through a few examples, I will also highlight the challenges this brings with it, and the dangers of losing context.\n\nTwo themes will run through the talk:\n\nOne: moving away from false binaries, including those between tech/ data and social sciences research/ communication.\n\nTwo: pushing ourselves to expand our vision of what happens next.\n\nIf the ultimate aim of open data is for knowledge to advance and decision-making to get better - whether for governments, private companies or individuals - I will end the talk with some thoughts on what's needed to close this gap, technically, conceptually, pedagogically and democratically.",
       "references": [
         {
-          "label": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691",
-          "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-        },
-        {
-          "label": "https://arxiv.org/abs/2602.04759",
-          "url": "https://arxiv.org/abs/2602.04759"
-        },
-        {
-          "label": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/",
-          "url": "https://partnershiponai.org/resource/risk-mitigation-strategies-for-the-open-foundation-model-value-chain/"
+          "label": "https://dataforindia.com",
+          "url": "https://dataforindia.com/"
         }
       ],
       "links": [
-        {
-          "label": "recent research",
-          "url": "https://www.decodeinternet.in/life/investigation/desi-faces-foreign-servers-inside-the-ai-economy-undressing-women-31691"
-        },
         {
           "label": "Source code",
           "url": "https://github.com/fossunited/fossunited"
         }
       ],
-      "audience": "Intermediate",
+      "audience": "Beginner",
       "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/96goef7o3q",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/1oleu7iev5",
       "start": "2026-09-27T11:45:00+05:30",
-      "end": "2026-09-27T12:00:00+05:30",
+      "end": "2026-09-27T12:30:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [
-        "person-tarunima-prabhakar"
+        "person-rukmini-s"
       ],
       "tags": [
-        "Lightning Talk",
+        "Invited Talk",
         "Knowledge Commons (Open Hardware, Open Science, Open Data etc.)",
-        "Intermediate"
+        "Beginner"
       ],
       "trackId": "hall-1",
       "source": "fossunited"
     },
     {
       "id": "act-28labsaguc",
-      "sourceId": "chg3jn1ddm",
+      "sourceId": "8kkt6if37c",
       "proposalId": "0rlqb6s6lb",
       "type": "talk",
       "title": "Making Desktops Expressive: Introducing Bézier Curves to GTK",
@@ -5194,7 +5321,7 @@
     },
     {
       "id": "act-cfp-c6qld2dc77",
-      "sourceId": "chg3ogfqah",
+      "sourceId": "8kktik5fig",
       "proposalId": "c6qld2dc77",
       "type": "lightning-talk",
       "title": "Bad Internet, Good Software",
@@ -5250,55 +5377,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-cfp-5pig94v0sa",
-      "sourceId": "chg3htmn70",
-      "proposalId": "5pig94v0sa",
-      "type": "lightning-talk",
-      "title": "Opening the Archives: Building Digital Infrastructure for Public Participation in Archival Records",
-      "subtitle": "",
-      "description": "Archives hold more than brittle paper and metadata; they contain the breath of our collective memory. Yet in India, archives remain inaccessible and locked behind regulations, obscured by neglect, and separated from everyday public life. This talk presents the design and development of Anno-Milli, a free and open-source digital platform that invites public participation in archives through structured annotation and community engagement. The platform allows users - students, researchers, or curious citizens to sign up, browse curated archival records, and annotate them collaboratively, bringing archival thinking into classrooms, family spaces, and the broader public domain. Technically, this talk will unpack how we incorporated existing open standards and tweaked them when required to build an interoperable archival annotation platform for archival data.\n\nThe talk will be structured in three parts:\n\nWe will begin by framing the need for public participation in archival practice. Drawing on the work of initiatives like Milli, which seek to reimagine the archive as a commons, I’ll argue that archives should not be the exclusive domain of researchers or institutions. They should be accessible to high school students learning about the partition, to families seeking ancestral land records, and to local history enthusiasts. Access to archives is often subject to legal and ethical restrictions, but the work output of archivists – the archival catalogue – is easier to make accessible to the general public. We will briefly outline how our platform intervenes in archival description and cataloging space—by enabling archival annotations, storytelling, and educational use that connect people to records that are otherwise distant and inert.\n\nThe core of the talk will focus on the technical architecture of the platform. We will walk through key design decisions that balance interoperability, standard extension, and usability.\n\nThis includes :\n\nBrief history of existing XML-based Encoded Archival Description (EAD) – from early development at UC Berkeley finding aids to present-day governance and maintenance by the Society of American Archivists and Library of Congress.\n\nShortcomings of these standards when it comes to practical data interoperability, exchange of archival descriptions.\n\nIn the absence of an annotation standard for archival description, retrofitting archival annotations to EAD-compliant entity/tags.\n\nSupport for linking annotations to structured vocabularies while also enabling extension of vocabularies by people.\n\nRole-based access control to allow for moderation and curation.\n\nFinally, we will share some of the future directions we are exploring for this platform, for instance, collaborative sessions with archivists to tag under-described collections using local knowledge.\n\nThis talk is for technologists, educators, archivists, and civic actors who believe that public memory should be public in practice, not just in principle. It is a call to imagine and build archives that are alive—filled not only with documents but with voices, questions, and connections. By sharing the technical and conceptual work behind this participatory archival platform, we hope to spark further conversation around how we can design digital tools that reanimate the past, empower the present, and imagine more inclusive futures.",
-      "keyTakeaways": [
-        "Public participation can transform archives from static repositories into living, communal resources— engaging students, educators, and citizens in storytelling and historical inquiry.",
-        "Use of open standards/protocols like Encoded Archival Description and Web Annotations can help build interoperable software for archivists around the world"
-      ],
-      "references": [
-        {
-          "label": "https://github.com/tattle-made/archive-annotation",
-          "url": "https://github.com/tattle-made/archive-annotation"
-        },
-        {
-          "label": "https://milli.link/",
-          "url": "https://milli.link/"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Beginner",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/5pig94v0sa",
-      "start": "2026-09-27T12:00:00+05:30",
-      "end": "2026-09-27T12:15:00+05:30",
-      "flexible": false,
-      "locationId": "hall-1",
-      "speakerIds": [
-        "person-ojas-k",
-        "person-maanas-bhardwaj"
-      ],
-      "tags": [
-        "Lightning Talk",
-        "Introducing a FOSS project or a new version of a popular project",
-        "Beginner"
-      ],
-      "trackId": "hall-1",
-      "source": "fossunited"
-    },
-    {
       "id": "act-cfp-2pgiaujhvm",
-      "sourceId": "chg3ugp7gg",
+      "sourceId": "8kkth8lj8r",
       "proposalId": "2pgiaujhvm",
       "type": "lightning-talk",
       "title": "Hacking India's Largest Exam System",
@@ -5424,7 +5504,7 @@
     },
     {
       "id": "act-28lamb58kk",
-      "sourceId": "chg33733vn",
+      "sourceId": "8kktoncctg",
       "proposalId": "1qugujs7o0",
       "type": "talk",
       "title": "Sound Is All You Need: From Good UX to Great UX",
@@ -5477,60 +5557,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-cfp-fefrvv4n7q",
-      "sourceId": "chg3mahpf7",
-      "proposalId": "fefrvv4n7q",
-      "type": "talk",
-      "title": "Flexibility is complexity in disguise: Building frappe-ui for 10+ Products",
-      "subtitle": "",
-      "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
-      "keyTakeaways": [
-        "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
-        "A design system is more than components. Give products an opinionated way to load and save data too.",
-        "Make correct usage the path of least resistance, and mistakes hard to miss.",
-        "A predictable API serves new teammates and AI agents alike."
-      ],
-      "references": [
-        {
-          "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
-          "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
-        },
-        {
-          "label": "https://github.com/frappe/frappe-ui",
-          "url": "https://github.com/frappe/frappe-ui"
-        },
-        {
-          "label": "https://ui.frappe.io",
-          "url": "https://ui.frappe.io/"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Intermediate",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
-      "start": "2026-09-27T12:15:00+05:30",
-      "end": "2026-09-27T12:45:00+05:30",
-      "flexible": false,
-      "locationId": "hall-1",
-      "speakerIds": [
-        "person-faris-ansari"
-      ],
-      "tags": [
-        "Talk",
-        "Introducing a FOSS project or a new version of a popular project",
-        "Intermediate"
-      ],
-      "trackId": "hall-1",
-      "source": "fossunited"
-    },
-    {
       "id": "act-cfp-e981trm7r1",
-      "sourceId": "chg3as8ush",
+      "sourceId": "8kktvn173v",
       "proposalId": "e981trm7r1",
       "type": "lightning-talk",
       "title": "Open Standards in XR - A current overview of OpenXR and WebXR",
@@ -5587,7 +5615,7 @@
     },
     {
       "id": "act-cfp-b6m7iu49t2",
-      "sourceId": "chg3dio4vd",
+      "sourceId": "8kktkteffq",
       "proposalId": "b6m7iu49t2",
       "type": "talk",
       "title": "Papers, Please: A First Look at Age Verification on the Web",
@@ -5657,7 +5685,7 @@
     },
     {
       "id": "act-cfp-4rfojd08rd",
-      "sourceId": "chg3u3keke",
+      "sourceId": "8kktjea01d",
       "proposalId": "4rfojd08rd",
       "type": "talk",
       "title": "Freedom to code - Community's role in tech Policy",
@@ -5704,7 +5732,7 @@
     },
     {
       "id": "act-aq5ti5f6jv",
-      "sourceId": "chg3vbv82s",
+      "sourceId": "8kktnetm2n",
       "type": "meal",
       "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5718,8 +5746,96 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-6pb727vn12",
+      "sourceId": "8kkt0559o2",
+      "proposalId": "6pb727vn12",
+      "type": "panel",
+      "title": "The future of FOSS, SWE and Technical Education",
+      "subtitle": "",
+      "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nReferences\n\n[0] - https://www.wipo.int/en/web/global-innovation-index/w/blogs/2026/software-collaboration-hits-5-billion-github-commits\n\n[1] - https://x.com/kdaigle/status/2040164759836778878\n\n[2] - https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/\n\n[3] - https://www.bitdefender.com/en-us/blog/hotforsecurity/135k-openclaw-ai-agents-exposed-online\n\nhttps://nadh.in/blog/code-is-cheap/\n\nhttps://daniel.haxx.se/blog/2026/05/26/the-pressure/\n\nhttps://futurism.com/artificial-intelligence/ai-has-basically-killed-stack-overflow\n\nhttps://theshamblog.com/an-ai-agent-published-a-hit-piece-on-me/\n\nhttps://www.anthropic.com/research/labor-market-impacts\n\nhttps://systemsthinkingalliance.org/wicked-problems/\n\nhttps://pmc.ncbi.nlm.nih.gov/articles/PMC12689981/",
+      "references": [
+        {
+          "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
+          "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
+        }
+      ],
+      "links": [
+        {
+          "label": "https://www.wipo.int/en/web/global-innovation-index/w/blogs/2026/software-collaboration-hits-5-billion-github-commits",
+          "url": "https://www.wipo.int/en/web/global-innovation-index/w/blogs/2026/software-collaboration-hits-5-billion-github-commits"
+        },
+        {
+          "label": "https://x.com/kdaigle/status/2040164759836778878",
+          "url": "https://x.com/kdaigle/status/2040164759836778878"
+        },
+        {
+          "label": "https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops/",
+          "url": "https://daniel.haxx.se/blog/2025/07/14/death-by-a-thousand-slops"
+        },
+        {
+          "label": "https://www.bitdefender.com/en-us/blog/hotforsecurity/135k-openclaw-ai-agents-exposed-online",
+          "url": "https://www.bitdefender.com/en-us/blog/hotforsecurity/135k-openclaw-ai-agents-exposed-online"
+        },
+        {
+          "label": "https://nadh.in/blog/code-is-cheap/",
+          "url": "https://nadh.in/blog/code-is-cheap"
+        },
+        {
+          "label": "https://daniel.haxx.se/blog/2026/05/26/the-pressure/",
+          "url": "https://daniel.haxx.se/blog/2026/05/26/the-pressure"
+        },
+        {
+          "label": "https://futurism.com/artificial-intelligence/ai-has-basically-killed-stack-overflow",
+          "url": "https://futurism.com/artificial-intelligence/ai-has-basically-killed-stack-overflow"
+        },
+        {
+          "label": "https://theshamblog.com/an-ai-agent-published-a-hit-piece-on-me/",
+          "url": "https://theshamblog.com/an-ai-agent-published-a-hit-piece-on-me"
+        },
+        {
+          "label": "https://www.anthropic.com/research/labor-market-impacts",
+          "url": "https://www.anthropic.com/research/labor-market-impacts"
+        },
+        {
+          "label": "https://systemsthinkingalliance.org/wicked-problems/",
+          "url": "https://systemsthinkingalliance.org/wicked-problems"
+        },
+        {
+          "label": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12689981/",
+          "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12689981"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
+      "start": "2026-09-27T12:30:00+05:30",
+      "end": "2026-09-27T13:30:00+05:30",
+      "flexible": false,
+      "locationId": "hall-1",
+      "speakerIds": [
+        "person-kailash-nadh",
+        "person-ansh-arora",
+        "person-computational-mama-ambika",
+        "person-tarunima-prabhakar",
+        "person-harsh-nisar"
+      ],
+      "tags": [
+        "Panel Discussion",
+        "Community",
+        "Engineering practice - productivity, debugging",
+        "Technology / FOSS licenses, policy",
+        "Intermediate"
+      ],
+      "trackId": "hall-1",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28lao4nnm4",
-      "sourceId": "chg330ogi7",
+      "sourceId": "8kktioqtql",
       "type": "talk",
       "title": "Unconference",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5735,7 +5851,7 @@
     },
     {
       "id": "act-cfp-doht3bggkm",
-      "sourceId": "chg319o747",
+      "sourceId": "8kktruoihc",
       "proposalId": "doht3bggkm",
       "type": "bof",
       "title": "United by (Free) F&B – Food & Books",
@@ -5775,7 +5891,7 @@
     },
     {
       "id": "act-cfp-5sktsu12a4",
-      "sourceId": "chg3mmmhts",
+      "sourceId": "8kktt5apc0",
       "proposalId": "5sktsu12a4",
       "type": "lightning-talk",
       "title": "A plan to sort out this CVE mess",
@@ -5825,7 +5941,7 @@
     },
     {
       "id": "act-aq5tm1051s",
-      "sourceId": "chg38kbsti",
+      "sourceId": "8kktmeer5t",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5840,7 +5956,7 @@
     },
     {
       "id": "act-aq5td49n4f",
-      "sourceId": "chg3dtlnhi",
+      "sourceId": "8kktombh2q",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5855,7 +5971,7 @@
     },
     {
       "id": "act-aq5tidiu4b",
-      "sourceId": "chg3bkdkp8",
+      "sourceId": "8kktqo6mgd",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5870,7 +5986,7 @@
     },
     {
       "id": "act-aq5t7ni20b",
-      "sourceId": "chg3bjsg0d",
+      "sourceId": "8kktgifg5f",
       "type": "meal",
       "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5884,10 +6000,10 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5t8uuiph",
-      "sourceId": "chg35jgovm",
+      "id": "act-8kkt8bdvdc",
+      "sourceId": "8kkt8bdvdc",
       "type": "meal",
-      "title": "Lunch Break – 1:30 PM to 2:00 PM (in Food Area)",
+      "title": "Lunch Break – 1:30 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
       "start": "2026-09-27T13:30:00+05:30",
       "end": "2026-09-27T14:30:00+05:30",
@@ -5900,7 +6016,7 @@
     },
     {
       "id": "act-28la4pp2q4",
-      "sourceId": "chg3vn1prp",
+      "sourceId": "8kktcib9p2",
       "type": "intro",
       "title": "Devroom Intro: Cloud & DevOps",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5916,7 +6032,7 @@
     },
     {
       "id": "act-aq5tf2jbhq",
-      "sourceId": "chg39lc2s0",
+      "sourceId": "8kktpviarq",
       "type": "intro",
       "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5932,7 +6048,7 @@
     },
     {
       "id": "act-cfp-391e59gb72",
-      "sourceId": "chg3msefg0",
+      "sourceId": "8kktngtsvd",
       "proposalId": "391e59gb72",
       "type": "lightning-talk",
       "title": "Software Patents - AI and the Future of Open Innovation",
@@ -5985,7 +6101,7 @@
     },
     {
       "id": "act-28la6c24j6",
-      "sourceId": "chg3qu065g",
+      "sourceId": "8kktem0mj4",
       "proposalId": "5ua576fg9k",
       "type": "lightning-talk",
       "title": "Beyond Hardware Description: Using Device Tree for System-Level Configuration in Zephyr RTOS",
@@ -6026,7 +6142,7 @@
     },
     {
       "id": "act-28lablklmc",
-      "sourceId": "chg3nfdh6a",
+      "sourceId": "8kkt4tsh2h",
       "proposalId": "9i6peimmer",
       "type": "lightning-talk",
       "title": "How OpenTelemetry Instrumentation Works Under the Hood",
@@ -6073,8 +6189,46 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-bk39jtqjkk",
+      "sourceId": "8kkt8gbi9c",
+      "proposalId": "bk39jtqjkk",
+      "type": "talk",
+      "title": "Tiles: Own your AI with open models and decentralized protocols",
+      "subtitle": "",
+      "description": "As AI becomes central to how we work and communicate, I believe we’re seeing a new form of technological feudalism, where a handful of platforms control the models, identities, data, and distribution channels people depend on. Local-first AI offers an alternative, but many tools still lack the identity, sync, and collaboration features people expect.\n\nIn this talk, I’ll share what I’ve learned building Tiles, a local-first, private AI assistant. I’ll discuss how we combine local models, peer-to-peer encrypted sync, the AT Protocol, and DIDs and UCANs for zero-trust authentication and authorization to deliver privacy without sacrificing the convenience of a centralized app. I’ll also introduce Tilekit, the developer API for building custom clients on top of Tiles.",
+      "references": [
+        {
+          "label": "https://www.tiles.run/",
+          "url": "https://www.tiles.run/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/bk39jtqjkk",
+      "start": "2026-09-27T14:15:00+05:30",
+      "end": "2026-09-27T14:45:00+05:30",
+      "flexible": false,
+      "locationId": "hall-2",
+      "speakerIds": [
+        "person-ankesh-bharti"
+      ],
+      "tags": [
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "hall-2",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28laiujb0d",
-      "sourceId": "chg36csj8h",
+      "sourceId": "8kktiv3346",
       "proposalId": "9qp8u3f894",
       "type": "lightning-talk",
       "title": "From Display Controller to Panel: A Modular Display Pipeline Architecture for Zephyr",
@@ -6124,7 +6278,7 @@
     },
     {
       "id": "act-28la11nd7m",
-      "sourceId": "chg343mpid",
+      "sourceId": "8kkt87l2qb",
       "proposalId": "d6mltdb2aq",
       "type": "talk",
       "title": "Remote Execution by Design: Sandboxing AI Agents with gVisor & Pipelock",
@@ -6169,7 +6323,7 @@
     },
     {
       "id": "act-cfp-1f9ett9bgj",
-      "sourceId": "chg39jqol9",
+      "sourceId": "8kkt8umnvs",
       "proposalId": "1f9ett9bgj",
       "type": "bof",
       "title": "Community-Driven or Community-Branded? Who Gets to Shape Community Events?",
@@ -6205,8 +6359,60 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-fefrvv4n7q",
+      "sourceId": "8kkt0r94i3",
+      "proposalId": "fefrvv4n7q",
+      "type": "talk",
+      "title": "Flexibility is complexity in disguise: Building frappe-ui for 10+ Products",
+      "subtitle": "",
+      "description": "Frappe UI is a Vue component library that, over several years, became the foundation for many Frappe products like Frappe Cloud, Gameplan, Helpdesk, CRM, and Drive. One library serving many products. I also built Gameplan, one of the products on top of it, so I designed these APIs from both sides, as the library author and as the app developer who has to live with them every day. This talk is about the discipline that makes that work: a deliberately small, opinionated public API. Open source tools usually stay flexible so they can plug into anything, but flexibility is just complexity in disguise, and frappe-ui takes the opposite bet. I cover how we name components and props so people can guess them, why we pick strong defaults over endless configuration, and how we say no as every product asks for one more prop.\n\nIt also covers the part most design systems skip, which is data. frappe-ui ships first-class, opinionated data-fetching utilities (useDoc, useList, useCall) built for Frappe backends, because a real product design system has to answer how you load and save data, alongside what a button looks like.\n\nWhen AI agents started writing frappe-ui code, the same opinionated, predictable API that served people also worked well for agents. The discipline we built for humans is what made the library agent-ready.",
+      "keyTakeaways": [
+        "Be opinionated, even in open source. Flexibility is just complexity in disguise.",
+        "A design system is more than components. Give products an opinionated way to load and save data too.",
+        "Make correct usage the path of least resistance, and mistakes hard to miss.",
+        "A predictable API serves new teammates and AI agents alike."
+      ],
+      "references": [
+        {
+          "label": "https://www.youtube.com/watch?v=juKQuJWoAAk",
+          "url": "https://www.youtube.com/watch?v=juKQuJWoAAk"
+        },
+        {
+          "label": "https://github.com/frappe/frappe-ui",
+          "url": "https://github.com/frappe/frappe-ui"
+        },
+        {
+          "label": "https://ui.frappe.io",
+          "url": "https://ui.frappe.io/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/fefrvv4n7q",
+      "start": "2026-09-27T14:30:00+05:30",
+      "end": "2026-09-27T15:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-1",
+      "speakerIds": [
+        "person-faris-ansari"
+      ],
+      "tags": [
+        "Talk",
+        "Introducing a FOSS project or a new version of a popular project",
+        "Intermediate"
+      ],
+      "trackId": "hall-1",
+      "source": "fossunited"
+    },
+    {
       "id": "act-cfp-2p9brsg91r",
-      "sourceId": "chg3pf725b",
+      "sourceId": "8kkt6bo4ji",
       "proposalId": "2p9brsg91r",
       "type": "bof",
       "title": "FOSS for Justice — What can Open Source do for India’s Courts?",
@@ -6242,45 +6448,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-cfp-6pb727vn12",
-      "sourceId": "chg3nn5773",
-      "proposalId": "6pb727vn12",
-      "type": "panel",
-      "title": "The future of FOSS, SWE and Technical Education",
-      "subtitle": "",
-      "description": "Discuss the impact of AI on FOSS, Software Engineering and Technical Education, and where do we go from here.\n\nThe last year or so has been a roller coaster for the software ecosystem. LLMs have gotten dramatically better. The number of FOSS projects and contributions has shot [0] up [1], along with the slop [2] that comes with them. Non-technical people are now able to build solutions that would have taken months of engineering time and effort, just using natural language.\n\nIn an effort to preserve their craft, AI skeptics have argued about the quality and reliability of these tools, and some have even vowed not to use them. Optimists, on the other hand, have handed these tools the keys to their entire digital lives [3]. We (the FOSS United Foundation) have talked to multiple FOSS maintainers, students, and engineering leaders over the last few months, and there is a certain sense of confusion and ambiguity in everyone’s minds about the future of open source, software engineering as a career, and how we teach and learn software.\n\nIt’s too early to say whether Software Engineering is truly dead, but it is clear that these tools are going to have a massive impact on the future of FOSS, Software Engineering and technical education. We also feel this is going to lead to a fundamental reimagination of carers in tech. This panel is an effort to initiate a discussion around this existential crisis that surrounds the FOSS community and sit with that discomfort.\n\nTBA",
-      "references": [
-        {
-          "label": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3",
-          "url": "https://forum.fossunited.org/t/call-for-panel-discussions-indiafoss-2026/7798/3"
-        }
-      ],
-      "links": [
-        {
-          "label": "Source code",
-          "url": "https://github.com/fossunited/fossunited"
-        }
-      ],
-      "audience": "Intermediate",
-      "proposalStatus": "Approved",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/6pb727vn12",
-      "start": "2026-09-27T14:30:00+05:30",
-      "end": "2026-09-27T15:30:00+05:30",
-      "flexible": false,
-      "locationId": "hall-1",
-      "speakerIds": [
-        "person-ansh-arora"
-      ],
-      "tags": [
-        "Panel Discussion",
-        "Intermediate"
-      ],
-      "trackId": "hall-1",
-      "source": "fossunited"
-    },
-    {
       "id": "act-28lar927u4",
-      "sourceId": "chg30fvtgn",
+      "sourceId": "8kkt67c95v",
       "proposalId": "1s4iem9t8a",
       "type": "talk",
       "title": "From Reset to main(): Porting Infineon TriCore AURIX to Zephyr",
@@ -6321,7 +6490,7 @@
     },
     {
       "id": "act-cfp-7vvvus5cp0",
-      "sourceId": "chg3t4urmi",
+      "sourceId": "8kktavo63f",
       "proposalId": "7vvvus5cp0",
       "type": "talk",
       "title": "Calibrate: A framework for continuously evaluating and improving AI agents within non-profits",
@@ -6387,7 +6556,7 @@
     },
     {
       "id": "act-28lacdbph1",
-      "sourceId": "chg3uafu2i",
+      "sourceId": "8kkth83di9",
       "proposalId": "b8josvurds",
       "type": "lightning-talk",
       "title": "From Prompts to Production: Building an Open-Source AI On-Call Agent with MCP and Multi-Agent Workflows",
@@ -6441,8 +6610,23 @@
       "source": "fossunited"
     },
     {
+      "id": "act-8kktc233h6",
+      "sourceId": "8kktc233h6",
+      "type": "ceremony",
+      "title": "FOSS Awards",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
+      "start": "2026-09-27T15:00:00+05:30",
+      "end": "2026-09-27T15:30:00+05:30",
+      "flexible": false,
+      "locationId": "hall-1",
+      "speakerIds": [],
+      "tags": [],
+      "trackId": "hall-1",
+      "source": "fossunited"
+    },
+    {
       "id": "act-28laeodjb3",
-      "sourceId": "chg3fnj1fu",
+      "sourceId": "8kkthtokml",
       "proposalId": "6r7akaieb8",
       "type": "lightning-talk",
       "title": "Real-Time Video Pipelines on Embedded SoCs: A FreeRTOS Case Study",
@@ -6489,7 +6673,7 @@
     },
     {
       "id": "act-28lac636ge",
-      "sourceId": "chg3ervl1h",
+      "sourceId": "8kktgiahps",
       "proposalId": "76tid1o2lg",
       "type": "lightning-talk",
       "title": "Long live outbox : Outbox is dead",
@@ -6546,7 +6730,7 @@
     },
     {
       "id": "act-cfp-dglc657qff",
-      "sourceId": "chg304rbcv",
+      "sourceId": "8kkt9a4scq",
       "proposalId": "dglc657qff",
       "type": "talk",
       "title": "Being Bayesian: Stress-testing India's Loudest Stories with FOSS & Open Data",
@@ -6597,7 +6781,7 @@
     },
     {
       "id": "act-28lad4q6q5",
-      "sourceId": "chg3voi8tg",
+      "sourceId": "8kkt7rfp56",
       "proposalId": "8fc48rj2g2",
       "type": "lightning-talk",
       "title": "Tackling core lifecycle management in heterogeneous SoCs",
@@ -6637,7 +6821,7 @@
     },
     {
       "id": "act-28laurq10s",
-      "sourceId": "chg3dlqfci",
+      "sourceId": "8kktlh7jd3",
       "proposalId": "bl0i7u8nno",
       "type": "lightning-talk",
       "title": "Kubernetes Native Observability Dashboards with Perses, without the YAML/JSON Hell",
@@ -6729,23 +6913,43 @@
       "source": "fossunited"
     },
     {
-      "id": "act-5fhpunas6r",
-      "sourceId": "chg3gk2bff",
-      "type": "talk",
-      "title": "Communi-Con : 7 Community Voted Flash Talks",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
+      "id": "act-cfp-946qm38m58",
+      "sourceId": "8kkt32b1gq",
+      "proposalId": "946qm38m58",
+      "type": "lightning-talk",
+      "title": "Communi-Con : CFP Opens Sep 25",
+      "subtitle": "",
+      "description": "Attending IndiaFOSS 2026 in-person, and have something interesting to share with fellow attendees ? Everyone has a shot at a 10 minute slot on our biggest stage....\n\nCFP opens on Friday, 25th September - day before the conference, and closes on the evening of Day 1. Proposals will then be put to community voting. The most voted 7 talks get to take the stage in this slot !\n\nFull details, including CFP here : Communi-Con @ IndiaFOSS 2026",
+      "links": [
+        {
+          "label": "Communi-Con @ IndiaFOSS 2026",
+          "url": "https://fossunited.org/c/indiafoss/2026communi-con"
+        },
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Beginner",
+      "proposalStatus": "Screening",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/946qm38m58",
       "start": "2026-09-27T15:30:00+05:30",
       "end": "2026-09-27T16:45:00+05:30",
       "flexible": false,
       "locationId": "hall-1",
-      "speakerIds": [],
-      "tags": [],
+      "speakerIds": [
+        "person-indiafoss-attendee"
+      ],
+      "tags": [
+        "Lightning Talk",
+        "Beginner"
+      ],
       "trackId": "hall-1",
       "source": "fossunited"
     },
     {
       "id": "act-28lak5j8nt",
-      "sourceId": "chg3gfv5g7",
+      "sourceId": "8kkt4nt9t1",
       "proposalId": "eofh2kev0d",
       "type": "lightning-talk",
       "title": "Loops to real time",
@@ -6793,7 +6997,7 @@
     },
     {
       "id": "act-28la635lu7",
-      "sourceId": "chg39u41tm",
+      "sourceId": "8kktkb7qe2",
       "proposalId": "5i25u6dfnv",
       "type": "lightning-talk",
       "title": "Cilium Network Policy Anti-Patterns I Learned the Hard Way",
@@ -6833,7 +7037,7 @@
     },
     {
       "id": "act-cfp-62ntegtu09",
-      "sourceId": "chg3r2cno4",
+      "sourceId": "8kktpcjeh7",
       "proposalId": "62ntegtu09",
       "type": "lightning-talk",
       "title": "Building Open Source Digital Infrastructure for a University",
@@ -6906,17 +7110,16 @@
     },
     {
       "id": "act-28lamtpeiu",
-      "sourceId": "chg3iddmse",
+      "sourceId": "8kkt8uhbcg",
       "proposalId": "5h4d5uhuro",
       "type": "lightning-talk",
       "title": "Indigenous, High-Performance, Safety-Critical RTOS",
       "subtitle": "",
-      "description": "As critical infrastructure, aerospace, and defense hardware scale across India, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. Compounding this risk, foreign safety-critical operating systems heavily restrict or entirely lack support for custom Indian defense hardware architectures. This talk introduces an indigenous, clean-sheet Real-Time Operating System (RTOS) engineered from the ground up for safety-critical environments and hard deterministic performance.\n\nRather than relying on generic monolithic kernels, this platform utilizes a highly optimized, formally verified microkernel architecture. The architecture prioritizes rigid spatial and temporal partitioning to enforce strict fault isolation, ensuring that a failure in a peripheral driver or application thread cannot compromise the core runtime stability of the system. Through this strict architectural optimization, the platform consistently outperforms major open-source RTOSes across key global benchmarks.\n\nWe will detail our design choices for maintaining low-latency determinism and predictability under peak processing loads. Additionally, we will share the engineering practicalities of porting and validating this architecture natively on bare-metal hardware—including standard global processing platforms and indigenous computing architectures like IIT Bombay's AJIT silicon and the Calcite processors from InCore Semiconductors. The session focuses entirely on low-level system design constraints, code-level safety postures, and the technical realities of building high-reliability runtime systems.",
+      "description": "As critical infrastructure, aerospace, and defense hardware scale across the country, eliminating foreign software-level vulnerabilities and supply-chain dependencies at the operating system layer has become a necessity. This session introduces redkillOS - an indigenous RTOS built for safety-critical use - through its networking subsystem.\n\nWe cover the sources of network latency in an embedded system: some problems shared by common RTOS stacks, how PREEMPT_RT improves the Linux scheduler but not the network stack, and how an RTOS's own primitives (locks, mailboxes, context switches) affect network behaviour.\n\nWe benchmark five RTOSes: FreeRTOS, Zephyr, Threadx, Linux-RT and RedkillOS, then look at what happens to a deadline-bound flow when a bulk transfer saturates the network stack. We cover deterministic networking (TSN, DetNet) and its use in industry. Finally, we discuss the requirements for safety certification and its implications for the network stack.",
       "keyTakeaways": [
-        "Microkernel Architectural Floor: Understanding the principles of bare-metal microkernel design and microsecond-level fault isolation for safety-critical loops.",
-        "Rigid Spatial and Temporal Partitioning: How to systematically eliminate cross-thread resource contention and guarantee hard determinism.",
-        "Cross-Platform Hardware Portability: Insights and engineering practices gained from natively validating an RTOS on both standard global processing units and indigenous Indian silicon layouts (AJIT architecture and Calcite architectures).",
-        "Designing for Safety Compliance: A look at implementing code structures that align cleanly with strict safety-critical software certification benchmarks (such as MISRA-C & the DO-178C standard)."
+        "OS primitives measurably change network behaviour but do not guarantee bounded latency.",
+        "Stock lwIP provides no per-flow bound, and a deadline flow survives only if the surrounding system supplies one.",
+        "Performance and safety-certification are separate problems."
       ],
       "references": [
         {
@@ -6953,7 +7156,7 @@
     },
     {
       "id": "act-28lacdroo3",
-      "sourceId": "chg31jr2vb",
+      "sourceId": "8kkt405prs",
       "proposalId": "8ne6l7qetc",
       "type": "lightning-talk",
       "title": "Escaping Cron Hell: Building and Contributing to Dagu, an Open Source Workflow Orchestrator",
@@ -7008,7 +7211,7 @@
     },
     {
       "id": "act-28lakfdugu",
-      "sourceId": "chg35hnail",
+      "sourceId": "8kktk2uel0",
       "proposalId": "2sfmvkhrrg",
       "type": "lightning-talk",
       "title": "From Architecture to Tasks: Designing Real-Time MCU Firmware in Heterogeneous APU-MCU Systems",
@@ -7054,7 +7257,7 @@
     },
     {
       "id": "act-cfp-ajdpfpbh5a",
-      "sourceId": "chg34vekek",
+      "sourceId": "8kkt4j6vu1",
       "proposalId": "ajdpfpbh5a",
       "type": "talk",
       "title": "Judiciary Entity Map: How open source can make India’s courts legible",
@@ -7128,7 +7331,7 @@
     },
     {
       "id": "act-28lag29fko",
-      "sourceId": "chg3aehcl2",
+      "sourceId": "8kkto81075",
       "proposalId": "2rg09ct89v",
       "type": "lightning-talk",
       "title": "15 Years, One Server, 8GB RAM and 500,000 Linux Learners: Lessons from Running Webminal",
@@ -7175,7 +7378,7 @@
     },
     {
       "id": "act-28laqe1pg1",
-      "sourceId": "chg3h5a4ts",
+      "sourceId": "8kkt4vim44",
       "proposalId": "8gv11r0ga6",
       "type": "lightning-talk",
       "title": "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
@@ -7221,7 +7424,7 @@
     },
     {
       "id": "act-28laedc93i",
-      "sourceId": "chg3kaoc1h",
+      "sourceId": "8kkts9amrb",
       "proposalId": "f4pdfg9qvh",
       "type": "lightning-talk",
       "title": "Unused Is Not a Kubernetes Field: Platform Hygiene Is Not Cleanup",
@@ -7296,7 +7499,7 @@
     },
     {
       "id": "act-cfp-aqenkb8ktb",
-      "sourceId": "chg3nui6au",
+      "sourceId": "8kkt6pmi8k",
       "proposalId": "aqenkb8ktb",
       "type": "talk",
       "title": "RTL to Zephyr RTOS: Lightweight-Crypto Acceleration on Open RISC-V",
@@ -7339,7 +7542,7 @@
     },
     {
       "id": "act-28la409p82",
-      "sourceId": "chg3lg748g",
+      "sourceId": "8kktlfg0pv",
       "proposalId": "av9de7vsu8",
       "type": "lightning-talk",
       "title": "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
@@ -7383,7 +7586,7 @@
     },
     {
       "id": "act-28laa2io5q",
-      "sourceId": "chg3bdilap",
+      "sourceId": "8kktqevqau",
       "type": "ceremony",
       "title": "GB Election Results",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -7398,7 +7601,7 @@
     },
     {
       "id": "act-28lam1ecee",
-      "sourceId": "chg3m05ctc",
+      "sourceId": "8kktn0m47u",
       "type": "ceremony",
       "title": "Closing Remarks, Feedback Session",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -7467,9 +7670,9 @@
     {
       "id": "person-advay-udupa",
       "name": "Advay Udupa",
-      "bio": "I started open-learning when I was 5 years old, first with aarohilife.org, and now independently as a 15-year-old. About three years ago, I was looking for tools to help me create visuals for the stories I wanted to tell, and that’s when I discovered Blender. Since then, I’ve really enjoyed learning it, creating with it, and helping others get started too, most recently by completing a YouTube tutorial series on Blender in Kannada, made possible by a grant from FOSS United.",
+      "bio": "Building a big Blender scene by hand always felt tedious, until I discovered Geometry Nodes, a node-based toolset for procedural 3D art. In this talk, we'll skip the dry math and focus on the magic: how Geometry Nodes can speed up your workflow, unlock happy accidents, and bring back the joy of experimentation, including an interesting demo! About me: I've been learning modeling with Blender for close to 4 years now, and have conducted workshops both online and offline. Earlier this year, I made a YouTube tutorial series on Blender in Kannada, funded by a grant from FOSS United. This work builds on a longer journey of open-learning that started when I was 5, first with aarohilife.org and now independently as a 15-year-old.",
       "designation": "Open Learner",
-      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocKkOeADTxuYq1YdF40B8rbFHkfFTngwXdlRC-EW8qRupf_eGvX4=s96-c",
+      "avatarUrl": "https://fossunited.org/files/Advay.jpg",
       "links": [
         {
           "label": "social",
@@ -7557,6 +7760,14 @@
       ]
     },
     {
+      "id": "person-allenmylath",
+      "name": "allenmylath",
+      "bio": "Allen George is an open-source enthusiast and software developer with a passion for building high-performance systems in Rust. He is the creator of Rustvani , an open-source voice AI framework, and Rustvani VAD , a custom voice activity detection engine built entirely in Rust — eliminating heavy runtime dependencies in favour of lightweight, portable inference. His work sits at the intersection of speech technology and systems programming, bringing vernacular voice interfaces closer to production reality.",
+      "designation": "Open Source Enthusiast",
+      "avatarUrl": "https://fossunited.org/files/unnamedee1dc1.jpg",
+      "links": []
+    },
+    {
       "id": "person-alwin-varghese",
       "name": "Alwin Varghese",
       "bio": "Electronics and Computer Engineering student at Amrita Vishwa Vidyapeetham strong interest in embedded systems, IoT, and hardware prototyping, a hardware security enthusiast and a member of the bi0s hardware. Experienced in building ESP32-based systems involving BLE communication, voice interfaces,. Passionate about developing practical hardware solutions that solve real-world problems and improve accessibility through technology.",
@@ -7631,6 +7842,20 @@
         {
           "label": "social",
           "url": "https://amkhrjee.in/"
+        }
+      ]
+    },
+    {
+      "id": "person-ankesh-bharti",
+      "name": "Ankesh Bharti",
+      "bio": "I'm Ankesh Bharti, a technologist based in Jamshedpur, India. I'm the founder of&nbsp; Tiles Privacy &nbsp;and co-founder of the&nbsp; User &amp; Agents &nbsp;community. My work explores how decentralized infrastructure can give people more agency, control, and choice in their digital lives. Outside of work, I’m interested in bikes, hard sci-fi, and cybernetics.",
+      "designation": "Founder",
+      "organization": "Tiles Privacy",
+      "avatarUrl": "https://fossunited.org/files/headshot Large.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://bsky.app/profile/ankeshbharti.com"
         }
       ]
     },
@@ -7845,6 +8070,14 @@
       ]
     },
     {
+      "id": "person-azan",
+      "name": "Azan",
+      "bio": "A software engineer who spends as much time making music as writing code.",
+      "designation": "Software Engineer",
+      "avatarUrl": "https://fossunited.org/files/31279909.jpg",
+      "links": []
+    },
+    {
       "id": "person-azim-javed",
       "name": "Azim Javed",
       "bio": "This boy pretends to be a Security Researcher but is always busy doom-scrolling reels. Sometimes when he’s bored, he likes to tear-up some IoT devices and tries to act as if he’s the cool hacker boy shown in movies with a terminal and random green coloured text.",
@@ -7941,6 +8174,20 @@
       "organization": "IT for Change",
       "avatarUrl": "https://fossunited.org/files/chandra.jpg",
       "links": []
+    },
+    {
+      "id": "person-computational-mama-ambika",
+      "name": "computational mama (ambika)",
+      "bio": "Director/Co-founder of Ajaibghar &amp; Head of Developer Relations at Gooey.AI",
+      "designation": "Head of Developer Relations",
+      "organization": "Gooey.ai",
+      "avatarUrl": "https://fossunited.org/files/ambika.jpeg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://computationalmama.xyz/"
+        }
+      ]
     },
     {
       "id": "person-deep-saikia",
@@ -8226,11 +8473,41 @@
       ]
     },
     {
+      "id": "person-harsh-nisar",
+      "name": "Harsh Nisar",
+      "bio": "Working in the intersection of data, public policy and infrastructure in Government of India",
+      "designation": "Co-founder",
+      "organization": "Bharat Digital",
+      "avatarUrl": "https://fossunited.org/files/ppef195b.jpg",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/harsh-nisar-b8347588/"
+        }
+      ]
+    },
+    {
+      "id": "person-indiafoss-attendee",
+      "name": "IndiaFOSS Attendee",
+      "bio": "Open for IndiaFOSS in-person attendees only. Best seven flash talks will selected by voting, and get the stage at this slot",
+      "designation": "You",
+      "organization": "IndiaFOSS Attendee",
+      "avatarUrl": "https://fossunited.org/files/user_profile_image.png",
+      "links": []
+    },
+    {
       "id": "person-jafar-saadique",
       "name": "Jafar Saadique",
+      "bio": "Software engineer by profession. I also make tech curriculum, advocate for web accessibility and using tech for social good",
       "designation": "Senior Software Engineer",
       "organization": "Marketcast",
-      "links": []
+      "avatarUrl": "https://fossunited.org/files/profile_6lpt37kck6f1e5fa.webp",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://bsky.app/profile/japoo.dev"
+        }
+      ]
     },
     {
       "id": "person-jai-bellare",
@@ -8267,12 +8544,7 @@
       "designation": "Senior Embedded Software Engineer",
       "organization": "Silicon Signals Pvt. Ltd.",
       "avatarUrl": "https://fossunited.org/files/New_Profil.jpeg",
-      "links": [
-        {
-          "label": "social",
-          "url": "https://www.linkedin.com/in/jaimin-kalariya"
-        }
-      ]
+      "links": []
     },
     {
       "id": "person-jasil-faras",
@@ -8325,6 +8597,15 @@
       ]
     },
     {
+      "id": "person-kailash-nadh",
+      "name": "Kailash Nadh",
+      "bio": "Hobbyist developer / tinkerer",
+      "designation": "CTO",
+      "organization": "Zerodha",
+      "avatarUrl": "https://fossunited.org/files/4e34bd28c0e3597b38283ece574f87ee.jpeg",
+      "links": []
+    },
+    {
       "id": "person-kalyani-desai",
       "name": "Kalyani Desai",
       "bio": "I am a Technical Writer, Content Engineer, and Information Developer at Red Hat, working at the intersection of technology and communication. I focus on making complex developer documentation clear, accessible, and genuinely useful, currently leading documentation for Red Hat OpenShift Serverless and Red Hat OpenShift Serverless Logic, and maintaining their upstream open source projects: Knative, Kogito, and SonataFlow. I mentor aspiring professionals, speak on developer experience, emerging technologies, and AI, and create technical content with the goal of making knowledge accessible to everyone regardless of background or ability. I believe the most powerful thing any technologist can do is share what they know and lower the barriers for those who come next.",
@@ -8360,15 +8641,6 @@
           "url": "https://x.com/kc_srk"
         }
       ]
-    },
-    {
-      "id": "person-keirthana-t-s",
-      "name": "Keirthana T S",
-      "bio": "Keirthana is a senior technical author at Canonical with 16 years of experience in technical communications. Working with a team of 30+ authors, Keirthana is responsible for team operations, documentation needs and standards across the engineering organization. She lives in Bangalore and has a history of documentation experience in enterprise companies including Hewlett Packard Enterprise, SAP.",
-      "designation": "Senior technical author",
-      "organization": "Canonical",
-      "avatarUrl": "https://avatars.githubusercontent.com/u/15439933?v=4",
-      "links": []
     },
     {
       "id": "person-kiran-jonnalagadda",
@@ -8720,7 +8992,7 @@
       "bio": "free software and cat memes enthusiast, privacy advocate, and Wikimedian stuck in the rabbit hole",
       "designation": "Wikimedian, OpenStreetMap contributor and Volunteer",
       "organization": "Prav Cooperative",
-      "avatarUrl": "https://fossunited.org/private/files/perry-2800-2800-max.jpg",
+      "avatarUrl": "https://fossunited.org/files/profile_perry5e3dec5e3dec.webp",
       "links": [
         {
           "label": "social",
@@ -8739,6 +9011,20 @@
         {
           "label": "social",
           "url": "https://linkedin.com/ pombredanne"
+        }
+      ]
+    },
+    {
+      "id": "person-pooja-sanwal",
+      "name": "Pooja Sanwal",
+      "bio": "Community Relations Manager @ Cloudways, DigitalOcean",
+      "designation": "Community Relations Manager",
+      "organization": "DigitalOcean",
+      "avatarUrl": "https://secure.gravatar.com/avatar/083c753337f52d4e6eb73d36bfa4eda3?d=404&s=200",
+      "links": [
+        {
+          "label": "social",
+          "url": "https://poojasanwal.com/"
         }
       ]
     },
@@ -8852,6 +9138,15 @@
           "url": "https://www.linkedin.com/in/raunak1/"
         }
       ]
+    },
+    {
+      "id": "person-rinsa-perapadan",
+      "name": "Rinsa Perapadan",
+      "bio": "Rinsa Perapadan is the Co-Founder and CEO of TinkerQubits Foundation, a Section 8 non-profit that brings meaningful technology education to children in under-resourced, non-urban schools across Mumbai, Bengaluru, Nashik, and Valsad. With over 14 years in the development sector, she has designed and run programmes for children between the ages of 10 and 16 — spanning computer science curriculum, tech curriculum and teacher training in tech for schools Rinsa believes that children from disadvantaged backgrounds deserve more than access to devices — they deserve the tools to think, build, and create solutions that matter to their own communities. This conviction drives TinkerQubits' approach: shifting children from passive technology consumers to active creators. She is a Vital Voices WomenLead India Fellow, a Teach for India and UnLtd India incubatee, an NSRCEL Impact Orbit incubatee, and a Stanford Seed Spark alumna.",
+      "designation": "Co-founder, CEO",
+      "organization": "TinkerQubits Foundation",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocIocuU6pf3M6LO5FIBsaIR7xuiF3wuCJm5U6rbQE9ayD9CgRg=s96-c",
+      "links": []
     },
     {
       "id": "person-ritika",
@@ -8985,7 +9280,7 @@
       "name": "Shree Kumar",
       "bio": "Shree is Co-Chair, IndiaFOSS 2026. Also, outgoing member of Governance Board of FOSS United",
       "designation": "Independent Consultant",
-      "avatarUrl": "https://fossunited.org/private/files/shree-profile-pic.jpg",
+      "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocIsujmu4wNQISD0TwDUex7mURG7b-kp46k0QpJ9iWtMOQy-K_k6=s96-c",
       "links": []
     },
     {
@@ -9049,6 +9344,14 @@
       "name": "Smita Mutt",
       "designation": "Lead - Strategic Initiatives",
       "organization": "DAKSH Society",
+      "links": []
+    },
+    {
+      "id": "person-sneha-mundari",
+      "name": "Sneha Mundari",
+      "bio": "Sneha Mundari is a filmmaker, visual anthropologist and design educator. She is the first woman filmmaker from the Munda adivasi community. She practices two principles: ask, don’t assume, listen to learn. Currently working on understanding intergenerational knowledge transmissions in families and identity performance.",
+      "designation": "Collaborator",
+      "avatarUrl": "https://fossunited.org/files/Sneha Mundari843931.jpg",
       "links": []
     },
     {
@@ -10467,7 +10770,7 @@
   ],
   "sourceMetadata": {
     "source": "fossunited",
-    "sourceUpdatedAt": "2026-09-10 13:56:07.007840",
+    "sourceUpdatedAt": "2026-09-21 20:25:05.420327",
     "normalizerVersion": "0.2.0",
     "scheduleStatus": "draft"
   },
