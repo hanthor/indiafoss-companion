@@ -130,6 +130,9 @@
   /* The QR plate stays white in both themes: it stands in for the code, and a
      dark plate would not scan. Declared once so it reads as a decision. */
   --qr-plate: #ffffff;
+  /* Baked supplier artwork (the venue map key) stays white in both themes:
+     its dark labels and icons are paths, so a dark plate would swallow them. */
+  --art-plate: #ffffff;
   --safe-top: env(safe-area-inset-top, var(--safe-area-inset-top, 0px));
   --safe-bottom: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
   --tabbar-height: 62px;

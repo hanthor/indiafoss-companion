@@ -1,16 +1,40 @@
 # IndiaFOSS 2026 — Venue
 
-The real venue floor plan, supplied as an Inkscape SVG.
+The real venue floor plan, supplied as SVGs.
 
 ## Files
 
 - `venue.svg` — cleaned venue asset (presentation layer for the venue engine).
-- `../raw/venue-both-floor-plan.svg` — byte-for-byte copy of the supplied source.
-- `provenance.json` — source, hashes, and cleanup record.
+- `floor-ground.svg`, `floor-first.svg` — the organiser's latest per-floor
+  artwork (issue #657): the presentation plans both maps draw, with the room
+  numbers the map key explains.
+- `map-legend.svg` — the organiser's map key: which number is which room.
+- `../raw/venue-both-floor-plan.svg` — byte-for-byte copy of the earlier source.
+- `provenance.json` — sources, hashes, and cleanup record.
+
+## Room numbers (map key, issue #657)
+
+| No. | Room               | Floor | Programme              |
+| --- | ------------------ | ----- | ---------------------- |
+| 1   | Hall 1             | 0     | General Track          |
+| 2   | Hall 2             | 0     | General Track          |
+| 3   | Hall 3             | 0     | Devroom Track          |
+| 4   | Sponsor booths     | 0     | —                      |
+| 5   | Hardware Showcase  | 0     | —                      |
+| —   | Help Desk          | 0     | FOSS United            |
+| 6   | Room 1             | 1     | Devroom Track          |
+| 7   | Room 2             | 1     | BOF sessions           |
+| 8   | Room 3             | 1     | BOF sessions           |
+| 9   | Community Showcase | 1     | open area, no walls    |
+| —   | Silent Room        | 1     | quiet room             |
+
+Amenities on both plans: Food (through the main exit), Drinking Water,
+Washrooms, Lift. The Community Showcase (9) is an open area, so it has no
+tappable walls in the app maps — the badge and the key say where it is.
 
 ## Structure
 
-The SVG contains both floors as separate layers plus shared geometry:
+The older `venue.svg` contains both floors as separate layers plus shared geometry:
 
 | Layer          | Content                                                                                                                                          |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |

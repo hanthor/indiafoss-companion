@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { base } from '$app/paths';
   import type { Activity } from '@indiafoss/model';
   import { activityProgress, formatTime, parseInstant } from '@indiafoss/schedule';
   import { clockFromParams, isFixedClock } from '$lib/clock';
@@ -508,6 +509,7 @@
           class="room {roomState(room.id)}"
           class:selected={selected === room.id}
           d={room.d}
+          fill={room.c ?? 'none'}
           onclick={() => select(room.id)}
         />
       {/each}
@@ -519,6 +521,19 @@
       {/each}
       {#each plan.walls as w, i (i)}
         <path class="wall" d={w.d} style="stroke:{w.s};stroke-width:{w.w}" />
+      {/each}
+      {#each plan.marks as m, i (i)}
+        <!-- The artwork's own furniture: number badges, amenity icons, baked
+             labels and route arrows, drawn back over the rooms. -->
+        <path
+          class="mark"
+          class:text={m.f === 'text'}
+          class:textstroke={m.s === 'text'}
+          d={m.d}
+          fill={m.f === 'text' ? 'none' : m.f}
+          stroke={m.s === 'text' ? 'none' : (m.s ?? 'none')}
+          stroke-width={m.w ?? 1}
+        />
       {/each}
     </svg>
 
@@ -591,6 +606,19 @@
       <li><span class="sw sw-you"></span>YOU</li>
     </ul>
   </div>
+
+  {#if venueKey === 'indiafoss-2026'}
+    <!-- The organiser's map key: which number is which room. Baked artwork,
+         so it rides on a white card in either colour scheme. -->
+    <details class="key">
+      <summary>Map key: room numbers</summary>
+      <img
+        src="{base}/venues/indiafoss-2026/map-legend.svg"
+        alt="Map key. Ground floor: 1 Hall 1 (General Track), 2 Hall 2 (General Track), 3 Hall 3 (Devroom Track), 4 Sponsor booths, 5 Hardware Showcase, Help Desk. First floor: 6 Room 1 (Devroom Track), 7 Room 2 (BOF sessions), 8 Room 3 (BOF sessions), 9 Community Showcase, Silent Room. Icons: Food through the main exit, Drinking Water, Washrooms, Lift."
+        loading="lazy"
+      />
+    </details>
+  {/if}
 
   {#if selectedRoom}
     {@const live = liveByRoom.get(selectedRoom.id) ?? []}
@@ -752,7 +780,8 @@
     stroke-linejoin: round;
   }
   .room {
-    fill: var(--surface);
+    /* The fill comes from the room's own legend colour (`fill` attribute);
+       state classes below override it, which beats a presentation attribute. */
     stroke: var(--line);
     stroke-width: 10;
     cursor: pointer;
@@ -781,6 +810,18 @@
   .wall {
     fill: none;
     stroke-linecap: round;
+  }
+  /* The artwork's furniture keeps its own colours; only baked dark labels
+     follow the theme so they stay legible in dark mode. */
+  .mark {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mark.text {
+    fill: var(--text);
+  }
+  .mark.textstroke {
+    stroke: var(--text);
   }
   @media (prefers-color-scheme: dark) {
     .wall {
@@ -1027,6 +1068,31 @@
   .sw-you {
     background: var(--mint);
     border-radius: 999px;
+  }
+
+  /* The organiser's map key artwork: baked dark-on-light vectors, so it
+     always rides on a white card. */
+  .key {
+    border-top: 1px solid var(--line);
+    background: var(--surface-raised);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  .key summary {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .key img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--art-plate);
   }
 
   .grabber {

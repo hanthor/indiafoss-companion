@@ -35,6 +35,20 @@ const assets = [
     src: join(root, 'events', 'indiafoss-2026', 'venue', 'venue.metadata.json'),
     dest: join(root, 'apps', 'web', 'static', 'venues', 'indiafoss-2026', 'venue.metadata.json'),
   },
+  // The organiser's latest presentation artwork (issue #657): per-floor plans
+  // plus the map key the FloorPlan renders above the drawings.
+  {
+    src: join(root, 'events', 'indiafoss-2026', 'venue', 'floor-ground.svg'),
+    dest: join(root, 'apps', 'web', 'static', 'venues', 'indiafoss-2026', 'floor-ground.svg'),
+  },
+  {
+    src: join(root, 'events', 'indiafoss-2026', 'venue', 'floor-first.svg'),
+    dest: join(root, 'apps', 'web', 'static', 'venues', 'indiafoss-2026', 'floor-first.svg'),
+  },
+  {
+    src: join(root, 'events', 'indiafoss-2026', 'venue', 'map-legend.svg'),
+    dest: join(root, 'apps', 'web', 'static', 'venues', 'indiafoss-2026', 'map-legend.svg'),
+  },
 ];
 
 for (const { src, dest } of assets) {

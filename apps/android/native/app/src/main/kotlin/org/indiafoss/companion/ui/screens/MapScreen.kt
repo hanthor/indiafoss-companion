@@ -1,5 +1,7 @@
 package org.indiafoss.companion.ui.screens
 
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,10 +25,42 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import org.indiafoss.companion.UiState
 import org.indiafoss.companion.core.Schedule
+
+/**
+ * The organiser's map key (which number is which room), bundled as a PNG
+ * export of `events/indiafoss-2026/venue/map-legend.svg` (regenerate with
+ * `rsvg-convert -w 1200`, flattened on white). Baked artwork, so it is
+ * shown as-is in either colour scheme.
+ */
+@Composable
+private fun MapKey(expanded: Boolean, onToggle: () -> Unit) {
+    val context = LocalContext.current
+    TextButton(onClick = onToggle) { Text(if (expanded) "Hide map key" else "Map key: room numbers") }
+    if (!expanded) return
+    val bitmap = remember {
+        runCatching {
+            context.assets.open("map-legend.png").use { BitmapFactory.decodeStream(it) }
+        }.getOrNull()
+    }
+    if (bitmap == null) {
+        Text(
+            "The map key artwork is missing from this build.",
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(16.dp, 0.dp),
+        )
+    } else {
+        Image(
+            bitmap.asImageBitmap(), contentDescription = "Map key artwork",
+            contentScale = ContentScale.FillWidth, modifier = Modifier.fillMaxWidth().padding(16.dp, 0.dp),
+        )
+    }
+}
 
 /**
  * The venue's floor plan, drawn natively from the same vectors as the web
@@ -48,6 +82,7 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit) {
     val plan = state.todayPlan
     val destination = plan?.destination(state.now)
     var sheet by remember { mutableStateOf<String?>(null) }
+    var keyExpanded by remember { mutableStateOf(false) }
 
     val roomStates = bundle?.locations.orEmpty().associate { room ->
         val running = live[room.id].orEmpty().firstOrNull()
@@ -81,6 +116,7 @@ fun MapScreen(state: UiState, actions: @Composable () -> Unit) {
                 Box(Modifier.fillMaxWidth().weight(1f)) {
                     FloorPlanView(floor, roomStates, onRoomTap = { room -> sheet = room.programmeLocationId(bundle) })
                 }
+                MapKey(expanded = keyExpanded, onToggle = { keyExpanded = !keyExpanded })
                 sheet?.let { id ->
                     val room = bundle?.location(id) ?: bundle?.locations?.firstOrNull { it.id == id }
                     Card(Modifier.fillMaxWidth().padding(16.dp, 8.dp)) {
