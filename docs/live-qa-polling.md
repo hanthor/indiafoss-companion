@@ -20,12 +20,15 @@ This document outlines the strategic design for an offline-first, local-mesh-com
 ## Strategic Implementation Plan
 
 ### Phase 1: Local Q&A Submission & Voting Schema
+
 - Define lightweight JSON-schema for `QuestionSubmission`, `QuestionUpvote`, and `PollResponse` events.
 - Implement client-side queueing and duplicate detection.
 
 ### Phase 2: Mesh & Gateway Broadcast Protocol
+
 - Integrate question state synchronization with Matrix Spindle relay node.
 - Support real-time presenter view broadcast via WebSocket / SSE.
 
 ### Phase 3: Analytics & Post-Session Archival
+
 - Provide anonymized summary reports for speakers and event organizers after talk conclusion.
