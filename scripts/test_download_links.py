@@ -90,6 +90,17 @@ class Advertised(unittest.TestCase):
         with working_directory(root):
             self.assertEqual(links.advertised(), {})
 
+    def test_skips_a_shell_placeholder_url(self):
+        # The Maestro zip is pinned via the workflow's MAESTRO_VERSION env, so
+        # the advertised text holds a placeholder, not the asset URL.
+        root = self._repo(
+            {
+                "w.yml": "https://github.com/mobile-dev-inc/maestro/releases/download/cli-${MAESTRO_VERSION}/maestro.zip"
+            }
+        )
+        with working_directory(root):
+            self.assertEqual(links.advertised(), {})
+
     def test_ignores_an_untracked_file(self):
         url = "https://github.com/o/r/releases/download/nightly/a.apk"
         root = self._repo({"README.md": "nothing here"})

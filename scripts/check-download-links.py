@@ -25,8 +25,10 @@ URL = re.compile(r"https://github\.com/[\w.-]+/[\w.-]+/releases/download/[^\s\"'
 
 SEARCHED = ("*.md", "*.svelte", "*.ts", "*.kt", "*.yml", "*.yaml")
 
-# A URL built from workflow expressions cannot be checked from here.
-TEMPLATED = ("${{", "$GITHUB", "{{")
+# A URL built from workflow or shell expressions cannot be checked from here:
+# the advertised asset only exists after the placeholder is substituted (for
+# example the Maestro zip pinned via the workflow's MAESTRO_VERSION env).
+TEMPLATED = ("${{", "${", "$GITHUB", "{{")
 
 
 def advertised() -> dict[str, list[str]]:
