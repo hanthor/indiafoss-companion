@@ -39,9 +39,7 @@
   /** Today's sessions still running or yet to start: the Now grid's rows. */
   const remaining = $derived(
     bundle && day && now
-      ? activitiesForDay(bundle, day).filter(
-          (a) => a.end && Date.parse(a.end) > Date.parse(now),
-        )
+      ? activitiesForDay(bundle, day).filter((a) => a.end && Date.parse(a.end) > Date.parse(now))
       : [],
   );
   const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === day);

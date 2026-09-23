@@ -14,19 +14,19 @@ The real venue floor plan, supplied as SVGs.
 
 ## Room numbers (map key, issue #657)
 
-| No. | Room               | Floor | Programme              |
-| --- | ------------------ | ----- | ---------------------- |
-| 1   | Hall 1             | 0     | General Track          |
-| 2   | Hall 2             | 0     | General Track          |
-| 3   | Hall 3             | 0     | Devroom Track          |
-| 4   | Sponsor booths     | 0     | —                      |
-| 5   | Hardware Showcase  | 0     | —                      |
-| —   | Help Desk          | 0     | FOSS United            |
-| 6   | Room 1             | 1     | Devroom Track          |
-| 7   | Room 2             | 1     | BOF sessions           |
-| 8   | Room 3             | 1     | BOF sessions           |
-| 9   | Community Showcase | 1     | open area, no walls    |
-| —   | Silent Room        | 1     | quiet room             |
+| No. | Room               | Floor | Programme           |
+| --- | ------------------ | ----- | ------------------- |
+| 1   | Hall 1             | 0     | General Track       |
+| 2   | Hall 2             | 0     | General Track       |
+| 3   | Hall 3             | 0     | Devroom Track       |
+| 4   | Sponsor booths     | 0     | —                   |
+| 5   | Hardware Showcase  | 0     | —                   |
+| —   | Help Desk          | 0     | FOSS United         |
+| 6   | Room 1             | 1     | Devroom Track       |
+| 7   | Room 2             | 1     | BOF sessions        |
+| 8   | Room 3             | 1     | BOF sessions        |
+| 9   | Community Showcase | 1     | open area, no walls |
+| —   | Silent Room        | 1     | quiet room          |
 
 Amenities on both plans: Food (through the main exit), Drinking Water,
 Washrooms, Lift. The Community Showcase (9) is an open area, so it has no

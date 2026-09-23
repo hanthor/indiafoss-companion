@@ -34,8 +34,10 @@ function stubFetch(pageImpl: (url: string) => Response | Promise<Response>) {
   const proposals: FosuProposal[] = [{ name: 'p1', route: '/c/indiafoss/2026/cfp/p1' }];
   const fetchImpl = vi.fn(async (url: string) => {
     calls.push(url);
-    if (url.endsWith('/api/method/fossunited.api.dashboard.get_event')) return envelope({ name: 'EVT' });
-    if (url.endsWith('/api/method/fossunited.api.schedule.get_event_schedule')) return envelope(schedule);
+    if (url.endsWith('/api/method/fossunited.api.dashboard.get_event'))
+      return envelope({ name: 'EVT' });
+    if (url.endsWith('/api/method/fossunited.api.schedule.get_event_schedule'))
+      return envelope(schedule);
     if (url.endsWith('/api/method/fossunited.api.proposal.get_event_proposals'))
       return envelope({ proposals });
     return pageImpl(url);
@@ -60,9 +62,7 @@ describe('proposal detail retries', () => {
   });
 
   it('still gives up on a persistently unreadable page', async () => {
-    const { calls, fetchImpl } = stubFetch(
-      () => new Response('down', { status: 503 }),
-    );
+    const { calls, fetchImpl } = stubFetch(() => new Response('down', { status: 503 }));
     const source = new FossUnitedSource(fetchImpl, 'https://fossunited.org');
     const captured = await source.fetchEvent({ id: 'e', locator: 'c/e/2026' });
     if (captured.kind !== 'fossunited') throw new Error('unreachable');

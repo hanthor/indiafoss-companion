@@ -31,7 +31,9 @@ describe('venue floors', () => {
       'hall-1-balcony',
       'silent',
     ]);
-    const byId = new Map(FLOOR_ORDER.flatMap((f) => FLOORS[f].rooms.map((r) => [r.id, r] as const)));
+    const byId = new Map(
+      FLOOR_ORDER.flatMap((f) => FLOORS[f].rooms.map((r) => [r.id, r] as const)),
+    );
     expect(byId.get('hall-1')).toMatchObject({ key: 'audi-1', cap: 750 });
     expect(byId.get('hall-2')).toMatchObject({ key: 'audi-2', cap: 250 });
     expect(byId.get('hall-3')).toMatchObject({ key: 'audi-3', cap: 120 });
@@ -87,7 +89,13 @@ describe('venue floors', () => {
     const url = new URL('../../static/venues/indiafoss-2026/floors.json', import.meta.url);
     const exported = JSON.parse(readFileSync(url, 'utf8'));
     expect(exported.floors.map((f: { id: string }) => f.id)).toEqual([...FLOOR_ORDER]);
-    for (const floor of exported.floors as { id: FloorId; rooms: unknown[]; marks: unknown[]; walls: unknown[]; stairs: unknown[] }[]) {
+    for (const floor of exported.floors as {
+      id: FloorId;
+      rooms: unknown[];
+      marks: unknown[];
+      walls: unknown[];
+      stairs: unknown[];
+    }[]) {
       // Same rooms, marks, walls and stairs the web map renders.
       expect(JSON.parse(JSON.stringify(floor.rooms))).toEqual(
         JSON.parse(JSON.stringify(FLOORS[floor.id].rooms)),

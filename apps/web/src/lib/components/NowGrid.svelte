@@ -99,10 +99,7 @@
     return assigned.map(({ act, lane }) => ({
       act,
       left: ((Date.parse(act.start!) - dayStartMs) / 60000) * PPM,
-      width: Math.max(
-        MIN_CARD,
-        ((Date.parse(act.end!) - Date.parse(act.start!)) / 60000) * PPM,
-      ),
+      width: Math.max(MIN_CARD, ((Date.parse(act.end!) - Date.parse(act.start!)) / 60000) * PPM),
       lane,
       lanes,
     }));
@@ -144,9 +141,8 @@
 <div class="nowgrid" data-testid="now-grid" bind:this={scroller}>
   <div class="ruler" style:width="{totalWidth}px">
     {#each hours as hour (hour)}
-      <span
-        class="tick"
-        style:left="{((Date.parse(hour) - dayStartMs) / 60000) * PPM}px">{hourLabel(hour)}</span
+      <span class="tick" style:left="{((Date.parse(hour) - dayStartMs) / 60000) * PPM}px"
+        >{hourLabel(hour)}</span
       >
     {/each}
   </div>
@@ -171,9 +167,11 @@
           style:width="{slot.width}px"
           style:top="{slot.lane * (CARD_HEIGHT + 8)}px"
         >
-          <span class="meta">{running ? 'Now · ' : ''}{formatTime(slot.act.start!)}–{formatTime(
-            slot.act.end!,
-          )}</span>
+          <span class="meta"
+            >{running ? 'Now · ' : ''}{formatTime(slot.act.start!)}–{formatTime(
+              slot.act.end!,
+            )}</span
+          >
           {#if trackName(slot.act)}<span class="track">{trackName(slot.act)}</span>{/if}
           <strong class="title">{slot.act.title}</strong>
           {#if speakerNames(slot.act)}<span class="speakers">{speakerNames(slot.act)}</span>{/if}
