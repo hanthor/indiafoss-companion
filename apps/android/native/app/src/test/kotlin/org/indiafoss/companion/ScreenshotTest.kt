@@ -194,8 +194,10 @@ class ScreenshotTest {
         compose.onNodeWithTag("room-chips").performScrollToNode(hasText("Room 2"))
         compose.onNodeWithText("Room 2").performClick()
         capture("schedule-room")
-        // Only that room's sessions remain: the count line no longer says the whole day.
-        compose.onNodeWithText("3 sessions").assertIsDisplayed()
+        // Only that room's sessions remain: the count line matches the room's
+        // sessions for the day, whatever the refresh holds.
+        val roomCount = state().activitiesFor(state().days.first()).count { it.locationId == "room-2" }
+        compose.onNodeWithText("$roomCount session${if (roomCount == 1) "" else "s"}").assertIsDisplayed()
     }
     @Test fun plan() = shoot("plan") { PlanScreen(state(), {}, {}, { null }, {}) {} }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }

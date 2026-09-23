@@ -65,7 +65,8 @@ describe('published IndiaFOSS 2026 draft', () => {
     expect(awards.subtitle).toBeUndefined();
     expect(awards.speakerIds).toEqual([]);
     expect(awards.sourceUrl).toBe('https://fossunited.org/c/indiafoss/2026/schedule');
-    expect(byTitle.get('Devroom Intro: Open Hardware')?.type).toBe('intro');
+    // No single intro title is pinned: the organiser adds and drops devroom
+    // intros between saves (the block below asserts the invariant instead).
     expect(byTitle.get('Unconference')?.type).toBe('talk');
     expect(bundle.activities.filter((a) => a.type === 'ceremony')).toHaveLength(8);
     // The organiser adds and drops devroom intros between saves; what must
