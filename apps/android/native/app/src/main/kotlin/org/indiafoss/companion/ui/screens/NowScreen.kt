@@ -9,7 +9,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.remember
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +54,14 @@ fun NowScreen(
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Now") }, actions = { actions() }) }) { padding ->
         val now = state.nowState
+        // Today's sessions still running or yet to start: the Now grid's rows.
+        val remaining = remember(state.bundle, now?.day, state.now) {
+            val nowMs = state.nowState?.let { Schedule.parseInstant(state.now) } ?: 0L
+            val dayActivities = now?.day?.let(state::activitiesFor).orEmpty()
+            dayActivities.filter { activity ->
+                activity.end?.let { Schedule.parseInstant(it) > nowMs } == true
+            }
+        }
         when {
             state.loading -> Column(
                 Modifier.fillMaxSize().padding(padding),
@@ -78,15 +86,16 @@ fun NowScreen(
                     item { SectionHeader("Your plan now") }
                     item { PersonalPlanCard(state, onOpenPlan, onOpen) }
                 }
-                if (now.current.isNotEmpty()) {
+                if (remaining.isNotEmpty()) {
                     item { SectionHeader("Happening now") }
-                    items(now.current, key = { it.id }) { activity ->
-                        SessionCard(
-                            activity = activity,
-                            bundle = state.bundle,
-                            bookmarked = activity.id in state.bookmarks,
-                            progress = Schedule.progress(activity, state.now),
-                            onOpen = { onOpen(activity.id) },
+                    item {
+                        NowGrid(
+                            bundle = state.bundle!!,
+                            day = now.day!!,
+                            activities = remaining,
+                            markers = now.day?.let(state::markersFor).orEmpty(),
+                            now = state.now,
+                            onOpen = onOpen,
                         )
                     }
                 }

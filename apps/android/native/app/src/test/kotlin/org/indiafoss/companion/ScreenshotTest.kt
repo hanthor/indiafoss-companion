@@ -119,6 +119,17 @@ class ScreenshotTest {
 
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
 
+    /**
+     * Happening now is a horizontal time-grid: one row per room, time to the
+     * right, one card per talk. The grid region must be on the tab.
+     */
+    @Test fun nowGrid() {
+        shoot("now-grid") { NowScreen(state(), {}, {}) {} }
+        compose.onNodeWithContentDescription("Now by room and time").assertIsDisplayed()
+        compose.onNodeWithText("Happening now").assertIsDisplayed()
+        capture("now-grid")
+    }
+
     /** Two overlapping must-go choices: Now says so instead of naming a destination (#221). */
     @Test fun nowPlanConflict() {
         val first = bundle.activities.first { it.start != null && it.type != "meal" && it.start!!.startsWith("2026-09-26") }
@@ -203,6 +214,13 @@ class ScreenshotTest {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun map() = shoot("map") { MapScreen(state()) {} }
+    /** The organiser's map key opens over the plan: numbers to rooms (#657). */
+    @Test fun mapKey() {
+        shoot("map-key") { MapScreen(state()) {} }
+        compose.onNodeWithText("Map key: room numbers").performClick()
+        compose.onNodeWithContentDescription("Map key artwork").assertIsDisplayed()
+        capture("map-key-open")
+    }
     @Test fun mapLongCurrentTalk() = shoot("map-long-current-talk") {
         val talk = bundle.activities.first().copy(
             id = "map-long", title = "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast file transfers",

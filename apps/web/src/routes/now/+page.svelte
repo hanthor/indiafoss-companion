@@ -5,18 +5,18 @@
   import { page } from '$app/state';
   import type { Activity } from '@indiafoss/model';
   import {
-    activityProgress,
+    activitiesForDay,
     computeNowState,
     formatDayLabel,
     formatTime,
   } from '@indiafoss/schedule';
+  import NowGrid from '$lib/components/NowGrid.svelte';
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
-  import { sessionRoomLink } from '$lib/element-links';
 
   const clock = $derived(
     clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
@@ -36,6 +36,14 @@
   const nowState = $derived(bundle && now ? computeNowState(bundle, now) : null);
 
   const day = $derived(bundle && now ? eventDay(now, bundle.timezone) : null);
+  /** Today's sessions still running or yet to start: the Now grid's rows. */
+  const remaining = $derived(
+    bundle && day && now
+      ? activitiesForDay(bundle, day).filter(
+          (a) => a.end && Date.parse(a.end) > Date.parse(now),
+        )
+      : [],
+  );
   const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === day);
   const personalPlan = $derived(currentPlan ? livePlanState.result : null);
   const planStatus = $derived(currentPlan ? livePlanState.status : 'loading');
@@ -137,58 +145,12 @@
 
       <section class="card" aria-labelledby="now-heading">
         <h2 id="now-heading">Happening now</h2>
-        {#if nowState!.current.length === 0}
+        {#if remaining.length === 0}
           <p class="muted">Between sessions — take a break or explore the map.</p>
         {:else}
-          {#each nowState!.current as activity (activity.id)}
-            {@const room = sessionRoomLink(
-              bundle,
-              activity.id,
-              activity.locationId,
-              activity.title,
-            )}
-            <div class="session">
-              {@render trackTag(activity)}
-              <div class="row">
-                <a href={resolve(`/activity/${activity.id}`)}>{activity.title}</a>
-                <TypeBadge type={activity.type} />
-              </div>
-              <p class="muted">
-                {locationName(activity)}
-                {#if room}
-                  <!-- eslint-disable svelte/no-navigation-without-resolve -- external matrix.to link -->
-                  ·
-                  <a href={room.href} title={room.alias}>Chat</a>
-                  <!-- eslint-enable svelte/no-navigation-without-resolve -->
-                {/if}
-                {#if activity.livestreamUrl}
-                  <!-- eslint-disable svelte/no-navigation-without-resolve -- external stream link -->
-                  ·
-                  <a href={activity.livestreamUrl} target="_blank" rel="noreferrer"
-                    >▶ watch live ↗</a
-                  >
-                  <!-- eslint-enable svelte/no-navigation-without-resolve -->
-                {/if}
-              </p>
-              <div
-                class="progress"
-                role="progressbar"
-                aria-label="Progress of {activity.title}"
-                aria-valuenow={Math.round(activityProgress(activity, now) * 100)}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <div
-                  class="fill"
-                  style:width="{Math.round(activityProgress(activity, now) * 100)}%"
-                ></div>
-              </div>
-              <p class="muted small">
-                {formatTime(activity.start!)}–{formatTime(activity.end!)} · ends in
-                {minutesUntil(activity.end!, now)}
-              </p>
-            </div>
-          {/each}
+          <!-- One row per room, time to the right: scan down for now, scroll
+               right for what is next. -->
+          <NowGrid activities={remaining} bundle={bundle!} day={day!} {now} />
         {/if}
       </section>
 
