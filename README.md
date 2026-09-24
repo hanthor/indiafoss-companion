@@ -9,7 +9,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue.svg)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-installable-5a0fc8.svg)](https://hanthor.github.io/indiafoss-companion/)
 
-[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [**Download Chat for Android**](https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk) · [Docs](#documentation)
+[**Open the web app**](https://hanthor.github.io/indiafoss-companion/) · [**Install the Android nightly**](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) · [Docs](#documentation)
 
 <img src="docs/screenshots/now.png" width="30%" alt="The Now screen listing three sessions running right now, each with a progress bar and minutes remaining" />
 <img src="docs/screenshots/map.png" width="30%" alt="The venue map in dark mode with three halls lit mint, each labelled with the minutes left in its session" />
@@ -125,16 +125,15 @@ flowchart LR
 
 ## Optional extras
 
-Neither is on unless you switch it on.
+Off unless you switch it on.
 
 - **Conference rooms on Matrix.** FOSDEM-style public rooms on the organiser's homeserver — one per hall, plus announcements and hallway — joined from whatever Matrix account you already have, via Element links. The companion never signs in there. Provisioned by `tools/matrix-rooms`; see [docs/messaging.md](docs/messaging.md).
-- **Peer-to-peer chat.** Session, booth and direct chats over a Bluetooth/Wi-Fi mesh live in the separate [IndiaFOSS Chat](https://github.com/hanthor/indiafoss-chat-android) app (ADR 0004), not in the Companion. The Companion only hands off: contact cards carry a mesh id and a Matrix id as separate, separately trusted facts, and a saved contact offers "Message on mesh" or "Open in a Matrix app" without claiming either app is installed (PR #300). What the mesh measurably supports is recorded, [not assumed](docs/neutrino-capabilities.md).
 
 ## Try it
 
 - **Web / PWA** — <https://hanthor.github.io/indiafoss-companion/>, deployed from `main`. Installable; works offline after the first load.
-- **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the signed native Companion APK and its SHA-256. For messaging, install the separate [IndiaFOSS Chat Android preview](https://github.com/hanthor/indiafoss-chat-android/releases/tag/nightly).
-- **Keeping Android up to date** — add the release page to [Obtainium](https://github.com/ImranR98/Obtainium) (`obtainium://add/https://github.com/hanthor/indiafoss-companion`) and it tracks every signed build; our own F-Droid repository for Companion and Chat is being set up (#291). Both install the same signed APK — [install channels](docs/install-channels.md).
+- **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the signed native Companion APK and its SHA-256.
+- **Keeping Android up to date** — add the release page to [Obtainium](https://github.com/ImranR98/Obtainium) (`obtainium://add/https://github.com/hanthor/indiafoss-companion`) and it tracks every signed build; our own F-Droid repository is being set up (#291). Both install the same signed APK — [install channels](docs/install-channels.md).
 - **iOS** — the PWA is iOS-ready: **Share → Add to Home Screen**. Apple touch icon and standalone metadata are in the build; no App Store account needed.
 
 ## Make it yours
@@ -147,11 +146,6 @@ where you work — a different conference should not mean touching a screen.
   venue, swap the tokens and icons, and delete the features your conference
   does not have. Also: the two obligations that come with the fork (AGPL source
   offer, and re-branding away from FOSS United's assets).
-- **[Write your own client](docs/mesh-protocol.md)** — the mesh is plain Matrix
-  plus a handful of conventions, all specified: how rooms are named so
-  independent clients converge, the backoff a client owes the hall when a talk
-  starts, the question and identity-card formats, and what the mesh measurably
-  cannot do yet. No part of this repository is required to interoperate.
 
 ## Repository layout
 
@@ -214,11 +208,6 @@ Node step, see [docs/native-client.md](docs/native-client.md):
 cd apps/android/native && ./gradlew :core:test :app:assembleDebug
 ```
 
-P2P chat, on any platform, is the dedicated
-[`hanthor/indiafoss-chat-android`](https://github.com/hanthor/indiafoss-chat-android)
-app — see [ADR 0004](docs/adr/0004-retire-the-capacitor-shell.md) for why
-messaging is not embedded here.
-
 Regenerate the screenshots in this README (they are time-travelled to day one
 so the screens have live data):
 
@@ -251,10 +240,11 @@ Phases 0–8 of [docs/phases.md](docs/phases.md) have landed: canonical model an
 FOSS United adapter, schedule, Elo ranking, itinerary solver with manual edits,
 venue routing, booth directory, production sync, calendar export, and contact
 sharing with QR scanning. As of
-[ADR 0004](docs/adr/0004-retire-the-capacitor-shell.md) there are three apps —
-the PWA (Web/iOS), the native Compose client (Android,
-[#10](https://github.com/hanthor/indiafoss-companion/issues/10)), and P2P chat
-as its own dedicated app — not a Capacitor shell embedding all three.
+[ADR 0004](docs/adr/0004-retire-the-capacitor-shell.md) there are two apps —
+the PWA (Web/iOS) and the native Compose client (Android,
+[#10](https://github.com/hanthor/indiafoss-companion/issues/10)) — not a
+Capacitor shell. The separate IndiaFOSS Chat mesh app is no longer used: the
+venue Wi-Fi is good enough for ordinary Matrix clients.
 
 As of 10 September 2026 (every item a merged PR citing its own CI evidence;
 none a device result): the real 2026 programme is published and refreshed

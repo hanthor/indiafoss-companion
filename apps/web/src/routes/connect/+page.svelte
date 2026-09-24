@@ -1,15 +1,10 @@
 <script lang="ts">
-  import ChatDownload from '$lib/components/ChatDownload.svelte';
   import ContactChecks from '$lib/components/ContactChecks.svelte';
   import ProfileImport from '$lib/components/ProfileImport.svelte';
   import type { ContactRecord } from '@indiafoss/storage';
   import { onMount, tick } from 'svelte';
   import { page } from '$app/state';
-  import { afterNavigate, replaceState } from '$app/navigation';
-  import { parseIdentityHandback } from '$lib/identity-handback';
-  import type { IdentityHandback } from '$lib/identity-handback';
-  import { intentHrefFor } from '$lib/contact-trust';
-  import type { ChatRoute } from '$lib/contact-trust';
+  import { afterNavigate } from '$app/navigation';
   import { SvelteSet } from 'svelte/reactivity';
   import { resolve } from '$app/paths';
   import {
@@ -21,10 +16,8 @@
     groupByDayMet,
     identiconSvg,
     isMatrixUserId,
-    isNeutrinoServerName,
     isTicketRef,
     parseScannedPayload,
-    neutrinoMatrixId,
     searchContacts,
     shortFingerprint,
     signedAttendeeVCard,
@@ -104,17 +97,12 @@
   const matrixIdValid = $derived(
     !profileState.profile.matrixId?.trim() || isMatrixUserId(profileState.profile.matrixId.trim()),
   );
-  const neutrinoValid = $derived(
-    !profileState.profile.neutrinoServerName?.trim() ||
-      isNeutrinoServerName(profileState.profile.neutrinoServerName.trim()),
-  );
   const ticketValid = $derived(
     !profileState.profile.ticketRef?.trim() || isTicketRef(profileState.profile.ticketRef.trim()),
   );
   const invalidKeys = $derived(
     new Set<string>([
       ...(matrixIdValid ? [] : ['matrixId']),
-      ...(neutrinoValid ? [] : ['neutrinoServerName']),
       ...(ticketValid ? [] : ['ticketRef']),
     ]),
   );
@@ -172,8 +160,8 @@
       cardMessage = 'Fix the highlighted field to update the card.';
       return;
     }
-    profileState.profile.neutrinoServerName =
-      profileState.profile.neutrinoServerName?.trim().toLowerCase() || undefined;
+    // A mesh id only reached people through the retired IndiaFOSS Chat app.
+    profileState.profile.neutrinoServerName = undefined;
     await persist();
     const value = await signedAttendeeVCard(
       profileState.profile,
@@ -528,42 +516,6 @@
     }
   }
 
-  /** A mesh route names Chat and falls back to its download card when Chat is missing. */
-  const routeHref = (route: ChatRoute): string =>
-    route.kind === 'mesh'
-      ? intentHrefFor(
-          route.href,
-          `${window.location.origin}${resolve('/settings')}#get-chat`,
-          navigator.userAgent,
-        )
-      : route.href;
-
-  // ---------- Chat handed back the attendee's own id (`/connect?mesh=…` or `?matrix=…`) ----------
-  let handback: IdentityHandback | null = $derived(parseIdentityHandback(page.url.searchParams));
-  let handbackMessage = $state('');
-  function dismissHandback(): void {
-    handback = null;
-    replaceState(resolve('/connect'), {});
-  }
-  async function acceptHandback(): Promise<void> {
-    if (!handback) return;
-    const accepted = handback;
-    if (accepted.neutrinoServerName) {
-      profileState.profile.neutrinoServerName = accepted.neutrinoServerName;
-      profileState.selection.neutrinoServerName = true;
-    }
-    if (accepted.matrixId) {
-      profileState.profile.matrixId = accepted.matrixId;
-      profileState.selection.matrixId = true;
-    }
-    await saveProfile();
-    scheduleCard();
-    handbackMessage = accepted.neutrinoServerName
-      ? 'Your mesh id is on your card and switched on. Anyone who scans it can reach you in IndiaFOSS Chat when you are nearby.'
-      : 'Your Matrix id is on your card and switched on.';
-    dismissHandback();
-  }
-
   let openContact = $state<string | null>(null);
   let openedRequest: string | null = null;
   let navigationReady = $state(false);
@@ -618,29 +570,6 @@
       Show this to someone. Only the fields switched on below are encoded in your QR code.
     </p>
   </section>
-
-  {#if handback}
-    <section class="card handback" aria-label="Chat id from IndiaFOSS Chat">
-      <h2>IndiaFOSS Chat sent your chat id</h2>
-      <p class="muted">Put it on your card so people you meet can reach you there?</p>
-      <dl>
-        {#if handback.neutrinoServerName}<div>
-            <dt>Mesh id</dt>
-            <dd><code>{handback.neutrinoServerName}</code></dd>
-          </div>{/if}
-        {#if handback.matrixId}<div>
-            <dt>Matrix ID</dt>
-            <dd><code>{handback.matrixId}</code></dd>
-          </div>{/if}
-      </dl>
-      <div class="actions">
-        <button class="button primary" onclick={acceptHandback}>Add to my card</button>
-        <button class="button secondary" onclick={dismissHandback}>Not now</button>
-      </div>
-    </section>
-  {:else if handbackMessage}
-    <p class="muted small" role="status">{handbackMessage}</p>
-  {/if}
 
   {#if !profileState.profile.socials.github}
     {@render profileImporter()}
@@ -726,8 +655,6 @@
   {/if}
 
   <ContactChecks />
-
-  <ChatDownload />
 
   <!-- Field groups -->
   {#each ['identity', 'links', 'private', 'extras'] as const as group (group)}
@@ -939,17 +866,11 @@
                   value={shownValue(spec)}
                   oninput={(e) => setValue(spec, e.currentTarget.value)}
                 />
-                {#if spec.key === 'neutrinoServerName' && neutrinoValid && profileState.profile.neutrinoServerName}
-                  <span class="hint"
-                    >{neutrinoMatrixId(profileState.profile.neutrinoServerName)}</span
-                  >
-                {:else if bad}
+                {#if bad}
                   <span class="hint warning">
                     {spec.key === 'matrixId'
                       ? 'Must look like @user:server'
-                      : spec.key === 'ticketRef'
-                        ? 'Must look like ticket::…'
-                        : 'Must be 64 hexadecimal characters'}
+                      : 'Must look like ticket::…'}
                   </span>
                 {:else if spec.hint}
                   <span class="hint">{spec.hint}</span>
@@ -1257,7 +1178,7 @@
                       {:else}
                         {#each trust.routes as route (route.kind)}
                           <!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
-                          <a class="button secondary small" href={routeHref(route)} rel="noreferrer"
+                          <a class="button secondary small" href={route.href} rel="noreferrer"
                             >{route.label}</a
                           >
                           <span class="muted small">{route.caveat}</span>
@@ -1293,32 +1214,6 @@
   }
 
   /* Hero */
-  .handback dl {
-    margin: 0.5rem 0;
-  }
-  .handback dl div {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: baseline;
-  }
-  .handback dt {
-    font-size: 0.72rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    min-width: 6rem;
-  }
-  .handback dd {
-    margin: 0;
-    word-break: break-all;
-  }
-  .handback .actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-  }
   .hero {
     display: flex;
     flex-direction: column;

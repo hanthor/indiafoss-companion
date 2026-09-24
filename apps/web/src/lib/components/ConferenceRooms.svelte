@@ -10,11 +10,14 @@
   // The alias is the authoritative key and the only thing handed off. A
   // stored roomId is advisory: shown for someone comparing, never linked.
   const rooms = $derived(
-    (directory?.rooms ?? []).map((room) => ({
-      ...room,
-      href: roomHandoffHref(room.alias),
-      webHref: matrixToRoom(room.alias),
-    })),
+    // Mesh-only rooms needed the retired IndiaFOSS Chat app; venue Wi-Fi reaches the rest.
+    (directory?.rooms ?? [])
+      .filter((room) => room.route !== 'mesh')
+      .map((room) => ({
+        ...room,
+        href: roomHandoffHref(room.alias),
+        webHref: matrixToRoom(room.alias),
+      })),
   );
   // Resolution happens in the attendee's Matrix client, not here. When it
   // fails there (offline, or an alias the server does not hold) the client
@@ -52,9 +55,7 @@
             <strong>{room.name}</strong>
             {#if room.topic}<span class="muted small">{room.topic}</span>{/if}
             <code class="small">{room.alias}</code>
-            {#if room.route === 'mesh'}
-              <span class="muted small">Venue mesh only: needs the IndiaFOSS Chat app.</span>
-            {:else if room.visibility !== 'public'}
+            {#if room.visibility !== 'public'}
               <span class="muted small"
                 >{room.visibility === 'knock' ? 'Knock to join.' : 'Invite only.'}</span
               >

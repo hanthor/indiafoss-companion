@@ -71,15 +71,6 @@ export const CARD_FIELDS: CardFieldSpec[] = [
     inputType: 'tel',
   },
   {
-    key: 'neutrinoServerName',
-    group: 'extras',
-    label: 'Mesh id',
-    placeholder: 'Set when P2P chat is on',
-    hint: 'Someone who scans this can try to reach you over the venue mesh, if they have the Chat app.',
-    inputType: 'text',
-    mono: true,
-  },
-  {
     key: 'matrixId',
     group: 'extras',
     label: 'Matrix ID',

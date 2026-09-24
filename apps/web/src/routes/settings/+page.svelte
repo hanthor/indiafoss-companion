@@ -1,5 +1,4 @@
 <script lang="ts">
-  import ChatDownload from '$lib/components/ChatDownload.svelte';
   import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
   import Readiness from '$lib/components/Readiness.svelte';
   import { directoryState, loadDirectory } from '$lib/directory.svelte';
@@ -97,7 +96,7 @@
     'No account is required for the conference app.',
     'Schedule, ranking, itinerary, notes, and contacts stay on this device.',
     'Email and phone are never included in contact sharing by default.',
-    'Chat is never embedded here: session, booth and contact chats hand off to your own Matrix app (Element, or the dedicated IndiaFOSS chat app) via matrix.to links.',
+    'Chat is never embedded here: session, booth and contact chats hand off to your own Matrix app, such as Element, via matrix.to links.',
     'Scanned Matrix or mesh identities are shown as unverified until checked in person or in a Matrix client.',
   ];
 </script>
@@ -117,7 +116,6 @@
   <PersonalDataExport />
   <PersonalDataImport />
   <ConferenceRooms bundle={eventState.bundle} directory={directoryState.directory} />
-  <ChatDownload />
   <Readiness />
   <section class="card">
     <h2>Schedule updates</h2>
