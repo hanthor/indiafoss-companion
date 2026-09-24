@@ -31,7 +31,6 @@
       "not-verified"
     ],
     "routes": [
-      "mesh",
       "matrix"
     ],
     "binding": [
@@ -150,9 +149,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -180,9 +178,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -210,9 +207,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -238,9 +234,8 @@
         "inPerson": "no-badge",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -266,9 +261,8 @@
         "inPerson": "no-badge",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -294,9 +288,8 @@
         "inPerson": "no-badge",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -328,9 +321,8 @@
         "inPerson": "confirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -375,9 +367,7 @@
         "profile": "no-claim",
         "inPerson": "no-badge",
         "chat": "not-verified",
-        "routes": [
-          "mesh"
-        ]
+        "routes": []
       }
     },
     {
@@ -406,9 +396,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -465,9 +454,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -518,9 +506,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -574,9 +561,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -627,9 +613,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -675,9 +660,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -731,9 +715,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -787,9 +770,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -840,9 +822,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -893,9 +874,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -929,9 +909,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     },
     {
@@ -982,9 +961,8 @@
         "inPerson": "unconfirmed",
         "chat": "not-verified",
         "routes": [
-          "mesh",
-          "matrix"
-        ]
+      "matrix"
+    ]
       }
     }
   ]

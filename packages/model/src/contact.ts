@@ -1,4 +1,3 @@
-import { neutrinoMatrixId } from './friend';
 import { IDENTITY_VERSION } from './identity.js';
 import type { IdentityMeta } from './identity.js';
 import { matrixUriFor } from './messaging';
@@ -135,10 +134,10 @@ export const DEFAULT_ATTENDEE_SHARE_SELECTION: AttendeeShareSelection = {
   email: false,
   phone: false,
   website: true,
-  // Companion extras: the mesh id is what lets a scanned contact message you at
-  // the venue, and a Matrix id is only ever entered in order to be reached on it.
+  // A Matrix id is only ever entered in order to be reached on it. The mesh id
+  // belonged to the retired IndiaFOSS Chat app, so it is off unless chosen.
   matrixId: true,
-  neutrinoServerName: true,
+  neutrinoServerName: false,
   ticketRef: false,
   fossUnitedProfileUrl: true,
   photo: true,
@@ -359,15 +358,6 @@ export function contactDeepLinks(profile: {
   if (profile.matrixId) {
     const uri = matrixUriFor(profile.matrixId);
     if (uri) links.push({ kind: 'matrix', label: 'Matrix', href: uri });
-  }
-  // A mesh-only identity (no asserted public Matrix id): opens in whatever
-  // Matrix client can actually reach it — the dedicated P2P chat app, over
-  // proximity, not the wider internet (ADR 0004). This one especially must not
-  // depend on matrix.to: a mesh peer is reachable precisely when the internet
-  // is not.
-  if (profile.neutrinoServerName?.trim()) {
-    const uri = matrixUriFor(neutrinoMatrixId(profile.neutrinoServerName.trim()));
-    if (uri) links.push({ kind: 'mesh', label: 'Message on mesh', href: uri });
   }
   const socials = profile.socials ?? {};
   const telegram = messengerHandle(socials.telegram);

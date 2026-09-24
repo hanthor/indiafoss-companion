@@ -3,9 +3,6 @@ import type { ContactRecord } from '@indiafoss/storage';
 import { loadContactTrustFixtures, loadIdentityEnvelopeFixtures } from '@indiafoss/test-fixtures';
 import { parseVCard } from '@indiafoss/model';
 import {
-  CHAT_PACKAGE,
-  intentHrefFor,
-  isAndroidChrome,
   asReceivedRecord,
   chatLabel,
   confirmedInPerson,
@@ -67,10 +64,12 @@ describe('chat routes against the identity envelope table (#160)', () => {
           identity: profile.identity,
         }),
       );
-      expect(trust.routes.map((r) => r.kind)).toEqual(c.expect.routes);
+      // The table still names mesh as routable; this app no longer offers it (IndiaFOSS Chat is retired).
+      const expected = c.expect.routes.filter((r) => r !== 'mesh');
+      expect(trust.routes.map((r) => r.kind)).toEqual(expected);
       // A retained identity is a claim that cannot be checked: the neutral
       // state, never "no claim" and never a mismatch.
-      if (Object.keys(c.expect.retained).length > 0 && c.expect.routes.length < 2) {
+      if (Object.keys(c.expect.retained).length > 0 && expected.length < 2) {
         expect(trust.profile).toBe('outdated');
         expect(trust.contradiction).toBe(false);
         expect(trust.account).toBe('claimed');
@@ -136,7 +135,8 @@ describe('the states are independent facts, not one badge', () => {
     const both = deriveContactTrust(
       contact({ matrixId: '@asha:example.org', neutrinoServerName: FP }),
     );
-    expect(both.routes.map((r) => r.label)).toEqual(['Message on mesh', 'Open in a Matrix app']);
+    // A mesh id alone is no route: only the retired IndiaFOSS Chat app could reach it.
+    expect(both.routes.map((r) => r.label)).toEqual(['Open in a Matrix app']);
     for (const r of both.routes) expect(r.caveat).toMatch(/cannot tell/);
     expect(deriveContactTrust(contact()).routes).toEqual([]);
     expect(NO_ROUTE_LABEL).toBe('No known chat route');
@@ -201,27 +201,6 @@ describe('asReceivedRecord: nothing on the wire asserts its own trust (C-10 step
     expect(t.account).toBe('claimed');
     expect(t.inPerson).toBe('unconfirmed');
     expect(t.chat).toBe('not-verified');
-  });
-});
-
-describe('a dead tap becomes a download prompt on Android Chrome', () => {
-  const ANDROID =
-    'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Mobile Safari/537.36';
-  const FIREFOX = 'Mozilla/5.0 (Android 14; Mobile; rv:128.0) Gecko/128.0 Firefox/128.0';
-  const uri = 'matrix:u/n:abc?action=chat';
-  const fallback = 'https://example.org/companion/settings#get-chat';
-
-  it('names IndiaFOSS Chat and the download card in the intent link', () => {
-    expect(intentHrefFor(uri, fallback, ANDROID)).toBe(
-      `intent://u/n:abc?action=chat#Intent;scheme=matrix;package=${CHAT_PACKAGE};S.browser_fallback_url=${encodeURIComponent(fallback)};end`,
-    );
-  });
-
-  it('leaves the matrix: link alone everywhere else', () => {
-    expect(intentHrefFor(uri, fallback, FIREFOX)).toBe(uri);
-    expect(intentHrefFor(uri, fallback, 'Mozilla/5.0 (X11; Linux x86_64) Chrome/128.0')).toBe(uri);
-    expect(isAndroidChrome(ANDROID)).toBe(true);
-    expect(isAndroidChrome(FIREFOX)).toBe(false);
   });
 });
 
