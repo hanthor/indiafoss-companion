@@ -8,6 +8,8 @@
   import { devroomArt } from '$lib/devroom-art';
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
+  import PreConference from '$lib/components/PreConference.svelte';
+  import { PRE_CONFERENCE_ENDS } from '$lib/pre-conference';
   import { page } from '$app/state';
   import { clockFromParams } from '$lib/clock';
 
@@ -123,6 +125,10 @@
       <span>Routing profile, privacy, data</span>
     </a>
   </nav>
+
+  {#if bundle?.id === 'indiafoss-2026' && nowMs < Date.parse(PRE_CONFERENCE_ENDS)}
+    <PreConference />
+  {/if}
 
   <!-- For arriving: the front page offers it until the conference starts. -->
   {#if bundle?.venue && nowMs < Date.parse(bundle.start)}
