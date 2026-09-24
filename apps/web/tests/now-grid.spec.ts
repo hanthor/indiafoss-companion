@@ -347,3 +347,36 @@ test('the front page offers Getting there until the conference starts', async ({
   await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
   await expect(page.getByRole('region', { name: 'Getting there' })).toHaveCount(0);
 });
+
+test('on a desktop-wide screen the timeline opens zoomed all the way out', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(BUSY);
+  await expect(page.getByTestId('now-grid-span')).toHaveText('3 h');
+  expect(await windowMinutes(page)).toBeCloseTo(180, -1);
+});
+
+test('the Rooms view zooms its time axis with plus, minus and ctrl-scroll', async ({ page }) => {
+  await page.goto(
+    appUrl(
+      `/schedule?view=rooms&event=indiafoss-2026&setup=done&now=${encodeURIComponent('2026-09-26T13:00:00+05:30')}`,
+    ),
+  );
+  const grid = page.getByRole('region', { name: /Schedule by room and time/ });
+  const cell = grid.locator('.cell').first();
+  await expect(cell).toBeVisible();
+  const height = async () => (await cell.boundingBox())!.height;
+  const before = await height();
+
+  await grid.focus();
+  await page.keyboard.press('+');
+  await expect.poll(height).toBeCloseTo(before * 1.6, 0);
+  await page.keyboard.press('-');
+  await expect.poll(height).toBeCloseTo(before, 0);
+
+  const box = (await grid.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.down('Control');
+  await page.mouse.wheel(0, 120);
+  await page.keyboard.up('Control');
+  await expect.poll(height).toBeLessThan(before);
+});

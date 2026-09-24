@@ -10,7 +10,8 @@
   /**
    * Happening now as a time grid: one row per room, all rows sharing one
    * horizontal scroll so a column is a moment across the venue. By default a
-   * 25-minute talk fills the visible width; pinch or ctrl-scroll (a
+   * 25-minute talk fills the visible width on a phone, and a wide screen
+   * opens zoomed all the way out; pinch or ctrl-scroll (a
    * trackpad pinch) change that from 5 minutes (a lightning talk fills the view) to
    * three hours. The grid opens with its left edge at now: the first screen
    * is what is on, everything later is a scroll to the right.
@@ -43,6 +44,8 @@
   const DEFAULT_WINDOW = 25;
   const MIN_WINDOW = 5;
   const MAX_WINDOW = 180;
+  /** A desktop-wide view opens fully zoomed out: the whole morning at a glance. */
+  const WIDE_LANE = 700;
   /** One press of a zoom button. */
   const ZOOM_STEP = 1.6;
   /** Re-anchor on now once it drifts this far across an untouched view. */
@@ -58,7 +61,11 @@
 
   let scroller: HTMLDivElement | null = $state(null);
   let laneWidth = $state(0);
-  let windowMinutes = $state(DEFAULT_WINDOW);
+  /** Set by the first zoom; until then the view's width picks the span. */
+  let chosenWindow = $state<number | null>(null);
+  const windowMinutes = $derived(
+    chosenWindow ?? (laneWidth >= WIDE_LANE ? MAX_WINDOW : DEFAULT_WINDOW),
+  );
   /** The scroll offset, sampled once a frame, for the text offsets below. */
   let scrollX = $state(0);
 
@@ -330,7 +337,7 @@
     if (Math.abs(clamped - windowMinutes) < 0.01) return;
     const focalMinute = (el.scrollLeft + focalX) / pxPerMinute;
     touched = true;
-    windowMinutes = clamped;
+    chosenWindow = clamped;
     await tick();
     const target = Math.max(0, focalMinute * (laneWidth / clamped) - focalX);
     placeScroll(el, target, ((span.end - span.origin) / 60000) * (laneWidth / clamped));

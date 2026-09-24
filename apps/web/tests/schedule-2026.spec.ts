@@ -5,6 +5,8 @@ test('room chips narrow the agenda; the Rooms view shows every room with venue-l
   page,
 }) => {
   await page.goto(appUrl('/schedule?event=indiafoss-2026&setup=done'));
+  // Room chips live under Filters, keeping the agenda's header short.
+  await page.getByText('Filters', { exact: true }).click();
   const rooms = page.getByRole('group', { name: 'Filter by room' });
   await rooms.getByRole('button', { name: 'Room 2', exact: true }).click();
   await expect(rooms.getByRole('button', { name: 'Room 2', exact: true })).toHaveAttribute(
@@ -39,6 +41,17 @@ test('generated plan is marked in the schedule after navigation and reload', asy
   await expect(card).toHaveClass(/planned/);
   await page.reload();
   await expect(card).toHaveClass(/planned/);
+  // With a plan, the agenda opens on it; Everything brings back the rest.
+  const show = page.getByRole('group', { name: 'Show' });
+  await expect(show.getByRole('button', { name: 'Your plan' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  const cards = page.getByRole('article');
+  for (const c of await cards.all()) await expect(c).toHaveClass(/planned/);
+  const planned = await cards.count();
+  await show.getByRole('button', { name: 'Everything' }).click();
+  await expect.poll(() => cards.count()).toBeGreaterThan(planned);
 });
 
 test('mobile room sheet reports the selected floor', async ({ page }) => {
@@ -63,6 +76,8 @@ test('the Schedule tab reopens the view used last, across a reload', async ({ pa
   await tab.click();
   await expect(views.getByRole('link', { name: 'Rooms' })).toHaveAttribute('aria-current', 'page');
   await views.getByRole('link', { name: 'Agenda' }).click();
+  // The view is remembered once the navigation lands, not on the click.
+  await expect(views.getByRole('link', { name: 'Agenda' })).toHaveAttribute('aria-current', 'page');
   await page.reload();
   await page.getByTestId('nav-tabbar').getByRole('link', { name: 'Plan' }).click();
   await tab.click();
