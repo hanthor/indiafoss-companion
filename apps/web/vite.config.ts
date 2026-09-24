@@ -62,6 +62,11 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // Without these a new build waits until every tab of the app is closed,
+        // which on a phone can be never: take over at once, and autoUpdate
+        // reloads the page onto it.
+        skipWaiting: true,
+        clientsClaim: true,
         importScripts: [`${base}/notification-events.js`],
         globPatterns: ['**/*.{js,mjs,css,html,svg,png,ico,json,woff2}'],
         // Update manifests are freshness checks, never offline data.
