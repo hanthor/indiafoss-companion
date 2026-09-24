@@ -3,19 +3,19 @@
 Tracked against the engineering specification in the project docs. Each phase
 lands on `main` with tests green.
 
-| Phase | Deliverable                                                                         | Status                                                                                                                            |
-| ----- | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | Bootstrap: monorepo, SvelteKit PWA, ~~Capacitor wrapper~~, tooling, CI              | ✅ done (shell retired, ADR 0004)                                                                                                 |
-| 1     | Canonical model, source adapters, 2025 fixture, bundle validator                    | ✅ done                                                                                                                           |
-| 2     | Schedule app: list + grid, detail, speakers, search, filters, bookmarks, clock      | ✅ done                                                                                                                           |
-| 3     | Elo engine, comparison queue, ranking UI, dispositions                              | ✅ done                                                                                                                           |
-| 4     | Itinerary solver: DAG, locks, backups, flexible activities                          | ✅ done                                                                                                                           |
-| 5     | Venue engine: SVG map, routing graph, A\*, textual routes, validator                | ✅ done                                                                                                                           |
-| 6     | Schedule-aware navigation: leave-by, QR location                                    | ✅ done                                                                                                                           |
-| 7     | Booth experience: directory, map linkage, booth activities                          | ✅ done                                                                                                                           |
-| 8     | Production sync: event-sync, diffs, update UI                                       | ✅ done                                                                                                                           |
-| 9     | Android polish: notifications, deep links, ~~F-Droid/Play flavors~~ update channels | 🚧 partial (notifications, deep links; Obtainium + own F-Droid repository replace store flavors, #308; repository not live, #291) |
-| 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases                   | 🚧 partial (a11y, SBOM, offline E2E, signed nightly per `release.md`)                                                             |
+| Phase | Deliverable                                                                         | Status                                                                                                                                                                           |
+| ----- | ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Bootstrap: monorepo, SvelteKit PWA, ~~Capacitor wrapper~~, tooling, CI              | ✅ done (shell retired, ADR 0004)                                                                                                                                                |
+| 1     | Canonical model, source adapters, 2025 fixture, bundle validator                    | ✅ done                                                                                                                                                                          |
+| 2     | Schedule app: list + grid, detail, speakers, search, filters, bookmarks, clock      | ✅ done                                                                                                                                                                          |
+| 3     | Elo engine, comparison queue, ranking UI, dispositions                              | ✅ done                                                                                                                                                                          |
+| 4     | Itinerary solver: DAG, locks, backups, flexible activities                          | ✅ done                                                                                                                                                                          |
+| 5     | Venue engine: SVG map, routing graph, A\*, textual routes, validator                | ✅ done                                                                                                                                                                          |
+| 6     | Schedule-aware navigation: leave-by, QR location                                    | ✅ done                                                                                                                                                                          |
+| 7     | Booth experience: directory, map linkage, booth activities                          | ✅ done                                                                                                                                                                          |
+| 8     | Production sync: event-sync, diffs, update UI                                       | ✅ done                                                                                                                                                                          |
+| 9     | Android polish: notifications, deep links, ~~F-Droid/Play flavors~~ update channels | 🚧 partial (notifications, deep links; Obtainium + the live Companion Preview repository replace store flavors, #308/#291; physical upgrade rehearsal and Chat inclusion remain) |
+| 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases                   | 🚧 partial (a11y, SBOM, offline E2E, signed nightly per `release.md`)                                                                                                            |
 
 > **The Capacitor shell is gone** ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)).
 > Phase 0 shipped it and Phase 9 polished it, and both entries are left standing
@@ -57,8 +57,9 @@ See `roadmap.md` (mirror of tracking issue #34) for everything after Phase 10.
   #298/#309, #296 (issues #278, #223, #205, #270 closed).
 - Trust states and the versioned identity envelope: PRs #300 and #315 (issue
   #160 closed; #31 and #188 stay open — no cryptographic binding).
-- Install channels: Obtainium and our own F-Droid repository, Accrescent
-  removed: PR #308 and hanthor/indiafoss-android-repo#6 (issue #291 open).
+- Install channels: Obtainium and our live Companion Preview F-Droid
+  repository, Accrescent removed: PR #308 and hanthor/indiafoss-android-repo#6
+  (issue #291 remains open for physical upgrade evidence and Chat inclusion).
 - 2026 branding on the native client: PR #313 (issue #33 closed).
 
 ## Notes

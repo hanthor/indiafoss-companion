@@ -7,6 +7,9 @@ for (const route of ['/connect', '/settings']) {
     await page.goto(appUrl(`${route}?setup=done`));
     const card = page.getByRole('region', { name: 'Get IndiaFOSS Chat' });
     await card.scrollIntoViewIfNeeded();
+    await expect(card).toContainText(
+      'IndiaFOSS-specific chat experience for attendee conversations',
+    );
     await expect(card.getByRole('link', { name: 'Download Chat APK' })).toHaveAttribute(
       'href',
       'https://github.com/hanthor/indiafoss-chat-android/releases/download/nightly/indiafoss-chat-android-arm64-v8a.apk',
@@ -25,6 +28,7 @@ for (const route of ['/connect', '/settings']) {
       'href',
       'obtainium://add/https://github.com/hanthor/indiafoss-chat-android',
     );
+    await expect(card).toContainText('Chat is not in the IndiaFOSS Preview repository yet');
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     ).toBe(true);

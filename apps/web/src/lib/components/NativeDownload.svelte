@@ -12,12 +12,20 @@
     <a href="https://github.com/hanthor/indiafoss-companion/releases/tag/nightly"
       >Release notes and checksums</a
     >
+    <a
+      href="fdroidrepos://hanthor.github.io/indiafoss-android-repo/fdroid/repo?fingerprint=AD932C530715E9CAA39415F94E007002FB3DA0DD2583FF92DFC7F6DFE46CCCC2"
+      >Add IndiaFOSS Preview repository to F-Droid</a
+    >
   </div>
   <p class="small muted">
-    Keep it updated with
+    Keep it updated with the
+    <a href="https://hanthor.github.io/indiafoss-android-repo/fdroid/repo"
+      >IndiaFOSS Preview repository</a
+    >
+    or
     <a href="obtainium://add/https://github.com/hanthor/indiafoss-companion">Obtainium</a>
-    (<a href="https://github.com/ImranR98/Obtainium/releases/latest">get Obtainium</a>) or, once
-    published, our F-Droid repository. Same signing key either way.
+    (<a href="https://github.com/ImranR98/Obtainium/releases/latest">get Obtainium</a>). Both use
+    the same signed Companion APK; Chat is not in this repository yet.
   </p>
   <p class="small muted">Browser and Android data are currently separate.</p>
 </section>

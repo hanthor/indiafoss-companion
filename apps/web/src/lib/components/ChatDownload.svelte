@@ -1,7 +1,8 @@
 <section class="card" id="get-chat" aria-label="Get IndiaFOSS Chat">
   <h2>Get IndiaFOSS Chat</h2>
   <p class="muted">
-    Install the separate Matrix and P2P chat app for Android. This is a preview build.
+    Install the IndiaFOSS-specific chat experience for attendee conversations. This is a preview
+    build.
   </p>
   <div class="downloads">
     <a
@@ -30,8 +31,9 @@
   <p class="muted">
     Keep it updated with
     <a href="obtainium://add/https://github.com/hanthor/indiafoss-chat-android">Obtainium</a>
-    (<a href="https://github.com/ImranR98/Obtainium/releases/latest">get Obtainium</a>) or, once
-    published, our F-Droid repository.
+    (<a href="https://github.com/ImranR98/Obtainium/releases/latest">get Obtainium</a>). Chat is not
+    in the IndiaFOSS Preview repository yet; it will be added after its signed APK and upgrade path
+    are verified.
   </p>
 </section>
 
