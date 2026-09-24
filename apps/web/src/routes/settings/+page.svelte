@@ -1,7 +1,6 @@
 <script lang="ts">
   import { i18n, LOCALES, LOCALE_NAMES, setLocale, t } from '$lib/i18n.svelte';
   import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
-  import Readiness from '$lib/components/Readiness.svelte';
   import { directoryState, loadDirectory } from '$lib/directory.svelte';
   import NativeDownload from '$lib/components/NativeDownload.svelte';
   import ContributeNotice from '$lib/components/ContributeNotice.svelte';
@@ -103,7 +102,6 @@
 </script>
 
 <section>
-  <div class="eyebrow">CONTROL YOUR DATA</div>
   <h1>Settings</h1>
   <section class="card" aria-labelledby="language-heading">
     <h2 id="language-heading">{t('settings.language')}</h2>
@@ -121,67 +119,10 @@
     <p class="muted small">{t('settings.languageNote')}</p>
   </section>
   <section class="card">
-    <h2>Contact sharing</h2>
-    <p class="muted">
-      Use your FOSS United profile as your public identity and choose fields locally.
-    </p>
-    <a class="button" href={resolve('/connect')}>Open contact card →</a>
-  </section>
-  <NativeDownload />
-
-  <PersonalDataExport />
-  <PersonalDataImport />
-  <ConferenceRooms bundle={eventState.bundle} directory={directoryState.directory} />
-  <Readiness />
-  <section class="card">
-    <h2>Schedule updates</h2>
-    {#if freshness.statusLine}
-      <p
-        class="muted"
-        data-testid="schedule-status"
-        data-provisional={freshness.provisional ? 'true' : 'false'}
-      >
-        {freshness.statusLine}
-      </p>
-    {/if}
-    <p class="muted" data-testid="schedule-imported" data-age={freshness.age}>
-      {freshness.importedLine}
-      {#if freshness.age === 'stale'}
-        No newer import has been published, so treat these times as out of date.
-      {/if}
-    </p>
-    <p class="muted">
-      {#if localRevision === null}
-        Using a cached schedule without a recorded revision.
-      {:else}
-        You have revision {localRevision} stored on this device.
-      {/if}
-    </p>
-    <p class="muted" data-testid="refresh-success" data-overdue={freshness.checkOverdue}>
-      {#if refresh?.lastSuccessAt}
-        Last successful check: {new Date(refresh.lastSuccessAt).toLocaleString()}.
-      {:else}
-        No successful check recorded for this event yet.
-      {/if}
-      {freshness.checkedLine}
-    </p>
-    {#if refresh?.error}
-      <p class="muted" role="status">Last check failed: {refresh.error}</p>
-    {/if}
-    <button
-      class="button"
-      disabled={refresh?.checking ?? false}
-      onclick={() => checkForUpdates(activeEventId, { force: true })}
-    >
-      {refresh?.checking ? 'Checking…' : 'Check for updates'}
-    </button>
-  </section>
-  <section class="card">
     <h2>Reminders</h2>
     <p class="muted">
-      Local "starting soon" alerts for the sessions on your plan. Every room is under five minutes'
-      walk, so 15 minutes' notice is plenty. Sessions marked <strong>★ Must attend</strong> also get a
-      heads-up 30 minutes before and an alert as they start. No push service, nothing leaves the device.
+      An alert 15 minutes before each session on your plan, and 30 minutes before one marked
+      <strong>★ Must attend</strong>. Made on this device; nothing is sent anywhere.
     </p>
     <label class="switch">
       <input
@@ -199,7 +140,81 @@
     </label>
     <ReminderStatus />
   </section>
-  <section class="card" aria-labelledby="sim-title">
+  <section class="card">
+    <h2>Schedule updates</h2>
+    {#if freshness.statusLine}
+      <p
+        class="muted"
+        data-testid="schedule-status"
+        data-provisional={freshness.provisional ? 'true' : 'false'}
+      >
+        {freshness.statusLine}
+      </p>
+    {/if}
+    <p class="muted" data-testid="schedule-imported" data-age={freshness.age}>
+      {freshness.importedLine}
+      {#if freshness.age === 'stale'}
+        No newer import has been published, so treat these times as out of date.
+      {/if}
+    </p>
+    {#if refresh?.error}
+      <p class="muted" role="status">Last check failed: {refresh.error}</p>
+    {/if}
+    <details class="more">
+      <summary>Details</summary>
+      <p class="muted">
+        {#if localRevision === null}
+          Using a cached schedule without a recorded revision.
+        {:else}
+          You have revision {localRevision} stored on this device.
+        {/if}
+      </p>
+      <p class="muted" data-testid="refresh-success" data-overdue={freshness.checkOverdue}>
+        {#if refresh?.lastSuccessAt}
+          Last successful check: {new Date(refresh.lastSuccessAt).toLocaleString()}.
+        {:else}
+          No successful check recorded for this event yet.
+        {/if}
+        {freshness.checkedLine}
+      </p>
+    </details>
+    <button
+      class="button"
+      disabled={refresh?.checking ?? false}
+      onclick={() => checkForUpdates(activeEventId, { force: true })}
+    >
+      {refresh?.checking ? 'Checking…' : 'Check for updates'}
+    </button>
+  </section>
+  <section class="card" aria-labelledby="data-heading">
+    <h2 id="data-heading">Your data</h2>
+    <p class="muted">
+      Your plan, choices and contacts live only on this device. Your contact card shares just the
+      fields you switch on.
+    </p>
+    <a class="button" href={resolve('/connect')}>Open contact card →</a>
+  </section>
+  <PersonalDataExport />
+  <PersonalDataImport />
+  <ConferenceRooms bundle={eventState.bundle} directory={directoryState.directory} />
+  <NativeDownload />
+  <section class="card">
+    <h2>Setup</h2>
+    <p class="muted">
+      The welcome steps from the first run: reminders, your card, ranking. Nothing is reset by
+      running them again.
+    </p>
+    <a class="button secondary" href={resolve('/welcome')}>Run setup again</a>
+  </section>
+  <details class="card">
+    <summary><h2>Privacy</h2></summary>
+    <ul>
+      {#each privacyRules as rule (rule)}<li>{rule}</li>{/each}
+    </ul>
+  </details>
+  <!-- For organisers and testers: runs the whole app through a day on a fast clock. -->
+  <details class="card devtools">
+    <summary><h2 id="sim-title">Simulate the day</h2></summary>
     <h2 id="sim-title">Simulate the day</h2>
     <p class="muted">
       Run the whole app through a conference day in minutes: the Now screen, the leave-by banner and
@@ -264,21 +279,7 @@
         reads the run and its log from <code>window.__indiafossSim</code>.
       </p>
     {/if}
-  </section>
-  <section class="card">
-    <h2>Setup</h2>
-    <p class="muted">
-      The welcome steps from the first run: reminders, your card, ranking. Nothing is reset by
-      running them again.
-    </p>
-    <a class="button secondary" href={resolve('/welcome')}>Run setup again</a>
-  </section>
-  <section class="card">
-    <h2>Privacy</h2>
-    <ul>
-      {#each privacyRules as rule (rule)}<li>{rule}</li>{/each}
-    </ul>
-  </section>
+  </details>
   <ContributeNotice />
 </section>
 
@@ -380,5 +381,24 @@
     background: var(--text);
     color: var(--paper);
     border-color: var(--text);
+  }
+  details.card > summary {
+    cursor: pointer;
+    list-style: none;
+  }
+  details.card > summary h2 {
+    display: inline;
+  }
+  details.card > summary::after {
+    content: ' ›';
+    color: var(--text-muted);
+  }
+  details.card[open] > summary::after {
+    content: ' ⌄';
+  }
+  .more summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.9rem;
   }
 </style>

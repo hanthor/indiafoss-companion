@@ -100,6 +100,8 @@ test('a run survives navigation and a reload, and Settings can start one', async
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
   await page.goto(appUrl('/settings'));
+  // The simulator is a folded section at the foot of Settings.
+  await page.getByRole('heading', { name: 'Simulate the day' }).click();
   await page.getByRole('button', { name: 'Start simulation' }).click();
   await expect(page).toHaveURL(/\/now/);
   await expect(page.getByTestId('sim-strip')).toBeVisible();
