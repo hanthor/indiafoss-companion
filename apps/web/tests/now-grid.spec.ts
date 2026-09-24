@@ -317,3 +317,33 @@ test('a ruler along the top gives the time scale and marks now', async ({ page }
   // No card draws a progress bar any more.
   await expect(grid.getByRole('progressbar')).toHaveCount(0);
 });
+
+test('before the event the timeline shows day one from its first session, not a notice', async ({
+  page,
+}) => {
+  await page.goto(at('2026-09-24T20:00:00+05:30'));
+  await expect(page.getByRole('heading', { name: /^Starts Sat 26 Sep · 08:00$/ })).toBeVisible();
+  await expect(page.locator('[data-testid="now-grid"] .talk').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Not started yet' })).toHaveCount(0);
+});
+
+test('the Rooms view opens scrolled to now with a line across the rooms', async ({ page }) => {
+  await page.goto(
+    appUrl(
+      `/schedule?view=rooms&event=indiafoss-2026&setup=done&now=${encodeURIComponent('2026-09-26T13:00:00+05:30')}`,
+    ),
+  );
+  const grid = page.getByRole('region', { name: 'Schedule by room and time' });
+  await expect(grid.locator('.nowline')).toBeVisible();
+  expect(await grid.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+});
+
+test('the front page offers Getting there until the conference starts', async ({ page }) => {
+  const home = (time: string) =>
+    appUrl(`/?event=indiafoss-2026&setup=done&now=${encodeURIComponent(time)}`);
+  await page.goto(home('2026-09-24T20:00:00+05:30'));
+  await expect(page.getByRole('region', { name: 'Getting there' })).toBeVisible();
+  await page.goto(home('2026-09-26T11:30:00+05:30'));
+  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Getting there' })).toHaveCount(0);
+});

@@ -8,8 +8,16 @@
   import { devroomArt } from '$lib/devroom-art';
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
+  import { page } from '$app/state';
+  import { clockFromParams } from '$lib/clock';
 
   const bundle = $derived(eventState.bundle);
+  // The app's clock, so the day simulator and ?now= agree with every other screen.
+  const nowMs = $derived(
+    Date.parse(
+      clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')).now(),
+    ),
+  );
 
   const dateLine = $derived.by(() => {
     if (!bundle) return '';
@@ -21,11 +29,11 @@
   /** Days until doors open (negative during/after the event). */
   const daysToGo = $derived.by(() => {
     if (!bundle) return null;
-    const ms = Date.parse(bundle.start) - Date.now();
+    const ms = Date.parse(bundle.start) - nowMs;
     return Math.ceil(ms / 86_400_000);
   });
   const during = $derived(
-    bundle ? Date.now() >= Date.parse(bundle.start) && Date.now() <= Date.parse(bundle.end) : false,
+    bundle ? nowMs >= Date.parse(bundle.start) && nowMs <= Date.parse(bundle.end) : false,
   );
 
   const counts = $derived({
@@ -116,7 +124,8 @@
     </a>
   </nav>
 
-  {#if bundle?.venue}
+  <!-- For arriving: the front page offers it until the conference starts. -->
+  {#if bundle?.venue && nowMs < Date.parse(bundle.start)}
     <GettingThere venue={bundle.venue} />
   {/if}
 

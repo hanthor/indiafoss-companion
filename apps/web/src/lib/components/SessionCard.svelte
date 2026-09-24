@@ -97,9 +97,11 @@
 </article>
 
 <style>
+  /* Planned says so in words ("Planned"); the edge only takes the plan's
+     colour when there is no devroom colour to keep, and never grows, so
+     every card's text starts on the same line. */
   .session.planned {
-    box-shadow: inset 3px 0 0 var(--devroom, var(--mint));
-    padding-left: 0.65rem;
+    border-left-color: var(--devroom, var(--mint));
   }
   .planned-mark {
     color: var(--badge-ink);
@@ -135,8 +137,9 @@
     color: var(--text-muted);
     padding-top: 0.2rem;
   }
+  /* A tint, not a wider edge: on a phone hover sticks after a tap. */
   .session:hover {
-    box-shadow: inset 4px 0 0 var(--devroom, var(--mint));
+    background: color-mix(in srgb, var(--text) 4%, transparent);
   }
 
   h3 {

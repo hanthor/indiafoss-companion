@@ -154,6 +154,17 @@
     });
   });
 
+  // The Rooms view draws every room as a column, so the agenda's room chips
+  // and search (hidden there) do not narrow it; the Filters still do.
+  const gridActivities = $derived(
+    dayActivities.filter((a) => {
+      if (!typesOn.has(a.type)) return false;
+      if (devroomsOnly && !a.devroomId) return false;
+      if (bookmarkedOnly && dispositionOf(a.id) === 'normal' && !bookmarked(a.id)) return false;
+      return true;
+    }),
+  );
+
   function setType(type: string, checked: boolean): void {
     typeToggles[type] = checked;
   }
@@ -169,73 +180,80 @@
   {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
 
   <div class="controls">
-    <div class="days" role="tablist" aria-label="Conference day">
-      {#each days as day, i (day)}
-        <button
-          role="tab"
-          aria-selected={selectedDay === day}
-          class="daytab"
-          class:active={selectedDay === day}
-          onclick={() => {
-            selectedDay = day;
-            selectedRoom = '';
-          }}
-        >
-          Day {i + 1}<br /><small>{formatDayLabel(day)}</small>
-        </button>
-      {/each}
-    </div>
-
-    <div class="row">
-      <label class="search">
-        <span class="sr-only">Search sessions</span>
-        <input type="search" placeholder="Search sessions…" bind:value={query} />
-      </label>
-    </div>
-
-    <div class="room-filters" role="group" aria-label="Filter by room">
-      <button
-        class:active={!selectedRoom}
-        aria-pressed={!selectedRoom}
-        onclick={() => (selectedRoom = '')}>All rooms</button
-      >
-      {#each rooms as room (room.id)}
-        <button
-          class:active={selectedRoom === room.id}
-          aria-pressed={selectedRoom === room.id}
-          onclick={() => (selectedRoom = room.id)}>{room.name}</button
-        >
-      {/each}
-    </div>
-    <details class="filters">
-      <summary>Filters</summary>
-      <div class="filters-inner">
-        {#each Object.entries(typeToggles) as [type, on] (type)}
-          <label class="check">
-            <input
-              type="checkbox"
-              checked={on}
-              onclick={(e) => setType(type, e.currentTarget.checked)}
-            />
-            {type.replace(/-/g, ' ')}
-          </label>
+    <div class="toprow">
+      <div class="days" role="tablist" aria-label="Conference day">
+        {#each days as day, i (day)}
+          <button
+            role="tab"
+            aria-selected={selectedDay === day}
+            class="daytab"
+            class:active={selectedDay === day}
+            onclick={() => {
+              selectedDay = day;
+              selectedRoom = '';
+            }}
+          >
+            Day {i + 1} <small>{formatDayLabel(day)}</small>
+          </button>
         {/each}
-        <label class="check">
-          <input type="checkbox" bind:checked={devroomsOnly} />
-          Devrooms only
-        </label>
-        <label class="check">
-          <input type="checkbox" bind:checked={bookmarkedOnly} />
-          Ranked / bookmarked
-        </label>
-        <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
       </div>
-    </details>
+
+      <details class="filters">
+        <summary>Filters</summary>
+        <div class="filters-inner">
+          {#each Object.entries(typeToggles) as [type, on] (type)}
+            <label class="check">
+              <input
+                type="checkbox"
+                checked={on}
+                onclick={(e) => setType(type, e.currentTarget.checked)}
+              />
+              {type.replace(/-/g, ' ')}
+            </label>
+          {/each}
+          <label class="check">
+            <input type="checkbox" bind:checked={devroomsOnly} />
+            Devrooms only
+          </label>
+          <label class="check">
+            <input type="checkbox" bind:checked={bookmarkedOnly} />
+            Ranked / bookmarked
+          </label>
+          <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
+        </div>
+      </details>
+    </div>
+
+    {#if view === 'list'}
+      <div class="row">
+        <label class="search">
+          <span class="sr-only">Search sessions</span>
+          <input type="search" placeholder="Search sessions…" bind:value={query} />
+        </label>
+      </div>
+
+      <div class="room-filters" role="group" aria-label="Filter by room">
+        <button
+          class:active={!selectedRoom}
+          aria-pressed={!selectedRoom}
+          onclick={() => (selectedRoom = '')}>All rooms</button
+        >
+        {#each rooms as room (room.id)}
+          <button
+            class:active={selectedRoom === room.id}
+            aria-pressed={selectedRoom === room.id}
+            onclick={() => (selectedRoom = room.id)}>{room.name}</button
+          >
+        {/each}
+      </div>
+    {/if}
   </div>
 
-  <p class="muted small" role="status">
-    {filtered.length} session{filtered.length === 1 ? '' : 's'}
-  </p>
+  {#if view === 'list'}
+    <p class="muted small" role="status">
+      {filtered.length} session{filtered.length === 1 ? '' : 's'}
+    </p>
+  {/if}
 
   {#if filtered.length === 0}<p>No sessions match these filters.</p>{/if}
   {#if view === 'list'}
@@ -258,7 +276,13 @@
       {/each}
     </div>
   {:else}
-    <TimelineGrid activities={filtered} {plannedIds} {bundle} day={selectedDay ?? ''} />
+    <TimelineGrid
+      activities={gridActivities}
+      {plannedIds}
+      {bundle}
+      day={selectedDay ?? ''}
+      now={isToday ? clock.now() : undefined}
+    />
   {/if}
 </EventGate>
 
@@ -314,8 +338,18 @@
   .controls {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin: 0.8rem 0;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+  }
+  /* Days and Filters share one row, so the grid starts high on a phone. */
+  .toprow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .toprow .filters[open] {
+    flex-basis: 100%;
   }
   .days {
     display: flex;
@@ -325,8 +359,9 @@
   .daytab {
     border: 1px solid var(--line);
     background: var(--surface);
-    border-radius: var(--radius);
-    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    min-height: 2.5rem;
+    padding: 0.3rem 0.8rem;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
