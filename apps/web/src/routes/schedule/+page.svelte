@@ -37,6 +37,8 @@
   let selectedRoom = $state('');
   let devroomsOnly = $state(false);
   let bookmarkedOnly = $state(false);
+  /** Unset until the attendee picks; then the agenda opens on your plan whenever you have one. */
+  let planChoice = $state<boolean | null>(null);
   let calendarMessage = $state('');
 
   async function exportEventCalendar(): Promise<void> {
@@ -107,6 +109,8 @@
     };
   });
   const plannedIds = $derived(new Set(resolvedIds));
+  const hasPlan = $derived(plannedIds.size > 0);
+  const planOnly = $derived(view === 'list' && hasPlan && (planChoice ?? true));
 
   const searchIds = $derived(
     query.trim().length >= 2 ? new Set(searchActivities(bundle, query, 60).map((h) => h.id)) : null,
@@ -117,6 +121,7 @@
   );
   const filtered = $derived(
     dayActivities.filter((a) => {
+      if (planOnly && !plannedIds.has(a.id)) return false;
       if (selectedRoom && a.locationId !== selectedRoom) return false;
       if (!typesOn.has(a.type)) return false;
       if (devroomsOnly && !a.devroomId) return false;
@@ -214,6 +219,22 @@
             <input type="checkbox" bind:checked={bookmarkedOnly} />
             Ranked / bookmarked
           </label>
+          {#if view === 'list'}
+            <div class="room-filters" role="group" aria-label="Filter by room">
+              <button
+                class:active={!selectedRoom}
+                aria-pressed={!selectedRoom}
+                onclick={() => (selectedRoom = '')}>{t('schedule.allRooms')}</button
+              >
+              {#each rooms as room (room.id)}
+                <button
+                  class:active={selectedRoom === room.id}
+                  aria-pressed={selectedRoom === room.id}
+                  onclick={() => (selectedRoom = room.id)}>{room.name}</button
+                >
+              {/each}
+            </div>
+          {/if}
           <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
         </div>
       </details>
@@ -221,31 +242,26 @@
 
     {#if view === 'list'}
       <div class="row">
+        {#if hasPlan}
+          <div class="scope" role="group" aria-label="Show">
+            <button aria-pressed={planOnly} onclick={() => (planChoice = true)}
+              >{t('now.yourPlan')}</button
+            >
+            <button aria-pressed={!planOnly} onclick={() => (planChoice = false)}
+              >{t('schedule.everything')}</button
+            >
+          </div>
+        {/if}
         <label class="search">
           <span class="sr-only">Search sessions</span>
           <input type="search" placeholder={t('schedule.search')} bind:value={query} />
         </label>
       </div>
-
-      <div class="room-filters" role="group" aria-label="Filter by room">
-        <button
-          class:active={!selectedRoom}
-          aria-pressed={!selectedRoom}
-          onclick={() => (selectedRoom = '')}>{t('schedule.allRooms')}</button
-        >
-        {#each rooms as room (room.id)}
-          <button
-            class:active={selectedRoom === room.id}
-            aria-pressed={selectedRoom === room.id}
-            onclick={() => (selectedRoom = room.id)}>{room.name}</button
-          >
-        {/each}
-      </div>
     {/if}
   </div>
 
   {#if view === 'list'}
-    <p class="muted small" role="status">
+    <p class="sr-only" role="status">
       {filtered.length === 1
         ? t('schedule.session')
         : t('schedule.sessions', { n: filtered.length })}
@@ -253,6 +269,12 @@
   {/if}
 
   {#if filtered.length === 0}<p>No sessions match these filters.</p>{/if}
+  {#if planOnly}
+    <p class="muted small scope-note">
+      Showing your plan for this day.
+      <button class="linkish" onclick={() => (planChoice = false)}>Show everything</button>
+    </p>
+  {/if}
   {#if view === 'list'}
     <div class="list">
       {#each groupByStart(filtered) as group (group.start)}
@@ -382,6 +404,45 @@
   }
   .search {
     flex: 1;
+    min-width: 0;
+  }
+  .scope {
+    display: flex;
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .scope button {
+    border: 0;
+    background: var(--surface);
+    color: var(--text);
+    min-height: 2.5rem;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .scope button[aria-pressed='true'] {
+    background: var(--mint-soft);
+    color: var(--mint-dark);
+  }
+  .scope-note {
+    margin: 0 0 0.5rem;
+  }
+  .linkish {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: var(--mint-dark);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+  }
+  .room-filters {
+    flex-basis: 100%;
+    flex-wrap: wrap;
   }
   .search input {
     width: 100%;
@@ -431,13 +492,6 @@
     .room-filters,
     .filters {
       grid-column: 1 / -1;
-    }
-    /* Sessions that start together sit beside each other, one per room. */
-    .items {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
-      gap: 0 1rem;
-      align-items: start;
     }
   }
   .time {
