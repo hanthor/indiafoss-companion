@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { scheduleView } from '$lib/schedule-view.svelte';
   import { t, applyLang } from '$lib/i18n.svelte';
   import '../app.css';
   import { onMount } from 'svelte';
@@ -241,9 +242,15 @@
 </svelte:head>
 
 {#snippet primaryLinks()}
-  <!-- One tab for every view of the programme; it opens on the timeline. -->
+  <!-- One tab for every view of the programme; it reopens the last one used.
+       Each branch of the href is resolved; the rule cannot see through the choice. -->
+  <!-- eslint-disable svelte/no-navigation-without-resolve -->
   <a
-    href={resolve('/now')}
+    href={scheduleView.last === 'timeline'
+      ? resolve('/now')
+      : scheduleView.last === 'rooms'
+        ? `${resolve('/schedule')}?view=rooms`
+        : resolve('/schedule')}
     aria-current={isActive('/now') || isActive('/schedule') ? 'page' : undefined}
   >
     <svg viewBox="0 0 24 24" aria-hidden="true"
@@ -251,6 +258,7 @@
     >
     <span>{t('nav.schedule')}</span>
   </a>
+  <!-- eslint-enable svelte/no-navigation-without-resolve -->
   <a href={resolve('/plan')} aria-current={isActive('/plan') ? 'page' : undefined}>
     <svg viewBox="0 0 24 24" aria-hidden="true"
       ><path d="M5 4h14v16H5V4zm2 2v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2zm0 4h4v2H9v-2z" /></svg

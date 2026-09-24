@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { rememberScheduleView } from '$lib/schedule-view.svelte';
   import { t } from '$lib/i18n.svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
@@ -9,6 +10,9 @@
    * links, so each view has its own address and the back button works.
    */
   let { current }: { current: 'timeline' | 'rooms' | 'agenda' } = $props();
+
+  // Whichever view is on screen is the one the Schedule tab returns to.
+  $effect(() => rememberScheduleView(current));
 
   // Carry the dev clock and event across, so a simulated day stays simulated.
   const kept = $derived(
