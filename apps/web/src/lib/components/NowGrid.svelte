@@ -4,11 +4,15 @@
   import { activityProgress, formatTime } from '@indiafoss/schedule';
 
   /**
-   * Happening now as a horizontal time-grid: one row per room, time running
-   * left to right, one rich card per talk. The schedule TimelineGrid
-   * transposed, so the rules match it: rooms in numeric-aware order, the span
-   * from the earliest start to the latest end (never under an hour), hour
-   * ticks on whole hours, first-fit lanes for overlaps in one room.
+   * Happening now, one lane per room. Each lane scrolls sideways on its own
+   * and opens on the talk running in that room, so the first screen is the
+   * whole venue right now and everything later is a scroll to the right.
+   *
+   * Cards are a fixed, readable width rather than one scaled to the talk's
+   * length: a ten-minute lightning talk needs the same room for its title as
+   * an hour-long one, and a grid scaled to time gave it a sliver (#657).
+   * The room name is rotated into the left margin so it stays put while the
+   * lane scrolls and costs almost no width.
    */
   let {
     activities,
@@ -22,11 +26,6 @@
     now: string;
   } = $props();
 
-  /** Pixel width per minute of wall time; cards never get narrower than this. */
-  const PPM = 3;
-  const MIN_CARD = 160;
-  const CARD_HEIGHT = 148;
-
   const byLocation = $derived(
     (() => {
       // Fresh Map per derivation — not reactive state, so SvelteMap is unnecessary.
@@ -39,70 +38,25 @@
         list.push(a);
         groups.set(a.locationId, list);
       }
+      for (const list of groups.values()) {
+        list.sort((a, b) => Date.parse(a.start!) - Date.parse(b.start!));
+      }
       return [...groups.entries()].sort(([a], [b]) =>
         a.localeCompare(b, undefined, { numeric: true }),
       );
     })(),
   );
 
-  const starts = $derived(
-    activities
-      .map((a) => a.start)
-      .filter((s): s is string => Boolean(s))
-      .sort(),
-  );
-  const ends = $derived(
-    activities
-      .map((a) => a.end)
-      .filter((s): s is string => Boolean(s))
-      .sort(),
-  );
-  const dayStartMs = $derived(
-    starts.length > 0 ? Date.parse(starts[0]!) : Date.parse(`${day}T00:00:00+05:30`),
-  );
-  const dayEndMs = $derived(ends.length > 0 ? Date.parse(ends.at(-1)!) : dayStartMs + 60 * 60000);
-  const totalMinutes = $derived(Math.max(60, (dayEndMs - dayStartMs) / 60000));
-  const totalWidth = $derived(totalMinutes * PPM);
-  const nowX = $derived(((Date.parse(now) - dayStartMs) / 60000) * PPM);
-
-  const hours = $derived(
-    (() => {
-      const list: string[] = [];
-      const offset = 330 * 60000;
-      const firstHour = Math.ceil((dayStartMs + offset) / 3600000) * 3600000 - offset;
-      for (let ms = firstHour; ms <= dayEndMs + 60000; ms += 3600000) {
-        list.push(new Date(ms).toISOString());
-      }
-      return list;
-    })(),
-  );
-
-  /** First-fit lanes for one room's sessions, like the schedule grid. */
-  function layout(
-    acts: Activity[],
-  ): { act: Activity; left: number; width: number; lane: number; lanes: number }[] {
-    const sorted = [...acts].sort((a, b) => Date.parse(a.start!) - Date.parse(b.start!));
-    const laneEnds: number[] = [];
-    const assigned: { act: Activity; lane: number }[] = [];
-    for (const act of sorted) {
-      const s = Date.parse(act.start!);
-      const e = Date.parse(act.end!);
-      let lane = laneEnds.findIndex((end) => end <= s);
-      if (lane === -1) {
-        lane = laneEnds.length;
-        laneEnds.push(0);
-      }
-      laneEnds[lane] = Math.max(laneEnds[lane] ?? 0, e);
-      assigned.push({ act, lane });
-    }
-    const lanes = Math.max(1, laneEnds.length);
-    return assigned.map(({ act, lane }) => ({
-      act,
-      left: ((Date.parse(act.start!) - dayStartMs) / 60000) * PPM,
-      width: Math.max(MIN_CARD, ((Date.parse(act.end!) - Date.parse(act.start!)) / 60000) * PPM),
-      lane,
-      lanes,
-    }));
+  /**
+   * The card a lane opens on: what is running in that room, else the next
+   * talk there, else the last one so a finished room shows its own end rather
+   * than its morning.
+   */
+  function anchorId(acts: Activity[]): string | undefined {
+    const nowMs = Date.parse(now);
+    const running = acts.find((a) => Date.parse(a.start!) <= nowMs && Date.parse(a.end!) > nowMs);
+    const next = acts.find((a) => Date.parse(a.start!) > nowMs);
+    return (running ?? next ?? acts.at(-1))?.id;
   }
 
   const locationName = (id: string): string | undefined =>
@@ -120,125 +74,143 @@
       .filter((name): name is string => Boolean(name))
       .join(', ');
 
-  const hourLabel = (iso: string): string =>
-    new Date(iso).toLocaleTimeString('en-GB', {
-      timeZone: bundle.timezone,
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
+  /**
+   * Scroll each lane to its anchor card. Keyed on the day and the clock so a
+   * time-travelled clock re-anchors, and written without smooth scrolling so
+   * the first paint is already in the right place.
+   */
+  function openOnNow(lane: HTMLElement) {
+    const card = lane.querySelector<HTMLElement>('[data-anchor="true"]');
+    lane.scrollLeft = card ? card.offsetLeft : 0;
+  }
 
-  let scroller: HTMLDivElement | null = $state(null);
-
-  // Open on now, with a little of the past peeking in from the left.
+  let lanes = $state<HTMLElement[]>([]);
   $effect(() => {
-    if (scroller && nowX >= 0) {
-      scroller.scrollTo({ left: Math.max(0, nowX - 80) });
-    }
+    void day;
+    void now;
+    for (const lane of lanes) if (lane) openOnNow(lane);
   });
 </script>
 
-<div class="nowgrid" data-testid="now-grid" bind:this={scroller}>
-  <div class="ruler" style:width="{totalWidth}px">
-    {#each hours as hour (hour)}
-      <span class="tick" style:left="{((Date.parse(hour) - dayStartMs) / 60000) * PPM}px"
-        >{hourLabel(hour)}</span
+<div class="nowgrid" data-testid="now-grid">
+  {#each byLocation as [locId, acts], row (locId)}
+    {@const name = locationName(locId) ?? locId}
+    {@const anchor = anchorId(acts)}
+    <section class="room">
+      <h3 class="rowhead"><span>{name}</span></h3>
+      <!-- A scrollable region needs to be reachable by keyboard to be scrollable by keyboard. -->
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+      <div
+        class="lane"
+        role="group"
+        aria-label="{name}, by time"
+        tabindex="0"
+        bind:this={lanes[row]}
       >
-    {/each}
-  </div>
-
-  {#each byLocation as [locId, acts] (locId)}
-    {@const slots = layout(acts)}
-    {@const lanes = Math.max(1, ...slots.map((s) => s.lanes))}
-    <h3 class="rowhead">{locationName(locId) ?? locId}</h3>
-    <div class="lanes" style:width="{totalWidth}px" style:height="{lanes * (CARD_HEIGHT + 8)}px">
-      {#each slots as slot (slot.act.id)}
-        {@const progress = activityProgress(slot.act, now)}
-        {@const running = progress > 0 && progress < 1}
-        {@const label = `${slot.act.title}, ${formatTime(slot.act.start!)}–${formatTime(slot.act.end!)}, ${locationName(locId)}`}
-        <a
-          class="card"
-          class:running
-          class:cancelled={slot.act.cancelled}
-          href={resolve(`/activity/${slot.act.id}`)}
-          aria-label={label}
-          title={slot.act.title}
-          style:left="{slot.left}px"
-          style:width="{slot.width}px"
-          style:top="{slot.lane * (CARD_HEIGHT + 8)}px"
-        >
-          <span class="meta"
-            >{running ? 'Now · ' : ''}{formatTime(slot.act.start!)}–{formatTime(
-              slot.act.end!,
-            )}</span
+        {#each acts as act (act.id)}
+          {@const progress = activityProgress(act, now)}
+          {@const running = progress > 0 && progress < 1}
+          {@const label = `${act.title}, ${formatTime(act.start!)}–${formatTime(act.end!)}, ${name}`}
+          <a
+            class="card"
+            class:running
+            class:cancelled={act.cancelled}
+            href={resolve(`/activity/${act.id}`)}
+            aria-label={label}
+            data-anchor={act.id === anchor}
           >
-          {#if trackName(slot.act)}<span class="track">{trackName(slot.act)}</span>{/if}
-          <strong class="title">{slot.act.title}</strong>
-          {#if speakerNames(slot.act)}<span class="speakers">{speakerNames(slot.act)}</span>{/if}
-          {#if running}
-            <span
-              class="progress"
-              role="progressbar"
-              aria-label="Progress of {slot.act.title}"
-              aria-valuenow={Math.round(progress * 100)}
-              aria-valuemin={0}
-              aria-valuemax={100}
+            <span class="meta"
+              >{running ? 'Now · ' : ''}{formatTime(act.start!)}–{formatTime(act.end!)}</span
             >
-              <span style:width="{Math.round(progress * 100)}%"></span>
-            </span>
-          {/if}
-        </a>
-      {/each}
-      {#if nowX >= 0 && nowX <= totalWidth}
-        <div class="nowline" style:left="{nowX}px" aria-hidden="true"></div>
-      {/if}
-    </div>
+            {#if trackName(act)}<span class="track">{trackName(act)}</span>{/if}
+            <strong class="title">{act.title}</strong>
+            {#if speakerNames(act)}<span class="speakers">{speakerNames(act)}</span>{/if}
+            {#if running}
+              <span
+                class="progress"
+                role="progressbar"
+                aria-label="Progress of {act.title}"
+                aria-valuenow={Math.round(progress * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <span style:width="{Math.round(progress * 100)}%"></span>
+              </span>
+            {/if}
+          </a>
+        {/each}
+      </div>
+    </section>
   {/each}
 </div>
 
 <style>
-  /* The region scrolls sideways internally; the page itself never grows. */
   .nowgrid {
-    overflow-x: auto;
+    /* Near the full lane, with a sliver of the next talk left showing so the
+       lane reads as scrollable without a scrollbar to prove it. */
+    --card-w: min(21rem, 100% - 2.25rem);
+    --card-h: 8.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    /* Lanes scroll inside themselves; the page never grows sideways. */
     max-width: 100%;
-    padding-bottom: 0.5rem;
+    overflow-x: hidden;
   }
-  .ruler {
-    position: relative;
-    height: 1.6rem;
+  .room {
+    display: flex;
+    align-items: stretch;
+    gap: 0.4rem;
+    min-width: 0;
   }
-  .tick {
-    position: absolute;
-    transform: translateX(-50%);
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-variant-numeric: tabular-nums;
-  }
+  /* Frozen in the left margin: the lane scrolls under it, the name does not. */
   .rowhead {
-    position: sticky;
-    left: 0;
-    display: inline-block;
-    margin: 0.9rem 0 0.35rem;
-    padding: 0.15rem 0.6rem 0.15rem 0;
-    font-size: 0.75rem;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4rem;
+    margin: 0;
+    font-size: 0.7rem;
     font-weight: 700;
+    letter-spacing: 0.04em;
     color: var(--text-muted);
-    background: var(--surface);
   }
-  .lanes {
+  .rowhead span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    max-height: var(--card-h);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lane {
     position: relative;
+    display: flex;
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: 0.35rem;
+  }
+  .lane:focus-visible {
+    outline: 2px solid var(--event-primary);
+    outline-offset: 2px;
   }
   .card {
-    position: absolute;
-    display: block;
-    overflow: hidden;
-    height: 148px;
+    flex: 0 0 var(--card-w);
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    height: var(--card-h);
     box-sizing: border-box;
+    overflow: hidden;
     background: var(--surface-raised);
     border: 1px solid var(--line);
     border-left: 3px solid var(--event-primary);
     border-radius: 8px;
-    padding: 0.45rem 0.6rem;
+    padding: 0.5rem 0.65rem;
     color: var(--text);
     text-decoration: none;
     font-size: 0.75rem;
@@ -267,7 +239,9 @@
   }
   .track {
     display: inline-block;
+    align-self: flex-start;
     margin-top: 0.2rem;
+    max-width: 100%;
     padding: 0.05rem 0.4rem;
     border-radius: 999px;
     background: var(--surface);
@@ -275,17 +249,16 @@
     font-size: 0.62rem;
     font-weight: 600;
     white-space: nowrap;
-    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .title {
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    margin-top: 0.2rem;
-    font-size: 0.8rem;
+    margin-top: 0.25rem;
+    font-size: 0.85rem;
   }
   .speakers {
     display: block;
@@ -298,7 +271,7 @@
   .progress {
     display: block;
     height: 4px;
-    margin-top: 0.4rem;
+    margin-top: auto;
     border-radius: 999px;
     background: color-mix(in srgb, var(--text-muted) 25%, transparent);
     overflow: hidden;
@@ -306,13 +279,6 @@
   .progress > span {
     display: block;
     height: 100%;
-    background: var(--event-primary);
-  }
-  .nowline {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2px;
     background: var(--event-primary);
   }
 </style>
