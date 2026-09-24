@@ -216,28 +216,29 @@ async function timeAt(page: Page, x: number): Promise<number> {
   }, x);
 }
 
-test('the zoom buttons change how much of the day fits, holding the left edge', async ({
+test('zooming is by pinch: no zoom buttons, and each step holds the left edge', async ({
   page,
 }) => {
   await page.goto(BUSY);
+  await expect(page.getByRole('button', { name: /Zoom (in|out)/ })).toHaveCount(0);
   await expect(page.getByTestId('now-grid-span')).toHaveText('25 min');
   const left = await timeAt(page, 1);
+  const grid = page.locator('[data-testid="now-grid"] .scroller');
+  await grid.focus();
 
-  await page.getByRole('button', { name: 'Zoom in' }).click();
+  await page.keyboard.press('+');
   await expect(page.getByTestId('now-grid-span')).toHaveText('16 min');
   expect(await windowMinutes(page)).toBeCloseTo(25 / 1.6, 0);
   expect(await timeAt(page, 1)).toBeCloseTo(left, 0);
 
-  await page.getByRole('button', { name: 'Zoom out' }).click();
-  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.keyboard.press('-');
+  await page.keyboard.press('-');
   await expect(page.getByTestId('now-grid-span')).toHaveText('40 min');
   expect(await timeAt(page, 1)).toBeCloseTo(left, 0);
 
   // Zoomed all the way in, a five-minute lightning talk fills the view.
-  const zoomIn = page.getByRole('button', { name: 'Zoom in' });
-  while (await zoomIn.isEnabled()) await zoomIn.click();
+  for (let i = 0; i < 6; i++) await page.keyboard.press('+');
   await expect(page.getByTestId('now-grid-span')).toHaveText('5 min');
-  await expect(page.getByRole('button', { name: 'Zoom in' })).toBeDisabled();
 });
 
 test('the keyboard zooms the focused timeline with plus and minus', async ({ page }) => {
@@ -309,9 +310,8 @@ test('a ruler along the top gives the time scale and marks now', async ({ page }
   expect(pill!.x).toBeGreaterThanOrEqual(view!.x - 1);
   // At 25 minutes across, a label every 5 minutes; zoomed out, fewer and coarser.
   await expect(ruler.locator('.tick').filter({ hasText: '11:40' })).toHaveCount(1);
-  await page.getByRole('button', { name: 'Zoom out' }).click();
-  await page.getByRole('button', { name: 'Zoom out' }).click();
-  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await grid.locator('.scroller').focus();
+  for (let i = 0; i < 3; i++) await page.keyboard.press('-');
   await expect(ruler.locator('.tick').filter({ hasText: '11:40' })).toHaveCount(0);
   await expect(ruler.locator('.tick').filter({ hasText: '12:00' })).toHaveCount(1);
   // No card draws a progress bar any more.
