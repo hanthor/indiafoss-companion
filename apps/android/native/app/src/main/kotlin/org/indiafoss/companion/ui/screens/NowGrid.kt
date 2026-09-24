@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,6 +43,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
@@ -57,6 +58,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.Schedule
@@ -88,6 +92,14 @@ private val MIN_TEXT = 24.dp
 /** Below this a card shows time and title only, the PWA's container query. */
 private val NARROW = 120.dp
 private val EDGE = 4.dp
+private val RULER_HEIGHT = 20.dp
+private val RULER_GAP = 4.dp
+/** Ruler ticks: the finest spacing that leaves room for a time label. */
+private val TICK_STEPS = listOf(5, 10, 15, 30, 60, 120)
+private val MIN_TICK = 56.dp
+/** Ticks that would sit under the now label step aside for it. */
+private val NOW_LABEL = 48.dp
+private val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
 /**
  * Happening now as a time grid, the PWA's NowGrid: one row per room, all
@@ -203,6 +215,7 @@ fun NowGrid(
         }
         Row(Modifier.semantics { contentDescription = "Now by room and time" }) {
             Column(Modifier.width(LABEL_WIDTH)) {
+                Box(Modifier.height(RULER_HEIGHT + RULER_GAP))
                 for (column in layout.columns) {
                     Box(Modifier.width(LABEL_WIDTH).height(ROW_HEIGHT), contentAlignment = Alignment.Center) {
                         Text(
@@ -252,7 +265,21 @@ fun NowGrid(
                     }
                     .horizontalScroll(hScroll),
             ) {
-                Column(Modifier.width(canvasWidth)) {
+                val nowX = xOf(now).takeIf { Schedule.parseInstant(now) in originMs..endMs }
+                val lineColor = MaterialTheme.brand.mint
+                Column(
+                    Modifier
+                        .width(canvasWidth)
+                        // Now, down every row: drawn over the cards, under nothing.
+                        .drawWithContent {
+                            drawContent()
+                            if (nowX != null) {
+                                val x = nowX.toPx()
+                                drawLine(lineColor, Offset(x, RULER_HEIGHT.toPx()), Offset(x, size.height), 2.dp.toPx())
+                            }
+                        },
+                ) {
+                    Ruler(bundle, originMs, endMs, dpPerMinute, nowX, now)
                     for (column in layout.columns) {
                         Box(Modifier.fillMaxWidth().height(ROW_HEIGHT)) {
                             // A room with nothing on now would be a blank strip that
@@ -365,8 +392,8 @@ private fun NowGridCard(
             visibleTextWidth(scroll.value, leftPx, widthPx, lanePx, minText) < with(density) { NARROW.toPx() }
         }
     }
-    val progress = Schedule.progress(activity, now).takeIf { it > 0f && it < 1f }
-    val running = progress != null
+    val nowMs = Schedule.parseInstant(now)
+    val running = Schedule.parseInstant(activity.start!!) <= nowMs && Schedule.parseInstant(activity.end!!) > nowMs
     val times = Schedule.formatTime(activity.start!!) + "–" + Schedule.formatTime(activity.end!!)
     val devroom = DevroomColors.forActivity(bundle, activity)
     val hue = devroom ?: brand.mint
@@ -466,23 +493,65 @@ private fun NowGridCard(
                     )
                 }
             }
-            if (progress != null) {
-                // Along the bottom of the visible text: the card's elapsed part
-                // is the bit scrolled off the left.
-                LinearProgressIndicator(
-                    progress = { progress },
-                    color = hue,
-                    trackColor = brand.line,
-                    drawStopIndicator = {},
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth()
-                        .padding(start = EDGE + 8.dp, end = 8.dp, bottom = 4.dp)
-                        .height(3.dp),
+        }
+    }
+}
+
+/**
+ * The time scale along the top: minimal labels that follow the zoom, each
+ * starting on its tick so one at the scroll edge is never cut in half, and
+ * now's time on the line.
+ */
+@Composable
+private fun Ruler(bundle: EventBundle, originMs: Long, endMs: Long, dpPerMinute: Dp, nowX: Dp?, now: String) {
+    val brand = MaterialTheme.brand
+    val step = TICK_STEPS.firstOrNull { dpPerMinute * it >= MIN_TICK } ?: TICK_STEPS.last()
+    val zone = remember(bundle) { ZoneId.of(bundle.timezone) }
+    val ticks = remember(originMs, endMs, step, zone) {
+        val five = 5 * 60_000L
+        generateSequence(((originMs + five - 1) / five) * five) { it + five }
+            .takeWhile { it <= endMs }
+            .mapNotNull { t ->
+                val local = Instant.ofEpochMilli(t).atZone(zone)
+                if ((local.hour * 60 + local.minute) % step == 0) t to CLOCK.format(local) else null
+            }
+            .toList()
+    }
+    Box(Modifier.fillMaxWidth().height(RULER_HEIGHT)) {
+        for ((t, label) in ticks) {
+            val x = dpPerMinute * ((t - originMs) / 60_000f)
+            if (nowX != null && x + NOW_LABEL > nowX && x < nowX + NOW_LABEL) continue
+            Row(Modifier.offset(x = x).align(Alignment.BottomStart).height(14.dp)) {
+                Box(Modifier.width(1.dp).fillMaxHeight().background(brand.line))
+                Text(
+                    label,
+                    fontSize = 10.sp,
+                    lineHeight = 12.sp,
+                    color = brand.textMuted,
+                    softWrap = false,
+                    modifier = Modifier.padding(start = 3.dp),
                 )
             }
         }
+        if (nowX != null) {
+            Text(
+                Schedule.formatTime(now),
+                fontSize = 10.sp,
+                lineHeight = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = brand.ink,
+                softWrap = false,
+                modifier = Modifier
+                    .offset(x = nowX - 1.dp)
+                    .align(Alignment.BottomStart)
+                    .clip(RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp))
+                    .background(brand.mint)
+                    .padding(horizontal = 5.dp, vertical = 1.dp)
+                    .semantics { contentDescription = "Now, ${Schedule.formatTime(now)}" },
+            )
+        }
     }
+    Box(Modifier.height(RULER_GAP))
 }
 
 /** A stretch with nothing on in its room, up to the room's next talk. */
