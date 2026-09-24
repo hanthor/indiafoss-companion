@@ -33,14 +33,25 @@ import org.indiafoss.companion.ScheduleUpdate
 import org.indiafoss.companion.core.ScheduleDiff
 import org.indiafoss.companion.ui.EventMasthead
 import org.indiafoss.companion.core.EventPhase
+import org.indiafoss.companion.core.NowGo
 import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.core.Schedule
+import org.indiafoss.companion.ui.mixSrgb
+import org.indiafoss.companion.ui.theme.brand
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.sp
 
 /**
- * Now: "Your plan now" first — the item in progress or the next one from the
- * attendee's resolved plan (#221), a conflict notice when the plan has one,
- * never a pick from the whole programme — then what is running in every
- * room, then the programme's next session, labelled as such.
+ * Now: what is running in every room as one time grid, the PWA's Now page.
+ * The attendee's resolved plan (#221) speaks through the grid: its talk is
+ * the gold card. Only what the grid cannot show gets a line above it: a
+ * conflict notice, when no destination can be picked, or a personal block,
+ * which has no card. With nothing left in the plan, the programme's next
+ * session is gold instead, labelled as that ([NowGo]).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +63,18 @@ fun NowScreen(
     onOpenPlan: () -> Unit = {},
     onOpen: (String) -> Unit,
 ) {
-    Scaffold(topBar = { TopAppBar(title = { Text("Now") }, actions = { actions() }) }) { padding ->
+    // "Your plan" sits beside the title, as on the PWA: the grid below is the page.
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Now") },
+                actions = {
+                    TextButton(onClick = onOpenPlan) { Text("Your plan") }
+                    actions()
+                },
+            )
+        },
+    ) { padding ->
         val now = state.nowState
         // Today's sessions still running or yet to start: the Now grid's rows.
         val remaining = remember(state.bundle, now?.day, state.now) {
@@ -82,39 +104,39 @@ fun NowScreen(
                 }
                 // The event's own strip (name, dates, day or recap) in the fixed brand palette.
                 item { EventMasthead(state) }
+                val plan = state.todayPlan
+                val planItem = plan?.nextPlanned(state.now)
+                val gridIds = remaining.map { it.id }.toSet()
+                val go = NowGo.target(
+                    planConflicted = plan != null && !plan.feasible,
+                    planItemId = planItem?.id,
+                    planItemIsSession = planItem?.isSession == true,
+                    gridIds = gridIds,
+                    programmeNextId = now.next?.id,
+                )
                 if (now.phase == EventPhase.DURING) {
-                    item { SectionHeader("Your plan now") }
-                    item { PersonalPlanCard(state, onOpenPlan, onOpen) }
+                    when {
+                        plan != null && !plan.feasible -> item { PlanConflictNotice(plan, onOpenPlan) }
+                        planItem != null && planItem.id !in gridIds -> item { PlanBlockLine(planItem, state) }
+                    }
                 }
                 if (remaining.isNotEmpty()) {
-                    item { SectionHeader("Happening now") }
                     item {
                         NowGrid(
                             bundle = state.bundle!!,
                             day = now.day!!,
                             activities = remaining,
-                            markers = now.day?.let(state::markersFor).orEmpty(),
                             now = state.now,
+                            goId = go?.id,
+                            goLabel = go?.label,
+                            header = {
+                                Text(
+                                    "Happening now",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            },
                             onOpen = onOpen,
-                        )
-                    }
-                }
-                now.next?.let { next ->
-                    item { SectionHeader("Next in the programme") }
-                    item {
-                        SessionCard(
-                            activity = next,
-                            bundle = state.bundle,
-                            bookmarked = next.id in state.bookmarks,
-                            onOpen = { onOpen(next.id) },
-                        )
-                    }
-                    item {
-                        Text(
-                            text = "Starts in ${Schedule.minutesUntil(next.start ?: state.now, state.now)} min",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                         )
                     }
                 }
@@ -132,45 +154,57 @@ fun NowScreen(
     }
 }
 
-/** The one card the attendee acts on: in progress or up next in their resolved plan, or why there is none. */
+/** Why no card is gold: the plan has conflicting choices, so nothing can be picked (#221). */
 @Composable
-private fun PersonalPlanCard(state: UiState, onOpenPlan: () -> Unit, onOpen: (String) -> Unit) {
-    val plan = state.todayPlan
-    val next = plan?.nextPlanned(state.now)
-    Card(Modifier.fillMaxWidth().padding(16.dp, 4.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            when {
-                plan == null -> Text("No plan for today.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                !plan.feasible -> {
-                    Text("Your plan has conflicting choices", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.error)
-                    plan.blockingConflicts.take(3).forEach { Text(it.message, style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 4.dp)) }
-                    Text("Resolve them before choosing where to go.", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-                }
-                next == null -> Text("No more items in your plan today. Browse what's on or make time for a break.", style = MaterialTheme.typography.bodyMedium)
-                else -> {
-                    val room = state.bundle?.location(next.locationId)?.name
-                    Text(
-                        "${if (next.inProgress(state.now)) "In progress" else "Up next"} · ${Schedule.formatTime(next.start)}–${Schedule.formatTime(next.end)}" +
-                            (if (next.source == ResolvedPlan.Source.MUST_ATTEND) " · must attend" else ""),
-                        style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary,
-                    )
-                    Text(
-                        next.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
-                        modifier = if (next.isSession) Modifier.clickable { onOpen(next.id) } else Modifier,
-                    )
-                    if (room != null) Text(room, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    else if (!next.isSession) Text("Your own time", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (!next.inProgress(state.now)) Text(
-                        "Starts in ${Schedule.minutesUntil(next.start, state.now)} min",
-                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+private fun PlanConflictNotice(plan: ResolvedPlan.Plan, onOpenPlan: () -> Unit) {
+    Card(
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+    ) {
+        Column(Modifier.padding(start = 16.dp, end = 8.dp, top = 10.dp)) {
+            Text(
+                "Your plan has conflicting choices",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            plan.blockingConflicts.firstOrNull()?.let {
+                Text(it.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onErrorContainer)
             }
-            plan?.warnings?.firstOrNull()?.let {
-                Text(it.message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(top = 4.dp))
-            }
-            TextButton(onClick = onOpenPlan, modifier = Modifier.align(Alignment.End)) { Text("Open your plan") }
+            TextButton(onClick = onOpenPlan, modifier = Modifier.align(Alignment.End)) { Text("Resolve them in your plan") }
         }
+    }
+}
+
+/** A personal block from the plan, in the gold the grid would give a talk: it has no card to light. */
+@Composable
+private fun PlanBlockLine(item: ResolvedPlan.Item, state: UiState) {
+    val brand = MaterialTheme.brand
+    val shape = RoundedCornerShape(8.dp)
+    val room = state.bundle?.location(item.locationId)?.name
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .clip(shape)
+            .background(mixSrgb(brand.surfaceRaised, brand.amberSoft, 0.85f))
+            .border(2.dp, brand.amber, shape)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    ) {
+        Text(
+            NowGo.GOING.uppercase(),
+            fontSize = 10.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 0.8.sp,
+            color = brand.amberInk,
+        )
+        Text(item.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = brand.text)
+        Text(
+            (if (item.inProgress(state.now)) "Now · " else "") +
+                Schedule.formatTime(item.start) + "–" + Schedule.formatTime(item.end) +
+                (room?.let { " · $it" } ?: ""),
+            style = MaterialTheme.typography.bodySmall,
+            color = brand.textMuted,
+        )
     }
 }
 

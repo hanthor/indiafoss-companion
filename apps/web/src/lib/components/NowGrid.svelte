@@ -288,7 +288,10 @@
   async function zoomTo(next: number, focalX: number) {
     const el = scroller;
     if (!el || pxPerMinute <= 0) return;
-    const clamped = Math.min(MAX_WINDOW, Math.max(MIN_WINDOW, next));
+    // Snap to a limit when a step lands close to it, so the label never reads
+    // "5 min" while zoom-in is still enabled at 5.2.
+    const clamped =
+      next < MIN_WINDOW * 1.15 ? MIN_WINDOW : next > MAX_WINDOW / 1.15 ? MAX_WINDOW : next;
     if (Math.abs(clamped - windowMinutes) < 0.01) return;
     const focalMinute = (el.scrollLeft + focalX) / pxPerMinute;
     touched = true;
