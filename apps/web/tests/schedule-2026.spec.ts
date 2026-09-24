@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
 
-test('room selection applies to list and grid, with venue-local hour labels', async ({ page }) => {
+test('room chips narrow the agenda; the Rooms view shows every room with venue-local hours', async ({
+  page,
+}) => {
   await page.goto(appUrl('/schedule?event=indiafoss-2026&setup=done'));
   const rooms = page.getByRole('group', { name: 'Filter by room' });
   await rooms.getByRole('button', { name: 'Room 2', exact: true }).click();
@@ -12,16 +14,17 @@ test('room selection applies to list and grid, with venue-local hour labels', as
   const cards = page.getByRole('article');
   await expect(cards.first()).toBeVisible();
   for (const card of await cards.all()) await expect(card).toContainText('Room 2');
-  // The room filter carries across the switch to the Rooms view.
+  // The Rooms view draws every room as a column, so it keeps its header
+  // short: no room chips or search, and a room picked in the agenda does not
+  // hide the others there.
   await page
     .getByRole('navigation', { name: 'Schedule view' })
     .getByRole('link', { name: 'Rooms' })
     .click();
-  await expect(page.locator('.colhead')).toHaveCount(1);
-  await expect(page.locator('.colhead')).toHaveText('Room 2');
-  await expect(page.locator('.tick').filter({ hasText: '11:00' })).toBeVisible();
-  await rooms.getByRole('button', { name: 'All rooms' }).click();
+  await expect(page.getByRole('group', { name: 'Filter by room' })).toHaveCount(0);
+  await expect(page.getByRole('searchbox')).toHaveCount(0);
   await expect(page.locator('.colhead')).toHaveCount(6);
+  await expect(page.locator('.tick').filter({ hasText: '11:00' })).toBeVisible();
 });
 
 test('generated plan is marked in the schedule after navigation and reload', async ({ page }) => {

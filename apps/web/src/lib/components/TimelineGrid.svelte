@@ -21,6 +21,7 @@
     choices = new Map<string, GridChoice>(),
     onSelect,
     selectable = () => true,
+    now,
   }: {
     activities: Activity[];
     bundle: EventBundle;
@@ -32,6 +33,8 @@
     onSelect?: (activity: Activity) => void;
     /** Which sessions may be chosen in that mode; the rest stay links. */
     selectable?: (activity: Activity) => boolean;
+    /** When it falls within the day: a line marks it, and the grid opens scrolled to it. */
+    now?: string;
   } = $props();
 
   // locationId -> activities, as a plain array of entries (kept non-reactive).
@@ -71,6 +74,21 @@
   const dayEndMs = $derived(ends.length > 0 ? Date.parse(ends.at(-1)!) : dayStartMs + 60 * 60000);
   const totalMinutes = $derived(Math.max(60, (dayEndMs - dayStartMs) / 60000));
   const totalHeight = $derived(totalMinutes * PPM);
+
+  const nowTop = $derived.by(() => {
+    const ms = now ? Date.parse(now) : NaN;
+    return ms >= dayStartMs && ms <= dayEndMs ? ((ms - dayStartMs) / 60000) * PPM : null;
+  });
+
+  // Open at now, once per day shown; after that the scroll is the reader's.
+  let scroller: HTMLElement | undefined = $state();
+  let placedFor = '';
+  $effect(() => {
+    if (!scroller || nowTop === null || placedFor === day) return;
+    placedFor = day;
+    // A little of what just started stays in view above the line.
+    scroller.scrollTop = Math.max(0, nowTop - 60);
+  });
 
   const hours = $derived(
     (() => {
@@ -140,6 +158,7 @@
 
 <div
   class="timeline"
+  bind:this={scroller}
   role="region"
   aria-label="Schedule by room and time"
   tabindex="0"
@@ -154,6 +173,9 @@
   </div>
 
   <div class="columns">
+    {#if nowTop !== null}
+      <div class="nowline" style:top="{nowTop + 36}px" aria-hidden="true"></div>
+    {/if}
     {#each byLocation as [locId, acts] (locId)}
       {@const columnBands = bands(acts)}
       <div class="column" style:--column-width="{COLUMN_WIDTH}px">
@@ -240,7 +262,9 @@
     display: flex;
     gap: 0;
     overflow: auto;
-    max-height: 72vh;
+    /* With the schedule header compact, the grid takes the rest of a phone. */
+    max-height: calc(100dvh - 14rem);
+    min-height: 20rem;
     position: relative;
     --total-height: 600px;
   }
@@ -261,7 +285,17 @@
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
   }
+  .nowline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--event-primary);
+    z-index: 2;
+    pointer-events: none;
+  }
   .columns {
+    position: relative;
     display: flex;
     gap: 8px;
     flex: 1;

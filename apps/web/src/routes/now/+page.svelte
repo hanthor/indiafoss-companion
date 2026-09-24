@@ -4,9 +4,9 @@
   import { eventDay, nextPlannedItem } from '$lib/resolved-plan';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import type { Activity } from '@indiafoss/model';
   import {
     activitiesForDay,
+    getEventDays,
     computeNowState,
     formatDayLabel,
     formatTime,
@@ -37,12 +37,19 @@
   const nowState = $derived(bundle && now ? computeNowState(bundle, now) : null);
 
   const day = $derived(bundle && now ? eventDay(now, bundle.timezone) : null);
-  /** Today's sessions still running or yet to start: the Now grid's rows. */
+  const before = $derived(nowState?.phase === 'before');
+  /** Before the event the timeline shows day one, from its first session. */
+  const gridDay = $derived(before && bundle ? (getEventDays(bundle)[0] ?? day) : day);
+  /** The day's sessions still running or yet to start: the grid's rows. */
   const remaining = $derived(
-    bundle && day && now
-      ? activitiesForDay(bundle, day).filter((a) => a.end && Date.parse(a.end) > Date.parse(now))
+    bundle && gridDay && now
+      ? activitiesForDay(bundle, gridDay).filter(
+          (a) => a.end && Date.parse(a.end) > Date.parse(now),
+        )
       : [],
   );
+  /** The first session of the grid's day: before the event, when it starts. */
+  const firstStart = $derived(remaining.map((a) => a.start!).sort()[0] ?? bundle?.start ?? '');
   const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === day);
   const personalPlan = $derived(currentPlan ? livePlanState.result : null);
   const planStatus = $derived(currentPlan ? livePlanState.status : 'loading');
@@ -68,16 +75,7 @@
   );
   /** Your plan's item when it has no card to light: a personal block, lunch. */
   const planBlock = $derived(personalNext && !gridIds.has(personalNext.id) ? personalNext : null);
-  const trackName = (activity: Activity): string | undefined =>
-    (
-      bundle?.tracks.find((track) => track.id === activity.devroomId) ??
-      bundle?.tracks.find((track) => track.id === activity.trackId)
-    )?.name;
 </script>
-
-{#snippet trackTag(activity: Activity)}
-  {#if trackName(activity)}<span class="track-tag">{trackName(activity)}</span>{/if}
-{/snippet}
 
 <EventGate>
   <!-- The view switch is the page's visible title; the heading stays for assistive tech. -->
@@ -93,29 +91,14 @@
 
   {#if !nowState}
     <p>Loading…</p>
-  {:else if nowState!.phase === 'before'}
-    <section class="card">
-      <h2>Not started yet</h2>
-      <p>
-        IndiaFOSS starts {formatDayLabel(bundle!.start.slice(0, 10))} at {formatTime(
-          bundle!.start,
-        )}.
-      </p>
-      {#if nowState!.next}
-        <h3>First up</h3>
-        {@render trackTag(nowState!.next)}
-        <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
-      {/if}
-    </section>
-    {#if bundle?.venue}
-      <GettingThere venue={bundle.venue} />
-    {/if}
   {:else if nowState!.phase === 'after'}
     <section class="card">
       <h2>That's a wrap</h2>
       <p>The conference has ended. See you at the next one!</p>
     </section>
   {:else}
+    <!-- Before the event there is no now yet: the grid opens on day one's first
+         session and the heading says when it starts. -->
     <!-- Your plan speaks through the grid: its talk is the gold card. Only what
          the grid cannot show gets a line here, and only one. -->
     {#if planConflicted}
@@ -145,19 +128,25 @@
 
     <!-- No card around it: the grid is the page, edge to edge on a phone. -->
     <section class="happening" aria-labelledby="now-heading">
+      {#snippet heading()}
+        <h2 id="now-heading">
+          {#if before}Starts {formatDayLabel(gridDay!)} · {formatTime(firstStart)}{:else}Happening
+            now{/if}
+        </h2>
+      {/snippet}
       {#if remaining.length === 0}
-        <h2 id="now-heading">Happening now</h2>
+        {@render heading()}
         <p class="muted">Between sessions — take a break or explore the map.</p>
       {:else}
         <NowGrid
           activities={remaining}
           bundle={bundle!}
-          day={day!}
+          day={gridDay!}
           {now}
           goId={go?.id}
           goLabel={go?.label}
         >
-          {#snippet header()}<h2 id="now-heading">Happening now</h2>{/snippet}
+          {#snippet header()}{@render heading()}{/snippet}
         </NowGrid>
       {/if}
     </section>
@@ -170,16 +159,6 @@
 </EventGate>
 
 <style>
-  .track-tag {
-    display: inline-block;
-    margin-block: 0.25rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: var(--radius);
-    background: var(--surface-raised);
-    border: 1px solid var(--line);
-    font-size: 0.8rem;
-    overflow-wrap: anywhere;
-  }
   /* Density (issue 685): the grid is the page, so the chrome above it stays small. */
   .titlebar {
     display: flex;
