@@ -906,3 +906,20 @@ test('the card has no IndiaFOSS Chat hand-off or download any more', async ({ pa
   await expect(page.getByText(/IndiaFOSS Chat/)).toHaveCount(0);
   await expect(page.getByLabel('Mesh id', { exact: true })).toHaveCount(0);
 });
+
+test('home lists the day-before workshops and summit until they end', async ({ page }) => {
+  const at = (now: string) =>
+    appUrl(`/?setup=done&event=indiafoss-2026&now=${encodeURIComponent(now)}`);
+  await page.goto(at('2026-09-25T09:30:00+05:30'));
+  const card = page.getByRole('region', { name: /The day before/ });
+  await expect(card).toBeVisible();
+  await card.getByText('Workshops', { exact: true }).click();
+  await expect(card.getByText(/conference ticket does not get you in/)).toBeVisible();
+  await expect(card.getByText('Fun and Profit with OCaml')).toBeVisible();
+  await card.getByText('Maintainer Summit', { exact: true }).click();
+  await expect(card.getByText(/by application/)).toBeVisible();
+
+  await page.goto(at('2026-09-25T17:30:00+05:30'));
+  await expect(page.getByRole('heading', { name: /Find your devroom/ })).toBeVisible();
+  await expect(page.getByRole('region', { name: /The day before/ })).toHaveCount(0);
+});
