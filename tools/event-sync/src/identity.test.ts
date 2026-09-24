@@ -100,4 +100,38 @@ describe('CFP choice identity', () => {
     preserveActivityIds(previous, next);
     expect(next.activities[0]!.id).toBe('act-new-a');
   });
+
+  it('keeps a ceremony the organiser recreated on another day', () => {
+    // FOSS Awards, rev 20 to 21: a new row, moved from day one to day two.
+    const awards = (values: Partial<Activity>): Activity =>
+      activity({
+        type: 'ceremony',
+        title: 'FOSS Awards',
+        sourceUrl: 'https://fossunited.org/c/indiafoss/2026/schedule',
+        locationId: 'hall-1',
+        ...values,
+      });
+    const previous = bundle([
+      awards({ id: 'act-28la7q52h1', sourceId: '28la7q52h1', start: '2026-09-26T17:00:00+05:30' }),
+    ]);
+    const next = bundle([
+      awards({ id: 'act-78c28cqu5t', sourceId: '78c28cqu5t', start: '2026-09-27T15:00:00+05:30' }),
+    ]);
+    preserveActivityIds(previous, next);
+    expect(next.activities[0]!.id).toBe('act-28la7q52h1');
+  });
+
+  it('does not carry an id across rows whose title repeats', () => {
+    const lunch = (values: Partial<Activity>): Activity =>
+      activity({ type: 'meal', title: 'Lunch Break', ...values });
+    const previous = bundle([
+      lunch({ id: 'act-old-a', sourceId: 'a', start: '2026-09-26T13:00:00+05:30' }),
+    ]);
+    const next = bundle([
+      lunch({ id: 'act-new-a', sourceId: 'c', start: '2026-09-27T13:00:00+05:30' }),
+      lunch({ id: 'act-new-b', sourceId: 'd', start: '2026-09-28T13:00:00+05:30' }),
+    ]);
+    preserveActivityIds(previous, next);
+    expect(next.activities.map((a) => a.id)).toEqual(['act-new-a', 'act-new-b']);
+  });
 });

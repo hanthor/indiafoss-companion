@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
+import { live2026 } from './live-2026.js';
 
 /** A time-travelled instant when a session is happening (developer time, §13). */
 const DURING = '2025-09-20T10:20:00+05:30';
@@ -69,8 +70,12 @@ test('activity detail shows speakers and toggles bookmark', async ({ page }) => 
 });
 
 test('an organiser ceremony shows its source instead of an invented abstract', async ({ page }) => {
-  await page.goto(appUrl('/activity/act-28la7q52h1?event=indiafoss-2026'));
-  await expect(page.getByRole('heading', { name: 'FOSS Awards' })).toBeVisible();
+  const ceremony = live2026().activities.find(
+    (a) => a.type === 'ceremony' && !a.description && a.speakerIds.length === 0,
+  );
+  expect(ceremony, 'the programme has an undescribed ceremony to show').toBeDefined();
+  await page.goto(appUrl(`/activity/${ceremony!.id}?event=indiafoss-2026`));
+  await expect(page.getByRole('heading', { name: ceremony!.title })).toBeVisible();
   await expect(page.getByText('ceremony', { exact: true })).toBeVisible();
   await expect(page.getByText(/^Other$/)).toHaveCount(0);
   const fallback = page.getByTestId('no-description');
@@ -679,10 +684,8 @@ test('2026 fresh and whole-devroom plans do not invent travel between same-room 
   await page.goto(appUrl('/plan?event=indiafoss-2026'));
   await expect(page.locator('.itinerary li').first()).toBeVisible();
   await expect(page.getByTestId('edit-conflicts')).toHaveCount(0);
-
-  await expect(
-    page.locator('.itinerary').getByRole('link', { name: /Your first open source contribution/ }),
-  ).toBeVisible();
+  // Staying for a devroom fills the plan with its run of talks, not one slot.
+  expect(await page.locator('.itinerary li').count()).toBeGreaterThan(3);
 });
 
 test('Now follows a removed session and a saved personal block across reloads', async ({

@@ -119,9 +119,53 @@ jobs:
         run: |
           set -euo pipefail
           current=$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq .object.sha)
-          test "$current" = "$SYNC_BASE" || { echo 'Main advanced during validation; leave the candidate for review.'; exit 1; }
+          if [ "$current" != "$SYNC_BASE" ]; then
+            # Not a failure: the next hourly run re-imports onto the new main
+            # and closes this candidate as superseded.
+            echo 'Main advanced during validation; the next run re-imports onto it.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           gh pr merge "$SYNC_PR" --squash --delete-branch --match-head-commit "$SYNC_HEAD"
           # Bot-authored pushes do not trigger other workflows. Dispatch explicitly.
           gh workflow run pages.yml --ref main
           gh workflow run nightly.yml --ref main
           echo "Validated and merged $SYNC_PR; PWA deployment and nightly builds dispatched." >> "$GITHUB_STEP_SUMMARY"
+
+  # A failing import is invisible from the app: attendees just keep the old
+  # programme. So a failed run opens (or adds to) one tracking issue, and the
+  # next good run closes it. The issue is how anyone learns the sync is stuck.
+  report:
+    needs: [prepare, validate, publish]
+    if: always() && github.repository == 'hanthor/indiafoss-companion'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open or close the sync-failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PREPARE: ${{ needs.prepare.result }}
+          VALIDATE: ${{ needs.validate.result }}
+          PUBLISH: ${{ needs.publish.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          title='Schedule sync is failing'
+          open=$(gh issue list --repo "$GH_REPO" --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')
+          failed=false
+          for r in "$PREPARE" "$VALIDATE" "$PUBLISH"; do
+            case "$r" in failure|cancelled) failed=true ;; esac
+          done
+          if [ "$failed" = true ]; then
+            body="The hourly import did not publish: prepare=$PREPARE, validate=$VALIDATE, publish=$PUBLISH. Attendees keep the last published programme until this is fixed. Run: $RUN_URL"
+            if [ -n "$open" ]; then
+              gh issue comment "$open" --repo "$GH_REPO" --body "$body"
+            else
+              gh issue create --repo "$GH_REPO" --title "$title" --body "$body"
+            fi
+            exit 0
+          fi
+          if [ -n "$open" ]; then
+            gh issue close "$open" --repo "$GH_REPO" --comment "Recovered: $RUN_URL ran clean."
+          fi
