@@ -389,7 +389,7 @@ test('map opens a room sheet on another floor and zooms', async ({ page }) => {
   await page.getByRole('button', { name: /^Devroom 2/ }).click();
   await expect(page.getByRole('heading', { name: 'Devroom 2' })).toBeVisible();
   // Going there highlights it, and the other-floor hint follows the destination.
-  await page.getByRole('button', { name: 'Go here', exact: true }).click();
+  await page.getByLabel('Go to', { exact: true }).selectOption({ label: 'Devroom 2' });
   await page.getByRole('button', { name: /^Ground/ }).click();
   await expect(page.getByText('DESTINATION UPSTAIRS')).toBeVisible();
   // The plan zooms; labels grow their detail once zoomed in.
@@ -752,7 +752,9 @@ test('map and every route banner use the edited plan without visiting Now', asyn
   const time = '?event=indiafoss-2026&now=2026-09-26T09:29:00%2B05:30';
   await page.goto(appUrl('/map' + time));
   await expect(page.locator('.leaveby')).toContainText('Welcome Note');
-  await expect(page.locator('.roomlabel[data-planned-destination=true]')).toHaveCount(1);
+  await expect(
+    page.locator('.labels:not(.measure) .roomlabel[data-planned-destination=true]'),
+  ).toHaveCount(1);
 
   await page.goto(appUrl('/plan' + time));
   const row = page.locator('.itinerary li').filter({
@@ -789,8 +791,10 @@ test('a conflicting plan clears map recommendations and banners on every route',
 
   await page.goto(appUrl('/map' + time));
   await expect(page.getByRole('group', { name: 'Floor', exact: true })).toBeVisible();
-  await expect(page.locator('.roomlabel')).not.toHaveCount(0);
-  await expect(page.locator('.roomlabel[data-planned-destination=true]')).toHaveCount(0);
+  await expect(page.locator('.labels:not(.measure) .roomlabel')).not.toHaveCount(0);
+  await expect(
+    page.locator('.labels:not(.measure) .roomlabel[data-planned-destination=true]'),
+  ).toHaveCount(0);
   await expect(page.locator('.leaveby')).toHaveCount(0);
   await page.goto(appUrl('/now' + time));
   await expect(page.getByText(/Your plan has conflicting choices/)).toBeVisible();

@@ -32,15 +32,11 @@ test('generated plan is marked in the schedule after navigation and reload', asy
   await expect(card).toHaveClass(/planned/);
 });
 
-test('mobile room sheet keeps the destination action reachable and reports the selected floor', async ({
-  page,
-}) => {
+test('mobile room sheet reports the selected floor', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(appUrl('/map?event=indiafoss-2026&setup=done'));
   await page.getByRole('button', { name: /^Hall 1/ }).click();
-  const go = page.getByRole('button', { name: 'Go here', exact: true });
-  await expect(go).toBeInViewport();
-  await go.click();
+  await expect(page.getByRole('region', { name: 'Room details' })).toContainText('Ground floor');
   await page.getByRole('button', { name: /^First/ }).click();
   await page.getByRole('button', { name: /^Room 2/ }).click();
   await page.getByRole('button', { name: /^Ground/ }).click();
