@@ -2,7 +2,7 @@
 
 ## Overview
 
-This strategy specification defines the architectural roadmap for automated, DRM-free presentation slide synchronization and archival within the IndiaFOSS Companion platform ecosystem. 
+This strategy specification defines the architectural roadmap for automated, DRM-free presentation slide synchronization and archival within the IndiaFOSS Companion platform ecosystem.
 
 During multi-track tech conferences, attendees frequently face degraded mobile network connectivity in auditorium settings. Offline slide deck availability, synchronized session notes, and full-text search across presented slides provide crucial attendee accessibility and preserve conference domain knowledge.
 
