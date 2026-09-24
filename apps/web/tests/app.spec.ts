@@ -402,9 +402,10 @@ test('map opens a room sheet on another floor and zooms', async ({ page }) => {
 test('now screen opens the map on the next room', async ({ page }) => {
   const DURING = '2025-09-20T10:20:00+05:30';
   await page.goto(appUrl(`/now?now=${encodeURIComponent(DURING)}`));
-  // The NEXT card opens the map on the next room; no location of your own is asked for.
+  // The next-up banner opens the map on the next room; no location of your own
+  // is asked for. The Now cards that repeated this link are gone (#685).
   await expect(page.getByText(/Where are you|You are at/)).toHaveCount(0);
-  await page.getByRole('link', { name: 'Show on map' }).first().click();
+  await page.locator('a.leaveby').click();
   await expect(page.getByText('DESTINATION', { exact: true })).toBeVisible();
 });
 
@@ -689,8 +690,10 @@ test('Now follows a removed session and a saved personal block across reloads', 
   const planUrl = appUrl('/plan?event=indiafoss-2026');
   const nowUrl = appUrl('/now?event=indiafoss-2026&now=2026-09-26T09:31:00%2B05:30');
   await page.goto(nowUrl);
-  const personal = page.getByRole('region', { name: 'Your plan now' });
-  await expect(personal.getByRole('link', { name: 'Welcome Note', exact: true })).toBeVisible();
+  // Your plan speaks through the grid: its talk is the one gold card.
+  const gold = page.locator('[data-testid="now-grid"] .talk[data-go="true"]');
+  const line = page.locator('.goline');
+  await expect(gold).toContainText('Welcome Note');
   await page.goto(planUrl);
   const row = page
     .locator('.itinerary li')
@@ -699,8 +702,9 @@ test('Now follows a removed session and a saved personal block across reloads', 
   await row.getByRole('button', { name: 'Remove', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Removed', exact: true })).toBeVisible();
   await page.goto(nowUrl);
-  await expect(personal.getByText('Loading your plan…')).toHaveCount(0);
-  await expect(personal.getByRole('link', { name: 'Welcome Note', exact: true })).toHaveCount(0);
+  // The plan has loaded once a card is gold, and it is no longer this one.
+  await expect(gold).toHaveCount(1);
+  await expect(gold).not.toContainText('Welcome Note');
   await page.goto(planUrl);
   const form = page.locator('.add-block');
   await form.getByLabel('What').fill('Meet the booth team');
@@ -709,19 +713,19 @@ test('Now follows a removed session and a saved personal block across reloads', 
   await form.getByRole('button', { name: 'Add block' }).click();
   await expect(form.getByLabel('What')).toHaveValue('');
   await page.goto(nowUrl);
-  await expect(personal.getByText('Meet the booth team', { exact: true })).toBeVisible();
-  await expect(personal.getByText(/In progress/)).toBeVisible();
+  // A block has no card to light, so it gets the gold line above the grid.
+  await expect(line.getByText('Meet the booth team', { exact: true })).toBeVisible();
+  await expect(line).toContainText('Now ·');
+  await expect(gold).toHaveCount(0);
   await page.reload();
-  await expect(personal.getByText('Meet the booth team', { exact: true })).toBeVisible();
-  await expect(personal.getByRole('link', { name: 'Show on map' })).toHaveCount(0);
+  await expect(line.getByText('Meet the booth team', { exact: true })).toBeVisible();
+  await expect(line.getByRole('link')).toHaveCount(0);
 });
 
 test('Now opens the plan on the current event day', async ({ page }) => {
   await page.goto(appUrl('/now?event=indiafoss-2026&now=2026-09-27T10:00:00%2B05:30'));
-  await page
-    .getByRole('region', { name: 'Your plan now' })
-    .getByRole('link', { name: 'Open your plan' })
-    .click();
+  // Beside the page title since the grid lost its card (#685).
+  await page.locator('.titlebar').getByRole('link', { name: 'Your plan' }).click();
   await expect(page.locator('.days button.active')).toContainText('Day 2');
 });
 
@@ -736,9 +740,12 @@ test('Now asks to resolve an overlapping personal block instead of choosing a de
   await form.getByRole('button', { name: 'Add block' }).click();
   await expect(form.getByLabel('What')).toHaveValue('');
   await page.goto(appUrl('/now?event=indiafoss-2026&now=2026-09-26T09:32:00%2B05:30'));
-  const personal = page.getByRole('region', { name: 'Your plan now' });
-  await expect(personal.getByText(/Your plan has conflicting choices/)).toBeVisible();
-  await expect(personal.getByRole('link', { name: 'Show on map' })).toHaveCount(0);
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Your plan has conflicting choices' }),
+  ).toBeVisible();
+  // No destination is chosen for the attendee: nothing in the grid is gold (#221).
+  await expect(page.locator('[data-testid="now-grid"] .talk')).not.toHaveCount(0);
+  await expect(page.locator('[data-testid="now-grid"] .talk[data-go="true"]')).toHaveCount(0);
 });
 
 test('map and every route banner use the edited plan without visiting Now', async ({ page }) => {

@@ -16,7 +16,7 @@
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
-  import TypeBadge from '$lib/components/TypeBadge.svelte';
+  import { goTarget, GOING_LABEL, showGettingThere } from '$lib/now-page';
 
   const clock = $derived(
     clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
@@ -54,16 +54,19 @@
   const personalNext = $derived(
     personalPlan && !planConflicted ? nextPlannedItem(personalPlan.edited, now) : null,
   );
-  const personalActivity = $derived(bundle?.activities.find((a) => a.id === personalNext?.id));
-
-  const locationName = (a: Activity): string | undefined =>
-    bundle?.locations.find((l) => l.id === a.locationId)?.name;
-
-  function minutesUntil(endIso: string, nowIso: string): string {
-    const mins = Math.max(0, Math.ceil((Date.parse(endIso) - Date.parse(nowIso)) / 60000));
-    if (mins < 1) return 'under a minute';
-    return `${mins} min`;
-  }
+  const gridIds = $derived(new Set(remaining.map((a) => a.id)));
+  /** The card drawn in gold: your plan's talk, else the programme's next (#221). */
+  const go = $derived(
+    goTarget({
+      planStatus,
+      planConflicted,
+      planItemId: personalNext?.id,
+      gridIds,
+      programmeNextId: nowState?.next?.id,
+    }),
+  );
+  /** Your plan's item when it has no card to light: a personal block, lunch. */
+  const planBlock = $derived(personalNext && !gridIds.has(personalNext.id) ? personalNext : null);
   const trackName = (activity: Activity): string | undefined =>
     (
       bundle?.tracks.find((track) => track.id === activity.devroomId) ??
@@ -76,7 +79,10 @@
 {/snippet}
 
 <EventGate>
-  <h1>Now</h1>
+  <div class="titlebar">
+    <h1>Now</h1>
+    {#if day}<a href={resolve(`/plan?day=${day}`)}>Your plan</a>{/if}
+  </div>
 
   {#if isFixedClock(clock)}
     <p class="devtime"><span class="devtag">DEV CLOCK</span> {now}</p>
@@ -107,74 +113,54 @@
       <p>The conference has ended. See you at the next one!</p>
     </section>
   {:else}
-    <div class="now-grid">
-      <section class="card" aria-labelledby="personal-heading">
-        <h2 id="personal-heading">Your plan now</h2>
-        {#if planStatus === 'loading'}
-          <p class="muted" role="status">Loading your plan…</p>
-        {:else if planStatus === 'error'}
-          <p>Your plan could not be loaded. Open Plan to try again.</p>
-        {:else if planConflicted}
-          <p>Your plan has conflicting choices. Resolve them before choosing where to go.</p>
-        {:else if personalNext}
-          <p class="muted">
-            {Date.parse(personalNext.start) <= Date.parse(now) ? 'In progress' : 'Up next'} · {formatTime(
-              personalNext.start,
-            )}–{formatTime(personalNext.end)}
-          </p>
-          {#if personalActivity}
-            {@render trackTag(personalActivity)}
-            <a href={resolve(`/activity/${personalActivity.id}`)}>{personalActivity.title}</a>
-          {:else}
-            <strong>{personalNext.label ?? 'Personal time'}</strong>
-          {/if}
-          {#if personalNext.locationId}
-            <p>
-              <a href={resolve(`/map/to/${personalNext.locationId}`)}>Show on map</a> · {bundle?.locations.find(
-                (l) => l.id === personalNext.locationId,
-              )?.name ?? personalNext.locationId}
-            </p>
-          {/if}
-        {:else}
-          <p>No more items in your plan today. Browse what's on or make time for a break.</p>
+    <!-- Your plan speaks through the grid: its talk is the gold card. Only what
+         the grid cannot show gets a line here, and only one. -->
+    {#if planConflicted}
+      <p class="notice" role="status">
+        Your plan has conflicting choices.
+        <a href={resolve(`/plan?day=${day}`)}>Resolve them</a> to see where to go.
+      </p>
+    {:else if planStatus === 'error'}
+      <p class="notice" role="status">Your plan could not be loaded. Open Plan to try again.</p>
+    {:else if planBlock}
+      <p class="goline">
+        <span class="kicker">{GOING_LABEL}</span>
+        <strong>{planBlock.label ?? 'Personal time'}</strong>
+        <span class="muted"
+          >{Date.parse(planBlock.start) <= Date.parse(now) ? 'Now · ' : ''}{formatTime(
+            planBlock.start,
+          )}–{formatTime(planBlock.end)}</span
+        >
+        {#if planBlock.locationId}
+          · <a href={resolve(`/map/to/${planBlock.locationId}`)}
+            >{bundle?.locations.find((l) => l.id === planBlock.locationId)?.name ??
+              planBlock.locationId}</a
+          >
         {/if}
-        <p><a href={resolve(`/plan?day=${day}`)}>Open your plan</a></p>
-      </section>
+      </p>
+    {/if}
 
-      <section class="card" aria-labelledby="now-heading">
+    <!-- No card around it: the grid is the page, edge to edge on a phone. -->
+    <section class="happening" aria-labelledby="now-heading">
+      {#if remaining.length === 0}
         <h2 id="now-heading">Happening now</h2>
-        {#if remaining.length === 0}
-          <p class="muted">Between sessions — take a break or explore the map.</p>
-        {:else}
-          <!-- One row per room, time to the right: scan down for now, scroll
-               right for what is next. -->
-          <NowGrid activities={remaining} bundle={bundle!} day={day!} {now} />
-        {/if}
-      </section>
-
-      {#if nowState!.next}
-        <section class="card" aria-labelledby="next-heading">
-          <h2 id="next-heading">Next in the programme</h2>
-          {@render trackTag(nowState!.next)}
-          <div class="row big">
-            <a href={resolve(`/activity/${nowState!.next.id}`)}>{nowState!.next.title}</a>
-            <TypeBadge type={nowState!.next.type} />
-          </div>
-          <p class="muted">
-            {locationName(nowState!.next)} · {formatTime(nowState!.next.start!)} · starts in
-            {minutesUntil(nowState!.next.start!, now)}
-          </p>
-
-          {#if nowState!.next.locationId}
-            <div class="actions">
-              <a class="cta" href={resolve(`/map/to/${nowState!.next.locationId}`)}>Show on map</a>
-            </div>
-          {/if}
-        </section>
+        <p class="muted">Between sessions — take a break or explore the map.</p>
+      {:else}
+        <NowGrid
+          activities={remaining}
+          bundle={bundle!}
+          day={day!}
+          {now}
+          goId={go?.id}
+          goLabel={go?.label}
+        >
+          {#snippet header()}<h2 id="now-heading">Happening now</h2>{/snippet}
+        </NowGrid>
       {/if}
-    </div>
+    </section>
 
-    {#if bundle?.venue}
+    <!-- For arriving: gone once the first morning is under way. -->
+    {#if bundle?.venue && showGettingThere(bundle, now)}
       <GettingThere venue={bundle.venue} compact />
     {/if}
   {/if}
@@ -191,11 +177,24 @@
     font-size: 0.8rem;
     overflow-wrap: anywhere;
   }
-
+  /* Density (issue 685): the grid is the page, so the chrome above it stays small. */
+  .titlebar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  h1 {
+    margin-block: 0.4rem 0.5rem;
+  }
+  .titlebar a {
+    font-size: 0.85rem;
+  }
   .devtime {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    margin: 0 0 0.5rem;
     padding: 0.2rem 0.5rem;
     border: 1px dashed var(--amber);
     border-radius: var(--radius);
@@ -214,93 +213,59 @@
     padding: 1rem;
     margin-bottom: 1rem;
   }
-  /* Phone: no box of its own. Desktop (issue 205): your plan and what is next on
-     the left, the longer "happening now" list on the right. */
-  .now-grid {
-    display: contents;
-  }
-  @media (min-width: 1024px) {
-    .now-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
-      grid-auto-flow: dense;
-      gap: 1rem;
-      align-items: start;
-    }
-    .now-grid > .card {
-      margin-bottom: 0;
-    }
-    .now-grid > [aria-labelledby='now-heading'] {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-    }
-  }
   .card h2 {
     margin: 0 0 0.75rem;
     font-size: 1.05rem;
   }
-  .row {
+  /* Out past the page's side padding (1rem below 1024px, in +layout.svelte),
+     so on a phone the grid runs from edge to edge. */
+  .happening {
+    margin-inline: -1rem;
+    padding-left: 0.25rem;
+  }
+  .happening h2 {
+    margin: 0 0 0 0.35rem;
+    font-size: 0.95rem;
+  }
+  @media (min-width: 1024px) {
+    .happening {
+      margin-inline: 0;
+      padding-left: 0;
+    }
+  }
+  .notice,
+  .goline {
+    margin: 0 0 0.6rem;
+    padding: 0.45rem 0.7rem;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+  .notice {
+    border: 1px solid var(--danger);
+    background: color-mix(in srgb, var(--danger) 8%, var(--surface-raised));
+  }
+  /* The same gold as the card it stands in for. */
+  .goline {
     display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.45rem;
+    background: color-mix(in srgb, var(--amber-soft) 85%, var(--surface-raised));
+    box-shadow: inset 0 0 0 2px var(--amber);
   }
-  .row a {
-    color: var(--text);
-    font-weight: 600;
-    text-decoration: none;
-  }
-  .row a:hover {
-    text-decoration: underline;
-    text-decoration-color: var(--event-accent);
-  }
-  .row.big {
-    font-size: 1.1rem;
+  .kicker {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber-ink);
   }
   .muted {
     color: var(--text-muted);
     margin: 0.3rem 0;
   }
-  .small {
-    font-size: 0.82rem;
-  }
-  .session {
-    border-top: 1px solid color-mix(in srgb, var(--text-muted) 15%, transparent);
-    padding-top: 0.6rem;
-    margin-top: 0.6rem;
-  }
-  .progress {
-    height: 8px;
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--text-muted) 20%, transparent);
-    overflow: hidden;
-    margin: 0.4rem 0;
-  }
-  .fill {
-    height: 100%;
-    background: var(--event-primary);
-    border-radius: 999px;
-    transition: width 1s linear;
-  }
-  .actions {
-    display: flex;
-    gap: 0.6rem;
-    align-items: center;
-    margin-top: 0.5rem;
-    flex-wrap: wrap;
-  }
-  .cta {
-    display: inline-block;
-    background: var(--event-primary);
-    color: var(--ink);
-    padding: 0.55rem 1.2rem;
-    border-radius: 999px;
-    text-decoration: none;
-    font-weight: 600;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .fill {
-      transition: none;
-    }
+  .goline .muted {
+    margin: 0;
   }
 </style>

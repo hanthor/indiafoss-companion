@@ -1,177 +1,510 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import type { Activity, EventBundle } from '@indiafoss/model';
   import { resolve } from '$app/paths';
-  import { activityProgress, formatTime } from '@indiafoss/schedule';
+  import { activitiesForDay, formatTime } from '@indiafoss/schedule';
+  import { activityDevroomColor } from '$lib/devroom-art';
 
   /**
-   * Happening now, one lane per room. Each lane scrolls sideways on its own
-   * and opens on the talk running in that room, so the first screen is the
-   * whole venue right now and everything later is a scroll to the right.
+   * Happening now as a time grid: one row per room, all rows sharing one
+   * horizontal scroll so a column is a moment across the venue. By default a
+   * 25-minute talk fills the visible width; pinch, ctrl-scroll or the zoom
+   * buttons change that from 5 minutes (a lightning talk fills the view) to
+   * three hours. The grid opens with its left edge at now: the first screen
+   * is what is on, everything later is a scroll to the right.
    *
-   * Cards are a fixed, readable width rather than one scaled to the talk's
-   * length: a ten-minute lightning talk needs the same room for its title as
-   * an hour-long one, and a grid scaled to time gave it a sliver (#657).
-   * The room name is rotated into the left margin so it stays put while the
-   * lane scrolls and costs almost no width.
+   * A card's text starts at the visible left edge while the card itself runs
+   * off it, so a talk that started twenty minutes ago still shows its title.
+   *
+   * `goId` is the one card to go to, drawn in gold and labelled `goLabel`.
    */
   let {
     activities,
     bundle,
     day,
     now,
+    goId,
+    goLabel,
+    header,
   }: {
     activities: Activity[];
     bundle: EventBundle;
     day: string;
     now: string;
+    goId?: string;
+    goLabel?: string;
+    /** The left of the toolbar row, beside the zoom controls. */
+    header?: Snippet;
   } = $props();
 
-  const byLocation = $derived(
-    (() => {
-      // Fresh Map per derivation — not reactive state, so SvelteMap is unnecessary.
-      // eslint-disable-next-line svelte/prefer-svelte-reactivity
-      const groups = new Map<string, Activity[]>();
-      for (const a of activities) {
-        if (!a.locationId || !a.start || !a.end || Date.parse(a.end) <= Date.parse(a.start))
-          continue;
-        const list = groups.get(a.locationId) ?? [];
-        list.push(a);
-        groups.set(a.locationId, list);
-      }
-      for (const list of groups.values()) {
-        list.sort((a, b) => Date.parse(a.start!) - Date.parse(b.start!));
-      }
-      return [...groups.entries()].sort(([a], [b]) =>
-        a.localeCompare(b, undefined, { numeric: true }),
-      );
-    })(),
-  );
+  /** Minutes of programme across the view: the default, and how far zoom goes. */
+  const DEFAULT_WINDOW = 25;
+  const MIN_WINDOW = 5;
+  const MAX_WINDOW = 180;
+  /** One press of a zoom button. */
+  const ZOOM_STEP = 1.6;
+  /** Re-anchor on now once it drifts this far across an untouched view. */
+  const FOLLOW = 0.8;
+  /** Space between back-to-back talks, so two cards never touch. */
+  const GAP_PX = 4;
+  /**
+   * The text fits whatever of its card is visible, down to this sliver: a
+   * talk about to end shows its time and what of its title fits, rather than
+   * a wider block pushed off the left edge.
+   */
+  const MIN_TEXT_PX = 24;
+
+  let scroller: HTMLDivElement | null = $state(null);
+  let laneWidth = $state(0);
+  let windowMinutes = $state(DEFAULT_WINDOW);
+  /** The scroll offset, sampled once a frame, for the text offsets below. */
+  let scrollX = $state(0);
+
+  const nowMs = $derived(Date.parse(now));
+  const pxPerMinute = $derived(laneWidth > 0 ? laneWidth / windowMinutes : 0);
+
+  /** Fixed per day, so cards do not jump as earlier talks end and drop out. */
+  const span = $derived.by(() => {
+    const all = activitiesForDay(bundle, day).filter((a) => a.start && a.end);
+    if (all.length === 0) return { origin: nowMs, end: nowMs + 60 * 60000 };
+    return {
+      origin: Math.min(...all.map((a) => Date.parse(a.start!))),
+      end: Math.max(...all.map((a) => Date.parse(a.end!))),
+    };
+  });
+  const canvasWidth = $derived(((span.end - span.origin) / 60000) * pxPerMinute);
+
+  type Talk = {
+    act: Activity;
+    startMs: number;
+    endMs: number;
+    /** Minutes from the day's first start, so zoom is one multiplication. */
+    startMin: number;
+    lengthMin: number;
+    lane: number;
+    lanes: number;
+    times: string;
+    pill?: string;
+    devroom?: string;
+    speakers: string;
+    label: string;
+  };
+  type Row = { locationId: string; name: string; talks: Talk[] };
 
   /**
-   * The card a lane opens on: what is running in that room, else the next
-   * talk there, else the last one so a finished room shows its own end rather
-   * than its morning.
+   * Everything about a card that does not change with the clock, worked out
+   * once per talk and kept while that talk is on the grid. The page's clock
+   * ticks every second, and rebuilding every card each tick, or each time one
+   * talk ended, was what made the day simulator's reminders late under load:
+   * a stable object per talk lets the grid skip every card that did not move.
+   * A schedule refresh brings new objects even for the same ids, so an edited
+   * talk is never mistaken for its old self.
    */
-  function anchorId(acts: Activity[]): string | undefined {
-    const nowMs = Date.parse(now);
-    const running = acts.find((a) => Date.parse(a.start!) <= nowMs && Date.parse(a.end!) > nowMs);
-    const next = acts.find((a) => Date.parse(a.start!) > nowMs);
-    return (running ?? next ?? acts.at(-1))?.id;
+  let talkCache = new WeakMap<Activity, Talk>();
+  let cacheFor: { bundle: EventBundle; origin: number } | null = null;
+  let rowsCache: { list: Activity[]; rows: Row[] } | null = null;
+  const rows = $derived.by((): Row[] => {
+    if (cacheFor?.bundle !== bundle || cacheFor.origin !== span.origin) {
+      talkCache = new WeakMap();
+      rowsCache = null;
+      cacheFor = { bundle, origin: span.origin };
+    }
+    // Same objects in the same order: nothing to do on this tick.
+    if (
+      rowsCache &&
+      rowsCache.list.length === activities.length &&
+      rowsCache.list.every((a, i) => a === activities[i])
+    )
+      return rowsCache.rows;
+    // Fresh Map per derivation — not reactive state, so SvelteMap is unnecessary.
+    // eslint-disable-next-line svelte/prefer-svelte-reactivity
+    const groups = new Map<string, Activity[]>();
+    for (const a of activities) {
+      if (!a.locationId || !a.start || !a.end || Date.parse(a.end) <= Date.parse(a.start)) continue;
+      const list = groups.get(a.locationId) ?? [];
+      list.push(a);
+      groups.set(a.locationId, list);
+    }
+    const built = [...groups.entries()]
+      .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+      .map(([locationId, acts]) => {
+        const name = bundle.locations.find((l) => l.id === locationId)?.name ?? locationId;
+        return { locationId, name, talks: layout(acts, name) };
+      });
+    rowsCache = { list: activities, rows: built };
+    return built;
+  });
+
+  /**
+   * Talks in one room never overlap in the real programme, but if a revision
+   * ever makes them, first-fit lanes split the row rather than paint one card
+   * over another.
+   */
+  function layout(acts: Activity[], room: string): Talk[] {
+    const sorted = [...acts].sort((a, b) => Date.parse(a.start!) - Date.parse(b.start!));
+    const laneEnds: number[] = [];
+    const placed = sorted.map((act) => {
+      const startMs = Date.parse(act.start!);
+      const endMs = Date.parse(act.end!);
+      let lane = laneEnds.findIndex((end) => end <= startMs);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(0);
+      }
+      laneEnds[lane] = endMs;
+      return { act, startMs, endMs, lane };
+    });
+    const lanes = Math.max(1, laneEnds.length);
+    return placed.map(({ act, startMs, endMs, lane }) => {
+      const kept = talkCache.get(act);
+      if (kept && kept.lane === lane && kept.lanes === lanes) return kept;
+      const times = `${formatTime(act.start!)}–${formatTime(act.end!)}`;
+      const talk: Talk = {
+        act,
+        startMs,
+        endMs,
+        startMin: (startMs - span.origin) / 60000,
+        lengthMin: (endMs - startMs) / 60000,
+        lane,
+        lanes,
+        times,
+        pill: pillName(act, room),
+        devroom: activityDevroomColor(act, bundle.id),
+        speakers: speakerNames(act),
+        label: `${act.title}, ${times}, ${room}`,
+      };
+      talkCache.set(act, talk);
+      return talk;
+    });
   }
 
-  const locationName = (id: string): string | undefined =>
-    bundle.locations.find((l) => l.id === id)?.name;
-
-  const trackName = (activity: Activity): string | undefined =>
-    (
+  /**
+   * The pill names a devroom. A main-hall talk's track is just its room's
+   * name, already on the row, so it gets none.
+   */
+  function pillName(activity: Activity, room: string): string | undefined {
+    const name = (
       bundle.tracks.find((track) => track.id === activity.devroomId) ??
       bundle.tracks.find((track) => track.id === activity.trackId)
     )?.name;
+    return name && name !== room ? name : undefined;
+  }
 
-  const speakerNames = (activity: Activity): string =>
-    activity.speakerIds
+  function speakerNames(activity: Activity): string {
+    return activity.speakerIds
       .map((id) => bundle.people.find((p) => p.id === id)?.name)
       .filter((name): name is string => Boolean(name))
       .join(', ');
-
-  /**
-   * Scroll each lane to its anchor card. Keyed on the day and the clock so a
-   * time-travelled clock re-anchors, and written without smooth scrolling so
-   * the first paint is already in the right place.
-   */
-  function openOnNow(lane: HTMLElement) {
-    const card = lane.querySelector<HTMLElement>('[data-anchor="true"]');
-    lane.scrollLeft = card ? card.offsetLeft : 0;
   }
 
-  let lanes = $state<HTMLElement[]>([]);
+  const leftOf = (t: Talk): number => t.startMin * pxPerMinute;
+  const widthOf = (t: Talk): number => Math.max(2, t.lengthMin * pxPerMinute - GAP_PX);
+
+  /**
+   * A room with nothing on now would be a blank strip that reads as broken;
+   * instead the stretch from now to its next talk says so.
+   */
+  const gaps = $derived(
+    rows.map((row) => {
+      if (row.talks.some((t) => t.startMs <= nowMs && t.endMs > nowMs)) return null;
+      const next = row.talks.find((t) => t.startMs > nowMs);
+      if (!next) return null;
+      const left = ((nowMs - span.origin) / 60000) * pxPerMinute;
+      const width = leftOf(next) - left - GAP_PX;
+      return width > 24 ? { left, width, until: next.act.start! } : null;
+    }),
+  );
+
+  /**
+   * How far a card's text moves right to start at the visible edge. CSS
+   * sticky cannot do this: it slides text only by the card's width less the
+   * text's own, which is not enough once a talk is well under way.
+   */
+  const textCut = (left: number, width: number): number =>
+    Math.max(0, Math.min(scrollX - left, width - MIN_TEXT_PX));
+
+  // ---- scrolling and following now -------------------------------------
+
+  /** Where this component last put the scroll; anything else was the attendee. */
+  let placedAt = -1;
+  let touched = false;
+  let anchoredFor = '';
+  let frame = 0;
+  function onScroll() {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (!scroller) return;
+      scrollX = scroller.scrollLeft;
+      if (Math.abs(scrollX - placedAt) > 2) touched = true;
+    });
+  }
+
+  /**
+   * Put now at the left edge on first paint, on a new day or a resized
+   * window, and again when now drifts most of the way across a view nobody
+   * has touched. Never after the attendee has scrolled or zoomed: following
+   * would pull the grid out from under their finger. Reads nothing from the
+   * DOM on an ordinary tick, so the clock costs no layout.
+   */
   $effect(() => {
-    void day;
-    void now;
-    for (const lane of lanes) if (lane) openOnNow(lane);
+    if (!scroller || pxPerMinute <= 0 || !Number.isFinite(nowMs)) return;
+    const target = Math.max(0, ((nowMs - span.origin) / 60000) * pxPerMinute);
+    const key = `${day}|${laneWidth}`;
+    const width = canvasWidth;
+    untrack(() => {
+      if (key !== anchoredFor) {
+        touched = false;
+        anchoredFor = key;
+      } else if (touched || target <= placedAt + laneWidth * FOLLOW) {
+        return;
+      }
+      placeScroll(scroller!, target, width);
+    });
+  });
+
+  /**
+   * The canvas can still be laid out at its old width when this runs, and a
+   * scroll past the end is silently clamped to it; so wait until the DOM has
+   * the width the scale asks for.
+   */
+  function placeScroll(el: HTMLElement, target: number, width: number, attempt = 0) {
+    if (el.scrollWidth >= Math.min(width, target + el.clientWidth) - 1) {
+      el.scrollLeft = target;
+      placedAt = el.scrollLeft;
+      scrollX = placedAt;
+    } else if (attempt < 30) {
+      requestAnimationFrame(() => placeScroll(el, target, width, attempt + 1));
+    }
+  }
+
+  // ---- zoom ---------------------------------------------------------------
+
+  /**
+   * Zoom so `focalX` pixels from the view's left keep showing the same moment:
+   * the time under the fingers, the pointer, or the left edge for a button.
+   */
+  async function zoomTo(next: number, focalX: number) {
+    const el = scroller;
+    if (!el || pxPerMinute <= 0) return;
+    const clamped = Math.min(MAX_WINDOW, Math.max(MIN_WINDOW, next));
+    if (Math.abs(clamped - windowMinutes) < 0.01) return;
+    const focalMinute = (el.scrollLeft + focalX) / pxPerMinute;
+    touched = true;
+    windowMinutes = clamped;
+    await tick();
+    const target = Math.max(0, focalMinute * (laneWidth / clamped) - focalX);
+    placeScroll(el, target, ((span.end - span.origin) / 60000) * (laneWidth / clamped));
+  }
+
+  /** Pinch updates arrive faster than frames; apply the latest once a frame. */
+  let pending: { window: number; focalX: number } | null = null;
+  function scheduleZoom(window: number, focalX: number) {
+    const first = pending === null;
+    pending = { window, focalX };
+    if (!first) return;
+    requestAnimationFrame(() => {
+      const p = pending;
+      pending = null;
+      if (p) void zoomTo(p.window, p.focalX);
+    });
+  }
+
+  const zoomIn = () => void zoomTo(windowMinutes / ZOOM_STEP, 0);
+  const zoomOut = () => void zoomTo(windowMinutes * ZOOM_STEP, 0);
+  const spanLabel = $derived(
+    windowMinutes < 60
+      ? `${Math.round(windowMinutes)} min`
+      : `${(Math.round((windowMinutes / 60) * 10) / 10).toString()} h`,
+  );
+
+  function onKeydown(event: KeyboardEvent) {
+    if (event.key === '+' || event.key === '=') zoomIn();
+    else if (event.key === '-' || event.key === '_') zoomOut();
+    else return;
+    event.preventDefault();
+  }
+
+  /**
+   * Two fingers pinch the time axis, horizontally only, like a calendar's
+   * day view turned on its side; ctrl-scroll, which is also what a desktop
+   * trackpad's pinch sends, does the same. One finger still scrolls both
+   * ways, so the page keeps moving between rooms.
+   */
+  $effect(() => {
+    const el = scroller;
+    if (!el) return;
+    let start: { span: number; window: number; focalX: number } | null = null;
+    const spanX = (t: TouchList) => Math.max(40, Math.abs(t[0]!.clientX - t[1]!.clientX));
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      const left = el.getBoundingClientRect().left;
+      start = {
+        span: spanX(e.touches),
+        window: windowMinutes,
+        focalX: (e.touches[0]!.clientX + e.touches[1]!.clientX) / 2 - left,
+      };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!start || e.touches.length !== 2) return;
+      e.preventDefault();
+      scheduleZoom(start.window / (spanX(e.touches) / start.span), start.focalX);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) start = null;
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      const left = el.getBoundingClientRect().left;
+      scheduleZoom(windowMinutes * Math.exp(e.deltaY * 0.01), e.clientX - left);
+    };
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd);
+    el.addEventListener('touchcancel', onTouchEnd);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+      el.removeEventListener('wheel', onWheel);
+    };
   });
 </script>
 
-<div class="nowgrid" data-testid="now-grid">
-  {#each byLocation as [locId, acts], row (locId)}
-    {@const name = locationName(locId) ?? locId}
-    {@const anchor = anchorId(acts)}
-    <section class="room">
-      <h3 class="rowhead"><span>{name}</span></h3>
-      <!-- A scrollable region needs to be reachable by keyboard to be scrollable by keyboard. -->
-      <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-      <div
-        class="lane"
-        role="group"
-        aria-label="{name}, by time"
-        tabindex="0"
-        bind:this={lanes[row]}
-      >
-        {#each acts as act (act.id)}
-          {@const progress = activityProgress(act, now)}
-          {@const running = progress > 0 && progress < 1}
-          {@const label = `${act.title}, ${formatTime(act.start!)}–${formatTime(act.end!)}, ${name}`}
-          <a
-            class="card"
-            class:running
-            class:cancelled={act.cancelled}
-            href={resolve(`/activity/${act.id}`)}
-            aria-label={label}
-            data-anchor={act.id === anchor}
-          >
-            <span class="meta"
-              >{running ? 'Now · ' : ''}{formatTime(act.start!)}–{formatTime(act.end!)}</span
-            >
-            {#if trackName(act)}<span class="track">{trackName(act)}</span>{/if}
-            <strong class="title">{act.title}</strong>
-            {#if speakerNames(act)}<span class="speakers">{speakerNames(act)}</span>{/if}
-            {#if running}
-              <span
-                class="progress"
-                role="progressbar"
-                aria-label="Progress of {act.title}"
-                aria-valuenow={Math.round(progress * 100)}
-                aria-valuemin={0}
-                aria-valuemax={100}
+<div class="toolbar">
+  <div class="header">{@render header?.()}</div>
+  <div class="zoom" role="group" aria-label="Zoom the timeline">
+    <button
+      type="button"
+      aria-label="Zoom out"
+      disabled={windowMinutes >= MAX_WINDOW}
+      onclick={zoomOut}>−</button
+    >
+    <span class="span" aria-live="polite" data-testid="now-grid-span">{spanLabel}</span>
+    <button
+      type="button"
+      aria-label="Zoom in"
+      disabled={windowMinutes <= MIN_WINDOW}
+      onclick={zoomIn}>+</button
+    >
+  </div>
+</div>
+
+<div class="nowgrid" data-testid="now-grid" style:--view-w="{laneWidth}px">
+  <!-- The names are drawn here, frozen; each lane below carries its own for assistive tech. -->
+  <div class="heads" aria-hidden="true">
+    {#each rows as row (row.locationId)}
+      <div class="rowhead"><span>{row.name}</span></div>
+    {/each}
+  </div>
+  <!-- A scrollable region needs to be reachable by keyboard to be scrollable by
+       keyboard, and once focused, + and − zoom it: the keyboard's pinch. -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
+  <div
+    class="scroller"
+    role="region"
+    aria-label="Sessions by room; scroll right for later, plus and minus to zoom"
+    tabindex="0"
+    bind:this={scroller}
+    bind:clientWidth={laneWidth}
+    onscroll={onScroll}
+    onkeydown={onKeydown}
+  >
+    <div class="canvas" style:width="{canvasWidth}px">
+      <!-- The scale comes from the measured width: drawing the cards before it
+           is known would lay out every card twice on the page's first paint. -->
+      {#if pxPerMinute > 0}
+        {#each rows as row, i (row.locationId)}
+          {@const gap = gaps[i]}
+          <div class="lane" role="group" aria-label={row.name}>
+            {#if gap}
+              <div
+                class="gap"
+                style:left="{gap.left}px"
+                style:width="{gap.width}px"
+                style:--cut="{textCut(gap.left, gap.width)}px"
               >
-                <span style:width="{Math.round(progress * 100)}%"></span>
-              </span>
+                <span class="inner"
+                  ><span class="free">Free until {formatTime(gap.until)}</span></span
+                >
+              </div>
             {/if}
-          </a>
+            {#each row.talks as talk (talk.act.id)}
+              {@const left = leftOf(talk)}
+              {@const width = widthOf(talk)}
+              {@const progress = (nowMs - talk.startMs) / (talk.endMs - talk.startMs)}
+              {@const running = progress > 0 && progress < 1}
+              {@const go = talk.act.id === goId}
+              <a
+                class="talk"
+                class:running
+                class:go
+                class:devroom={Boolean(talk.devroom)}
+                class:cancelled={talk.act.cancelled}
+                href={resolve(`/activity/${talk.act.id}`)}
+                aria-label="{go && goLabel ? `${goLabel}: ` : ''}{talk.label}"
+                data-go={go}
+                style:left="{left}px"
+                style:width="{width}px"
+                style:top="calc({talk.lane} * var(--row-h) / {talk.lanes})"
+                style:height="calc(var(--row-h) / {talk.lanes} - var(--row-gap))"
+                style:--devroom={talk.devroom}
+                style:--cut="{textCut(left, width)}px"
+              >
+                <span class="inner">
+                  {#if go && goLabel}<span class="kicker">{goLabel}</span>{/if}
+                  <span class="meta">{running ? 'Now · ' : ''}{talk.times}</span>
+                  <strong class="title">{talk.act.title}</strong>
+                  {#if talk.pill}<span class="pill">{talk.pill}</span>{/if}
+                  {#if talk.speakers}<span class="speakers">{talk.speakers}</span>{/if}
+                  {#if running}
+                    <!-- Along the bottom of the visible text, not the whole card:
+                       the card's elapsed part is the bit scrolled off the left. -->
+                    <span
+                      class="progress"
+                      role="progressbar"
+                      aria-label="Progress of {talk.act.title}"
+                      aria-valuenow={Math.round(progress * 100)}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                    >
+                      <span style:width="{Math.round(progress * 100)}%"></span>
+                    </span>
+                  {/if}
+                </span>
+              </a>
+            {/each}
+          </div>
         {/each}
-      </div>
-    </section>
-  {/each}
+      {/if}
+    </div>
+  </div>
 </div>
 
 <style>
   .nowgrid {
-    /* Near the full lane, with a sliver of the next talk left showing so the
-       lane reads as scrollable without a scrollbar to prove it. */
-    --card-w: min(21rem, 100% - 2.25rem);
-    --card-h: 8.5rem;
+    --row-h: 7rem;
+    --row-gap: 0.35rem;
+    --head-w: 1.3rem;
+    display: grid;
+    grid-template-columns: var(--head-w) minmax(0, 1fr);
+    column-gap: 0.3rem;
+  }
+  .heads {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    /* Lanes scroll inside themselves; the page never grows sideways. */
-    max-width: 100%;
-    overflow-x: hidden;
   }
-  .room {
-    display: flex;
-    align-items: stretch;
-    gap: 0.4rem;
-    min-width: 0;
-  }
-  /* Frozen in the left margin: the lane scrolls under it, the name does not. */
+  /* Frozen in the left margin: the grid scrolls past it, the name stays. */
   .rowhead {
-    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 1.4rem;
-    margin: 0;
-    font-size: 0.7rem;
+    height: var(--row-h);
+    font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.04em;
     color: var(--text-muted);
@@ -179,106 +512,227 @@
   .rowhead span {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    max-height: var(--card-h);
+    max-height: calc(var(--row-h) - 0.5rem);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .lane {
-    position: relative;
-    display: flex;
-    gap: 0.5rem;
-    min-width: 0;
-    flex: 1 1 auto;
+  .scroller {
     overflow-x: auto;
-    scroll-snap-type: x proximity;
-    padding-bottom: 0.35rem;
+    overscroll-behavior-x: contain;
+    /* One finger scrolls either way; a pinch is ours, not the page's zoom. */
+    touch-action: pan-x pan-y;
   }
-  .lane:focus-visible {
+  .scroller:focus-visible {
     outline: 2px solid var(--event-primary);
     outline-offset: 2px;
   }
-  .card {
-    flex: 0 0 var(--card-w);
-    scroll-snap-align: start;
-    display: flex;
-    flex-direction: column;
-    height: var(--card-h);
+  .canvas {
+    position: relative;
+  }
+  .lane {
+    position: relative;
+    height: var(--row-h);
+  }
+  .talk {
+    /* A devroom talk wears its devroom's colour, the rest the event's: the
+       same rule and tint as the schedule grid (issue 469). */
+    --hue: var(--devroom, var(--event-primary));
+    position: absolute;
     box-sizing: border-box;
-    overflow: hidden;
-    background: var(--surface-raised);
+    overflow: clip;
+    display: block;
+    background: color-mix(in srgb, var(--hue) var(--devroom-tint), var(--surface-raised));
     border: 1px solid var(--line);
-    border-left: 3px solid var(--event-primary);
-    border-radius: 8px;
-    padding: 0.5rem 0.65rem;
+    border-left: 4px solid var(--hue);
+    border-radius: 6px;
     color: var(--text);
     text-decoration: none;
-    font-size: 0.75rem;
-    line-height: 1.3;
+    font-size: 0.74rem;
+    line-height: 1.25;
   }
-  .card.running {
-    background: color-mix(in srgb, var(--mint-soft) 55%, var(--surface-raised));
-    border-left-color: var(--mint);
-  }
-  .card:hover {
+  .talk:hover {
     border-color: var(--event-accent);
+    border-left-color: var(--hue);
   }
-  .card.cancelled {
-    opacity: 0.8;
+  .talk.cancelled {
+    opacity: 0.75;
     text-decoration: line-through;
   }
-  .meta {
+  /* The one card to go to. The devroom edge stays so the branding holds. */
+  .talk.go {
+    background: color-mix(in srgb, var(--amber-soft) 85%, var(--surface-raised));
+    border-color: var(--amber);
+    box-shadow: inset 0 0 0 2px var(--amber);
+  }
+  /* Moved right by --cut to start at the visible edge, and never wider than
+     the view, so a long card's title wraps where it can be read. Block flow,
+     not flex: a flex column shrinks its lines until they are cut in half. */
+  /* The container is the visible text, not the card: a long talk that is
+     mostly scrolled off the left is as cramped as a lightning talk. */
+  .inner {
+    position: relative;
+    container-type: inline-size;
     display: block;
-    font-size: 0.68rem;
+    box-sizing: border-box;
+    margin-left: var(--cut, 0px);
+    width: min(calc(100% - var(--cut, 0px)), var(--view-w));
+    height: 100%;
+    padding: 0.3rem 0.5rem 0.4rem;
+    overflow: hidden;
+  }
+  .inner > * {
+    display: block;
+  }
+  .kicker {
+    font-size: 0.6rem;
+    line-height: 1.3;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber-ink);
+    white-space: nowrap;
+  }
+  .meta {
+    font-size: 0.66rem;
     color: var(--text-muted);
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .running .meta {
     color: var(--event-primary-text);
     font-weight: 700;
   }
-  .track {
+  .inner > .title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-block: 0.08rem 0.12rem;
+    font-size: 0.8rem;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+  /* The devroom pill: the schedule grid's band colour, lifted 30% towards
+     white with ink on it, which holds 5.9:1 or better for all eight
+     devrooms in both themes. Other tracks get a plain pill. */
+  .inner > .pill {
     display: inline-block;
-    align-self: flex-start;
-    margin-top: 0.2rem;
     max-width: 100%;
-    padding: 0.05rem 0.4rem;
+    box-sizing: border-box;
+    margin-bottom: 0.1rem;
+    vertical-align: top;
+    padding: 0.02rem 0.4rem;
     border-radius: 999px;
-    background: var(--surface);
     border: 1px solid var(--line);
-    font-size: 0.62rem;
-    font-weight: 600;
+    background: var(--surface);
+    font-size: 0.6rem;
+    font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .title {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin-top: 0.25rem;
-    font-size: 0.85rem;
+  .devroom .pill {
+    border-color: transparent;
+    background: color-mix(in srgb, var(--devroom) 70%, var(--on-ink));
+    color: var(--ink);
   }
   .speakers {
-    display: block;
-    margin-top: 0.15rem;
     color: var(--text-muted);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .progress {
-    display: block;
-    height: 4px;
-    margin-top: auto;
+  .inner > .progress {
+    position: absolute;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0.3rem;
+    height: 3px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--text-muted) 25%, transparent);
     overflow: hidden;
+    background: color-mix(in srgb, var(--text-muted) 25%, transparent);
   }
-  .progress > span {
+  .inner > .progress > span {
     display: block;
     height: 100%;
-    background: var(--event-primary);
+    background: var(--hue);
+  }
+  .gap {
+    position: absolute;
+    top: 0;
+    height: calc(var(--row-h) - var(--row-gap));
+    box-sizing: border-box;
+    overflow: clip;
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+  }
+  .gap .inner {
+    display: flex;
+    align-items: center;
+  }
+  .gap .free {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    /* Off the screen's edge, where the grid below runs. */
+    padding-right: 0.5rem;
+  }
+  .zoom {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  .zoom button {
+    min-width: 2.25rem;
+    min-height: 2.25rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface-raised);
+    color: var(--text);
+    font-size: 1.05rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .zoom button:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .zoom .span {
+    min-width: 3.2rem;
+    text-align: center;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+  }
+  /* Zoomed out, a short talk is a sliver: its colour says it is there. */
+  @container (max-width: 2.5rem) {
+    .inner > * {
+      visibility: hidden;
+    }
+  }
+  /* A five-minute lightning talk is a fifth of the view: time and title
+     only, so neither is cut to nothing. */
+  @container (max-width: 7.5rem) {
+    .inner > .speakers,
+    .inner > .pill {
+      display: none;
+    }
+    .inner > .title {
+      -webkit-line-clamp: 4;
+      line-clamp: 4;
+    }
   }
 </style>

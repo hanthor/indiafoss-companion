@@ -100,13 +100,14 @@ test.describe('desktop', () => {
     expect(firstMain === -1 || firstRail < firstMain, order.join(' → ')).toBe(true);
   });
 
-  test('Now and Plan use two columns', async ({ page }) => {
+  test('Now gives the grid the full width, and Plan uses two columns', async ({ page }) => {
+    // The grid is the page (#685): a 25-minute talk spans it, so it takes the
+    // whole main column rather than sharing it with a plan card.
     await settle(page, '/now');
-    const plan = page.getByRole('region', { name: 'Your plan now' });
     const live = page.getByRole('region', { name: 'Happening now' });
-    const planBox = await box(plan);
     const liveBox = await box(live);
-    expect(liveBox.x).toBeGreaterThan(planBox.x + planBox.width - 1);
+    const mainBox = await box(page.locator('main'));
+    expect(liveBox.width).toBeGreaterThan(mainBox.width * 0.9);
     await expectNoHorizontalScroll(page);
 
     await settle(page, '/plan');
