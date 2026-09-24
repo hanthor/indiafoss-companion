@@ -66,7 +66,28 @@
   const brandHref = resolve('/');
   const logoSrc = `${base}/branding/indiafoss-2026-black.svg`;
 
-  registerSW({ immediate: true });
+  // A browser only looks for a new build when a page is navigated or loaded,
+  // and a phone keeps the app open for days: without these checks an
+  // installed app stays on its old shell. On a new build the worker takes
+  // over and the page reloads once (autoUpdate), so the timed check only
+  // runs in the background, never under someone's finger; coming back to
+  // the app checks at once.
+  const APP_UPDATE_EVERY_MS = 15 * 60_000;
+  registerSW({
+    immediate: true,
+    onRegisteredSW(_url, registration) {
+      if (!registration) return;
+      const check = () => {
+        if (navigator.onLine) void registration.update().catch(() => {});
+      };
+      setInterval(() => {
+        if (document.visibilityState === 'hidden') check();
+      }, APP_UPDATE_EVERY_MS);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') check();
+      });
+    },
+  });
 
   onMount(() => {
     void hydratePreferences();
