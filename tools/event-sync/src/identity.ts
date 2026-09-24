@@ -40,4 +40,37 @@ export function preserveActivityIds(previous: EventBundle, next: EventBundle): v
     activity.id = id;
     assigned.add(id);
   }
+  keepMovedOrganiserRows(previous, next, assigned);
+}
+
+/**
+ * An organiser row (a ceremony, a keynote slot) that moved to another day or
+ * room matches nothing above, and the organiser often recreates the row, so
+ * it arrives with a new id and every bookmark on it is lost. When its title
+ * and type name exactly one row in both revisions, and that old id is free,
+ * it keeps the old id. Repeated rows such as "Lunch" never qualify.
+ */
+function keepMovedOrganiserRows(
+  previous: EventBundle,
+  next: EventBundle,
+  assigned: Set<string>,
+): void {
+  const key = (a: Activity) => `${a.type}\u0000${a.title}`;
+  const count = (list: Activity[]) => {
+    const n = new Map<string, number>();
+    for (const a of list) if (!a.proposalId) n.set(key(a), (n.get(key(a)) ?? 0) + 1);
+    return n;
+  };
+  const before = count(previous.activities);
+  const after = count(next.activities);
+  const previousIds = new Set(previous.activities.map((a) => a.id));
+  for (const activity of next.activities) {
+    if (activity.proposalId || previousIds.has(activity.id)) continue;
+    if (before.get(key(activity)) !== 1 || after.get(key(activity)) !== 1) continue;
+    const old = previous.activities.find((a) => !a.proposalId && key(a) === key(activity))!;
+    if (assigned.has(old.id)) continue;
+    assigned.delete(activity.id);
+    activity.id = old.id;
+    assigned.add(old.id);
+  }
 }

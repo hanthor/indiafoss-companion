@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
+import { aTalk } from './live-2026.js';
 
 /**
  * Offline E2E gate (§52) — a release is not eligible if this fails:
@@ -60,8 +61,9 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await expect(page.getByRole('article').first()).toBeVisible();
 
   // 8. Open a session detail.
-  await page.goto(appUrl('/activity/act-28la68il6o'));
-  await expect(page.getByRole('heading', { name: /Minnow/ })).toBeVisible();
+  const talk = aTalk();
+  await page.goto(appUrl(`/activity/${talk.id}`));
+  await expect(page.getByRole('heading', { name: talk.title })).toBeVisible();
 
   // 9. Modify Elo ranking.
   await page.goto(appUrl('/plan/rank'));
