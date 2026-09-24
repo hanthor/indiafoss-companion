@@ -43,6 +43,7 @@ import org.indiafoss.companion.ui.screens.NowScreen
 import org.indiafoss.companion.ui.screens.PlanScreen
 import org.indiafoss.companion.ui.screens.RankScreen
 import org.indiafoss.companion.ui.screens.ScheduleScreen
+import org.indiafoss.companion.ui.screens.ScheduleView
 import org.indiafoss.companion.ui.screens.SettingsScreen
 import org.indiafoss.companion.ui.screens.SpeakerScreen
 import org.indiafoss.companion.ui.screens.WelcomeScreen
@@ -50,8 +51,8 @@ import org.indiafoss.companion.ui.screens.WelcomeScreen
 private data class Destination(val route: String, val label: String, val icon: ImageVector)
 
 private val destinations = listOf(
-    Destination("now", "Now", Icons.Filled.Schedule),
-    Destination("schedule", "Schedule", Icons.Filled.CalendarMonth),
+    // One tab for every view of the programme; it opens on the timeline.
+    Destination("now", "Schedule", Icons.Filled.CalendarMonth),
     Destination("plan", "My plan", Icons.Filled.Star),
     Destination("map", "Map", Icons.Filled.Map),
     Destination("explore", "Explore", Icons.Filled.Explore),
@@ -119,10 +120,10 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (backStack?.destination?.route != "welcome") NavigationBar {
-                val current = backStack?.destination?.route
+                val current = backStack?.destination?.route?.substringBefore('?')
                 destinations.forEach { destination ->
                     NavigationBarItem(
-                        selected = current == destination.route,
+                        selected = current == destination.route || (destination.route == "now" && current == "schedule"),
                         onClick = {
                             navController.navigate(destination.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
@@ -142,18 +143,31 @@ fun CompanionApp(viewModel: CompanionViewModel) {
         Column(Modifier.padding(padding)) {
         val route = backStack?.destination?.route
         // The countdown strip sits under every tab's app bar, not over detail screens.
-        if (route != null && destinations.any { it.route == route }) {
+        if (route != null && (destinations.any { it.route == route } || route.startsWith("schedule"))) {
             LeaveByBanner(state, onOpenPlan = { navController.navigate("plan") }) { navController.navigate("activity/$it") }
         }
         NavHost(
             navController = navController,
             startDestination = "now",
         ) {
-            composable("now") {
-                NowScreen(state, topActions, viewModel::refresh, viewModel::dismissUpdate, onOpenPlan = { navController.navigate("plan") }) { navController.navigate("activity/$it") }
+            // The Schedule tab's three views swap in place rather than stacking up.
+            val showView: (ScheduleView) -> Unit = { view ->
+                val target = when (view) {
+                    ScheduleView.Timeline -> "now"
+                    ScheduleView.Rooms -> "schedule?view=rooms"
+                    ScheduleView.Agenda -> "schedule?view=agenda"
+                }
+                navController.navigate(target) {
+                    popUpTo(navController.graph.findStartDestination().id)
+                    launchSingleTop = true
+                }
             }
-            composable("schedule") {
-                ScheduleScreen(state, topActions, viewModel::toggleBookmark) {
+            composable("now") {
+                NowScreen(state, topActions, viewModel::refresh, viewModel::dismissUpdate, onOpenPlan = { navController.navigate("plan") }, onView = showView) { navController.navigate("activity/$it") }
+            }
+            composable("schedule?view={view}") { entry ->
+                val view = if (entry.arguments?.getString("view") == "rooms") ScheduleView.Rooms else ScheduleView.Agenda
+                ScheduleScreen(state, topActions, viewModel::toggleBookmark, view = view, onView = showView) {
                     navController.navigate("activity/$it")
                 }
             }

@@ -186,7 +186,7 @@
     const path = page.url.pathname.replace(base, '') || '/';
     const names: Record<string, string> = {
       '/': 'Home',
-      '/now': 'Now',
+      '/now': 'Schedule',
       '/plan': 'Plan',
       '/plan/rank': 'Rank sessions',
       '/schedule': 'Schedule',
@@ -217,25 +217,21 @@
 </svelte:head>
 
 {#snippet primaryLinks()}
-  <a href={resolve('/now')} aria-current={isActive('/now') ? 'page' : undefined}>
+  <!-- One tab for every view of the programme; it opens on the timeline. -->
+  <a
+    href={resolve('/now')}
+    aria-current={isActive('/now') || isActive('/schedule') ? 'page' : undefined}
+  >
     <svg viewBox="0 0 24 24" aria-hidden="true"
-      ><path
-        d="M12 3a9 9 0 110 18 9 9 0 010-18zm0 2a7 7 0 100 14 7 7 0 000-14zm-1 3h2v4.6l3 1.8-1 1.7-4-2.4V8z"
-      /></svg
+      ><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zM6 9v10h12V9H6zm2 2h3v3H8v-3z" /></svg
     >
-    <span>Now</span>
+    <span>Schedule</span>
   </a>
   <a href={resolve('/plan')} aria-current={isActive('/plan') ? 'page' : undefined}>
     <svg viewBox="0 0 24 24" aria-hidden="true"
       ><path d="M5 4h14v16H5V4zm2 2v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2zm0 4h4v2H9v-2z" /></svg
     >
     <span>Plan</span>
-  </a>
-  <a href={resolve('/schedule')} aria-current={isActive('/schedule') ? 'page' : undefined}>
-    <svg viewBox="0 0 24 24" aria-hidden="true"
-      ><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zM6 9v10h12V9H6zm2 2h3v3H8v-3z" /></svg
-    >
-    <span>Schedule</span>
   </a>
   <a href={resolve('/map')} aria-current={isActive('/map') ? 'page' : undefined}>
     <svg viewBox="0 0 24 24" aria-hidden="true"
@@ -309,7 +305,7 @@
   {/if}
 
   <div class="body">
-    <!-- Desktop only (≥1024px): the same five destinations as the bottom tab
+    <!-- Desktop only (≥1024px): the same four destinations as the bottom tab
          bar, as a side rail before the content so keyboard order follows the
          visual order. The tab bar is hidden there, so only one is in the tree. -->
     <nav class="rail" aria-label="Primary" data-testid="nav-rail">
@@ -539,7 +535,7 @@
     bottom: 0;
     z-index: 3;
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     background: var(--surface);
     border-top: 1px solid var(--line);
     padding-bottom: var(--safe-bottom);

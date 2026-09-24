@@ -44,6 +44,7 @@ import org.indiafoss.companion.ui.screens.MapScreen
 import org.indiafoss.companion.ui.screens.NowScreen
 import org.indiafoss.companion.ui.screens.PlanScreen
 import org.indiafoss.companion.ui.screens.RankScreen
+import org.indiafoss.companion.ui.screens.ScheduleView
 import org.indiafoss.companion.ui.screens.ScheduleScreen
 import org.indiafoss.companion.ui.screens.SettingsScreen
 import org.indiafoss.companion.ui.screens.WelcomeScreen
@@ -207,8 +208,11 @@ class ScreenshotTest {
 
     @Test fun scheduleRoomGrid() {
         var opened: String? = null
-        compose.setContent { CompanionTheme(dynamicColor = false) { ScheduleScreen(state(), {}, {}) { opened = it } } }
-        compose.onNodeWithText("Room grid").performClick()
+        compose.setContent {
+            CompanionTheme(dynamicColor = false) {
+                ScheduleScreen(state(), {}, {}, view = ScheduleView.Rooms) { opened = it }
+            }
+        }
         capture("schedule-grid")
         compose.onNodeWithContentDescription("Schedule by room and time").assertExists()
         // Every room with a session that day is a column as well as a chip.

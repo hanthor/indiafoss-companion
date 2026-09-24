@@ -1,4 +1,5 @@
 <script lang="ts">
+  import ScheduleViews from '$lib/components/ScheduleViews.svelte';
   import { livePlanState } from '$lib/resolved-plan.svelte';
   import { eventDay, nextPlannedItem } from '$lib/resolved-plan';
   import { resolve } from '$app/paths';
@@ -79,8 +80,10 @@
 {/snippet}
 
 <EventGate>
+  <!-- The view switch is the page's visible title; the heading stays for assistive tech. -->
+  <h1 class="sr-only">Schedule</h1>
   <div class="titlebar">
-    <h1>Now</h1>
+    <ScheduleViews current="timeline" />
     {#if day}<a href={resolve(`/plan?day=${day}`)}>Your plan</a>{/if}
   </div>
 
@@ -180,12 +183,10 @@
   /* Density (issue 685): the grid is the page, so the chrome above it stays small. */
   .titlebar {
     display: flex;
-    align-items: baseline;
+    align-items: center;
+    margin-block: 0.5rem;
     justify-content: space-between;
     gap: 0.5rem;
-  }
-  h1 {
-    margin-block: 0.4rem 0.5rem;
   }
   .titlebar a {
     font-size: 0.85rem;

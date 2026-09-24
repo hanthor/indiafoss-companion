@@ -12,7 +12,11 @@ test('room selection applies to list and grid, with venue-local hour labels', as
   const cards = page.getByRole('article');
   await expect(cards.first()).toBeVisible();
   for (const card of await cards.all()) await expect(card).toContainText('Room 2');
-  await page.getByRole('button', { name: 'Room grid', exact: true }).click();
+  // The room filter carries across the switch to the Rooms view.
+  await page
+    .getByRole('navigation', { name: 'Schedule view' })
+    .getByRole('link', { name: 'Rooms' })
+    .click();
   await expect(page.locator('.colhead')).toHaveCount(1);
   await expect(page.locator('.colhead')).toHaveText('Room 2');
   await expect(page.locator('.tick').filter({ hasText: '11:00' })).toBeVisible();
@@ -25,7 +29,9 @@ test('generated plan is marked in the schedule after navigation and reload', asy
   const link = page.locator('.itinerary li:not(.flex) a').first();
   await expect(link).toBeVisible();
   const href = await link.getAttribute('href');
+  // The Schedule tab opens on the timeline; the agenda is one view along.
   await page.getByRole('link', { name: 'Schedule', exact: true }).click();
+  await page.getByRole('link', { name: 'Agenda', exact: true }).click();
   const card = page.getByRole('article').filter({ has: page.locator(`a[href="${href}"]`) });
   await expect(card).toHaveClass(/planned/);
   await page.reload();
