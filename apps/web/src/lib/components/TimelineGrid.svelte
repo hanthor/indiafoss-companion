@@ -2,14 +2,21 @@
   import type { Activity, EventBundle } from '@indiafoss/model';
   import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
+  import { tick } from 'svelte';
   import { activityDevroomColor, devroomColor } from '$lib/devroom-art';
   import { devroomBlocks, devroomTrackNames } from '$lib/devrooms';
 
   /** What the attendee has said about a talk, for the grid's colouring. */
   export type GridChoice = 'yes' | 'must' | 'no';
 
-  /** Pixel height per minute of wall time. */
-  const PPM = 2;
+  /** Pixel height per minute of wall time: the default, and how far zoom goes. */
+  const DEFAULT_PPM = 2;
+  const MIN_PPM = 0.6;
+  const MAX_PPM = 8;
+  /** One press of + or −. */
+  const ZOOM_STEP = 1.6;
+  /** The column headings above the body, which the scroll offset includes. */
+  const HEAD_PX = 36;
   /** Fixed width of each location column. */
   const COLUMN_WIDTH = 240;
 
@@ -36,6 +43,8 @@
     /** When it falls within the day: a line marks it, and the grid opens scrolled to it. */
     now?: string;
   } = $props();
+
+  let ppm = $state(DEFAULT_PPM);
 
   // locationId -> activities, as a plain array of entries (kept non-reactive).
   const byLocation = $derived(
@@ -73,11 +82,11 @@
   );
   const dayEndMs = $derived(ends.length > 0 ? Date.parse(ends.at(-1)!) : dayStartMs + 60 * 60000);
   const totalMinutes = $derived(Math.max(60, (dayEndMs - dayStartMs) / 60000));
-  const totalHeight = $derived(totalMinutes * PPM);
+  const totalHeight = $derived(totalMinutes * ppm);
 
   const nowTop = $derived.by(() => {
     const ms = now ? Date.parse(now) : NaN;
-    return ms >= dayStartMs && ms <= dayEndMs ? ((ms - dayStartMs) / 60000) * PPM : null;
+    return ms >= dayStartMs && ms <= dayEndMs ? ((ms - dayStartMs) / 60000) * ppm : null;
   });
 
   // Open at now, once per day shown; after that the scroll is the reader's.
@@ -88,6 +97,85 @@
     placedFor = day;
     // A little of what just started stays in view above the line.
     scroller.scrollTop = Math.max(0, nowTop - 60);
+  });
+
+  /**
+   * Zoom the time axis so the moment `focalY` px below the view's top stays
+   * put: under the fingers, the pointer, or the top edge for a key press.
+   */
+  async function zoomTo(next: number, focalY: number) {
+    const el = scroller;
+    if (!el) return;
+    const clamped = Math.min(MAX_PPM, Math.max(MIN_PPM, next));
+    if (Math.abs(clamped - ppm) < 0.001) return;
+    const minute = (el.scrollTop + focalY - HEAD_PX) / ppm;
+    ppm = clamped;
+    await tick();
+    el.scrollTop = Math.max(0, minute * clamped + HEAD_PX - focalY);
+  }
+
+  /** Pinch updates arrive faster than frames; apply the latest once a frame. */
+  let pending: { ppm: number; focalY: number } | null = null;
+  function scheduleZoom(next: number, focalY: number) {
+    const first = pending === null;
+    pending = { ppm: next, focalY };
+    if (!first) return;
+    requestAnimationFrame(() => {
+      const p = pending;
+      pending = null;
+      if (p) void zoomTo(p.ppm, p.focalY);
+    });
+  }
+
+  function onKeydown(event: KeyboardEvent) {
+    if (event.key === '+' || event.key === '=') void zoomTo(ppm * ZOOM_STEP, 0);
+    else if (event.key === '-' || event.key === '_') void zoomTo(ppm / ZOOM_STEP, 0);
+    else return;
+    event.preventDefault();
+  }
+
+  // Two fingers pinch the time axis, vertically only; ctrl-scroll (a desktop
+  // trackpad's pinch) does the same. One finger still scrolls both ways.
+  $effect(() => {
+    const el = scroller;
+    if (!el) return;
+    let start: { span: number; ppm: number; focalY: number } | null = null;
+    const spanY = (t: TouchList) => Math.max(40, Math.abs(t[0]!.clientY - t[1]!.clientY));
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 2) return;
+      const top = el.getBoundingClientRect().top;
+      start = {
+        span: spanY(e.touches),
+        ppm,
+        focalY: (e.touches[0]!.clientY + e.touches[1]!.clientY) / 2 - top,
+      };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!start || e.touches.length !== 2) return;
+      e.preventDefault();
+      scheduleZoom(start.ppm * (spanY(e.touches) / start.span), start.focalY);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) start = null;
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) return;
+      e.preventDefault();
+      const top = el.getBoundingClientRect().top;
+      scheduleZoom(ppm * Math.exp(-e.deltaY * 0.01), e.clientY - top);
+    };
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', onTouchEnd);
+    el.addEventListener('touchcancel', onTouchEnd);
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+      el.removeEventListener('touchcancel', onTouchEnd);
+      el.removeEventListener('wheel', onWheel);
+    };
   });
 
   const hours = $derived(
@@ -123,8 +211,8 @@
     const lanes = Math.max(1, laneEnds.length);
     return assigned.map(({ act, lane }) => ({
       act,
-      top: ((Date.parse(act.start!) - dayStartMs) / 60000) * PPM,
-      height: Math.max(12, ((Date.parse(act.end!) - Date.parse(act.start!)) / 60000) * PPM),
+      top: ((Date.parse(act.start!) - dayStartMs) / 60000) * ppm,
+      height: Math.max(12, ((Date.parse(act.end!) - Date.parse(act.start!)) / 60000) * ppm),
       left: (lane / lanes) * 100,
       width: 100 / lanes,
     }));
@@ -138,8 +226,8 @@
   ): { name: string; top: number; height: number; color: string | undefined }[] {
     return devroomBlocks(acts, devroomNames).map((block) => ({
       name: block.name,
-      top: ((Date.parse(block.start) - dayStartMs) / 60000) * PPM,
-      height: ((Date.parse(block.end) - Date.parse(block.start)) / 60000) * PPM,
+      top: ((Date.parse(block.start) - dayStartMs) / 60000) * ppm,
+      height: ((Date.parse(block.end) - Date.parse(block.start)) / 60000) * ppm,
       color: devroomColor(block.trackId, bundle.id),
     }));
   }
@@ -156,17 +244,19 @@
     });
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex, a11y_no_noninteractive_element_interactions -->
 <div
   class="timeline"
   bind:this={scroller}
   role="region"
-  aria-label="Schedule by room and time"
+  aria-label="Schedule by room and time; plus and minus to zoom"
   tabindex="0"
+  onkeydown={onKeydown}
   style:--total-height="{totalHeight}px"
 >
   <div class="ruler">
     {#each hours as hour (hour)}
-      <div class="tick" style:top="{((Date.parse(hour) - dayStartMs) / 60000) * PPM + 36}px">
+      <div class="tick" style:top="{((Date.parse(hour) - dayStartMs) / 60000) * ppm + 36}px">
         <span>{hourLabel(hour)}</span>
       </div>
     {/each}
@@ -259,6 +349,8 @@
     font-weight: 600;
   }
   .timeline {
+    /* One finger scrolls either way; a pinch is ours, not the page's zoom. */
+    touch-action: pan-x pan-y;
     display: flex;
     gap: 0;
     overflow: auto;
