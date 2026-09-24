@@ -923,3 +923,20 @@ test('home lists the day-before workshops and summit until they end', async ({ p
   await expect(page.getByRole('heading', { name: /Find your devroom/ })).toBeVisible();
   await expect(page.getByRole('region', { name: /The day before/ })).toHaveCount(0);
 });
+
+test('each devroom has a landing page reached from home and its sessions', async ({ page }) => {
+  await page.goto(appUrl('/?setup=done&event=indiafoss-2026'));
+  await page
+    .getByRole('link', { name: /Open Hardware/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/devroom\/devroom-open-hardware$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Open Hardware' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Devroom managers' })).toBeVisible();
+  const sessions = page.getByRole('region', { name: /Sessions/ }).getByRole('listitem');
+  expect(await sessions.count()).toBeGreaterThan(0);
+  await sessions.first().getByRole('link').click();
+  await expect(page).toHaveURL(/\/activity\//);
+  await page.getByRole('link', { name: 'Open Hardware' }).click();
+  await expect(page).toHaveURL(/\/devroom\/devroom-open-hardware$/);
+});

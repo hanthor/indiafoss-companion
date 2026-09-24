@@ -146,7 +146,7 @@
       </p>
       <div class="devroom-grid">
         {#each bundle.tracks.filter((track) => devroomArt[track.id]) as track (track.id)}
-          <a class="devroom-link" href={resolve(`/plan/rank?mode=rooms#devroom-${track.id}`)}>
+          <a class="devroom-link" href={resolve(`/devroom/${track.id}`)}>
             <DevroomBanner trackId={track.id} eventId={bundle.id} />
             <strong>{track.name}</strong>
           </a>
