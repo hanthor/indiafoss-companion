@@ -175,7 +175,7 @@ test('every reminder names the session, the room and the walk, and opens it when
   // old before the first reminder can even be computed. At 300x the whole
   // 90-minute arming window is about eighteen real seconds wide, so a slow
   // first paint under CI load ate every alert and the test saw zero (#159).
-  await expect(page.getByRole('heading', { name: 'Now', level: 1 })).toBeVisible({
+  await expect(page.getByRole('heading', { name: 'Schedule', level: 1 })).toBeVisible({
     timeout: 30_000,
   });
   // Start the run held at a standstill, let the app catch up, then let the

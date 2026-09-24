@@ -2,7 +2,6 @@
   import { loadPlanned, plannedKey, planExists } from '$lib/planned.svelte';
   import { resolveSavedDayPlan, trackPlanInputs } from '$lib/resolved-plan.svelte';
   import type { ActivityType } from '@indiafoss/model';
-  import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
   import { searchActivities } from '@indiafoss/search';
   import {
@@ -18,16 +17,27 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import SessionCard from '$lib/components/SessionCard.svelte';
   import TimelineGrid from '$lib/components/TimelineGrid.svelte';
+  import ScheduleViews from '$lib/components/ScheduleViews.svelte';
+  import { page } from '$app/state';
+  import { tick } from 'svelte';
+  import { clockFromParams } from '$lib/clock';
+  import { eventDay } from '$lib/resolved-plan';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
-  // The list is the default at every width: it is the searchable, filterable
-  // view the browser tests and attendees know. On a wide screen it still uses
-  // the width (co-starting sessions sit side by side), and the room grid,
-  // one tap away, lays every room out beside the others (issue 205).
-  let view: 'list' | 'grid' = $state('list');
+  // Two of the Schedule tab's three views live here, chosen by the address
+  // (?view=rooms) so the view switch is a plain link: the agenda list, which
+  // searches and filters, and the rooms laid side by side (issue 205).
+  const view: 'list' | 'grid' = $derived(
+    page.url.searchParams.get('view') === 'rooms' ? 'grid' : 'list',
+  );
+  const clock = $derived(
+    clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
+  );
+  // During the event the agenda opens on today, scrolled to what is on now.
+  const today = $derived(bundle ? eventDay(clock.now(), bundle.timezone) : '');
   let query = $state('');
   let selectedRoom = $state('');
   let devroomsOnly = $state(false);
@@ -64,7 +74,8 @@
   );
 
   $effect(() => {
-    if (days.length > 0 && (!selectedDay || !days.includes(selectedDay))) selectedDay = days[0]!;
+    if (days.length > 0 && (!selectedDay || !days.includes(selectedDay)))
+      selectedDay = days.includes(today) ? today : days[0]!;
   });
 
   const typesOn = $derived(
@@ -123,6 +134,26 @@
     }),
   );
 
+  const nowMs = $derived(Date.parse(clock.now()));
+  const isToday = $derived(selectedDay === today);
+
+  // Open the agenda at now, once: the first time today's list is drawn,
+  // scroll to the first slot still running. After that the scroll is theirs.
+  let placedFor = '';
+  $effect(() => {
+    if (view !== 'list' || !isToday || placedFor === today) return;
+    void filtered.length;
+    placedFor = today;
+    void tick().then(() => {
+      const next = document.querySelector<HTMLElement>('.list .group:not(.past)');
+      if (!next || !document.querySelector('.list .group.past')) return;
+      // A window scroll, not scrollIntoView: that also moves where Tab starts,
+      // and keyboard users must still begin at the header and navigation.
+      const margin = parseFloat(getComputedStyle(next).scrollMarginTop) || 0;
+      window.scrollTo({ top: next.getBoundingClientRect().top + window.scrollY - margin });
+    });
+  });
+
   function setType(type: string, checked: boolean): void {
     typeToggles[type] = checked;
   }
@@ -131,12 +162,8 @@
 <EventGate>
   <header class="pagehead">
     <div>
-      <h1>Schedule</h1>
-      <p class="muted">{bundle.name} · {bundle.timezone}</p>
-    </div>
-    <div class="header-actions">
-      <a class="rank-link" href={resolve('/plan/rank')}>Rank your choices →</a>
-      <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
+      <h1 class="sr-only">Schedule</h1>
+      <ScheduleViews current={view === 'grid' ? 'rooms' : 'agenda'} />
     </div>
   </header>
   {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
@@ -164,18 +191,6 @@
         <span class="sr-only">Search sessions</span>
         <input type="search" placeholder="Search sessions…" bind:value={query} />
       </label>
-      <div class="seg" role="group" aria-label="View">
-        <button
-          aria-pressed={view === 'list'}
-          class:active={view === 'list'}
-          onclick={() => (view = 'list')}>List</button
-        >
-        <button
-          aria-pressed={view === 'grid'}
-          class:active={view === 'grid'}
-          onclick={() => (view = 'grid')}>Room grid</button
-        >
-      </div>
     </div>
 
     <div class="room-filters" role="group" aria-label="Filter by room">
@@ -213,6 +228,7 @@
           <input type="checkbox" bind:checked={bookmarkedOnly} />
           Ranked / bookmarked
         </label>
+        <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
       </div>
     </details>
   </div>
@@ -225,7 +241,9 @@
   {#if view === 'list'}
     <div class="list">
       {#each groupByStart(filtered) as group (group.start)}
-        <div class="group">
+        {@const past =
+          isToday && group.activities.every((a) => a.end && Date.parse(a.end) <= nowMs)}
+        <div class="group" class:past data-past={past}>
           <div class="time">
             {#if group.activities[0]?.start}
               <span class="h">{formatTime(group.start)}</span>
@@ -276,21 +294,7 @@
   .pagehead h1 {
     margin: 0;
   }
-  .header-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: end;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  .rank-link {
-    color: var(--event-primary-dark);
-    font-family: 'Space Mono', ui-monospace, monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-  }
+
   .muted {
     color: var(--text-muted);
   }
@@ -354,23 +358,7 @@
     border-radius: 10px;
     font-size: 0.95rem;
   }
-  .seg {
-    display: flex;
-    border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .seg button {
-    border: none;
-    background: var(--surface);
-    padding: 0.55rem 0.8rem;
-    cursor: pointer;
-    font-size: 0.85rem;
-  }
-  .seg button.active {
-    background: var(--event-primary-dark);
-    color: var(--on-strong);
-  }
+
   .filters summary {
     cursor: pointer;
     color: var(--text-muted);
@@ -389,7 +377,13 @@
     gap: 0.3rem;
     text-transform: capitalize;
   }
+  /* Over before now: still there to look back on, but out of the way. */
+  .group.past {
+    opacity: 0.55;
+  }
   .group {
+    /* Clear of the sticky app header and next-up banner when scrolled to. */
+    scroll-margin-top: 9rem;
     display: grid;
     grid-template-columns: 5rem 1fr;
     gap: 0.75rem;

@@ -61,13 +61,14 @@ fun NowScreen(
     onRefresh: () -> Unit,
     onDismissUpdate: () -> Unit = {},
     onOpenPlan: () -> Unit = {},
+    onView: (ScheduleView) -> Unit = {},
     onOpen: (String) -> Unit,
 ) {
     // "Your plan" sits beside the title, as on the PWA: the grid below is the page.
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Now") },
+                title = { ScheduleViewSwitch(ScheduleView.Timeline, onView) },
                 actions = {
                     TextButton(onClick = onOpenPlan) { Text("Your plan") }
                     actions()

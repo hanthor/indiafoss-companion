@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.alpha
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,13 +66,22 @@ import org.indiafoss.companion.core.ScheduleGrid
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScheduleScreen(state: UiState, actions: @Composable () -> Unit, onBookmark: (String) -> Unit, onOpen: (String) -> Unit) {
+fun ScheduleScreen(
+    state: UiState,
+    actions: @Composable () -> Unit,
+    onBookmark: (String) -> Unit,
+    view: ScheduleView = ScheduleView.Agenda,
+    onView: (ScheduleView) -> Unit = {},
+    onOpen: (String) -> Unit,
+) {
     val days = state.days
-    var selected by remember(days) { mutableIntStateOf(0) }
+    // During the event the agenda opens on today, scrolled to what is on now.
+    val today = state.nowState?.day
+    var selected by remember(days) { mutableIntStateOf(days.indexOf(today).coerceAtLeast(0)) }
     var selectedRoom by remember(days) { mutableStateOf<String?>(null) }
-    var grid by remember { mutableStateOf(false) }
+    val grid = view == ScheduleView.Rooms
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Schedule") }, actions = { actions() }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { ScheduleViewSwitch(view, onView) }, actions = { actions() }) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             if (days.isEmpty()) {
                 EmptyState("No programme yet", "The schedule appears once it has been downloaded.")
@@ -118,10 +130,6 @@ fun ScheduleScreen(state: UiState, actions: @Composable () -> Unit, onBookmark: 
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                SingleChoiceSegmentedButtonRow {
-                    SegmentedButton(selected = !grid, onClick = { grid = false }, shape = SegmentedButtonDefaults.itemShape(0, 2)) { Text("List") }
-                    SegmentedButton(selected = grid, onClick = { grid = true }, shape = SegmentedButtonDefaults.itemShape(1, 2)) { Text("Room grid") }
-                }
             }
             if (filtered.isEmpty()) {
                 EmptyState("No sessions in this room", "Pick another room or all rooms.")
@@ -131,9 +139,20 @@ fun ScheduleScreen(state: UiState, actions: @Composable () -> Unit, onBookmark: 
                 val layout = remember(state.bundle, filtered, day) { state.bundle?.let { ScheduleGrid.layout(it, filtered, day) } }
                 if (layout != null) RoomGrid(layout, markers, onOpen)
             } else {
-                LazyColumn(Modifier.fillMaxSize().testTag("schedule-list")) {
+                val nowMs = Schedule.parseInstant(state.now)
+                val isToday = day == today
+                val listState = rememberLazyListState()
+                // Once per day shown: start at the first session still running.
+                LaunchedEffect(day, isToday) {
+                    if (!isToday) return@LaunchedEffect
+                    val first = filtered.indexOfFirst { a -> a.end?.let { Schedule.parseInstant(it) > nowMs } != false }
+                    if (first > 0) listState.scrollToItem(first)
+                }
+                LazyColumn(Modifier.fillMaxSize().testTag("schedule-list"), state = listState) {
                     items(filtered, key = { it.id }) { activity ->
+                        val past = isToday && activity.end?.let { Schedule.parseInstant(it) <= nowMs } == true
                         SessionCard(
+                            modifier = if (past) Modifier.alpha(0.55f) else Modifier,
                             activity = activity,
                             bundle = state.bundle,
                             bookmarked = activity.id in state.bookmarks,
