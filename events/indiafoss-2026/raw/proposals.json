@@ -119,7 +119,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-05 14:08:24.075720",
       "modified": "2026-08-13 16:48:39.220498",
-      "_likes": 6,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -247,7 +247,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-29 02:30:38.105267",
       "modified": "2026-09-04 11:11:24.409648",
-      "_likes": 8,
+      "_likes": 9,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -385,13 +385,13 @@
       "name": "e08r7fa8ja",
       "route": "c/indiafoss/2026/cfp/e08r7fa8ja",
       "talk_title": "Adapting Generic Boot Loader on Android platforms",
-      "session_type": "Talk",
+      "session_type": "Lightning Talk",
       "status": "Approved",
       "session_categories": null,
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-08-18 05:55:38.786734",
-      "modified": "2026-09-07 17:17:15.133230",
+      "modified": "2026-09-10 14:48:47.374090",
       "_likes": 2,
       "_is_liked_by_user": true,
       "_speaker": [
@@ -446,8 +446,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-11 10:06:50.223248",
       "modified": "2026-08-07 21:46:38.845489",
-      "_likes": 4,
-      "_is_liked_by_user": false,
+      "_likes": 6,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "ckem4dj2uv",
@@ -581,7 +581,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 22:04:34.277144",
       "modified": "2026-08-23 09:06:43.401025",
-      "_likes": 6,
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -837,8 +837,8 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-15 19:37:32.595090",
       "modified": "2026-08-06 16:34:11.105500",
-      "_likes": 2,
-      "_is_liked_by_user": false,
+      "_likes": 3,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "2hre0ju6bv",
@@ -884,7 +884,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 16:20:57.341052",
       "modified": "2026-08-07 21:41:57.886367",
-      "_likes": 4,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1093,7 +1093,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-13 18:26:23.614407",
       "modified": "2026-08-07 15:23:48.780088",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1147,7 +1147,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-16 17:12:02.553494",
       "modified": "2026-08-13 19:45:05.077004",
-      "_likes": 9,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1336,7 +1336,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 23:49:38.099159",
       "modified": "2026-09-04 11:32:29.180554",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1353,6 +1353,43 @@
       "custom_question_1": "Real Time Operating Systems (RTOS)"
     },
     {
+      "name": "41r3mau7ga",
+      "route": "c/indiafoss/2026/cfp/41r3mau7ga",
+      "talk_title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
+      "session_type": "Talk",
+      "status": "Approved",
+      "session_categories": "Technology architecture\nEngineering practice - productivity, debugging",
+      "intended_audience": "Intermediate",
+      "is_first_talk": "Yes",
+      "creation": "2026-06-03 16:48:33.972757",
+      "modified": "2026-09-10 14:46:03.236522",
+      "_likes": 5,
+      "_is_liked_by_user": true,
+      "_speaker": [
+        {
+          "parent": "41r3mau7ga",
+          "photo": "/files/Untitleddbd6fe.png",
+          "full_name": "Ankit Siddhapura",
+          "designation": "Technical Lead - Embedded Software",
+          "organization": "Silicon Signals Pvt. Ltd",
+          "linked_user": "f79h4u7ksk",
+          "social_link": "https://www.linkedin.com/in/ankit-siddhapura/",
+          "bio": "<p>Ankit Siddhapura is a Technical lead in embedded software at Silicon Signals pvt ltd.</p><p>A dedicated contributor to the Android Open Source Project (AOSP) and the Android custom ROM.</p><p>Embedded Software Engineer with expertise in Android/Linux BSP, AOSP camera stack, and IoT solutions. Experienced with Qualcomm, NXP, and Amlogic platforms, camera HAL, and wireless protocols like Wi-Fi, Zigbee, and LoRaWAN.</p>"
+        },
+        {
+          "parent": "41r3mau7ga",
+          "photo": "/files/New_Profil.jpeg",
+          "full_name": "Jaimin Kalariya",
+          "designation": "Senior Embedded Software Engineer",
+          "organization": "Silicon Signals Pvt. Ltd.",
+          "linked_user": null,
+          "social_link": null,
+          "bio": "<div class=\"ql-editor read-mode\"><p>A dedicated Android Custom ROM (LineageOS) Device maintainer &amp; contributor.</p><p><br></p><p>Passionate Android Embedded Software Engineer specializing in open-source development and AOSP contributions. Expert in the Android ecosystem (framework, HALs, Kernel, applications) for developing cutting-edge systems that maximize Android's capabilities.</p></div>"
+        }
+      ],
+      "custom_question_1": "Android Open Source Project (AOSP)"
+    },
+    {
       "name": "1ebsjdljn1",
       "route": "c/indiafoss/2026/cfp/1ebsjdljn1",
       "talk_title": "Beyond Linux: The Power of FreeBSD",
@@ -1363,7 +1400,7 @@
       "is_first_talk": "No",
       "creation": "2026-04-21 14:14:34.812685",
       "modified": "2026-08-06 13:01:15.850056",
-      "_likes": 11,
+      "_likes": 12,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1471,7 +1508,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-29 00:18:05.388173",
       "modified": "2026-08-10 16:24:46.948218",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1525,7 +1562,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 18:53:59.996036",
       "modified": "2026-08-17 19:59:24.261290",
-      "_likes": 43,
+      "_likes": 44,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1778,7 +1815,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 13:02:13.078997",
       "modified": "2026-08-27 16:02:40.951166",
-      "_likes": 6,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2085,7 +2122,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 23:57:11.753099",
       "modified": "2026-08-11 19:56:28.903028",
-      "_likes": 6,
+      "_likes": 9,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2112,7 +2149,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-27 23:58:39.365502",
       "modified": "2026-08-27 08:20:50.153056",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2138,10 +2175,20 @@
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-06-25 11:32:43.106180",
-      "modified": "2026-08-15 18:47:20.398567",
-      "_likes": 5,
+      "modified": "2026-09-15 16:22:30.344425",
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
+        {
+          "parent": "ab8viuj62q",
+          "photo": "/files/Sneha Mundari843931.jpg",
+          "full_name": "Sneha Mundari",
+          "designation": "Collaborator",
+          "organization": null,
+          "linked_user": null,
+          "social_link": null,
+          "bio": "<p><span>Sneha Mundari is a filmmaker, visual anthropologist and design educator. She is the first woman filmmaker from the Munda adivasi community. She practices two principles: ask, don’t assume, listen to learn. Currently working on understanding intergenerational knowledge transmissions in families and identity performance.</span></p>"
+        },
         {
           "parent": "ab8viuj62q",
           "photo": "https://avatars.githubusercontent.com/u/1258090?v=4",
@@ -2193,8 +2240,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-26 14:01:06.639570",
       "modified": "2026-09-03 12:00:02.710298",
-      "_likes": 1,
-      "_is_liked_by_user": false,
+      "_likes": 2,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "advandigma",
@@ -2301,7 +2348,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-17 20:52:47.251471",
       "modified": "2026-08-19 00:18:27.140717",
-      "_likes": 47,
+      "_likes": 51,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2354,10 +2401,20 @@
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-09-03 16:27:33.328583",
-      "modified": "2026-09-03 16:35:16.428884",
+      "modified": "2026-09-24 10:44:18.824289",
       "_likes": 0,
       "_is_liked_by_user": false,
       "_speaker": [
+        {
+          "parent": "4eh569dvq9",
+          "photo": null,
+          "full_name": "Prasanth Sugathan",
+          "designation": "Legal Director, SFLC.in",
+          "organization": null,
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
         {
           "parent": "4eh569dvq9",
           "photo": null,
@@ -2419,7 +2476,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-27 09:50:26.223829",
       "modified": "2026-08-23 09:02:07.185321",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2648,7 +2705,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 23:18:59.555296",
       "modified": "2026-08-27 08:21:18.360474",
-      "_likes": 42,
+      "_likes": 43,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2694,7 +2751,7 @@
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-06-26 12:32:43.450391",
-      "modified": "2026-09-03 11:42:21.938453",
+      "modified": "2026-09-16 23:27:49.590108",
       "_likes": 2,
       "_is_liked_by_user": false,
       "_speaker": [
@@ -2710,6 +2767,32 @@
         }
       ],
       "custom_question_1": "Main track"
+    },
+    {
+      "name": "946qm38m58",
+      "route": "c/indiafoss/2026/cfp/946qm38m58",
+      "talk_title": "Communi-Con",
+      "session_type": "Lightning Talk",
+      "status": "Screening",
+      "session_categories": null,
+      "intended_audience": "Beginner",
+      "is_first_talk": "No",
+      "creation": "2026-09-11 15:18:44.194783",
+      "modified": "2026-09-13 16:44:18.357433",
+      "_likes": 0,
+      "_is_liked_by_user": false,
+      "_speaker": [
+        {
+          "parent": "946qm38m58",
+          "photo": "/files/user_profile_image.png",
+          "full_name": "IndiaFOSS Attendee",
+          "designation": "You",
+          "organization": "IndiaFOSS Attendee",
+          "linked_user": null,
+          "social_link": null,
+          "bio": "<div class=\"ql-editor read-mode\"><p>Open for IndiaFOSS in-person attendees only. Best seven flash talks will selected by voting, and get the stage at this slot </p></div>"
+        }
+      ]
     },
     {
       "name": "4skmi6o8sm",
@@ -2789,7 +2872,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 15:18:22.269335",
       "modified": "2026-08-10 16:28:10.890629",
-      "_likes": 0,
+      "_likes": 1,
       "_is_liked_by_user": false,
       "_speaker": [
         {
@@ -3052,7 +3135,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 15:13:07.078316",
       "modified": "2026-08-17 17:42:55.439508",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -3133,8 +3216,8 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-15 23:24:53.684529",
       "modified": "2026-08-23 09:01:50.263101",
-      "_likes": 3,
-      "_is_liked_by_user": false,
+      "_likes": 4,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "en28h8l81s",
@@ -3214,7 +3297,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-27 07:35:07.490779",
       "modified": "2026-08-13 19:44:33.842872",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -3359,7 +3442,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 23:29:49.229946",
       "modified": "2026-08-23 09:30:09.090923",
-      "_likes": 6,
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -3413,7 +3496,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 16:47:41.508365",
       "modified": "2026-08-14 11:54:33.043184",
-      "_likes": 7,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -3602,8 +3685,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-14 18:06:51.360781",
       "modified": "2026-09-04 11:34:55.111095",
-      "_likes": 1,
-      "_is_liked_by_user": false,
+      "_likes": 2,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "8gv11r0ga6",
@@ -3656,7 +3739,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 15:50:12.820705",
       "modified": "2026-08-23 09:00:10.880295",
-      "_likes": 6,
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -3756,19 +3839,19 @@
       "intended_audience": "Intermediate",
       "is_first_talk": "Yes",
       "creation": "2026-06-27 18:07:32.911976",
-      "modified": "2026-08-07 21:43:03.430165",
-      "_likes": 6,
+      "modified": "2026-09-17 18:49:54.388105",
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "aa41tetjb5",
-          "photo": "/files/Haroon.jpg",
-          "full_name": "haroon@sflc.in",
-          "designation": "Volunteer Legal Counsel",
+          "photo": "",
+          "full_name": "Anuvind Praveen",
+          "designation": "Volunteer Legal Fellow",
           "organization": "Software Freedom Law Center, India",
           "linked_user": "2eblkgj67v",
-          "social_link": "https://www.linkedin.com/in/haruined/",
-          "bio": "<p>Mr. Syed Mohammad Haroon is a legal researcher and public interest lawyer working at the intersection of technology, constitutional rights, and public policy. He serves as Volunteer Legal Counsel at the Software Freedom Law Center, India (<a target=\"_blank\" rel=\"noopener noreferrer nofollow\" href=\"http://SFLC.in\">SFLC.in</a>), where he focuses on digital rights through strategic litigation, research, and advocacy on issues such as internet shutdowns, free speech, surveillance, platform regulation, and data protection. Actively engaged in regional and global internet governance processes, he has contributed to initiatives at the Internet Governance Forum (IGF), Asia Pacific Regional IGF, and the Digital Rights and Inclusion Forum. A law graduate from Jamia Millia Islamia, his work emphasizes the impact of emerging technologies, including AI and biometric systems, on civil liberties, with a commitment to the constitutional values of privacy, equality, and freedom of expression.</p>"
+          "social_link": "https://www.linkedin.com/in/anuvind-praveen",
+          "bio": "<div class=\"ql-editor read-mode\"><p>Mr. Anuvind Praveen is a legal researcher and public interest fellow working at SFLC.</p></div>"
         }
       ],
       "custom_question_1": "Main track"
@@ -3838,7 +3921,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-25 11:26:56.348288",
       "modified": "2026-09-03 13:09:26.736484",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -3956,7 +4039,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 13:03:48.670973",
       "modified": "2026-08-23 09:00:40.006875",
-      "_likes": 6,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4073,19 +4156,19 @@
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-06-14 10:42:10.390990",
-      "modified": "2026-08-11 19:59:33.675296",
-      "_likes": 4,
+      "modified": "2026-09-15 09:29:43.697026",
+      "_likes": 5,
       "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "ccd7lpdj1o",
-          "photo": "https://lh3.googleusercontent.com/a/ACg8ocKkOeADTxuYq1YdF40B8rbFHkfFTngwXdlRC-EW8qRupf_eGvX4=s96-c",
+          "photo": "/files/Advay.jpg",
           "full_name": "Advay Udupa",
           "designation": "Open Learner",
           "organization": "",
-          "linked_user": "4i7crb9v4c",
+          "linked_user": null,
           "social_link": "https://www.youtube.com/@AdvayaUdupa",
-          "bio": "<p>I started open-learning when I was 5 years old, first with aarohilife.org, and now independently as a 15-year-old. About three years ago, I was looking for tools to help me create visuals for the stories I wanted to tell, and that’s when I discovered Blender. Since then, I’ve really enjoyed learning it, creating with it, and helping others get started too, most recently by completing a YouTube tutorial series on Blender in Kannada, made possible by a grant from FOSS United.</p>"
+          "bio": "<p>Building a big Blender scene by hand always felt tedious, until I discovered Geometry Nodes, a node-based toolset for procedural 3D art. In this talk, we'll skip the dry math and focus on the magic: how Geometry Nodes can speed up your workflow, unlock happy accidents, and bring back the joy of experimentation, including an interesting demo!</p><p>About me: I've been learning modeling with Blender for close to 4 years now, and have conducted workshops both online and offline. Earlier this year, I made a YouTube tutorial series on Blender in Kannada, funded by a grant from FOSS United. This work builds on a longer journey of open-learning that started when I was 5, first with aarohilife.org and now independently as a 15-year-old.</p>"
         }
       ],
       "custom_question_1": "Main track"
@@ -4320,7 +4403,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-16 13:59:20.625006",
       "modified": "2026-09-04 11:48:37.181820",
-      "_likes": 4,
+      "_likes": 5,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4492,7 +4575,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-14 17:08:01.166426",
       "modified": "2026-08-07 15:22:48.366617",
-      "_likes": 9,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4600,7 +4683,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-21 19:46:59.854165",
       "modified": "2026-08-17 17:39:07.534083",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4627,7 +4710,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-12 14:30:22.193326",
       "modified": "2026-08-13 19:52:10.453755",
-      "_likes": 4,
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4649,23 +4732,23 @@
       "talk_title": "FOSS and Co-operatives",
       "session_type": "Birds of Feather(BoF)",
       "status": "Approved",
-      "session_categories": null,
+      "session_categories": "Community",
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-08-19 21:36:12.032705",
-      "modified": "2026-08-19 21:36:19.712004",
+      "modified": "2026-09-11 17:15:29.657139",
       "_likes": 2,
       "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "0j48rt6d3s",
-          "photo": null,
+          "photo": "/files/profile_6lpt37kck6f1e5fa.webp",
           "full_name": "Jafar Saadique",
           "designation": "Senior Software Engineer",
           "organization": "Marketcast",
           "linked_user": null,
-          "social_link": null,
-          "bio": null
+          "social_link": "https://bsky.app/profile/japoo.dev",
+          "bio": "<p>Software engineer by profession. I also make tech curriculum, advocate for web accessibility and using tech for social good</p>"
         }
       ],
       "custom_question_1": "Main track"
@@ -4735,7 +4818,7 @@
       "is_first_talk": "No",
       "creation": "2026-08-19 21:46:42.772596",
       "modified": "2026-08-19 21:47:30.477429",
-      "_likes": 0,
+      "_likes": 1,
       "_is_liked_by_user": false,
       "_speaker": [
         {
@@ -4762,7 +4845,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 18:20:41.205121",
       "modified": "2026-08-15 18:49:22.472672",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -5194,33 +5277,6 @@
       "custom_question_1": "Main track"
     },
     {
-      "name": "41r3mau7ga",
-      "route": "c/indiafoss/2026/cfp/41r3mau7ga",
-      "talk_title": "From HIDL to Stable AIDL: Modernizing Android HAL Interfaces",
-      "session_type": "Lightning Talk",
-      "status": "Approved",
-      "session_categories": "Technology architecture\nEngineering practice - productivity, debugging",
-      "intended_audience": "Intermediate",
-      "is_first_talk": "Yes",
-      "creation": "2026-06-03 16:48:33.972757",
-      "modified": "2026-09-04 11:43:15.650835",
-      "_likes": 5,
-      "_is_liked_by_user": true,
-      "_speaker": [
-        {
-          "parent": "41r3mau7ga",
-          "photo": "/files/Untitleddbd6fe.png",
-          "full_name": "Ankit Siddhapura",
-          "designation": "Technical Lead - Embedded Software",
-          "organization": "Silicon Signals Pvt. Ltd",
-          "linked_user": "f79h4u7ksk",
-          "social_link": "https://www.linkedin.com/in/ankit-siddhapura/",
-          "bio": "<p>Ankit Siddhapura is a Technical lead in embedded software at Silicon Signals pvt ltd.</p><p>A dedicated contributor to the Android Open Source Project (AOSP) and the Android custom ROM.</p><p>Embedded Software Engineer with expertise in Android/Linux BSP, AOSP camera stack, and IoT solutions. Experienced with Qualcomm, NXP, and Amlogic platforms, camera HAL, and wireless protocols like Wi-Fi, Zigbee, and LoRaWAN.</p>"
-        }
-      ],
-      "custom_question_1": "Android Open Source Project (AOSP)"
-    },
-    {
       "name": "2bfslonj72",
       "route": "c/indiafoss/2026/cfp/2bfslonj72",
       "talk_title": "From Institution to Community: Building COSH and a Culture of Open Source",
@@ -5231,7 +5287,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 16:42:50.853233",
       "modified": "2026-08-07 15:15:48.196711",
-      "_likes": 4,
+      "_likes": 9,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -5376,8 +5432,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-16 15:18:57.138173",
       "modified": "2026-08-07 15:25:04.359157",
-      "_likes": 2,
-      "_is_liked_by_user": false,
+      "_likes": 5,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "062rh0sg2r",
@@ -5595,7 +5651,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 20:17:32.758591",
       "modified": "2026-08-07 21:43:23.824796",
-      "_likes": 4,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -5713,7 +5769,7 @@
       "is_first_talk": "No",
       "creation": "2026-08-20 11:31:19.751041",
       "modified": "2026-09-10 09:53:23.827743",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -5765,6 +5821,53 @@
         }
       ],
       "custom_question_1": "Cloud & DevOps"
+    },
+    {
+      "name": "5hvaj1cbj8",
+      "route": "c/indiafoss/2026/cfp/5hvaj1cbj8",
+      "talk_title": "Going Beyond Grants (for Women and LGBTQIA+ people in FOSS)",
+      "session_type": "Birds of Feather(BoF)",
+      "status": "Approved",
+      "session_categories": null,
+      "intended_audience": "Intermediate",
+      "is_first_talk": "Yes",
+      "creation": "2026-09-22 17:29:19.415268",
+      "modified": "2026-09-24 12:01:15.997142",
+      "_likes": 1,
+      "_is_liked_by_user": true,
+      "_speaker": [
+        {
+          "parent": "5hvaj1cbj8",
+          "photo": null,
+          "full_name": "Ruchika Bagde",
+          "designation": "Diversity & Education Associate",
+          "organization": "FOSS United Foundation",
+          "linked_user": "ruchika",
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "5hvaj1cbj8",
+          "photo": null,
+          "full_name": "Suchitra Shankar",
+          "designation": "Student",
+          "organization": "PES University",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "5hvaj1cbj8",
+          "photo": null,
+          "full_name": "Varuni H. K",
+          "designation": "Software Engineer",
+          "organization": "Couchbase",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        }
+      ],
+      "custom_question_1": "Main track"
     },
     {
       "name": "60o53lofun",
@@ -5905,8 +6008,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 00:01:47.407274",
       "modified": "2026-08-27 08:23:05.628431",
-      "_likes": 1,
-      "_is_liked_by_user": false,
+      "_likes": 3,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "4pm3u3odmn",
@@ -5959,7 +6062,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-05-30 01:31:31.477211",
       "modified": "2026-09-04 11:11:51.327051",
-      "_likes": 56,
+      "_likes": 61,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -6278,8 +6381,8 @@
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-06-28 21:07:58.967193",
-      "modified": "2026-08-10 16:25:56.292563",
-      "_likes": 4,
+      "modified": "2026-09-23 17:39:23.603450",
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -6291,6 +6394,16 @@
           "linked_user": "bb0m9oduh3",
           "social_link": "https://devxpy.com",
           "bio": "<p><span>Dev Aggarwal is Co-Founder and CTO of Gooey.AI, a platform for building and deploying production AI agents across web, WhatsApp, voice, and enterprise workflows. He has spent the last several years turning frontier models into real systems for organizations including the Gates Foundation, Rockefeller Foundation, Wellcome Trust, British Council, UN IOM, City of Seattle, and Fandom. His work spans agent orchestration, GPU inference, low-code AI tooling, RAG, voice agents, and Python-to-React developer interfaces.</span></p><p><br></p>"
+        },
+        {
+          "parent": "1vj5aoro8u",
+          "photo": "/files/milindbc429a.png",
+          "full_name": "Milind Choudhary",
+          "designation": "Software Engineer",
+          "organization": "Gooey.ai",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
         }
       ],
       "custom_question_1": "Main track"
@@ -6434,7 +6547,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-22 10:06:47.036614",
       "modified": "2026-08-15 18:50:28.212918",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -6697,8 +6810,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-13 22:29:48.574537",
       "modified": "2026-08-13 16:49:59.557987",
-      "_likes": 0,
-      "_is_liked_by_user": false,
+      "_likes": 1,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "av9de7vsu8",
@@ -6885,7 +6998,7 @@
       "intended_audience": "Advanced",
       "is_first_talk": "Yes",
       "creation": "2026-06-14 22:40:12.492973",
-      "modified": "2026-09-04 11:34:11.530345",
+      "modified": "2026-09-15 13:12:49.557348",
       "_likes": 5,
       "_is_liked_by_user": true,
       "_speaker": [
@@ -7172,8 +7285,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-13 14:42:46.172721",
       "modified": "2026-08-11 19:47:27.681978",
-      "_likes": 1,
-      "_is_liked_by_user": false,
+      "_likes": 5,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "0dkd3hateq",
@@ -7435,7 +7548,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-24 21:03:26.680324",
       "modified": "2026-08-23 09:23:12.128287",
-      "_likes": 66,
+      "_likes": 67,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -7472,7 +7585,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 16:06:27.101327",
       "modified": "2026-08-19 00:19:50.260581",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -7752,7 +7865,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-17 13:18:03.815155",
       "modified": "2026-09-04 11:44:35.734334",
-      "_likes": 22,
+      "_likes": 24,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8005,7 +8118,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-14 07:03:39.147848",
       "modified": "2026-08-13 19:49:46.624417",
-      "_likes": 15,
+      "_likes": 16,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8032,7 +8145,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-10 23:13:59.830074",
       "modified": "2026-09-04 11:43:35.449559",
-      "_likes": 22,
+      "_likes": 23,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8252,13 +8365,13 @@
       "route": "c/indiafoss/2026/cfp/59ok1dm8kb",
       "talk_title": "Making music with strudel.cc",
       "session_type": "Workshop",
-      "status": "Screening",
+      "status": "Approved",
       "session_categories": "Introducing a FOSS project or a new version of a popular project\nTutorial about using a FOSS project\nEngineering practice - productivity, debugging",
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-06-27 23:34:37.291758",
-      "modified": "2026-08-18 09:10:27.718914",
-      "_likes": 4,
+      "modified": "2026-09-13 13:38:05.826154",
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8312,7 +8425,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 11:33:02.349456",
       "modified": "2026-08-11 19:55:40.244500",
-      "_likes": 7,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8565,8 +8678,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 23:42:06.558383",
       "modified": "2026-08-27 08:19:29.367653",
-      "_likes": 2,
-      "_is_liked_by_user": false,
+      "_likes": 6,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "7pt1ibasdd",
@@ -8666,7 +8779,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 04:17:13.971028",
       "modified": "2026-08-15 12:09:13.427924",
-      "_likes": 6,
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8741,12 +8854,12 @@
       "route": "c/indiafoss/2026/cfp/8knf7bja7g",
       "talk_title": "Navigating the FOSS Contribution Journey",
       "session_type": "Talk",
-      "status": "Screening",
+      "status": "Approved",
       "session_categories": "Contributing to FOSS",
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-06-15 14:14:46.365634",
-      "modified": "2026-08-07 14:43:54.662438",
+      "modified": "2026-09-21 20:04:13.119082",
       "_likes": 2,
       "_is_liked_by_user": true,
       "_speaker": [
@@ -9020,7 +9133,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 16:07:41.268679",
       "modified": "2026-08-15 19:10:36.886010",
-      "_likes": 9,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9074,7 +9187,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-13 01:53:03.906425",
       "modified": "2026-09-04 11:25:25.269024",
-      "_likes": 19,
+      "_likes": 20,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9128,7 +9241,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-30 13:00:58.101482",
       "modified": "2026-08-15 18:43:52.360935",
-      "_likes": 6,
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9526,7 +9639,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 17:17:35.625117",
       "modified": "2026-09-03 11:50:36.296944",
-      "_likes": 6,
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9688,7 +9801,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 14:50:30.896051",
       "modified": "2026-08-13 19:46:14.709595",
-      "_likes": 7,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9742,8 +9855,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-18 02:17:58.829602",
       "modified": "2026-09-03 11:51:45.486208",
-      "_likes": 1,
-      "_is_liked_by_user": false,
+      "_likes": 3,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "5jvkd5u7mk",
@@ -9833,7 +9946,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 21:22:45.157132",
       "modified": "2026-08-19 00:20:44.033041",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9891,12 +10004,12 @@
       "route": "c/indiafoss/2026/cfp/0hgfa2n1kg",
       "talk_title": "Porting Pipecat to Rust: The story of Rustvani-Fast Cheap Voice Ai for Bharat",
       "session_type": "Talk",
-      "status": "Screening",
+      "status": "Approved",
       "session_categories": "Introducing a FOSS project or a new version of a popular project\nContributing to FOSS\nStory of a FOSS project - from inception to growth",
       "intended_audience": "Intermediate",
       "is_first_talk": "Yes",
       "creation": "2026-06-06 12:36:41.559214",
-      "modified": "2026-08-07 14:43:28.547991",
+      "modified": "2026-09-16 14:37:57.617897",
       "_likes": 2,
       "_is_liked_by_user": true,
       "_speaker": [
@@ -9988,7 +10101,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 03:26:55.351874",
       "modified": "2026-08-23 09:03:54.424225",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10096,7 +10209,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-14 16:59:09.349073",
       "modified": "2026-08-13 19:49:02.112434",
-      "_likes": 6,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10187,7 +10300,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-11 14:42:57.864892",
       "modified": "2026-08-27 20:29:15.218485",
-      "_likes": 14,
+      "_likes": 15,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10575,7 +10688,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-18 03:40:13.672667",
       "modified": "2026-08-23 09:23:23.132710",
-      "_likes": 11,
+      "_likes": 13,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10687,12 +10800,12 @@
       "route": "c/indiafoss/2026/cfp/coqs2rc43i",
       "talk_title": "Rust in Android: Building Secure HALs for the Next Generation of AOSP",
       "session_type": "Lightning Talk",
-      "status": "Approved",
+      "status": "Withdrawn",
       "session_categories": "Engineering practice - productivity, debugging\nTechnology architecture",
       "intended_audience": "Intermediate",
       "is_first_talk": "Yes",
       "creation": "2026-06-15 10:43:19.639359",
-      "modified": "2026-08-19 00:17:55.894756",
+      "modified": "2026-09-10 14:27:24.901690",
       "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
@@ -10720,7 +10833,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-12 19:00:52.520752",
       "modified": "2026-08-13 19:51:31.770161",
-      "_likes": 8,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10892,7 +11005,7 @@
       "is_first_talk": "No",
       "creation": "2026-04-24 07:38:24.299971",
       "modified": "2026-08-23 18:43:28.658840",
-      "_likes": 7,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10919,7 +11032,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-27 17:09:23.690912",
       "modified": "2026-08-13 19:43:07.462618",
-      "_likes": 37,
+      "_likes": 40,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10973,7 +11086,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 13:59:41.633674",
       "modified": "2026-09-03 11:51:07.224428",
-      "_likes": 16,
+      "_likes": 17,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11037,7 +11150,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 23:24:58.434639",
       "modified": "2026-08-17 17:41:50.806350",
-      "_likes": 3,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11235,19 +11348,29 @@
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-06-27 15:21:51.832434",
-      "modified": "2026-08-17 21:55:22.953382",
+      "modified": "2026-09-24 09:54:05.738423",
       "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "391e59gb72",
-          "photo": "https://lh3.googleusercontent.com/a/ACg8ocJUFbZVBT6IF2oBWXA0hdn0KAas7pvWvzDpc6LCXV_eNwfXWQ=s96-c",
+          "photo": null,
           "full_name": "Anuvind Praveen",
           "designation": "Volunteer Legal Fellow",
-          "organization": "SFLC.in (Software Freedom Law Center, India)",
-          "linked_user": "54ss2nlv5o",
-          "social_link": "",
-          "bio": "<p></p>"
+          "organization": " SFLC.in",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "391e59gb72",
+          "photo": null,
+          "full_name": "Prasanth Sugathan",
+          "designation": "Legal Director",
+          "organization": "SFLC.in",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
         }
       ],
       "custom_question_1": "Main track"
@@ -11263,7 +11386,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-26 02:33:16.804050",
       "modified": "2026-09-04 11:28:40.457447",
-      "_likes": 25,
+      "_likes": 27,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11344,7 +11467,7 @@
       "is_first_talk": "No",
       "creation": "2026-05-21 14:17:30.931229",
       "modified": "2026-09-03 11:52:17.808552",
-      "_likes": 16,
+      "_likes": 17,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11499,7 +11622,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 17:17:42.196277",
       "modified": "2026-08-14 21:35:40.898780",
-      "_likes": 5,
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11526,7 +11649,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-19 11:17:58.417910",
       "modified": "2026-08-07 15:27:17.087213",
-      "_likes": 12,
+      "_likes": 14,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11634,7 +11757,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 22:13:34.576557",
       "modified": "2026-08-23 09:22:40.724853",
-      "_likes": 2,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11818,23 +11941,63 @@
       "talk_title": "The future of FOSS, SWE and Technical Education",
       "session_type": "Panel Discussion",
       "status": "Approved",
-      "session_categories": null,
+      "session_categories": "Community\nEngineering practice - productivity, debugging\nTechnology / FOSS licenses, policy",
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-08-19 22:41:25.583749",
-      "modified": "2026-08-19 22:41:41.333127",
-      "_likes": 0,
-      "_is_liked_by_user": false,
+      "modified": "2026-09-23 18:56:18.015465",
+      "_likes": 1,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "6pb727vn12",
-          "photo": null,
+          "photo": "/files/4e34bd28c0e3597b38283ece574f87ee.jpeg",
+          "full_name": "Kailash Nadh",
+          "designation": "CTO",
+          "organization": "Zerodha",
+          "linked_user": null,
+          "social_link": "",
+          "bio": "<p>Hobbyist developer / tinkerer</p>"
+        },
+        {
+          "parent": "6pb727vn12",
+          "photo": "/files/profile_ansh55fe14.webp",
           "full_name": "Ansh Arora",
           "designation": "Programs & Partnerships Manager",
           "organization": "FOSS United",
-          "linked_user": "ansh",
-          "social_link": null,
-          "bio": null
+          "linked_user": null,
+          "social_link": "https://www.ansharora.in/",
+          "bio": "<p>Maintainers Program@FOSS United</p>"
+        },
+        {
+          "parent": "6pb727vn12",
+          "photo": "/files/ambika.jpeg",
+          "full_name": "computational mama (ambika)",
+          "designation": "Head of Developer Relations",
+          "organization": "Gooey.ai",
+          "linked_user": "cq30q6u0is",
+          "social_link": "https://computationalmama.xyz/",
+          "bio": "<div class=\"ql-editor read-mode\"><p>Director/Co-founder of Ajaibghar &amp; Head of Developer Relations at Gooey.AI</p></div>"
+        },
+        {
+          "parent": "6pb727vn12",
+          "photo": "/files/tarunima.webp",
+          "full_name": "Tarunima Prabhakar",
+          "designation": "Co-founder",
+          "organization": "Tattle",
+          "linked_user": null,
+          "social_link": "https://tarunima.com/",
+          "bio": "<div class=\"ql-editor read-mode\"><p>Tarunima is a technologist and policy researcher. She leads strategy and research at Tattle</p></div>"
+        },
+        {
+          "parent": "6pb727vn12",
+          "photo": "/files/ppef195b.jpg",
+          "full_name": "Harsh Nisar",
+          "designation": "Co-founder",
+          "organization": "Bharat Digital",
+          "linked_user": "9oqj7jr6rd",
+          "social_link": "https://www.linkedin.com/in/harsh-nisar-b8347588/",
+          "bio": "<div class=\"ql-editor read-mode\"><p>Working in the intersection of data, public policy and infrastructure in Government of India</p></div>"
         }
       ],
       "custom_question_1": "Main track"
@@ -12331,15 +12494,15 @@
     {
       "name": "bk39jtqjkk",
       "route": "c/indiafoss/2026/cfp/bk39jtqjkk",
-      "talk_title": "Tiles: Own your AI with local models and open protocols",
+      "talk_title": "Tiles: Own your AI with open models and decentralized protocols",
       "session_type": "Talk",
-      "status": "Screening",
+      "status": "Approved",
       "session_categories": "Introducing a FOSS project or a new version of a popular project",
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-06-15 20:35:59.337464",
-      "modified": "2026-08-20 02:39:28.526263",
-      "_likes": 6,
+      "modified": "2026-09-17 17:04:56.384170",
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -12393,7 +12556,7 @@
       "is_first_talk": "No",
       "creation": "2026-05-24 10:13:17.594024",
       "modified": "2026-08-15 18:37:23.408361",
-      "_likes": 6,
+      "_likes": 9,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -12619,7 +12782,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-14 22:36:17.194703",
       "modified": "2026-09-04 11:44:11.052217",
-      "_likes": 37,
+      "_likes": 38,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -12709,13 +12872,13 @@
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-09-03 16:44:39.704207",
-      "modified": "2026-09-03 21:00:16.501534",
-      "_likes": 1,
-      "_is_liked_by_user": false,
+      "modified": "2026-09-13 17:00:22.797264",
+      "_likes": 2,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "doht3bggkm",
-          "photo": "/private/files/perry-2800-2800-max.jpg",
+          "photo": "/files/profile_perry5e3dec5e3dec.webp",
           "full_name": "perry",
           "designation": "Wikimedian, OpenStreetMap contributor and Volunteer",
           "organization": "Prav Cooperative",
@@ -12725,7 +12888,7 @@
         },
         {
           "parent": "doht3bggkm",
-          "photo": "/private/files/shree-profile-pic.jpg",
+          "photo": "https://lh3.googleusercontent.com/a/ACg8ocIsujmu4wNQISD0TwDUex7mURG7b-kp46k0QpJ9iWtMOQy-K_k6=s96-c",
           "full_name": "Shree Kumar",
           "designation": "Independent Consultant",
           "organization": null,
@@ -12768,14 +12931,14 @@
       "route": "c/indiafoss/2026/cfp/fba2986409",
       "talk_title": "Using AI to train Tesseract OCR that runs without AI",
       "session_type": "Lightning Talk",
-      "status": "Approved",
+      "status": "Withdrawn",
       "session_categories": "Introducing a FOSS project or a new version of a popular project\nTutorial about using a FOSS project\nContributing to FOSS\nCommunity",
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-06-25 23:22:45.010249",
-      "modified": "2026-08-11 19:54:34.525775",
-      "_likes": 0,
-      "_is_liked_by_user": false,
+      "modified": "2026-09-18 04:12:11.856324",
+      "_likes": 1,
+      "_is_liked_by_user": true,
       "_speaker": [
         {
           "parent": "fba2986409",
@@ -13149,13 +13312,13 @@
       "route": "c/indiafoss/2026/cfp/65cksuhmhn",
       "talk_title": "What FOSS Documentation Needs to Thrive in the Age of AI Search",
       "session_type": "Lightning Talk",
-      "status": "Screening",
+      "status": "Approved",
       "session_categories": "Contributing to FOSS\nCommunity",
       "intended_audience": "Intermediate",
       "is_first_talk": "No",
       "creation": "2026-06-28 00:21:46.086160",
-      "modified": "2026-08-23 09:07:07.447342",
-      "_likes": 5,
+      "modified": "2026-09-20 20:00:05.888150",
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -13176,12 +13339,12 @@
       "route": "c/indiafoss/2026/cfp/81bin5i11p",
       "talk_title": "What Happens When GPUs Talk?",
       "session_type": "Lightning Talk",
-      "status": "Screening",
+      "status": "Rejected",
       "session_categories": "Technology architecture",
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-06-17 00:17:01.046120",
-      "modified": "2026-08-21 08:56:19.050477",
+      "modified": "2026-09-12 10:25:40.049447",
       "_likes": 2,
       "_is_liked_by_user": true,
       "_speaker": [
@@ -13327,7 +13490,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-14 20:28:09.601620",
       "modified": "2026-09-04 11:24:47.760738",
-      "_likes": 13,
+      "_likes": 14,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -13698,7 +13861,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-15 21:33:23.427791",
       "modified": "2026-09-04 19:09:16.358474",
-      "_likes": 10,
+      "_likes": 12,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -13924,7 +14087,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-26 20:45:21.733781",
       "modified": "2026-08-23 08:59:39.033615",
-      "_likes": 4,
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -14154,13 +14317,13 @@
       "route": "c/indiafoss/2026/cfp/96gh03hfud",
       "talk_title": "Your first open source contribution does not have to be code",
       "session_type": "Lightning Talk",
-      "status": "Approved",
+      "status": "Withdrawn",
       "session_categories": "Community",
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-06-23 12:04:41.734398",
-      "modified": "2026-08-23 09:01:10.180210",
-      "_likes": 4,
+      "modified": "2026-09-20 19:58:57.934608",
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
