@@ -9,8 +9,8 @@
   /**
    * Happening now as a time grid: one row per room, all rows sharing one
    * horizontal scroll so a column is a moment across the venue. By default a
-   * 25-minute talk fills the visible width; pinch, ctrl-scroll or the zoom
-   * buttons change that from 5 minutes (a lightning talk fills the view) to
+   * 25-minute talk fills the visible width; pinch or ctrl-scroll (a
+   * trackpad pinch) change that from 5 minutes (a lightning talk fills the view) to
    * three hours. The grid opens with its left edge at now: the first screen
    * is what is on, everything later is a scroll to the right.
    *
@@ -34,7 +34,7 @@
     now: string;
     goId?: string;
     goLabel?: string;
-    /** The left of the toolbar row, beside the zoom controls. */
+    /** The heading row above the grid. */
     header?: Snippet;
   } = $props();
 
@@ -414,21 +414,8 @@
 
 <div class="toolbar">
   <div class="header">{@render header?.()}</div>
-  <div class="zoom" role="group" aria-label="Zoom the timeline">
-    <button
-      type="button"
-      aria-label="Zoom out"
-      disabled={windowMinutes >= MAX_WINDOW}
-      onclick={zoomOut}>−</button
-    >
-    <span class="span" aria-live="polite" data-testid="now-grid-span">{spanLabel}</span>
-    <button
-      type="button"
-      aria-label="Zoom in"
-      disabled={windowMinutes <= MIN_WINDOW}
-      onclick={zoomIn}>+</button
-    >
-  </div>
+  <!-- Pinch is the only zoom on screen; the span is said aloud, not shown. -->
+  <span class="sr-only" aria-live="polite" data-testid="now-grid-span">{spanLabel}</span>
 </div>
 
 <div class="nowgrid" data-testid="now-grid" style:--view-w="{laneWidth}px">
@@ -760,33 +747,6 @@
     margin-bottom: 0.35rem;
     /* Off the screen's edge, where the grid below runs. */
     padding-right: 0.5rem;
-  }
-  .zoom {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-  .zoom button {
-    min-width: 2.25rem;
-    min-height: 2.25rem;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--surface-raised);
-    color: var(--text);
-    font-size: 1.05rem;
-    line-height: 1;
-    cursor: pointer;
-  }
-  .zoom button:disabled {
-    opacity: 0.4;
-    cursor: default;
-  }
-  .zoom .span {
-    min-width: 3.2rem;
-    text-align: center;
-    font-size: 0.72rem;
-    font-variant-numeric: tabular-nums;
-    color: var(--text-muted);
   }
   /* Zoomed out, a short talk is a sliver: its colour says it is there. */
   @container (max-width: 2.5rem) {

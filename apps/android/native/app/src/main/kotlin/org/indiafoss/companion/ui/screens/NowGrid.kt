@@ -3,8 +3,6 @@ package org.indiafoss.companion.ui.screens
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -48,7 +46,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -195,25 +196,19 @@ fun NowGrid(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.weight(1f)) { header() }
-            OutlinedIconButton(
-                onClick = { zoomTo(windowMinutes * ZOOM_STEP, 0f) },
-                enabled = windowMinutes < MAX_WINDOW,
-                modifier = Modifier.semantics { contentDescription = "Zoom out" },
-            ) { Text("−", fontSize = 18.sp) }
-            Text(
-                spanLabel(windowMinutes),
-                fontSize = 12.sp,
-                color = MaterialTheme.brand.textMuted,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.widthIn(min = 52.dp),
-            )
-            OutlinedIconButton(
-                onClick = { zoomTo(windowMinutes / ZOOM_STEP, 0f) },
-                enabled = windowMinutes > MIN_WINDOW,
-                modifier = Modifier.semantics { contentDescription = "Zoom in" },
-            ) { Text("+", fontSize = 18.sp) }
         }
-        Row(Modifier.semantics { contentDescription = "Now by room and time" }) {
+        // Pinch is the only zoom on screen. TalkBack hears the span and gets
+        // zoom actions of its own, since a pinch is not something it can do.
+        Row(
+            Modifier.semantics {
+                contentDescription = "Now by room and time"
+                stateDescription = spanLabel(windowMinutes)
+                customActions = listOf(
+                    CustomAccessibilityAction("Zoom in") { zoomTo(windowMinutes / ZOOM_STEP, 0f); true },
+                    CustomAccessibilityAction("Zoom out") { zoomTo(windowMinutes * ZOOM_STEP, 0f); true },
+                )
+            },
+        ) {
             Column(Modifier.width(LABEL_WIDTH)) {
                 Box(Modifier.height(RULER_HEIGHT + RULER_GAP))
                 for (column in layout.columns) {

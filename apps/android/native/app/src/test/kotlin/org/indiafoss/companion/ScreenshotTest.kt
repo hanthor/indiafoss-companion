@@ -1,5 +1,11 @@
 package org.indiafoss.companion
 
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.performCustomAccessibilityActionWithLabel
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
@@ -135,20 +141,19 @@ class ScreenshotTest {
     }
 
     /**
-     * The Now grid zooms (#685): the buttons step the minutes across the view,
-     * a two-finger pinch widens it, and zoomed right in a lightning talk fills
-     * the screen.
+     * The Now grid zooms by pinch only (#685): no buttons on screen, a
+     * two-finger pinch widens it, and TalkBack's own zoom actions step it
+     * until a lightning talk fills the screen.
      */
+    @OptIn(ExperimentalTestApi::class)
     @Test fun nowGridZooms() {
         shoot("now-grid-zoom") { NowScreen(state(), {}, {}) {} }
-        compose.onNodeWithText("25 min").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Zoom in").performClick()
-        compose.onNodeWithText("16 min").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Zoom out").performClick()
-        compose.onNodeWithText("25 min").assertIsDisplayed()
+        val grid = compose.onNodeWithContentDescription("Now by room and time")
+        grid.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "25 min"))
+        compose.onAllNodesWithContentDescription("Zoom in").assertCountEquals(0)
         // Fingers spreading threefold, wider than the grid's 40dp floor on the
         // span: about a third of the minutes across the view.
-        compose.onNodeWithContentDescription("Now by room and time").performTouchInput {
+        grid.performTouchInput {
             pinch(
                 start0 = Offset(centerX - 100f, centerY),
                 end0 = Offset(centerX - 300f, centerY),
@@ -156,15 +161,10 @@ class ScreenshotTest {
                 end1 = Offset(centerX + 300f, centerY),
             )
         }
-        compose.onNodeWithText("8 min").assertIsDisplayed()
+        grid.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "8 min"))
         // Zoomed all the way in, a five-minute lightning talk fills the view.
-        repeat(6) {
-            if (compose.onAllNodesWithText("5 min").fetchSemanticsNodes().isEmpty()) {
-                compose.onNodeWithContentDescription("Zoom in").performClick()
-            }
-        }
-        compose.onNodeWithText("5 min").assertIsDisplayed()
-        compose.onNodeWithContentDescription("Zoom in").assertIsNotEnabled()
+        repeat(6) { grid.performCustomAccessibilityActionWithLabel("Zoom in") }
+        grid.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "5 min"))
         capture("now-grid-zoom")
     }
 
