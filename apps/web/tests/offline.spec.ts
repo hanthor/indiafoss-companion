@@ -79,10 +79,12 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await page.getByRole('button', { name: /^Room 2/ }).click();
   await expect(page.getByRole('heading', { name: 'Room 2' })).toBeVisible();
 
-  // 12. The Now screen still points at the next room from the cached schedule.
+  // 12. The Now grid draws from the cached schedule, and the next-up banner
+  // still opens the map on the next room.
   const during = '2026-09-26T10:20:00+05:30';
   await page.goto(appUrl(`/now?now=${encodeURIComponent(during)}`));
-  await expect(page.getByRole('link', { name: 'Show on map' }).first()).toBeVisible({
+  await expect(page.locator('[data-testid="now-grid"] .talk').first()).toBeVisible({
     timeout: 10_000,
   });
+  await expect(page.locator('a.leaveby')).toHaveAttribute('href', /\/map\/to\//);
 });

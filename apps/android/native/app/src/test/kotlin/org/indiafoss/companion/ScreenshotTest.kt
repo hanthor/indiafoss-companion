@@ -16,6 +16,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pinch
+import androidx.compose.ui.geometry.Offset
 import org.junit.Assert.assertEquals
 import org.indiafoss.companion.ui.screens.ActivityScreen
 import androidx.test.core.app.ApplicationProvider
@@ -128,6 +132,40 @@ class ScreenshotTest {
         compose.onNodeWithContentDescription("Now by room and time").assertIsDisplayed()
         compose.onNodeWithText("Happening now").assertIsDisplayed()
         capture("now-grid")
+    }
+
+    /**
+     * The Now grid zooms (#685): the buttons step the minutes across the view,
+     * a two-finger pinch widens it, and zoomed right in a lightning talk fills
+     * the screen.
+     */
+    @Test fun nowGridZooms() {
+        shoot("now-grid-zoom") { NowScreen(state(), {}, {}) {} }
+        compose.onNodeWithText("25 min").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Zoom in").performClick()
+        compose.onNodeWithText("16 min").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Zoom out").performClick()
+        compose.onNodeWithText("25 min").assertIsDisplayed()
+        // Fingers spreading threefold, wider than the grid's 40dp floor on the
+        // span: about a third of the minutes across the view.
+        compose.onNodeWithContentDescription("Now by room and time").performTouchInput {
+            pinch(
+                start0 = Offset(centerX - 100f, centerY),
+                end0 = Offset(centerX - 300f, centerY),
+                start1 = Offset(centerX + 100f, centerY),
+                end1 = Offset(centerX + 300f, centerY),
+            )
+        }
+        compose.onNodeWithText("8 min").assertIsDisplayed()
+        // Zoomed all the way in, a five-minute lightning talk fills the view.
+        repeat(6) {
+            if (compose.onAllNodesWithText("5 min").fetchSemanticsNodes().isEmpty()) {
+                compose.onNodeWithContentDescription("Zoom in").performClick()
+            }
+        }
+        compose.onNodeWithText("5 min").assertIsDisplayed()
+        compose.onNodeWithContentDescription("Zoom in").assertIsNotEnabled()
+        capture("now-grid-zoom")
     }
 
     /** Two overlapping must-go choices: Now says so instead of naming a destination (#221). */

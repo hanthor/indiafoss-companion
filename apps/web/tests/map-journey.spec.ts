@@ -37,15 +37,13 @@ test('an attendee without a plan picks a destination directly, by keyboard', asy
   await expect(journey).not.toContainText('min walk');
   await expect(page.getByRole('button', { name: /route steps/ })).toHaveCount(0);
 
-  // "Go here" in a room sheet is the tap equivalent of the select.
+  // The room sheet only describes the room: choosing where to go is the picker's job.
   await page.getByRole('button', { name: /^Room 3/ }).click();
   const sheet = page.getByRole('region', { name: 'Room details' });
   await expect(sheet).toContainText('Room 3');
-  await sheet.getByRole('button', { name: 'Go here', exact: true }).click();
-  await expect(to(page)).toHaveValue('room-3');
+  await expect(sheet.getByRole('button', { name: /Go here|Clear destination/ })).toHaveCount(0);
+  await to(page).selectOption('room-3');
   await expect(sheet).toContainText('DESTINATION');
-  await sheet.getByRole('button', { name: 'Clear destination' }).click();
-  await expect(to(page)).toHaveValue('');
 });
 
 test('the destination follows the next planned talk, then a map link, and the sheet keeps room and devroom together', async ({
@@ -56,7 +54,9 @@ test('the destination follows the next planned talk, then a map link, and the sh
   await expect(page.getByText('NEXT IN YOUR PLAN', { exact: true })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Journey' })).toContainText('Welcome Note');
   await expect(page.getByRole('region', { name: 'Journey' })).not.toContainText('leave by');
-  await expect(page.locator('.roomlabel[data-planned-destination=true]')).toHaveCount(1);
+  await expect(
+    page.locator('.labels:not(.measure) .roomlabel[data-planned-destination=true]'),
+  ).toHaveCount(1);
 
   // A /map/to/ link is an explicit destination and opens that room's sheet.
   await page.goto(appUrl(`/map/to/room-2?${WITH_PLAN}`));
@@ -73,7 +73,7 @@ test('the destination follows the next planned talk, then a map link, and the sh
   await expect(sheet.getByRole('heading', { name: 'Hall 3' })).toBeVisible();
   await expect(sheet).toContainText('Devroom now: Compilers, Programming Languages and Systems');
   // The label wraps the long devroom name instead of cutting it short.
-  await expect(page.locator('.roomlabel .talk.devroom')).toContainText(
+  await expect(page.locator('.labels:not(.measure) .roomlabel .talk.devroom')).toContainText(
     'Compilers, Programming Languages and Systems',
   );
 });

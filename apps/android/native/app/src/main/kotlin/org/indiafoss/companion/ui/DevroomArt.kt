@@ -10,10 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import org.indiafoss.companion.R
+import org.indiafoss.companion.core.Activity
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.ui.theme.brand
 
@@ -45,6 +47,40 @@ object DevroomArt {
 
     val trackIds: Set<String> get() = byTrack.keys
 }
+
+/**
+ * The eight devroom colours: the PWA's `--devroom-*` tokens in
+ * apps/web/src/app.css (#469), keyed by the same track ids as [DevroomArt].
+ * The same in both themes; only the 2026 bundle gets them.
+ */
+object DevroomColors {
+    private val byTrack: Map<String, Color> = mapOf(
+        "devroom-android-open-source-project-aosp" to Color(0xFF00C603),
+        "devroom-cloud-devops" to Color(0xFF5F84FF),
+        "devroom-compilers-programming-languages-and-systems" to Color(0xFFDF5447),
+        "devroom-documentation-technical-writing" to Color(0xFFA14CEC),
+        "devroom-open-design" to Color(0xFFCF2797),
+        "devroom-open-hardware" to Color(0xFFE37601),
+        "devroom-real-time-operating-systems-rtos" to Color(0xFFA6AF00),
+        "devroom-security" to Color(0xFF04C7BD),
+    )
+
+    /** A session's devroom colour: its devroom first, else its track, as the PWA does. */
+    fun forActivity(bundle: EventBundle?, activity: Activity): Color? =
+        if (bundle?.id == DevroomArt.EVENT_ID) byTrack[activity.devroomId ?: activity.trackId] else null
+}
+
+/**
+ * CSS `color-mix(in srgb, a, b amountOfB)`. Compose's own `lerp` mixes in
+ * Oklab, which gives different colours; mixing as the web does keeps the
+ * contrast measured there (5.9:1 or better on the devroom pill) true here.
+ */
+fun mixSrgb(a: Color, b: Color, amountOfB: Float): Color = Color(
+    red = a.red + (b.red - a.red) * amountOfB,
+    green = a.green + (b.green - a.green) * amountOfB,
+    blue = a.blue + (b.blue - a.blue) * amountOfB,
+    alpha = a.alpha + (b.alpha - a.alpha) * amountOfB,
+)
 
 /**
  * One devroom pattern, cropped from the top as the PWA's `DevroomBanner`

@@ -58,7 +58,7 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   await expect(page.getByTestId('sim-time')).toContainText('Sat 20 · 09:4');
 
   // Now must switch from the initial wall clock to this simulated event day too.
-  await expect(page.getByRole('region', { name: 'Your plan now' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Happening now' })).toBeVisible();
   await expect(page.getByRole('heading', { name: "That's a wrap" })).toHaveCount(0);
 
   // The banner shows the must-attend session coming up.

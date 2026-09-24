@@ -824,7 +824,9 @@ test('an update that moves a booked talk agrees across detail, Now, plan and map
   // plan; during the talk the highlight has already moved on to the one after.
   const before = 'setup=done&now=2025-09-20T11%3A05%3A00%2B05%3A30';
   await page.goto(appUrl(`/map?${before}`));
-  const destination = page.locator('.roomlabel[data-planned-destination=true]');
+  const destination = page.locator(
+    '.labels:not(.measure) .roomlabel[data-planned-destination=true]',
+  );
   await expect(destination).toHaveCount(1);
   await expect(destination).toContainText('Audi 2');
 });
