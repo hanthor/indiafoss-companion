@@ -89,8 +89,9 @@ test('now screen uses developer time to show current session and next', async ({
   await expect(page.getByRole('heading', { name: 'Happening now' })).toBeVisible();
   // The session running at 10:15–10:30 must appear in the NOW card.
   await expect(page.getByRole('link', { name: /First Step into Open Source/ })).toBeVisible();
-  // A progress bar is rendered for each live session.
-  await expect(page.getByRole('progressbar').first()).toBeVisible();
+  // A line marks now across the grid; the cards carry no progress bars.
+  await expect(page.getByTestId('now-line')).toBeVisible();
+  await expect(page.getByTestId('now-grid').getByRole('progressbar')).toHaveCount(0);
 });
 
 test('explore search responds and renders results', async ({ page }) => {

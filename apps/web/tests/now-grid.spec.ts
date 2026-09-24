@@ -295,3 +295,25 @@ test.describe('on a touch screen', () => {
     expect(await timeAt(page, 150)).toBeCloseTo(before, 0);
   });
 });
+
+test('a ruler along the top gives the time scale and marks now', async ({ page }) => {
+  await page.goto(BUSY);
+  const grid = page.getByTestId('now-grid');
+  const ruler = page.getByTestId('now-grid-ruler');
+  await expect(ruler.locator('.nowtime')).toHaveText('11:30');
+  const view = await grid.locator('.scroller').boundingBox();
+  const line = await page.getByTestId('now-line').boundingBox();
+  const pill = await ruler.locator('.nowtime').boundingBox();
+  // Now opens at the left edge, and its time sits whole on the line.
+  expect(Math.abs(line!.x - view!.x)).toBeLessThan(3);
+  expect(pill!.x).toBeGreaterThanOrEqual(view!.x - 1);
+  // At 25 minutes across, a label every 5 minutes; zoomed out, fewer and coarser.
+  await expect(ruler.locator('.tick').filter({ hasText: '11:40' })).toHaveCount(1);
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await page.getByRole('button', { name: 'Zoom out' }).click();
+  await expect(ruler.locator('.tick').filter({ hasText: '11:40' })).toHaveCount(0);
+  await expect(ruler.locator('.tick').filter({ hasText: '12:00' })).toHaveCount(1);
+  // No card draws a progress bar any more.
+  await expect(grid.getByRole('progressbar')).toHaveCount(0);
+});

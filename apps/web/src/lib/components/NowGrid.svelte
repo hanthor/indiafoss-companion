@@ -216,6 +216,40 @@
     }),
   );
 
+  /** Tick spacing on the ruler: the finest that leaves room for a time label. */
+  const TICK_STEPS = [5, 10, 15, 30, 60, 120];
+  const MIN_TICK_PX = 56;
+  const tickStep = $derived(
+    TICK_STEPS.find((m) => m * pxPerMinute >= MIN_TICK_PX) ?? TICK_STEPS.at(-1)!,
+  );
+  const ticks = $derived.by(() => {
+    if (pxPerMinute <= 0) return [];
+    const out: { left: number; label: string }[] = [];
+    const five = 5 * 60000;
+    // Venue time: the schedule's own strings carry its offset, a bare instant does not.
+    const clock = new Intl.DateTimeFormat('en-GB', {
+      timeZone: bundle.timezone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    });
+    for (let t = Math.ceil(span.origin / five) * five; t <= span.end; t += five) {
+      const label = clock.format(t);
+      const [h, m] = label.split(':').map(Number) as [number, number];
+      if ((h * 60 + m) % tickStep === 0) {
+        out.push({ left: ((t - span.origin) / 60000) * pxPerMinute, label });
+      }
+    }
+    return out;
+  });
+  const nowX = $derived(
+    Number.isFinite(nowMs) && nowMs >= span.origin && nowMs <= span.end
+      ? ((nowMs - span.origin) / 60000) * pxPerMinute
+      : null,
+  );
+  /** Ticks that would sit under the now label step aside for it. */
+  const NOW_LABEL_PX = 48;
+
   /**
    * How far a card's text moves right to start at the visible edge. CSS
    * sticky cannot do this: it slides text only by the card's width less the
@@ -400,6 +434,7 @@
 <div class="nowgrid" data-testid="now-grid" style:--view-w="{laneWidth}px">
   <!-- The names are drawn here, frozen; each lane below carries its own for assistive tech. -->
   <div class="heads" aria-hidden="true">
+    <div class="rulerhead"></div>
     {#each rows as row (row.locationId)}
       <div class="rowhead"><span>{row.name}</span></div>
     {/each}
@@ -421,6 +456,19 @@
       <!-- The scale comes from the measured width: drawing the cards before it
            is known would lay out every card twice on the page's first paint. -->
       {#if pxPerMinute > 0}
+        <div class="ruler" aria-hidden="true" data-testid="now-grid-ruler">
+          {#each ticks as tick (tick.left)}
+            {#if nowX === null || tick.left + NOW_LABEL_PX < nowX || tick.left > nowX + NOW_LABEL_PX}
+              <span class="tick" style:left="{tick.left}px">{tick.label}</span>
+            {/if}
+          {/each}
+          {#if nowX !== null}
+            <span class="nowtime" style:left="{nowX}px">{formatTime(now)}</span>
+          {/if}
+        </div>
+        {#if nowX !== null}
+          <div class="nowline" style:left="{nowX}px" data-testid="now-line"></div>
+        {/if}
         {#each rows as row, i (row.locationId)}
           {@const gap = gaps[i]}
           <div class="lane" role="group" aria-label={row.name}>
@@ -439,8 +487,7 @@
             {#each row.talks as talk (talk.act.id)}
               {@const left = leftOf(talk)}
               {@const width = widthOf(talk)}
-              {@const progress = (nowMs - talk.startMs) / (talk.endMs - talk.startMs)}
-              {@const running = progress > 0 && progress < 1}
+              {@const running = talk.startMs <= nowMs && talk.endMs > nowMs}
               {@const go = talk.act.id === goId}
               <a
                 class="talk"
@@ -464,20 +511,6 @@
                   <strong class="title">{talk.act.title}</strong>
                   {#if talk.pill}<span class="pill">{talk.pill}</span>{/if}
                   {#if talk.speakers}<span class="speakers">{talk.speakers}</span>{/if}
-                  {#if running}
-                    <!-- Along the bottom of the visible text, not the whole card:
-                       the card's elapsed part is the bit scrolled off the left. -->
-                    <span
-                      class="progress"
-                      role="progressbar"
-                      aria-label="Progress of {talk.act.title}"
-                      aria-valuenow={Math.round(progress * 100)}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      <span style:width="{Math.round(progress * 100)}%"></span>
-                    </span>
-                  {/if}
                 </span>
               </a>
             {/each}
@@ -491,6 +524,7 @@
 <style>
   .nowgrid {
     --row-h: 7rem;
+    --ruler-h: 1.2rem;
     --row-gap: 0.35rem;
     --head-w: 1.3rem;
     display: grid;
@@ -532,6 +566,55 @@
   }
   .canvas {
     position: relative;
+  }
+  /* The time scale: minimal labels that follow the zoom. */
+  .rulerhead,
+  .ruler {
+    flex: none;
+    height: var(--ruler-h);
+    margin-bottom: 0.25rem;
+  }
+  .ruler {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-muted);
+  }
+  /* Left-aligned on its tick, so a label at the scroll edge is never cut in half. */
+  .tick {
+    position: absolute;
+    bottom: 0.15rem;
+    padding-left: 3px;
+    border-left: 1px solid var(--line);
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .nowtime {
+    position: absolute;
+    bottom: 0.05rem;
+    /* Starting on the line: the grid opens with now at its left edge. */
+    margin-left: -1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    padding: 0.05rem 0.3rem;
+    border-radius: 999px;
+    background: var(--event-primary);
+    color: var(--on-strong);
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .nowline {
+    position: absolute;
+    top: var(--ruler-h);
+    bottom: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--event-primary);
+    pointer-events: none;
+    z-index: 2;
   }
   .lane {
     position: relative;
@@ -648,21 +731,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
-  .inner > .progress {
-    position: absolute;
-    left: 0.5rem;
-    right: 0.5rem;
-    bottom: 0.3rem;
-    height: 3px;
-    border-radius: 999px;
-    overflow: hidden;
-    background: color-mix(in srgb, var(--text-muted) 25%, transparent);
-  }
-  .inner > .progress > span {
-    display: block;
-    height: 100%;
-    background: var(--hue);
   }
   .gap {
     position: absolute;
