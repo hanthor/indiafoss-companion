@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { rememberScheduleView } from '$lib/schedule-view.svelte';
+  import { t } from '$lib/i18n.svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
 
@@ -8,6 +10,9 @@
    * links, so each view has its own address and the back button works.
    */
   let { current }: { current: 'timeline' | 'rooms' | 'agenda' } = $props();
+
+  // Whichever view is on screen is the one the Schedule tab returns to.
+  $effect(() => rememberScheduleView(current));
 
   // Carry the dev clock and event across, so a simulated day stays simulated.
   const kept = $derived(
@@ -24,11 +29,15 @@
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -- resolved above, with the kept query -->
 <nav class="views" aria-label="Schedule view">
-  <a href={href('/now')} aria-current={current === 'timeline' ? 'page' : undefined}>Timeline</a>
-  <a href={href('/schedule', 'rooms')} aria-current={current === 'rooms' ? 'page' : undefined}
-    >Rooms</a
+  <a href={href('/now')} aria-current={current === 'timeline' ? 'page' : undefined}
+    >{t('view.timeline')}</a
   >
-  <a href={href('/schedule')} aria-current={current === 'agenda' ? 'page' : undefined}>Agenda</a>
+  <a href={href('/schedule', 'rooms')} aria-current={current === 'rooms' ? 'page' : undefined}
+    >{t('view.rooms')}</a
+  >
+  <a href={href('/schedule')} aria-current={current === 'agenda' ? 'page' : undefined}
+    >{t('view.agenda')}</a
+  >
 </nav>
 
 <!-- eslint-enable svelte/no-navigation-without-resolve -->

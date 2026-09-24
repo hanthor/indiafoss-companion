@@ -51,3 +51,20 @@ test('mobile room sheet reports the selected floor', async ({ page }) => {
   await page.getByRole('button', { name: /^Ground/ }).click();
   await expect(page.getByRole('region', { name: 'Room details' })).toContainText('First floor');
 });
+
+test('the Schedule tab reopens the view used last, across a reload', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(appUrl('/now?event=indiafoss-2026&setup=done'));
+  const tab = page.getByTestId('nav-tabbar').getByRole('link', { name: 'Schedule' });
+  const views = page.getByRole('navigation', { name: 'Schedule view' });
+  await views.getByRole('link', { name: 'Rooms' }).click();
+  await expect(page.getByRole('region', { name: 'Schedule by room and time' })).toBeVisible();
+  await page.getByTestId('nav-tabbar').getByRole('link', { name: 'Map' }).click();
+  await tab.click();
+  await expect(views.getByRole('link', { name: 'Rooms' })).toHaveAttribute('aria-current', 'page');
+  await views.getByRole('link', { name: 'Agenda' }).click();
+  await page.reload();
+  await page.getByTestId('nav-tabbar').getByRole('link', { name: 'Plan' }).click();
+  await tab.click();
+  await expect(views.getByRole('link', { name: 'Agenda' })).toHaveAttribute('aria-current', 'page');
+});

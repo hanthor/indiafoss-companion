@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { i18n, LOCALES, LOCALE_NAMES, setLocale, t } from '$lib/i18n.svelte';
   import ConferenceRooms from '$lib/components/ConferenceRooms.svelte';
   import Readiness from '$lib/components/Readiness.svelte';
   import { directoryState, loadDirectory } from '$lib/directory.svelte';
@@ -104,6 +105,21 @@
 <section>
   <div class="eyebrow">CONTROL YOUR DATA</div>
   <h1>Settings</h1>
+  <section class="card" aria-labelledby="language-heading">
+    <h2 id="language-heading">{t('settings.language')}</h2>
+    <div class="languages" role="radiogroup" aria-labelledby="language-heading">
+      {#each LOCALES as locale (locale)}
+        <button
+          role="radio"
+          aria-checked={i18n.locale === locale}
+          lang={locale}
+          class:active={i18n.locale === locale}
+          onclick={() => setLocale(locale)}>{LOCALE_NAMES[locale]}</button
+        >
+      {/each}
+    </div>
+    <p class="muted small">{t('settings.languageNote')}</p>
+  </section>
   <section class="card">
     <h2>Contact sharing</h2>
     <p class="muted">
@@ -343,5 +359,26 @@
     width: 1.3rem;
     height: 1.3rem;
     accent-color: var(--event-primary-dark);
+  }
+  .languages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-block: 0.5rem;
+  }
+  .languages button {
+    min-height: 2.75rem;
+    padding: 0.3rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+  }
+  .languages button.active {
+    background: var(--text);
+    color: var(--paper);
+    border-color: var(--text);
   }
 </style>
