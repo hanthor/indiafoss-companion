@@ -155,3 +155,43 @@ test('failed export leaves stored choices intact and allows retry', async ({ pag
   expect(file.events[0].sections.preferences[0].activityId).toBe(identity.activityId);
   await expect(page.getByRole('button', { name: 'Download personal data' })).toBeEnabled();
 });
+
+test.describe('on Android', () => {
+  test.use({
+    userAgent:
+      'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36',
+  });
+
+  test('Send to the Android app shares the export as one text file', async ({ page }) => {
+    await page.addInitScript(() => {
+      const w = window as unknown as { shared?: { name: string; type: string; text: string }[] };
+      navigator.canShare = () => true;
+      navigator.share = async (data?: ShareData) => {
+        w.shared = await Promise.all(
+          (data?.files ?? []).map(async (f) => ({
+            name: f.name,
+            type: f.type,
+            text: await f.text(),
+          })),
+        );
+      };
+    });
+    await page.goto(appUrl('/settings?setup=done'));
+    await page.getByRole('button', { name: 'Send to the Android app' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Choose Companion' })).toBeVisible();
+    const shared = await page.evaluate(
+      () =>
+        (window as unknown as { shared: { name: string; type: string; text: string }[] }).shared,
+    );
+    expect(shared).toHaveLength(1);
+    expect(shared[0]!.name).toMatch(/^indiafoss-personal-data-\d{4}-\d\d-\d\d\.txt$/);
+    expect(shared[0]!.type).toBe('text/plain');
+    expect(JSON.parse(shared[0]!.text)).toHaveProperty('exportedAt');
+  });
+});
+
+test('desktop browsers offer only the download', async ({ page }) => {
+  await page.goto(appUrl('/settings?setup=done'));
+  await expect(page.getByRole('button', { name: 'Download personal data' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Send to the Android app' })).toHaveCount(0);
+});

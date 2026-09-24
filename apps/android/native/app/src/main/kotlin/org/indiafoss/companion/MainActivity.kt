@@ -1,6 +1,9 @@
 package org.indiafoss.companion
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import androidx.core.content.IntentCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,7 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         org.indiafoss.companion.reminders.ReminderScheduler.ensureChannel(this)
-        intent?.dataString?.let(viewModel::openDeepLink)
+        intent?.let(::handle)
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
             CompanionTheme(dynamicColor = state.dynamicColor) {
@@ -26,9 +29,25 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun onNewIntent(intent: android.content.Intent) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.dataString?.let(viewModel::openDeepLink)
+        handle(intent)
+    }
+
+    /** A deep link, or a personal-data export shared or opened from another app. */
+    private fun handle(intent: Intent) {
+        when (intent.action) {
+            Intent.ACTION_SEND -> viewModel.receiveSharedPersonalData(
+                IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java),
+                intent.getStringExtra(Intent.EXTRA_TEXT),
+            )
+            Intent.ACTION_VIEW ->
+                if (intent.data?.scheme == "content" || intent.data?.scheme == "file") {
+                    viewModel.receiveSharedPersonalData(intent.data, null)
+                } else {
+                    intent.dataString?.let(viewModel::openDeepLink)
+                }
+        }
     }
 
     override fun onStart() {

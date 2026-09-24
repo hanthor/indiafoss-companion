@@ -753,13 +753,39 @@ class CompanionViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Read a chosen file, validate it and show what importing would change; nothing is written yet. */
-    fun previewPersonalData(uri: android.net.Uri) {
+    fun previewPersonalData(uri: android.net.Uri) = previewPersonalDataFrom {
+        runCatching { readBounded(uri) }.getOrElse { throw ImportReadException("The file could not be read.") }
+    }
+
+    /**
+     * A personal-data export handed over by another app, usually the PWA's
+     * "Send to the Android app" share: open Settings on the same preview a
+     * picked file gets, so nothing is written until the attendee chooses.
+     */
+    fun receiveSharedPersonalData(uri: android.net.Uri?, text: String?) {
+        when {
+            uri != null -> previewPersonalData(uri)
+            !text.isNullOrBlank() -> previewPersonalDataFrom {
+                text.takeIf { it.toByteArray().size <= PersonalDataFiles.MAX_BYTES }
+            }
+            else -> return
+        }
+        _state.update { it.copy(pendingRoute = "settings") }
+    }
+
+    private class ImportReadException(message: String) : Exception(message)
+
+    /** `read` returns the text, or null when it is over the size limit. */
+    private fun previewPersonalDataFrom(read: () -> String?) {
         if (state.value.personalDataBusy) return
         _state.update { it.copy(personalDataBusy = true, importPreview = null) }
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) {
-                val text = runCatching { readBounded(uri) }.getOrElse { return@withContext PersonalDataRepository.PreviewResult.Rejected("The file could not be read.") }
-                    ?: return@withContext PersonalDataRepository.PreviewResult.Rejected("personal data exceeds the 5 MiB limit")
+                val text = try {
+                    read()
+                } catch (e: ImportReadException) {
+                    return@withContext PersonalDataRepository.PreviewResult.Rejected(e.message ?: "The file could not be read.")
+                } ?: return@withContext PersonalDataRepository.PreviewResult.Rejected("personal data exceeds the 5 MiB limit")
                 personalData.preview(text, state.value.bundle)
             }
             when (result) {
