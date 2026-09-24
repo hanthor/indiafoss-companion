@@ -1,16 +1,11 @@
 <script lang="ts">
+  import { t, dayLabel } from '$lib/i18n.svelte';
   import { loadPlanned, plannedKey, planExists } from '$lib/planned.svelte';
   import { resolveSavedDayPlan, trackPlanInputs } from '$lib/resolved-plan.svelte';
   import type { ActivityType } from '@indiafoss/model';
   import { formatTime } from '@indiafoss/schedule';
   import { searchActivities } from '@indiafoss/search';
-  import {
-    activitiesForDay,
-    eventToIcs,
-    formatDayLabel,
-    getEventDays,
-    groupByStart,
-  } from '@indiafoss/schedule';
+  import { activitiesForDay, eventToIcs, getEventDays, groupByStart } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf } from '$lib/prefs.svelte';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
@@ -193,13 +188,13 @@
               selectedRoom = '';
             }}
           >
-            Day {i + 1} <small>{formatDayLabel(day)}</small>
+            {t('schedule.day', { n: i + 1 })} <small>{dayLabel(day)}</small>
           </button>
         {/each}
       </div>
 
       <details class="filters">
-        <summary>Filters</summary>
+        <summary>{t('schedule.filters')}</summary>
         <div class="filters-inner">
           {#each Object.entries(typeToggles) as [type, on] (type)}
             <label class="check">
@@ -228,7 +223,7 @@
       <div class="row">
         <label class="search">
           <span class="sr-only">Search sessions</span>
-          <input type="search" placeholder="Search sessions…" bind:value={query} />
+          <input type="search" placeholder={t('schedule.search')} bind:value={query} />
         </label>
       </div>
 
@@ -236,7 +231,7 @@
         <button
           class:active={!selectedRoom}
           aria-pressed={!selectedRoom}
-          onclick={() => (selectedRoom = '')}>All rooms</button
+          onclick={() => (selectedRoom = '')}>{t('schedule.allRooms')}</button
         >
         {#each rooms as room (room.id)}
           <button
@@ -251,7 +246,9 @@
 
   {#if view === 'list'}
     <p class="muted small" role="status">
-      {filtered.length} session{filtered.length === 1 ? '' : 's'}
+      {filtered.length === 1
+        ? t('schedule.session')
+        : t('schedule.sessions', { n: filtered.length })}
     </p>
   {/if}
 

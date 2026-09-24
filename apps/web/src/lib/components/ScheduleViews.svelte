@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n.svelte';
   import { page } from '$app/state';
   import { resolve } from '$app/paths';
 
@@ -24,11 +25,15 @@
 
 <!-- eslint-disable svelte/no-navigation-without-resolve -- resolved above, with the kept query -->
 <nav class="views" aria-label="Schedule view">
-  <a href={href('/now')} aria-current={current === 'timeline' ? 'page' : undefined}>Timeline</a>
-  <a href={href('/schedule', 'rooms')} aria-current={current === 'rooms' ? 'page' : undefined}
-    >Rooms</a
+  <a href={href('/now')} aria-current={current === 'timeline' ? 'page' : undefined}
+    >{t('view.timeline')}</a
   >
-  <a href={href('/schedule')} aria-current={current === 'agenda' ? 'page' : undefined}>Agenda</a>
+  <a href={href('/schedule', 'rooms')} aria-current={current === 'rooms' ? 'page' : undefined}
+    >{t('view.rooms')}</a
+  >
+  <a href={href('/schedule')} aria-current={current === 'agenda' ? 'page' : undefined}
+    >{t('view.agenda')}</a
+  >
 </nav>
 
 <!-- eslint-enable svelte/no-navigation-without-resolve -->

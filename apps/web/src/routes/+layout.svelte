@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t, applyLang } from '$lib/i18n.svelte';
   import '../app.css';
   import { onMount } from 'svelte';
   import { page } from '$app/state';
@@ -90,6 +91,7 @@
   });
 
   onMount(() => {
+    applyLang();
     void hydratePreferences();
     void hydrateNotifications();
     // Deep-link targets are validated in routeForDeepLink() before navigation.
@@ -170,6 +172,7 @@
 
   // Keep an open schedule fresh; hidden/offline tabs do not poll.
   onMount(() => {
+    applyLang();
     const poller = new UpdatePoller(
       (periodic) => checkForUpdates(eventState.bundle?.id ?? DEFAULT_EVENT_ID, { force: periodic }),
       () =>
@@ -246,13 +249,13 @@
     <svg viewBox="0 0 24 24" aria-hidden="true"
       ><path d="M7 2h2v2h6V2h2v2h3v17H4V4h3V2zM6 9v10h12V9H6zm2 2h3v3H8v-3z" /></svg
     >
-    <span>Schedule</span>
+    <span>{t('nav.schedule')}</span>
   </a>
   <a href={resolve('/plan')} aria-current={isActive('/plan') ? 'page' : undefined}>
     <svg viewBox="0 0 24 24" aria-hidden="true"
       ><path d="M5 4h14v16H5V4zm2 2v12h10V6H7zm2 2h6v2H9V8zm0 4h6v2H9v-2zm0 4h4v2H9v-2z" /></svg
     >
-    <span>Plan</span>
+    <span>{t('nav.plan')}</span>
   </a>
   <a href={resolve('/map')} aria-current={isActive('/map') ? 'page' : undefined}>
     <svg viewBox="0 0 24 24" aria-hidden="true"
@@ -260,7 +263,7 @@
         d="M12 2a7 7 0 017 7c0 5-7 13-7 13S5 14 5 9a7 7 0 017-7zm0 2a5 5 0 00-5 5c0 3 3.6 8.2 5 10.1 1.4-1.9 5-7.1 5-10.1a5 5 0 00-5-5zm0 2.5a2.5 2.5 0 110 5 2.5 2.5 0 010-5z"
       /></svg
     >
-    <span>Map</span>
+    <span>{t('nav.map')}</span>
   </a>
   <a href={resolve('/explore')} aria-current={isActive('/explore') ? 'page' : undefined}>
     <svg viewBox="0 0 24 24" aria-hidden="true"
@@ -268,7 +271,7 @@
         d="M10 3a7 7 0 015.6 11.2l5.1 5.1-1.4 1.4-5.1-5.1A7 7 0 1110 3zm0 2a5 5 0 100 10 5 5 0 000-10z"
       /></svg
     >
-    <span>Explore</span>
+    <span>{t('nav.explore')}</span>
   </a>
 {/snippet}
 
@@ -301,7 +304,7 @@
             d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h2v2h-2v-2zm2 2h2v2h-2v-2zm2-2h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v4h-4v-2h2v-2zm-6 2h2v2h-2v-2z"
           /></svg
         >
-        <span>Scan</span>
+        <span>{t('nav.scan')}</span>
       </a>
       <a
         href={resolve('/connect')}
@@ -313,7 +316,7 @@
             d="M12 4a4 4 0 110 8 4 4 0 010-8zm0 2a2 2 0 100 4 2 2 0 000-4zM5 20a7 7 0 0114 0h-2a5 5 0 00-10 0H5z"
           /></svg
         >
-        <span>Connect</span>
+        <span>{t('nav.connect')}</span>
       </a>
     </nav>
   </header>

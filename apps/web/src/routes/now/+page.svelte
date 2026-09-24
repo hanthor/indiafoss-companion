@@ -1,16 +1,11 @@
 <script lang="ts">
+  import { t, dayLabel } from '$lib/i18n.svelte';
   import ScheduleViews from '$lib/components/ScheduleViews.svelte';
   import { livePlanState } from '$lib/resolved-plan.svelte';
   import { eventDay, nextPlannedItem } from '$lib/resolved-plan';
   import { resolve } from '$app/paths';
   import { page } from '$app/state';
-  import {
-    activitiesForDay,
-    getEventDays,
-    computeNowState,
-    formatDayLabel,
-    formatTime,
-  } from '@indiafoss/schedule';
+  import { activitiesForDay, getEventDays, computeNowState, formatTime } from '@indiafoss/schedule';
   import NowGrid from '$lib/components/NowGrid.svelte';
   import { clockFromParams, isFixedClock } from '$lib/clock';
   import { tickInterval } from '$lib/simulator.svelte';
@@ -82,7 +77,7 @@
   <h1 class="sr-only">Schedule</h1>
   <div class="titlebar">
     <ScheduleViews current="timeline" />
-    {#if day}<a href={resolve(`/plan?day=${day}`)}>Your plan</a>{/if}
+    {#if day}<a href={resolve(`/plan?day=${day}`)}>{t('now.yourPlan')}</a>{/if}
   </div>
 
   {#if isFixedClock(clock)}
@@ -110,10 +105,10 @@
       <p class="notice" role="status">Your plan could not be loaded. Open Plan to try again.</p>
     {:else if planBlock}
       <p class="goline">
-        <span class="kicker">{GOING_LABEL}</span>
+        <span class="kicker">{t('go.going')}</span>
         <strong>{planBlock.label ?? 'Personal time'}</strong>
         <span class="muted"
-          >{Date.parse(planBlock.start) <= Date.parse(now) ? 'Now · ' : ''}{formatTime(
+          >{Date.parse(planBlock.start) <= Date.parse(now) ? `${t('now.now')} · ` : ''}{formatTime(
             planBlock.start,
           )}–{formatTime(planBlock.end)}</span
         >
@@ -130,8 +125,9 @@
     <section class="happening" aria-labelledby="now-heading">
       {#snippet heading()}
         <h2 id="now-heading">
-          {#if before}Starts {formatDayLabel(gridDay!)} · {formatTime(firstStart)}{:else}Happening
-            now{/if}
+          {before
+            ? t('now.starts', { when: `${dayLabel(gridDay!)} · ${formatTime(firstStart)}` })
+            : t('now.happening')}
         </h2>
       {/snippet}
       {#if remaining.length === 0}
@@ -144,7 +140,7 @@
           day={gridDay!}
           {now}
           goId={go?.id}
-          goLabel={go?.label}
+          goLabel={go ? (go.label === GOING_LABEL ? t('go.going') : t('go.upNext')) : undefined}
         >
           {#snippet header()}{@render heading()}{/snippet}
         </NowGrid>

@@ -580,3 +580,17 @@ input[type='radio'] {
   --badge-bg: color-mix(in srgb, var(--devroom) 18%, var(--surface));
   --badge-ink: color-mix(in srgb, var(--devroom) 55%, var(--text));
 }
+
+/* Indic scripts join letters into clusters: tracking pulls the clusters
+   apart and upper-casing means nothing to them, so both go when the page
+   is in an Indian language (and on anything marked as one, such as the
+   language picker's own names). */
+:root:not([lang|='en']) *,
+[lang|='hi'],
+[lang|='kn'],
+[lang|='ta'],
+[lang|='te'],
+[lang|='ml'] {
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from '$lib/i18n.svelte';
   import type { Snippet } from 'svelte';
   import { tick, untrack } from 'svelte';
   import type { Activity, EventBundle } from '@indiafoss/model';
@@ -467,7 +468,8 @@
                 style:--cut="{textCut(gap.left, gap.width)}px"
               >
                 <span class="inner"
-                  ><span class="free">Free until {formatTime(gap.until)}</span></span
+                  ><span class="free">{t('now.freeUntil', { time: formatTime(gap.until) })}</span
+                  ></span
                 >
               </div>
             {/if}
@@ -494,7 +496,7 @@
               >
                 <span class="inner">
                   {#if go && goLabel}<span class="kicker">{goLabel}</span>{/if}
-                  <span class="meta">{running ? 'Now · ' : ''}{talk.times}</span>
+                  <span class="meta">{running ? `${t('now.now')} · ` : ''}{talk.times}</span>
                   <strong class="title">{talk.act.title}</strong>
                   {#if talk.pill}<span class="pill">{talk.pill}</span>{/if}
                   {#if talk.speakers}<span class="speakers">{talk.speakers}</span>{/if}
