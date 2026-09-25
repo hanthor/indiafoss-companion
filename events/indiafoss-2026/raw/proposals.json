@@ -247,7 +247,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-29 02:30:38.105267",
       "modified": "2026-09-04 11:11:24.409648",
-      "_likes": 9,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -446,7 +446,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-11 10:06:50.223248",
       "modified": "2026-08-07 21:46:38.845489",
-      "_likes": 6,
+      "_likes": 7,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -884,7 +884,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 16:20:57.341052",
       "modified": "2026-08-07 21:41:57.886367",
-      "_likes": 8,
+      "_likes": 9,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1002,7 +1002,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-05-25 23:36:00.517755",
       "modified": "2026-08-11 19:51:44.084763",
-      "_likes": 10,
+      "_likes": 11,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1363,7 +1363,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-03 16:48:33.972757",
       "modified": "2026-09-10 14:46:03.236522",
-      "_likes": 5,
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1508,7 +1508,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-29 00:18:05.388173",
       "modified": "2026-08-10 16:24:46.948218",
-      "_likes": 4,
+      "_likes": 5,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1724,7 +1724,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-15 23:44:21.732273",
       "modified": "2026-08-27 08:20:10.766969",
-      "_likes": 12,
+      "_likes": 13,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -1815,7 +1815,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 13:02:13.078997",
       "modified": "2026-08-27 16:02:40.951166",
-      "_likes": 8,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2122,7 +2122,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 23:57:11.753099",
       "modified": "2026-08-11 19:56:28.903028",
-      "_likes": 9,
+      "_likes": 10,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2149,7 +2149,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-27 23:58:39.365502",
       "modified": "2026-08-27 08:20:50.153056",
-      "_likes": 4,
+      "_likes": 5,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2240,7 +2240,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-26 14:01:06.639570",
       "modified": "2026-09-03 12:00:02.710298",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -2348,7 +2348,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-17 20:52:47.251471",
       "modified": "2026-08-19 00:18:27.140717",
-      "_likes": 51,
+      "_likes": 53,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4039,7 +4039,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 13:03:48.670973",
       "modified": "2026-08-23 09:00:40.006875",
-      "_likes": 8,
+      "_likes": 9,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4157,7 +4157,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-14 10:42:10.390990",
       "modified": "2026-09-15 09:29:43.697026",
-      "_likes": 5,
+      "_likes": 6,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -4629,7 +4629,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-18 04:22:34.920355",
       "modified": "2026-08-11 19:53:48.261431",
-      "_likes": 2,
+      "_likes": 4,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -5259,16 +5259,86 @@
       "intended_audience": "Beginner",
       "is_first_talk": "No",
       "creation": "2026-08-19 22:35:12.242278",
-      "modified": "2026-08-19 22:35:32.968840",
+      "modified": "2026-09-25 19:59:53.497217",
       "_likes": 1,
       "_is_liked_by_user": false,
       "_speaker": [
         {
           "parent": "9lmiio7p5b",
           "photo": null,
-          "full_name": "Sree Harsha Tanneru",
-          "designation": "SAFAR",
+          "full_name": "Kanika Kumari",
+          "designation": "Mobiliser",
+          "organization": "Asangathit Mazdoor Union",
+          "linked_user": "",
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "9lmiio7p5b",
+          "photo": null,
+          "full_name": "Nikhil Dey",
+          "designation": "Founding Member",
+          "organization": "Mazdoor Kisan Shakti Sangathan",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "9lmiio7p5b",
+          "photo": null,
+          "full_name": "Sai Rahul Purori",
+          "designation": "CEO",
+          "organization": "FOSS United Foundation",
+          "linked_user": "rahulporuri",
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "9lmiio7p5b",
+          "photo": null,
+          "full_name": "Rasam Narsingh",
+          "designation": "Landless Talent Famer",
+          "organization": null,
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "9lmiio7p5b",
+          "photo": null,
+          "full_name": "Sai Phanindra",
+          "designation": "Volunteer",
+          "organization": "Swecha Andhra Pradesh",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "9lmiio7p5b",
+          "photo": null,
+          "full_name": "Rakshita Swamy",
+          "designation": "Founder & DIrector",
           "organization": "SAFAR",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "9lmiio7p5b",
+          "photo": null,
+          "full_name": "Paul Divakar",
+          "designation": "Human Rights Advocate & Executive Director",
+          "organization": "The Inclusivity Project",
+          "linked_user": null,
+          "social_link": null,
+          "bio": null
+        },
+        {
+          "parent": "9lmiio7p5b",
+          "photo": null,
+          "full_name": "Laxmi Devi",
+          "designation": "Full time Member",
+          "organization": "Mazdoor Kisan Shakti Sangathan",
           "linked_user": null,
           "social_link": null,
           "bio": null
@@ -5486,8 +5556,8 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 14:39:47.477419",
       "modified": "2026-08-19 18:55:45.169078",
-      "_likes": 1,
-      "_is_liked_by_user": true,
+      "_likes": 0,
+      "_is_liked_by_user": false,
       "_speaker": [
         {
           "parent": "1s4iem9t8a",
@@ -5651,7 +5721,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 20:17:32.758591",
       "modified": "2026-08-07 21:43:23.824796",
-      "_likes": 10,
+      "_likes": 11,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -5833,7 +5903,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-09-22 17:29:19.415268",
       "modified": "2026-09-24 12:01:15.997142",
-      "_likes": 1,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -6062,7 +6132,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-05-30 01:31:31.477211",
       "modified": "2026-09-04 11:11:51.327051",
-      "_likes": 61,
+      "_likes": 62,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -7100,7 +7170,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-05-27 00:51:51.982927",
       "modified": "2026-09-04 11:42:54.621860",
-      "_likes": 15,
+      "_likes": 16,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8145,7 +8215,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-10 23:13:59.830074",
       "modified": "2026-09-04 11:43:35.449559",
-      "_likes": 23,
+      "_likes": 25,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8833,7 +8903,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 11:32:18.726783",
       "modified": "2026-08-27 08:21:50.587741",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -8860,7 +8930,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 14:14:46.365634",
       "modified": "2026-09-21 20:04:13.119082",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9133,7 +9203,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 16:07:41.268679",
       "modified": "2026-08-15 19:10:36.886010",
-      "_likes": 10,
+      "_likes": 11,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -9946,7 +10016,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-28 21:22:45.157132",
       "modified": "2026-08-19 00:20:44.033041",
-      "_likes": 4,
+      "_likes": 5,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10010,7 +10080,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-06 12:36:41.559214",
       "modified": "2026-09-16 14:37:57.617897",
-      "_likes": 2,
+      "_likes": 3,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -10833,7 +10903,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-12 19:00:52.520752",
       "modified": "2026-08-13 19:51:31.770161",
-      "_likes": 10,
+      "_likes": 13,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11032,7 +11102,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-27 17:09:23.690912",
       "modified": "2026-08-13 19:43:07.462618",
-      "_likes": 40,
+      "_likes": 42,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11086,7 +11156,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 13:59:41.633674",
       "modified": "2026-09-03 11:51:07.224428",
-      "_likes": 17,
+      "_likes": 18,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11649,7 +11719,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-19 11:17:58.417910",
       "modified": "2026-08-07 15:27:17.087213",
-      "_likes": 14,
+      "_likes": 16,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -11757,7 +11827,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-28 22:13:34.576557",
       "modified": "2026-08-23 09:22:40.724853",
-      "_likes": 4,
+      "_likes": 5,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -12502,7 +12572,7 @@
       "is_first_talk": "No",
       "creation": "2026-06-15 20:35:59.337464",
       "modified": "2026-09-17 17:04:56.384170",
-      "_likes": 7,
+      "_likes": 8,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -12556,7 +12626,7 @@
       "is_first_talk": "No",
       "creation": "2026-05-24 10:13:17.594024",
       "modified": "2026-08-15 18:37:23.408361",
-      "_likes": 9,
+      "_likes": 12,
       "_is_liked_by_user": true,
       "_speaker": [
         {
@@ -13490,7 +13560,7 @@
       "is_first_talk": "Yes",
       "creation": "2026-06-14 20:28:09.601620",
       "modified": "2026-09-04 11:24:47.760738",
-      "_likes": 14,
+      "_likes": 15,
       "_is_liked_by_user": true,
       "_speaker": [
         {
