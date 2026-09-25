@@ -8,7 +8,7 @@
   "activities": [
     {
       "id": "act-543a71asfp",
-      "sourceId": "78c28mca5d",
+      "sourceId": "4ib4f8kde2",
       "type": "meal",
       "title": "Registrations and Breakfast (Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -23,7 +23,7 @@
     },
     {
       "id": "act-aq5t2bsj44",
-      "sourceId": "78c26c4ool",
+      "sourceId": "4ib4giei8d",
       "type": "ceremony",
       "title": "Welcome Note",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -38,7 +38,7 @@
     },
     {
       "id": "act-cfp-062rh0sg2r",
-      "sourceId": "78c2lukc8m",
+      "sourceId": "4ib425ekea",
       "proposalId": "062rh0sg2r",
       "type": "talk",
       "title": "From Pull Requests to Patients: Building Open Healthcare Infrastructure in the Open",
@@ -101,7 +101,7 @@
     },
     {
       "id": "act-aq5to9iht3",
-      "sourceId": "78c2ggj0uu",
+      "sourceId": "4ib45q6gnj",
       "type": "ceremony",
       "title": "Opening Note",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -116,7 +116,7 @@
     },
     {
       "id": "act-cfp-advandigma",
-      "sourceId": "78c2a8sj24",
+      "sourceId": "4ib4pbf915",
       "proposalId": "advandigma",
       "type": "talk",
       "title": "Building Zasper: Inception to Growth",
@@ -169,7 +169,7 @@
     },
     {
       "id": "act-aq5tc0pju4",
-      "sourceId": "78c2r7s5m1",
+      "sourceId": "4ib4788lhl",
       "type": "intro",
       "title": "Devroom Intro: Documentation & Technical Writing",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -185,7 +185,7 @@
     },
     {
       "id": "act-78c2mbhu0u",
-      "sourceId": "78c2mbhu0u",
+      "sourceId": "4ib54ktka6",
       "type": "talk",
       "title": "Welcome to the Open Hardware Devroom",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -200,7 +200,7 @@
     },
     {
       "id": "act-28la7s63ku",
-      "sourceId": "78c2ud8d8a",
+      "sourceId": "4ib5uqlk24",
       "proposalId": "32f9jjkob0",
       "type": "talk",
       "title": "Build your own open source keyboard with ZMK/QMK",
@@ -254,7 +254,7 @@
     },
     {
       "id": "act-cfp-65cksuhmhn",
-      "sourceId": "78c2ta6t8o",
+      "sourceId": "4ib47efl4o",
       "proposalId": "65cksuhmhn",
       "type": "lightning-talk",
       "title": "What FOSS Documentation Needs to Thrive in the Age of AI Search",
@@ -299,7 +299,7 @@
     },
     {
       "id": "act-cfp-2bfslonj72",
-      "sourceId": "78c2oo16r1",
+      "sourceId": "4ib4jp9mua",
       "proposalId": "2bfslonj72",
       "type": "talk",
       "title": "From Institution to Community: Building COSH and a Culture of Open Source",
@@ -347,7 +347,7 @@
     },
     {
       "id": "act-28laimsqbf",
-      "sourceId": "78c2kvgj0k",
+      "sourceId": "4ib4b8ad9m",
       "proposalId": "clniq3em1j",
       "type": "lightning-talk",
       "title": "Why Documentation Shouldn't Feel Like Plain Text",
@@ -394,7 +394,7 @@
     },
     {
       "id": "act-28la7k72kp",
-      "sourceId": "78c2tpjuh8",
+      "sourceId": "4ib4pr6j79",
       "proposalId": "db4ufng84v",
       "type": "talk",
       "title": "Documentation That Drives OSS Adoption: Lessons From Bruno",
@@ -442,7 +442,7 @@
     },
     {
       "id": "act-28lahhqhja",
-      "sourceId": "78c28j5gnj",
+      "sourceId": "4ib5uc872i",
       "proposalId": "1cbj5bhfhf",
       "type": "talk",
       "title": "CNC4Everyone - How we built a CNC machine for every classroom, college and makerspace",
@@ -499,7 +499,7 @@
     },
     {
       "id": "act-cfp-0k2f61lkrj",
-      "sourceId": "78c2hrlonf",
+      "sourceId": "4ib4pmirjm",
       "proposalId": "0k2f61lkrj",
       "type": "talk",
       "title": "Repub: Launching the Open Post-Processing Workflow for Digital Archiving in India",
@@ -555,7 +555,7 @@
     },
     {
       "id": "act-28la54hqh4",
-      "sourceId": "78c24o4v9s",
+      "sourceId": "4ib4cbegpp",
       "proposalId": "en28h8l81s",
       "type": "lightning-talk",
       "title": "Ctrl+F for 34 Years of India's GovTech (Building a Public Commons for India's Digital Governance History)",
@@ -608,7 +608,7 @@
     },
     {
       "id": "act-cfp-8s4g5qj3oq",
-      "sourceId": "78c2mbo14p",
+      "sourceId": "4ib4lj5ivs",
       "proposalId": "8s4g5qj3oq",
       "type": "talk",
       "title": "Textbooks that run: interactive, zero-install CS education in the browser",
@@ -662,7 +662,7 @@
     },
     {
       "id": "act-78c2fs9fjl",
-      "sourceId": "78c2fs9fjl",
+      "sourceId": "4ib4f7ad96",
       "type": "talk",
       "title": "Unconference session",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -678,7 +678,7 @@
     },
     {
       "id": "act-cfp-37sjgknrj3",
-      "sourceId": "78c2jm6bsf",
+      "sourceId": "4ib5d888b2",
       "proposalId": "37sjgknrj3",
       "type": "bof",
       "title": "Do Open Source Companies Pay Competitively?",
@@ -733,7 +733,7 @@
     },
     {
       "id": "act-cfp-92adqrmbh1",
-      "sourceId": "78c2osglou",
+      "sourceId": "4ib5i0uu5p",
       "proposalId": "92adqrmbh1",
       "type": "bof",
       "title": "FOSS4Good - Techies in the social sector",
@@ -768,7 +768,7 @@
     },
     {
       "id": "act-cfp-42vnv417j4",
-      "sourceId": "78c27dre14",
+      "sourceId": "4ib4to3011",
       "proposalId": "42vnv417j4",
       "type": "talk",
       "title": "How to Build Long-Lasting Tech Communities That Thrive — A Playbook",
@@ -816,7 +816,7 @@
     },
     {
       "id": "act-28lai08gg0",
-      "sourceId": "78c292d4qv",
+      "sourceId": "4ib5too9jd",
       "proposalId": "9e9bajmm07",
       "type": "talk",
       "title": "My zero-to-hero journey deploying a fiber-optic and wireless community mesh",
@@ -861,7 +861,7 @@
     },
     {
       "id": "act-28la2f67h1",
-      "sourceId": "78c2qqvlb2",
+      "sourceId": "4ib4vqf43n",
       "proposalId": "6dpd2lbkma",
       "type": "lightning-talk",
       "title": "Refactoring documentation without breaking it",
@@ -938,7 +938,7 @@
     },
     {
       "id": "act-cfp-44no6v1fbb",
-      "sourceId": "78c2ga3onl",
+      "sourceId": "4ib48jb1gh",
       "proposalId": "44no6v1fbb",
       "type": "talk",
       "title": "Tracking-free and hackable network cameras - powered by libre software",
@@ -987,7 +987,7 @@
     },
     {
       "id": "act-28ladjk67i",
-      "sourceId": "78c24trvmg",
+      "sourceId": "4ib4gmkgr7",
       "type": "ceremony",
       "title": "Group Photo",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1003,7 +1003,7 @@
     },
     {
       "id": "act-28la2b9bfd",
-      "sourceId": "78c2usibgp",
+      "sourceId": "4ib429on4m",
       "proposalId": "76r6ku6p9h",
       "type": "lightning-talk",
       "title": "Changelogs Are Not Enough: Writing Community Memory for Kubernetes",
@@ -1075,7 +1075,7 @@
     },
     {
       "id": "act-28la68il6o",
-      "sourceId": "78c250f6v5",
+      "sourceId": "4ib5r3es53",
       "proposalId": "7pt1ibasdd",
       "type": "talk",
       "title": "Minnow: An Open Platform for Ground Swarm Robotics",
@@ -1123,7 +1123,7 @@
     },
     {
       "id": "act-cfp-9ojc3pnp7u",
-      "sourceId": "78c21t9tof",
+      "sourceId": "4ib4rgvu24",
       "proposalId": "9ojc3pnp7u",
       "type": "talk",
       "title": "Optimizing Performance of GUIs",
@@ -1161,7 +1161,7 @@
     },
     {
       "id": "act-28lafff71r",
-      "sourceId": "78c2vin49b",
+      "sourceId": "4ib4qsjai2",
       "proposalId": "eqr1r1mp5b",
       "type": "talk",
       "title": "Writing Docs for Two Readers: Humans and AI Agents",
@@ -1210,7 +1210,7 @@
     },
     {
       "id": "act-cfp-4svti9mp47",
-      "sourceId": "78c2us7mp7",
+      "sourceId": "4ib4qpk8fg",
       "proposalId": "4svti9mp47",
       "type": "lightning-talk",
       "title": "Fork Around and Find Out: How I Built a GNOME Extension Used by 200K+ People",
@@ -1270,7 +1270,7 @@
     },
     {
       "id": "act-28la283qdf",
-      "sourceId": "78c2qor1fo",
+      "sourceId": "4ib5oqvnro",
       "proposalId": "3nr9benq94",
       "type": "talk",
       "title": "Building Open Source Music Hardware in India - Tarab Instruments",
@@ -1334,7 +1334,7 @@
     },
     {
       "id": "act-cfp-658mrgdc1b",
-      "sourceId": "78c23qvqr2",
+      "sourceId": "4ib4g8ur8d",
       "proposalId": "658mrgdc1b",
       "type": "lightning-talk",
       "title": "FQ-PIE: Contributing to Open Standards by Contributing to FOSS",
@@ -1411,7 +1411,7 @@
     },
     {
       "id": "act-cfp-0dkd3hateq",
-      "sourceId": "78c2m0fil3",
+      "sourceId": "4ib4o35jpn",
       "proposalId": "0dkd3hateq",
       "type": "lightning-talk",
       "title": "It takes a village to raise a repo",
@@ -1463,7 +1463,7 @@
     },
     {
       "id": "act-aq5tk8jgaa",
-      "sourceId": "78c2vgpgrs",
+      "sourceId": "4ib4t8bppc",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1478,7 +1478,7 @@
     },
     {
       "id": "act-aq5t5c8t57",
-      "sourceId": "78c2tl10cc",
+      "sourceId": "4ib4i9mtdg",
       "type": "meal",
       "title": "Lunch Break – 12 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1493,7 +1493,7 @@
     },
     {
       "id": "act-28la6nvldv",
-      "sourceId": "78c2ghf9e2",
+      "sourceId": "4ib4qqkbo7",
       "proposalId": "7dfgb98p8p",
       "type": "lightning-talk",
       "title": "Python Now Speaks Tamil: Getting Official Docs Translated for a Mother Tongue",
@@ -1535,7 +1535,7 @@
     },
     {
       "id": "act-28la8gj1tt",
-      "sourceId": "78c2ot69j0",
+      "sourceId": "4ib41uflpt",
       "proposalId": "c9kecg3h9i",
       "type": "talk",
       "title": "404: Empathy Not Found",
@@ -1599,7 +1599,7 @@
     },
     {
       "id": "act-aq5t2pjeqp",
-      "sourceId": "78c24la7vo",
+      "sourceId": "4ib4ptjot1",
       "type": "talk",
       "title": "2026 GB Elections. Meet the Candidates",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1614,7 +1614,7 @@
     },
     {
       "id": "act-cfp-bemvjh2dac",
-      "sourceId": "78c2tv6ovm",
+      "sourceId": "4ib4l221qr",
       "proposalId": "bemvjh2dac",
       "type": "lightning-talk",
       "title": "Mapping India in seconds, for one and all",
@@ -1677,7 +1677,7 @@
     },
     {
       "id": "act-78c2rt9gt0",
-      "sourceId": "78c2rt9gt0",
+      "sourceId": "4ib5ttabea",
       "type": "talk",
       "title": "Panel Discussion - Makers, Hackers & Hardware: Where Do We Go From Here?",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1693,7 +1693,7 @@
     },
     {
       "id": "act-cfp-0hgfa2n1kg",
-      "sourceId": "78c2g7lum5",
+      "sourceId": "4ib4jpspf0",
       "proposalId": "0hgfa2n1kg",
       "type": "talk",
       "title": "Porting Pipecat to Rust: The story of Rustvani-Fast Cheap Voice Ai for Bharat",
@@ -1749,7 +1749,7 @@
     },
     {
       "id": "act-28lapvjakp",
-      "sourceId": "78c26hcv9p",
+      "sourceId": "4ib41m77hc",
       "proposalId": "0hs9gpkgp4",
       "type": "lightning-talk",
       "title": "Printable, Downloadable, Forever: An Ode to Offline Documentation",
@@ -1857,7 +1857,7 @@
     },
     {
       "id": "act-aq5tc1ppib",
-      "sourceId": "78c23u6iqd",
+      "sourceId": "4ib4g133q2",
       "type": "ceremony",
       "title": "Devroom Wrap-Up",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1872,8 +1872,47 @@
       "source": "fossunited"
     },
     {
+      "id": "act-cfp-0ji76qukm0",
+      "sourceId": "4ib4d8g1ob",
+      "proposalId": "0ji76qukm0",
+      "type": "talk",
+      "title": "Building a business with FOSS",
+      "subtitle": "",
+      "description": "What does it take to go from successful FOSS project to sustainable business",
+      "references": [
+        {
+          "label": "https://frappe.io",
+          "url": "https://frappe.io/"
+        }
+      ],
+      "links": [
+        {
+          "label": "Source code",
+          "url": "https://github.com/fossunited/fossunited"
+        }
+      ],
+      "audience": "Intermediate",
+      "proposalStatus": "Approved",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/cfp/0ji76qukm0",
+      "start": "2026-09-26T12:45:00+05:30",
+      "end": "2026-09-26T13:15:00+05:30",
+      "flexible": false,
+      "locationId": "hall-1",
+      "speakerIds": [
+        "person-neha-sanke"
+      ],
+      "tags": [
+        "Invited Talk",
+        "Frappe",
+        "Business with FOSS",
+        "Intermediate"
+      ],
+      "trackId": "hall-1",
+      "source": "fossunited"
+    },
+    {
       "id": "act-aq5t1o9k38",
-      "sourceId": "78c219j0ic",
+      "sourceId": "4ib48u4qio",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1887,23 +1926,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5tu34gje",
-      "sourceId": "78c2mr63ch",
-      "type": "meal",
-      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
-      "start": "2026-09-26T13:00:00+05:30",
-      "end": "2026-09-26T14:00:00+05:30",
-      "flexible": false,
-      "locationId": "hall-3",
-      "speakerIds": [],
-      "tags": [],
-      "trackId": "hall-3",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5t091a1i",
-      "sourceId": "78c2sa48lb",
+      "sourceId": "4ib4r1vi0r",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1917,8 +1941,23 @@
       "source": "fossunited"
     },
     {
+      "id": "act-aq5tu34gje",
+      "sourceId": "4ib47463gr",
+      "type": "meal",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
+      "start": "2026-09-26T13:00:00+05:30",
+      "end": "2026-09-26T14:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [],
+      "tags": [],
+      "trackId": "hall-3",
+      "source": "fossunited"
+    },
+    {
       "id": "act-78c2817l29",
-      "sourceId": "78c2817l29",
+      "sourceId": "4ib4t9jern",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1933,7 +1972,7 @@
     },
     {
       "id": "act-aq5tapk6u7",
-      "sourceId": "78c2jjmc1u",
+      "sourceId": "4ib418kmai",
       "type": "intro",
       "title": "Devroom Intro: Compilers, Programming Languages & Systems",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -1948,7 +1987,7 @@
     },
     {
       "id": "act-cfp-dticdhpupe",
-      "sourceId": "78c2bjpfii",
+      "sourceId": "4ib4hcgvgk",
       "proposalId": "dticdhpupe",
       "type": "talk",
       "title": "FOSS for the Forgotten Middle: Open-Sourcing Finance Software for India's 50,000 Microgyms",
@@ -2003,7 +2042,7 @@
     },
     {
       "id": "act-28laqr9ecm",
-      "sourceId": "78c217nc2a",
+      "sourceId": "4ib421jbma",
       "proposalId": "4etfsdh6i4",
       "type": "lightning-talk",
       "title": "Keeping up with the AOSP",
@@ -2045,7 +2084,7 @@
     },
     {
       "id": "act-28lapes3il",
-      "sourceId": "78c2t7vjul",
+      "sourceId": "4ib4qnnrod",
       "proposalId": "381kk089so",
       "type": "lightning-talk",
       "title": "Semantic Quantization in KV Cache Eviction",
@@ -2103,7 +2142,7 @@
     },
     {
       "id": "act-28la3ltjcq",
-      "sourceId": "78c2sttomm",
+      "sourceId": "4ib4h81oap",
       "proposalId": "beqsttjcbn",
       "type": "lightning-talk",
       "title": "Under the Hood of Android , What Really Happens When You Open an App?",
@@ -2156,7 +2195,7 @@
     },
     {
       "id": "act-28la1ogl62",
-      "sourceId": "78c225qat4",
+      "sourceId": "4ib4n8s276",
       "proposalId": "3ni2uq8bkg",
       "type": "lightning-talk",
       "title": "Databases in Ethereum Nodes",
@@ -2217,7 +2256,7 @@
     },
     {
       "id": "act-28lar6l8ag",
-      "sourceId": "78c2b43pvb",
+      "sourceId": "4ib4cm1fbo",
       "proposalId": "bb06npb4u0",
       "type": "lightning-talk",
       "title": "Launcher3 Internals: Understanding Android's Home Screen, Google Feed Integration, and Custom -1 Panels",
@@ -2267,7 +2306,7 @@
     },
     {
       "id": "act-cfp-0j48rt6d3s",
-      "sourceId": "78c2v9d3o9",
+      "sourceId": "4ib54ghiie",
       "proposalId": "0j48rt6d3s",
       "type": "bof",
       "title": "FOSS and Co-operatives",
@@ -2313,7 +2352,7 @@
     },
     {
       "id": "act-cfp-dagd2l28tm",
-      "sourceId": "78c28s0sqi",
+      "sourceId": "4ib5uuuc5u",
       "proposalId": "dagd2l28tm",
       "type": "bof",
       "title": "FOSS in the Public Consciousness",
@@ -2354,7 +2393,7 @@
     },
     {
       "id": "act-cfp-9lmiio7p5b",
-      "sourceId": "78c2v0aamm",
+      "sourceId": "4ib4p3hd4e",
       "proposalId": "9lmiio7p5b",
       "type": "panel",
       "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for Democratic Accountability",
@@ -2380,7 +2419,14 @@
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [
-        "person-sree-harsha-tanneru"
+        "person-kanika-kumari",
+        "person-nikhil-dey",
+        "person-sai-rahul-purori",
+        "person-rasam-narsingh",
+        "person-sai-phanindra",
+        "person-rakshita-swamy",
+        "person-paul-divakar",
+        "person-laxmi-devi"
       ],
       "tags": [
         "Panel Discussion",
@@ -2391,7 +2437,7 @@
     },
     {
       "id": "act-cfp-8knf7bja7g",
-      "sourceId": "78c2tdt4ta",
+      "sourceId": "4ib4d7anan",
       "proposalId": "8knf7bja7g",
       "type": "talk",
       "title": "Navigating the FOSS Contribution Journey",
@@ -2444,7 +2490,7 @@
     },
     {
       "id": "act-28laigg511",
-      "sourceId": "78c2gmiv3d",
+      "sourceId": "4ib4qe4467",
       "proposalId": "d8b9uvdntg",
       "type": "talk",
       "title": "Bend, don't Break. Modern Techniques for Flexibility in Strongly Typed Functional Programming",
@@ -2493,7 +2539,7 @@
     },
     {
       "id": "act-28la93vrf8",
-      "sourceId": "78c2nug76e",
+      "sourceId": "4ib41f4u9r",
       "proposalId": "4v0vd3g01j",
       "type": "lightning-talk",
       "title": "Inside Android Keyboards: Building an Open Source IME",
@@ -2551,7 +2597,7 @@
     },
     {
       "id": "act-28lajt6fl6",
-      "sourceId": "78c2eti2s8",
+      "sourceId": "4ib43kmn2p",
       "proposalId": "e08r7fa8ja",
       "type": "lightning-talk",
       "title": "Adapting Generic Boot Loader on Android Platforms",
@@ -2589,7 +2635,7 @@
     },
     {
       "id": "act-28lam87dir",
-      "sourceId": "78c2j0l2c5",
+      "sourceId": "4ib41iuvqv",
       "proposalId": "09lln6s8nq",
       "type": "talk",
       "title": "PeerDAS: Erasure Coding When You Can't Trust the Storage",
@@ -2647,7 +2693,7 @@
     },
     {
       "id": "act-cfp-ck74mbe1ds",
-      "sourceId": "78c2478bdm",
+      "sourceId": "4ib43g2vbb",
       "proposalId": "ck74mbe1ds",
       "type": "talk",
       "title": "How FOSS and AI are Changing Government Workflows at NHAI",
@@ -2723,7 +2769,7 @@
     },
     {
       "id": "act-28lap8q3re",
-      "sourceId": "78c2griqvv",
+      "sourceId": "4ib4m2cpih",
       "proposalId": "d883e2uauk",
       "type": "talk",
       "title": "Porting AOSP to Allwinner Sunxi platform",
@@ -2771,7 +2817,7 @@
     },
     {
       "id": "act-28lauslk84",
-      "sourceId": "78c21eosro",
+      "sourceId": "4ib4hjbs0r",
       "proposalId": "6aasju7noq",
       "type": "lightning-talk",
       "title": "Benchmarking can be hard, here's why we're still creating a new one for OCaml",
@@ -2815,7 +2861,7 @@
     },
     {
       "id": "act-cfp-0evl4k18m0",
-      "sourceId": "78c2j5oeo5",
+      "sourceId": "4ib5up5cfr",
       "proposalId": "0evl4k18m0",
       "type": "bof",
       "title": "Beyond the ICT Period: Can FOSS Communities Reshape School-Level Tech Education in India?",
@@ -2863,7 +2909,7 @@
     },
     {
       "id": "act-cfp-ab8viuj62q",
-      "sourceId": "78c2qlkkff",
+      "sourceId": "4ib4m0lj2o",
       "proposalId": "ab8viuj62q",
       "type": "talk",
       "title": "Building OpenSpeaks tools for language documentation and archiving",
@@ -2911,7 +2957,7 @@
     },
     {
       "id": "act-cfp-59ok1dm8kb",
-      "sourceId": "78c2m9oe2r",
+      "sourceId": "4ib5flg2ae",
       "proposalId": "59ok1dm8kb",
       "type": "workshop",
       "title": "Making music with strudel.cc",
@@ -2961,7 +3007,7 @@
     },
     {
       "id": "act-cfp-dmsksuju3d",
-      "sourceId": "78c2juqcae",
+      "sourceId": "4ib44nqe7s",
       "proposalId": "dmsksuju3d",
       "type": "talk",
       "title": "Offline-first mobile apps on Frappe: a metadata-driven Flutter SDK with server-side control",
@@ -3019,7 +3065,7 @@
     },
     {
       "id": "act-28la1809t3",
-      "sourceId": "78c298fctr",
+      "sourceId": "4ib4va0ugf",
       "proposalId": "33ogils4n5",
       "type": "lightning-talk",
       "title": "What LLVM Does Differently When The Target Is CPU VS GPU",
@@ -3078,7 +3124,7 @@
     },
     {
       "id": "act-28laau6e4o",
-      "sourceId": "78c2n29s4a",
+      "sourceId": "4ib4sfrioc",
       "proposalId": "3ltumiotgu",
       "type": "lightning-talk",
       "title": "Living With a DeGoogled Phone: Privacy, Trade-offs, and Daily Use",
@@ -3121,7 +3167,7 @@
     },
     {
       "id": "act-28lar32res",
-      "sourceId": "78c268a2q7",
+      "sourceId": "4ib47keat5",
       "proposalId": "299lpkmuqh",
       "type": "talk",
       "title": "PythonBPF - now with loops, custom funcs, and more maps!",
@@ -3179,7 +3225,7 @@
     },
     {
       "id": "act-28lahmuq69",
-      "sourceId": "78c2ebmspj",
+      "sourceId": "4ib48mb960",
       "proposalId": "dojgnoj06v",
       "type": "lightning-talk",
       "title": "Volume Controller using Knob (Potentiometer)",
@@ -3235,7 +3281,7 @@
     },
     {
       "id": "act-28lad7fd91",
-      "sourceId": "78c2ku4h9r",
+      "sourceId": "4ib4l7dvph",
       "proposalId": "8cbv4mpi6o",
       "type": "lightning-talk",
       "title": "LGTM Is Not A Theorem",
@@ -3277,7 +3323,7 @@
     },
     {
       "id": "act-cfp-cpno9khavs",
-      "sourceId": "78c23f0b62",
+      "sourceId": "4ib4581a8e",
       "proposalId": "cpno9khavs",
       "type": "talk",
       "title": "Open Code, Curated Data: Building Open Water Intelligence for Indian Cities",
@@ -3330,7 +3376,7 @@
     },
     {
       "id": "act-cfp-5jvkd5u7mk",
-      "sourceId": "78c2hia3pn",
+      "sourceId": "4ib4g9681g",
       "proposalId": "5jvkd5u7mk",
       "type": "talk",
       "title": "Physics at 60FPS",
@@ -3372,7 +3418,7 @@
     },
     {
       "id": "act-28laung17t",
-      "sourceId": "78c22mmq5g",
+      "sourceId": "4ib4lcmd8c",
       "proposalId": "armmpc3k1l",
       "type": "lightning-talk",
       "title": "Zero Trust, Zero TEE: Porting Android 16 to a Device Whose Security Stack Doesn't Exist Yet",
@@ -3428,7 +3474,7 @@
     },
     {
       "id": "act-28la91lu3s",
-      "sourceId": "78c2jmbpot",
+      "sourceId": "4ib45m7ss3",
       "proposalId": "3akfugngg7",
       "type": "lightning-talk",
       "title": "One Language, All GPU: How Julia Targets different GPU backends from a Single Kernel.",
@@ -3487,7 +3533,7 @@
     },
     {
       "id": "act-28la55ehov",
-      "sourceId": "78c2oa0gvg",
+      "sourceId": "4ib416iits",
       "proposalId": "41r3mau7ga",
       "type": "talk",
       "title": "Beyond HIDL: Modernizing Android HALs with Rust & Stable AIDL",
@@ -3544,7 +3590,7 @@
     },
     {
       "id": "act-cfp-5hvaj1cbj8",
-      "sourceId": "78c20g31da",
+      "sourceId": "4ib57n6n47",
       "proposalId": "5hvaj1cbj8",
       "type": "bof",
       "title": "Going Beyond Grants (for Women and LGBTQIA+ people in FOSS)",
@@ -3577,7 +3623,7 @@
     },
     {
       "id": "act-28labhid7f",
-      "sourceId": "78c2t9827c",
+      "sourceId": "4ib4gulish",
       "proposalId": "0p3ti1uq2b",
       "type": "talk",
       "title": "Rust Is Not an HDL, So I Built a Tiny One.",
@@ -3657,7 +3703,7 @@
     },
     {
       "id": "act-cfp-96goef7o3q",
-      "sourceId": "78c2hk49ji",
+      "sourceId": "4ib4d09pl4",
       "proposalId": "96goef7o3q",
       "type": "lightning-talk",
       "title": "What can we do about open weight models enabling non consensual intimate imagery?",
@@ -3714,7 +3760,7 @@
     },
     {
       "id": "act-28laeusjrp",
-      "sourceId": "78c29if7dr",
+      "sourceId": "4ib44ca3rp",
       "proposalId": "0le8m0bk3i",
       "type": "lightning-talk",
       "title": "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast storage analysis",
@@ -3764,7 +3810,7 @@
     },
     {
       "id": "act-cfp-5pig94v0sa",
-      "sourceId": "78c269liuq",
+      "sourceId": "4ib460afut",
       "proposalId": "5pig94v0sa",
       "type": "lightning-talk",
       "title": "Opening the Archives: Building Digital Infrastructure for Public Participation in Archival Records",
@@ -3811,7 +3857,7 @@
     },
     {
       "id": "act-28lak6c90f",
-      "sourceId": "78c2vnod7e",
+      "sourceId": "4ib4u267mm",
       "proposalId": "9qjtkvb2gi",
       "type": "talk",
       "title": "Formal Verification: An Introduction through Elementary Arithmetic",
@@ -3858,7 +3904,7 @@
     },
     {
       "id": "act-aq5t5e261u",
-      "sourceId": "78c27tnj65",
+      "sourceId": "4ib4j9br2u",
       "type": "talk",
       "title": "What's new at FOSS United Foundation",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3873,7 +3919,7 @@
     },
     {
       "id": "act-28laqivva5",
-      "sourceId": "78c23ta4of",
+      "sourceId": "4ib449rsgn",
       "type": "talk",
       "title": "Reflections from GB Members",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3888,7 +3934,7 @@
     },
     {
       "id": "act-cfp-4llmgcq50k",
-      "sourceId": "78c2lrv4gn",
+      "sourceId": "4ib4ufn537",
       "proposalId": "4llmgcq50k",
       "type": "talk",
       "title": "How India’s Largest G2C Platform Migrated to FOSS and Broke Free from Oracle",
@@ -3930,7 +3976,7 @@
     },
     {
       "id": "act-aq5tg0077i",
-      "sourceId": "78c2jlk37d",
+      "sourceId": "4ib4igqi2b",
       "type": "ceremony",
       "title": "Opening Note",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3945,7 +3991,7 @@
     },
     {
       "id": "act-28laac7vdq",
-      "sourceId": "78c2lia5cq",
+      "sourceId": "4ib45j37ts",
       "type": "intro",
       "title": "Devroom Intro: Open Design",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3961,7 +4007,7 @@
     },
     {
       "id": "act-28lat7k13l",
-      "sourceId": "78c28g640v",
+      "sourceId": "4ib5gdo9r8",
       "type": "intro",
       "title": "Devroom Intro: Security",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -3977,7 +4023,7 @@
     },
     {
       "id": "act-cfp-ccd7lpdj1o",
-      "sourceId": "78c2blj0c8",
+      "sourceId": "4ib4j30tkr",
       "proposalId": "ccd7lpdj1o",
       "type": "lightning-talk",
       "title": "Don't Model Every Leaf: The Magic of Blender Geometry Nodes",
@@ -4020,7 +4066,7 @@
     },
     {
       "id": "act-cfp-a45o8u74jv",
-      "sourceId": "78c2qle2gl",
+      "sourceId": "4ib52hkap3",
       "proposalId": "a45o8u74jv",
       "type": "lightning-talk",
       "title": "Reverse Engineering the PAN QR Code",
@@ -4072,7 +4118,7 @@
     },
     {
       "id": "act-28lajil88v",
-      "sourceId": "78c2obkec8",
+      "sourceId": "4ib46npt5k",
       "proposalId": "2tsmo50knt",
       "type": "talk",
       "title": "Forkable design",
@@ -4130,7 +4176,7 @@
     },
     {
       "id": "act-cfp-8dso3avp9l",
-      "sourceId": "78c2ulld5s",
+      "sourceId": "4ib4jakq25",
       "proposalId": "8dso3avp9l",
       "type": "talk",
       "title": "How exactly can we teach students the right FOSS etiquette?",
@@ -4176,7 +4222,7 @@
     },
     {
       "id": "act-cfp-84efmkj2n3",
-      "sourceId": "78c28s5ipp",
+      "sourceId": "4ib4sa0mtp",
       "proposalId": "84efmkj2n3",
       "type": "lightning-talk",
       "title": "Property-based testing for UIs",
@@ -4224,7 +4270,7 @@
     },
     {
       "id": "act-cfp-cmc3ntipr8",
-      "sourceId": "78c2imi1jk",
+      "sourceId": "4ib5m5j6g1",
       "proposalId": "cmc3ntipr8",
       "type": "lightning-talk",
       "title": "When NO_PROXY Lies: Finding an IPv4-Mapped IPv6 Patch Bypass in Axios",
@@ -4273,7 +4319,7 @@
     },
     {
       "id": "act-cfp-4eh569dvq9",
-      "sourceId": "78c2p3t1o8",
+      "sourceId": "4ib53vd8br",
       "proposalId": "4eh569dvq9",
       "type": "bof",
       "title": "Can We Build a Copyleft License for Community Data in the Age of AI",
@@ -4305,7 +4351,7 @@
     },
     {
       "id": "act-cfp-5inuh3i6co",
-      "sourceId": "78c2tsd8lf",
+      "sourceId": "4ib5ejvvo7",
       "proposalId": "5inuh3i6co",
       "type": "bof",
       "title": "Community-Centred Technology",
@@ -4345,7 +4391,7 @@
     },
     {
       "id": "act-28lamk3q73",
-      "sourceId": "78c23oucni",
+      "sourceId": "4ib496qg28",
       "proposalId": "an3ot6c0v0",
       "type": "talk",
       "title": "Shaili Sanchaya: Reviving Indic Typography from Archival Metadata",
@@ -4401,7 +4447,7 @@
     },
     {
       "id": "act-cfp-2git32fbo6",
-      "sourceId": "78c2qg6sdb",
+      "sourceId": "4ib43ohk2e",
       "proposalId": "2git32fbo6",
       "type": "talk",
       "title": "Surviving as an Open Source Startup : Xeneva",
@@ -4465,7 +4511,7 @@
     },
     {
       "id": "act-cfp-erphckugi7",
-      "sourceId": "78c2m37muk",
+      "sourceId": "4ib58mjoct",
       "proposalId": "erphckugi7",
       "type": "lightning-talk",
       "title": "Extracting AES Keys from Embedded Devices Using Open Source Hardware",
@@ -4513,7 +4559,7 @@
     },
     {
       "id": "act-cfp-f4ko2mik8q",
-      "sourceId": "78c2abti35",
+      "sourceId": "4ib463a8rf",
       "proposalId": "f4ko2mik8q",
       "type": "talk",
       "title": "Seqout: search engine for the world’s genomic data",
@@ -4569,7 +4615,7 @@
     },
     {
       "id": "act-28lai8vuts",
-      "sourceId": "78c25grl1c",
+      "sourceId": "4ib4vl04dj",
       "proposalId": "f89n581n5c",
       "type": "talk",
       "title": "Designing for Reality: Where UI Meets the Physical World",
@@ -4615,7 +4661,7 @@
     },
     {
       "id": "act-cfp-9611q7a3nk",
-      "sourceId": "78c2cmsu67",
+      "sourceId": "4ib5ahelc2",
       "proposalId": "9611q7a3nk",
       "type": "talk",
       "title": "The Art of Userspace Sandboxing on Linux",
@@ -4668,7 +4714,7 @@
     },
     {
       "id": "act-cfp-66qapl9qoe",
-      "sourceId": "78c2q4m785",
+      "sourceId": "4ib4l0h4v3",
       "proposalId": "66qapl9qoe",
       "type": "lightning-talk",
       "title": "OpenTCAD: A FOSS Python Pipeline for Semiconductor Process and Device Simulation",
@@ -4713,7 +4759,7 @@
     },
     {
       "id": "act-28latubece",
-      "sourceId": "78c2da7q7n",
+      "sourceId": "4ib41vpped",
       "proposalId": "5fle5u3fll",
       "type": "talk",
       "title": "Creating Design Systems in p5JS to accelerate Content Creation",
@@ -4773,7 +4819,7 @@
     },
     {
       "id": "act-cfp-89tt0o6uio",
-      "sourceId": "78c23ecou9",
+      "sourceId": "4ib4tiii1m",
       "proposalId": "89tt0o6uio",
       "type": "talk",
       "title": "How we build Community Projects from the Community for the Community",
@@ -4837,7 +4883,7 @@
     },
     {
       "id": "act-cfp-6565fh5jve",
-      "sourceId": "78c2je5t6s",
+      "sourceId": "4ib4d64uqd",
       "proposalId": "6565fh5jve",
       "type": "lightning-talk",
       "title": "Open, decentralized language assessment software for the public school system",
@@ -4879,7 +4925,7 @@
     },
     {
       "id": "act-cfp-anvlvjqect",
-      "sourceId": "78c28jq0qd",
+      "sourceId": "4ib5tq44td",
       "proposalId": "anvlvjqect",
       "type": "lightning-talk",
       "title": "Extending Capa for Malicious Script Analysis",
@@ -4929,7 +4975,7 @@
     },
     {
       "id": "act-cfp-9c2a8js5lj",
-      "sourceId": "78c2khn8pv",
+      "sourceId": "4ib4ca623v",
       "proposalId": "9c2a8js5lj",
       "type": "talk",
       "title": "Computationalizing landscapes: The CoRE stack data structure for social-ecological diagnostics and planning",
@@ -4977,7 +5023,7 @@
     },
     {
       "id": "act-cfp-1vj5aoro8u",
-      "sourceId": "78c2eov448",
+      "sourceId": "4ib5v93mbl",
       "proposalId": "1vj5aoro8u",
       "type": "bof",
       "title": "How do we scale and sustain AI adoption without burning the planet?",
@@ -5031,7 +5077,7 @@
     },
     {
       "id": "act-28la1p92o8",
-      "sourceId": "78c2lagkbl",
+      "sourceId": "4ib4sbcaah",
       "proposalId": "1vuu1c1ma7",
       "type": "talk",
       "title": "KaiOS Design Notes: UX observations from a feature phone",
@@ -5080,7 +5126,7 @@
     },
     {
       "id": "act-28la3jufi5",
-      "sourceId": "78c28t971i",
+      "sourceId": "4ib5boh15n",
       "proposalId": "82fbs78uua",
       "type": "bof",
       "title": "Micro-granting in India",
@@ -5111,7 +5157,7 @@
     },
     {
       "id": "act-cfp-edu2vnri2u",
-      "sourceId": "78c2qcb3r1",
+      "sourceId": "4ib5u22vrr",
       "proposalId": "edu2vnri2u",
       "type": "talk",
       "title": "Keeping an Eye on your Eye: Disassembling and Reassembling Smart Camera Hardware to breach YOUR Security",
@@ -5174,7 +5220,7 @@
     },
     {
       "id": "act-28laq0mp6c",
-      "sourceId": "78c29tlvph",
+      "sourceId": "4ib4dbjeak",
       "proposalId": "1oleu7iev5",
       "type": "talk",
       "title": "Telling India's story through data",
@@ -5212,7 +5258,7 @@
     },
     {
       "id": "act-28labsaguc",
-      "sourceId": "78c26d2dtr",
+      "sourceId": "4ib45kgmd6",
       "proposalId": "0rlqb6s6lb",
       "type": "talk",
       "title": "Making Desktops Expressive: Introducing Bézier Curves to GTK",
@@ -5274,7 +5320,7 @@
     },
     {
       "id": "act-cfp-c6qld2dc77",
-      "sourceId": "78c2c1ec0s",
+      "sourceId": "4ib45dn395",
       "proposalId": "c6qld2dc77",
       "type": "lightning-talk",
       "title": "Bad Internet, Good Software",
@@ -5331,7 +5377,7 @@
     },
     {
       "id": "act-cfp-2pgiaujhvm",
-      "sourceId": "78c287r43t",
+      "sourceId": "4ib5bsr5np",
       "proposalId": "2pgiaujhvm",
       "type": "lightning-talk",
       "title": "Hacking India's Largest Exam System",
@@ -5457,7 +5503,7 @@
     },
     {
       "id": "act-28lamb58kk",
-      "sourceId": "78c273g6pb",
+      "sourceId": "4ib4i8jcdf",
       "proposalId": "1qugujs7o0",
       "type": "talk",
       "title": "Sound Is All You Need: From Good UX to Great UX",
@@ -5511,7 +5557,7 @@
     },
     {
       "id": "act-cfp-e981trm7r1",
-      "sourceId": "78c29k1fjv",
+      "sourceId": "4ib4jeq6fr",
       "proposalId": "e981trm7r1",
       "type": "lightning-talk",
       "title": "Open Standards in XR - A current overview of OpenXR and WebXR",
@@ -5568,7 +5614,7 @@
     },
     {
       "id": "act-cfp-b6m7iu49t2",
-      "sourceId": "78c25gqjpf",
+      "sourceId": "4ib5hhcst9",
       "proposalId": "b6m7iu49t2",
       "type": "talk",
       "title": "Papers, Please: A First Look at Age Verification on the Web",
@@ -5638,7 +5684,7 @@
     },
     {
       "id": "act-cfp-4rfojd08rd",
-      "sourceId": "78c2ts99bq",
+      "sourceId": "4ib4kca7r8",
       "proposalId": "4rfojd08rd",
       "type": "talk",
       "title": "Freedom to code - Community's role in tech Policy",
@@ -5685,7 +5731,7 @@
     },
     {
       "id": "act-aq5ti5f6jv",
-      "sourceId": "78c24sg8q3",
+      "sourceId": "4ib4r5961r",
       "type": "meal",
       "title": "Lunch Break – 12:30 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5700,7 +5746,7 @@
     },
     {
       "id": "act-cfp-6pb727vn12",
-      "sourceId": "78c29bsr3r",
+      "sourceId": "4ib4v6v8tn",
       "proposalId": "6pb727vn12",
       "type": "panel",
       "title": "The future of FOSS, SWE and Technical Education",
@@ -5788,7 +5834,7 @@
     },
     {
       "id": "act-28lao4nnm4",
-      "sourceId": "78c2ok7uhs",
+      "sourceId": "4ib442dlps",
       "type": "talk",
       "title": "Unconference",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5804,15 +5850,28 @@
     },
     {
       "id": "act-cfp-doht3bggkm",
-      "sourceId": "78c2prub7u",
+      "sourceId": "4ib5lklgvh",
       "proposalId": "doht3bggkm",
       "type": "bof",
       "title": "United by (Free) F&B – Food & Books",
       "subtitle": "",
       "description": "Anything goes. Free here is free as in “your” food… And feel free to get any books you want to pass onto others.\n\nFree software + Free Food + Books = Great conference !\n\nSo what is this ? It’s a pre-lunch potluck, with books thrown in !\n\nEach attendee (that’s your entry ticket!) needs to get a dish, which will be shared with everyone. Ideally the dish is home cooked, but we understand if that’s not feasible for everyone. We’ll probably make exceptions for store bought sweets and savouries. Let’s unite the diversity of your food and stories onto our combined table!\n\nThe menu will be coordinated on this forum thread, where we’ll keep track of the actual dish attendees are gonna bring.\n\nSimilarly for books. Want to get a book and share with others (as in give it away)? Post on the forum thread !\n\nPS: Our *Takeaways* are *real* - have a look !",
       "keyTakeaways": [
+        "Pineapple Holige",
+        "Jaggery & Peanut Laddoos",
+        "Bhakarvadi",
+        "Chocolate Mud Cake",
+        "Banana Chips",
+        "Tomato Murukku",
         "Wheat Halwa",
-        "The Nitopadesha - translated by Nitin Pai"
+        "The Nitopadesha - translated by Nitin Pai",
+        "Four Speeches by Carl Malamund",
+        "Controlled Lending by Public Libraries Under Indian Law by Lawrence Liang & Carl Malamud",
+        "Public Library Movement In India by Lawrence Liang",
+        "Mixtape Vol 3",
+        "Amar Bari, Tomar Bari, Naxalbari",
+        "The Blaft Book of Anti-Caste SF",
+        "The Argumentative Indian by Amartya Sen"
       ],
       "links": [
         {
@@ -5844,7 +5903,7 @@
     },
     {
       "id": "act-cfp-5sktsu12a4",
-      "sourceId": "78c2csnb0l",
+      "sourceId": "4ib5hj58m5",
       "proposalId": "5sktsu12a4",
       "type": "lightning-talk",
       "title": "A plan to sort out this CVE mess",
@@ -5894,7 +5953,7 @@
     },
     {
       "id": "act-aq5tm1051s",
-      "sourceId": "78c2d7g3n4",
+      "sourceId": "4ib4qhhtum",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5908,23 +5967,8 @@
       "source": "fossunited"
     },
     {
-      "id": "act-aq5tidiu4b",
-      "sourceId": "78c2g904t3",
-      "type": "meal",
-      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
-      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
-      "start": "2026-09-27T13:00:00+05:30",
-      "end": "2026-09-27T14:00:00+05:30",
-      "flexible": false,
-      "locationId": "hall-3",
-      "speakerIds": [],
-      "tags": [],
-      "trackId": "hall-3",
-      "source": "fossunited"
-    },
-    {
       "id": "act-aq5td49n4f",
-      "sourceId": "78c2k8kfis",
+      "sourceId": "4ib41od3ri",
       "type": "meal",
       "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5938,8 +5982,23 @@
       "source": "fossunited"
     },
     {
+      "id": "act-aq5tidiu4b",
+      "sourceId": "4ib4i97nhk",
+      "type": "meal",
+      "title": "Lunch Break – 1 PM to 2 PM (in Food Area)",
+      "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
+      "start": "2026-09-27T13:00:00+05:30",
+      "end": "2026-09-27T14:00:00+05:30",
+      "flexible": false,
+      "locationId": "hall-3",
+      "speakerIds": [],
+      "tags": [],
+      "trackId": "hall-3",
+      "source": "fossunited"
+    },
+    {
       "id": "act-aq5t7ni20b",
-      "sourceId": "78c27b7g22",
+      "sourceId": "4ib430013t",
       "type": "meal",
       "title": "Lunch Break – 1:15 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5954,7 +6013,7 @@
     },
     {
       "id": "act-78c2g3oh6s",
-      "sourceId": "78c2g3oh6s",
+      "sourceId": "4ib4p9n2jk",
       "type": "meal",
       "title": "Lunch Break – 1:30 PM to 2:30 PM (in Food Area)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5969,7 +6028,7 @@
     },
     {
       "id": "act-28la4pp2q4",
-      "sourceId": "78c2bqlfgk",
+      "sourceId": "4ib47c2vqj",
       "type": "intro",
       "title": "Devroom Intro: Cloud & DevOps",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -5985,7 +6044,7 @@
     },
     {
       "id": "act-aq5tf2jbhq",
-      "sourceId": "78c20bo6jn",
+      "sourceId": "4ib5k44cud",
       "type": "intro",
       "title": "Devroom Intro: Real Time Operating Systems (RTOS)",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -6001,7 +6060,7 @@
     },
     {
       "id": "act-cfp-391e59gb72",
-      "sourceId": "78c24uqi6c",
+      "sourceId": "4ib4ap4sf0",
       "proposalId": "391e59gb72",
       "type": "lightning-talk",
       "title": "Software Patents - AI and the Future of Open Innovation",
@@ -6055,7 +6114,7 @@
     },
     {
       "id": "act-28la6c24j6",
-      "sourceId": "78c2t4cri8",
+      "sourceId": "4ib5slnvss",
       "proposalId": "5ua576fg9k",
       "type": "lightning-talk",
       "title": "Beyond Hardware Description: Using Device Tree for System-Level Configuration in Zephyr RTOS",
@@ -6096,7 +6155,7 @@
     },
     {
       "id": "act-28lablklmc",
-      "sourceId": "78c2r7gii2",
+      "sourceId": "4ib4ps59e2",
       "proposalId": "9i6peimmer",
       "type": "lightning-talk",
       "title": "How OpenTelemetry Instrumentation Works Under the Hood",
@@ -6144,7 +6203,7 @@
     },
     {
       "id": "act-cfp-bk39jtqjkk",
-      "sourceId": "78c2o0fe4p",
+      "sourceId": "4ib4maj102",
       "proposalId": "bk39jtqjkk",
       "type": "talk",
       "title": "Tiles: Own your AI with open models and decentralized protocols",
@@ -6182,7 +6241,7 @@
     },
     {
       "id": "act-28laiujb0d",
-      "sourceId": "78c27p00pr",
+      "sourceId": "4ib5edhac7",
       "proposalId": "9qp8u3f894",
       "type": "lightning-talk",
       "title": "From Display Controller to Panel: A Modular Display Pipeline Architecture for Zephyr",
@@ -6232,7 +6291,7 @@
     },
     {
       "id": "act-28la11nd7m",
-      "sourceId": "78c2d5q74l",
+      "sourceId": "4ib4e6db0q",
       "proposalId": "d6mltdb2aq",
       "type": "talk",
       "title": "Remote Execution by Design: Sandboxing AI Agents with gVisor & Pipelock",
@@ -6277,7 +6336,7 @@
     },
     {
       "id": "act-cfp-1f9ett9bgj",
-      "sourceId": "78c2csb0ut",
+      "sourceId": "4ib50akdho",
       "proposalId": "1f9ett9bgj",
       "type": "bof",
       "title": "Community-Driven or Community-Branded? Who Gets to Shape Community Events?",
@@ -6314,7 +6373,7 @@
     },
     {
       "id": "act-cfp-fefrvv4n7q",
-      "sourceId": "78c2lnau1c",
+      "sourceId": "4ib429lqn3",
       "proposalId": "fefrvv4n7q",
       "type": "talk",
       "title": "Flexibility is complexity in disguise: Building frappe-ui for 10+ Products",
@@ -6366,7 +6425,7 @@
     },
     {
       "id": "act-cfp-2p9brsg91r",
-      "sourceId": "78c20vaji7",
+      "sourceId": "4ib57lp2ns",
       "proposalId": "2p9brsg91r",
       "type": "bof",
       "title": "FOSS for Justice — What can Open Source do for India’s Courts?",
@@ -6403,7 +6462,7 @@
     },
     {
       "id": "act-28lar927u4",
-      "sourceId": "78c2fpcjc0",
+      "sourceId": "4ib56vuqc0",
       "proposalId": "1s4iem9t8a",
       "type": "talk",
       "title": "From Reset to main(): Porting Infineon TriCore AURIX to Zephyr",
@@ -6444,7 +6503,7 @@
     },
     {
       "id": "act-cfp-7vvvus5cp0",
-      "sourceId": "78c250form",
+      "sourceId": "4ib45v9bll",
       "proposalId": "7vvvus5cp0",
       "type": "talk",
       "title": "Calibrate: A framework for continuously evaluating and improving AI agents within non-profits",
@@ -6510,7 +6569,7 @@
     },
     {
       "id": "act-28lacdbph1",
-      "sourceId": "78c2tomsn6",
+      "sourceId": "4ib49opi53",
       "proposalId": "b8josvurds",
       "type": "lightning-talk",
       "title": "From Prompts to Production: Building an Open-Source AI On-Call Agent with MCP and Multi-Agent Workflows",
@@ -6565,7 +6624,7 @@
     },
     {
       "id": "act-28la7q52h1",
-      "sourceId": "78c28cqu5t",
+      "sourceId": "4ib47rcve8",
       "type": "ceremony",
       "title": "FOSS Awards",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -6580,7 +6639,7 @@
     },
     {
       "id": "act-28laeodjb3",
-      "sourceId": "78c2n8r9v7",
+      "sourceId": "4ib58bl39h",
       "proposalId": "6r7akaieb8",
       "type": "lightning-talk",
       "title": "Real-Time Video Pipelines on Embedded SoCs: A FreeRTOS Case Study",
@@ -6627,7 +6686,7 @@
     },
     {
       "id": "act-28lac636ge",
-      "sourceId": "78c20q4q88",
+      "sourceId": "4ib4r5op52",
       "proposalId": "76tid1o2lg",
       "type": "lightning-talk",
       "title": "Long live outbox : Outbox is dead",
@@ -6684,7 +6743,7 @@
     },
     {
       "id": "act-cfp-dglc657qff",
-      "sourceId": "78c2eblc0l",
+      "sourceId": "4ib4j3bf8q",
       "proposalId": "dglc657qff",
       "type": "talk",
       "title": "Being Bayesian: Stress-testing India's Loudest Stories with FOSS & Open Data",
@@ -6735,7 +6794,7 @@
     },
     {
       "id": "act-28lad4q6q5",
-      "sourceId": "78c2oavem2",
+      "sourceId": "4ib53buqal",
       "proposalId": "8fc48rj2g2",
       "type": "lightning-talk",
       "title": "Tackling core lifecycle management in heterogeneous SoCs",
@@ -6775,7 +6834,7 @@
     },
     {
       "id": "act-28laurq10s",
-      "sourceId": "78c2aftot7",
+      "sourceId": "4ib4uac6tm",
       "proposalId": "bl0i7u8nno",
       "type": "lightning-talk",
       "title": "Kubernetes Native Observability Dashboards with Perses, without the YAML/JSON Hell",
@@ -6868,7 +6927,7 @@
     },
     {
       "id": "act-cfp-946qm38m58",
-      "sourceId": "78c2ep2obs",
+      "sourceId": "4ib4pko9qf",
       "proposalId": "946qm38m58",
       "type": "lightning-talk",
       "title": "Communi-Con : CFP Opens Sep 25",
@@ -6903,7 +6962,7 @@
     },
     {
       "id": "act-28lak5j8nt",
-      "sourceId": "78c2rh6sem",
+      "sourceId": "4ib5qv1nnc",
       "proposalId": "eofh2kev0d",
       "type": "lightning-talk",
       "title": "Loops to real time",
@@ -6951,7 +7010,7 @@
     },
     {
       "id": "act-28la635lu7",
-      "sourceId": "78c27ssje0",
+      "sourceId": "4ib4hqm9h1",
       "proposalId": "5i25u6dfnv",
       "type": "lightning-talk",
       "title": "Cilium Network Policy Anti-Patterns I Learned the Hard Way",
@@ -6991,7 +7050,7 @@
     },
     {
       "id": "act-cfp-62ntegtu09",
-      "sourceId": "78c2iu19n4",
+      "sourceId": "4ib46rpptq",
       "proposalId": "62ntegtu09",
       "type": "lightning-talk",
       "title": "Building Open Source Digital Infrastructure for a University",
@@ -7064,7 +7123,7 @@
     },
     {
       "id": "act-28lamtpeiu",
-      "sourceId": "78c27g9n2c",
+      "sourceId": "4ib5jd1so3",
       "proposalId": "5h4d5uhuro",
       "type": "lightning-talk",
       "title": "Indigenous, High-Performance, Safety-Critical RTOS",
@@ -7110,7 +7169,7 @@
     },
     {
       "id": "act-28lacdroo3",
-      "sourceId": "78c2bt8eg7",
+      "sourceId": "4ib4jgnkf9",
       "proposalId": "8ne6l7qetc",
       "type": "lightning-talk",
       "title": "Escaping Cron Hell: Building and Contributing to Dagu, an Open Source Workflow Orchestrator",
@@ -7165,7 +7224,7 @@
     },
     {
       "id": "act-28lakfdugu",
-      "sourceId": "78c2eaas0s",
+      "sourceId": "4ib56ium7b",
       "proposalId": "2sfmvkhrrg",
       "type": "lightning-talk",
       "title": "From Architecture to Tasks: Designing Real-Time MCU Firmware in Heterogeneous APU-MCU Systems",
@@ -7211,7 +7270,7 @@
     },
     {
       "id": "act-cfp-ajdpfpbh5a",
-      "sourceId": "78c2urs2sm",
+      "sourceId": "4ib4r4ooir",
       "proposalId": "ajdpfpbh5a",
       "type": "talk",
       "title": "Judiciary Entity Map: How open source can make India’s courts legible",
@@ -7285,7 +7344,7 @@
     },
     {
       "id": "act-28lag29fko",
-      "sourceId": "78c211g57n",
+      "sourceId": "4ib4h9gdh7",
       "proposalId": "2rg09ct89v",
       "type": "lightning-talk",
       "title": "15 Years, One Server, 8GB RAM and 500,000 Linux Learners: Lessons from Running Webminal",
@@ -7332,7 +7391,7 @@
     },
     {
       "id": "act-28laqe1pg1",
-      "sourceId": "78c2nif02d",
+      "sourceId": "4ib5baaafb",
       "proposalId": "8gv11r0ga6",
       "type": "lightning-talk",
       "title": "Deterministic Vision: Offloading Real-Time Camera Pipelines to FreeRTOS on Heterogeneous SoCs",
@@ -7378,7 +7437,7 @@
     },
     {
       "id": "act-28laedc93i",
-      "sourceId": "78c2h2dpgu",
+      "sourceId": "4ib4vkgecn",
       "proposalId": "f4pdfg9qvh",
       "type": "lightning-talk",
       "title": "Unused Is Not a Kubernetes Field: Platform Hygiene Is Not Cleanup",
@@ -7453,7 +7512,7 @@
     },
     {
       "id": "act-cfp-aqenkb8ktb",
-      "sourceId": "78c2r941t5",
+      "sourceId": "4ib5akbgbu",
       "proposalId": "aqenkb8ktb",
       "type": "talk",
       "title": "RTL to Zephyr RTOS: Lightweight-Crypto Acceleration on Open RISC-V",
@@ -7496,7 +7555,7 @@
     },
     {
       "id": "act-28la409p82",
-      "sourceId": "78c2atenm8",
+      "sourceId": "4ib4hmp50d",
       "proposalId": "av9de7vsu8",
       "type": "lightning-talk",
       "title": "I Deleted Production With helm upgrade. Here's the Exact Chain of Events.",
@@ -7540,7 +7599,7 @@
     },
     {
       "id": "act-28laa2io5q",
-      "sourceId": "78c2qdu6aa",
+      "sourceId": "4ib4sl7dbd",
       "type": "ceremony",
       "title": "GB Election Results",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -7555,7 +7614,7 @@
     },
     {
       "id": "act-28lam1ecee",
-      "sourceId": "78c2r171pf",
+      "sourceId": "4ib4kvbekb",
       "type": "ceremony",
       "title": "Closing Remarks, Feedback Session",
       "sourceUrl": "https://fossunited.org/c/indiafoss/2026/schedule",
@@ -8545,6 +8604,13 @@
       ]
     },
     {
+      "id": "person-kanika-kumari",
+      "name": "Kanika Kumari",
+      "designation": "Mobiliser",
+      "organization": "Asangathit Mazdoor Union",
+      "links": []
+    },
+    {
       "id": "person-karthikeyan",
       "name": "Karthikeyan",
       "bio": "With 5+ years of experience primarily in Embedded Linux and Zephyr RTOS, Karthikeyan started exploring AOSP as an option to expand the portfolio for Linumiz and also as a hobbyist. Quickly, AOSP became more than a weekend hobby, leading a team working closely with customers needing upstream. Karthi also works closely with security components like OP-TEE, DM-Crypt, and Secure Boot to help address the Cyber Resilience Act.",
@@ -8614,6 +8680,13 @@
       "bio": "Winner of FOSS India awards 2008. An Open source programmer, fell in love with GNU/Linux in 2003 and the spark is still there.",
       "designation": "FOSS Programmer",
       "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocJkITf8wGMMPXOwZMAKf4gZKgrxN4myUUp7MK6X6rbHUu60Unamrw=s96-c",
+      "links": []
+    },
+    {
+      "id": "person-laxmi-devi",
+      "name": "Laxmi Devi",
+      "designation": "Full time Member",
+      "organization": "Mazdoor Kisan Shakti Sangathan",
       "links": []
     },
     {
@@ -8827,6 +8900,20 @@
       ]
     },
     {
+      "id": "person-neha-sanke",
+      "name": "Neha Sanke",
+      "designation": "Director of Products",
+      "organization": "Frappe",
+      "links": []
+    },
+    {
+      "id": "person-nikhil-dey",
+      "name": "Nikhil Dey",
+      "designation": "Founding Member",
+      "organization": "Mazdoor Kisan Shakti Sangathan",
+      "links": []
+    },
+    {
       "id": "person-nikhil-nair",
       "name": "Nikhil Nair",
       "bio": "I am a software engineer and Technology Fellow at Super FabLab Kerala. I specialize in cyber-physical systems, Edge AI, and computer vision, focusing on the software architecture that brings hardware to life. Having previously interned in AI and Robotics at Tata Elxsi, I'm a big fan of DIY projects and practical computer vision applications. I'm always looking for an excuse to wire up an ESP32 or a Raspberry Pi. Beyond engineering, I run long distances, keep a travel sketchbook, and follow Formula 1",
@@ -8918,6 +9005,13 @@
           "url": "https://in.linkedin.com/in/parthitce"
         }
       ]
+    },
+    {
+      "id": "person-paul-divakar",
+      "name": "Paul Divakar",
+      "designation": "Human Rights Advocate & Executive Director",
+      "organization": "The Inclusivity Project",
+      "links": []
     },
     {
       "id": "person-perry",
@@ -9067,6 +9161,19 @@
       ]
     },
     {
+      "id": "person-rakshita-swamy",
+      "name": "Rakshita Swamy",
+      "designation": "Founder & DIrector",
+      "organization": "SAFAR",
+      "links": []
+    },
+    {
+      "id": "person-rasam-narsingh",
+      "name": "Rasam Narsingh",
+      "designation": "Landless Talent Famer",
+      "links": []
+    },
+    {
       "id": "person-raunak",
       "name": "Raunak",
       "bio": "I love understanding systems by building them from scratch. Some of my interesting projects are: A WebAssembly interpreter from scratch which runs Doom and boots Linux ( https://github.com/rrampage/wart ) A terminal Snake game which fits in a QR code ( https://gist.github.com/rrampage/2a781662645dc2fcba45784eb584cbdc ) HTTP server in ARM64 assembly ( https://gist.github.com/rrampage/d31e75647a77badb3586ebae1e414cb6 ) Minimal Linux shell which compiles to a 4kb binary ( https://gist.github.com/rrampage/5046b60ca2d040bcffb49ee38e86041f )",
@@ -9140,6 +9247,20 @@
           "url": "https://www.linkedin.com/in/saalim-quadri/"
         }
       ]
+    },
+    {
+      "id": "person-sai-phanindra",
+      "name": "Sai Phanindra",
+      "designation": "Volunteer",
+      "organization": "Swecha Andhra Pradesh",
+      "links": []
+    },
+    {
+      "id": "person-sai-rahul-purori",
+      "name": "Sai Rahul Purori",
+      "designation": "CEO",
+      "organization": "FOSS United Foundation",
+      "links": []
     },
     {
       "id": "person-saket-choudhary",
@@ -9227,8 +9348,14 @@
       "name": "Shree Kumar",
       "bio": "Shree is Co-Chair, IndiaFOSS 2026. Also, outgoing member of Governance Board of FOSS United",
       "designation": "Independent Consultant",
+      "organization": "IndiaFOSS 2026",
       "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocIsujmu4wNQISD0TwDUex7mURG7b-kp46k0QpJ9iWtMOQy-K_k6=s96-c",
-      "links": []
+      "links": [
+        {
+          "label": "social",
+          "url": "https://www.linkedin.com/in/shreekumar3d/"
+        }
+      ]
     },
     {
       "id": "person-shreyas-hegde",
@@ -9308,13 +9435,6 @@
       "designation": "Member Group Technical Staff",
       "organization": "Texas Instruments",
       "avatarUrl": "https://fossunited.org/files/Soumya Tripathy.jpeg",
-      "links": []
-    },
-    {
-      "id": "person-sree-harsha-tanneru",
-      "name": "Sree Harsha Tanneru",
-      "designation": "SAFAR",
-      "organization": "SAFAR",
       "links": []
     },
     {
@@ -10717,7 +10837,7 @@
   ],
   "sourceMetadata": {
     "source": "fossunited",
-    "sourceUpdatedAt": "2026-09-24 17:20:16.419420",
+    "sourceUpdatedAt": "2026-09-25 23:46:42.073098",
     "normalizerVersion": "0.2.0",
     "scheduleStatus": "draft"
   },
