@@ -5,7 +5,7 @@
   "modified": "2026-09-24 17:20:16.419420",
   "modified_by": "dilip@fossunited.org",
   "docstatus": 0,
-  "idx": 941,
+  "idx": 981,
   "is_external_event": 0,
   "has_external_webpage": 0,
   "external_event_url": "/indiafoss/2026",
@@ -117,7 +117,7 @@
       "parentfield": "tiers",
       "parenttype": "FOSS Chapter Event",
       "doctype": "FOSS Ticket Tier",
-      "sold_count": 62
+      "sold_count": 86
     },
     {
       "name": "72259dbemp",
