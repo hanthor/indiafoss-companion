@@ -2380,7 +2380,14 @@
       "flexible": false,
       "locationId": "hall-1",
       "speakerIds": [
-        "person-sree-harsha-tanneru"
+        "person-kanika-kumari",
+        "person-nikhil-dey",
+        "person-sai-rahul-purori",
+        "person-rasam-narsingh",
+        "person-sai-phanindra",
+        "person-rakshita-swamy",
+        "person-paul-divakar",
+        "person-laxmi-devi"
       ],
       "tags": [
         "Panel Discussion",
@@ -8545,6 +8552,13 @@
       ]
     },
     {
+      "id": "person-kanika-kumari",
+      "name": "Kanika Kumari",
+      "designation": "Mobiliser",
+      "organization": "Asangathit Mazdoor Union",
+      "links": []
+    },
+    {
       "id": "person-karthikeyan",
       "name": "Karthikeyan",
       "bio": "With 5+ years of experience primarily in Embedded Linux and Zephyr RTOS, Karthikeyan started exploring AOSP as an option to expand the portfolio for Linumiz and also as a hobbyist. Quickly, AOSP became more than a weekend hobby, leading a team working closely with customers needing upstream. Karthi also works closely with security components like OP-TEE, DM-Crypt, and Secure Boot to help address the Cyber Resilience Act.",
@@ -8614,6 +8628,13 @@
       "bio": "Winner of FOSS India awards 2008. An Open source programmer, fell in love with GNU/Linux in 2003 and the spark is still there.",
       "designation": "FOSS Programmer",
       "avatarUrl": "https://lh3.googleusercontent.com/a/ACg8ocJkITf8wGMMPXOwZMAKf4gZKgrxN4myUUp7MK6X6rbHUu60Unamrw=s96-c",
+      "links": []
+    },
+    {
+      "id": "person-laxmi-devi",
+      "name": "Laxmi Devi",
+      "designation": "Full time Member",
+      "organization": "Mazdoor Kisan Shakti Sangathan",
       "links": []
     },
     {
@@ -8827,6 +8848,13 @@
       ]
     },
     {
+      "id": "person-nikhil-dey",
+      "name": "Nikhil Dey",
+      "designation": "Founding Member",
+      "organization": "Mazdoor Kisan Shakti Sangathan",
+      "links": []
+    },
+    {
       "id": "person-nikhil-nair",
       "name": "Nikhil Nair",
       "bio": "I am a software engineer and Technology Fellow at Super FabLab Kerala. I specialize in cyber-physical systems, Edge AI, and computer vision, focusing on the software architecture that brings hardware to life. Having previously interned in AI and Robotics at Tata Elxsi, I'm a big fan of DIY projects and practical computer vision applications. I'm always looking for an excuse to wire up an ESP32 or a Raspberry Pi. Beyond engineering, I run long distances, keep a travel sketchbook, and follow Formula 1",
@@ -8918,6 +8946,13 @@
           "url": "https://in.linkedin.com/in/parthitce"
         }
       ]
+    },
+    {
+      "id": "person-paul-divakar",
+      "name": "Paul Divakar",
+      "designation": "Human Rights Advocate & Executive Director",
+      "organization": "The Inclusivity Project",
+      "links": []
     },
     {
       "id": "person-perry",
@@ -9067,6 +9102,19 @@
       ]
     },
     {
+      "id": "person-rakshita-swamy",
+      "name": "Rakshita Swamy",
+      "designation": "Founder & DIrector",
+      "organization": "SAFAR",
+      "links": []
+    },
+    {
+      "id": "person-rasam-narsingh",
+      "name": "Rasam Narsingh",
+      "designation": "Landless Talent Famer",
+      "links": []
+    },
+    {
       "id": "person-raunak",
       "name": "Raunak",
       "bio": "I love understanding systems by building them from scratch. Some of my interesting projects are: A WebAssembly interpreter from scratch which runs Doom and boots Linux ( https://github.com/rrampage/wart ) A terminal Snake game which fits in a QR code ( https://gist.github.com/rrampage/2a781662645dc2fcba45784eb584cbdc ) HTTP server in ARM64 assembly ( https://gist.github.com/rrampage/d31e75647a77badb3586ebae1e414cb6 ) Minimal Linux shell which compiles to a 4kb binary ( https://gist.github.com/rrampage/5046b60ca2d040bcffb49ee38e86041f )",
@@ -9140,6 +9188,20 @@
           "url": "https://www.linkedin.com/in/saalim-quadri/"
         }
       ]
+    },
+    {
+      "id": "person-sai-phanindra",
+      "name": "Sai Phanindra",
+      "designation": "Volunteer",
+      "organization": "Swecha Andhra Pradesh",
+      "links": []
+    },
+    {
+      "id": "person-sai-rahul-purori",
+      "name": "Sai Rahul Purori",
+      "designation": "CEO",
+      "organization": "FOSS United Foundation",
+      "links": []
     },
     {
       "id": "person-saket-choudhary",
@@ -9308,13 +9370,6 @@
       "designation": "Member Group Technical Staff",
       "organization": "Texas Instruments",
       "avatarUrl": "https://fossunited.org/files/Soumya Tripathy.jpeg",
-      "links": []
-    },
-    {
-      "id": "person-sree-harsha-tanneru",
-      "name": "Sree Harsha Tanneru",
-      "designation": "SAFAR",
-      "organization": "SAFAR",
       "links": []
     },
     {
