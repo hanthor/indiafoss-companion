@@ -396,9 +396,65 @@
         "cfp_route": "c/indiafoss/2026/cfp/9lmiio7p5b",
         "cfp_speakers": [
           {
-            "full_name": "Sree Harsha Tanneru",
-            "designation": "SAFAR",
+            "full_name": "Kanika Kumari",
+            "designation": "Mobiliser",
+            "organization": "Asangathit Mazdoor Union",
+            "bio": null,
+            "photo": null,
+            "social_link": null
+          },
+          {
+            "full_name": "Nikhil Dey",
+            "designation": "Founding Member",
+            "organization": "Mazdoor Kisan Shakti Sangathan",
+            "bio": null,
+            "photo": null,
+            "social_link": null
+          },
+          {
+            "full_name": "Sai Rahul Purori",
+            "designation": "CEO",
+            "organization": "FOSS United Foundation",
+            "bio": null,
+            "photo": null,
+            "social_link": null
+          },
+          {
+            "full_name": "Rasam Narsingh",
+            "designation": "Landless Talent Famer",
+            "organization": null,
+            "bio": null,
+            "photo": null,
+            "social_link": null
+          },
+          {
+            "full_name": "Sai Phanindra",
+            "designation": "Volunteer",
+            "organization": "Swecha Andhra Pradesh",
+            "bio": null,
+            "photo": null,
+            "social_link": null
+          },
+          {
+            "full_name": "Rakshita Swamy",
+            "designation": "Founder & DIrector",
             "organization": "SAFAR",
+            "bio": null,
+            "photo": null,
+            "social_link": null
+          },
+          {
+            "full_name": "Paul Divakar",
+            "designation": "Human Rights Advocate & Executive Director",
+            "organization": "The Inclusivity Project",
+            "bio": null,
+            "photo": null,
+            "social_link": null
+          },
+          {
+            "full_name": "Laxmi Devi",
+            "designation": "Full time Member",
+            "organization": "Mazdoor Kisan Shakti Sangathan",
             "bio": null,
             "photo": null,
             "social_link": null

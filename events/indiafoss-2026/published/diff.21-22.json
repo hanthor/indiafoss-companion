@@ -1,0 +1,15 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 22,
+  "from": 21,
+  "changes": [
+    {
+      "activityId": "act-cfp-9lmiio7p5b",
+      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for Democratic Accountability",
+      "type": "speaker-changed"
+    }
+  ],
+  "summary": {
+    "speaker-changed": 1
+  }
+}
