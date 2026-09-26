@@ -127,6 +127,41 @@ test('ended talks remain on the timeline and can be reached by scrolling back', 
   expect(visibleEndedCount).toBeGreaterThan(0);
 });
 
+test('both conference days are available with their complete timelines', async ({ page }) => {
+  await page.goto(BUSY);
+  const day1 = page.getByRole('tab', { name: /Day 1/ });
+  const day2 = page.getByRole('tab', { name: /Day 2/ });
+  await expect(day1).toHaveAttribute('aria-selected', 'true');
+  await expect(day2).toBeVisible();
+
+  const activityIds = () =>
+    page
+      .locator('[data-testid="now-grid"] .talk')
+      .evaluateAll((cards) =>
+        cards.map((card) => (card.getAttribute('href') ?? '').split('/').at(-1)!),
+      );
+  const firstDayIds = await activityIds();
+  expect(firstDayIds.length).toBeGreaterThan(0);
+
+  await day2.click();
+  await expect(page).toHaveURL(/day=2026-09-27/);
+  await expect(page.getByRole('tab', { name: /Day 2/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('heading', { name: /^Starts Sun 27 Sep/ })).toBeVisible();
+  await expect(page.locator('[data-testid="now-grid"] .talk').first()).toBeVisible();
+
+  const secondDayIds = await activityIds();
+  expect(secondDayIds.length).toBeGreaterThan(0);
+  expect(secondDayIds.some((id) => firstDayIds.includes(id))).toBe(false);
+});
+
+test('the full timeline remains available after the conference', async ({ page }) => {
+  await page.goto(at('2026-09-28T10:00:00+05:30'));
+  await expect(page.getByText("That's a wrap")).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Day 1/ })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Day 2/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-testid="now-grid"] .talk').first()).toBeVisible();
+});
+
 test('every room scrolls together, so a column is one moment across the venue', async ({
   page,
 }) => {

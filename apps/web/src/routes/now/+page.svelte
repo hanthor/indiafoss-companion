@@ -13,6 +13,7 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
   import { goTarget, GOING_LABEL, showGettingThere } from '$lib/now-page';
+  import { SvelteURLSearchParams } from 'svelte/reactivity';
 
   const clock = $derived(
     clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
@@ -32,18 +33,20 @@
   const nowState = $derived(bundle && now ? computeNowState(bundle, now) : null);
 
   const day = $derived(bundle && now ? eventDay(now, bundle.timezone) : null);
+  const days = $derived(bundle ? getEventDays(bundle) : []);
   const before = $derived(nowState?.phase === 'before');
-  /** Before the event the timeline shows day one, from its first session. */
-  const gridDay = $derived(before && bundle ? (getEventDays(bundle)[0] ?? day) : day);
+  /** A requested conference day wins; otherwise open today, or the nearest event day. */
+  const gridDay = $derived.by(() => {
+    const requested = page.url.searchParams.get('day');
+    if (requested && days.includes(requested)) return requested;
+    if (day && days.includes(day)) return day;
+    return before ? (days[0] ?? null) : (days.at(-1) ?? null);
+  });
   /** Keep the whole day on the timeline so the attendee can scroll back. */
   const gridActivities = $derived(bundle && gridDay ? activitiesForDay(bundle, gridDay) : []);
-  /** Sessions still running or yet to start drive only the between-sessions state. */
-  const remaining = $derived(
-    now ? gridActivities.filter((a) => a.end && Date.parse(a.end) > Date.parse(now)) : [],
-  );
   /** The first session of the grid's day: before the event, when it starts. */
   const firstStart = $derived(gridActivities.map((a) => a.start!).sort()[0] ?? bundle?.start ?? '');
-  const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === day);
+  const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === gridDay);
   const personalPlan = $derived(currentPlan ? livePlanState.result : null);
   const planStatus = $derived(currentPlan ? livePlanState.status : 'loading');
   const planConflicted = $derived(
@@ -68,6 +71,12 @@
   );
   /** Your plan's item when it has no card to light: a personal block, lunch. */
   const planBlock = $derived(personalNext && !gridIds.has(personalNext.id) ? personalNext : null);
+
+  function dayHref(target: string): string {
+    const params = new SvelteURLSearchParams(page.url.searchParams);
+    params.set('day', target);
+    return `${resolve('/now')}?${params.toString()}`;
+  }
 </script>
 
 <EventGate>
@@ -75,7 +84,7 @@
   <h1 class="sr-only">Schedule</h1>
   <div class="titlebar">
     <ScheduleViews current="timeline" />
-    {#if day}<a href={resolve(`/plan?day=${day}`)}>{t('now.yourPlan')}</a>{/if}
+    {#if gridDay}<a href={resolve(`/plan?day=${gridDay}`)}>{t('now.yourPlan')}</a>{/if}
   </div>
 
   {#if isFixedClock(clock)}
@@ -84,20 +93,36 @@
 
   {#if !nowState}
     <p>Loading…</p>
-  {:else if nowState!.phase === 'after'}
-    <section class="card">
-      <h2>That's a wrap</h2>
-      <p>The conference has ended. See you at the next one!</p>
-    </section>
   {:else}
-    <!-- Before the event there is no now yet: the grid opens on day one's first
-         session and the heading says when it starts. -->
+    <!-- eslint-disable svelte/no-navigation-without-resolve -- dayHref resolves /now -->
+    <div class="days" role="tablist" aria-label="Conference day">
+      {#each days as conferenceDay, i (conferenceDay)}
+        <a
+          role="tab"
+          aria-selected={gridDay === conferenceDay}
+          class="daytab"
+          class:active={gridDay === conferenceDay}
+          href={dayHref(conferenceDay)}
+        >
+          {t('schedule.day', { n: i + 1 })} <small>{dayLabel(conferenceDay)}</small>
+        </a>
+      {/each}
+    </div>
+    <!-- eslint-enable svelte/no-navigation-without-resolve -->
+
+    {#if nowState.phase === 'after'}
+      <section class="card wrap">
+        <h2>That's a wrap</h2>
+        <p>The conference has ended. The full programme remains available below.</p>
+      </section>
+    {/if}
+
     <!-- Your plan speaks through the grid: its talk is the gold card. Only what
          the grid cannot show gets a line here, and only one. -->
     {#if planConflicted}
       <p class="notice" role="status">
         Your plan has conflicting choices.
-        <a href={resolve(`/plan?day=${day}`)}>Resolve them</a> to see where to go.
+        <a href={resolve(`/plan?day=${gridDay}`)}>Resolve them</a> to see where to go.
       </p>
     {:else if planStatus === 'error'}
       <p class="notice" role="status">Your plan could not be loaded. Open Plan to try again.</p>
@@ -123,14 +148,14 @@
     <section class="happening" aria-labelledby="now-heading">
       {#snippet heading()}
         <h2 id="now-heading">
-          {before
+          {before || gridDay !== day
             ? t('now.starts', { when: `${dayLabel(gridDay!)} · ${formatTime(firstStart)}` })
             : t('now.happening')}
         </h2>
       {/snippet}
-      {#if remaining.length === 0}
+      {#if gridActivities.length === 0}
         {@render heading()}
-        <p class="muted">Between sessions — take a break or explore the map.</p>
+        <p class="muted">No scheduled sessions on this day.</p>
       {:else}
         <NowGrid
           activities={gridActivities}
@@ -164,6 +189,39 @@
   .titlebar a {
     font-size: 0.85rem;
   }
+  .days {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    margin: 0.5rem 0;
+  }
+  .daytab {
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: 999px;
+    min-height: 2.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .daytab small {
+    color: var(--text-muted);
+  }
+  .daytab.active {
+    border-color: var(--mint);
+    background: var(--mint-soft);
+    color: var(--mint-dark);
+  }
+  .daytab.active small {
+    color: inherit;
+  }
   .devtime {
     display: inline-flex;
     align-items: center;
@@ -190,6 +248,14 @@
   .card h2 {
     margin: 0 0 0.75rem;
     font-size: 1.05rem;
+  }
+  .card.wrap {
+    padding: 0.65rem 0.8rem;
+    margin-bottom: 0.6rem;
+  }
+  .card.wrap h2,
+  .card.wrap p {
+    margin: 0;
   }
   /* Out past the page's side padding (1rem below 1024px, in +layout.svelte),
      so on a phone the grid runs from edge to edge. */
