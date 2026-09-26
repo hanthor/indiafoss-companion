@@ -1,0 +1,32 @@
+{
+  "eventId": "indiafoss-2026",
+  "revision": 22,
+  "from": 21,
+  "changes": [
+    {
+      "activityId": "act-cfp-0ji76qukm0",
+      "title": "Building a business with FOSS",
+      "type": "added"
+    },
+    {
+      "activityId": "act-cfp-9lmiio7p5b",
+      "title": "From DPI to People’s Digital Infrastructure: Reclaiming Digital Infrastructures for Democratic Accountability",
+      "type": "speaker-changed"
+    },
+    {
+      "activityId": "act-28lap8q3re",
+      "title": "Porting AOSP to Allwinner Sunxi platform",
+      "type": "speaker-changed"
+    },
+    {
+      "activityId": "act-cfp-aqenkb8ktb",
+      "title": "RTL to Zephyr RTOS: Lightweight-Crypto Acceleration on Open RISC-V",
+      "type": "cancelled"
+    }
+  ],
+  "summary": {
+    "added": 1,
+    "speaker-changed": 2,
+    "cancelled": 1
+  }
+}
