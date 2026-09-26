@@ -470,9 +470,17 @@
     gap: 0.3rem;
     text-transform: capitalize;
   }
-  /* Over before now: still there to look back on, but out of the way. */
-  .group.past {
-    opacity: 0.55;
+  /* Over before now: still there to look back on, but out of the way. Recede
+     by muting the group's own text and chrome, not with opacity: opacity
+     fades foreground and background toward the page together, which pulled
+     the type badges down to 2.3-2.8:1 and under AA (they are 10px bold on a
+     tinted chip, so they have the least headroom on the screen). */
+  .group.past .time,
+  .group.past :global(.session) {
+    color: var(--text-muted);
+  }
+  .group.past :global(.session) {
+    background: color-mix(in srgb, var(--surface) 60%, var(--paper));
   }
   .group {
     /* Clear of the sticky app header and next-up banner when scrolled to. */
