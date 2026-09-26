@@ -88,6 +88,45 @@ test('the grid opens at now, and a running talk shows its title from the visible
   }
 });
 
+test('ended talks remain on the timeline and can be reached by scrolling back', async ({
+  page,
+}) => {
+  await page.goto(BUSY);
+  const grid = page.locator('[data-testid="now-grid"]');
+  const scroller = grid.locator('.scroller');
+
+  // Use the labels rather than a fixture title: this pins the behaviour for
+  // every schedule while still proving that a session ending before 11:30
+  // remains in the DOM after the clock has passed it.
+  const endedCount = await grid.locator('.talk').evaluateAll(
+    (cards) =>
+      cards.filter((card) => {
+        const match = /(\d\d):(\d\d)–(\d\d):(\d\d)/.exec(card.getAttribute('aria-label') ?? '');
+        if (!match) return false;
+        const end = Number(match[3]) * 60 + Number(match[4]);
+        return end <= 11 * 60 + 30;
+      }).length,
+  );
+  expect(endedCount).toBeGreaterThan(0);
+
+  expect(await scroller.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+  await scroller.evaluate((el) => (el.scrollLeft = 0));
+  await expect.poll(() => scroller.evaluate((el) => el.scrollLeft)).toBe(0);
+  const visibleEndedCount = await grid.locator('.talk').evaluateAll((cards) => {
+    const view = document
+      .querySelector('[data-testid="now-grid"] .scroller')!
+      .getBoundingClientRect();
+    return cards.filter((card) => {
+      const match = /(\d\d):(\d\d)–(\d\d):(\d\d)/.exec(card.getAttribute('aria-label') ?? '');
+      if (!match) return false;
+      const end = Number(match[3]) * 60 + Number(match[4]);
+      const box = card.getBoundingClientRect();
+      return end <= 11 * 60 + 30 && box.right > view.left && box.left < view.right;
+    }).length;
+  });
+  expect(visibleEndedCount).toBeGreaterThan(0);
+});
+
 test('every room scrolls together, so a column is one moment across the venue', async ({
   page,
 }) => {

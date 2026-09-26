@@ -470,10 +470,6 @@
     gap: 0.3rem;
     text-transform: capitalize;
   }
-  /* Over before now: still there to look back on, but out of the way. */
-  .group.past {
-    opacity: 0.55;
-  }
   .group {
     /* Clear of the sticky app header and next-up banner when scrolled to. */
     scroll-margin-top: 9rem;
