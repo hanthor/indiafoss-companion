@@ -35,16 +35,14 @@
   const before = $derived(nowState?.phase === 'before');
   /** Before the event the timeline shows day one, from its first session. */
   const gridDay = $derived(before && bundle ? (getEventDays(bundle)[0] ?? day) : day);
-  /** The day's sessions still running or yet to start: the grid's rows. */
+  /** Keep the whole day on the timeline so the attendee can scroll back. */
+  const gridActivities = $derived(bundle && gridDay ? activitiesForDay(bundle, gridDay) : []);
+  /** Sessions still running or yet to start drive only the between-sessions state. */
   const remaining = $derived(
-    bundle && gridDay && now
-      ? activitiesForDay(bundle, gridDay).filter(
-          (a) => a.end && Date.parse(a.end) > Date.parse(now),
-        )
-      : [],
+    now ? gridActivities.filter((a) => a.end && Date.parse(a.end) > Date.parse(now)) : [],
   );
   /** The first session of the grid's day: before the event, when it starts. */
-  const firstStart = $derived(remaining.map((a) => a.start!).sort()[0] ?? bundle?.start ?? '');
+  const firstStart = $derived(gridActivities.map((a) => a.start!).sort()[0] ?? bundle?.start ?? '');
   const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === day);
   const personalPlan = $derived(currentPlan ? livePlanState.result : null);
   const planStatus = $derived(currentPlan ? livePlanState.status : 'loading');
@@ -57,7 +55,7 @@
   const personalNext = $derived(
     personalPlan && !planConflicted ? nextPlannedItem(personalPlan.edited, now) : null,
   );
-  const gridIds = $derived(new Set(remaining.map((a) => a.id)));
+  const gridIds = $derived(new Set(gridActivities.map((a) => a.id)));
   /** The card drawn in gold: your plan's talk, else the programme's next (#221). */
   const go = $derived(
     goTarget({
@@ -135,7 +133,7 @@
         <p class="muted">Between sessions — take a break or explore the map.</p>
       {:else}
         <NowGrid
-          activities={remaining}
+          activities={gridActivities}
           bundle={bundle!}
           day={gridDay!}
           {now}
