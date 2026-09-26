@@ -13,7 +13,6 @@
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
   import { goTarget, GOING_LABEL, showGettingThere } from '$lib/now-page';
-  import { SvelteURLSearchParams } from 'svelte/reactivity';
 
   const clock = $derived(
     clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
@@ -35,18 +34,17 @@
   const day = $derived(bundle && now ? eventDay(now, bundle.timezone) : null);
   const days = $derived(bundle ? getEventDays(bundle) : []);
   const before = $derived(nowState?.phase === 'before');
-  /** A requested conference day wins; otherwise open today, or the nearest event day. */
-  const gridDay = $derived.by(() => {
-    const requested = page.url.searchParams.get('day');
-    if (requested && days.includes(requested)) return requested;
-    if (day && days.includes(day)) return day;
-    return before ? (days[0] ?? null) : (days.at(-1) ?? null);
-  });
-  /** Keep the whole day on the timeline so the attendee can scroll back. */
-  const gridActivities = $derived(bundle && gridDay ? activitiesForDay(bundle, gridDay) : []);
-  /** The first session of the grid's day: before the event, when it starts. */
+  /** One continuous timeline: every conference day, including the overnight gap. */
+  const gridActivities = $derived(
+    bundle ? days.flatMap((conferenceDay) => activitiesForDay(bundle, conferenceDay)) : [],
+  );
+  const gridScope = $derived(`${days[0] ?? ''}..${days.at(-1) ?? ''}`);
+  /** The first session of the conference: before the event, when it starts. */
   const firstStart = $derived(gridActivities.map((a) => a.start!).sort()[0] ?? bundle?.start ?? '');
-  const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === gridDay);
+  const planDay = $derived(
+    day && days.includes(day) ? day : before ? (days[0] ?? null) : (days.at(-1) ?? null),
+  );
+  const currentPlan = $derived(livePlanState.bundle === bundle && livePlanState.day === planDay);
   const personalPlan = $derived(currentPlan ? livePlanState.result : null);
   const planStatus = $derived(currentPlan ? livePlanState.status : 'loading');
   const planConflicted = $derived(
@@ -71,12 +69,6 @@
   );
   /** Your plan's item when it has no card to light: a personal block, lunch. */
   const planBlock = $derived(personalNext && !gridIds.has(personalNext.id) ? personalNext : null);
-
-  function dayHref(target: string): string {
-    const params = new SvelteURLSearchParams(page.url.searchParams);
-    params.set('day', target);
-    return `${resolve('/now')}?${params.toString()}`;
-  }
 </script>
 
 <EventGate>
@@ -84,7 +76,7 @@
   <h1 class="sr-only">Schedule</h1>
   <div class="titlebar">
     <ScheduleViews current="timeline" />
-    {#if gridDay}<a href={resolve(`/plan?day=${gridDay}`)}>{t('now.yourPlan')}</a>{/if}
+    {#if planDay}<a href={resolve(`/plan?day=${planDay}`)}>{t('now.yourPlan')}</a>{/if}
   </div>
 
   {#if isFixedClock(clock)}
@@ -94,22 +86,6 @@
   {#if !nowState}
     <p>Loading…</p>
   {:else}
-    <!-- eslint-disable svelte/no-navigation-without-resolve -- dayHref resolves /now -->
-    <div class="days" role="tablist" aria-label="Conference day">
-      {#each days as conferenceDay, i (conferenceDay)}
-        <a
-          role="tab"
-          aria-selected={gridDay === conferenceDay}
-          class="daytab"
-          class:active={gridDay === conferenceDay}
-          href={dayHref(conferenceDay)}
-        >
-          {t('schedule.day', { n: i + 1 })} <small>{dayLabel(conferenceDay)}</small>
-        </a>
-      {/each}
-    </div>
-    <!-- eslint-enable svelte/no-navigation-without-resolve -->
-
     {#if nowState.phase === 'after'}
       <section class="card wrap">
         <h2>That's a wrap</h2>
@@ -122,7 +98,7 @@
     {#if planConflicted}
       <p class="notice" role="status">
         Your plan has conflicting choices.
-        <a href={resolve(`/plan?day=${gridDay}`)}>Resolve them</a> to see where to go.
+        <a href={resolve(`/plan?day=${planDay}`)}>Resolve them</a> to see where to go.
       </p>
     {:else if planStatus === 'error'}
       <p class="notice" role="status">Your plan could not be loaded. Open Plan to try again.</p>
@@ -148,9 +124,11 @@
     <section class="happening" aria-labelledby="now-heading">
       {#snippet heading()}
         <h2 id="now-heading">
-          {before || gridDay !== day
-            ? t('now.starts', { when: `${dayLabel(gridDay!)} · ${formatTime(firstStart)}` })
-            : t('now.happening')}
+          {before
+            ? t('now.starts', { when: `${dayLabel(days[0]!)} · ${formatTime(firstStart)}` })
+            : nowState.phase === 'after'
+              ? 'Full programme'
+              : t('now.happening')}
         </h2>
       {/snippet}
       {#if gridActivities.length === 0}
@@ -160,7 +138,7 @@
         <NowGrid
           activities={gridActivities}
           bundle={bundle!}
-          day={gridDay!}
+          scope={gridScope}
           {now}
           goId={go?.id}
           goLabel={go ? (go.label === GOING_LABEL ? t('go.going') : t('go.upNext')) : undefined}
@@ -188,39 +166,6 @@
   }
   .titlebar a {
     font-size: 0.85rem;
-  }
-  .days {
-    display: flex;
-    gap: 0.4rem;
-    overflow-x: auto;
-    margin: 0.5rem 0;
-  }
-  .daytab {
-    flex-shrink: 0;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    color: var(--text);
-    border-radius: 999px;
-    min-height: 2.5rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-decoration: none;
-    white-space: nowrap;
-  }
-  .daytab small {
-    color: var(--text-muted);
-  }
-  .daytab.active {
-    border-color: var(--mint);
-    background: var(--mint-soft);
-    color: var(--mint-dark);
-  }
-  .daytab.active small {
-    color: inherit;
   }
   .devtime {
     display: inline-flex;
