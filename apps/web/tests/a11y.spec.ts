@@ -12,7 +12,8 @@ import { appUrl } from './app-url.js';
 const CORE_SCREENS: [string, string][] = [
   ['welcome', '/'],
   ['home', '/?setup=done'],
-  ['schedule', '/schedule'],
+  // During the event, completed agenda groups remain readable and available.
+  ['schedule', '/schedule?now=2026-09-26T11%3A30%3A00%2B05%3A30'],
   ['explore', '/explore'],
   ['plan', '/plan'],
   ['ranking', '/plan/rank'],
