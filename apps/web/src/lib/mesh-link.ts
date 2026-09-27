@@ -1,21 +1,16 @@
 import type { ContactRecord } from '@indiafoss/storage';
 import type { AccountClaimTrust } from '@indiafoss/model/contracts';
+import { matrixServerNameOf } from '@indiafoss/model';
 
 /** Re-check a link after this long; a peer may have published since. */
 export const MESH_LINK_TTL_MS = 24 * 60 * 60 * 1000;
-
-/** The mesh identity a mesh user id belongs to (`@n:<node>` → `<node>`). */
-export function meshServerOf(userId: string): string | null {
-  const match = userId.match(/^@[^:]+:(.+)$/);
-  return match?.[1]?.toLowerCase() ?? null;
-}
 
 /** The saved contact whose card carries the mesh identity behind a mesh user id. */
 export function contactForMeshUser(
   contacts: readonly ContactRecord[],
   userId: string,
 ): ContactRecord | undefined {
-  const server = meshServerOf(userId);
+  const server = matrixServerNameOf(userId);
   if (!server) return undefined;
   return contacts.find((c) => c.neutrinoServerName?.toLowerCase() === server);
 }

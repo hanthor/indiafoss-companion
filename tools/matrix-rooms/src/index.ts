@@ -1,4 +1,4 @@
-import { collectBundleIssues } from '@indiafoss/model';
+import { collectBundleIssues, matrixLocalpartOf } from '@indiafoss/model';
 import type { EventBundle } from '@indiafoss/model';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -94,7 +94,7 @@ class MatrixApi {
   }
 
   async createRoom(room: RoomPlan, server: string, spaceId: string | null): Promise<string> {
-    const localpart = room.alias.slice(1).split(':')[0]!;
+    const localpart = matrixLocalpartOf(room.alias) || '';
     const initialState: unknown[] = [
       {
         type: 'm.room.history_visibility',

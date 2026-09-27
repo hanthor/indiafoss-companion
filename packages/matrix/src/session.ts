@@ -8,6 +8,7 @@ import type {
 } from './types.js';
 import { MatrixClient, MatrixError, type FetchLike } from './http.js';
 import { publishMeshLink } from './mesh-link.js';
+import { matrixServerNameOf, matrixLocalpartOf } from '@indiafoss/model';
 import {
   applySyncResponse,
   deriveRoomName,
@@ -850,10 +851,10 @@ export class MatrixSessionManager {
     // `#keynote:<its own 64-hex name>` instead. Six nodes doing that produce
     // six rooms, each attendee alone in one named after the session they
     // wanted to be in, with no error anywhere (docs/mesh-protocol.md §5.2).
-    const aliasServer = spec.alias.slice(1).split(':').slice(1).join(':');
+    const aliasServer = matrixServerNameOf(`@_:${spec.alias}`) || '';
     const ownServer = this.session?.userId.split(':').slice(1).join(':') ?? '';
     if (!aliasServer || aliasServer !== ownServer) throw notFound;
-    const localpart = spec.alias.slice(1).split(':')[0] ?? spec.alias;
+    const localpart = matrixLocalpartOf(spec.alias);
     try {
       const created = await client.createRoom({
         aliasLocalpart: localpart,

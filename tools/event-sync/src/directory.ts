@@ -1,4 +1,4 @@
-import { conferenceChatAlias, homeserverName } from '@indiafoss/model';
+import { conferenceChatAlias, homeserverName, matrixLocalpartOf } from '@indiafoss/model';
 import type { EventBundle } from '@indiafoss/model';
 import type { ConferenceDirectory, DirectoryRoom } from '@indiafoss/model/contracts';
 
@@ -75,5 +75,5 @@ export function buildConferenceDirectory(
 
 /** The alias localpart, as a directory entry id for rooms tied to nothing in the bundle. */
 function slugOf(alias: string): string {
-  return alias.slice(1).split(':')[0]!.toLowerCase();
+  return (matrixLocalpartOf(alias) ?? '').toLowerCase();
 }
