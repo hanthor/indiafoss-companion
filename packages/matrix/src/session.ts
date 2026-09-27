@@ -854,7 +854,7 @@ export class MatrixSessionManager {
     const aliasServer = matrixServerNameOf(`@_:${spec.alias}`) || '';
     const ownServer = this.session?.userId.split(':').slice(1).join(':') ?? '';
     if (!aliasServer || aliasServer !== ownServer) throw notFound;
-    const localpart = matrixLocalpartOf(spec.alias);
+    const localpart = matrixLocalpartOf(spec.alias) ?? spec.alias;
     try {
       const created = await client.createRoom({
         aliasLocalpart: localpart,
