@@ -1,4 +1,4 @@
-import { classifyMeshIdentity } from '@indiafoss/model';
+import { classifyMeshIdentity, matrixServerNameOf } from '@indiafoss/model';
 import { MatrixClient, MatrixError, type FetchLike } from './http.js';
 
 /**
@@ -62,11 +62,6 @@ export interface MeshLinkCheck {
 
 const CS = '/_matrix/client/v3';
 
-function serverNameOf(matrixId: string): string | null {
-  const match = matrixId.match(/^@[^:]+:(.+)$/);
-  return match?.[1] ?? null;
-}
-
 /**
  * Publish this phone's mesh identity on the signed-in account's profile so
  * peers can verify the link, or clear it with `null`. Throws the homeserver's
@@ -101,7 +96,7 @@ export async function verifyMeshLink(
   fetchFn: FetchLike = (input, init) => globalThis.fetch(input, init),
   now: () => number = () => Date.now(),
 ): Promise<MeshLinkCheck> {
-  const server = serverNameOf(claim.matrixId.trim());
+  const server = matrixServerNameOf(claim.matrixId.trim());
   if (!server) return { state: 'unverifiable', checkedAt: now() };
   try {
     const base = await MatrixClient.discover(server, fetchFn);

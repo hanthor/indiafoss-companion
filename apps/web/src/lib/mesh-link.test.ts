@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import type { ContactRecord } from '@indiafoss/storage';
+import { matrixServerNameOf } from '@indiafoss/model';
 import {
   MESH_LINK_TTL_MS,
   accountTrustOf,
   claimsMeshLink,
   contactForMeshUser,
   meshLinkStale,
-  meshServerOf,
 } from './mesh-link';
 
 const MESH = 'ab'.repeat(32);
@@ -28,7 +28,7 @@ describe('mesh link helpers', () => {
     const contacts = [
       contact({ neutrinoServerName: MESH.toUpperCase(), matrixId: '@alice:example.org' }),
     ];
-    expect(meshServerOf(`@n:${MESH}`)).toBe(MESH);
+    expect(matrixServerNameOf(`@n:${MESH}`)).toBe(MESH);
     expect(contactForMeshUser(contacts, `@n:${MESH}`)?.matrixId).toBe('@alice:example.org');
     expect(contactForMeshUser(contacts, '@n:' + 'cd'.repeat(32))).toBeUndefined();
     expect(contactForMeshUser(contacts, 'garbage')).toBeUndefined();

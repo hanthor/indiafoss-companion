@@ -88,6 +88,26 @@ export function isMatrixUserIdShape(value: string): boolean {
   return MATRIX_USER_ID_RE.test(value);
 }
 
+/**
+ * Extract the server part from a Matrix id (`@localpart:server` or
+ * `#localpart:server`). Returns the server in lowercase (canonical form), or
+ * `null` if the value does not match the expected shape.
+ */
+export function matrixServerNameOf(id: string | null | undefined): string | null {
+  if (!id) return null;
+  const server = id.match(/^[@#][^:]+:(.+)$/)?.[1];
+  return server === undefined ? null : server.toLowerCase();
+}
+
+/**
+ * Extract the localpart from a Matrix id (`@localpart:server` or `#localpart:server`).
+ * Returns the localpart as-is, or `null` if the value does not match the expected shape.
+ */
+export function matrixLocalpartOf(id: string | null | undefined): string | null {
+  if (!id) return null;
+  return id.match(/^[@#]([^:]+):/)?.[1] ?? null;
+}
+
 /** What a mesh identity string turned out to be. */
 export type MeshIdentityShape =
   /** A v1 node id, normalised to lowercase. */
