@@ -43,7 +43,15 @@ export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>
 
 const CS = '/_matrix/client/v3';
 
+const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', '[::1]', 'localhost']);
+
 function normalizeBaseUrl(url: string): string {
+  const parsed = new URL(url);
+  const isSecure = parsed.protocol === 'https:';
+  const isLoopbackHttp = parsed.protocol === 'http:' && LOOPBACK_HOSTS.has(parsed.hostname.toLowerCase());
+  if (!isSecure && !isLoopbackHttp) {
+    throw new Error('Matrix homeserver must use HTTPS (HTTP is allowed only for loopback development servers)');
+  }
   return url.replace(/\/+$/, '');
 }
 
@@ -179,19 +187,21 @@ export class MatrixClient {
     if (!trimmed) throw new Error('Enter a homeserver name such as matrix.org');
     const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
     const origin = normalizeBaseUrl(new URL(candidate).origin);
+    let base: string | undefined;
     try {
       const res = await fetchFn(`${origin}/.well-known/matrix/client`, {
         signal: AbortSignal.timeout(6000),
       });
       if (res.ok) {
         const json = (await res.json()) as { 'm.homeserver'?: { base_url?: string } };
-        const base = json['m.homeserver']?.base_url;
-        if (base) return normalizeBaseUrl(base);
+        base = json['m.homeserver']?.base_url;
       }
     } catch {
       // No well-known: use the origin as-is.
     }
-    return origin;
+    // Validate discovery results outside the network-error handler so an
+    // insecure remote base URL cannot silently fall back to the origin.
+    return base ? normalizeBaseUrl(base) : origin;
   }
 
   setAccessToken(token: string | null): void {
