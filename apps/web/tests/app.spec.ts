@@ -807,9 +807,14 @@ test('a conflicting plan clears map recommendations and banners on every route',
 test('schedule re-resolves a saved plan when choices change without reopening Plan', async ({
   page,
 }) => {
+  // Schedule opens on today when today is an event day, and on day 1 otherwise,
+  // while Plan always opens on day 1. Without a fixed clock the two tabs agree
+  // only while the real date is outside the event, so this spec pins the clock
+  // to day 1 rather than depending on when it happens to run.
+  const scheduleUrl = appUrl('/schedule?event=indiafoss-2026&now=2026-09-26T09:29:00%2B05:30');
   await page.goto(appUrl('/plan?event=indiafoss-2026'));
   await expect(page.locator('.itinerary li').first()).toBeVisible();
-  await page.goto(appUrl('/schedule?event=indiafoss-2026'));
+  await page.goto(scheduleUrl);
   const welcome = page.locator('.session').filter({
     has: page.getByRole('link', { name: 'Welcome Note', exact: true }),
   });
@@ -818,7 +823,7 @@ test('schedule re-resolves a saved plan when choices change without reopening Pl
   const exclude = page.getByRole('button', { name: /Not interested/ });
   await exclude.click();
   await expect(exclude).toHaveAttribute('aria-pressed', 'true');
-  await page.goto(appUrl('/schedule?event=indiafoss-2026'));
+  await page.goto(scheduleUrl);
   await expect(welcome).toBeVisible();
   await expect(welcome.getByText('Planned', { exact: true })).toHaveCount(0);
   await page.reload();
