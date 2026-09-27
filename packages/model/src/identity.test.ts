@@ -10,6 +10,8 @@ import {
   identityCompatibility,
   isCanonicalNodeId,
   isNeutrinoServerName,
+  matrixLocalpartOf,
+  matrixServerNameOf,
   mergeIdentity,
   readIdentity,
   withIdentityEnvelope,
@@ -275,5 +277,26 @@ describe('records and exports', () => {
     );
     expect(both).toContain(`X-INDIAFOSS-MESH:${NODE}\r\nX-INDIAFOSS-IDENTITY-VERSION:1\r\n`);
     expect(both).not.toContain('converged:asha');
+  });
+});
+
+describe('matrix id part extraction', () => {
+  it('reads the server from user ids and room aliases, lowercased', () => {
+    expect(matrixServerNameOf('@alice:example.org')).toBe('example.org');
+    expect(matrixServerNameOf('#keynote:Example.ORG')).toBe('example.org');
+    // A port is part of the server name, not a second separator.
+    expect(matrixServerNameOf('@alice:example.org:8448')).toBe('example.org:8448');
+  });
+
+  it('reads the localpart from user ids and room aliases, as written', () => {
+    expect(matrixLocalpartOf('@Alice:example.org')).toBe('Alice');
+    expect(matrixLocalpartOf('#Keynote:example.org')).toBe('Keynote');
+  });
+
+  it('returns null rather than a guess for anything off-shape', () => {
+    for (const bad of ['', 'garbage', '@nocolon', ':noloc', '@:empty', null, undefined]) {
+      expect(matrixServerNameOf(bad)).toBeNull();
+      expect(matrixLocalpartOf(bad)).toBeNull();
+    }
   });
 });

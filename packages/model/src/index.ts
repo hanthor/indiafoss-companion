@@ -259,6 +259,8 @@ export {
   identityMetaOf,
   isCanonicalNodeId,
   isMatrixUserIdShape,
+  matrixLocalpartOf,
+  matrixServerNameOf,
   mergeIdentity,
   readIdentity,
   withIdentityEnvelope,

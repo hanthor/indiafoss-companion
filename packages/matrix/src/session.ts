@@ -851,8 +851,8 @@ export class MatrixSessionManager {
     // `#keynote:<its own 64-hex name>` instead. Six nodes doing that produce
     // six rooms, each attendee alone in one named after the session they
     // wanted to be in, with no error anywhere (docs/mesh-protocol.md §5.2).
-    const aliasServer = matrixServerNameOf(`@_:${spec.alias}`) || '';
-    const ownServer = this.session?.userId.split(':').slice(1).join(':') ?? '';
+    const aliasServer = matrixServerNameOf(spec.alias) ?? '';
+    const ownServer = matrixServerNameOf(this.session?.userId) ?? '';
     if (!aliasServer || aliasServer !== ownServer) throw notFound;
     const localpart = matrixLocalpartOf(spec.alias) ?? spec.alias;
     try {
