@@ -96,7 +96,7 @@ export async function verifyMeshLink(
   fetchFn: FetchLike = (input, init) => globalThis.fetch(input, init),
   now: () => number = () => Date.now(),
 ): Promise<MeshLinkCheck> {
-  const server = matrixServerNameOf(claim.matrixId.trim())
+  const server = matrixServerNameOf(claim.matrixId.trim());
   if (!server) return { state: 'unverifiable', checkedAt: now() };
   try {
     const base = await MatrixClient.discover(server, fetchFn);
