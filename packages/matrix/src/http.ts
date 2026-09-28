@@ -48,9 +48,12 @@ const LOOPBACK_HOSTS = new Set(['127.0.0.1', '::1', '[::1]', 'localhost']);
 function normalizeBaseUrl(url: string): string {
   const parsed = new URL(url);
   const isSecure = parsed.protocol === 'https:';
-  const isLoopbackHttp = parsed.protocol === 'http:' && LOOPBACK_HOSTS.has(parsed.hostname.toLowerCase());
+  const isLoopbackHttp =
+    parsed.protocol === 'http:' && LOOPBACK_HOSTS.has(parsed.hostname.toLowerCase());
   if (!isSecure && !isLoopbackHttp) {
-    throw new Error('Matrix homeserver must use HTTPS (HTTP is allowed only for loopback development servers)');
+    throw new Error(
+      'Matrix homeserver must use HTTPS (HTTP is allowed only for loopback development servers)',
+    );
   }
   return url.replace(/\/+$/, '');
 }

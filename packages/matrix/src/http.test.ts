@@ -61,7 +61,11 @@ describe('MatrixClient URL safety', () => {
   });
 
   it('rejects an insecure remote base URL returned by discovery', async () => {
-    const { fetchFn } = recording(200, { 'm.homeserver': { base_url: 'http://matrix.example' } }, true);
+    const { fetchFn } = recording(
+      200,
+      { 'm.homeserver': { base_url: 'http://matrix.example' } },
+      true,
+    );
     await expect(MatrixClient.discover('https://matrix.example', fetchFn)).rejects.toThrow(
       'Matrix homeserver must use HTTPS',
     );
