@@ -47,6 +47,31 @@ describe('MatrixError', () => {
   });
 });
 
+describe('MatrixClient URL safety', () => {
+  it('rejects remote HTTP before any authenticated request can be sent', () => {
+    expect(() => new MatrixClient('http://matrix.example', 'tok')).toThrow(
+      'Matrix homeserver must use HTTPS',
+    );
+  });
+
+  it('allows HTTP for loopback development servers', async () => {
+    const { seen, fetchFn } = recording(200, {}, true);
+    await new MatrixClient('http://127.0.0.1:8008', 'tok', fetchFn).rawRequest('GET', '/sync');
+    expect(seen[0]?.url).toBe('http://127.0.0.1:8008/sync');
+  });
+
+  it('rejects an insecure remote base URL returned by discovery', async () => {
+    const { fetchFn } = recording(
+      200,
+      { 'm.homeserver': { base_url: 'http://matrix.example' } },
+      true,
+    );
+    await expect(MatrixClient.discover('https://matrix.example', fetchFn)).rejects.toThrow(
+      'Matrix homeserver must use HTTPS',
+    );
+  });
+});
+
 describe('MatrixClient requests', () => {
   it('sends the access token, and JSON only when there is a body', async () => {
     const { seen, fetchFn } = recording(200, {}, true);
