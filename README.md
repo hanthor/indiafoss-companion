@@ -177,7 +177,7 @@ events/
 
 ## Development
 
-Node.js ≥ 20.19 and pnpm 11 (`corepack enable`).
+Node.js ≥ 20.19 and pnpm 12 (`corepack enable`).
 
 ```bash
 pnpm install
