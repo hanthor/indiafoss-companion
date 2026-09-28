@@ -38,7 +38,7 @@ pnpm install
 pnpm --filter @indiafoss/web dev     # http://localhost:5173
 ```
 
-Node ≥ 20.19 and pnpm 11 (`corepack enable`). No accounts, no API keys, no
+Node ≥ 20.19 and pnpm 12 (`corepack enable`). No accounts, no API keys, no
 services — the whole app runs off local fixtures by design.
 
 You now have a working conference companion showing IndiaFOSS 2025. The next
