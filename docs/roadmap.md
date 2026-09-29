@@ -106,7 +106,9 @@ alignment, #3 CI packages token, #4 fork roadmap. 10 September: conference link
 classifier and dispatcher with native-Companion handoff and PWA fallback (#59,
 closes Chat #28), nearby-discovery toggle backed by the real `set_discoverable`
 FFI (#60, pinned in #62), 2026 identity (#61, closes Chat #50); Chat #12 and
-#34 closed as implemented. No two-phone evidence in any of them.
+#34 closed as implemented. No two-phone evidence in any of them. The companion
+apps stopped linking to this app on 2026-09-24 (see the decisions log); whether
+it continues as a supported sibling is undecided.
 
 `hanthor/neutrino-iroh` (bindings and BLE transport): #16 media ALPN on the
 shared federation endpoint and the MatrixRTC `call.member` model, loopback only.
@@ -117,6 +119,21 @@ deployed (#291).
 
 ## Decisions log
 
+- 2026-09-24: **IndiaFOSS Chat and the venue mesh are retired from the attendee
+  path** (PR #691, maintainer direction). The venue Wi-Fi reaches ordinary
+  Matrix clients, so the separate mesh app is not used at the event and the
+  companion apps no longer link to it: the download card is gone from Connect
+  and Settings on both platforms, a contact offers only "Open in a Matrix app",
+  the `/connect?mesh=…` hand-back and the mesh id card field are removed, and
+  `ConferenceRooms` filters `route === 'mesh'` out of the listing. Cards from
+  older builds still import a received mesh id. The mesh code,
+  `patches/neutrino`, `tools/neutrino-probe` and the mesh documents stay in the
+  tree as history; `docs/messaging.md` carries the note. This settles the
+  venue-mesh question #712 asked two days before the event, and supersedes the
+  delivery half of #163, #165, #166, #176, #182 and the mesh seam in #115,
+  #129, #181, #188 — none of which can be satisfied now the conference has
+  ended. Whether `hanthor/indiafoss-chat-android` continues as a supported
+  sibling is a separate decision and is not recorded here.
 - 2026-09-10: **Update channels are Obtainium and our own F-Droid repository;
   Accrescent is out** (maintainer direction, #308). The PWA download cards
   carry an `obtainium://add/` link and name the repository; the _Add
