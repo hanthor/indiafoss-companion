@@ -17,6 +17,7 @@
  */
 import { LINK_PROFILES, type LinkProfileName } from './link.js';
 import { Swarm } from './nodes.js';
+import { pct, sleep } from './stats.js';
 
 interface Args {
   size: number;
@@ -51,14 +52,6 @@ function parseArgs(argv: string[]): Args {
     timeoutMs: Number(get('timeout') ?? 120_000),
     bin,
   };
-}
-
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
-
-/** p-th percentile of an already-sorted array. */
-function pct(sorted: number[], p: number): number {
-  if (sorted.length === 0) return NaN;
-  return sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]!;
 }
 
 export interface SwarmResult {

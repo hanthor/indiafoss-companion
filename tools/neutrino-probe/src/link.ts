@@ -22,6 +22,7 @@
  */
 import { createServer, connect, type Server, type Socket } from 'node:net';
 import { once } from 'node:events';
+import { sleep } from './stats.js';
 
 /** How a link behaves: latency, its variance, connection failure, and a bandwidth ceiling. */
 export interface LinkProfile {
@@ -76,8 +77,6 @@ export type LinkProfileName = keyof typeof LINK_PROFILES;
 export function profile(p: LinkProfileName | LinkProfile): LinkProfile {
   return typeof p === 'string' ? LINK_PROFILES[p] : p;
 }
-
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
 /**
  * A shaped TCP proxy in front of `upstreamPort`.
