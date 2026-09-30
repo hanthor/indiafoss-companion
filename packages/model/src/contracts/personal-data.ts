@@ -1,4 +1,10 @@
-import { collectSchemaVersionIssues, isRecord, requireInstant, requireString } from './common.js';
+import {
+  collectSchemaVersionIssues,
+  isCanonicalInstant,
+  isRecord,
+  requireInstant,
+  requireString,
+} from './common.js';
 import type { PortableActivityReference } from '../portable-activity.js';
 
 export const PERSONAL_DATA_SCHEMA_VERSION = 1;
@@ -28,15 +34,8 @@ export function collectPersonalDataIssues(value: unknown): string[] {
   if (value.format !== 'indiafoss-personal-data')
     issues.push('format must be indiafoss-personal-data');
   issues.push(...requireInstant(value, 'exportedAt'));
-  if (typeof value.exportedAt === 'string') {
-    const timestamp = new Date(value.exportedAt);
-    if (
-      !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value.exportedAt) ||
-      Number.isNaN(timestamp.getTime()) ||
-      timestamp.toISOString() !== value.exportedAt
-    ) {
-      issues.push('exportedAt must use canonical UTC milliseconds');
-    }
+  if (typeof value.exportedAt === 'string' && !isCanonicalInstant(value.exportedAt)) {
+    issues.push('exportedAt must use canonical UTC milliseconds');
   }
   if (!Array.isArray(value.events)) return [...issues, 'events must be an array'];
   const events = new Set<string>();
