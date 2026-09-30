@@ -328,8 +328,8 @@ importers:
         specifier: workspace:*
         version: link:../storage
       '@matrix-org/matrix-sdk-crypto-wasm':
-        specifier: 18.8.0
-        version: 18.8.0
+        specifier: 18.9.0
+        version: 18.9.0
     devDependencies:
       eslint:
         specifier: ^10.9.1
@@ -1446,8 +1446,8 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@matrix-org/matrix-sdk-crypto-wasm@18.8.0':
-    resolution: {integrity: sha512-J+bYzUqtkYSrIUbDT8Razf9F1gzlpC94qeC5LQlr9QmjrzyaErwlV9v7S+gtSOeDvJCdfP8ebEDaANHiVLCYQg==}
+  '@matrix-org/matrix-sdk-crypto-wasm@18.9.0':
+    resolution: {integrity: sha512-NtLzNDTEfNASBjNCTGZHuk7N0jrQhS6Zx2CM857rCHZYYh/rpbKGQNrJ7azktm4S1P5Jy3WU3nwJTGohGw26qQ==}
     engines: {node: '>= 18'}
 
   '@napi-rs/canvas-android-arm64@1.0.8':
@@ -4638,7 +4638,7 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@matrix-org/matrix-sdk-crypto-wasm@18.8.0': {}
+  '@matrix-org/matrix-sdk-crypto-wasm@18.9.0': {}
 
   '@napi-rs/canvas-android-arm64@1.0.8':
     optional: true
