@@ -348,6 +348,8 @@ test('an imported must-attend plan drives the Now banner and reminders without a
   // Start the day simulator from Settings, 35 simulated minutes before the imported talk.
   const startMs = Date.parse(a.start) - 35 * 60_000;
   const local = new Date(startMs + 5.5 * 3_600_000).toISOString();
+  // The simulator is a folded section at the foot of Settings.
+  await page.getByRole('heading', { name: 'Simulate the day' }).click();
   await page.getByRole('combobox', { name: /^Day/ }).selectOption(a.start.slice(0, 10));
   await page.locator('input[type="time"]').fill(local.slice(11, 16));
   await page.getByRole('combobox', { name: /^Speed/ }).selectOption('600');

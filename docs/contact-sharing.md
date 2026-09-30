@@ -168,7 +168,7 @@ account's own profile has **Add to my Companion card**, which opens
 `indiafoss://conference/connect?mesh=<node id>` (an internet account sends
 `?matrix=<@user:server>`). `ConferenceActivity` routes that to the Companion,
 native app or PWA, where `/connect` shows the id and asks before writing it
-(`apps/web/src/lib/identity-handback.ts`). On yes, the field is filled and
+(the removed `apps/web/src/lib/identity-handback.ts`; see the note in [messaging.md](messaging.md)). On yes, the field is filled and
 its share switch turned on; a junk value never asks. Only the public address
 the card would carry anyway crosses the app boundary.
 

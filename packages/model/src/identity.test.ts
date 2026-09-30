@@ -215,9 +215,11 @@ describe('records and exports', () => {
   });
 
   it('writes the identity version beside the identity fields, and re-emits an unread one as it came', () => {
+    // Off by default since the Chat app was retired; a card that opts in still writes it.
+    const MESH_ON = { ...DEFAULT_ATTENDEE_SHARE_SELECTION, neutrinoServerName: true };
     const card = attendeeProfileToVCard(
       { fullName: 'Asha', matrixId: '@asha:example.org', neutrinoServerName: NODE, socials: {} },
-      DEFAULT_ATTENDEE_SHARE_SELECTION,
+      MESH_ON,
     );
     expect(card).toContain(`X-INDIAFOSS-MESH:${NODE}\r\nX-INDIAFOSS-IDENTITY-VERSION:1\r\n`);
     const none = attendeeProfileToVCard({ fullName: 'Asha', socials: {} });
@@ -229,7 +231,7 @@ describe('records and exports', () => {
         socials: {},
         identity: { version: 2, retained: { version: '2', mesh: 'converged:asha' } },
       },
-      DEFAULT_ATTENDEE_SHARE_SELECTION,
+      MESH_ON,
     );
     expect(future).toContain(
       'X-INDIAFOSS-MESH:converged:asha\r\nX-INDIAFOSS-IDENTITY-VERSION:2\r\n',
@@ -250,7 +252,7 @@ describe('records and exports', () => {
         socials: {},
         identity: { version: 1, retained: { mesh: 'node.something-new.example' } },
       },
-      DEFAULT_ATTENDEE_SHARE_SELECTION,
+      MESH_ON,
     );
     expect(mixed).toContain(
       'X-INDIAFOSS-MATRIX:@asha:example.org\r\nIMPP:matrix:@asha:example.org\r\nX-INDIAFOSS-MESH:node.something-new.example\r\nX-INDIAFOSS-IDENTITY-VERSION:1\r\n',
@@ -269,7 +271,7 @@ describe('records and exports', () => {
         socials: {},
         identity: { version: 1, retained: { version: '2', mesh: 'converged:asha' } },
       },
-      DEFAULT_ATTENDEE_SHARE_SELECTION,
+      MESH_ON,
     );
     expect(both).toContain(`X-INDIAFOSS-MESH:${NODE}\r\nX-INDIAFOSS-IDENTITY-VERSION:1\r\n`);
     expect(both).not.toContain('converged:asha');

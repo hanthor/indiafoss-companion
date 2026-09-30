@@ -130,6 +130,9 @@
   /* The QR plate stays white in both themes: it stands in for the code, and a
      dark plate would not scan. Declared once so it reads as a decision. */
   --qr-plate: #ffffff;
+  /* Baked supplier artwork (the venue map key) stays white in both themes:
+     its dark labels and icons are paths, so a dark plate would swallow them. */
+  --art-plate: #ffffff;
   --safe-top: env(safe-area-inset-top, var(--safe-area-inset-top, 0px));
   --safe-bottom: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
   --tabbar-height: 62px;
@@ -576,4 +579,18 @@ input[type='radio'] {
 .devroom {
   --badge-bg: color-mix(in srgb, var(--devroom) 18%, var(--surface));
   --badge-ink: color-mix(in srgb, var(--devroom) 55%, var(--text));
+}
+
+/* Indic scripts join letters into clusters: tracking pulls the clusters
+   apart and upper-casing means nothing to them, so both go when the page
+   is in an Indian language (and on anything marked as one, such as the
+   language picker's own names). */
+:root:not([lang|='en']) *,
+[lang|='hi'],
+[lang|='kn'],
+[lang|='ta'],
+[lang|='te'],
+[lang|='ml'] {
+  letter-spacing: normal !important;
+  text-transform: none !important;
 }

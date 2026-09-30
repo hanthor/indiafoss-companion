@@ -1,37 +1,44 @@
 <script lang="ts">
+  import { t, dayLabel } from '$lib/i18n.svelte';
   import { loadPlanned, plannedKey, planExists } from '$lib/planned.svelte';
   import { resolveSavedDayPlan, trackPlanInputs } from '$lib/resolved-plan.svelte';
   import type { ActivityType } from '@indiafoss/model';
-  import { resolve } from '$app/paths';
   import { formatTime } from '@indiafoss/schedule';
   import { searchActivities } from '@indiafoss/search';
-  import {
-    activitiesForDay,
-    eventToIcs,
-    formatDayLabel,
-    getEventDays,
-    groupByStart,
-  } from '@indiafoss/schedule';
+  import { activitiesForDay, eventToIcs, getEventDays, groupByStart } from '@indiafoss/schedule';
   import { bookmarked, dispositionOf } from '$lib/prefs.svelte';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import SessionCard from '$lib/components/SessionCard.svelte';
   import TimelineGrid from '$lib/components/TimelineGrid.svelte';
+  import ScheduleViews from '$lib/components/ScheduleViews.svelte';
+  import { page } from '$app/state';
+  import { tick } from 'svelte';
+  import { clockFromParams } from '$lib/clock';
+  import { eventDay } from '$lib/resolved-plan';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
 
   let selectedDay = $state<string | null>(null);
-  // The list is the default at every width: it is the searchable, filterable
-  // view the browser tests and attendees know. On a wide screen it still uses
-  // the width (co-starting sessions sit side by side), and the room grid,
-  // one tap away, lays every room out beside the others (issue 205).
-  let view: 'list' | 'grid' = $state('list');
+  // Two of the Schedule tab's three views live here, chosen by the address
+  // (?view=rooms) so the view switch is a plain link: the agenda list, which
+  // searches and filters, and the rooms laid side by side (issue 205).
+  const view: 'list' | 'grid' = $derived(
+    page.url.searchParams.get('view') === 'rooms' ? 'grid' : 'list',
+  );
+  const clock = $derived(
+    clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')),
+  );
+  // During the event the agenda opens on today, scrolled to what is on now.
+  const today = $derived(bundle ? eventDay(clock.now(), bundle.timezone) : '');
   let query = $state('');
   let selectedRoom = $state('');
   let devroomsOnly = $state(false);
   let bookmarkedOnly = $state(false);
+  /** Unset until the attendee picks; then the agenda opens on your plan whenever you have one. */
+  let planChoice = $state<boolean | null>(null);
   let calendarMessage = $state('');
 
   async function exportEventCalendar(): Promise<void> {
@@ -64,7 +71,8 @@
   );
 
   $effect(() => {
-    if (days.length > 0 && (!selectedDay || !days.includes(selectedDay))) selectedDay = days[0]!;
+    if (days.length > 0 && (!selectedDay || !days.includes(selectedDay)))
+      selectedDay = days.includes(today) ? today : days[0]!;
   });
 
   const typesOn = $derived(
@@ -101,6 +109,8 @@
     };
   });
   const plannedIds = $derived(new Set(resolvedIds));
+  const hasPlan = $derived(plannedIds.size > 0);
+  const planOnly = $derived(view === 'list' && hasPlan && (planChoice ?? true));
 
   const searchIds = $derived(
     query.trim().length >= 2 ? new Set(searchActivities(bundle, query, 60).map((h) => h.id)) : null,
@@ -111,6 +121,7 @@
   );
   const filtered = $derived(
     dayActivities.filter((a) => {
+      if (planOnly && !plannedIds.has(a.id)) return false;
       if (selectedRoom && a.locationId !== selectedRoom) return false;
       if (!typesOn.has(a.type)) return false;
       if (devroomsOnly && !a.devroomId) return false;
@@ -123,6 +134,37 @@
     }),
   );
 
+  const nowMs = $derived(Date.parse(clock.now()));
+  const isToday = $derived(selectedDay === today);
+
+  // Open the agenda at now, once: the first time today's list is drawn,
+  // scroll to the first slot still running. After that the scroll is theirs.
+  let placedFor = '';
+  $effect(() => {
+    if (view !== 'list' || !isToday || placedFor === today) return;
+    void filtered.length;
+    placedFor = today;
+    void tick().then(() => {
+      const next = document.querySelector<HTMLElement>('.list .group:not(.past)');
+      if (!next || !document.querySelector('.list .group.past')) return;
+      // A window scroll, not scrollIntoView: that also moves where Tab starts,
+      // and keyboard users must still begin at the header and navigation.
+      const margin = parseFloat(getComputedStyle(next).scrollMarginTop) || 0;
+      window.scrollTo({ top: next.getBoundingClientRect().top + window.scrollY - margin });
+    });
+  });
+
+  // The Rooms view draws every room as a column, so the agenda's room chips
+  // and search (hidden there) do not narrow it; the Filters still do.
+  const gridActivities = $derived(
+    dayActivities.filter((a) => {
+      if (!typesOn.has(a.type)) return false;
+      if (devroomsOnly && !a.devroomId) return false;
+      if (bookmarkedOnly && dispositionOf(a.id) === 'normal' && !bookmarked(a.id)) return false;
+      return true;
+    }),
+  );
+
   function setType(type: string, checked: boolean): void {
     typeToggles[type] = checked;
   }
@@ -131,101 +173,114 @@
 <EventGate>
   <header class="pagehead">
     <div>
-      <h1>Schedule</h1>
-      <p class="muted">{bundle.name} · {bundle.timezone}</p>
-    </div>
-    <div class="header-actions">
-      <a class="rank-link" href={resolve('/plan/rank')}>Rank your choices →</a>
-      <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
+      <h1 class="sr-only">Schedule</h1>
+      <ScheduleViews current={view === 'grid' ? 'rooms' : 'agenda'} />
     </div>
   </header>
   {#if calendarMessage}<p class="muted small" role="status">{calendarMessage}</p>{/if}
 
   <div class="controls">
-    <div class="days" role="tablist" aria-label="Conference day">
-      {#each days as day, i (day)}
-        <button
-          role="tab"
-          aria-selected={selectedDay === day}
-          class="daytab"
-          class:active={selectedDay === day}
-          onclick={() => {
-            selectedDay = day;
-            selectedRoom = '';
-          }}
-        >
-          Day {i + 1}<br /><small>{formatDayLabel(day)}</small>
-        </button>
-      {/each}
-    </div>
-
-    <div class="row">
-      <label class="search">
-        <span class="sr-only">Search sessions</span>
-        <input type="search" placeholder="Search sessions…" bind:value={query} />
-      </label>
-      <div class="seg" role="group" aria-label="View">
-        <button
-          aria-pressed={view === 'list'}
-          class:active={view === 'list'}
-          onclick={() => (view = 'list')}>List</button
-        >
-        <button
-          aria-pressed={view === 'grid'}
-          class:active={view === 'grid'}
-          onclick={() => (view = 'grid')}>Room grid</button
-        >
-      </div>
-    </div>
-
-    <div class="room-filters" role="group" aria-label="Filter by room">
-      <button
-        class:active={!selectedRoom}
-        aria-pressed={!selectedRoom}
-        onclick={() => (selectedRoom = '')}>All rooms</button
-      >
-      {#each rooms as room (room.id)}
-        <button
-          class:active={selectedRoom === room.id}
-          aria-pressed={selectedRoom === room.id}
-          onclick={() => (selectedRoom = room.id)}>{room.name}</button
-        >
-      {/each}
-    </div>
-    <details class="filters">
-      <summary>Filters</summary>
-      <div class="filters-inner">
-        {#each Object.entries(typeToggles) as [type, on] (type)}
-          <label class="check">
-            <input
-              type="checkbox"
-              checked={on}
-              onclick={(e) => setType(type, e.currentTarget.checked)}
-            />
-            {type.replace(/-/g, ' ')}
-          </label>
+    <div class="toprow">
+      <div class="days" role="tablist" aria-label="Conference day">
+        {#each days as day, i (day)}
+          <button
+            role="tab"
+            aria-selected={selectedDay === day}
+            class="daytab"
+            class:active={selectedDay === day}
+            onclick={() => {
+              selectedDay = day;
+              selectedRoom = '';
+            }}
+          >
+            {t('schedule.day', { n: i + 1 })} <small>{dayLabel(day)}</small>
+          </button>
         {/each}
-        <label class="check">
-          <input type="checkbox" bind:checked={devroomsOnly} />
-          Devrooms only
-        </label>
-        <label class="check">
-          <input type="checkbox" bind:checked={bookmarkedOnly} />
-          Ranked / bookmarked
+      </div>
+
+      <details class="filters">
+        <summary>{t('schedule.filters')}</summary>
+        <div class="filters-inner">
+          {#each Object.entries(typeToggles) as [type, on] (type)}
+            <label class="check">
+              <input
+                type="checkbox"
+                checked={on}
+                onclick={(e) => setType(type, e.currentTarget.checked)}
+              />
+              {type.replace(/-/g, ' ')}
+            </label>
+          {/each}
+          <label class="check">
+            <input type="checkbox" bind:checked={devroomsOnly} />
+            Devrooms only
+          </label>
+          <label class="check">
+            <input type="checkbox" bind:checked={bookmarkedOnly} />
+            Ranked / bookmarked
+          </label>
+          {#if view === 'list'}
+            <div class="room-filters" role="group" aria-label="Filter by room">
+              <button
+                class:active={!selectedRoom}
+                aria-pressed={!selectedRoom}
+                onclick={() => (selectedRoom = '')}>{t('schedule.allRooms')}</button
+              >
+              {#each rooms as room (room.id)}
+                <button
+                  class:active={selectedRoom === room.id}
+                  aria-pressed={selectedRoom === room.id}
+                  onclick={() => (selectedRoom = room.id)}>{room.name}</button
+                >
+              {/each}
+            </div>
+          {/if}
+          <button class="calendar-link" onclick={exportEventCalendar}>Export full calendar</button>
+        </div>
+      </details>
+    </div>
+
+    {#if view === 'list'}
+      <div class="row">
+        {#if hasPlan}
+          <div class="scope" role="group" aria-label="Show">
+            <button aria-pressed={planOnly} onclick={() => (planChoice = true)}
+              >{t('now.yourPlan')}</button
+            >
+            <button aria-pressed={!planOnly} onclick={() => (planChoice = false)}
+              >{t('schedule.everything')}</button
+            >
+          </div>
+        {/if}
+        <label class="search">
+          <span class="sr-only">Search sessions</span>
+          <input type="search" placeholder={t('schedule.search')} bind:value={query} />
         </label>
       </div>
-    </details>
+    {/if}
   </div>
 
-  <p class="muted small" role="status">
-    {filtered.length} session{filtered.length === 1 ? '' : 's'}
-  </p>
+  {#if view === 'list'}
+    <p class="sr-only" role="status">
+      {filtered.length === 1
+        ? t('schedule.session')
+        : t('schedule.sessions', { n: filtered.length })}
+    </p>
+  {/if}
 
   {#if filtered.length === 0}<p>No sessions match these filters.</p>{/if}
+  {#if planOnly}
+    <p class="muted small scope-note">
+      Showing your plan for this day.
+      <button class="linkish" onclick={() => (planChoice = false)}>Show everything</button>
+    </p>
+  {/if}
   {#if view === 'list'}
     <div class="list">
       {#each groupByStart(filtered) as group (group.start)}
-        <div class="group">
+        {@const past =
+          isToday && group.activities.every((a) => a.end && Date.parse(a.end) <= nowMs)}
+        <div class="group" class:past data-past={past}>
           <div class="time">
             {#if group.activities[0]?.start}
               <span class="h">{formatTime(group.start)}</span>
@@ -240,7 +295,13 @@
       {/each}
     </div>
   {:else}
-    <TimelineGrid activities={filtered} {plannedIds} {bundle} day={selectedDay ?? ''} />
+    <TimelineGrid
+      activities={gridActivities}
+      {plannedIds}
+      {bundle}
+      day={selectedDay ?? ''}
+      now={isToday ? clock.now() : undefined}
+    />
   {/if}
 </EventGate>
 
@@ -276,21 +337,7 @@
   .pagehead h1 {
     margin: 0;
   }
-  .header-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: end;
-    align-items: center;
-    gap: 0.6rem;
-  }
-  .rank-link {
-    color: var(--event-primary-dark);
-    font-family: 'Space Mono', ui-monospace, monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-decoration: none;
-    white-space: nowrap;
-  }
+
   .muted {
     color: var(--text-muted);
   }
@@ -310,8 +357,18 @@
   .controls {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin: 0.8rem 0;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+  }
+  /* Days and Filters share one row, so the grid starts high on a phone. */
+  .toprow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .toprow .filters[open] {
+    flex-basis: 100%;
   }
   .days {
     display: flex;
@@ -321,8 +378,9 @@
   .daytab {
     border: 1px solid var(--line);
     background: var(--surface);
-    border-radius: var(--radius);
-    padding: 0.45rem 0.9rem;
+    border-radius: 999px;
+    min-height: 2.5rem;
+    padding: 0.3rem 0.8rem;
     font-size: 0.85rem;
     font-weight: 600;
     cursor: pointer;
@@ -346,6 +404,45 @@
   }
   .search {
     flex: 1;
+    min-width: 0;
+  }
+  .scope {
+    display: flex;
+    flex-shrink: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .scope button {
+    border: 0;
+    background: var(--surface);
+    color: var(--text);
+    min-height: 2.5rem;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .scope button[aria-pressed='true'] {
+    background: var(--mint-soft);
+    color: var(--mint-dark);
+  }
+  .scope-note {
+    margin: 0 0 0.5rem;
+  }
+  .linkish {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: var(--mint-dark);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+  }
+  .room-filters {
+    flex-basis: 100%;
+    flex-wrap: wrap;
   }
   .search input {
     width: 100%;
@@ -354,23 +451,7 @@
     border-radius: 10px;
     font-size: 0.95rem;
   }
-  .seg {
-    display: flex;
-    border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-  .seg button {
-    border: none;
-    background: var(--surface);
-    padding: 0.55rem 0.8rem;
-    cursor: pointer;
-    font-size: 0.85rem;
-  }
-  .seg button.active {
-    background: var(--event-primary-dark);
-    color: var(--on-strong);
-  }
+
   .filters summary {
     cursor: pointer;
     color: var(--text-muted);
@@ -390,6 +471,8 @@
     text-transform: capitalize;
   }
   .group {
+    /* Clear of the sticky app header and next-up banner when scrolled to. */
+    scroll-margin-top: 9rem;
     display: grid;
     grid-template-columns: 5rem 1fr;
     gap: 0.75rem;
@@ -405,13 +488,6 @@
     .room-filters,
     .filters {
       grid-column: 1 / -1;
-    }
-    /* Sessions that start together sit beside each other, one per room. */
-    .items {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
-      gap: 0 1rem;
-      align-items: start;
     }
   }
   .time {

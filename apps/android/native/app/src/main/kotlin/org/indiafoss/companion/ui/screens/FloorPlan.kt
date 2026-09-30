@@ -34,7 +34,7 @@ import kotlinx.serialization.json.Json
 
 /** The floor plans the web map draws (`venue-floors.ts`), exported to `floors.json`. */
 @Serializable
-data class FloorRoom(val id: String, val name: String, val key: String? = null, val cap: Int? = null, val cx: Double, val cy: Double, val d: String) {
+data class FloorRoom(val id: String, val name: String, val key: String? = null, val cap: Int? = null, val cx: Double, val cy: Double, val d: String, val c: String? = null) {
     fun programmeLocationId(bundle: EventBundle?): String =
         if (bundle?.location(id) != null) id else key?.takeIf { bundle?.location(it) != null } ?: id
 }
@@ -44,6 +44,15 @@ data class FloorWall(val d: String, val s: String, val w: Double)
 
 @Serializable
 data class FloorStairs(val d: String)
+
+/**
+ * The artwork's own furniture drawn back over the rooms: number badges,
+ * amenity icons, baked labels and route arrows. `f` is a hex fill, `"none"`
+ * for stroke only, or `"text"` for the theme ink (baked labels stay legible
+ * in dark mode).
+ */
+@Serializable
+data class FloorMark(val d: String, val f: String, val s: String? = null, val w: Double? = null)
 
 @Serializable
 data class Floor(
@@ -56,6 +65,7 @@ data class Floor(
     val podiums: List<String> = emptyList(),
     val stairs: List<FloorStairs> = emptyList(),
     val walls: List<FloorWall> = emptyList(),
+    val marks: List<FloorMark> = emptyList(),
 ) {
     /** A floor room for a bundle location: by id, or by the 2025 location standing in for it. */
     fun roomFor(locationId: String): FloorRoom? = rooms.firstOrNull { it.id == locationId || it.key == locationId }
@@ -76,6 +86,26 @@ object FloorPlans {
 data class RoomState(val live: String? = null, val next: Boolean = false, val title: String? = null, val name: String? = null)
 
 /**
+ * An artwork paint to a Compose color: hex fills as-is, `"none"` draws
+ * nothing, `"text"` follows the theme ink. Unknown values are null so a
+ * future export cannot crash the map.
+ */
+internal fun artworkColor(value: String, scheme: androidx.compose.material3.ColorScheme): androidx.compose.ui.graphics.Color? =
+    when (value.lowercase()) {
+        "none" -> null
+        "text" -> scheme.onSurface
+        else -> runCatching {
+            require(value.length == 7 && value[0] == '#')
+            val v = value.substring(1).toLong(16)
+            androidx.compose.ui.graphics.Color(
+                red = ((v shr 16) and 0xFF) / 255f,
+                green = ((v shr 8) and 0xFF) / 255f,
+                blue = (v and 0xFF) / 255f,
+            )
+        }.getOrNull()
+    }
+
+/**
  * One floor as vectors, pinch-to-zoom and drag, rooms lit while sessions
  * run in them and labelled with the minutes left, the destination outlined.
  * Tapping a room reports it.
@@ -90,6 +120,7 @@ fun FloorPlanView(floor: Floor, states: Map<String, RoomState>, modifier: Modifi
             podiums = floor.podiums.map(::parse),
             stairs = floor.stairs.map { parse(it.d) },
             walls = floor.walls.map { it to parse(it.d) },
+            marks = floor.marks.map { it to parse(it.d) },
         )
     }
     val (vx, vy, vw, vh) = remember(floor) { floor.viewBox.split(" ").map { it.toFloat() } }
@@ -136,7 +167,9 @@ fun FloorPlanView(floor: Floor, states: Map<String, RoomState>, modifier: Modifi
             drawPath(paths.outline, scheme.outline, style = Stroke(width = hair * 2))
             for ((room, path) in paths.rooms) {
                 val state = states[room.id] ?: states[room.key ?: ""]
-                val fill = if (state?.live != null) scheme.primaryContainer else scheme.surfaceContainer
+                // The room keeps its legend colour; a running session lights it.
+                val fill = if (state?.live != null) scheme.primaryContainer
+                    else room.c?.let { artworkColor(it, scheme) } ?: scheme.surfaceContainer
                 drawPath(path, fill)
                 drawPath(path, if (state?.next == true) scheme.tertiary else scheme.outlineVariant, style = Stroke(width = if (state?.next == true) hair * 4 else hair))
             }
@@ -146,9 +179,16 @@ fun FloorPlanView(floor: Floor, states: Map<String, RoomState>, modifier: Modifi
                 val colour = when (wall.s.lowercase()) {
                     "#c0392b" -> scheme.error
                     "#7a3c00" -> scheme.tertiary
-                    else -> scheme.outline
+                    "#05ab48", "#2e8b45" -> scheme.primary
+                    else -> artworkColor(wall.s, scheme) ?: scheme.outline
                 }
                 drawPath(path, colour, style = Stroke(width = (wall.w.toFloat() * 2).coerceAtLeast(hair), cap = StrokeCap.Round))
+            }
+            for ((mark, path) in paths.marks) {
+                artworkColor(mark.f, scheme)?.let { drawPath(path, it) }
+                mark.s?.let { artworkColor(it, scheme) }?.let { colour ->
+                    drawPath(path, colour, style = Stroke(width = ((mark.w ?: 1.0).toFloat() * 2).coerceAtLeast(hair), cap = StrokeCap.Round))
+                }
             }
         }
         // Labels are drawn in screen space so they stay legible at any zoom.
@@ -181,6 +221,7 @@ private class FloorPaths(
     val podiums: List<Path>,
     val stairs: List<Path>,
     val walls: List<Pair<FloorWall, Path>>,
+    val marks: List<Pair<FloorMark, Path>>,
 )
 
 private fun parse(d: String): Path = runCatching { PathParser().parsePathString(d).toPath() }.getOrDefault(Path())

@@ -10,7 +10,7 @@
   import { eventState } from '$lib/event.svelte';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
-  import { activityDevroomColor } from '$lib/devroom-art';
+  import { activityDevroomColor, devroomArt } from '$lib/devroom-art';
 
   const activityId = $derived(page.params.id);
   const bundle = $derived(eventState.bundle!);
@@ -87,7 +87,9 @@
         <p>
           <strong>{location.name}</strong>
           {#if track && track.name !== location.name}
-            · {track.name}{/if}
+            ·
+            {#if devroomArt[track.id]}<a href={resolve(`/devroom/${track.id}`)}>{track.name}</a
+              >{:else}{track.name}{/if}{/if}
         </p>
       {/if}
     </section>

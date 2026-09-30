@@ -36,3 +36,17 @@ test('the top bar carries no Android download link', async ({ page }) => {
   // The download still has a home; it is just not in the chrome on every page.
   await expect(page.getByRole('region', { name: 'Get the Android Companion' })).toBeVisible();
 });
+
+test('one link adds the F-Droid repository with its fingerprint, and a QR code carries it', async ({
+  page,
+}) => {
+  await page.goto(appUrl('/settings'));
+  const section = page.getByRole('region', { name: 'Get the Android Companion' });
+  await expect(section.getByRole('link', { name: 'Add to F-Droid / Neo Store' })).toHaveAttribute(
+    'href',
+    'fdroidrepos://hanthor.github.io/indiafoss-android-repo/fdroid/repo?fingerprint=AD932C530715E9CAA39415F94E007002FB3DA0DD2583FF92DFC7F6DFE46CCCC2',
+  );
+  await expect(section).not.toContainText('once published');
+  await section.getByText('QR code', { exact: true }).click();
+  await expect(section.getByRole('img', { name: /F-Droid repository/ })).toBeVisible();
+});

@@ -2,13 +2,15 @@ import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
 
 const OSM_LINK = 'https://osmapp.org/way/1219285692#18.89/12.9431/77.5961';
+/** Before the event: Getting there leaves Now at 10:00 on day one, so pin the clock. */
+const BEFORE = `now=${encodeURIComponent('2026-09-24T12:00:00+05:30')}`;
 
 test('Getting there hands off to the organiser map and copies the address', async ({
   page,
   context,
 }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-  await page.goto(appUrl('/now?event=indiafoss-2026&setup=done'));
+  await page.goto(appUrl(`/now?event=indiafoss-2026&setup=done&${BEFORE}`));
   const card = page.getByRole('region', { name: 'Getting there' }).first();
   await expect(card).toContainText('NIMHANS Convention Centre');
   await expect(card).toContainText('Hosur Road, Bengaluru');
@@ -43,7 +45,7 @@ test('arrival details come from the cached bundle and survive going offline', as
   });
 
   await context.setOffline(true);
-  await page.goto(appUrl('/now'));
+  await page.goto(appUrl(`/now?${BEFORE}`));
   const card = page.getByRole('region', { name: 'Getting there' }).first();
   await expect(card).toContainText('NIMHANS Convention Centre');
   await expect(card.getByRole('link', { name: 'Open in OpenStreetMap' })).toHaveAttribute(

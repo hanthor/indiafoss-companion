@@ -2,13 +2,7 @@ import type { ContactRecord } from '@indiafoss/storage';
 import { CARD_FRESH_MINUTES, cardFreshnessOf } from '@indiafoss/model';
 import type { CardFreshness } from '@indiafoss/model';
 import type { AccountClaimTrust } from '@indiafoss/model/contracts';
-import {
-  classifyMeshIdentity,
-  hasRetainedIdentity,
-  matrixUriFor,
-  neutrinoMatrixId,
-  shortFingerprint,
-} from '@indiafoss/model';
+import { hasRetainedIdentity, matrixUriFor, shortFingerprint } from '@indiafoss/model';
 import { accountTrustOf } from './mesh-link';
 import { bindingTrustOf } from './binding';
 import type { BindingTrust } from './binding';
@@ -61,7 +55,7 @@ export type InPersonTrust =
 /** `verified` is reserved for cross-signing evidence; nothing produces it yet (#188). */
 export type ChatTrust = 'verified' | 'not-verified';
 
-export type ChatRouteKind = 'mesh' | 'matrix';
+export type ChatRouteKind = 'matrix';
 
 export interface ChatRoute {
   kind: ChatRouteKind;
@@ -89,45 +83,11 @@ export interface ContactTrust {
 
 /** No client can be detected from a web page; say so rather than promise delivery. */
 export const NO_ROUTE_LABEL = 'No known chat route';
-export const MESH_ROUTE_CAVEAT =
-  'Opens IndiaFOSS Chat if it is installed and the mesh is up. This app cannot tell whether it is.';
 export const MATRIX_ROUTE_CAVEAT =
-  'Opens whatever Matrix app is installed; this app cannot tell whether one is. It needs an internet Matrix account in that app: a mesh-only IndiaFOSS Chat cannot reach this address.';
+  'Opens whatever Matrix app is installed; this app cannot tell whether one is. It needs an internet Matrix account in that app.';
 
-/** IndiaFOSS Chat's Android package, the only app that answers a mesh address. */
-export const CHAT_PACKAGE = 'org.indiafoss.chat';
-
-/** Android Chrome and its WebView honour `intent://` links; nothing else does. */
-export function isAndroidChrome(userAgent: string): boolean {
-  return /Android/.test(userAgent) && /Chrome\//.test(userAgent) && !/Firefox/.test(userAgent);
-}
-
-/**
- * On Android Chrome a `matrix:` link to an app that is not installed is a
- * dead tap: nothing opens and nothing says why. The `intent://` form names
- * the app and a page to fall back to, so a missing Chat lands the attendee
- * on the download card instead of nowhere. Elsewhere the `matrix:` URI is
- * returned unchanged.
- */
-export function intentHrefFor(matrixUri: string, fallbackUrl: string, userAgent: string): string {
-  if (!isAndroidChrome(userAgent) || !matrixUri.startsWith('matrix:')) return matrixUri;
-  const body = matrixUri.slice('matrix:'.length);
-  return `intent://${body}#Intent;scheme=matrix;package=${CHAT_PACKAGE};S.browser_fallback_url=${encodeURIComponent(fallbackUrl)};end`;
-}
-
-export function chatRoutesFor(
-  contact: Pick<ContactRecord, 'matrixId' | 'neutrinoServerName'>,
-): ChatRoute[] {
+export function chatRoutesFor(contact: Pick<ContactRecord, 'matrixId'>): ChatRoute[] {
   const routes: ChatRoute[] = [];
-  // Only a mesh identity this build recognises becomes an address (#160); the
-  // envelope never promotes another shape, and this guard keeps a hand-edited
-  // record from slipping past it.
-  const mesh = classifyMeshIdentity(contact.neutrinoServerName);
-  if (mesh?.kind === 'node-id') {
-    const href = matrixUriFor(neutrinoMatrixId(mesh.nodeId));
-    if (href)
-      routes.push({ kind: 'mesh', label: 'Message on mesh', href, caveat: MESH_ROUTE_CAVEAT });
-  }
   const matrixId = contact.matrixId?.trim();
   if (matrixId) {
     const href = matrixUriFor(matrixId);

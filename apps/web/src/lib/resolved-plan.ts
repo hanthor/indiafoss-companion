@@ -2,14 +2,22 @@ import type { EventBundle } from '@indiafoss/model';
 import { computeNowState, getEventDays } from '@indiafoss/schedule';
 import type { EditedPlan } from '@indiafoss/solver';
 
+/** Building a formatter costs far more than using one, and Now asks every second. */
+const dayFormats = new Map<string, Intl.DateTimeFormat>();
+
 /** Calendar date at the venue, independent of the phone's time zone. */
 export function eventDay(now: string, timezone: string): string {
-  const parts = new Intl.DateTimeFormat('en', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(new Date(now));
+  let format = dayFormats.get(timezone);
+  if (!format) {
+    format = new Intl.DateTimeFormat('en', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    dayFormats.set(timezone, format);
+  }
+  const parts = format.formatToParts(new Date(now));
   const value = (type: string) => parts.find((part) => part.type === type)!.value;
   return `${value('year')}-${value('month')}-${value('day')}`;
 }

@@ -35,6 +35,32 @@ async function postJson<T>(
   return envelope.message;
 }
 
+/** Proposal pages get a few attempts: one transient blip must not fail the whole import. */
+const DETAIL_ATTEMPTS = 3;
+const DETAIL_RETRY_DELAYS_MS = [500, 1500];
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchDetailPage(
+  fetchImpl: FetchLike,
+  sourceUrl: string,
+  id: string,
+): Promise<FosuProposalDetail | null> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const response = await fetchImpl(sourceUrl, { signal: AbortSignal.timeout(20_000) });
+      if (response.ok) return parseProposalDetail(await response.text(), id, sourceUrl);
+    } catch {
+      // Detail enrichment is optional; the schedule remains usable if one
+      // public proposal page is unavailable or changes shape.
+    }
+    if (attempt + 1 >= DETAIL_ATTEMPTS) return null;
+    await sleep(DETAIL_RETRY_DELAYS_MS[attempt] ?? 1500);
+  }
+}
+
 async function fetchProposalDetails(
   fetchImpl: FetchLike,
   baseUrl: string,
@@ -62,15 +88,7 @@ async function fetchProposalDetails(
         const proposal = proposalById.get(id);
         if (!proposal?.route) return null;
         const sourceUrl = new URL(proposal.route.replace(/^\//, ''), `${baseUrl}/`).toString();
-        try {
-          const response = await fetchImpl(sourceUrl, { signal: AbortSignal.timeout(20_000) });
-          if (!response.ok) return null;
-          return parseProposalDetail(await response.text(), id, sourceUrl);
-        } catch {
-          // Detail enrichment is optional; the schedule remains usable if one
-          // public proposal page is unavailable or changes shape.
-          return null;
-        }
+        return fetchDetailPage(fetchImpl, sourceUrl, id);
       }),
     );
     for (const detail of results) {

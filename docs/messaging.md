@@ -1,5 +1,12 @@
 # Optional Matrix messaging
 
+> **IndiaFOSS Chat retired 2026-09-24.** The venue Wi-Fi is good enough for
+> ordinary Matrix clients, so the separate mesh app is no longer used or
+> linked. The companion apps offer only "Open in a Matrix app" for a contact
+> and list only the rooms reachable over the internet; mesh-only rooms and the
+> mesh id on contact cards are gone from the UI. Everything below about the
+> mesh and the dedicated chat app is historical.
+>
 > **Superseded 2026-09-04** ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)):
 > chat is no longer embedded in the web PWA or the native Android app at all.
 > It lives entirely in the dedicated `hanthor/indiafoss-chat-android` app; the

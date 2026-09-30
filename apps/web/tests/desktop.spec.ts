@@ -51,7 +51,7 @@ test.describe('desktop', () => {
     await expect(page.getByTestId('nav-tabbar')).toBeHidden();
     // Only one primary navigation is in the accessibility tree.
     await expect(page.getByRole('navigation', { name: 'Primary' })).toHaveCount(1);
-    await expect(rail.getByRole('link')).toHaveCount(5);
+    await expect(rail.getByRole('link')).toHaveCount(4);
     await expect(rail.getByRole('link', { name: 'Schedule' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -59,15 +59,19 @@ test.describe('desktop', () => {
     const railBox = await box(rail);
     expect(railBox.x).toBeLessThan(40);
     expect(railBox.width).toBeLessThan(320);
-    expect(railBox.height).toBeGreaterThan(railBox.width);
+    // A rail, not a bar: its links stack top to bottom.
+    const firstLink = await box(rail.getByRole('link').nth(0));
+    const secondLink = await box(rail.getByRole('link').nth(1));
+    expect(secondLink.y).toBeGreaterThan(firstLink.y + firstLink.height - 1);
 
-    // The list stays the default (its cards are what search narrows); the
-    // room grid, once chosen, shows at least two room columns side by side.
-    await expect(page.getByRole('button', { name: 'List' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
+    // The agenda list is this page's default (its cards are what search
+    // narrows); the Rooms view shows at least two room columns side by side.
+    const views = page.getByRole('navigation', { name: 'Schedule view' });
+    await expect(views.getByRole('link', { name: 'Agenda' })).toHaveAttribute(
+      'aria-current',
+      'page',
     );
-    await page.getByRole('button', { name: 'Room grid' }).click();
+    await views.getByRole('link', { name: 'Rooms' }).click();
     const grid = page.getByRole('region', { name: 'Schedule by room and time' });
     await expect(grid).toBeVisible();
     const headings = grid.getByRole('heading', { level: 3 });
@@ -100,13 +104,14 @@ test.describe('desktop', () => {
     expect(firstMain === -1 || firstRail < firstMain, order.join(' → ')).toBe(true);
   });
 
-  test('Now and Plan use two columns', async ({ page }) => {
+  test('Now gives the grid the full width, and Plan uses two columns', async ({ page }) => {
+    // The grid is the page (#685): a 25-minute talk spans it, so it takes the
+    // whole main column rather than sharing it with a plan card.
     await settle(page, '/now');
-    const plan = page.getByRole('region', { name: 'Your plan now' });
     const live = page.getByRole('region', { name: 'Happening now' });
-    const planBox = await box(plan);
     const liveBox = await box(live);
-    expect(liveBox.x).toBeGreaterThan(planBox.x + planBox.width - 1);
+    const mainBox = await box(page.locator('main'));
+    expect(liveBox.width).toBeGreaterThan(mainBox.width * 0.9);
     await expectNoHorizontalScroll(page);
 
     await settle(page, '/plan');
@@ -145,7 +150,10 @@ test.describe('laptop', () => {
     await settle(page, '/schedule');
     await expect(page.getByTestId('nav-rail')).toBeVisible();
     await expect(page.getByTestId('nav-tabbar')).toBeHidden();
-    await page.getByRole('button', { name: 'Room grid' }).click();
+    await page
+      .getByRole('navigation', { name: 'Schedule view' })
+      .getByRole('link', { name: 'Rooms' })
+      .click();
     await expect(page.getByRole('region', { name: 'Schedule by room and time' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   });
@@ -163,14 +171,16 @@ test.describe('phone', () => {
     const tabBox = await box(tabbar);
     expect(tabBox.y + tabBox.height).toBeGreaterThan(PHONE.height - 2);
     expect(tabBox.width).toBeGreaterThan(PHONE.width - 2);
-    await expect(page.getByRole('button', { name: 'List' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    await expect(
+      page.getByRole('navigation', { name: 'Schedule view' }).getByRole('link', { name: 'Agenda' }),
+    ).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('region', { name: 'Schedule by room and time' })).toHaveCount(0);
     await expectNoHorizontalScroll(page);
     // The grid is still a tap away.
-    await page.getByRole('button', { name: 'Room grid' }).click();
+    await page
+      .getByRole('navigation', { name: 'Schedule view' })
+      .getByRole('link', { name: 'Rooms' })
+      .click();
     await expect(page.getByRole('region', { name: 'Schedule by room and time' })).toBeVisible();
     await expectNoHorizontalScroll(page);
   });

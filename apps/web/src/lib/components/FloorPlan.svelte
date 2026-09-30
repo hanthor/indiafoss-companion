@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { base } from '$app/paths';
   import type { Activity } from '@indiafoss/model';
   import { activityProgress, formatTime, parseInstant } from '@indiafoss/schedule';
   import { clockFromParams, isFixedClock } from '$lib/clock';
@@ -14,6 +15,7 @@
   import { floorOfRoom, locationsForRoom, roomForLocation } from '$lib/venue-rooms';
   import { computeNextUp } from '$lib/nextup';
   import { devroomTrackNames, labelHeadingFor } from '$lib/devrooms';
+  import { layoutLabels, type Rect } from '$lib/label-layout';
 
   /** Destination location id (`/map/to/[location]`): highlighted and opened in the sheet. */
   let { initialTo = '' }: { initialTo?: string } = $props();
@@ -377,13 +379,48 @@
     };
   }
 
+  // ---- label layout --------------------------------------------------------
+  // Every label is measured twice off screen, with its live talk and as the
+  // name alone, so the layout can pick without a render loop.
+
+  type Size = { w: number; h: number };
+  let fullSizes = $state<Record<string, Size>>({});
+  let pinSizes = $state<Record<string, Size>>({});
+  let chrome = $state<Rect[]>([]);
+  let chromeEls: (HTMLElement | undefined)[] = $state([]);
+
+  $effect(() => {
+    void boxW;
+    void boxH;
+    void otherFloorHint;
+    chrome = chromeEls
+      .filter((el): el is HTMLElement => !!el && el.isConnected)
+      .map((el) => ({ x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }));
+  });
+
+  function priorityOf(id: string): number {
+    if (id === selected) return 4;
+    if (id === nextRoom || id === toRoom) return 3;
+    return (liveByRoom.get(id)?.length ?? 0) > 0 ? 2 : 1;
+  }
+
+  const placements = $derived.by(() => {
+    const inputs = [];
+    for (const room of plan.rooms) {
+      const full = fullSizes[room.id];
+      const pin = pinSizes[room.id];
+      const { x, y } = labelPoint(room);
+      // Labels that leave the plan are hidden rather than left dangling off-screen.
+      if (!full || !pin || x < -40 || x > boxW + 40 || y < -20 || y > boxH + 20) continue;
+      inputs.push({ id: room.id, x, y, full, pin, priority: priorityOf(room.id) });
+    }
+    return layoutLabels(inputs, chrome, { w: boxW, h: boxH });
+  });
+
   function labelStyle(room: FloorRoom): string {
-    const { x, y } = labelPoint(room);
-    // Labels that leave the plan are hidden rather than left dangling off-screen.
-    if (x < -40 || x > boxW + 40 || y < -20 || y > boxH + 20) return 'display:none';
-    const cx = Math.min(boxW - 44, Math.max(44, x));
-    const cy = Math.min(boxH - 20, Math.max(20, y));
-    return `left:${cx.toFixed(1)}px;top:${cy.toFixed(1)}px`;
+    const p = placements.get(room.id);
+    if (!p) return 'display:none';
+    return `left:${p.x.toFixed(1)}px;top:${p.y.toFixed(1)}px`;
   }
 
   /** Height the room sheet takes at the bottom, so a selected room is panned above it. */
@@ -416,13 +453,6 @@
   }
   function truncate(text: string, max = 22): string {
     return text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text;
-  }
-
-  const isDestination = $derived(selectedRoom !== null && toRoom === selectedRoom.id);
-
-  function toggleDestination() {
-    if (!selectedRoom) return;
-    chooseTo(isDestination ? '' : selectedRoom.id);
   }
 
   /** The devroom whose programme is running in a room right now, if any. */
@@ -508,6 +538,7 @@
           class="room {roomState(room.id)}"
           class:selected={selected === room.id}
           d={room.d}
+          fill={room.c ?? 'none'}
           onclick={() => select(room.id)}
         />
       {/each}
@@ -520,17 +551,79 @@
       {#each plan.walls as w, i (i)}
         <path class="wall" d={w.d} style="stroke:{w.s};stroke-width:{w.w}" />
       {/each}
+      {#each plan.marks as m, i (i)}
+        <!-- The artwork's own furniture: number badges, amenity icons, baked
+             labels and route arrows, drawn back over the rooms. -->
+        <path
+          class="mark"
+          class:text={m.f === 'text'}
+          class:textstroke={m.s === 'text'}
+          d={m.d}
+          fill={m.f === 'text' ? 'none' : m.f}
+          stroke={m.s === 'text' ? 'none' : (m.s ?? 'none')}
+          stroke-width={m.w ?? 1}
+        />
+      {/each}
     </svg>
+
+    {#snippet labelBody(room: FloorRoom, pin: boolean)}
+      {@const first = (liveByRoom.get(room.id) ?? [])[0]}
+      {@const heading = labelHeading(room)}
+      <span class="name">{roomTitle(room)}</span>
+      {#if !pin}
+        {#if room.id === nextRoom}<span class="talk">Next in your plan</span
+          >{:else if room.id === toRoom}<span class="talk">Destination</span>{/if}
+        {#if heading.devroom}<span class="talk devroom">{heading.text}</span>{/if}
+        {#if first}
+          <!-- The talk itself, so the map answers "what is on in there" without a tap (#117). -->
+          {#if !heading.devroom || zoomed}<span class="talk"
+              >{truncate(first.title, zoomed ? 34 : 26)}</span
+            >{/if}
+          <span class="left">{minutesLeft(first)} MIN LEFT</span>
+        {/if}
+      {/if}
+    {/snippet}
+
+    <div class="labels measure" aria-hidden="true" inert>
+      {#each plan.rooms as room (room.id)}
+        <button
+          class="roomlabel {roomState(room.id)}"
+          class:compact={!zoomed}
+          bind:offsetWidth={
+            () => fullSizes[room.id]?.w ?? 0,
+            (w) => (fullSizes[room.id] = { w, h: fullSizes[room.id]?.h ?? 0 })
+          }
+          bind:offsetHeight={
+            () => fullSizes[room.id]?.h ?? 0,
+            (h) => (fullSizes[room.id] = { w: fullSizes[room.id]?.w ?? 0, h })
+          }>{@render labelBody(room, false)}</button
+        >
+        <button
+          class="roomlabel pin {roomState(room.id)}"
+          class:compact={!zoomed}
+          bind:offsetWidth={
+            () => pinSizes[room.id]?.w ?? 0,
+            (w) => (pinSizes[room.id] = { w, h: pinSizes[room.id]?.h ?? 0 })
+          }
+          bind:offsetHeight={
+            () => pinSizes[room.id]?.h ?? 0,
+            (h) => (pinSizes[room.id] = { w: pinSizes[room.id]?.w ?? 0, h })
+          }>{@render labelBody(room, true)}</button
+        >
+      {/each}
+    </div>
 
     <div class="labels">
       {#each plan.rooms as room (room.id)}
         {@const live = liveByRoom.get(room.id) ?? []}
         {@const first = live[0]}
         {@const heading = labelHeading(room)}
+        {@const pin = placements.get(room.id)?.mode === 'pin'}
         <button
           class="roomlabel {roomState(room.id)}"
           data-planned-destination={room.id === nextRoom}
           class:compact={!zoomed}
+          class:pin
           class:selected={selected === room.id}
           style={labelStyle(room)}
           aria-label="{roomTitle(room)}{first
@@ -539,22 +632,12 @@
           aria-pressed={selected === room.id}
           onclick={() => select(room.id)}
         >
-          <span class="name">{roomTitle(room)}</span>
-          {#if room.id === nextRoom}<span class="talk">Next in your plan</span
-            >{:else if room.id === toRoom}<span class="talk">Destination</span>{/if}
-          {#if heading.devroom}<span class="talk devroom">{heading.text}</span>{/if}
-          {#if first}
-            <!-- The talk itself, so the map answers "what is on in there" without a tap (#117). -->
-            {#if !heading.devroom || zoomed}<span class="talk"
-                >{truncate(first.title, zoomed ? 34 : 26)}</span
-              >{/if}
-            <span class="left">{minutesLeft(first)} MIN LEFT</span>
-          {/if}
+          {@render labelBody(room, pin)}
         </button>
       {/each}
     </div>
 
-    <div class="chips" role="group" aria-label="Floor">
+    <div class="chips" bind:this={chromeEls[0]} role="group" aria-label="Floor">
       {#each FLOOR_ORDER as id (id)}
         <button
           class="chip"
@@ -568,16 +651,16 @@
       {/each}
     </div>
 
-    <div class="clock" aria-live="off">
+    <div class="clock" bind:this={chromeEls[1]} aria-live="off">
       <span>{formatTime(now)}</span>
       <span class="livecount">{liveCount} LIVE</span>
     </div>
 
     {#if otherFloorHint}
-      <p class="hint">{otherFloorHint}</p>
+      <p class="hint" bind:this={chromeEls[2]}>{otherFloorHint}</p>
     {/if}
 
-    <div class="zoom" role="group" aria-label="Zoom">
+    <div class="zoom" bind:this={chromeEls[3]} role="group" aria-label="Zoom">
       <button aria-label="Zoom in" onclick={() => zoomStep(1.5)}>+</button>
       <button aria-label="Zoom out" onclick={() => zoomStep(1 / 1.5)} disabled={view.scale <= 1}
         >−</button
@@ -585,12 +668,24 @@
       <button aria-label="Reset view" onclick={resetView} disabled={view.scale <= 1}>⌖</button>
     </div>
 
-    <ul class="legend" aria-label="Legend">
+    <ul class="legend" bind:this={chromeEls[4]} aria-label="Legend">
       <li><span class="sw live"></span>LIVE</li>
       <li><span class="sw next"></span>TO</li>
-      <li><span class="sw sw-you"></span>YOU</li>
     </ul>
   </div>
+
+  {#if venueKey === 'indiafoss-2026'}
+    <!-- The organiser's map key: which number is which room. Baked artwork,
+         so it rides on a white card in either colour scheme. -->
+    <details class="key">
+      <summary>Map key: room numbers</summary>
+      <img
+        src="{base}/venues/indiafoss-2026/map-legend.svg"
+        alt="Map key. Ground floor: 1 Hall 1 (General Track), 2 Hall 2 (General Track), 3 Hall 3 (Devroom Track), 4 Sponsor booths, 5 Hardware Showcase, Help Desk. First floor: 6 Room 1 (Devroom Track), 7 Room 2 (BOF sessions), 8 Room 3 (BOF sessions), 9 Community Showcase, Silent Room. Icons: Food through the main exit, Drinking Water, Washrooms, Lift."
+        loading="lazy"
+      />
+    </details>
+  {/if}
 
   {#if selectedRoom}
     {@const live = liveByRoom.get(selectedRoom.id) ?? []}
@@ -610,7 +705,7 @@
             {/if}
             {FLOORS[floorOfRoom(selectedRoom.id) ?? floor].label} floor{#if selectedRoom.cap}
               · {selectedRoom.cap} seats{/if}
-            {#if isDestination}
+            {#if toRoom === selectedRoom.id}
               · <span class="tag">DESTINATION</span>{/if}
           </p>
           {#if devroomOf(selectedRoom)}
@@ -623,14 +718,6 @@
           onclick={() => select(selectedRoom.id)}>×</button
         >
       </header>
-
-      <div class="actions">
-        {#if primaryLocation(selectedRoom.id)}
-          <button class="here go" class:clear={isDestination} onclick={toggleDestination}>
-            {isDestination ? 'Clear destination' : 'Go here'}
-          </button>
-        {/if}
-      </div>
 
       {#each live as a (a.id)}
         <div class="block">
@@ -752,7 +839,8 @@
     stroke-linejoin: round;
   }
   .room {
-    fill: var(--surface);
+    /* The fill comes from the room's own legend colour (`fill` attribute);
+       state classes below override it, which beats a presentation attribute. */
     stroke: var(--line);
     stroke-width: 10;
     cursor: pointer;
@@ -767,7 +855,7 @@
     stroke: var(--amber);
   }
   .room.selected {
-    stroke: var(--ink);
+    stroke: var(--text);
     stroke-width: 28;
   }
   .podium {
@@ -782,9 +870,44 @@
     fill: none;
     stroke-linecap: round;
   }
+  /* The artwork's furniture keeps its own colours; only baked dark labels
+     follow the theme so they stay legible in dark mode. */
+  .mark {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mark.text {
+    fill: var(--text);
+  }
+  .mark.textstroke {
+    stroke: var(--text);
+  }
+  /* The organiser's pastels glare on a dark canvas: the building is lifted
+     off the background, its outline drawn light, and the room colours dimmed
+     so the live and destination rooms still lead. */
   @media (prefers-color-scheme: dark) {
     .wall {
       stroke: var(--text-faint) !important;
+    }
+    .outline {
+      stroke: var(--text-faint);
+    }
+    .fill {
+      fill: hsl(0 0% 14%);
+    }
+    .room:not(.live):not(.next),
+    .mark:not(.text):not(.textstroke) {
+      filter: brightness(0.62) saturate(0.7);
+    }
+    .room.live {
+      fill: color-mix(in srgb, var(--mint) 30%, transparent);
+    }
+    .room.next {
+      fill: color-mix(in srgb, var(--amber) 30%, transparent);
+    }
+    .labels .roomlabel.live {
+      background: color-mix(in srgb, var(--mint) 24%, var(--surface-raised));
+      color: var(--text);
     }
   }
 
@@ -800,7 +923,10 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 0.1rem;
+    /* Its own width wherever it sits, so it matches the copy the layout measured. */
+    width: max-content;
     min-width: 44px;
     min-height: 44px;
     padding: 0.3rem 0.5rem;
@@ -811,6 +937,20 @@
     box-shadow: var(--shadow-hard-sm);
     cursor: pointer;
     font: inherit;
+  }
+  /* The off-screen copies the layout measures. */
+  .labels.measure {
+    visibility: hidden;
+  }
+  .labels.measure .roomlabel {
+    left: 0;
+    top: 0;
+    transform: none;
+    pointer-events: none;
+  }
+  /* A label shrunk to its name to make way for a busier neighbour. */
+  .roomlabel.pin {
+    min-height: 28px;
   }
   .roomlabel.compact {
     min-height: 32px;
@@ -859,7 +999,7 @@
     color: var(--ink);
   }
   .roomlabel.selected {
-    outline: 2px solid var(--ink);
+    outline: 2px solid var(--text);
     outline-offset: 1px;
   }
   .roomlabel .talk {
@@ -916,10 +1056,15 @@
     text-transform: uppercase;
     cursor: pointer;
   }
+  /* The floor on show is the filled chip in either scheme; the other is an outline. */
+  .chip:not(.active) {
+    background: transparent;
+    color: var(--text-muted);
+  }
   .chip.active {
-    background: var(--ink);
-    color: var(--on-ink);
-    border-color: var(--ink);
+    background: var(--text);
+    color: var(--paper);
+    border-color: var(--text);
   }
   .dot {
     width: 0.5rem;
@@ -1024,9 +1169,30 @@
     background: var(--amber-soft);
     border: 1px solid var(--amber);
   }
-  .sw-you {
-    background: var(--mint);
-    border-radius: 999px;
+
+  /* The organiser's map key artwork: baked dark-on-light vectors, so it
+     always rides on a white card. */
+  .key {
+    border-top: 1px solid var(--line);
+    background: var(--surface-raised);
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+  .key summary {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .key img {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-top: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--art-plate);
   }
 
   .grabber {
@@ -1159,28 +1325,5 @@
     display: block;
     height: 100%;
     background: var(--mint);
-  }
-  .actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .here {
-    min-height: 44px;
-    padding: 0.5rem 1rem;
-    border: 1px solid var(--mint);
-    border-radius: var(--radius);
-    background: var(--mint);
-    color: var(--ink);
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .here.go {
-    background: var(--amber);
-    border-color: var(--amber);
-  }
-  .here.go.clear {
-    background: var(--surface);
-    border-color: var(--line);
   }
 </style>

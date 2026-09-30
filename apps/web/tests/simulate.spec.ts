@@ -58,7 +58,7 @@ test('the simulator fires every reminder tier and logs the banner', async ({ pag
   await expect(page.getByTestId('sim-time')).toContainText('Sat 20 · 09:4');
 
   // Now must switch from the initial wall clock to this simulated event day too.
-  await expect(page.getByRole('region', { name: 'Your plan now' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Happening now' })).toBeVisible();
   await expect(page.getByRole('heading', { name: "That's a wrap" })).toHaveCount(0);
 
   // The banner shows the must-attend session coming up.
@@ -100,6 +100,8 @@ test('a run survives navigation and a reload, and Settings can start one', async
   await page.goto(appUrl('/'));
   await expect(page.getByRole('heading', { name: /IndiaFOSS 2025/ })).toBeVisible();
   await page.goto(appUrl('/settings'));
+  // The simulator is a folded section at the foot of Settings.
+  await page.getByRole('heading', { name: 'Simulate the day' }).click();
   await page.getByRole('button', { name: 'Start simulation' }).click();
   await expect(page).toHaveURL(/\/now/);
   await expect(page.getByTestId('sim-strip')).toBeVisible();
@@ -175,7 +177,7 @@ test('every reminder names the session, the room and the walk, and opens it when
   // old before the first reminder can even be computed. At 300x the whole
   // 90-minute arming window is about eighteen real seconds wide, so a slow
   // first paint under CI load ate every alert and the test saw zero (#159).
-  await expect(page.getByRole('heading', { name: 'Now', level: 1 })).toBeVisible({
+  await expect(page.getByRole('heading', { name: 'Schedule', level: 1 })).toBeVisible({
     timeout: 30_000,
   });
   // Start the run held at a standstill, let the app catch up, then let the

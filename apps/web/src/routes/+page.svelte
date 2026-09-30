@@ -8,8 +8,18 @@
   import { devroomArt } from '$lib/devroom-art';
   import EventGate from '$lib/components/EventGate.svelte';
   import GettingThere from '$lib/components/GettingThere.svelte';
+  import PreConference from '$lib/components/PreConference.svelte';
+  import { PRE_CONFERENCE_ENDS } from '$lib/pre-conference';
+  import { page } from '$app/state';
+  import { clockFromParams } from '$lib/clock';
 
   const bundle = $derived(eventState.bundle);
+  // The app's clock, so the day simulator and ?now= agree with every other screen.
+  const nowMs = $derived(
+    Date.parse(
+      clockFromParams(page.url.searchParams.get('now'), page.url.searchParams.get('speed')).now(),
+    ),
+  );
 
   const dateLine = $derived.by(() => {
     if (!bundle) return '';
@@ -21,11 +31,11 @@
   /** Days until doors open (negative during/after the event). */
   const daysToGo = $derived.by(() => {
     if (!bundle) return null;
-    const ms = Date.parse(bundle.start) - Date.now();
+    const ms = Date.parse(bundle.start) - nowMs;
     return Math.ceil(ms / 86_400_000);
   });
   const during = $derived(
-    bundle ? Date.now() >= Date.parse(bundle.start) && Date.now() <= Date.parse(bundle.end) : false,
+    bundle ? nowMs >= Date.parse(bundle.start) && nowMs <= Date.parse(bundle.end) : false,
   );
 
   const counts = $derived({
@@ -116,7 +126,12 @@
     </a>
   </nav>
 
-  {#if bundle?.venue}
+  {#if bundle?.id === 'indiafoss-2026' && nowMs < Date.parse(PRE_CONFERENCE_ENDS)}
+    <PreConference />
+  {/if}
+
+  <!-- For arriving: the front page offers it until the conference starts. -->
+  {#if bundle?.venue && nowMs < Date.parse(bundle.start)}
     <GettingThere venue={bundle.venue} />
   {/if}
 
@@ -131,7 +146,7 @@
       </p>
       <div class="devroom-grid">
         {#each bundle.tracks.filter((track) => devroomArt[track.id]) as track (track.id)}
-          <a class="devroom-link" href={resolve(`/plan/rank?mode=rooms#devroom-${track.id}`)}>
+          <a class="devroom-link" href={resolve(`/devroom/${track.id}`)}>
             <DevroomBanner trackId={track.id} eventId={bundle.id} />
             <strong>{track.name}</strong>
           </a>

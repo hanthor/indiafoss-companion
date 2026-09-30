@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { aTalk } from './live-2026.js';
 import AxeBuilder from '@axe-core/playwright';
 import { appUrl } from './app-url.js';
 
@@ -11,7 +12,8 @@ import { appUrl } from './app-url.js';
 const CORE_SCREENS: [string, string][] = [
   ['welcome', '/'],
   ['home', '/?setup=done'],
-  ['schedule', '/schedule'],
+  // During the event, completed agenda groups remain readable and available.
+  ['schedule', '/schedule?now=2026-09-26T11%3A30%3A00%2B05%3A30'],
   ['explore', '/explore'],
   ['plan', '/plan'],
   ['ranking', '/plan/rank'],
@@ -22,7 +24,7 @@ const CORE_SCREENS: [string, string][] = [
   ['settings', '/settings'],
   ['map', '/map'],
   ['now', '/now?now=2026-09-26T10%3A20%3A00%2B05%3A30'],
-  ['activity', '/activity/act-28la68il6o'],
+  ['activity', `/activity/${aTalk().id}`],
   ['booths', '/explore/booths'],
 ];
 

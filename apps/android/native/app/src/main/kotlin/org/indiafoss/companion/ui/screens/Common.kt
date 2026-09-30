@@ -42,9 +42,10 @@ fun SessionCard(
     progress: Float? = null,
     onOpen: () -> Unit,
     onBookmark: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
             .clickable(onClick = onOpen),

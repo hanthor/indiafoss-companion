@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { appUrl } from './app-url.js';
+import { aTalk } from './live-2026.js';
 
 /**
  * Offline E2E gate (§52) — a release is not eligible if this fails:
@@ -60,8 +61,9 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await expect(page.getByRole('article').first()).toBeVisible();
 
   // 8. Open a session detail.
-  await page.goto(appUrl('/activity/act-28la68il6o'));
-  await expect(page.getByRole('heading', { name: /Minnow/ })).toBeVisible();
+  const talk = aTalk();
+  await page.goto(appUrl(`/activity/${talk.id}`));
+  await expect(page.getByRole('heading', { name: talk.title })).toBeVisible();
 
   // 9. Modify Elo ranking.
   await page.goto(appUrl('/plan/rank'));
@@ -79,10 +81,12 @@ test('offline gate: full attendee flow with network disabled', async ({ page, co
   await page.getByRole('button', { name: /^Room 2/ }).click();
   await expect(page.getByRole('heading', { name: 'Room 2' })).toBeVisible();
 
-  // 12. The Now screen still points at the next room from the cached schedule.
+  // 12. The Now grid draws from the cached schedule, and the next-up banner
+  // still opens the map on the next room.
   const during = '2026-09-26T10:20:00+05:30';
   await page.goto(appUrl(`/now?now=${encodeURIComponent(during)}`));
-  await expect(page.getByRole('link', { name: 'Show on map' }).first()).toBeVisible({
+  await expect(page.locator('[data-testid="now-grid"] .talk').first()).toBeVisible({
     timeout: 10_000,
   });
+  await expect(page.locator('a.leaveby')).toHaveAttribute('href', /\/map\/to\//);
 });

@@ -410,6 +410,10 @@ test('Settings keeps the active event revision and successful check after a fail
 }) => {
   await publish(page, 9999, await publishedBundle(request));
   await page.goto(appUrl('/settings?setup=done'));
+  // The revision lives under Settings' folded Details.
+  await page.getByText('Details', { exact: true }).evaluate((el) => {
+    (el.closest('details') as HTMLDetailsElement).open = true;
+  });
   await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
   const success = page.getByTestId('refresh-success');
   await expect(success).toContainText('Last successful check:');
@@ -418,6 +422,10 @@ test('Settings keeps the active event revision and successful check after a fail
   await page.reload();
   await expect(page.getByText(/Last check failed:/)).toBeVisible();
   await expect(success).toHaveText(checked);
+  // The revision lives under Settings' folded Details.
+  await page.getByText('Details', { exact: true }).evaluate((el) => {
+    (el.closest('details') as HTMLDetailsElement).open = true;
+  });
   await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
 });
 
@@ -585,6 +593,10 @@ test.describe('service-worker recovery', () => {
     await expect(banner).toBeVisible();
     await banner.getByRole('button', { name: 'Update', exact: true }).click();
     await expect(banner).toBeHidden();
+    // The revision lives under Settings' folded Details.
+    await page.getByText('Details', { exact: true }).evaluate((el) => {
+      (el.closest('details') as HTMLDetailsElement).open = true;
+    });
     await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
     expect(await readPersonal()).toEqual(before);
   });
@@ -617,6 +629,10 @@ for (const source of ['immutable asset', 'hashless fallback'] as const) {
     expect(await savedEvent(page)).toEqual(before);
     corrupt = false;
     await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+    // The revision lives under Settings' folded Details.
+    await page.getByText('Details', { exact: true }).evaluate((el) => {
+      (el.closest('details') as HTMLDetailsElement).open = true;
+    });
     await expect(page.getByText('You have revision 9999 stored on this device.')).toBeVisible();
     expect((await savedEvent(page)).bundle.name).toBe(next.name);
     await expect(page.getByText(/Last check failed:/)).toHaveCount(0);
@@ -824,7 +840,9 @@ test('an update that moves a booked talk agrees across detail, Now, plan and map
   // plan; during the talk the highlight has already moved on to the one after.
   const before = 'setup=done&now=2025-09-20T11%3A05%3A00%2B05%3A30';
   await page.goto(appUrl(`/map?${before}`));
-  const destination = page.locator('.roomlabel[data-planned-destination=true]');
+  const destination = page.locator(
+    '.labels:not(.measure) .roomlabel[data-planned-destination=true]',
+  );
   await expect(destination).toHaveCount(1);
   await expect(destination).toContainText('Audi 2');
 });

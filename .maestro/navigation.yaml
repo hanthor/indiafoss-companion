@@ -26,20 +26,21 @@ appId: org.indiafoss.companion.nativeapp
 
 - tapOn: '.*Skip setup.*'
 
+# The Schedule tab opens on its timeline; the view switch is its title.
 - extendedWaitUntil:
-    visible: 'Now'
+    visible: 'Timeline'
     timeout: 30000
 - takeScreenshot: 02-now
 
-- tapOn: 'Schedule'
+- tapOn: 'Agenda'
 - extendedWaitUntil:
     visible: 'Day 1'
     timeout: 30000
 - assertVisible: 'Day 2'
 - takeScreenshot: 03-schedule
 
-# The room grid is the same day drawn as time × room; the room chips stay.
-- tapOn: 'Room grid'
+# The Rooms view is the same day drawn as time × room; the room chips stay.
+- tapOn: 'Rooms'
 - extendedWaitUntil:
     visible: 'All rooms'
     timeout: 30000

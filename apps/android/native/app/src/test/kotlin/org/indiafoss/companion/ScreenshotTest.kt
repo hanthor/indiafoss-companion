@@ -1,5 +1,11 @@
 package org.indiafoss.companion
 
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.performCustomAccessibilityActionWithLabel
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import androidx.activity.ComponentActivity
@@ -16,6 +22,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pinch
+import androidx.compose.ui.geometry.Offset
 import org.junit.Assert.assertEquals
 import org.indiafoss.companion.ui.screens.ActivityScreen
 import androidx.test.core.app.ApplicationProvider
@@ -34,6 +44,7 @@ import org.indiafoss.companion.ui.screens.MapScreen
 import org.indiafoss.companion.ui.screens.NowScreen
 import org.indiafoss.companion.ui.screens.PlanScreen
 import org.indiafoss.companion.ui.screens.RankScreen
+import org.indiafoss.companion.ui.screens.ScheduleView
 import org.indiafoss.companion.ui.screens.ScheduleScreen
 import org.indiafoss.companion.ui.screens.SettingsScreen
 import org.indiafoss.companion.ui.screens.WelcomeScreen
@@ -119,6 +130,45 @@ class ScreenshotTest {
 
     @Test fun now() = shoot("now") { NowScreen(state(), {}, {}) {} }
 
+    /**
+     * Happening now is a horizontal time-grid: one row per room, time to the
+     * right, one card per talk. The grid region must be on the tab.
+     */
+    @Test fun nowGrid() {
+        shoot("now-grid") { NowScreen(state(), {}, {}) {} }
+        compose.onNodeWithContentDescription("Now by room and time").assertIsDisplayed()
+        compose.onNodeWithText("Happening now").assertIsDisplayed()
+        capture("now-grid")
+    }
+
+    /**
+     * The Now grid zooms by pinch only (#685): no buttons on screen, a
+     * two-finger pinch widens it, and TalkBack's own zoom actions step it
+     * until a lightning talk fills the screen.
+     */
+    @OptIn(ExperimentalTestApi::class)
+    @Test fun nowGridZooms() {
+        shoot("now-grid-zoom") { NowScreen(state(), {}, {}) {} }
+        val grid = compose.onNodeWithContentDescription("Now by room and time")
+        grid.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "25 min"))
+        compose.onAllNodesWithContentDescription("Zoom in").assertCountEquals(0)
+        // Fingers spreading threefold, wider than the grid's 40dp floor on the
+        // span: about a third of the minutes across the view.
+        grid.performTouchInput {
+            pinch(
+                start0 = Offset(centerX - 100f, centerY),
+                end0 = Offset(centerX - 300f, centerY),
+                start1 = Offset(centerX + 100f, centerY),
+                end1 = Offset(centerX + 300f, centerY),
+            )
+        }
+        grid.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "8 min"))
+        // Zoomed all the way in, a five-minute lightning talk fills the view.
+        repeat(6) { grid.performCustomAccessibilityActionWithLabel("Zoom in") }
+        grid.assert(SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, "5 min"))
+        capture("now-grid-zoom")
+    }
+
     /** Two overlapping must-go choices: Now says so instead of naming a destination (#221). */
     @Test fun nowPlanConflict() {
         val first = bundle.activities.first { it.start != null && it.type != "meal" && it.start!!.startsWith("2026-09-26") }
@@ -158,8 +208,11 @@ class ScreenshotTest {
 
     @Test fun scheduleRoomGrid() {
         var opened: String? = null
-        compose.setContent { CompanionTheme(dynamicColor = false) { ScheduleScreen(state(), {}, {}) { opened = it } } }
-        compose.onNodeWithText("Room grid").performClick()
+        compose.setContent {
+            CompanionTheme(dynamicColor = false) {
+                ScheduleScreen(state(), {}, {}, view = ScheduleView.Rooms) { opened = it }
+            }
+        }
         capture("schedule-grid")
         compose.onNodeWithContentDescription("Schedule by room and time").assertExists()
         // Every room with a session that day is a column as well as a chip.
@@ -183,8 +236,10 @@ class ScreenshotTest {
         compose.onNodeWithTag("room-chips").performScrollToNode(hasText("Room 2"))
         compose.onNodeWithText("Room 2").performClick()
         capture("schedule-room")
-        // Only that room's sessions remain: the count line no longer says the whole day.
-        compose.onNodeWithText("3 sessions").assertIsDisplayed()
+        // Only that room's sessions remain: the count line matches the room's
+        // sessions for the day, whatever the refresh holds.
+        val roomCount = state().activitiesFor(state().days.first()).count { it.locationId == "room-2" }
+        compose.onNodeWithText("$roomCount session${if (roomCount == 1) "" else "s"}").assertIsDisplayed()
     }
     @Test fun plan() = shoot("plan") { PlanScreen(state(), {}, {}, { null }, {}) {} }
     @Test fun rank() = shoot("rank") { RankScreen(state(), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {} }
@@ -203,6 +258,13 @@ class ScreenshotTest {
         RankScreen(state().copy(ranking = RankingState(roomsDecided = true, comparisons = listOf(one))), { _, _ -> }, {}, { _, _ -> }, {}, { _, _ -> noUndo }, { noUndo }, { noUndo }, {}, {}, {}) {}
     }
     @Test fun map() = shoot("map") { MapScreen(state()) {} }
+    /** The organiser's map key opens over the plan: numbers to rooms (#657). */
+    @Test fun mapKey() {
+        shoot("map-key") { MapScreen(state()) {} }
+        compose.onNodeWithText("Map key: room numbers").performClick()
+        compose.onNodeWithContentDescription("Map key artwork").assertIsDisplayed()
+        capture("map-key-open")
+    }
     @Test fun mapLongCurrentTalk() = shoot("map-long-current-talk") {
         val talk = bundle.activities.first().copy(
             id = "map-long", title = "Bypassing Android MTP: pushing a native C++ daemon via ADB for fast file transfers",

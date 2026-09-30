@@ -36,6 +36,21 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="indiafoss" />
             </intent-filter>
+            <!-- A personal-data export shared from the PWA or another app; the
+                 import preview decides whether it is one. Browsers share it as
+                 text, since Web Share does not allow .json files. -->
+            <intent-filter android:label="@string/import_personal_data">
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
+            <intent-filter android:label="@string/import_personal_data">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/json" />
+            </intent-filter>
         </activity>
         <receiver
             android:name=".reminders.ReminderReceiver"

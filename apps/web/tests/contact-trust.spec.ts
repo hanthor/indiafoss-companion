@@ -118,9 +118,10 @@ test('the scan preview names three separate steps and promises no route it canno
   await expect(page.getByText('Not verified in Chat')).toBeVisible();
   // Opening a chat is a handoff the page cannot vouch for.
   const routes = page.locator('.routes');
-  await expect(routes.getByRole('link', { name: 'Message on mesh' })).toBeVisible();
+  // The mesh id alone offers nothing: only the retired IndiaFOSS Chat app could reach it.
+  await expect(routes.getByRole('link', { name: 'Message on mesh' })).toHaveCount(0);
   await expect(routes.getByRole('link', { name: 'Open in a Matrix app' })).toBeVisible();
-  await expect(routes).toContainText('This app cannot tell whether it is.');
+  await expect(routes).toContainText('this app cannot tell whether one is.');
   await expect(page.getByRole('link', { name: 'Open in Element' })).toHaveCount(0);
   await expect(page.locator('.preview')).not.toContainText(/\bVerified\b/);
   await page.getByRole('button', { name: 'Save contact', exact: true }).click();
