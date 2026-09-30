@@ -16,7 +16,7 @@
   import { page } from '$app/state';
   import { tick } from 'svelte';
   import { clockFromParams } from '$lib/clock';
-  import { eventDay } from '$lib/resolved-plan';
+  import { eventDay, initialEventDay } from '$lib/resolved-plan';
 
   const bundle = $derived(eventState.bundle!);
   const days = $derived(bundle ? getEventDays(bundle) : []);
@@ -72,7 +72,7 @@
 
   $effect(() => {
     if (days.length > 0 && (!selectedDay || !days.includes(selectedDay)))
-      selectedDay = days.includes(today) ? today : days[0]!;
+      selectedDay = initialEventDay(bundle, clock.now(), { preferToday: true });
   });
 
   const typesOn = $derived(

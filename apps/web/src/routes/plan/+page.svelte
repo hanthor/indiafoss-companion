@@ -6,6 +6,7 @@
   import { eventState } from '$lib/event.svelte';
   import { savePlanned } from '$lib/planned.svelte';
   import { resolveDayPlan, trackPlanInputs } from '$lib/resolved-plan.svelte';
+  import { initialEventDay } from '$lib/resolved-plan';
   import { downloadTextFile, shareCalendarFile } from '$lib/calendar';
   import {
     addCustomBlock,
@@ -40,8 +41,11 @@
 
   $effect(() => {
     if (selectedDay === null && days.length > 0) {
-      const requested = page.url.searchParams.get('day');
-      selectedDay = requested && days.includes(requested) ? requested : days[0]!;
+      // Planning always starts at day 1 (no preferToday), so a saved plan is
+      // addressed the same way on any date.
+      selectedDay = initialEventDay(bundle, null, {
+        requested: page.url.searchParams.get('day'),
+      });
     }
   });
 
