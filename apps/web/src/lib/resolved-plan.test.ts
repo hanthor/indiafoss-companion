@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { EditedPlan } from '@indiafoss/solver';
 import type { EventBundle } from '@indiafoss/model';
-import { eventDay, metDuringLabel, nextPlannedItem, plannedItemAt } from './resolved-plan';
+import {
+  eventDay,
+  initialEventDay,
+  metDuringLabel,
+  nextPlannedItem,
+  plannedItemAt,
+} from './resolved-plan';
 
 const plan: EditedPlan = {
   feasible: true,
@@ -129,5 +135,74 @@ describe('resolved plan next item', () => {
   it('uses the venue date even when the instant is on the previous UTC day', () => {
     expect(eventDay('2026-09-25T20:00:00Z', 'Asia/Kolkata')).toBe('2026-09-26');
     expect(eventDay('2026-09-26T20:00:00Z', 'Asia/Kolkata')).toBe('2026-09-27');
+  });
+});
+
+describe('initialEventDay', () => {
+  const AGENDA = { preferToday: true };
+
+  it('opens the agenda on today while the conference is running', () => {
+    expect(initialEventDay(bundle, '2026-09-26T10:00:00+05:30', AGENDA)).toBe('2026-09-26');
+    expect(initialEventDay(bundle, '2026-09-27T10:00:00+05:30', AGENDA)).toBe('2026-09-27');
+  });
+
+  it('opens the agenda on day 1 outside the event window', () => {
+    expect(initialEventDay(bundle, '2026-09-25T10:00:00+05:30', AGENDA)).toBe('2026-09-26');
+    expect(initialEventDay(bundle, '2026-09-28T10:00:00+05:30', AGENDA)).toBe('2026-09-26');
+  });
+
+  it('reads today at the venue, not in the phone time zone', () => {
+    // 20:00 UTC on the 26th is already the 27th in Asia/Kolkata.
+    expect(initialEventDay(bundle, '2026-09-26T20:00:00Z', AGENDA)).toBe('2026-09-27');
+  });
+
+  it('keeps the planning tabs on day 1 on every date, including mid-event', () => {
+    for (const now of [
+      '2026-09-25T10:00:00+05:30',
+      '2026-09-26T10:00:00+05:30',
+      '2026-09-27T10:00:00+05:30',
+      '2026-09-28T10:00:00+05:30',
+    ]) {
+      expect(initialEventDay(bundle, now)).toBe('2026-09-26');
+    }
+  });
+
+  it('honours a requested day, and ignores one that is not in the event', () => {
+    expect(initialEventDay(bundle, null, { requested: '2026-09-27' })).toBe('2026-09-27');
+    expect(initialEventDay(bundle, null, { requested: '2026-10-01' })).toBe('2026-09-26');
+    expect(initialEventDay(bundle, null, { requested: '' })).toBe('2026-09-26');
+    expect(initialEventDay(bundle, null, { requested: null })).toBe('2026-09-26');
+  });
+
+  it('lets a requested day override preferToday, so a shared link is stable', () => {
+    expect(
+      initialEventDay(bundle, '2026-09-27T10:00:00+05:30', {
+        ...AGENDA,
+        requested: '2026-09-26',
+      }),
+    ).toBe('2026-09-26');
+  });
+
+  it('has no day to open on for a bundle with no activities', () => {
+    const empty = { ...bundle, activities: [] } as unknown as EventBundle;
+    expect(initialEventDay(empty, '2026-09-26T10:00:00+05:30', AGENDA)).toBeNull();
+    expect(initialEventDay(empty, null)).toBeNull();
+  });
+
+  it('agrees with the agenda outside the window and differs only inside it', () => {
+    // The relationship the three routes used to get wrong: Plan and Schedule
+    // coincide except while the conference is running, which is why a
+    // wall-clock browser test only failed on event dates (issue #783).
+    const dates = [
+      ['2026-09-25T10:00:00+05:30', true],
+      ['2026-09-26T10:00:00+05:30', true],
+      ['2026-09-27T10:00:00+05:30', false],
+      ['2026-09-28T10:00:00+05:30', true],
+    ] as const;
+    for (const [now, same] of dates) {
+      const agenda = initialEventDay(bundle, now, AGENDA);
+      const planning = initialEventDay(bundle, now);
+      expect(agenda === planning).toBe(same);
+    }
   });
 });

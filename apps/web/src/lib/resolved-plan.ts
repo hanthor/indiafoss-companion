@@ -22,6 +22,38 @@ export function eventDay(now: string, timezone: string): string {
   return `${value('year')}-${value('month')}-${value('day')}`;
 }
 
+/**
+ * The event day a tab opens on.
+ *
+ * `preferToday` is the whole difference between the tabs: the agenda follows
+ * the conference while it is running, the planning tabs always start at day 1
+ * so a saved plan is addressed the same way on any date. Keeping both in one
+ * function makes that a stated argument rather than a per-route accident —
+ * three routes used to decide this independently and disagreed mid-event
+ * (issue #783).
+ *
+ * `requested` wins when it names a real day, so `/plan?day=` keeps working.
+ * `now` may be null for a tab that has no clock of its own; `preferToday` then
+ * has nothing to compare against and day 1 is used.
+ */
+export function initialEventDay(
+  bundle: EventBundle,
+  now: string | null,
+  {
+    preferToday = false,
+    requested = null,
+  }: { preferToday?: boolean; requested?: string | null } = {},
+): string | null {
+  const days = getEventDays(bundle);
+  if (days.length === 0) return null;
+  if (requested && days.includes(requested)) return requested;
+  if (preferToday && now !== null) {
+    const today = eventDay(now, bundle.timezone);
+    if (days.includes(today)) return today;
+  }
+  return days[0]!;
+}
+
 /** The plan item under way at `now`: what the attendee is assumed to be doing. */
 export function plannedItemAt(plan: EditedPlan, now: string) {
   if (!plan.feasible) return null;

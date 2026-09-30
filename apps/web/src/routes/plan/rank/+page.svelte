@@ -52,6 +52,7 @@
   import { splitTrackName } from '$lib/devrooms';
   import { activityDevroomColor } from '$lib/devroom-art';
   import { eventState } from '$lib/event.svelte';
+  import { initialEventDay } from '$lib/resolved-plan';
   import EventGate from '$lib/components/EventGate.svelte';
   import TypeBadge from '$lib/components/TypeBadge.svelte';
   import TimelineGrid from '$lib/components/TimelineGrid.svelte';
@@ -76,7 +77,8 @@
   let showAnswered = $state(false);
 
   $effect(() => {
-    if (selectedDay === null && days.length > 0) selectedDay = days[0]!;
+    // Ranking always starts at day 1 (no preferToday), same rule as /plan.
+    if (selectedDay === null && days.length > 0) selectedDay = initialEventDay(bundle, null);
   });
 
   $effect(() => {
