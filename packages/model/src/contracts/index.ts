@@ -20,6 +20,7 @@
 export {
   collectDuplicates,
   collectSchemaVersionIssues,
+  isCanonicalInstant,
   isHex64,
   isMatrixRoomAlias,
   isMatrixRoomId,

@@ -56,7 +56,41 @@ export function optionalString(
   return requireString(record, field, path);
 }
 
-/** Collect issues for a required ISO-8601 instant at `field`. */
+/**
+ * True when [value] is an ISO-8601 instant written exactly as `Date#toISOString`
+ * writes it: UTC, three-digit milliseconds, trailing `Z`.
+ *
+ * Canonical form is load-bearing rather than cosmetic on the surfaces that use
+ * it. An identity binding is signed over canonical bytes and a personal-data
+ * file is re-encoded to compare, so a timestamp that round-trips to a different
+ * string is a verification failure. The round-trip assertion also catches values
+ * the shape admits but the calendar does not, such as `2026-02-30T01:00:00.000Z`.
+ *
+ * This is the single source of truth for that shape. It is deliberately NOT what
+ * {@link requireInstant} enforces: several contracts carry instants that
+ * originate upstream in looser forms (a Frappe `modified` stamp arrives as
+ * `2026-01-01 00:00:00`, and `frappeDateTimeToIso` renders it with a `+05:30`
+ * offset), so tightening the shared collector would refuse documents the
+ * pipeline legitimately produces today. Callers that require canonical form ask
+ * for it here, explicitly.
+ */
+export function isCanonicalInstant(value: unknown): boolean {
+  if (typeof value !== 'string') return false;
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)) return false;
+  // `toISOString` throws on an Invalid Date, which the shape above still admits
+  // (`2026-13-01T…`), so the time value is checked before it is rendered.
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString() === value;
+}
+
+/**
+ * Collect issues for a required ISO-8601 instant at `field`.
+ *
+ * Parseability only: this guards contracts whose instants may arrive in any form
+ * `Date.parse` understands, including the upstream-sourced values described on
+ * {@link isCanonicalInstant}. A field that must be canonical is checked with
+ * that predicate in addition to this one.
+ */
 export function requireInstant(
   record: Record<string, unknown>,
   field: string,
