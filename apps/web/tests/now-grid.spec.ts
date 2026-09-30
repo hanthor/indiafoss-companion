@@ -88,6 +88,76 @@ test('the grid opens at now, and a running talk shows its title from the visible
   }
 });
 
+test('ended talks remain on the timeline and can be reached by scrolling back', async ({
+  page,
+}) => {
+  await page.goto(BUSY);
+  const grid = page.locator('[data-testid="now-grid"]');
+  const scroller = grid.locator('.scroller');
+
+  // Use the labels rather than a fixture title: this pins the behaviour for
+  // every schedule while still proving that a session ending before 11:30
+  // remains in the DOM after the clock has passed it.
+  const endedCount = await grid.locator('.talk').evaluateAll(
+    (cards) =>
+      cards.filter((card) => {
+        const match = /(\d\d):(\d\d)–(\d\d):(\d\d)/.exec(card.getAttribute('aria-label') ?? '');
+        if (!match) return false;
+        const end = Number(match[3]) * 60 + Number(match[4]);
+        return end <= 11 * 60 + 30;
+      }).length,
+  );
+  expect(endedCount).toBeGreaterThan(0);
+
+  expect(await scroller.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+  await scroller.evaluate((el) => (el.scrollLeft = 0));
+  await expect.poll(() => scroller.evaluate((el) => el.scrollLeft)).toBe(0);
+  const visibleEndedCount = await grid.locator('.talk').evaluateAll((cards) => {
+    const view = document
+      .querySelector('[data-testid="now-grid"] .scroller')!
+      .getBoundingClientRect();
+    return cards.filter((card) => {
+      const match = /(\d\d):(\d\d)–(\d\d):(\d\d)/.exec(card.getAttribute('aria-label') ?? '');
+      if (!match) return false;
+      const end = Number(match[3]) * 60 + Number(match[4]);
+      const box = card.getBoundingClientRect();
+      return end <= 11 * 60 + 30 && box.right > view.left && box.left < view.right;
+    }).length;
+  });
+  expect(visibleEndedCount).toBeGreaterThan(0);
+});
+
+test('both conference days share one continuous timeline with the overnight gap', async ({
+  page,
+}) => {
+  await page.goto(BUSY);
+  await expect(page.getByRole('tab', { name: /Day [12]/ })).toHaveCount(0);
+
+  const first = page
+    .locator('[data-testid="now-grid"] .talk')
+    .filter({ hasText: 'Registrations and Breakfast' });
+  const last = page
+    .locator('[data-testid="now-grid"] .talk')
+    .filter({ hasText: 'Closing Remarks, Feedback Session' });
+  await expect(first).toHaveCount(1);
+  await expect(last).toHaveCount(1);
+
+  const firstBox = (await first.boundingBox())!;
+  const lastBox = (await last.boundingBox())!;
+  const view = (await page.locator('[data-testid="now-grid"] .scroller').boundingBox())!;
+  // More than a dozen phone-widths separate the first and last sessions: the
+  // overnight hours are real space on the shared time axis, not collapsed.
+  expect(lastBox.x - firstBox.x).toBeGreaterThan(view.width * 12);
+});
+
+test('the full timeline remains available after the conference', async ({ page }) => {
+  await page.goto(at('2026-09-28T10:00:00+05:30'));
+  await expect(page.getByText("That's a wrap")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Full programme' })).toBeVisible();
+  await expect(page.getByRole('tab', { name: /Day [12]/ })).toHaveCount(0);
+  await expect(page.locator('[data-testid="now-grid"] .talk').first()).toBeVisible();
+});
+
 test('every room scrolls together, so a column is one moment across the venue', async ({
   page,
 }) => {

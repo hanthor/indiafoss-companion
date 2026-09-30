@@ -4,7 +4,7 @@
   import { tick, untrack } from 'svelte';
   import type { Activity, EventBundle } from '@indiafoss/model';
   import { resolve } from '$app/paths';
-  import { activitiesForDay, formatTime } from '@indiafoss/schedule';
+  import { formatTime } from '@indiafoss/schedule';
   import { activityDevroomColor } from '$lib/devroom-art';
 
   /**
@@ -24,7 +24,7 @@
   let {
     activities,
     bundle,
-    day,
+    scope,
     now,
     goId,
     goLabel,
@@ -32,7 +32,8 @@
   }: {
     activities: Activity[];
     bundle: EventBundle;
-    day: string;
+    /** Stable identity for the time range, used to reset the initial anchor. */
+    scope: string;
     now: string;
     goId?: string;
     goLabel?: string;
@@ -72,9 +73,9 @@
   const nowMs = $derived(Date.parse(now));
   const pxPerMinute = $derived(laneWidth > 0 ? laneWidth / windowMinutes : 0);
 
-  /** Fixed per day, so cards do not jump as earlier talks end and drop out. */
+  /** Fixed for the supplied programme, so cards never jump as the clock advances. */
   const span = $derived.by(() => {
-    const all = activitiesForDay(bundle, day).filter((a) => a.start && a.end);
+    const all = activities.filter((a) => a.start && a.end);
     if (all.length === 0) return { origin: nowMs, end: nowMs + 60 * 60000 };
     return {
       origin: Math.min(...all.map((a) => Date.parse(a.start!))),
@@ -284,7 +285,7 @@
   }
 
   /**
-   * Put now at the left edge on first paint, on a new day or a resized
+   * Put now at the left edge on first paint, for a new programme or a resized
    * window, and again when now drifts most of the way across a view nobody
    * has touched. Never after the attendee has scrolled or zoomed: following
    * would pull the grid out from under their finger. Reads nothing from the
@@ -293,7 +294,7 @@
   $effect(() => {
     if (!scroller || pxPerMinute <= 0 || !Number.isFinite(nowMs)) return;
     const target = Math.max(0, ((nowMs - span.origin) / 60000) * pxPerMinute);
-    const key = `${day}|${laneWidth}`;
+    const key = `${scope}|${laneWidth}`;
     const width = canvasWidth;
     untrack(() => {
       if (key !== anchoredFor) {
