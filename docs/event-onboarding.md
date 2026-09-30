@@ -83,7 +83,7 @@ Rules:
 
 ## The 2025 fixture
 
-`events/indiafoss-2025` is the golden historical fixture used as test data
-until 2026 data is published. Keep it: the E2E suite and many unit tests read
-it. The `synthetic` venue fixture is likewise kept for deterministic routing
-tests and must not be replaced by real data.
+`events/indiafoss-2025` is the golden historical fixture, kept as test data:
+the E2E suite and many unit tests read it. The `synthetic` venue fixture is
+likewise kept for deterministic routing tests and must not be replaced by real
+data.

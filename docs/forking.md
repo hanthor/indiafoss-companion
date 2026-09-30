@@ -9,7 +9,9 @@ you will work along. This page is the map of those seams.
 
 If instead you want to write a _different client_ that talks to the same mesh,
 you do not need this repository at all — see
-[mesh-protocol.md](./mesh-protocol.md).
+[mesh-protocol.md](./mesh-protocol.md). Note that the venue mesh was retired
+from the attendee path on 2026-09-24 (PR #691); that document describes a
+transport this app no longer uses.
 
 ## Before anything else: two obligations
 
@@ -41,7 +43,7 @@ pnpm --filter @indiafoss/web dev     # http://localhost:5173
 Node ≥ 20.19 and pnpm 11 (`corepack enable`). No accounts, no API keys, no
 services — the whole app runs off local fixtures by design.
 
-You now have a working conference companion showing IndiaFOSS 2025. The next
+You now have a working conference companion showing IndiaFOSS 2026. The next
 four sections turn it into yours.
 
 ## 1. Your programme
@@ -63,7 +65,10 @@ The full pipeline (capture → normalize → verify → publish) is documented i
   an `EventBundle`.
 
 Point the app at your event by changing `DEFAULT_EVENT_ID` in
-`apps/web/src/lib/event.svelte.ts`.
+`apps/web/src/lib/event-id.ts` (`event.svelte.ts` only re-exports it), and add
+your id to `KNOWN_EVENT_IDS` beside it. The native client keeps its own twin in
+`apps/android/native/app/src/main/kotlin/org/indiafoss/companion/data/EventRepository.kt`;
+both must name the same event or the two clients open different programmes.
 
 > **Keep ids stable across revisions.** The app keys bookmarks, Elo ratings and
 > itinerary edits by activity/person/booth id. Re-publishing a bundle with
@@ -122,20 +127,36 @@ Material You palette, so it needs less of this.
 
 ## 4. Your messaging (optional)
 
-Chat is **off by default** and gated behind `features.chat`
-(`apps/web/src/lib/features.svelte.ts`). The schedule, map, ranking, itinerary
-and contact sharing never depend on it, so "delete the chat" is a supported
-configuration — remove the tab and stop.
+There is no chat in this app. Every chat affordance builds a Matrix link and
+hands off to whatever client the attendee already has
+(`apps/web/src/lib/element-links.ts`, [ADR 0004](adr/0004-retire-the-capacitor-shell.md)),
+so "delete the chat" needs no flag: publish no room configuration and no link
+is offered.
 
-If you keep it, the organiser's config is `events/<event-id>/messaging.json`,
-merged into the bundle as `messaging`. It names the alias server, the rooms to
-suggest, and optionally an announcements room. Without it the default is
-`matrix.org` with an empty room list. See [messaging.md](./messaging.md) for
-the model and [mesh-protocol.md](./mesh-protocol.md) for the wire format.
+Two separate files feed those links, and both are optional:
 
-`tools/matrix-rooms` provisions public rooms idempotently on a homeserver you
-control, FOSDEM-style. The P2P mesh needs no provisioning at all — aliases are
-derived.
+- a `messaging.json` in your event's directory, merged into the bundle as
+  `messaging` by `event-sync` (`tools/event-sync/src/index.ts`). It names the
+  homeserver, the alias server, the rooms to suggest and optionally a Space,
+  and it is what drives the per-session and per-booth room links.
+  `events/indiafoss-2025/messaging.json` is the worked example; 2026 ships
+  none.
+- a published `directory` asset (`ConferenceDirectory`), which is what the
+  Settings room list reads through `apps/web/src/lib/directory.svelte.ts`.
+
+**There is no default for either.** Without a `messaging` block, `spaceLink`,
+`listedRooms`, `sessionRoomLink` and `boothRoomLink` all return nothing,
+deliberately — a link to a room on nobody's homeserver is worse than no link,
+and `element-links.test.ts` holds that line. Without a directory asset the room
+list is simply absent. Nothing is ever invented from an event id.
+
+`tools/matrix-rooms` provisions those public rooms idempotently on a homeserver
+you control, FOSDEM-style.
+
+The venue mesh and the dedicated IndiaFOSS Chat app were retired from the
+attendee path on 2026-09-24 (PR #691). [messaging.md](./messaging.md) and
+[mesh-protocol.md](./mesh-protocol.md) still describe them, both marked
+historical; a fork needs neither.
 
 ## Where everything lives
 
@@ -150,7 +171,7 @@ packages/
   venue/             routing graph, A*/Dijkstra
   search/            offline search
   storage/           IndexedDB persistence
-  matrix/            Matrix client layer — no framework deps
+  matrix/            profile checks and Matrix handoff helpers — no framework deps
   sources/           event source adapters  ← your CFP tool goes here
 tools/               event-sync, matrix-rooms, validators, probes
 events/              bundles: indiafoss-2025, indiafoss-2026, synthetic
@@ -211,7 +232,7 @@ Each of these is genuinely optional — nothing else breaks:
 
 | Feature               | Remove by                                            |
 | --------------------- | ---------------------------------------------------- |
-| Chat / mesh           | leaving `features.chat` off; drop the `/chat` routes |
+| Organiser room links  | publish no `messaging.json` and no `directory` asset |
 | Ranking + solver      | drop the `/rank` route; the schedule stands alone    |
 | Venue map             | drop `/map`; keep room names as text                 |
 | Contact sharing       | drop `/connect` and `/scan`                          |
