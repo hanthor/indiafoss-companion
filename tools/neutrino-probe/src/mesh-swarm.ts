@@ -26,6 +26,7 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdirSync, openSync, rmSync, writeSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pct, sleep } from './stats.js';
 
 /** One `neutrino-lan` process: a homeserver plus the iroh medium. */
 class MeshNode {
@@ -148,13 +149,6 @@ class MeshNode {
     if (r.status !== 200) throw new Error(`register ${this.index}: ${JSON.stringify(r.body)}`);
     return { token: String(r.body.access_token), userId: String(r.body.user_id) };
   }
-}
-
-const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
-
-function pct(sorted: number[], p: number): number {
-  if (sorted.length === 0) return NaN;
-  return sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))]!;
 }
 
 export interface MeshResult {
