@@ -23,8 +23,37 @@ const ENTRANCE_ALIASES: Record<string, string> = {
 
 const KNOWN_ROOMS = new Set(FLOOR_ORDER.flatMap((f) => FLOORS[f].rooms.map((r) => r.id)));
 
-/** Floor-plan room for a venue location id, or null when it is not drawn. */
+/**
+ * Venue locations that deliberately have no room on the floor plan, and why.
+ *
+ * These are not rooms in the organiser's artwork, so there is nothing for them
+ * to resolve to: `FloorMark` (the amenity icons, badges and baked labels drawn
+ * over the rooms) carries geometry only and no id, so a location whose
+ * `svgTarget` is an `amenity-*` mark cannot be named by a room id. Aliasing one
+ * onto a nearby room would draw it inside a hall it is not in.
+ *
+ * Listing them explicitly separates "not drawn, by design" from "an entrance
+ * node or location id drifted and no longer matches the plan" — both of which
+ * otherwise leave [[roomForLocation]] returning the same bare `null`.
+ */
+export const NOT_DRAWN: ReadonlyMap<string, string> = new Map([
+  // svgTarget is the amenity-fossu-desk mark, not a room path.
+  ['fossu-help-desk', 'amenity mark, not a room'],
+  // A routing origin (its only entrance is the bare `entrance` graph node)
+  // with no svgTarget at all.
+  ['registration', 'routing origin, no room geometry'],
+]);
+
+/**
+ * Floor-plan room for a venue location id, or null when it is not drawn.
+ *
+ * A `null` here means one of two different things, and [[NOT_DRAWN]] is what
+ * tells them apart: a location listed there has no room by design, while any
+ * other `null` means the location's entrance node no longer maps onto the plan
+ * — drift worth catching rather than a deliberate omission.
+ */
 export function roomForLocation(venue: LoadedVenue, locationId: string): string | null {
+  if (NOT_DRAWN.has(locationId)) return null;
   const ref = venue.metadata.locations[locationId];
   const entrance = ref?.entrances[0];
   if (!entrance) return null;
