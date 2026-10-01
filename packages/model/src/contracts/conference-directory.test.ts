@@ -35,6 +35,8 @@ const VALID_DIRECTORY: ConferenceDirectory = {
     },
   ],
   supports: ['matrix-push-rules', 'presence-sharing'],
+};
+
 describe('isValidConferenceDirectory', () => {
   it('accepts a valid minimal directory', () => {
     const minimal: ConferenceDirectory = {
