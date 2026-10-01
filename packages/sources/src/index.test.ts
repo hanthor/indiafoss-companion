@@ -16,14 +16,20 @@ describe('sources/index', () => {
 
     it('skips booths that already exist in the bundle', () => {
       const bundle = { booths: [{ id: 'a', name: 'Existing' }] };
-      const newBooths = [{ id: 'a', name: 'Ignored' }, { id: 'b', name: 'New' }];
+      const newBooths = [
+        { id: 'a', name: 'Ignored' },
+        { id: 'b', name: 'New' },
+      ];
 
       mergeBooths(bundle, newBooths);
 
       expect(bundle.booths).toHaveLength(2);
-      expect(bundle.booths[0]).toEqual({ id: 'a', name: 'Existing' }); // kept original
+      expect(bundle.booths[0]).toEqual({
+        id: 'a',
+        name: 'Existing',
+      }); // kept original
       expect(bundle.booths[1]).toEqual({ id: 'b', name: 'New' });
-    });
+    })
 
     it('handles empty initial booths', () => {
       const bundle = { booths: [] };
@@ -41,7 +47,7 @@ describe('sources/index', () => {
       mergeBooths(bundle, newBooths);
 
       expect(bundle.booths).toHaveLength(1);
-    });
+    })
 
     it('handles multiple duplicates correctly', () => {
       const bundle = {
@@ -62,11 +68,23 @@ describe('sources/index', () => {
 
       expect(bundle.booths).toHaveLength(5);
       // Original entries preserved (no updates)
-      expect(bundle.booths.find((b) => b.id === '1')).toEqual({ id: '1', vendor: 'A' });
-      expect(bundle.booths.find((b) => b.id === '2')).toEqual({ id: '2', vendor: 'B' });
+      expect(bundle.booths.find((b) => b.id === '1')).toEqual({
+        id: '1',
+        vendor: 'A',
+      });
+      expect(bundle.booths.find((b) => b.id === '2')).toEqual({
+        id: '2',
+        vendor: 'B',
+      });
       // New entries added
-      expect(bundle.booths.find((b) => b.id === '4')).toEqual({ id: '4', vendor: 'D' });
-      expect(bundle.booths.find((b) => b.id === '5')).toEqual({ id: '5', vendor: 'E' });
+      expect(bundle.booths.find((b) => b.id === '4')).toEqual({
+        id: '4',
+        vendor: 'D',
+      });
+      expect(bundle.booths.find((b) => b.id === '5')).toEqual({
+        id: '5',
+        vendor: 'E',
+      });
     });
 
     it('mutates the bundle in place', () => {
@@ -78,6 +96,6 @@ describe('sources/index', () => {
 
       // Same reference, not replaced
       expect(bundle.booths).toBe(originalRef);
-    });
-  });
-});
+    })
+  })
+})
