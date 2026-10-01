@@ -27,12 +27,13 @@ fun UiState.plannedReminders(nowMs: Long): List<Reminders.Reminder> {
     val b = bundle ?: return emptyList()
     val days = Schedule.eventDays(b)
     val plans = days.mapNotNull { day ->
-        ResolvedPlan.Plan.resolve(
-            day = day,
+        ResolvedPlan.forDay(
             bundle = b,
-            mustAttend = mustAttend,
-            removed = removedFromPlan,
-            ranking = Ranking()
+            day = day,
+            ratingOf = { 0.0 },
+            dispositionOf = { id -> if (id in mustAttend) Disposition.MUST_ATTEND else Disposition.UNRANKED },
+            bookmarked = { false },
+            edits = ResolvedPlan.Edits(removed = removedFromPlan)
         )
     }
     return Reminders.forPlans(
