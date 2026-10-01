@@ -94,9 +94,15 @@ describe('contracts/common', () => {
     });
 
     it('returns an error for an empty or whitespace-only string', () => {
-      expect(requireString({ field: '' }, 'field')).toContain('field must be a non-empty string');
-      expect(requireString({ field: '   ' }, 'field')).toContain('field must be a non-empty string');
-      expect(requireString({ field: '\t\n' }, 'field')).toContain('field must be a non-empty string');
+      expect(requireString({ field: '' }, 'field')).toContain(
+        'field must be a non-empty string',
+      );
+      expect(requireString({ field: '   ' }, 'field')).toContain(
+        'field must be a non-empty string',
+      );
+      expect(requireString({ field: '\t\n' }, 'field')).toContain(
+        'field must be a non-empty string',
+      );
     });
 
     it('includes the path prefix in error messages', () => {
