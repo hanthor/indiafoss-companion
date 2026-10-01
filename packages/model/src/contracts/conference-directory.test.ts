@@ -165,7 +165,7 @@ describe('collectConferenceDirectoryIssues', () => {
         rooms: [null],
       };
       const issues = collectConferenceDirectoryIssues(bad);
-      expect(issues).toContain(expect.stringContaining('rooms[0] must be an object'));
+      expect(issues).toContainEqual(expect.stringContaining('rooms[0] must be an object'));
     });
 
     it('rejects when room id is missing', () => {
