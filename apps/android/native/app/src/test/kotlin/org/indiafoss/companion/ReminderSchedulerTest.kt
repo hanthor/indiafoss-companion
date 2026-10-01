@@ -4,8 +4,11 @@ import android.app.AlarmManager
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import org.indiafoss.companion.core.Activity
+import org.indiafoss.companion.core.Disposition
 import org.indiafoss.companion.core.EventBundle
 import org.indiafoss.companion.core.Location
+import org.indiafoss.companion.core.Reminders
+import org.indiafoss.companion.core.ResolvedPlan
 import org.indiafoss.companion.core.Schedule
 import org.indiafoss.companion.reminders.ReminderScheduler
 import org.junit.Assert.assertEquals
@@ -15,6 +18,30 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+
+/**
+ * Test extension: compute reminders for a UiState by resolving plans from the bundle.
+ * The reminders follow the resolved plan: conflicted days schedule nothing.
+ */
+fun UiState.plannedReminders(nowMs: Long): List<Reminders.Reminder> {
+    val b = bundle ?: return emptyList()
+    val days = Schedule.eventDays(b)
+    val plans = days.mapNotNull { day ->
+        ResolvedPlan.Plan.resolve(
+            day = day,
+            bundle = b,
+            mustAttend = mustAttend,
+            removed = removedFromPlan,
+            ranking = Ranking()
+        )
+    }
+    return Reminders.forPlans(
+        plans,
+        b::location,
+        nowMs,
+        dispositionOf = { id -> if (id in mustAttend) Disposition.MUST_ATTEND else Disposition.UNRANKED }
+    )
+}
 
 /**
  * The alarms follow the resolved plan (#221): an entry that leaves the plan
