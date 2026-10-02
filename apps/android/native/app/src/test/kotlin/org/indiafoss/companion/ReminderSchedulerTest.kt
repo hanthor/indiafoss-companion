@@ -50,8 +50,9 @@ class ReminderSchedulerTest {
 
     @Before
     fun setUp() {
-        // Clear any armed reminders from a previous test
+        // Clear any armed reminders and alarms from a previous test
         context.getSharedPreferences("reminders", Context.MODE_PRIVATE).edit().clear().apply()
+        alarms.scheduledAlarms.forEach { alarms.cancel(it.operation) }
     }
 
     @Test
