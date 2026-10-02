@@ -10,6 +10,7 @@ import org.indiafoss.companion.core.Schedule
 import org.indiafoss.companion.reminders.ReminderScheduler
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -46,6 +47,12 @@ class ReminderSchedulerTest {
     )
 
     private fun armedIds(): List<String> = alarms.scheduledAlarms.mapNotNull { it.operation?.let { op -> shadowOf(op).savedIntent.data?.host } }
+
+    @Before
+    fun setUp() {
+        // Clear any armed reminders from a previous test
+        context.getSharedPreferences("reminders", Context.MODE_PRIVATE).edit().clear().apply()
+    }
 
     @Test
     fun anEntryLeavingThePlanLosesItsAlarmsAndRearmingNeverDuplicates() {
