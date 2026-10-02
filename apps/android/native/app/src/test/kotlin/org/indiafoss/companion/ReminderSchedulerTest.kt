@@ -15,6 +15,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowSystemClock
 
 /**
  * The alarms follow the resolved plan (#221): an entry that leaves the plan
@@ -35,7 +36,7 @@ class ReminderSchedulerTest {
     init {
         // Advance Robolectric time to match our test base time to prevent scheduler
         // from using a different wall-clock time than our calculated alarm times.
-        org.robolectric.shadows.ShadowSystemClock.setCurrentTimeMillis(nowMs)
+        ShadowSystemClock.setCurrentTimeMillis(nowMs)
     }
     private val talkStart = Schedule.formatInstant(nowMs + 2 * 3_600_000L, 330)
     private val talk = Activity(id = "t", title = "Talk", start = talkStart, end = Schedule.formatInstant(nowMs + 3 * 3_600_000L, 330), locationId = "hall")
