@@ -30,7 +30,13 @@ class ReminderSchedulerTest {
     private val scheduler = ReminderScheduler(context)
 
     // The scheduler reads the real clock, so the sessions sit two hours ahead of it.
+    // Capture time once to avoid flakiness from test execution delays.
     private val nowMs = System.currentTimeMillis()
+    init {
+        // Advance Robolectric time to match our test base time to prevent scheduler
+        // from using a different wall-clock time than our calculated alarm times.
+        org.robolectric.shadows.ShadowSystemClock.setCurrentTimeMillis(nowMs)
+    }
     private val talkStart = Schedule.formatInstant(nowMs + 2 * 3_600_000L, 330)
     private val talk = Activity(id = "t", title = "Talk", start = talkStart, end = Schedule.formatInstant(nowMs + 3 * 3_600_000L, 330), locationId = "hall")
     private val other = Activity(id = "o", title = "Other", start = Schedule.formatInstant(nowMs + 4 * 3_600_000L, 330), end = Schedule.formatInstant(nowMs + 5 * 3_600_000L, 330), locationId = "hall")
@@ -77,8 +83,8 @@ class ReminderSchedulerTest {
         val clash = talk.copy(id = "c", title = "Clash")
         val conflicted = state(mustAttend = setOf("t", "c")).copy(bundle = bundle.copy(activities = listOf(talk, other, clash)))
         scheduler.arm(conflicted)
-        assertEquals(emptyList<String>(), armedIds())
+        assertEquals("Expected no alarms for conflicted day", emptyList<String>(), armedIds())
         scheduler.arm(conflicted.copy(removedFromPlan = setOf("c")))
-        assertTrue(armedIds().toString(), "must-t" in armedIds())
+        assertTrue("Expected must-attend alarm for t after removing conflict: ${armedIds()}", "must-t" in armedIds())
     }
 }
