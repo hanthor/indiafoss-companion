@@ -12,11 +12,17 @@
 
 The hive is in a clogged state driven by three distinct blockers:
 
-1. **11 merged PRs awaiting post-merge verification** (3 critical: dotfiles#27-#29, 119+ days stale post-merge)
-2. **46 stalled issues >14 days old without PR** (architecture epics + decision-gated work)
-3. **Blocker concentration in 4 repos** (dotfiles 50%, shrimply 52%, homebrew-tap 41%, indiafoss-companion 38%)
+1. **11 merged PRs awaiting post-merge verification** (3 critical: dotfiles#27-#29,
+   119+ days stale post-merge)
+2. **46 stalled issues >14 days old without PR** (architecture epics +
+   decision-gated work)
+3. **Blocker concentration in 4 repos** (dotfiles 50%, shrimply 52%,
+   homebrew-tap 41%, indiafoss-companion 38%)
 
-**No CI infrastructure faults detected.** The root causes are process gaps (missing post-merge verification), design decisions awaiting clarity (no `needs-direction` follow-ups), and undecomposed epics (180+ day-old architecture features with no scoped sub-issues).
+**No CI infrastructure faults detected.** The root causes are process gaps (missing
+post-merge verification), design decisions awaiting clarity (no `needs-direction`
+follow-ups), and undecomposed epics (180+ day-old architecture features with no
+scoped sub-issues).
 
 ---
 
@@ -24,14 +30,17 @@ The hive is in a clogged state driven by three distinct blockers:
 
 ### Cause 1: Merged PRs Awaiting Verification (11 issues)
 
-Three sequential IaC changes landed in dotfiles on 2026-09-30 (dotfiles#27, #28, #29 — all merged 119+ days ago per the issue age). The issues remain open: no verification that the changes achieved their stated goal, no closure.
+Three sequential IaC changes landed in dotfiles on 2026-09-30 (dotfiles#27, #28,
+#29 — all merged 119+ days ago per the issue age). The issues remain open: no
+verification that the changes achieved their stated goal, no closure.
 
 **Evidence:**
 - `claim_context.merged_pr=true` for 11 issues
 - Age post-merge: 2–119 days
 - No associated verification comment or re-assignment
 
-**Effect:** Blocks issue closure. The backlog appears stalled even though the work is shipped.
+**Effect:** Blocks issue closure. The backlog appears stalled even though the
+work is shipped.
 
 **Confidence:** High (direct telemetry)
 
@@ -39,16 +48,22 @@ Three sequential IaC changes landed in dotfiles on 2026-09-30 (dotfiles#27, #28,
 
 | Subcategory | Count | Examples | Age Range |
 |-------------|-------|----------|-----------|
-| Permanently parked epics (180+ days) | 3 | dotfiles#1, #2, #3 (QR bootstrap, secret onboarding, GH CLI automation) | 185–186d |
-| Decision-gated (no follow-up) | 2 | dotfiles#49 (QR secret onboarding, 3 open approaches), indiafoss-companion#115 (Matrix verification) | 29–70d |
-| Unstarted (test/docs/refactoring) | 41 | hummingbird-github#2 (Rawhide package), 40+ spanning test coverage, docs, refactoring | 2–34d |
+| Permanently parked epics (180+ days) | 3 | dotfiles#1, #2, #3 (QR bootstrap,
+secret onboarding, GH CLI automation) | 185–186d |
+| Decision-gated (no follow-up) | 2 | dotfiles#49 (QR secret onboarding, 3
+open approaches), indiafoss-companion#115 (Matrix verification) | 29–70d |
+| Unstarted (test/docs/refactoring) | 41 | hummingbird-github#2 (Rawhide
+package), 40+ spanning test coverage, docs, refactoring | 2–34d |
 
 **Evidence:**
 - 46 issues with `linked_prs` empty or missing
 - 0 PR in `claim_context` for any of them
-- Decision-gated issues (dotfiles#49, indiafoss-companion#115) contain open questions but no `needs-direction` label or maintainer response
+- Decision-gated issues (dotfiles#49, indiafoss-companion#115) contain open
+  questions but no `needs-direction` label or maintainer response
 
-**Pattern:** Issues are filed but not being actively worked. No clear blocker visible *in the data* for 41 of them; the 5 decision-gated issues simply await maintainer input.
+**Pattern:** Issues are filed but not being actively worked. No clear blocker
+visible *in the data* for 41 of them; the 5 decision-gated issues simply await
+maintainer input.
 
 **Confidence:** High (direct telemetry)
 
@@ -65,7 +80,8 @@ Three sequential IaC changes landed in dotfiles on 2026-09-30 (dotfiles#27, #28,
 - Blocker count = merged-awaiting-verify + decision-gated + stalled-unstarted
 - Concentrated in 4 repos; remaining 4 have 8–25% blocker rate
 
-**Effect:** These 4 repos account for 60 of 211 actionable issues (28%) but contain 71% of visible blockers.
+**Effect:** These 4 repos account for 60 of 211 actionable issues (28%) but
+contain 71% of visible blockers.
 
 **Confidence:** High (direct telemetry)
 
@@ -78,22 +94,29 @@ Three sequential IaC changes landed in dotfiles on 2026-09-30 (dotfiles#27, #28,
 **Root cause:** No post-merge verification step in the PR workflow.
 
 **Specific issues:**
-- **dotfiles#27** (lemonade: model backup) — merged 2026-09-30, merged PR present, no verification comment
-- **dotfiles#28** (lemonade: model list) — merged 2026-09-30, merged PR present, no verification comment
-- **dotfiles#29** (lemonade: move PVs) — merged 2026-09-30, merged PR present, no verification comment
+- **dotfiles#27** (lemonade: model backup) — merged 2026-09-30, merged PR
+  present, no verification comment
+- **dotfiles#28** (lemonade: model list) — merged 2026-09-30, merged PR present,
+  no verification comment
+- **dotfiles#29** (lemonade: move PVs) — merged 2026-09-30, merged PR present,
+  no verification comment
 - **dotfiles#173** (reference documentation) — merged 2+ days ago
 - **rust-wayland-desktop#40** (roadmap issues) — merged 2+ days ago
 - 6 others (2–9 days post-merge)
 
-**Pattern:** The three lemonade issues form a sequential batch (same merge commit wave); no one has closed them.
+**Pattern:** The three lemonade issues form a sequential batch (same merge
+commit wave); no one has closed them.
 
-**Impact:** Artificially inflates backlog. The work is done; the issues just need closure.
+**Impact:** Artificially inflates backlog. The work is done; the issues just
+need closure.
 
-**Blame:** Process gap. Who should verify? (likely the PR author or assignee; unclear from docs)
+**Blame:** Process gap. Who should verify? (likely the PR author or assignee;
+unclear from docs)
 
 ### Type B: Decision-Gated Without Follow-Up (2 issues)
 
-**Root cause:** Issues are filed with open design questions, but no `needs-direction` label or maintainer response.
+**Root cause:** Issues are filed with open design questions, but no
+`needs-direction` label or maintainer response.
 
 **Issues:**
 - **dotfiles#49** (QR-based secret onboarding, 70 days old):
