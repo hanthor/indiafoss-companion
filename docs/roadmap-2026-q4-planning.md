@@ -23,6 +23,7 @@ This document outlines the scope, sequencing, and success criteria for each.
 ### Problem Statement
 
 The app supports direct peer discovery (vCard QR, Bluetooth handshake, Web NFC) but lacks ambient discovery of attendees on the mesh. At scale (1000+ attendees), this creates friction:
+
 - Latecomers see an empty roster until they manually exchange QR codes
 - No way to find speakers or organizers without explicit interaction
 - Newcomers to mesh networks face high friction (unclear who to add)
@@ -57,6 +58,7 @@ Publish an attendee roster to the conference Matrix homeserver as a state event 
 ### Problem Statement
 
 Speakers want to share slides during talks; attendees want to archive them post-event. Current gaps:
+
 - No in-app slide viewer or integration with external viewers
 - Matrix file uploads are capped at 100 MB and not designed for bulk media
 - No archival pipeline or CDN integration
@@ -93,6 +95,7 @@ Speakers want to share slides during talks; attendees want to archive them post-
 ### Problem Statement
 
 Conference organizers and speakers lack real-time engagement tools. Currently:
+
 - No way to ask questions or upvote during talks
 - No anonymous polling or sentiment tracking
 - No metrics on which sessions drove engagement
@@ -100,6 +103,7 @@ Conference organizers and speakers lack real-time engagement tools. Currently:
 ### Proposed Solution
 
 Add a lightweight Q&A/polling layer using Matrix state events (`m.room.q_and_a` / `m.room.poll`) published to per-session rooms. The app provides:
+
 - A question sheet (slide-up from session detail) with upvote, sorting, and speaker-moderation controls
 - Anonymous polling UI (radio buttons, percentage bars)
 - Aggregate results visible to speakers and organizers only
@@ -132,6 +136,7 @@ Add a lightweight Q&A/polling layer using Matrix state events (`m.room.q_and_a` 
 ### Problem Statement
 
 Contributors struggle to:
+
 1. Set up a local mesh harness for testing P2P features
 2. Run tests across web and native platforms simultaneously
 3. Understand which changes require end-to-end testing vs. fixtures
@@ -141,16 +146,19 @@ Contributors struggle to:
 Document and automate three aspects of developer workflow:
 
 **1. Local Mesh Setup**: Step-by-step guide to running neutrino-probe with two local homeservers and the companion app. Include:
+
 - Docker Compose template for mesh nodes
 - CLI commands for adding peers and running tests
 - Troubleshooting guide (common firewall issues, port conflicts)
 
 **2. Cross-Platform CI**: New GitHub Actions workflow that:
+
 - Spins up an Android emulator and PWA dev server in parallel
 - Runs coordinated interaction tests (import data in web, export in native, verify sync)
 - Reports coverage for both platforms in a single report
 
 **3. Contract Testing Guide**: Document the fixture layer and add tooling to:
+
 - List all contract variants with coverage status
 - Generate fixture coverage report in CI
 - Fail if a new contract variant lands without fixtures
@@ -179,16 +187,19 @@ Document and automate three aspects of developer workflow:
 ## Sequencing & Milestones
 
 ### Week 1–2 (Oct 7–18)
+
 - **Theme 1**: Draft `AttendeeRoster` contract; ship PWA prototype
 - **DevEx**: Publish local mesh setup guide and Docker Compose template
 - **Goal**: Unblock external contributors; gather feedback on roster UX
 
 ### Week 3–4 (Oct 21–Nov 1)
+
 - **Theme 2**: Define `SpeakerSlides` contract; implement PDF viewer in PWA
 - **Theme 3**: Draft Q&A contract; spec moderation API
 - **Goal**: Have contracts and UI prototypes ready for native app porting
 
 ### Week 5–6 (Nov 4–15)
+
 - **Theme 1**: Integrate roster into native app; end-to-end testing
 - **Theme 2**: Archival tool (Python script); CDN deployment guide
 - **Theme 3**: Q&A UI on native app; moderation dashboard
@@ -196,6 +207,7 @@ Document and automate three aspects of developer workflow:
 - **Goal**: All three themes have shippable native implementations
 
 ### Week 7–8 (Nov 18–29)
+
 - **Testing**: Fixture coverage integration; cross-platform test suite
 - **Docs**: Q&A organizer guide, slide upload guide, archival runbook
 - **Goal**: Ready for a coordinated release across web, native, and docs
@@ -205,18 +217,21 @@ Document and automate three aspects of developer workflow:
 ## Success Metrics
 
 ### Adoption
+
 - Roster discovery reduces manual handshake count by >50% in post-event surveys
 - Slide archival tool used for 100% of speaker decks within 24 hours of event close
 - Q&A generates >100 questions per session (baseline: 0 currently)
 
 ### Quality
+
 - Cross-platform E2E tests catch >80% of sync bugs before merge
 - Fixture coverage stays >80% per contract type
 - Local mesh setup time <15 minutes for first-time contributors
 
 ### Community
-- >5 community-contributed contract extensions (e.g., organizer notes, speaker bio)
-- >3 event organizers from other conferences adopt the tools
+
+- > 5 community-contributed contract extensions (e.g., organizer notes, speaker bio)
+- > 3 event organizers from other conferences adopt the tools
 
 ---
 
@@ -249,5 +264,5 @@ Document and automate three aspects of developer workflow:
 
 ---
 
-*Prepared by: strategist agent (ACMM L5 — hold-gated mode)*
-*Review requested from: @maintainers, @ecosystem-partners*
+_Prepared by: strategist agent (ACMM L5 — hold-gated mode)_
+_Review requested from: @maintainers, @ecosystem-partners_
