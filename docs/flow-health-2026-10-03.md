@@ -46,17 +46,21 @@ work is shipped.
 
 ### Cause 2: Stalled Unstarted Issues (46 total)
 
-| Subcategory | Count | Examples | Age Range |
-| --- | --- | --- | --- |
-| Permanently parked epics (180+ days) | 3 | dotfiles#1, #2, #3 (QR bootstrap, secret onboarding, GH CLI automation) | 185–186d |
-| Decision-gated (no follow-up) | 2 | dotfiles#49 (QR secret onboarding, 3 open approaches), indiafoss-companion#115 (Matrix verification) | 29–70d |
-| Unstarted (test/docs/refactoring) | 41 | hummingbird-github#2 (Rawhide package), 40+ spanning test coverage, docs, refactoring | 2–34d |
+46 issues remain unstarted across three categories:
+
+- **Permanently parked epics (180+ days, 3 issues):** dotfiles#1, #2, #3 (QR
+  bootstrap, secret onboarding, GH CLI automation) at 185–186 days each
+- **Decision-gated without follow-up (2 issues):** dotfiles#49 (QR secret
+  onboarding, 3 open approaches, 70 days) and indiafoss-companion#115 (Matrix
+  verification, 29 days)
+- **Unstarted test/docs/refactoring (41 issues):** hummingbird-github#2 (Rawhide
+  package), 40+ spanning test coverage, docs, refactoring at 2–34 days
 
 **Evidence:**
 - 46 issues with `linked_prs` empty or missing
 - 0 PR in `claim_context` for any of them
-- Decision-gated issues (dotfiles#49, indiafoss-companion#115) contain open
-  questions but no `needs-direction` label or maintainer response
+- Decision-gated issues contain open questions but no `needs-direction` label or
+  maintainer response
 
 **Pattern:** Issues are filed but not being actively worked. No clear blocker
 visible *in the data* for 41 of them; the 5 decision-gated issues simply await
@@ -66,16 +70,19 @@ maintainer input.
 
 ### Cause 3: Blocker Concentration (4 repos at 38–52%)
 
-| Repo | Blockers | Total | % | Primary Blocker Type |
-| --- | --- | --- | --- | --- |
-| shrimply | 17 | 33 | 52% | CI issues (7d old) |
-| dotfiles | 11 | 22 | 50% | Merged awaiting verify (119d) |
-| homebrew-tap | 12 | 29 | 41% | Workflow files + CI (9d) |
-| indiafoss-companion | 20 | 52 | 38% | Workflow files (8d) |
+Blockers are concentrated in four repos:
+
+- **shrimply:** 17 blockers / 33 total (52%) — primarily CI issues (7d old)
+- **dotfiles:** 11 blockers / 22 total (50%) — merged awaiting verify (119d)
+- **homebrew-tap:** 12 blockers / 29 total (41%) — workflow files + CI (9d)
+- **indiafoss-companion:** 20 blockers / 52 total (38%) — workflow files (8d)
+
+The remaining 4 repos (rust-wayland-desktop, hummingbird-github, reilly.asia,
+indiafoss-chat-android) have 8–25% blocker rates.
 
 **Evidence:**
 - Blocker count = merged-awaiting-verify + decision-gated + stalled-unstarted
-- Concentrated in 4 repos; remaining 4 have 8–25% blocker rate
+- Concentrated in 4 repos; remaining 4 have lower blocker density
 
 **Effect:** These 4 repos account for 60 of 211 actionable issues (28%) but
 contain 71% of visible blockers.
@@ -205,14 +212,14 @@ are normal backlog items.
 
 ## Evidence & Confidence Table
 
-| Finding | Evidence Source | Confidence | Caveats |
-| --- | --- | --- | --- |
-| 11 merged PRs awaiting verification | Telemetry: `claim_context.merged_pr=true`, age 2–119d | **High** | Age is post-merge time; does not indicate time between merge and current check |
-| 46 stalled unstarted issues | Telemetry: `linked_prs=[]` or empty for 46 issues | **High** | Does not distinguish "deliberately deferred" from "forgotten"; rely on labels for intent |
-| Decision-gated blocker on 2 issues | Issue body text: explicit "open question" or "proposal" sections | **High** | Pattern inferred; confirmed by title and body |
-| Workflow files gating 9+ issues | Issue titles + labels + hive metadata (ISSUES_AND_PRS gate) | **Medium** | Need PR inspection to confirm all are genuinely `.github/workflows/` changes |
-| No CI infrastructure faults | Absence of CI failure logs in `claim_context`, no CI-error labels | **Medium** | Absence of evidence is not evidence of absence; CI could be slow while green |
-| Blocker concentration in 4 repos | Direct count: blocker / total per repo | **High** | No sampling; data is complete for authorized repos |
+| Finding | Confidence | Caveats |
+| --- | --- | --- |
+| 11 merged PRs awaiting verification | **High** | Age is post-merge time; does not indicate time between merge and current check |
+| 46 stalled unstarted issues | **High** | Does not distinguish "deliberately deferred" from "forgotten"; rely on labels for intent |
+| Decision-gated blocker on 2 issues | **High** | Pattern inferred; confirmed by title and body |
+| Workflow files gating 9+ issues | **Medium** | Need PR inspection to confirm all are genuinely `.github/workflows/` changes |
+| No CI infrastructure faults | **Medium** | Absence of evidence is not evidence of absence; CI could be slow while green |
+| Blocker concentration in 4 repos | **High** | No sampling; data is complete for authorized repos |
 
 ---
 
