@@ -66,6 +66,7 @@ export async function importGithubProfile(github: string): Promise<GithubImportR
   try {
     res = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}`, {
       headers: { Accept: 'application/vnd.github+json' },
+      signal: AbortSignal.timeout(10000),
     });
   } catch {
     return { ok: false, failure: 'network' };
@@ -78,7 +79,10 @@ export async function importGithubProfile(github: string): Promise<GithubImportR
   try {
     const accounts = await fetch(
       `https://api.github.com/users/${encodeURIComponent(username)}/social_accounts`,
-      { headers: { Accept: 'application/vnd.github+json' } },
+      {
+        headers: { Accept: 'application/vnd.github+json' },
+        signal: AbortSignal.timeout(10000),
+      },
     );
     if (accounts.ok) {
       const listed = socialsFromGithubAccounts(
