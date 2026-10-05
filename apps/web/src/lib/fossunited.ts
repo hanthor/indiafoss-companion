@@ -32,7 +32,10 @@ async function fetchProfileHtml(url: string): Promise<{ html?: string; failure?:
     // Not running under Capacitor; fall through to fetch.
   }
   try {
-    const res = await fetch(url, { headers: { Accept: 'text/html' }, signal: AbortSignal.timeout(15000) });
+    const res = await fetch(url, {
+      headers: { Accept: 'text/html' },
+      signal: AbortSignal.timeout(15000),
+    });
     if (res.status === 404) return { failure: 'not-found' };
     if (!res.ok) return { failure: 'network' };
     return { html: await res.text() };
