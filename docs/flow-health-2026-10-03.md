@@ -214,11 +214,11 @@ are normal backlog items.
 
 | Finding | Confidence | Caveats |
 | --- | --- | --- |
-| 11 merged PRs awaiting verification | **High** | Age is post-merge time; does not indicate time between merge and current check |
-| 46 stalled unstarted issues | **High** | Does not distinguish "deliberately deferred" from "forgotten"; rely on labels for intent |
-| Decision-gated blocker on 2 issues | **High** | Pattern inferred; confirmed by title and body |
-| Workflow files gating 9+ issues | **Medium** | Need PR inspection to confirm all are genuinely `.github/workflows/` changes |
-| No CI infrastructure faults | **Medium** | Absence of evidence is not evidence of absence; CI could be slow while green |
+| 11 merged PRs awaiting verification | **High** | Post-merge age; not time-to-merge |
+| 46 stalled unstarted issues | **High** | Cannot distinguish deliberate deferral |
+| Decision-gated blocker on 2 issues | **High** | Confirmed by title and body |
+| Workflow files gating 9+ issues | **Medium** | Need PR inspection to verify |
+| No CI infrastructure faults | **Medium** | Absence of evidence only |
 | Blocker concentration in 4 repos | **High** | No sampling; data is complete for authorized repos |
 
 ---
