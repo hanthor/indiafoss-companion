@@ -32,9 +32,8 @@ class ReminderSchedulerTest {
 
     @Before
     fun clearAlarms() {
-        for (alarm in alarms.scheduledAlarms.toList()) {
-            alarms.cancel(alarm.operation)
-        }
+        // Clear any previously scheduled alarms by creating a fresh shadow
+        alarms.scheduledAlarms.clear()
     }
 
     // The scheduler reads the real clock, so the sessions sit two hours ahead of it.
