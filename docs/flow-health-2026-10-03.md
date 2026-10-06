@@ -212,14 +212,17 @@ are normal backlog items.
 
 ## Evidence & Confidence Table
 
-| Finding                                      | Confidence | Caveats                                                 |
-| -------------------------------------------- | ---------- | ------------------------------------------------------- |
-| 11 merged PRs awaiting verification          | **High**   | Post-merge age; not time-to-merge                       |
-| 46 stalled unstarted issues                  | **High**   | Cannot distinguish deliberate deferral                  |
-| Decision-gated blocker on 2 issues           | **High**   | Confirmed by title and body                             |
-| Workflow files gating 9+ issues              | **Medium** | Need PR inspection to verify                            |
-| No CI infrastructure faults                  | **Medium** | Absence of evidence only                                |
-| Blocker concentration in 4 repos             | **High**   | No sampling; data is complete for authorized repos      |
+| Finding | Confidence | Caveats |
+| --- | --- | --- |
+| 11 merged PRs awaiting verify | **High** | Post-merge age |
+| 46 stalled unstarted issues | **High** | Deliberate deferral? |
+| Decision-gated on 2 issues | **High** | Title & body confirmed |
+| Workflow files gating 9+ | **Medium** | Need PR inspection |
+| No CI infra faults | **Medium** | Absence of evidence |
+| Blockers in 4 repos (38–52%) | **High** | Complete authorized repos |
+| Merge sample | **Medium** | merged_sample=0, no MTTM data |
+| Review coverage | **Unknown** | No assignee/reviewer data |
+| CI telemetry | **Unknown** | Job queue & retry rates hidden |
 
 ---
 
