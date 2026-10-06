@@ -94,9 +94,7 @@ describe('contracts/common', () => {
     });
 
     it('returns an error for an empty or whitespace-only string', () => {
-      expect(requireString({ field: '' }, 'field')).toContain(
-        'field must be a non-empty string',
-      );
+      expect(requireString({ field: '' }, 'field')).toContain('field must be a non-empty string');
       expect(requireString({ field: '   ' }, 'field')).toContain(
         'field must be a non-empty string',
       );
@@ -200,9 +198,7 @@ describe('contracts/common', () => {
     });
 
     it('returns an error for a non-array value', () => {
-      expect(requireArray({ items: 'not an array' }, 'items')).toContain(
-        'items must be an array',
-      );
+      expect(requireArray({ items: 'not an array' }, 'items')).toContain('items must be an array');
       expect(requireArray({ items: {} }, 'items')).toContain('items must be an array');
     });
 

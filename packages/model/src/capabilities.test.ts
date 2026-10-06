@@ -37,7 +37,7 @@ describe('capabilities', () => {
       expect(scenarioNames).toContain('scenario.restart');
       expect(scenarioNames).toContain('scenario.key-rotation');
     });
-  })
+  });
 
   describe('CAPABILITIES', () => {
     it('exports an array of capability definitions', () => {
@@ -94,9 +94,7 @@ describe('capabilities', () => {
       const def = capabilityDefinition('scenario.fresh-install');
       expect(def).toBeDefined();
       expect(def?.name).toBe('scenario.fresh-install');
-      expect(def?.meaning).toBe(
-        'A first install opens on the published schedule.',
-      );
+      expect(def?.meaning).toBe('A first install opens on the published schedule.');
     });
 
     it('returns undefined for unknown capability names', () => {
