@@ -13,18 +13,18 @@ vi.mock('@matrix-org/matrix-sdk-crypto-wasm', () => ({
   },
   DeviceLists: class MockDeviceLists {
     constructor(
-      public changed: any[],
-      public left: any[],
+      public changed: unknown[],
+      public left: unknown[],
     ) {}
   },
   OlmMachine: class MockOlmMachine {
-    private roomKeyCallbacks: ((infos: any[]) => Promise<void>)[] = [];
+    private roomKeyCallbacks: ((infos: unknown[]) => Promise<void>)[] = [];
 
     static initialize = vi.fn(async () => {
       return new MockOlmMachine();
     });
 
-    registerRoomKeyUpdatedCallback = vi.fn(function (cb: (infos: any[]) => Promise<void>) {
+    registerRoomKeyUpdatedCallback = vi.fn(function (cb: (infos: unknown[]) => Promise<void>) {
       this.roomKeyCallbacks.push(cb);
     });
 
