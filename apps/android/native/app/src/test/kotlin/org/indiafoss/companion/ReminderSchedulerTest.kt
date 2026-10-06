@@ -10,6 +10,7 @@ import org.indiafoss.companion.core.Schedule
 import org.indiafoss.companion.reminders.ReminderScheduler
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -28,6 +29,13 @@ class ReminderSchedulerTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
     private val alarms = shadowOf(context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
     private val scheduler = ReminderScheduler(context)
+
+    @Before
+    fun clearAlarms() {
+        for (alarm in alarms.scheduledAlarms.toList()) {
+            alarms.cancel(alarm.operation)
+        }
+    }
 
     // The scheduler reads the real clock, so the sessions sit two hours ahead of it.
     private val nowMs = System.currentTimeMillis()
