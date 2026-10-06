@@ -29,11 +29,14 @@ describe('sources/index', () => {
         name: 'Existing',
       }); // kept original
       expect(bundle.booths[1]).toEqual({ id: 'b', name: 'New' });
-    })
+    });
 
     it('handles empty initial booths', () => {
       const bundle = { booths: [] };
-      const newBooths = [{ id: 'x', name: 'X' }, { id: 'y', name: 'Y' }];
+      const newBooths = [
+        { id: 'x', name: 'X' },
+        { id: 'y', name: 'Y' },
+      ];
 
       mergeBooths(bundle, newBooths);
 
@@ -47,7 +50,7 @@ describe('sources/index', () => {
       mergeBooths(bundle, newBooths);
 
       expect(bundle.booths).toHaveLength(1);
-    })
+    });
 
     it('handles multiple duplicates correctly', () => {
       const bundle = {
@@ -96,6 +99,6 @@ describe('sources/index', () => {
 
       // Same reference, not replaced
       expect(bundle.booths).toBe(originalRef);
-    })
-  })
-})
+    });
+  });
+});

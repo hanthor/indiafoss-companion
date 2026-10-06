@@ -85,7 +85,9 @@ describe('capabilities', () => {
       const def = capabilityDefinition('schedule.offline');
       expect(def).toBeDefined();
       expect(def?.name).toBe('schedule.offline');
-      expect(def?.meaning).toBe('The published programme, plan and map are usable with no network.');
+      expect(def?.meaning).toBe(
+        'The published programme, plan and map are usable with no network.',
+      );
     });
 
     it('returns the definition for release scenario names', () => {
