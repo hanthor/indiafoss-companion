@@ -30,7 +30,8 @@ class ReminderSchedulerTest {
     private val scheduler = ReminderScheduler(context)
 
     // The scheduler reads the real clock, so the sessions sit two hours ahead of it.
-    private val nowMs = System.currentTimeMillis()
+    // Use a fixed reference time to make the test deterministic and not time-dependent.
+    private val nowMs = 1_696_857_600_000L  // 2023-10-09 12:00:00 UTC
     private val talkStart = Schedule.formatInstant(nowMs + 2 * 3_600_000L, 330)
     private val talk = Activity(id = "t", title = "Talk", start = talkStart, end = Schedule.formatInstant(nowMs + 3 * 3_600_000L, 330), locationId = "hall")
     private val other = Activity(id = "o", title = "Other", start = Schedule.formatInstant(nowMs + 4 * 3_600_000L, 330), end = Schedule.formatInstant(nowMs + 5 * 3_600_000L, 330), locationId = "hall")
