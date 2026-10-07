@@ -160,28 +160,9 @@ export function isHex64(value: unknown): boolean {
 }
 
 /**
- * True for a Matrix user id of either flavour: a classic `@localpart:server`
- * or a mesh `@n:<64-hex>` (ADR 0008 — the node's public key is the server
- * name). Shape only; this says nothing about whether the id exists or is
- * controlled by whoever presented it.
+ * Matrix validators are defined in messaging.ts and re-exported here for use
+ * in contracts. The regex-based implementations in messaging support mesh room
+ * ids without server suffixes (RFC v12), while these manual validators would
+ * reject them — so messaging.ts is authoritative.
  */
-export function isMatrixUserId(value: unknown): boolean {
-  if (typeof value !== 'string' || !value.startsWith('@')) return false;
-  const colon = value.indexOf(':');
-  if (colon < 2 || colon === value.length - 1) return false;
-  return true;
-}
-
-/** True for a Matrix room alias, `#localpart:server`. */
-export function isMatrixRoomAlias(value: unknown): boolean {
-  if (typeof value !== 'string' || !value.startsWith('#')) return false;
-  const colon = value.indexOf(':');
-  return colon >= 2 && colon !== value.length - 1;
-}
-
-/** True for a Matrix room id, `!opaque:server`. */
-export function isMatrixRoomId(value: unknown): boolean {
-  if (typeof value !== 'string' || !value.startsWith('!')) return false;
-  const colon = value.indexOf(':');
-  return colon >= 2 && colon !== value.length - 1;
-}
+export { isMatrixRoomAlias, isMatrixRoomId, isMatrixUserId } from '../messaging.js';

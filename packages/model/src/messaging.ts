@@ -112,12 +112,16 @@ const USER_ID_RE = /^@[^:\s]+:[^\s]+$/;
 // a room-id link cannot be routed without a `via` (see {@link matrixUriFor}).
 const ROOM_ID_RE = /^![^:\s]+(?::[^\s]+)?$/;
 
-export function isMatrixRoomAlias(value: string): boolean {
-  return ALIAS_RE.test(value);
+// These three are the authoritative Matrix id predicates for the workspace and
+// run against unvalidated contract input, so they take `unknown` and report
+// false for a non-string rather than throwing. Behaviour for a string argument
+// is exactly the regex test.
+export function isMatrixRoomAlias(value: unknown): boolean {
+  return typeof value === 'string' && ALIAS_RE.test(value);
 }
 
-export function isMatrixUserId(value: string): boolean {
-  return USER_ID_RE.test(value);
+export function isMatrixUserId(value: unknown): boolean {
+  return typeof value === 'string' && USER_ID_RE.test(value);
 }
 
 /**
@@ -184,8 +188,8 @@ export function isServerName(value: string): boolean {
   return /^[A-Za-z0-9.-]+$/.test(host) && !host.startsWith('.') && !host.endsWith('.');
 }
 
-export function isMatrixRoomId(value: string): boolean {
-  return ROOM_ID_RE.test(value);
+export function isMatrixRoomId(value: unknown): boolean {
+  return typeof value === 'string' && ROOM_ID_RE.test(value);
 }
 
 /**
