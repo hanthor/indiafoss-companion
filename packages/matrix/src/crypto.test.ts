@@ -148,9 +148,7 @@ describe('crypto.ts', () => {
         };
 
         // flushOutgoing should handle empty outgoing requests
-        await expect(
-          backend.flushOutgoing(mockClient as any),
-        ).resolves.not.toThrow();
+        await expect(backend.flushOutgoing(mockClient as any)).resolves.not.toThrow();
       });
     });
 
@@ -307,9 +305,7 @@ describe('crypto.ts', () => {
 
     describe('error handling', () => {
       it('handles encryption failures gracefully', async () => {
-        vi.spyOn(backend, 'encryptEvent').mockRejectedValueOnce(
-          new Error('Encryption failed'),
-        );
+        vi.spyOn(backend, 'encryptEvent').mockRejectedValueOnce(new Error('Encryption failed'));
 
         await expect(
           backend.encryptEvent('!room:example.com', 'm.room.message', { body: 'test' }),
@@ -317,9 +313,7 @@ describe('crypto.ts', () => {
       });
 
       it('handles decryption failures gracefully', async () => {
-        vi.spyOn(backend, 'decryptEvent').mockRejectedValueOnce(
-          new Error('Decryption failed'),
-        );
+        vi.spyOn(backend, 'decryptEvent').mockRejectedValueOnce(new Error('Decryption failed'));
 
         await expect(
           backend.decryptEvent('!room:example.com', {
