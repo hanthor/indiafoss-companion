@@ -1,20 +1,73 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { RawMatrixEvent } from './types.js';
+import type { MatrixClient } from './http.js';
 import { loadCryptoWasm, WasmCryptoBackend } from './crypto.js';
 
-// Mock the WASM module
+// The crypto backend only ever reaches for the client's keys* request helpers,
+// so a stub carrying those is a structurally valid MatrixClient for these tests.
+const stubClient = (): MatrixClient =>
+  ({ post: vi.fn(async () => ({})) }) as unknown as MatrixClient;
+
+// Mock the WASM module. The surface mirrored here is exactly what
+// WasmCryptoBackend reaches for, so a method missing from the real crate would
+// surface as a failure rather than passing against an over-permissive stub.
 vi.mock('@matrix-org/matrix-sdk-crypto-wasm', () => ({
   initAsync: vi.fn(),
   UserId: class MockUserId {
     constructor(public id: string) {}
+    toString() {
+      return this.id;
+    }
   },
   DeviceId: class MockDeviceId {
     constructor(public id: string) {}
+  },
+  RoomId: class MockRoomId {
+    constructor(public id: string) {}
+    toString() {
+      return this.id;
+    }
   },
   DeviceLists: class MockDeviceLists {
     constructor(
       public changed: unknown[],
       public left: unknown[],
+    ) {}
+  },
+  // `new EncryptionSettings()` then assigns algorithm/historyVisibility/
+  // sharingStrategy, so the fields have to be writable.
+  EncryptionSettings: class MockEncryptionSettings {
+    algorithm: unknown = undefined;
+    historyVisibility: unknown = undefined;
+    sharingStrategy: unknown = undefined;
+  },
+  EncryptionAlgorithm: { MegolmV1AesSha2: 'megolm.v1.aes-sha2' },
+  HistoryVisibility: { Shared: 'shared' },
+  CollectStrategy: { allDevices: vi.fn(() => 'all-devices') },
+  DecryptionSettings: class MockDecryptionSettings {
+    constructor(public trustRequirement: unknown) {}
+  },
+  TrustRequirement: { Untrusted: 'untrusted' },
+  RequestType: {
+    KeysUpload: 'keys-upload',
+    KeysQuery: 'keys-query',
+    KeysClaim: 'keys-claim',
+    ToDevice: 'to-device',
+    SignatureUpload: 'signature-upload',
+    KeysBackup: 'keys-backup',
+    RoomMessage: 'room-message',
+  },
+  Attachment: {
+    encrypt: vi.fn(() => ({
+      encryptedData: new Uint8Array([1, 2, 3]),
+      mediaEncryptionInfo: '{"key":"mock"}',
+    })),
+    decrypt: vi.fn(() => new Uint8Array([4, 5, 6])),
+  },
+  EncryptedAttachment: class MockEncryptedAttachment {
+    constructor(
+      public data: Uint8Array,
+      public info: string,
     ) {}
   },
   OlmMachine: class MockOlmMachine {
@@ -24,22 +77,23 @@ vi.mock('@matrix-org/matrix-sdk-crypto-wasm', () => ({
       return new MockOlmMachine();
     });
 
-    registerRoomKeyUpdatedCallback = vi.fn(function (cb: (infos: unknown[]) => Promise<void>) {
+    registerRoomKeyUpdatedCallback = vi.fn((cb: (infos: unknown[]) => Promise<void>) => {
       this.roomKeyCallbacks.push(cb);
     });
 
     receiveSyncChanges = vi.fn();
-    outgoingRequests = vi.fn(() => []);
+    outgoingRequests = vi.fn(async () => []);
     markRequestAsSent = vi.fn();
-    receiveKeys = vi.fn();
-    shareRoomKey = vi.fn(() => []);
-    encryptRoomEvent = vi.fn(() => ({ type: 'm.room.encrypted', content: {} }));
-    decryptRoomEvent = vi.fn();
-    encryptAttachment = vi.fn(() => ({
-      data: new Uint8Array(),
-      media_key: 'mock_key',
+    updateTrackedUsers = vi.fn();
+    getMissingSessions = vi.fn(async () => null);
+    shareRoomKey = vi.fn(async () => []);
+    // encryptEvent JSON.parses this, so it must be a JSON string.
+    encryptRoomEvent = vi.fn(async () =>
+      JSON.stringify({ algorithm: 'm.megolm.v1.aes-sha2', ciphertext: 'mock' }),
+    );
+    decryptRoomEvent = vi.fn(async () => ({
+      event: JSON.stringify({ type: 'm.room.message', content: { body: 'decrypted' } }),
     }));
-    decryptAttachment = vi.fn(() => new Uint8Array());
     close = vi.fn();
   },
 }));
@@ -143,12 +197,8 @@ describe('crypto.ts', () => {
 
     describe('flushOutgoing', () => {
       it('processes outgoing requests', async () => {
-        const mockClient = {
-          post: vi.fn(async () => ({})),
-        };
-
         // flushOutgoing should handle empty outgoing requests
-        await expect(backend.flushOutgoing(mockClient as any)).resolves.not.toThrow();
+        await expect(backend.flushOutgoing(stubClient())).resolves.not.toThrow();
       });
     });
 
@@ -160,7 +210,10 @@ describe('crypto.ts', () => {
         });
 
         expect(result).toBeDefined();
-        expect(result.type).toBe('m.room.encrypted');
+        // encryptEvent returns the parsed `m.room.encrypted` *content*, not a
+        // whole event, so it carries the megolm fields and no `type`.
+        expect(result.algorithm).toBe('m.megolm.v1.aes-sha2');
+        expect(result.ciphertext).toBeDefined();
       });
 
       it('handles various content types', async () => {
@@ -259,12 +312,8 @@ describe('crypto.ts', () => {
 
     describe('ensureRoomKey', () => {
       it('shares room keys with specified members', async () => {
-        const mockClient = {
-          post: vi.fn(async () => ({})),
-        };
-
         await expect(
-          backend.ensureRoomKey(mockClient as any, '!room:example.com', [
+          backend.ensureRoomKey(stubClient(), '!room:example.com', [
             '@alice:example.com',
             '@bob:example.com',
           ]),
@@ -272,12 +321,8 @@ describe('crypto.ts', () => {
       });
 
       it('handles empty member list', async () => {
-        const mockClient = {
-          post: vi.fn(async () => ({})),
-        };
-
         await expect(
-          backend.ensureRoomKey(mockClient as any, '!room:example.com', []),
+          backend.ensureRoomKey(stubClient(), '!room:example.com', []),
         ).resolves.not.toThrow();
       });
     });
