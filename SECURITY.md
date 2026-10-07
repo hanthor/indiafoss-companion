@@ -13,6 +13,7 @@ This policy follows responsible disclosure principles: reporters get time to pat
 ### Where to Report
 
 **Primary channel (confidential):**
+
 ```
 security@indiafoss.fossunited.org
 ```
@@ -21,6 +22,7 @@ security@indiafoss.fossunited.org
 Use GitHub's [security advisory feature](https://docs.github.com/en/code-security/security-advisories/privately-reporting-a-security-vulnerability) to report directly on the repository (preferred for authenticated researchers).
 
 **If no response within 48 hours:**
+
 - Email again with "SECURITY: " prefix in subject
 - Contact project maintainer directly (see CONTRIBUTORS.md or GitHub profile)
 
@@ -46,7 +48,7 @@ Vulnerability: SQL injection in UserProfileImporter.kt
 Severity: High
 Affected: v0.1.0-nightly, chat-android main branch
 
-The profile import endpoint does not parameterize database queries, allowing 
+The profile import endpoint does not parameterize database queries, allowing
 attackers to inject SQL via malicious profile data.
 
 Proof of concept:
@@ -129,11 +131,13 @@ Timeline: 90 days standard embargo
 ### Step 4: Patch Release
 
 **For critical/high severity:**
+
 - Security-only release published (may skip normal release cycle)
 - Release notes mention "security fix" without details
 - Patch backported to maintained versions
 
 **For medium/low severity:**
+
 - Included in next regular release
 - Release notes describe fix once public
 
@@ -141,12 +145,12 @@ Timeline: 90 days standard embargo
 
 **Coordinated disclosure timeline:**
 
-| Severity | Reporter notified | Public disclosure | Grace period |
-|----------|-------------------|-------------------|--------------|
-| Critical | Day 1 | Day 1 (after patch) | 0 days |
-| High | Day 3 | Day 5 (after patch) | 1-2 days |
-| Medium | Day 7 | Day 14 (after patch) | Up to 7 days |
-| Low | Day 14+ | Next release notes | Variable |
+| Severity | Reporter notified | Public disclosure    | Grace period |
+| -------- | ----------------- | -------------------- | ------------ |
+| Critical | Day 1             | Day 1 (after patch)  | 0 days       |
+| High     | Day 3             | Day 5 (after patch)  | 1-2 days     |
+| Medium   | Day 7             | Day 14 (after patch) | Up to 7 days |
+| Low      | Day 14+           | Next release notes   | Variable     |
 
 **Disclosure format:**
 
@@ -173,6 +177,7 @@ Timeline: 90 days standard embargo
 ### At Disclosure (Public)
 
 **GitHub Security Advisory includes:**
+
 - Vulnerability description
 - Affected versions
 - Fix version/date
@@ -180,6 +185,7 @@ Timeline: 90 days standard embargo
 - CVSS score (if applicable)
 
 **Release notes include:**
+
 ```
 ## Security
 
@@ -191,6 +197,7 @@ Timeline: 90 days standard embargo
 ```
 
 **Blog/announcement includes:**
+
 ```
 We have released security updates for IndiaFOSS Companion addressing [X] vulnerabilities.
 
@@ -236,11 +243,13 @@ These are **not** security vulnerabilities:
 See [docs/privacy.md](docs/privacy.md) for privacy model.
 
 **Encrypted messaging limitations:**
+
 - DMs work only within mesh or with remote access (see docs/messaging.md)
 - Device verification is out-of-band (manual QR comparison)
 - No forward secrecy (past messages decrypt if device compromised)
 
 **Plugin security:**
+
 - Plugins run with full app privileges (no sandboxing in preview)
 - Malicious plugins can read all personal data and modify messages
 
