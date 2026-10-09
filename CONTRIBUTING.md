@@ -11,10 +11,12 @@ Thank you for your interest in contributing! This guide covers setting up your d
 - **Git**
 
 For Android development:
+
 - Android SDK (API 31+)
 - JDK 21
 
 For iOS (web PWA):
+
 - No additional setup; the PWA builds and runs in any modern browser
 
 ### Clone and Set Up
@@ -43,6 +45,7 @@ just check
 ```
 
 This runs (in order):
+
 - `format-check` — verify code formatting
 - `lint` — check for linting errors
 - `typecheck` — TypeScript type checking
@@ -51,6 +54,7 @@ This runs (in order):
 - `build` — build all packages and the PWA
 
 If any step fails, run the individual command to see details:
+
 - `just format` — auto-fix formatting issues
 - `just lint` — see linting errors
 - `just typecheck` — see type errors
@@ -97,6 +101,7 @@ Builds land in `app/build/outputs/apk/debug/`. For emulator testing, see [docs/a
 ```
 
 **Key entry points:**
+
 - `packages/contracts` — data models; changes here require fixture updates
 - `packages/model` — business logic (ranking Elo, itinerary solving, etc.)
 - `apps/web/src` — React components and pages
@@ -119,6 +124,7 @@ Issues on the [project board](https://github.com/hanthor/indiafoss-companion/pro
 - **Shared logic**: Changes to `packages/*` may affect both web and Android; test both.
 
 **Style:**
+
 - Follow existing code style. No style guide doc yet; look at a similar file in the same directory.
 - Use TypeScript strict mode; avoid `any` where possible.
 - Format with `just format` before committing.
@@ -137,6 +143,7 @@ just ci
 ```
 
 **Which tests are required?**
+
 - `just check` must pass before you push
 - E2E tests (`just ci`) will run in CI, but running locally first catches many issues
 - If you change event models or venue data, run `verify-assets` to regenerate fixtures
@@ -150,6 +157,7 @@ git push origin guide/docs-your-change-name
 ```
 
 **Commit messages:** Use [Conventional Commits](https://www.conventionalcommits.org/):
+
 - `feat:` — new feature
 - `fix:` — bug fix
 - `docs:` — documentation only
@@ -162,11 +170,13 @@ Sign your commits with DCO: `git commit -s`.
 ### 5. Open a Pull Request
 
 Push your branch and [open a PR](https://github.com/hanthor/indiafoss-companion/compare). Include:
+
 - **Title**: concise, follows Conventional Commits
 - **Description**: what the PR does and why; link related issues with `Closes #NNN` or `Refs #NNN`
 - **Testing**: describe how you tested the change (e.g., "tested on web and Android", "ran E2E suite")
 
 **Checklist before requesting review:**
+
 - [ ] Code formatted (`just format`)
 - [ ] Tests pass (`just check` or `just ci`)
 - [ ] No new console warnings or errors
@@ -198,17 +208,20 @@ Once approved, the PR will be squashed and merged to `main`. Your branch can be 
 ## Documentation
 
 Documentation lives in `docs/` and covers:
+
 - **Architecture** (`docs/architecture/`) — system design and data flow
 - **ADRs** (`docs/adr/`) — architectural decisions
 - **How-tos** (`docs/event-onboarding.md`, `docs/venue-map.md`, etc.) — feature guides
 - **Roadmap** (`docs/roadmap.md`) — priorities and phases
 
 **When to update docs:**
+
 - You add a significant feature or change behavior → update the related how-to
 - You make an architectural decision → file an ADR
 - You fix a typo or clarify existing text → edit the doc directly
 
 **How to document:**
+
 - Use Markdown
 - Link to related docs and ADRs inline
 - Include examples or screenshots if helpful
