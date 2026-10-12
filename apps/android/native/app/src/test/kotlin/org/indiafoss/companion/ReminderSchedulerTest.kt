@@ -77,7 +77,8 @@ class ReminderSchedulerTest {
         val clash = talk.copy(id = "c", title = "Clash")
         val conflicted = state(mustAttend = setOf("t", "c")).copy(bundle = bundle.copy(activities = listOf(talk, other, clash)))
         scheduler.arm(conflicted)
-        assertEquals(emptyList<String>(), armedIds())
+        // When a plan has blocking conflicts, no reminders are armed
+        assertTrue("Conflicted plan must arm no reminders; armed: ${armedIds()}", armedIds().isEmpty())
         scheduler.arm(conflicted.copy(removedFromPlan = setOf("c")))
         assertTrue(armedIds().toString(), "must-t" in armedIds())
     }
