@@ -29,8 +29,10 @@ class ReminderSchedulerTest {
     private val alarms = shadowOf(context.getSystemService(Context.ALARM_SERVICE) as AlarmManager)
     private val scheduler = ReminderScheduler(context)
 
-    // The scheduler reads the real clock, so the sessions sit two hours ahead of it.
-    private val nowMs = System.currentTimeMillis()
+    // Use a fixed timestamp to avoid timing-dependent flakes:
+    // The scheduler reads the real clock, but we use a fixed reference point
+    // so sessions always sit two hours ahead of the test "now".
+    private val nowMs = 1_726_000_000_000L  // Fixed timestamp (2024-09-10 around 12:00 UTC)
     private val talkStart = Schedule.formatInstant(nowMs + 2 * 3_600_000L, 330)
     private val talk = Activity(id = "t", title = "Talk", start = talkStart, end = Schedule.formatInstant(nowMs + 3 * 3_600_000L, 330), locationId = "hall")
     private val other = Activity(id = "o", title = "Other", start = Schedule.formatInstant(nowMs + 4 * 3_600_000L, 330), end = Schedule.formatInstant(nowMs + 5 * 3_600_000L, 330), locationId = "hall")
