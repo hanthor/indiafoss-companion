@@ -10,9 +10,9 @@ plugins {
 val seedAssets = layout.buildDirectory.dir("generated/seed-assets")
 
 val copySeedBundle by tasks.registering(Copy::class) {
-    from(layout.projectDirectory.asFile.parentFile.parentFile.parentFile.parentFile.resolve("events/indiafoss-2026/normalized/event-bundle.json"))
+    from(file("../../../../events/indiafoss-2026/normalized/event-bundle.json"))
     // The floor plans the web map draws, exported to JSON (`pnpm --filter @indiafoss/web floors`).
-    from(layout.projectDirectory.asFile.parentFile.parentFile.parentFile.resolve("web/static/venues/indiafoss-2026/floors.json"))
+    from(file("../../../web/static/venues/indiafoss-2026/floors.json"))
     into(seedAssets)
 }
 
