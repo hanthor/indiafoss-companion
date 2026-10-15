@@ -10,7 +10,7 @@
     "preview": "sirv build --single",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test": "vitest run --passWithNoTests",
+    "test": "svelte-kit sync && vitest run --passWithNoTests",
     "lint": "eslint .",
     "test:e2e": "playwright test tests/app.spec.ts",
     "postbuild": "node scripts/patch-sw.mjs && node scripts/verify-pwa-base.mjs",
