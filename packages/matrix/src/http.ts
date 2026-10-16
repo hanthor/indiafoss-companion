@@ -624,6 +624,7 @@ export class MatrixClient {
       method: 'POST',
       headers,
       body: bytes as unknown as BodyInit,
+      signal: AbortSignal.timeout(60_000),
     });
     const json = (await res.json().catch(() => ({}))) as {
       content_uri?: string;
@@ -653,7 +654,7 @@ export class MatrixClient {
     ];
     let last: Response | null = null;
     for (const path of paths) {
-      const res = await this.fetchFn(`${this.baseUrl}${path}`, { headers });
+      const res = await this.fetchFn(`${this.baseUrl}${path}`, { headers, signal: AbortSignal.timeout(120_000) });
       if (res.ok) return new Uint8Array(await res.arrayBuffer());
       last = res;
       if (res.status !== 404) break;
