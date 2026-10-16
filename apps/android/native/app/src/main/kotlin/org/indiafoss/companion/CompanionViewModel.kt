@@ -969,3 +969,18 @@ object IsoClock {
         return Triple((if (m <= 2) y + 1 else y).toInt(), m.toInt(), d.toInt())
     }
 }
+
+/** Extension to compute planned reminders from UiState (used by ReminderScheduler). */
+fun UiState.plannedReminders(nowMs: Long): List<Reminders.Reminder> {
+    val b = bundle ?: return emptyList()
+    return Reminders.compute(
+        b, nowMs,
+        tierFor = { id ->
+            when {
+                id in mustAttend -> Reminders.Tier.MUST_ATTEND
+                id in bookmarks -> Reminders.Tier.PLANNED
+                else -> Reminders.Tier.NONE
+            }
+        },
+    )
+}
