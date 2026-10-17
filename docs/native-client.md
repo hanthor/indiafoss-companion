@@ -264,8 +264,10 @@ PR, so a change to a screen can be looked at from the Actions page.
 cd apps/android/native && ./gradlew :app:assembleDebug
 ```
 
-Needs a JDK 17+ and an Android SDK with platform 35. CI builds it on every PR
-(the `Native Compose client` job) and uploads the debug APK as `native-apk`.
+Needs a JDK 17+ and an Android SDK with platform 35. The `Native Compose client`
+CI job builds it on pushes to `main` and on pull requests that touch
+native-affecting paths; see the [release gate path table](release.md#when-each-gate-runs).
+It uploads the debug APK as `native-apk`.
 
 ## Data
 
