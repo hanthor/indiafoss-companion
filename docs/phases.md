@@ -14,7 +14,7 @@ lands on `main` with tests green.
 | 6     | Schedule-aware navigation: leave-by, QR location                                    | ✅ done                                                                                                                           |
 | 7     | Booth experience: directory, map linkage, booth activities                          | ✅ done                                                                                                                           |
 | 8     | Production sync: event-sync, diffs, update UI                                       | ✅ done                                                                                                                           |
-| 9     | Android polish: notifications, deep links, ~~F-Droid/Play flavors~~ update channels | 🚧 partial (notifications, deep links; Obtainium + own F-Droid repository replace store flavors, #308; repository not live, #291) |
+| 9     | Android polish: notifications, deep links, ~~F-Droid/Play flavors~~ update channels | 🚧 partial (notifications, deep links; Obtainium + live IndiaFOSS Preview repository replace store flavors, #308; reviewed Companion builds live, Chat not published, #291) |
 | 10    | Release hardening: a11y, perf, offline E2E, SBOM, signed releases                   | 🚧 partial (a11y, SBOM, offline E2E, signed nightly per `release.md`)                                                             |
 
 > **The Capacitor shell is gone** ([ADR 0004](adr/0004-retire-the-capacitor-shell.md)).

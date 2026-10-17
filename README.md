@@ -133,7 +133,7 @@ Off unless you switch it on.
 
 - **Web / PWA** — <https://hanthor.github.io/indiafoss-companion/>, deployed from `main`. Installable; works offline after the first load.
 - **Android** — the rolling [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly) pre-release carries the signed native Companion APK and its SHA-256.
-- **Keeping Android up to date** — add the release page to [Obtainium](https://github.com/ImranR98/Obtainium) (`obtainium://add/https://github.com/hanthor/indiafoss-companion`) and it tracks every signed build; our own F-Droid repository is being set up (#291). Both install the same signed APK — [install channels](docs/install-channels.md).
+- **Keeping Android up to date** — add the release page to [Obtainium](https://github.com/ImranR98/Obtainium) (`obtainium://add/https://github.com/hanthor/indiafoss-companion`) and it tracks every signed build; the live **IndiaFOSS Preview** F-Droid repository also publishes reviewed Companion builds (Chat is not published there yet, #291). Both install the same signed APK — [install channels](docs/install-channels.md).
 - **iOS** — the PWA is iOS-ready: **Share → Add to Home Screen**. Apple touch icon and standalone metadata are in the build; no App Store account needed.
 
 ## Make it yours

@@ -1,8 +1,9 @@
 # Installing the Android apps and keeping them current
 
-The Companion and IndiaFOSS Chat are distributed as signed APKs from their
-GitHub release pages. There are two ways to keep them updated, and both install
-exactly the same file the direct download link serves, signed with the same key:
+The Companion and IndiaFOSS Chat have signed APKs on their GitHub release
+pages. The Companion also has a reviewed Preview build in our F-Droid
+repository; Chat is not published there yet. For Companion, direct downloads,
+Obtainium, and compatible F-Droid clients use the same signing key.
 
 ## Obtainium
 
@@ -12,8 +13,8 @@ installs new builds as they appear.
 1. Install Obtainium from its
    [latest release](https://github.com/ImranR98/Obtainium/releases/latest)
    (or from F-Droid or IzzyOnDroid, where it is also listed).
-2. Add the app. Either tap the **Obtainium** link on the Companion's Connect or
-   Settings page, or paste the repository URL into Obtainium's _Add App_ screen:
+2. Add the app. Tap the **Obtainium** link on the Companion's Home or Settings
+   page, or paste the repository URL into Obtainium's _Add App_ screen:
    - Companion: `https://github.com/hanthor/indiafoss-companion`
    - Chat: `https://github.com/hanthor/indiafoss-chat-android`
 3. Obtainium picks the `nightly` pre-release's APK. Enable _Include
@@ -33,24 +34,31 @@ identity and how it is verified in CI).
 
 ## Our F-Droid repository
 
-A maintainer-run F-Droid repository for reviewed Companion and Chat builds is
-being set up in [hanthor/indiafoss-android-repo](https://github.com/hanthor/indiafoss-android-repo)
-(tracking issue
-[#291](https://github.com/hanthor/indiafoss-companion/issues/291)). It will
-serve the same signed APKs under a separately signed index. Until that endpoint
-is live the PWA does not show an _Add repository_ link; when it is, the link,
-its fingerprint and a QR code will appear next to the download buttons.
+The live [IndiaFOSS Preview repository](https://hanthor.github.io/indiafoss-android-repo/fdroid/repo)
+publishes reviewed Companion APKs under a separately signed index. Chat is not
+published there yet. This is a preview channel, not the official
+f-droid.org catalogue.
+
+Add it to F-Droid, Neo Store, or Droid-ify with the PWA's **Add to F-Droid /
+Neo Store** link or QR code. The direct link is:
+
+`fdroidrepos://hanthor.github.io/indiafoss-android-repo/fdroid/repo?fingerprint=AD932C530715E9CAA39415F94E007002FB3DA0DD2583FF92DFC7F6DFE46CCCC2`
+
+You can also add `https://hanthor.github.io/indiafoss-android-repo/fdroid/repo`
+by hand and verify fingerprint
+`AD932C530715E9CAA39415F94E007002FB3DA0DD2583FF92DFC7F6DFE46CCCC2`. The PWA
+Home and Settings download card carries the same link, fingerprint, and QR code.
 
 ## Direct download
 
 The **Download Android APK** button on the PWA and the
 [`nightly`](https://github.com/hanthor/indiafoss-companion/releases/tag/nightly)
 release page remain available; the release page carries the SHA-256 for each
-file. A hand-installed APK does not update itself, which is why the two
-channels above exist.
+file. A hand-installed APK does not update itself. Use Obtainium or a compatible
+F-Droid client for updates.
 
 ## What we do not use
 
-We do not publish to, or direct attendees towards, third-party app stores. The
-update path is the release page (via Obtainium) and our own F-Droid
-repository.
+We do not publish to the official f-droid.org catalogue or direct attendees to
+unrelated third-party app stores. Supported distribution paths are the release
+page, Obtainium, the IndiaFOSS Preview repository, and direct APK installation.
