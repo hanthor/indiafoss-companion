@@ -5,7 +5,6 @@ import type {
   MatrixKeyKind,
   MatrixKeyProvenance,
 } from '@indiafoss/model';
-import { withIdentityEnvelope } from '@indiafoss/model';
 import type { AccountClaimTrust, PersonalDataFile } from '@indiafoss/model/contracts';
 import { personalDataFromSnapshot, type PersonalDataSnapshot } from './personal-data.js';
 import { validatePersonalData } from './personal-data-validation.js';
@@ -16,10 +15,13 @@ import {
   type ImportChange,
   type PersonalDataImportPreview,
 } from './personal-data-import.js';
-import Dexie, { type Table } from 'dexie';
-
-/** Initial Elo rating (§14). */
-export const INITIAL_RATING = 1200;
+import { CompanionDatabase } from './database.js';
+import { ContactStore } from './stores/contact-store.js';
+import { EventStore } from './stores/event-store.js';
+import { IdentityStore } from './stores/identity-store.js';
+import { MatrixStore } from './stores/matrix-store.js';
+import { PersonalScheduleStore } from './stores/personal-schedule-store.js';
+import { SettingsStore } from './stores/settings-store.js';
 
 export type Disposition = 'normal' | 'must-attend' | 'not-interested' | 'watch-later';
 
@@ -283,23 +285,6 @@ export interface BindingCheck {
 export type MeshLinkObservation =
   'profile-matched' | 'mismatch' | 'unlinked' | 'unverifiable' | 'outdated';
 
-/**
- * Bring a record written by an older build up to the current vocabulary.
- * Builds before #31/#188 stored a profile match as `meshLink.state ===
- * 'verified'`; it reads back as `profile-matched` — not dropped, not trusted.
- * Identity fields go through the versioned envelope (#160): an unversioned
- * record reads as v1, and a mesh or Matrix value this build does not
- * recognise is moved to `identity.retained` rather than offered as an address.
- */
-export function migrateContactRecord(raw: ContactRecord): ContactRecord {
-  const state = (raw.meshLink as { state?: string } | undefined)?.state;
-  const record =
-    state === 'verified'
-      ? { ...raw, meshLink: { ...raw.meshLink!, state: 'profile-matched' as const } }
-      : raw;
-  return withIdentityEnvelope(record);
-}
-
 /** The device's own handshake key pair (non-extractable CryptoKeys, structured-cloned by IndexedDB). */
 export interface DeviceKeyRecord {
   id: string;
@@ -317,64 +302,23 @@ export interface SyncStateRecord {
   lastCheckedAt?: string;
 }
 
-/**
- * IndexedDB schema (§49). Every store is declared up front so migrations are
- * stable; only the stores Phase 2 needs are exercised by CRUD today.
- */
-export class CompanionDatabase extends Dexie {
-  events!: Table<EventBundleRecord, string>;
-  'event-assets'!: Table<{ key: string; blob: ArrayBuffer }, string>;
-  preferences!: Table<ActivityPreference, string>;
-  comparisons!: Table<ComparisonRecord, string>;
-  itineraries!: Table<ItineraryRecord, string>;
-  settings!: Table<{ key: string; value: string }, string>;
-  notes!: Table<NoteRecord, string>;
-  contacts!: Table<ContactRecord, string>;
-  passport!: Table<{ activityId: string; scannedAt: string }, string>;
-  'sync-state'!: Table<SyncStateRecord, string>;
-  'matrix-rooms'!: Table<MatrixRoomRecord, string>;
-  'matrix-events'!: Table<MatrixEventRecord, string>;
-  'matrix-outbox'!: Table<MatrixOutboxRecord, string>;
-  'device-keys'!: Table<DeviceKeyRecord, string>;
-
-  constructor(name = 'indiafoss-companion') {
-    super(name);
-    this.version(1).stores({
-      events: 'eventId',
-      'event-assets': 'key',
-      preferences: 'activityId',
-      comparisons: 'id, createdAt',
-      itineraries: 'eventId',
-      settings: 'key',
-      notes: 'activityId',
-      contacts: 'id',
-      passport: 'activityId',
-      'sync-state': 'eventId',
-    });
-    // v2: optional Matrix messaging cache. Existing stores are untouched.
-    this.version(2).stores({
-      'matrix-rooms': 'roomId, lastActivityTs',
-      'matrix-events': 'eventId, roomId, [roomId+ts], txnId',
-      'matrix-outbox': 'txnId, roomId, createdAt',
-    });
-    // v3: handshake signing keys for signed contact cards.
-    this.version(3).stores({ 'device-keys': 'id' });
-  }
-}
-
-export function defaultPreference(activityId: string): ActivityPreference {
-  return {
-    activityId,
-    rating: INITIAL_RATING,
-    comparisons: 0,
-    disposition: 'normal',
-    bookmarked: false,
-  };
-}
-
-/** Storage facade over IndexedDB. All attendee state stays on device (§45). */
+/** Store composition facade over IndexedDB. All attendee state stays on device (§45). */
 export class CompanionStorage {
-  constructor(private readonly db: CompanionDatabase = new CompanionDatabase()) {}
+  readonly events: EventStore;
+  readonly schedule: PersonalScheduleStore;
+  readonly settings: SettingsStore;
+  readonly contacts: ContactStore;
+  readonly identity: IdentityStore;
+  readonly matrix: MatrixStore;
+
+  constructor(private readonly db: CompanionDatabase = new CompanionDatabase()) {
+    this.events = new EventStore(db);
+    this.schedule = new PersonalScheduleStore(db);
+    this.settings = new SettingsStore(db);
+    this.contacts = new ContactStore(db);
+    this.identity = new IdentityStore(db);
+    this.matrix = new MatrixStore(db);
+  }
 
   private personalStores() {
     return [
@@ -465,197 +409,162 @@ export class CompanionStorage {
   }
 
   async saveEventBundle(bundle: EventBundle): Promise<void> {
-    await this.db.events.put({ eventId: bundle.id, bundle, savedAt: new Date().toISOString() });
+    await this.events.saveEventBundle(bundle);
   }
 
   /** Commit the bundle and its revision together, without rolling back a newer tab's update. */
   async saveEventRevision(bundle: EventBundle, revision: number): Promise<boolean> {
-    if (!Number.isSafeInteger(revision) || revision < 1) throw new Error('Invalid event revision');
-    return this.db.transaction('rw', this.db.events, this.db.settings, async () => {
-      const key = `event-revision-${bundle.id}`;
-      const stored = (await this.db.events.get(bundle.id))?.revision;
-      if (stored !== undefined && Number.isSafeInteger(stored) && stored >= revision) return false;
-      await this.db.events.put({
-        eventId: bundle.id,
-        bundle,
-        revision,
-        savedAt: new Date().toISOString(),
-      });
-      await this.db.settings.put({ key, value: String(revision) });
-      return true;
-    });
+    return this.events.saveEventRevision(bundle, revision);
   }
 
   /** Ignore legacy standalone revision stamps, which may not match the stored bundle. */
   async loadEventRevision(eventId: string): Promise<number | null> {
-    const revision = (await this.db.events.get(eventId))?.revision;
-    return revision !== undefined && Number.isSafeInteger(revision) && revision > 0
-      ? revision
-      : null;
+    return this.events.loadEventRevision(eventId);
   }
 
   async loadEventBundle(eventId: string): Promise<EventBundle | undefined> {
-    const record = await this.db.events.get(eventId);
-    return record?.bundle;
+    return this.events.loadEventBundle(eventId);
   }
 
   async deleteEventBundle(eventId: string): Promise<void> {
-    await this.db.events.delete(eventId);
+    await this.events.deleteEventBundle(eventId);
   }
 
   async listEvents(): Promise<string[]> {
-    return this.db.events.orderBy('eventId').primaryKeys();
+    return this.events.listEvents();
   }
 
   async getPreference(activityId: string): Promise<ActivityPreference | undefined> {
-    return this.db.preferences.get(activityId);
+    return this.schedule.getPreference(activityId);
   }
 
   /** All preferences (used to hydrate the reactive client store). */
   async listPreferences(): Promise<ActivityPreference[]> {
-    return this.db.preferences.toArray();
+    return this.schedule.listPreferences();
   }
 
   async setPreference(pref: ActivityPreference): Promise<void> {
-    await this.db.preferences.put(pref);
+    await this.schedule.setPreference(pref);
   }
 
   async setBookmark(activityId: string, bookmarked: boolean): Promise<ActivityPreference> {
-    const current = (await this.getPreference(activityId)) ?? defaultPreference(activityId);
-    const next = { ...current, bookmarked };
-    await this.setPreference(next);
-    return next;
+    return this.schedule.setBookmark(activityId, bookmarked);
   }
 
   async setDisposition(activityId: string, disposition: Disposition): Promise<ActivityPreference> {
-    const current = (await this.getPreference(activityId)) ?? defaultPreference(activityId);
-    const next = { ...current, disposition };
-    await this.setPreference(next);
-    return next;
+    return this.schedule.setDisposition(activityId, disposition);
   }
 
   async saveComparison(record: ComparisonRecord): Promise<void> {
-    await this.db.comparisons.put(record);
+    await this.schedule.saveComparison(record);
   }
 
   async deleteComparison(id: string): Promise<void> {
-    await this.db.comparisons.delete(id);
+    await this.schedule.deleteComparison(id);
   }
 
   async listComparisons(): Promise<ComparisonRecord[]> {
-    return this.db.comparisons.orderBy('createdAt').toArray();
+    return this.schedule.listComparisons();
   }
 
   async saveItinerary(record: ItineraryRecord): Promise<void> {
-    await this.db.itineraries.put(record);
+    await this.schedule.saveItinerary(record);
   }
 
   async loadItinerary(eventId: string): Promise<ItineraryRecord | undefined> {
-    return this.db.itineraries.get(eventId);
+    return this.schedule.loadItinerary(eventId);
   }
 
   async saveNote(activityId: string, body: string): Promise<void> {
-    await this.db.notes.put({ activityId, body, updatedAt: new Date().toISOString() });
+    await this.schedule.saveNote(activityId, body);
   }
 
   async getNote(activityId: string): Promise<string | undefined> {
-    return (await this.db.notes.get(activityId))?.body;
+    return this.schedule.getNote(activityId);
   }
 
   async setSetting(key: string, value: string): Promise<void> {
-    await this.db.settings.put({ key, value });
+    await this.settings.set(key, value);
   }
 
   async getSetting(key: string): Promise<string | undefined> {
-    return (await this.db.settings.get(key))?.value;
+    return this.settings.get(key);
   }
 
   // ---- Contacts ------------------------------------------------------------
 
   async saveContact(contact: ContactRecord): Promise<void> {
-    await this.db.contacts.put(contact);
+    await this.contacts.save(contact);
   }
 
   async listContacts(): Promise<ContactRecord[]> {
-    const rows = (await this.db.contacts.toArray()).map(migrateContactRecord);
-    return rows.sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+    return this.contacts.list();
   }
 
   async deleteContact(id: string): Promise<void> {
-    await this.db.contacts.delete(id);
+    await this.contacts.delete(id);
   }
 
   async getDeviceKey(id = 'handshake'): Promise<DeviceKeyRecord | undefined> {
-    return this.db['device-keys'].get(id);
+    return this.identity.getDeviceKey(id);
   }
 
   async putDeviceKey(record: DeviceKeyRecord): Promise<void> {
-    await this.db['device-keys'].put(record);
+    await this.identity.putDeviceKey(record);
   }
 
   // ---- Matrix messaging cache -------------------------------------------
 
   async putMatrixRooms(rooms: MatrixRoomRecord[]): Promise<void> {
-    await this.db['matrix-rooms'].bulkPut(rooms);
+    await this.matrix.putRooms(rooms);
   }
 
   async listMatrixRooms(): Promise<MatrixRoomRecord[]> {
-    return this.db['matrix-rooms'].orderBy('lastActivityTs').reverse().toArray();
+    return this.matrix.listRooms();
   }
 
   async deleteMatrixRoom(roomId: string): Promise<void> {
-    await this.db.transaction('rw', this.db['matrix-rooms'], this.db['matrix-events'], async () => {
-      await this.db['matrix-rooms'].delete(roomId);
-      await this.db['matrix-events'].where('roomId').equals(roomId).delete();
-    });
+    await this.matrix.deleteRoom(roomId);
   }
 
   async putMatrixEvents(events: MatrixEventRecord[]): Promise<void> {
-    await this.db['matrix-events'].bulkPut(events);
+    await this.matrix.putEvents(events);
   }
 
   /** Newest `limit` events of a room, returned oldest-first. */
   async listMatrixEvents(roomId: string, limit = 200): Promise<MatrixEventRecord[]> {
-    const rows = await this.db['matrix-events']
-      .where('[roomId+ts]')
-      .between([roomId, Dexie.minKey], [roomId, Dexie.maxKey])
-      .reverse()
-      .limit(limit)
-      .toArray();
-    return rows.reverse();
+    return this.matrix.listEvents(roomId, limit);
   }
 
   async putMatrixOutbox(item: MatrixOutboxRecord): Promise<void> {
-    await this.db['matrix-outbox'].put(item);
+    await this.matrix.putOutbox(item);
   }
 
   async listMatrixOutbox(): Promise<MatrixOutboxRecord[]> {
-    return this.db['matrix-outbox'].orderBy('createdAt').toArray();
+    return this.matrix.listOutbox();
   }
 
   async deleteMatrixOutbox(txnId: string): Promise<void> {
-    await this.db['matrix-outbox'].delete(txnId);
+    await this.matrix.deleteOutbox(txnId);
   }
 
   /** Sign-out: drop every cached room, event and queued message. */
   async clearMatrix(): Promise<void> {
-    await this.db.transaction(
-      'rw',
-      [
-        this.db['matrix-rooms'],
-        this.db['matrix-events'],
-        this.db['matrix-outbox'],
-        this.db.settings,
-      ],
-      async () => {
-        await this.db['matrix-rooms'].clear();
-        await this.db['matrix-events'].clear();
-        await this.db['matrix-outbox'].clear();
-        await this.db.settings.where('key').startsWith('matrix-').delete();
-      },
-    );
+    await this.matrix.clear();
   }
 }
+
+export { CompanionDatabase } from './database.js';
+export { ContactStore, migrateContactRecord } from './stores/contact-store.js';
+export { EventStore } from './stores/event-store.js';
+export { IdentityStore } from './stores/identity-store.js';
+export { MatrixStore } from './stores/matrix-store.js';
+export {
+  defaultPreference,
+  INITIAL_RATING,
+  PersonalScheduleStore,
+} from './stores/personal-schedule-store.js';
+export { SettingsStore } from './stores/settings-store.js';
 
 export {
   PersonalDataImportStaleError,

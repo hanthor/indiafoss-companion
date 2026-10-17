@@ -160,7 +160,7 @@ packages/
   solver/              itinerary solver (weighted DAG)
   venue/               venue routing graph, A*/Dijkstra pathfinding
   search/              local offline search
-  storage/             IndexedDB persistence
+  storage/             IndexedDB schema plus domain stores composed by CompanionStorage
   matrix/              Matrix layer: sync, offline outbox, handoff links
   sources/             event source adapters
   test-fixtures/       shared fixtures
@@ -174,6 +174,11 @@ events/
   indiafoss-2026/      venue floor plan fixture
   synthetic/           hand-authored edge-case fixture
 ```
+
+The storage package keeps IndexedDB migrations in `CompanionDatabase` and
+composes `EventStore`, `PersonalScheduleStore`, `SettingsStore`, `ContactStore`,
+`IdentityStore` and `MatrixStore`. `CompanionStorage` remains the compatibility
+facade while callers move toward the store that owns their data.
 
 ## Development
 
