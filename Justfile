@@ -35,7 +35,7 @@ typecheck:
 test:
     pnpm -r test
 
-# Build packages, the PWA, and sync Capacitor assets.
+# Build workspace packages and the PWA.
 build:
     pnpm -r build
 
